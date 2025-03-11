@@ -9,11 +9,11 @@ export const Status = ({proposal}: {proposal?: Proposal}) => {
   const organisation = useOrgStore()
 
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
-  const { status: readContractStatus, data: proposalState } = useReadContract({
+  const { status: readContractStatus, data: ActionState } = useReadContract({
     address: organisation.contractAddress,
     abi: powersAbi,  
     functionName: 'state',
-    args: [proposal?.proposalId ? proposal.proposalId : '0x0'],
+    args: [proposal?.actionId ? proposal.actionId : '0x0'],
   })
 
   return (
@@ -30,19 +30,19 @@ export const Status = ({proposal}: {proposal?: Proposal}) => {
               !proposal ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> No Proposal Found </div>
               :
-              proposalState == 0 ? 
+              ActionState == 0 ? 
                 <div className={`${layout} text-blue-500 bg-blue-100`}> Active </div>
               :
-              proposalState == 1 ? 
+              ActionState == 1 ? 
                 <div className={`${layout} text-orange-500 bg-orange-100`}> Cancelled </div>
               :
-              proposalState ==  2 ? 
+              ActionState ==  2 ? 
                 <div className={`${layout} text-red-500 bg-red-100`}> Defeated </div>
               :
-              proposalState ==  3 ? 
+              ActionState ==  3 ? 
                 <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
               :
-              proposalState == 4 ? 
+              ActionState == 4 ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> Executed </div>
               :
               null 

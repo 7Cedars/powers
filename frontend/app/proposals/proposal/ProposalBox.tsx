@@ -94,7 +94,7 @@ export function ProposalBox({proposal}: {proposal?: Proposal}) {
     if (selectedProposal) {
       setLogSupport(support)
       castVote(
-          BigInt(selectedProposal.proposalId),
+          BigInt(selectedProposal.actionId),
           support
         )
     }
@@ -108,7 +108,7 @@ export function ProposalBox({proposal}: {proposal?: Proposal}) {
       setDescription(action.description)
       setCalldata(action.callData)
       if (proposal) checkHasVoted(
-        BigInt(proposal.proposalId), 
+        BigInt(proposal.actionId), 
         wallets[0].address as `0x${string}`
       )
   }, [, proposal, action])
@@ -119,7 +119,7 @@ export function ProposalBox({proposal}: {proposal?: Proposal}) {
       setAction({...action, upToDate: false })
       fetchChecks(law, action.callData, action.description)
       if (proposal) checkHasVoted(
-        BigInt(proposal.proposalId), 
+        BigInt(proposal.actionId), 
         wallets[0].address as `0x${string}`
       )
       setAction({...action, upToDate: false })
@@ -170,7 +170,7 @@ export function ProposalBox({proposal}: {proposal?: Proposal}) {
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
-          { proposal && proposal.proposalId != 0 ? 
+          { proposal && proposal.actionId != 0 ? 
               hasVoted ? 
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Account has voted  

@@ -172,8 +172,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         daoMock.execute(laws[parentLawNumber], lawCalldata, description);
         // check if law has been set as completed.
 
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Completed));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Completed));
 
         uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);
 
@@ -203,8 +203,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
             }
         }
         vm.roll(block.number + 4000); // forward in time
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Defeated));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Defeated));
 
         // act & assert
         vm.expectRevert(Law__ParentNotCompleted.selector);
@@ -234,8 +234,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         vm.prank(alice);
         daoMock.execute(laws[parentLawNumber], lawCalldata, description);
         // check if law has been set as completed.
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Completed));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Completed));
 
         // act & assert
         vm.prank(alice);
@@ -262,8 +262,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         vm.roll(block.number + 4000); // forward in time
         vm.prank(alice);
         // check if law has been set as defeated.
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Defeated));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Defeated));
 
         // act
         uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);

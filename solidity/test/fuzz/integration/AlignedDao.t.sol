@@ -52,12 +52,12 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         lawCalldata = abi.encode("Be nice", true); // velue = "Be nice", add = true 
         description = "Propose to add `Be nice` to the list of values of the Dao.";
         vm.prank(bob); // has role 1.
-        proposalId = alignedDao.propose(laws[0], lawCalldata, description);
+        actionId = alignedDao.propose(laws[0], lawCalldata, description);
 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[0],
-            proposalId,
+            actionId,
             users, 
             seed,
             step1Chance
@@ -73,7 +73,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         if (stepsPassed[0]) {
             console.log("step 0 action: Bob EXECUTES and thus formally proposes new value!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(bob, laws[0], lawCalldata, description);
+            emit PowersEvents.ActionRequested(bob, laws[0], lawCalldata, description);
             vm.prank(bob);
             alignedDao.execute(laws[0], lawCalldata, description);
         }
@@ -82,12 +82,12 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         vm.assume(stepsPassed[0]);
         // step 1 action: propose and vote on newly accepted proposed value. 
         vm.prank(gary); // has role 2.
-        proposalId = alignedDao.propose(laws[1], lawCalldata, description);
+        actionId = alignedDao.propose(laws[1], lawCalldata, description);
 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[1],
-            proposalId,
+            actionId,
             users,
             seed,  
             step2Chance
@@ -106,7 +106,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         if (stepsPassed[1]) {
             console.log("step 1 action: ACTION WILL BE EXECUTED");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(gary, laws[1], lawCalldata, description);
+            emit PowersEvents.ActionRequested(gary, laws[1], lawCalldata, description);
             vm.prank(gary); // has role 1
             alignedDao.execute(laws[1], lawCalldata, description);
             uint256 numberOfValuesAfter = StringsArray(laws[1]).numberOfStrings();
@@ -156,7 +156,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         lawCalldata = abi.encode(index, users[index]); // tokenId, address 
         description = "Propose to revoke a users membership.";
         vm.prank(frank); // has role 3.
-        proposalId = alignedDao.propose(
+        actionId = alignedDao.propose(
             laws[2], // = RevokeMembership
             lawCalldata, 
             description
@@ -164,7 +164,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[2],
-            proposalId,
+            actionId,
             users,
             seed,  
             step0Chance
@@ -183,7 +183,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         if (stepsPassed[0]) {
             console.log("step 0 action: Frank EXECUTES and thus revokes membership!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(frank, laws[2], lawCalldata, description);
+            emit PowersEvents.ActionRequested(frank, laws[2], lawCalldata, description);
             vm.prank(frank);
             alignedDao.execute(laws[2], lawCalldata, description);
         } else {
@@ -206,7 +206,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         }
         // has role 1.
         vm.prank(caller); 
-        proposalId = alignedDao.propose(
+        actionId = alignedDao.propose(
             laws[3], // = ProposalOnly (reinstate membership)
             lawCalldata, // note: same lawCalldata as step 0.
             description // note: same description as step 0.
@@ -214,7 +214,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[3],
-            proposalId,
+            actionId,
             users,
             seed,  
             step1Chance
@@ -231,7 +231,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         if (stepsPassed[1]) {
             console.log("step 1 action: caller EXECUTES and thus formalises challenge to revoke!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(caller, laws[3], lawCalldata, description);
+            emit PowersEvents.ActionRequested(caller, laws[3], lawCalldata, description);
             vm.prank(caller);
             alignedDao.execute(laws[3], lawCalldata, description);
         } else {
@@ -245,7 +245,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
 
         // step 2: accept challenge and reinstate membership.
         vm.prank(david); // has role 2.
-        proposalId = alignedDao.propose(
+        actionId = alignedDao.propose(
             laws[4], // = ProposalOnly (reinstate membership)
             lawCalldata, // note: same lawCalldata as step 0.
             description // note: same description as step 0.
@@ -253,7 +253,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[4],
-            proposalId,
+            actionId,
             users,
             seed,  
             step2Chance
@@ -270,7 +270,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         if (stepsPassed[2]) {
             console.log("step 2 action: david EXECUTES and reinstates membership!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(david, laws[4], lawCalldata, description);
+            emit PowersEvents.ActionRequested(david, laws[4], lawCalldata, description);
             vm.prank(david);
             alignedDao.execute(laws[4], lawCalldata, description);
         } else {
@@ -320,7 +320,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
            string memory description = string.concat("request payment at block: ", Strings.toString(block.number)); 
            if (canCallLaw && block.number >= lastValidRequestAt + 300) { // 2000 is duration as set in law. 
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     users[selectUser], 
                     laws[5], 
                     abi.encode(), 
@@ -358,7 +358,7 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
 
             if (hasNFT) {
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(users[i], laws[6], abi.encode(), description);
+                emit PowersEvents.ActionRequested(users[i], laws[6], abi.encode(), description);
                 vm.prank(users[i]);
                 alignedDao.execute(laws[6], abi.encode(false), description);
             } else {
@@ -392,11 +392,11 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         alignedDao.execute(laws[11], abi.encode(false, oracle), "Let's set an oracle.");
         // Members accept oracle
         vm.prank(bob);
-        proposalId = alignedDao.propose(laws[12], abi.encode(false, oracle), "Let's set an oracle."); 
+        actionId = alignedDao.propose(laws[12], abi.encode(false, oracle), "Let's set an oracle."); 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(alignedDao)),
             laws[12],
-            proposalId,
+            actionId,
             users,
             1234,  
             99 // chance of passing vote. 
@@ -469,12 +469,12 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         bytes memory lawCalldataSelect = abi.encode(0, false); // = revoke = false
         string memory descriptionSelect = "Elect an account to role 3.";
         vm.prank(charlotte); // already has role 3.
-        uint256 proposalId = alignedDao.propose(laws[10], lawCalldataSelect, descriptionSelect);
+        uint256 actionId = alignedDao.propose(laws[10], lawCalldataSelect, descriptionSelect);
 
         (uint256 roleCount, uint256 againstVote, uint256 forVote, uint256 abstainVote) = voteOnProposal(
             payable(address(alignedDao)), 
             laws[10], 
-            proposalId, 
+            actionId, 
             users, 
             243432432,
             succeedPassChance
@@ -486,10 +486,10 @@ contract AlignedDao_fuzzIntegrationTest is TestSetupAlignedDao_fuzzIntegration {
         bool succeeded = forVote * 100 / roleCount > succeedAt;
 
         vm.roll(block.number + votingPeriod + 1);
-        console.log(uint8(alignedDao.state(proposalId)));
+        console.log(uint8(alignedDao.state(actionId)));
         if (quorumReached && succeeded) {
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(alice, laws[10], lawCalldataSelect, descriptionSelect);
+            emit PowersEvents.ActionRequested(alice, laws[10], lawCalldataSelect, descriptionSelect);
             vm.prank(alice);
             alignedDao.execute(laws[10], lawCalldataSelect, descriptionSelect);
         } else {

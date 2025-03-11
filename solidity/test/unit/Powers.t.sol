@@ -106,8 +106,8 @@ contract ProposeTest is TestSetupPowers {
         vm.prank(alice);
         uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, description);
 
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Active));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Active));
     }
 
     function testProposeEmitsEvents() public {
@@ -140,7 +140,7 @@ contract ProposeTest is TestSetupPowers {
         vm.prank(alice);
         daoMock.propose(targetLaw, lawCalldata, description);
 
-        vm.expectRevert(Powers__UnexpectedProposalState.selector);
+        vm.expectRevert(Powers__UnexpectedActionState.selector);
         vm.prank(alice);
         daoMock.propose(targetLaw, lawCalldata, description);
     }
@@ -175,8 +175,8 @@ contract CancelTest is TestSetupPowers {
         daoMock.cancel(targetLaw, lawCalldata, keccak256(bytes(description)));
 
         // check the state
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Cancelled));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Cancelled));
     }
 
     function testCancelRevertsWhenAccountDidNotCreateProposal() public {
@@ -206,7 +206,7 @@ contract CancelTest is TestSetupPowers {
         daoMock.cancel(targetLaw, lawCalldata, keccak256(bytes(description)));
 
         // act: try to cancel proposal a second time. Should revert
-        vm.expectRevert(Powers__UnexpectedProposalState.selector);
+        vm.expectRevert(Powers__UnexpectedActionState.selector);
         vm.prank(alice);
         daoMock.cancel(targetLaw, lawCalldata, keccak256(bytes(description)));
     }
@@ -243,8 +243,8 @@ contract VoteTest is TestSetupPowers {
         vm.roll(block.number + 4000);
 
         // check state of proposal
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Defeated));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Defeated));
     }
 
     function testVotingIsNotPossibleForDefeatedProposals() public {
@@ -284,8 +284,8 @@ contract VoteTest is TestSetupPowers {
         vm.roll(block.number + 4000); //
 
         // assert
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Succeeded));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Succeeded));
     }
 
     function testVotesWithReasonsWorks() public {
@@ -308,8 +308,8 @@ contract VoteTest is TestSetupPowers {
         vm.roll(block.number + 4000);
 
         // assert
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Succeeded));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Succeeded));
     }
 
     function testProposalDefeatedIfQuorumReachedButNotEnoughForVotes() public {
@@ -332,8 +332,8 @@ contract VoteTest is TestSetupPowers {
         vm.roll(block.number + 4000); //
 
         // assert
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Defeated));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Defeated));
     }
 
     function testAccountCannotVoteTwice() public {
@@ -493,8 +493,8 @@ contract ExecuteTest is TestSetupPowers {
 
         // assert
         uint256 actionId = hashProposal(laws[lawNumber], lawCalldata, keccak256(bytes(description)));
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Completed));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Completed));
     }
 
     function testExecuteEmitEvent() public {
@@ -514,7 +514,7 @@ contract ExecuteTest is TestSetupPowers {
 
         // act & assert
         vm.expectEmit(true, false, false, false);
-        emit ProposalExecuted(tar, val, cal);
+        emit ActionExecuted(tar, val, cal);
         vm.prank(mockAddress);
         daoMock.execute(laws[lawNumber], lawCalldata, description);
     }
@@ -598,8 +598,8 @@ contract ExecuteTest is TestSetupPowers {
         vm.roll(block.number + 4000); //
 
         // check if proposal is defeated.
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Defeated));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Defeated));
 
         // act & assert: try to execute proposal.
         vm.expectRevert(); // check selector
@@ -620,8 +620,8 @@ contract ExecuteTest is TestSetupPowers {
         daoMock.cancel(laws[lawNumber], lawCalldata, keccak256(bytes(description)));
 
         // check if proposal is cancelled.
-        ProposalState proposalState = daoMock.state(actionId);
-        assertEq(uint8(proposalState), uint8(ProposalState.Cancelled));
+        ActionState ActionState = daoMock.state(actionId);
+        assertEq(uint8(ActionState), uint8(ActionState.Cancelled));
 
         // act & assert: try to execute proposal.
         vm.expectRevert(Powers__ProposalCancelled.selector);

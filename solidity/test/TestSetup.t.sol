@@ -57,7 +57,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes lawCalldata;
     string description;
     bytes32 descriptionHash;
-    uint256 proposalId;
+    uint256 actionId;
 
     uint256 roleCount;
     uint256 againstVote;
@@ -165,7 +165,7 @@ abstract contract TestHelpers is Test, TestVariables {
     function voteOnProposal(
         address payable dao,
         address law,
-        uint256 proposalId,
+        uint256 actionId,
         address[] memory accounts,
         uint256 randomiser,
         uint256 passChance // in percentage
@@ -183,15 +183,15 @@ abstract contract TestHelpers is Test, TestVariables {
                 roleCount++;
                 if (currentRandomiser % 100 >= passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 0); // = against
+                    Powers(dao).castVote(actionId, 0); // = against
                     againstVote++;
                 } else if (currentRandomiser % 100 < passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 1); // = for
+                    Powers(dao).castVote(actionId, 1); // = for
                     forVote++;
                 } else {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 2); // = abstain
+                    Powers(dao).castVote(actionId, 2); // = abstain
                     abstainVote++;
                 }
             }

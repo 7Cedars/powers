@@ -34,7 +34,7 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
       {
         ...powersContract,
         functionName: 'getProposalVotes',
-        args: [proposal?.proposalId]
+        args: [proposal?.actionId]
       }, 
       {
         ...powersContract,
@@ -44,7 +44,7 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
       {
         ...powersContract,
         functionName: 'proposalDeadline', 
-        args: [proposal?.proposalId]
+        args: [proposal?.actionId]
       }, 
     ]
   })

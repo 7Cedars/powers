@@ -83,12 +83,12 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
 
         // making proposal 
         vm.prank(david); // has role 2
-        proposalId = governYourTax.propose(laws[1], lawCalldata, description);
+        actionId = governYourTax.propose(laws[1], lawCalldata, description);
         // voting on proposal 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(governYourTax)),
             laws[1],
-            proposalId,
+            actionId,
             users, 
             seed,
             step0Chance
@@ -103,7 +103,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         if (quorumReached && voteSucceeded) {
             console.log("step 0 action: eve EXECUTES and creates new grant. Budget: ", seed);
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 eve, laws[1], lawCalldata, description
                 );
             vm.prank(eve);
@@ -130,12 +130,12 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             );
             // making proposal 
             vm.prank(charlotte); // has role 1
-            proposalId = governYourTax.propose(laws[0], lawCalldataRequest, description);
+            actionId = governYourTax.propose(laws[0], lawCalldataRequest, description);
             // voting on proposal 
             (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
                 payable(address(governYourTax)),
                 laws[0],
-                proposalId,
+                actionId,
                 users, 
                 seed,
                 step1Chance
@@ -153,7 +153,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             if (quorumReached && voteSucceeded) { // at the fourth step budget will be exhausted.
                 console.log("step 1 action: bob EXECUTES and thus formally proposes request to the grant");
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     bob, 
                     laws[0], 
                     lawCalldataRequest, 
@@ -173,12 +173,12 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             // step 2: grant request gets assessed and (conditionally) executed
             // making proposal 
             vm.prank(gary); // has role of grant (assigned above)
-            proposalId = governYourTax.propose(grantAddress, lawCalldataRequest, description);
+            actionId = governYourTax.propose(grantAddress, lawCalldataRequest, description);
             // voting on proposal 
             (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
                 payable(address(governYourTax)),
                 grantAddress,
-                proposalId,
+                actionId,
                 users, 
                 seed,
                 step1Chance
@@ -199,7 +199,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
                 (seed % 350) * i <= seed) { // at the fourth step budget will be exhausted.
                 console.log("step 2 action: Helen EXECUTES and grants grant request, money should be transferred");
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     helen, 
                     grantAddress, 
                     lawCalldataRequest, 
@@ -219,7 +219,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
                 Grant(grantAddress).budget() == Grant(grantAddress).spent()
             ) {
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     eve, 
                     laws[2], 
                     lawCalldata, 
@@ -269,12 +269,12 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
 
         // making proposal 
         vm.prank(alice); // has role 3
-        proposalId = governYourTax.propose(laws[3], lawCalldata, description);
+        actionId = governYourTax.propose(laws[3], lawCalldata, description);
         // voting on proposal 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(governYourTax)),
             laws[3],
-            proposalId,
+            actionId,
             users, 
             seed,
             step0Chance
@@ -289,7 +289,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         if (quorumReached && voteSucceeded) {
             console.log("step 0 action: alice EXECUTES and stops law.");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 alice, laws[3], lawCalldata, description
                 );
             vm.prank(alice);
@@ -306,7 +306,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         // making proposal 
         vm.roll(block.number +  10);
         vm.prank(charlotte); // has role 3
-        proposalId = governYourTax.propose(
+        actionId = governYourTax.propose(
             laws[4], 
             lawCalldata, // note: exact same lawCalldata as laws[3]
             description // note: exact same description as laws[3]
@@ -315,7 +315,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(governYourTax)),
             laws[4],
-            proposalId,
+            actionId,
             users, 
             seed,
             step1Chance
@@ -330,7 +330,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         if (quorumReached && voteSucceeded) {
             console.log("step 1 action: bob EXECUTES and restarts law.");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 bob, laws[4], lawCalldata, description
                 );
             vm.prank(bob);
@@ -374,12 +374,12 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
 
         // making proposal 
         vm.prank(alice); // has role 2
-        proposalId = governYourTax.propose(laws[5], abi.encode(mintQuantity), description);
+        actionId = governYourTax.propose(laws[5], abi.encode(mintQuantity), description);
         // voting on proposal 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(governYourTax)),
             laws[5],
-            proposalId,
+            actionId,
             users, 
             seed,
             mintingChance
@@ -394,7 +394,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         if (quorumReached && voteSucceeded) {
             console.log("step 0 action: alice EXECUTES and mints tokens.");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 alice, laws[5], abi.encode(mintQuantity), description
                 );
             vm.prank(alice);
@@ -410,7 +410,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         description = "Burning ERC20 tokens.";
         // making proposal 
         vm.prank(charlotte); // has role 3
-        proposalId = governYourTax.propose(
+        actionId = governYourTax.propose(
             laws[6], 
             abi.encode(burnQuantity), 
             description 
@@ -419,7 +419,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(governYourTax)),
             laws[6],
-            proposalId,
+            actionId,
             users, 
             seed,
             burningChance
@@ -440,7 +440,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             ) {
             console.log("step 1 action: bob EXECUTES and burns tokens.");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 bob, laws[6], abi.encode(burnQuantity), description
                 );
             vm.prank(bob);
@@ -507,7 +507,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             if (taxPaid[users[i]] >= 100) { // threshold set when deploying law
                 console.log("action: user claims role.");
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     users[i], laws[7], lawCalldata, description
                     );
                 vm.prank(users[i]);
@@ -607,7 +607,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
             ) {             
                 console.log("action: user is voting.");
                 vm.expectEmit(true, false, false, false);
-                emit PowersEvents.ProposalCompleted(
+                emit PowersEvents.ActionRequested(
                     votingUser, 
                     electionVotesAddress, 
                     abi.encode(userReceivingVote), 
@@ -639,7 +639,7 @@ contract GovernYourTax_fuzzIntegrationTest is TestSetupGovernYourTax_fuzzIntegra
         console.log("block number: ", block.number);
         if ( block.number >= ElectionVotes(electionVotesAddress).endVote() ) {
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(
+            emit PowersEvents.ActionRequested(
                 alice, // has role 1
                 laws[10], 
                 lawCalldata,

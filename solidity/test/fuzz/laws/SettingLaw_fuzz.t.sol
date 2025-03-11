@@ -110,7 +110,7 @@ pragma solidity 0.8.26;
 
 //     vm.prank(account0); // = a whale
 //     if (account0 != david && account0 != eve){ vm.expectRevert(); }
-//     uint256 proposalIdOne = agDao.propose(
+//     uint256 actionIdOne = agDao.propose(
 //       constituentLaws[4], // = Whale_proposeLaw
 //       lawCalldata,
 //       description
@@ -119,9 +119,9 @@ pragma solidity 0.8.26;
 
 //     // whales vote in favor... David and eve are whales.
 //     vm.prank(david);
-//     agDao.castVote(proposalIdOne, 1); // = for
+//     agDao.castVote(actionIdOne, 1); // = for
 //     vm.prank(eve);
-//     agDao.castVote(proposalIdOne, 1); // = for
+//     agDao.castVote(actionIdOne, 1); // = for
 
 //     vm.roll(block.number + 4_000);
 
@@ -130,15 +130,15 @@ pragma solidity 0.8.26;
 //     agDao.execute(constituentLaws[4], lawCalldata, keccak256(bytes(description)));
 
 //     // check
-//     PowersTypes.ProposalState proposalStateOne = agDao.state(proposalIdOne);
-//     assert(uint8(proposalStateOne) == 4); // == ProposalState.Completed
+//     PowersTypes.ActionState ActionStateOne = agDao.state(actionIdOne);
+//     assert(uint8(ActionStateOne) == 4); // == ActionState.Completed
 
 //     /* PROPOSAL LINK 2: a seniors accept the proposed law. */
 //     // proposing...
 //     vm.roll(block.number + 5_000);
 //     vm.prank(account1); // = a senior
 //     if (account1 != alice && account1 != bob && account1 != charlotte){ vm.expectRevert(); }
-//     uint256 proposalIdTwo = agDao.propose(
+//     uint256 actionIdTwo = agDao.propose(
 //       constituentLaws[5], // = Senior_acceptProposedLaw
 //       lawCalldata,
 //       description
@@ -147,11 +147,11 @@ pragma solidity 0.8.26;
 
 //     // seniors vote... alice, bob and charlotte are seniors.
 //     vm.prank(alice);
-//     agDao.castVote(proposalIdTwo, 1); // = for
+//     agDao.castVote(actionIdTwo, 1); // = for
 //     vm.prank(bob);
-//     agDao.castVote(proposalIdTwo, 1); // = for
+//     agDao.castVote(actionIdTwo, 1); // = for
 //     vm.prank(charlotte);
-//     agDao.castVote(proposalIdTwo, 1); // = for
+//     agDao.castVote(actionIdTwo, 1); // = for
 
 //     vm.roll(block.number + 9_000);
 
@@ -160,8 +160,8 @@ pragma solidity 0.8.26;
 //     agDao.execute(constituentLaws[5], lawCalldata, keccak256(bytes(description)));
 
 //     // check
-//     PowersTypes.ProposalState proposalStateTwo = agDao.state(proposalIdTwo);
-//     assert(uint8(proposalStateTwo) == 4); // == ProposalState.Completed
+//     PowersTypes.ActionState ActionStateTwo = agDao.state(actionIdTwo);
+//     assert(uint8(ActionStateTwo) == 4); // == ActionState.Completed
 
 //     /* PROPOSAL LINK 3: the admin can execute a activation of the law. */
 //     vm.roll(block.number + 10_000);

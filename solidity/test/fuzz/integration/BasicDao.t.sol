@@ -55,12 +55,12 @@ contract BasicDao_fuzzIntegrationTest is TestSetupBasicDao_fuzzIntegration {
         lawCalldata = abi.encode(targets, values, calldatas); // = revoke = false
         description = "Propose minting 5000 coins to alice's account";
         vm.prank(gary); // has role 2.
-        proposalId = basicDao.propose(laws[0], lawCalldata, description);
+        actionId = basicDao.propose(laws[0], lawCalldata, description);
 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(basicDao)),
             laws[0],
-            proposalId,
+            actionId,
             users,
             seed, 
             step0Chance
@@ -75,7 +75,7 @@ contract BasicDao_fuzzIntegrationTest is TestSetupBasicDao_fuzzIntegration {
         if (stepsPassed[0]) {
             console.log("step 1 action: GARY EXECUTES!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(gary, laws[0], lawCalldata, description);
+            emit PowersEvents.ActionRequested(gary, laws[0], lawCalldata, description);
             vm.prank(gary);
             basicDao.execute(laws[0], lawCalldata, description);
         }
@@ -87,15 +87,15 @@ contract BasicDao_fuzzIntegrationTest is TestSetupBasicDao_fuzzIntegration {
         if (step1Chance > 50) {
             console.log("step 2 action: ALICE CASTS VETO!");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(alice, laws[1], lawCalldata, description);
+            emit PowersEvents.ActionRequested(alice, laws[1], lawCalldata, description);
             vm.prank(alice); // has admin role.
             basicDao.execute(laws[1], lawCalldata, description);
 
             // step 1 results.
             descriptionHash = keccak256(bytes(description));
-            proposalId = hashProposal(laws[1], lawCalldata, descriptionHash);
-            uint8 vetoState = uint8(basicDao.state(proposalId));
-            stepsPassed[1] = vetoState != uint8(ProposalState.Completed);
+            actionId = hashProposal(laws[1], lawCalldata, descriptionHash);
+            uint8 vetoState = uint8(basicDao.state(actionId));
+            stepsPassed[1] = vetoState != uint8(ActionState.Completed);
             console.log("step 2 result: proposal vetoState: ", vetoState);
         } else {
             console.log("step 2 action: ALICE DOES NOT CASTS VETO!");
@@ -106,12 +106,12 @@ contract BasicDao_fuzzIntegrationTest is TestSetupBasicDao_fuzzIntegration {
         vm.assume(stepsPassed[1]);
         // step 2 action: propose and vote on action. 
         vm.prank(bob); // has role 1.
-        proposalId = basicDao.propose(laws[2], lawCalldata, description);
+        actionId = basicDao.propose(laws[2], lawCalldata, description);
 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(basicDao)),
             laws[2],
-            proposalId,
+            actionId,
             users,
             seed,
             step2Chance
@@ -130,7 +130,7 @@ contract BasicDao_fuzzIntegrationTest is TestSetupBasicDao_fuzzIntegration {
         if (stepsPassed[2]) {
             console.log("step 4 action: ACTION WILL BE EXECUTED");
             vm.expectEmit(true, false, false, false);
-            emit PowersEvents.ProposalCompleted(bob, laws[2], lawCalldata, description);
+            emit PowersEvents.ActionRequested(bob, laws[2], lawCalldata, description);
             vm.prank(bob); // has role 1
             basicDao.execute(laws[2], lawCalldata, description);
             uint256 balanceAfter = erc20VotesMock.balanceOf(address(basicDao));

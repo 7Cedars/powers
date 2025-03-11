@@ -150,7 +150,7 @@ export type Action = {
 }
 
 export type Proposal = {
-  proposalId: number;
+  actionId: number;
   targetLaw: `0x${string}`;
   voteStart: bigint;
   voteStartBlockData?: GetBlockReturnType; 

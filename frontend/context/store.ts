@@ -34,7 +34,7 @@ const initialStateLaw: LawStore = {
 
 type ProposalStore = Proposal;
 const initialStateProposal: ProposalStore = {
-  proposalId: 0,
+  actionId: 0,
   targetLaw: `0x`,
   voteStart: 0n,
   voteDuration: 0n,

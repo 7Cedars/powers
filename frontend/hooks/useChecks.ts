@@ -73,7 +73,7 @@ export const useChecks = () => {
                   abi: powersAbi,
                   address: organisation.contractAddress as `0x${string}`,
                   functionName: 'state', 
-                  args: [selectedProposal.proposalId],
+                  args: [selectedProposal.actionId],
                 })
           const result = stateToCheck.includes(Number(state)) 
           return result 
@@ -107,13 +107,13 @@ export const useChecks = () => {
             const logs = await publicClient.getContractEvents({ 
               address: organisation.contractAddress as `0x${string}`,
               abi: powersAbi, 
-              eventName: 'ProposalCompleted',
+              eventName: 'ActionRequested',
               fromBlock: supportedChain?.genesisBlock,
               args: {targetLaw: lawAddress}
             })
             const fetchedLogs = parseEventLogs({
                         abi: powersAbi,
-                        eventName: 'ProposalCompleted',
+                        eventName: 'ActionRequested',
                         logs
                       })
             const fetchedLogsTyped = fetchedLogs as unknown[] as LogExtended[]  
