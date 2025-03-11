@@ -1,0 +1,2 @@
+# StringsArray.sol
+

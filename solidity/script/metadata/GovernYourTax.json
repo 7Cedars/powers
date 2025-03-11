@@ -1,0 +1,20 @@
+{
+  "icon": "",
+  "banner": "",
+  "description": 
+    "A community organised around token usage. It governs a mock token (Erc20TaxedMock, MTXD) that collects tax on every transaction. Tax payers can become community members and decide on how their tax is spent. Members can elect governors that create grant councils and grant programs. Allows any member to apply and receive grants paid for by the tax received from accounts using the token. For added security, there is a security council that can pause and restart any law.",
+  "attributes": [
+    {
+      "trait_type": "optional trait 1",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 2",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 3",
+      "value": "none"
+    }
+  ]
+}

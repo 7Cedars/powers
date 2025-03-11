@@ -1,0 +1,2 @@
+# SelfResign.sol
+

@@ -1,0 +1,28 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+evm_version = "cancun"
+
+[fmt]
+bracket_spacing = true
+int_types = "long"
+line_length = 120
+multiline_func_header = "attributes_first"
+number_underscore = "thousands"
+quote_style = "double"
+tab_width = 4
+wrap_comments = false
+
+[fuzz]
+runs = 256
+depth = 256
+fail_on_revert = true 
+seed = '0x3eb'
+
+[invariant] 
+runs = 128
+depth = 128 
+fail_on_revert = false 
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
