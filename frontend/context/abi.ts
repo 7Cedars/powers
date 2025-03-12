@@ -1046,7 +1046,7 @@ export const lawAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "simulateLaw",
+    "name": "handleRequest",
     "inputs": [
       { "name": "initiator", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },

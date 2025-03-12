@@ -24,7 +24,7 @@
 /// 5. Execution of governance actions
 ///
 /// Laws can be customized through:
-/// - Inheriting and implementing the {simulateLaw} {_replyPowers} and {_changeState} functions
+/// - Inheriting and implementing the {handleRequest} {_replyPowers} and {_changeState} functions
 /// - Configuring parameters in the constructor
 /// - Adding custom state variables and logic
 ///
@@ -34,11 +34,15 @@ pragma solidity 0.8.26;
 import { Powers } from "./Powers.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
-import { ERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
-import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/ShortStrings.sol";
+
+///// ONLY FOR TESTING /////
+import "forge-std/Test.sol";
+///// ONLY FOR TESTING /////
  
-contract Law is ERC165, ILaw {
+abstract contract Law is ERC165, ILaw {
     using ShortStrings for *;
 
     //////////////////////////////////////////////////////////////
@@ -61,30 +65,8 @@ contract Law is ERC165, ILaw {
     /// @dev First element is always 0
     uint48[] public executions = [0];
 
-    //////////////////////////////////////////////////////////////
-    //                     CONSTRUCTOR                          //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Initializes a new law contract
-    /// @param name_ Name of the law
-    /// @param description_ Description of the law's purpose
-    /// @param powers_ Address of the Powers protocol contract
-    /// @param allowedRole_ Role ID required to interact with this law
-    /// @param config_ Configuration parameters for the law
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawConfig memory config_
-    ) {
-        name = name_.toShortString();
-        allowedRole = allowedRole_;
-        powers = powers_;
-        config = config_;
-
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_);
-    }
+    // note the absent constructor. This is because the Law contract is intended to be used as an abstract base contract.
+    // Subcontracts will inherit from this contract and implement their own specific logic.
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
@@ -100,22 +82,40 @@ contract Law is ERC165, ILaw {
         public
         returns (bool success)
     {
+        console.log("@Law: waypoint 0", powers);
         if (msg.sender != powers) {
             revert Law__OnlyPowers();
         }
+
+        console.log("@Law: waypoint 1");
 
         // Run all validation checks
         checksAtPropose(initiator, lawCalldata, descriptionHash);
         checksAtExecute(initiator, lawCalldata, descriptionHash);
 
+        console.log("@Law: waypoint 2");
+
         // Simulate and execute the law's logic
-        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
-            simulateLaw(initiator, lawCalldata, descriptionHash);
+        (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
+            handleRequest(initiator, lawCalldata, descriptionHash);
         
-        _replyPowers(targets, values, calldatas);
-        _changeState(stateChange);
+        console.log("@Law: waypoint 3");
+        console.log("@Law: targets.length", targets.length);
+        console.log("@Law: actionId", actionId);
+        // execute the law's logic conditional on data returned by handleRequest
+        if (targets.length > 0) {
+            console.log("@Law: waypoint 4");
+            _replyPowers(actionId, targets, values, calldatas);
+        }
+        if (stateChange.length > 0) {
+            console.log("@Law: waypoint 5");
+            _changeState(stateChange);
+        }
+
+        console.log("@Law: waypoint 6");
         
         executions.push(uint48(block.number));
+        console.log("@Law: waypoint 7");
         return true;
     }
 
@@ -124,17 +124,18 @@ contract Law is ERC165, ILaw {
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
     /// @param descriptionHash Hash of the action description
+    /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view 
         virtual
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // Empty implementation - must be overridden
+
     }
 
     /// @notice Applies state changes from law execution
@@ -146,11 +147,16 @@ contract Law is ERC165, ILaw {
 
     /// @notice Sends execution data back to Powers protocol
     /// @dev Must be overridden by implementing contracts
+    /// @param actionId The action id of the proposal
     /// @param targets Target contract addresses for calls
     /// @param values ETH values to send with calls
     /// @param calldatas Encoded function calls
-    function _replyPowers(address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
-        // Empty implementation - must be overridden
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+        // Base implementation: send data back to Powers protocol
+        // this implementation can be overwritten with any kind of bespoke logic. 
+        console.log("@Law: waypoint 8");
+        console.log("@Law: actionId wp8", actionId);
+        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -159,26 +165,27 @@ contract Law is ERC165, ILaw {
 
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
-    /// @param initiator Address attempting to propose
     /// @param lawCalldata Encoded function call data
     /// @param descriptionHash Hash of the action description
-    function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function checksAtPropose(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
     {
         // Check if parent law completion is required
         if (config.needCompleted != address(0)) {
-            uint256 parentActionId = _hashProposal(config.needCompleted, lawCalldata, descriptionHash);
-            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Completed) {
+            uint256 parentActionId = _hashActionId(config.needCompleted, lawCalldata, descriptionHash);
+
+            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentNotCompleted();
             }
         }
 
         // Check if parent law must not be completed
         if (config.needNotCompleted != address(0)) {
-            uint256 parentActionId = _hashProposal(config.needNotCompleted, lawCalldata, descriptionHash);
-            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Completed) {
+            uint256 parentActionId = _hashActionId(config.needNotCompleted, lawCalldata, descriptionHash);
+
+            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentBlocksCompletion();
             }
         }
@@ -186,10 +193,9 @@ contract Law is ERC165, ILaw {
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
-    /// @param initiator Address attempting to execute
     /// @param lawCalldata Encoded function call data
     /// @param descriptionHash Hash of the action description
-    function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function checksAtExecute(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
@@ -205,7 +211,7 @@ contract Law is ERC165, ILaw {
 
         // Check if proposal vote succeeded
         if (config.quorum != 0) {
-            uint256 actionId = _hashProposal(address(this), lawCalldata, descriptionHash);
+            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
             if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
                 revert Law__ProposalNotSucceeded();
             }
@@ -213,8 +219,8 @@ contract Law is ERC165, ILaw {
 
         // Check execution delay after proposal
         if (config.delayExecution != 0) {
-            uint256 actionId = _hashProposal(address(this), lawCalldata, descriptionHash);
-            uint256 deadline = Powers(payable(powers)).getProposalDeadline(actionId);
+            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
             if (deadline + config.delayExecution > block.number) {
                 revert Law__DeadlineNotPassed();
             }
@@ -233,16 +239,11 @@ contract Law is ERC165, ILaw {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    /// @notice Creates a unique identifier for a proposal
-    /// @param targetLaw Law contract being called
-    /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the proposal description
-    /// @return Unique proposal identifier
-    function _hashProposal(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function _hashActionId(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
         internal
         pure
-        returns (uint256)
+        returns (uint256 actionId)
     {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+       actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
     }
 }

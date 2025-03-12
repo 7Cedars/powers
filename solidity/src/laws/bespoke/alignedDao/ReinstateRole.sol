@@ -17,50 +17,50 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-import { Law } from "../../../Law.sol";
-import { Powers} from "../../../Powers.sol";
-import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
+// import { Law } from "../../../Law.sol";
+// import { Powers} from "../../../Powers.sol";
+// import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
 
-contract ReinstateRole is Law {
-    uint32 constant ROLE_ID = 1;
+// contract ReinstateRole is Law {
+//     uint32 constant ROLE_ID = 1;
 
-    address public erc721Token;
+//     address public erc721Token;
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawConfig memory config_,
-        address erc721Token_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode("uint256 TokenId", "address Account"); // token id, account
-        erc721Token = erc721Token_;
-    }
+//     constructor(
+//         string memory name_,
+//         string memory description_,
+//         address payable powers_,
+//         uint32 allowedRole_,
+//         LawConfig memory config_,
+//         address erc721Token_
+//     )  {
+//         inputParams = abi.encode("uint256 TokenId", "address Account"); // token id, account
+//         erc721Token = erc721Token_;
+//     }
 
-    /// @notice execute the law.
-    /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
-        public
-        view
-        virtual
-        override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-    {
-        (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
-        targets = new address[](2);
-        values = new uint256[](2);
-        calldatas = new bytes[](2);
-        stateChange = abi.encode("");
+//     /// @notice execute the law.
+//     /// @param lawCalldata the calldata _without function signature_ to send to the function.
+//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+//         public
+//         view
+//         virtual
+//         override
+//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+//     {
+//         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
+//         targets = new address[](2);
+//         values = new uint256[](2);
+//         calldatas = new bytes[](2);
+//         stateChange = abi.encode("");
 
-        // action 0: revoke role member in Separated powers
-        targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);
+//         // action 0: revoke role member in Separated powers
+//         targets[0] = powers;
+//         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);
 
-        // action 1: burn the access token of the member, so they cannot become member again.
-        targets[1] = erc721Token;
-        calldatas[1] = abi.encodeWithSelector(Erc721Mock.mintNFT.selector, tokenId, account);
+//         // action 1: burn the access token of the member, so they cannot become member again.
+//         targets[1] = erc721Token;
+//         calldatas[1] = abi.encodeWithSelector(Erc721Mock.mintNFT.selector, tokenId, account);
 
-        return (targets, values, calldatas, stateChange);
-    }
-}
+//         return (targets, values, calldatas, stateChange);
+//     }
+// }

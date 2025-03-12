@@ -103,7 +103,7 @@ export const useLaw = () => {
         const result = await readContract(wagmiConfig, {
           abi: lawAbi,
           address: law.law,
-          functionName: 'simulateLaw', 
+          functionName: 'handleRequest', 
           args: [initiator, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
         })
           setSimulation(result as LawSimulation)

@@ -117,59 +117,55 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
-    /// @return The current state of the proposal
-    function state(uint256 actionId) external view returns (ActionState);
+    /// @return state the current state of the proposal
+    function state(uint256 actionId) external view returns (ActionState state);
 
     /// @notice Checks if an account has voted on a specific proposal
     /// @param actionId The unique identifier of the proposal
     /// @param account The address to check
-    /// @return True if the account has voted, false otherwise
-    function hasVoted(uint256 actionId, address account) external view returns (bool);
+    /// @return hasVoted True if the account has voted, false otherwise
+    function hasVoted(uint256 actionId, address account) external view returns (bool hasVoted);
 
     /// @notice Gets the current vote tallies for a proposal
     /// @param actionId The unique identifier of the proposal
-    /// @return againstVotes The number of votes against
-    /// @return forVotes The number of votes for
-    /// @return abstainVotes The number of abstain votes
-    function getProposalVotes(uint256 actionId)
+    /// @return againstVotes the number of votes against
+    /// @return forVotes the number of votes for
+    /// @return abstainVotes the number of abstain votes
+    function getProposedActionVotes(uint256 actionId)
         external
         view
         returns (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes);
 
     /// @notice Gets the deadline for voting on a proposal
     /// @param actionId The unique identifier of the proposal
-    /// @return The block number at which voting ends
-    function getProposalDeadline(uint256 actionId) external view returns (uint256);
+    /// @return deadline the block number at which voting ends
+    function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
     /// @param roleId The identifier of the role
-    /// @return since The block number since holding the role, 0 if never held
+    /// @return since the block number since holding the role, 0 if never held
     function hasRoleSince(address account, uint32 roleId) external view returns (uint48 since);
 
     /// @notice Gets the total number of accounts holding a specific role
     /// @param roleId The identifier of the role
-    /// @return The number of role holders
-    function getAmountRoleHolders(uint32 roleId) external view returns (uint256);
+    /// @return amountMembers the number of role holders
+    function getAmountRoleHolders(uint32 roleId) external view returns (uint256 amountMembers);
 
     /// @notice Checks if a law is currently active
     /// @param law The address of the law contract
-    /// @return True if the law is active, false otherwise
+    /// @return active if the law is active, false otherwise
     function getActiveLaw(address law) external view returns (bool active);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law
     /// @param targetLaw The law contract to check
-    /// @return True if the caller has permission, false otherwise
-    function canCallLaw(address caller, address targetLaw) external view returns (bool);
-
-    /// @notice Gets the name of the DAO
-    /// @return The name string
-    function name() external view returns (string memory);
+    /// @return canCall True if the caller has permission, false otherwise
+    function canCallLaw(address caller, address targetLaw) external view returns (bool canCall);
 
     /// @notice Gets the protocol version
-    /// @return The version string
-    function version() external pure returns (string memory);
+    /// @return version the version string
+    function version() external pure returns (string memory version);
 
     /// @notice Updates the protocol's metadata URI
     /// @dev Can only be called through the protocol itself
@@ -177,7 +173,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     function setUri(string memory newUri) external;
 
     //////////////////////////////////////////////////////////////
-    //                      TOKEN HANDLING                       //
+    //                      TOKEN HANDLING                      //
     //////////////////////////////////////////////////////////////
 
     /// @notice Handles the receipt of a single ERC721 token

@@ -32,7 +32,7 @@ contract HelperConfig is Script {
         return getConfigByChainId(block.chainid);
     }
 
-    function getConfigByChainId(uint256 chainId) public returns (NetworkConfig memory) {
+    function getConfigByChainId(uint256 chainId) public view returns (NetworkConfig memory) {
         if (networkConfigs[chainId].blocksPerHour != 0) {
             return networkConfigs[chainId];
         } else {

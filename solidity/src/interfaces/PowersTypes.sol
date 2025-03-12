@@ -27,10 +27,10 @@ interface PowersTypes {
     /// @dev in contrast to other Governance protocols, votes are not weighted and can hence be a uint32, not a uint256.
     /// @dev votes are logged at the proposal. In on struct. This is in contrast to other governance protocols where ProposalVote is a separate struct.
     struct Action {
-        // slot 1.
+        // slot 1. -- just does not fit, optmise later. £todo/ 
         bool cancelled; // 1
-        bool completed; // 1
-        bool executed; // 1
+        bool requested; // 1
+        bool fulfilled; // 1
         address targetLaw; // 20
         uint48 voteStart; // 6
         uint32 voteDuration; // 4
@@ -52,7 +52,8 @@ interface PowersTypes {
         Cancelled,
         Defeated,
         Succeeded,
-        Completed,
+        Requested,
+        Fulfilled,
         NonExistent
     }
 

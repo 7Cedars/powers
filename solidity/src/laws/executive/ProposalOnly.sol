@@ -27,8 +27,12 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ProposalOnly is Law {
+    using ShortStrings for *;
+
     /// @notice Constructor function for Open contract.
     /// @param name_ name of the law
     /// @param description_ description of the law
@@ -43,30 +47,16 @@ contract ProposalOnly is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         string[] memory params_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        /// £todo: this should actually be a separate function 'encodeParams' with a revert if more than 8 params are entered.
-        inputParams = abi.encode(params_);
+    ) {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        bytes memory params = abi.encode(params_);
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    /// @notice Execute the open action.
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
-        public
-        view
-        virtual
-        override
-        returns (
-            // return an empty array.
-            address[] memory tar,
-            uint256[] memory val,
-            bytes[] memory cal,
-            bytes memory stateChange
-        )
-    {
-        // at execution, send empty calldata to protocol. -- nothing gets done.
-        tar = new address[](1);
-        val = new uint256[](1);
-        cal = new bytes[](1);
-
-        tar[0] = address(1); // targets[0] = address(1) is a signal to the protocol that it should not try and execute anything.
-    }
+    // note this law does not need to override handleRequest as it does not execute any logic.
 }

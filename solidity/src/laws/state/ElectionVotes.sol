@@ -28,8 +28,12 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { NominateMe } from "./NominateMe.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionVotes is Law { 
+    using ShortStrings for *;
+
     // the state vars that this law manages: community strings.
     mapping(address => bool) public hasVoted;
     mapping(address => uint256) public votes;
@@ -47,24 +51,28 @@ contract ElectionVotes is Law {
         // bespoke params
         uint48 startVote_,
         uint48 endVote_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
         startVote = startVote_;
         endVote = endVote_;
 
-        inputParams = abi.encode(
+        bytes memory params = abi.encode(
             "address VoteFor"
-            );
-        stateVars = abi.encode(
-            "address VoteFor", 
-            "address VoteFrom"
-            );
+        );
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         override
-        returns (address[] memory tar, uint256[] memory val, bytes[] memory cal, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: run additional checks
         if (block.number < startVote || block.number > endVote) {
@@ -76,18 +84,13 @@ contract ElectionVotes is Law {
 
         // step 1: decode law calldata
         (address vote) = abi.decode(lawCalldata, (address));
-
-        // step 2: return data
-        tar = new address[](1);
-        val = new uint256[](1);
-        cal = new bytes[](1);
-        tar[0] = address(1); // signals that powers should not execute anything else.
-
+        // step 2: create & data arrays 
         stateChange = abi.encode(vote, initiator);
-        return (tar, val, cal, stateChange);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    function _changeState(bytes memory stateChange) internal override {
         (address nominee, address initiator) = abi.decode(stateChange, (address, address));
         uint48 since = NominateMe(config.readStateFrom).nominees(nominee);
 

@@ -18,7 +18,7 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import { LawErrors } from "./LawErrors.sol";
 
 interface ILaw is IERC165, LawErrors {
@@ -57,7 +57,8 @@ interface ILaw is IERC165, LawErrors {
         string description,
         address indexed powers,
         uint32 allowedRole,
-        LawConfig config
+        LawConfig config,
+        bytes params
     );
 
     //////////////////////////////////////////////////////////////
@@ -79,14 +80,15 @@ interface ILaw is IERC165, LawErrors {
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
     /// @param descriptionHash Hash of the action description
+    /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         external
         view 
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
 
     //////////////////////////////////////////////////////////////
     //                     VALIDATION                           //
@@ -109,29 +111,4 @@ interface ILaw is IERC165, LawErrors {
     function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         external
         view;
-
-    //////////////////////////////////////////////////////////////
-    //                      GETTERS                             //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Gets the name of the law
-    /// @return The law's name as a ShortString
-    function name() external view returns (bytes32);
-
-    /// @notice Gets the role ID required to interact with this law
-    /// @return The allowed role ID
-    function allowedRole() external view returns (uint32);
-
-    /// @notice Gets the Powers protocol contract address
-    /// @return The Powers contract address
-    function powers() external view returns (address payable);
-
-    /// @notice Gets the law's configuration
-    /// @return The law configuration struct
-    function config() external view returns (LawConfig memory);
-
-    /// @notice Gets the block number of a specific execution
-    /// @param index The index in the executions array
-    /// @return The block number when the law was executed
-    function executions(uint256 index) external view returns (uint48);
 }

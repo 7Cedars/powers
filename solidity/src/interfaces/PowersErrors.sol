@@ -29,7 +29,7 @@ interface PowersErrors {
     error Powers__ActionCancelled();
 
     /// @notice Emitted when an action has not been initiated yet.
-    error Powers__ActionNotInitiated();
+    error Powers__ActionNotRequested();
 
     /// @notice Emitted when a callData is invalid.
     error Powers__InvalidCallData();
@@ -48,4 +48,29 @@ interface PowersErrors {
 
     /// @notice Emitted when an action is in an unexpected state.
     error Powers__UnexpectedActionState();
+
+    /// @notice Emitted when a role is locked.
+    error Powers__LockedRole();
+
+    /// @notice Emitted when an incorrect interface is called.
+    error Powers__IncorrectInterface();
+
+    /// @notice Emitted when a proposed action is not active.
+    error Powers__ProposedActionNotActive();
+
+    /// @notice Emitted when a constitution has already been executed.
+    error Powers__ConstitutionAlreadyExecuted();
+
+    /// @notice Emitted when a law is already active.
+    error Powers__LawAlreadyActive();
+
+    /// @notice Emitted when a law is not active.
+    error Powers__LawNotActive();
+
+    /// @notice Emitted when a law is not adopted.
+    error Powers__AlreadyCastVote();
+
+    /// @notice Emitted when a vote type is invalid.
+    error Powers__InvalidVoteType();
 }
+

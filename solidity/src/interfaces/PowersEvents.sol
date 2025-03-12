@@ -45,7 +45,7 @@ interface PowersEvents {
     /// @param targets the targets of the action
     /// @param values the values of the action
     /// @param calldatas the calldatas of the action
-    event ActionExecuted(address[] targets, uint256[] values, bytes[] calldatas);
+    event ActionExecuted(uint256 actionId, address[] targets, uint256[] values, bytes[] calldatas);
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal
@@ -56,7 +56,7 @@ interface PowersEvents {
     /// @param voteStart the start of the voting period
     /// @param voteEnd the end of the voting period
     /// @param description the description of the proposal
-    event ProposalCreated(
+    event ProposedActionCreated(
         uint256 indexed actionId,
         address indexed initiator,
         address targetLaw,
@@ -69,7 +69,7 @@ interface PowersEvents {
 
     /// @notice Emitted when a proposal is cancelled.
     /// @param actionId the id of the proposal
-    event ProposalCancelled(uint256 indexed actionId); 
+    event ProposedActionCancelled(uint256 indexed actionId); 
 
     /// @notice Emitted when a vote is cast.
     /// @param account the address of the account that cast the vote

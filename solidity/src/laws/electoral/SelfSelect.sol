@@ -42,17 +42,21 @@ contract SelfSelect is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         uint32 roleId_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
         ROLE_ID = roleId_;
-        inputParams = abi.encode("bool Revoke");
+
+        // set the input parameters.
+        bytes memory params = abi.encode("bool Revoke");
+        
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 /*descriptionHash*/)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 1: decode the calldata.
         (bool revoke) = abi.decode(lawCalldata, (bool));
@@ -74,5 +78,14 @@ contract SelfSelect is Law {
             }
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, initiator); // selector = assignRole
         }
+
+        return (actionId, targets, values, calldatas, "");
+    }
+
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+        internal
+        override
+    {
+        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 }
