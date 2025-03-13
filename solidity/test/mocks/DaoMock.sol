@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import { Powers} from "../../src/Powers.sol";
-import "lib/openzeppelin-contracts/contracts/utils/ShortStrings.sol";
+import { Powers } from "../../src/Powers.sol";
+import "../../lib/openzeppelin-contracts/contracts/utils/ShortStrings.sol";
 
 /// @notice Example DAO contract based on the Powers protocol.
 contract DaoMock is Powers{

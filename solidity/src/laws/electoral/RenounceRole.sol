@@ -16,24 +16,28 @@
 ///
 /// @author 7Cedars
 
-/// @notice This contract ....
+/// @notice This contract that assigns or revokes a roleId to the person that called the law.
+/// - At construction time, the following is set:
+///    - the role Id that the contract will be assigned or revoked.
 ///
+/// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
+///
+/// - The logic:
+///
+/// @dev The contract is an example of a law that
+/// - an open role elect law.
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
-import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtils } from "../LawUtils.sol";
 import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-contract PeerSelect is Law { 
+contract RenounceRole is Law { 
     using ShortStrings for *;
 
-    uint256 public immutable MAX_ROLE_HOLDERS;
-    uint32 public immutable ROLE_ID;
-    mapping(address => uint48) public _elected;
-    address[] public _electedSorted;
+    uint32[] public allowedRoleIds; // role that can be renounced.
 
     constructor(
         string memory name_,
@@ -41,8 +45,7 @@ contract PeerSelect is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_,
-        uint256 maxRoleHolders_,
-        uint32 roleId_
+        uint32[] memory allowedRoleIds_
     )  {
         LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
@@ -50,52 +53,52 @@ contract PeerSelect is Law {
         allowedRole = allowedRole_;
         config = config_;
 
-        MAX_ROLE_HOLDERS = maxRoleHolders_;
-        ROLE_ID = roleId_;
-        
-        bytes memory params = abi.encode(
-            "uint256 NomineeIndex", 
-            "bool Assign"
-        );
+        allowedRoleIds = allowedRoleIds_;
+
+        bytes memory params = abi.encode("uint32 RoleID");
+
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        address nominees = config.readStateFrom;  
-        (uint256 index, bool assign) = abi.decode(lawCalldata, (uint256, bool));
-
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
-        targets[0] = powers;
-
-        if (assign) {
-            if (_electedSorted.length >= MAX_ROLE_HOLDERS) {
-                revert ("Max role holders reached.");
+        // step 1: decode the calldata.
+        (uint32 roleId) = abi.decode(lawCalldata, (uint32));
+        
+        // step2: check if the role is allowed to be renounced.
+        bool allowed = false;
+        for (uint32 i = 0; i < allowedRoleIds.length; i++) {
+            if (roleId == allowedRoleIds[i]) {
+                allowed = true;
+                break;
             }
-            address accountElect = NominateMe(nominees).nomineesSorted(index);
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, accountElect);
-        } else {
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, _electedSorted[index]);
         }
+        if (!allowed) {
+            revert ("Role not allowed to be renounced.");
+        }
+
+        // step 3: create & send return calldata conditional if it is an assign or revoke action.
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(allowedRoleIds.length);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+
+        targets[0] = powers;
+        if (Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0) {
+            revert ("Account does not have role.");
+        }
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, initiator); // selector = revokeRole
+
         return (actionId, targets, values, calldatas, "");
     }
 
-    function _changeState(bytes memory stateChange) internal override {
-        (uint256 index, bool assign) = abi.decode(stateChange, (uint256, bool));
-
-        if (assign) {
-            address nominees = config.readStateFrom; 
-            address accountElect = NominateMe(nominees).nomineesSorted(index);
-            _electedSorted.push(accountElect);
-        } else {
-            _electedSorted[index] = _electedSorted[_electedSorted.length - 1];
-            _electedSorted.pop();
-        }
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+        internal
+        override
+    {
+        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 }

@@ -10,10 +10,9 @@ import { DaoMock } from "./DaoMock.sol";
 import { BaseSetup } from "../TestSetup.t.sol";
 
 // electoral laws
-import { TokensSelect } from "../../src/laws/electoral/TokensSelect.sol";
 import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
 import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
-import { RandomlySelect } from "../../src/laws/electoral/RandomlySelect.sol";
+// import { RandomlySelect } from "../../src/laws/electoral/RandomlySelect.sol";
 import { ElectionCall } from "../../src/laws/electoral/ElectionCall.sol";
 import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
 // executive laws.
@@ -21,7 +20,7 @@ import { ProposalOnly } from "../../src/laws/executive/ProposalOnly.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 import { PresetAction } from "../../src/laws/executive/PresetAction.sol";
 import { BespokeAction } from "../../src/laws/executive/BespokeAction.sol";
-import { SelfDestructPresetAction } from "../../src/laws/executive/SelfDestructPresetAction.sol";
+import { SelfDestructAction } from "../../src/laws/executive/SelfDestructAction.sol";
 // state laws.
 import { StringsArray } from "../../src/laws/state/StringsArray.sol";
 import { TokensArray } from "../../src/laws/state/TokensArray.sol";
@@ -33,25 +32,24 @@ import { NftSelfSelect } from "../../src/laws/bespoke/alignedDao/NftSelfSelect.s
 import { RequestPayment } from "../../src/laws/bespoke/alignedDao/RequestPayment.sol";
 import { ReinstateRole } from "../../src/laws/bespoke/alignedDao/ReinstateRole.sol";
 import { RevokeMembership } from "../../src/laws/bespoke/alignedDao/RevokeMembership.sol";
-// bespoke: diversified grants laws.
+// // bespoke: diversified grants laws.
 import { Grant } from "../../src/laws/bespoke/diversifiedGrants/Grant.sol";
 import { StartGrant } from "../../src/laws/bespoke/diversifiedGrants/StartGrant.sol";
 import { StopGrant } from "../../src/laws/bespoke/diversifiedGrants/StopGrant.sol";
 import { RoleByTaxPaid } from "../../src/laws/bespoke/diversifiedGrants/RoleByTaxPaid.sol";
 import { AssignCouncilRole } from "../../src/laws/bespoke/diversifiedGrants/AssignCouncilRole.sol";
- 
-// bespoke: diversified roles laws.
-import { RoleByKyc } from "../../src/laws/bespoke/diversifiedRoles/RoleByKyc.sol";
-import { AiAgents } from "../../src/laws/bespoke/diversifiedRoles/AiAgents.sol";
-import { BespokeActionFactory } from "../../src/laws/bespoke/diversifiedRoles/BespokeActionFactory.sol";
-import { Members } from "../../src/laws/bespoke/diversifiedRoles/Members.sol";
-import { RoleByKycFactory } from "../../src/laws/bespoke/diversifiedRoles/RoleByKycFactory.sol";
+// // bespoke: diversified roles laws.
+// import { RoleByKyc } from "../../src/laws/bespoke/diversifiedRoles/RoleByKyc.sol";
+// import { AiAgents } from "../../src/laws/bespoke/diversifiedRoles/AiAgents.sol";
+// import { BespokeActionFactory } from "../../src/laws/bespoke/diversifiedRoles/BespokeActionFactory.sol";
+// import { Members } from "../../src/laws/bespoke/diversifiedRoles/Members.sol";
+// import { RoleByKycFactory } from "../../src/laws/bespoke/diversifiedRoles/RoleByKycFactory.sol";
 
 contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  FIRST CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
-    function initiatePowersConstitution(address payable dao_, address payable mock1155_)
+    function initiatePowersConstitution(address payable dao_, address payable mock20Votes_)
         external
         returns (address[] memory laws)
     {
@@ -86,14 +84,14 @@ contract ConstitutionsMock is Test {
         laws[1] = address(law);
 
         lawConfig.readStateFrom = laws[1]; // nominateMe
-        law = new TokensSelect(
+        law = new DelegateSelect(
             "1 elects 2", // max 31 chars
             "1 holders can call (and pay for) a whale election at any time. They can also nominate themselves.",
             dao_,
             1,
             lawConfig, // empty config file.
             // bespoke configs for this law:
-            mock1155_,
+            mock20Votes_,
             15,
             2
         );
@@ -168,7 +166,10 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  SECOND CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateBasic(address payable dao_, address payable /* mock1155_ */ )
+    function initiateBasic(
+        address payable dao_, 
+        address payable /*mock1155_*/
+    )
         external
         returns (address[] memory laws)
     {
@@ -182,7 +183,6 @@ contract ConstitutionsMock is Test {
             dao_,
             0, // access role
             lawConfig // empty config file.
-                // bespoke configs for this law:
         );
         laws[0] = address(law);
     }
@@ -190,7 +190,10 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  THIRD CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateLawTestConstitution(address payable dao_, address payable mock1155_)
+    function initiateLawTestConstitution(
+        address payable dao_, 
+        address payable mock1155_
+    )
         external
         returns (address[] memory laws)
     {
@@ -326,7 +329,7 @@ contract ConstitutionsMock is Test {
         address payable mock20Votes_
     ) external returns (address[] memory laws) {
         Law law;
-        laws = new address[](9);
+        laws = new address[](7);
         ILaw.LawConfig memory lawConfig;
 
         // dummy params
@@ -362,33 +365,21 @@ contract ConstitutionsMock is Test {
         );
         laws[2] = address(law);
 
-        // Note: all laws from here on keep the same config. 
+        // // Note: all laws from here on keep the same config. 
+        // lawConfig.readStateFrom = laws[0];
+        // law = new RandomlySelect(
+        //     "Randomly select role", // max 31 chars
+        //     "Randomly select a role.",
+        //     dao_,
+        //     1, // access role
+        //     lawConfig, // empty config file.
+        //     // bespoke configs for this law:
+        //     3, // max role holders
+        //     3 // role id.
+        // );
+        // laws[3] = address(law);
+        
         lawConfig.readStateFrom = laws[0];
-        law = new RandomlySelect(
-            "Randomly select role", // max 31 chars
-            "Randomly select a role.",
-            dao_,
-            1, // access role
-            lawConfig, // empty config file.
-            // bespoke configs for this law:
-            3, // max role holders
-            3 // role id.
-        );
-        laws[3] = address(law);
-
-        law = new TokensSelect(
-            "Token select role", // max 31 chars
-            "Token select a role.",
-            dao_,
-            1, // access role
-            lawConfig, // empty config file.
-            // bespoke configs for this law:
-            mock1155_,
-            3, // max role holders
-            3 // role id.
-        );
-        laws[4] = address(law);
-
         law = new DelegateSelect(
             "Delegate Select", // max 31 chars
             "Select a role by delegated votes.",
@@ -400,7 +391,8 @@ contract ConstitutionsMock is Test {
             3, // max role holders
             3 // role id.
         );
-        laws[5] = address(law);
+        laws[3] = address(law);
+        delete lawConfig;
 
         lawConfig.readStateFrom = laws[0]; // NominateMe.
         law = new ElectionCall(
@@ -414,7 +406,7 @@ contract ConstitutionsMock is Test {
             3, // elected role id
             2 // max elected role holders
         );
-        laws[6] = address(law);
+        laws[4] = address(law);
         delete lawConfig;
 
         lawConfig.needCompleted = laws[6]; // electionCall
@@ -425,7 +417,7 @@ contract ConstitutionsMock is Test {
             1, // access role
             lawConfig // empty config file.
         );
-        laws[7] = address(law);
+        laws[5] = address(law);
         delete lawConfig;
  
         // get calldata
@@ -448,7 +440,7 @@ contract ConstitutionsMock is Test {
             calldatasRoles
         );
         vm.stopBroadcast();
-        laws[8] = address(law);
+        laws[6] = address(law);
         delete lawConfig; // reset lawConfig
     }
 
@@ -458,10 +450,10 @@ contract ConstitutionsMock is Test {
     function initiateExecutiveTestConstitution(
         address payable dao_,
         address payable mock1155_,
-        address payable mock20Votes_
+        address payable /*mock20Votes_*/
     ) external returns (address[] memory laws) {
         Law law;
-        laws = new address[](6);
+        laws = new address[](7);
         ILaw.LawConfig memory lawConfig;
 
         // dummy call: mint coins at mock1155 contract.
@@ -498,7 +490,6 @@ contract ConstitutionsMock is Test {
             dao_,
             1, // access role
             lawConfig // empty config file.
-                // bespoke configs for this law:
         );
         laws[1] = address(law);
 
@@ -531,7 +522,7 @@ contract ConstitutionsMock is Test {
         delete lawConfig; // reset lawConfig
 
         // config
-         // get calldata
+        // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
         // setting the throttle to max means the law can only be called once.
         lawConfig.throttleExecution = type(uint48).max - uint48(block.number);
@@ -551,7 +542,7 @@ contract ConstitutionsMock is Test {
         laws[4] = address(law);
         delete lawConfig; // reset lawConfig
 
-        law = new SelfDestructPresetAction(
+        law = new SelfDestructAction(
             "Admin assigns initial roles",
             "The admin assigns initial roles. This law will self destruct when used.",
             dao_, // separated powers
@@ -563,6 +554,19 @@ contract ConstitutionsMock is Test {
         );
         laws[5] = address(law);
         delete lawConfig; // reset lawConfig
+
+        law = new SelfDestructAction(
+            "Admin assigns initial roles",
+            "The admin assigns initial roles. This law will self destruct when used.",
+            dao_, // separated powers
+            0, // access role = ADMIN
+            lawConfig,
+            targetsRoles,
+            valuesRoles,
+            calldatasRoles
+        );
+        laws[6] = address(law);
+        delete lawConfig; // reset lawConfig
     }
 
     //////////////////////////////////////////////////////////////
@@ -570,8 +574,8 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     function initiateStateTestConstitution(
         address payable dao_,
-        address payable mock1155_,
-        address payable mock20Votes_
+        address payable /*mock1155_*/,
+        address payable /*mock20Votes_*/
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](6);

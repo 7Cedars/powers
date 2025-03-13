@@ -29,8 +29,12 @@ import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionCall is Law { 
+    using ShortStrings for *;
+
     uint32 public immutable VOTER_ROLE_ID;
     uint32 public immutable ELECTED_ROLE_ID;
     uint256 public immutable MAX_ROLE_HOLDERS;
@@ -48,27 +52,36 @@ contract ElectionCall is Law {
         uint32 voterRoleId_, // who can vote in the election.
         uint32 electedRoleId_, // what role Id is assigned through the elections 
         uint256 maxElectedRoleHolders_ // how many people can be elected.
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        VOTER_ROLE_ID = voterRoleId_;
+        ELECTED_ROLE_ID = electedRoleId_;
+        MAX_ROLE_HOLDERS = maxElectedRoleHolders_;
+
+        bytes memory params = abi.encode(
             "string Description", // description = a description of the election.
             "uint48 StartVote", // startVote = the start date of the election.
             "uint48 EndVote" // endVote = the end date of the election.
         );
-        stateVars = inputParams; // Note: stateVars == inputParams.
-        VOTER_ROLE_ID = voterRoleId_;
-        MAX_ROLE_HOLDERS = maxElectedRoleHolders_;
-        ELECTED_ROLE_ID = electedRoleId_;
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {        
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+
         // step 1: decode the law calldata.
         (string memory description, uint48 startVote, uint48 endVote) =
             abi.decode(lawCalldata, (string, uint48, uint48));
@@ -99,10 +112,10 @@ contract ElectionCall is Law {
         stateChange = abi.encode(description, startVote, endVote, electionVotesAddress);
 
         // step 5: return data
-        return (targets, values, calldatas, stateChange);
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    function _changeState(bytes memory stateChange) internal override {
         // step 0: decode data from stateChange
         (string memory description, uint48 startVote, uint48 endVote, address electionVotesAddress) =
             abi.decode(stateChange, (string, uint48, uint48, address));
@@ -110,7 +123,6 @@ contract ElectionCall is Law {
         // stp 1: deploy new grant
         electionVotes = electionVotesAddress;
         _deployElectionVotes(VOTER_ROLE_ID, config.readStateFrom, startVote, endVote, description);
-       
     }
 
     /**

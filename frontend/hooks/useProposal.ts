@@ -76,12 +76,12 @@ export const useProposal = () => {
     if (publicClient) {
       try {
         for await (proposal of proposals) {
-          if (proposal?.proposalId) {
+          if (proposal?.actionId) {
               const fetchedState = await readContract(wagmiConfig, {
                 abi: powersAbi,
                 address: organisation.contractAddress,
                 functionName: 'state', 
-                args: [proposal.proposalId]
+                args: [proposal.actionId]
               })
               state.push(Number(fetchedState)) // = 5 is a non-existent state
             }
@@ -102,7 +102,7 @@ export const useProposal = () => {
     if (publicClient) {
       try {
         for await (proposal of proposals) {
-          const existingProposal = organisation.proposals?.find(p => p.proposalId == proposal.proposalId)
+          const existingProposal = organisation.proposals?.find(p => p.actionId == proposal.actionId)
           if (!existingProposal || !existingProposal.voteStartBlockData?.chainId) {
             // console.log("@getBlockData, waypoint 1: ", {proposal})
             const fetchedBlockData = await getBlock(wagmiConfig, {
@@ -157,7 +157,7 @@ export const useProposal = () => {
       setStatus("success") 
   }, [ ]) 
 
-  const updateProposalState = useCallback(
+  const updateActionState = useCallback(
     async (proposal: Proposal) => {
       setError(null)
       setStatus("pending")
@@ -167,7 +167,7 @@ export const useProposal = () => {
       if (newState) {
         const oldProposals = proposals
         const updatedProposal = {...proposal, state: newState[0]}
-        const updatedProposals = oldProposals?.map(p => p.proposalId == updatedProposal.proposalId ? updatedProposal : p) 
+        const updatedProposals = oldProposals?.map(p => p.actionId == updatedProposal.actionId ? updatedProposal : p) 
         setProposals(updatedProposals)
         assignOrg({...organisation, proposals: updatedProposals})
       }
@@ -223,7 +223,7 @@ export const useProposal = () => {
   // note: I did not implement castVoteWithReason -- to much work for now. 
   const castVote = useCallback( 
     async (
-      proposalId: bigint,
+      actionId: bigint,
       support: bigint 
     ) => {
         setStatus("pending")
@@ -233,7 +233,7 @@ export const useProposal = () => {
             abi: powersAbi,
             address: organisation.contractAddress,
             functionName: 'castVote', 
-            args: [proposalId, support]
+            args: [actionId, support]
           })
           setTransactionHash(result)
       } catch (error) {
@@ -246,7 +246,7 @@ export const useProposal = () => {
   // note: I did not implement castVoteWithReason -- to much work for now. 
   const checkHasVoted = useCallback( 
     async (
-      proposalId: bigint,
+      actionId: bigint,
       account: `0x${string}`
     ) => {
       // console.log("checkHasVoted triggered")
@@ -257,7 +257,7 @@ export const useProposal = () => {
             abi: powersAbi,
             address: organisation.contractAddress,
             functionName: 'hasVoted', 
-            args: [proposalId, account]
+            args: [actionId, account]
           })
           setHasVoted(result as boolean )
           setStatus("idle") 
@@ -267,5 +267,5 @@ export const useProposal = () => {
       }
   }, [ ])
 
-  return {status, error, law, proposals, hasVoted, fetchProposals, updateProposalState, propose, cancel, castVote, checkHasVoted}
+  return {status, error, law, proposals, hasVoted, fetchProposals, updateActionState, propose, cancel, castVote, checkHasVoted}
 }

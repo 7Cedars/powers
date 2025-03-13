@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
 import "lib/forge-std/src/Script.sol";
@@ -27,8 +27,7 @@ import { RevokeMembership } from "../src/laws/bespoke/alignedDao/RevokeMembershi
 import { ReinstateRole } from "../src/laws/bespoke/alignedDao/ReinstateRole.sol";
 import { RequestPayment } from "../src/laws/bespoke/alignedDao/RequestPayment.sol";
 import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
-
-import { SelfDestructPresetAction } from "../src/laws/executive/SelfDestructPresetAction.sol"; 
+import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol"; 
 
 // mocks 
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
@@ -365,7 +364,7 @@ contract DeployAlignedDao is Script {
         // laws.push(address(law));
         // delete lawConfig;
 
-        // laws[13]: selfDestructPresetAction: assign initial accounts to role 3.
+        // laws[13]: SelfDestructAction: assign initial accounts to role 3.
         address[] memory targets = new address[](5);
         uint256[] memory values = new uint256[](5);
         bytes[] memory calldatas = new bytes[](5);
@@ -379,7 +378,7 @@ contract DeployAlignedDao is Script {
         calldatas[4] = abi.encodeWithSelector(Powers.labelRole.selector, 4, "Oracle");
         
         vm.startBroadcast();
-        law = new SelfDestructPresetAction(
+        law = new SelfDestructAction(
             "Set initial labels & role", // max 31 chars
             "The admin assigns an initial account to the senior role and gives role ids their labels. The law self destructs when executed.",
             dao_, // separated powers protocol.

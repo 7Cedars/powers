@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
 import "lib/forge-std/src/Script.sol";
@@ -19,7 +19,7 @@ import { ProposalOnly } from "../src/laws/executive/ProposalOnly.sol";
 import { OpenAction } from "../src/laws/executive/OpenAction.sol";
 import { PresetAction } from "../src/laws/executive/PresetAction.sol";
 
-import { SelfDestructPresetAction } from "../src/laws/executive/SelfDestructPresetAction.sol"; 
+import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol"; 
 
 // config
 import { HelperConfig } from "./HelperConfig.s.sol";
@@ -184,7 +184,7 @@ contract DeployBasicDao is Script {
         vm.stopBroadcast();
         laws.push(address(law));
 
-        // laws[6]: selfDestructPresetAction: label roles in the DAO.
+        // laws[6]: SelfDestructAction: label roles in the DAO.
         address[] memory targets = new address[](2);
         uint256[] memory values = new uint256[](2);
         bytes[] memory calldatas = new bytes[](2);
@@ -194,7 +194,7 @@ contract DeployBasicDao is Script {
         calldatas[0] = abi.encodeWithSelector(Powers.labelRole.selector, 1, "member");
         calldatas[1] = abi.encodeWithSelector(Powers.labelRole.selector, 2, "senior");
         vm.startBroadcast();
-        law = new SelfDestructPresetAction(
+        law = new SelfDestructAction(
             "Set label roles",
             "The admin can label roles. The law self destructs when executed.",
             dao_, // separated powers protocol.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
@@ -13,6 +13,7 @@ contract OpenActionTest is TestSetupExecutive {
     using ShortStrings for *;
 
     function testExecuteAction() public {
+        // prep
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
@@ -22,78 +23,79 @@ contract OpenActionTest is TestSetupExecutive {
 
         address openAction = laws[1];
         bytes memory lawCalldata = abi.encode(targetsIn, valuesIn, calldatasIn);
-        vm.startPrank(address(daoMock));
-        (
-            address[] memory targetsOut, 
-            uint256[] memory valuesOut, 
-            bytes[] memory calldatasOut
-            ) = Law(openAction).executeLaw(address(0), lawCalldata, bytes32(0));
+        string memory description = "Execute open action to mint coins";
 
-        assertEq(targetsOut[0], targetsIn[0]);
-        assertEq(valuesOut[0], valuesIn[0]);
-        assertEq(calldatasOut[0], calldatasIn[0]);
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        // act
+        vm.prank(alice);
+        Powers(daoMock).request(openAction, lawCalldata, description);
+
+        // assert
+        assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 123);
     }
 }
 
 contract ProposalOnlyTest is TestSetupExecutive {
     using ShortStrings for *;
 
-    function testReturnDataProposalOnly() public {
+    function testExecuteProposalOnly() public {
+        // prep
         address proposalOnly = laws[3];
         bytes memory lawCalldata = abi.encode(Erc1155Mock.mintCoins.selector, 123);
+        bytes32 descriptionHash = keccak256("Proposal only action");
 
-        vm.startPrank(address(daoMock));
-        (
-            address[] memory targetsOut, 
-            uint256[] memory valuesOut,
-            ) = Law(proposalOnly).executeLaw(address(0), lawCalldata, keccak256("this is a proposal"));
+        // act
+        vm.prank(address(daoMock));
+        bool success = Law(proposalOnly).executeLaw(address(0), lawCalldata, descriptionHash);
 
-        assertEq(targetsOut[0], address(1));
-        assertEq(valuesOut[0], 0);
+        // assert
+        assertTrue(success);
+        // Verify no state changes as this is proposal only
+        assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 0);
     }
+ 
 }
 
 contract BespokeActionTest is TestSetupExecutive {
-    function testReturnDataBespokeAction() public {
-        // this bespoke action mints coins in the mock1155 contract.
+    function testExecuteBespokeAction() public {
+        // prep
         address bespokeAction = laws[2];
-        bytes memory lawCalldata = abi.encode(123); // the amount of coins to mint.
-        bytes memory expectedCalldata = abi.encodeWithSelector(Erc1155Mock.mintCoins.selector, 123);
+        bytes memory lawCalldata = abi.encode(123); // amount of coins to mint
+        string memory description = "Bespoke action to mint coins";
 
-        vm.startPrank(address(daoMock));
-        (
-            address[] memory targetsOut, 
-            uint256[] memory valuesOut, 
-            bytes[] memory calldatasOut
-            ) = Law(bespokeAction).executeLaw(address(0), lawCalldata, keccak256("this is a proposal"));
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
 
-        assertEq(targetsOut[0], address(erc1155Mock));
-        assertEq(valuesOut[0], 0);
-        assertEq(calldatasOut[0], expectedCalldata);
+        // act
+        vm.prank(alice);
+        Powers(daoMock).request(bespokeAction, lawCalldata, description);
+ 
+        assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 123);
     }
 }
 
-contract SelfDestructPresetActionTest is TestSetupExecutive {
+contract SelfDestructActionTest is TestSetupExecutive {
     function testSuccessfulSelfDestruct() public {
-        address selfDestructPresetAction = laws[5];
+        // prep
+        address SelfDestructAction = laws[5];
         bytes memory lawCalldata = abi.encode();
+        string memory description = "Self destruct action";
+
+        // Store initial state
+        bool initialLawStatus = Powers(daoMock).getActiveLaw(SelfDestructAction);
+        assertTrue(initialLawStatus, "Law should be active initially");
 
         vm.prank(address(daoMock));
-        (address[] memory targetsOut, uint256[] memory valuesOut, bytes[] memory calldatasOut) = Law(
-            selfDestructPresetAction
-        ).executeLaw(
-            alice, // alice = initiator
-            lawCalldata,
-            keccak256("Alice executes law")
-        );
+        daoMock.assignRole(0, alice);
 
-        // assert output: last item in output array should be self destruct
-        assertEq(targetsOut[targetsOut.length - 1], address(daoMock));
-        assertEq(valuesOut[valuesOut.length - 1], 0);
-        assertEq(
-            calldatasOut[calldatasOut.length - 1],
-            abi.encodeWithSelector(Powers.revokeLaw.selector, selfDestructPresetAction)
-        );
+        // act
+        vm.prank(alice);
+        Powers(daoMock).request(SelfDestructAction, lawCalldata, description);
+
+        // assert
+        assertFalse(Powers(daoMock).getActiveLaw(SelfDestructAction), "Law should be inactive after self-destruct");
     }
 }
 

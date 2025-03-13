@@ -43,8 +43,17 @@ import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
+
+//// ONLY FOR TESTING ////
+import "forge-std/Test.sol";
+//// ONLY FOR TESTING ////
+
 
 contract DelegateSelect is Law {
+    using ShortStrings for *;
+
     address public immutable ERC_20_VOTE_TOKEN;
     uint256 public immutable MAX_ROLE_HOLDERS;
     uint32 public immutable ROLE_ID;
@@ -59,20 +68,30 @@ contract DelegateSelect is Law {
         address payable erc20Token_,
         uint256 maxRoleHolders_,
         uint32 roleId_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
         ERC_20_VOTE_TOKEN = erc20Token_; // £todo interface should be checked here.
         MAX_ROLE_HOLDERS = maxRoleHolders_;
         ROLE_ID = roleId_;
-        stateVars = abi.encode("address[]");
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
 
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {   
+        console.log("@DelegateSelect: waypoint 0");
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+
         // step 1: setting up array for revoking & assigning roles.
         address nominees = config.readStateFrom;  
         address[] memory accountElects;
@@ -80,39 +99,41 @@ contract DelegateSelect is Law {
         uint256 numberRevokees = electedAccounts.length;
         uint256 arrayLength =
             numberNominees < MAX_ROLE_HOLDERS ? numberRevokees + numberNominees : numberRevokees + MAX_ROLE_HOLDERS;
-
-        targets = new address[](arrayLength);
-        values = new uint256[](arrayLength);
-        calldatas = new bytes[](arrayLength);
-        accountElects = new address[](numberNominees < MAX_ROLE_HOLDERS ? numberNominees : MAX_ROLE_HOLDERS);
-
+        
+        console.log("@DelegateSelect: waypoint 1");
+        
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(arrayLength);
         for (uint256 i; i < arrayLength; i++) {
             targets[i] = powers;
         }
-
         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
         for (uint256 i; i < numberRevokees; i++) {
             calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, electedAccounts[i]);
         }
 
+        console.log("@DelegateSelect: waypoint 2");
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
         if (numberNominees < MAX_ROLE_HOLDERS) {
+            accountElects = new address[](numberNominees);
             for (uint256 i; i < numberNominees; i++) {
                 address accountElect = NominateMe(nominees).nomineesSorted(i);
                 calldatas[i + numberRevokees] =
                     abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, accountElect);
                 accountElects[i] = accountElect;
             }
-
-            // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
+        
+        console.log("@DelegateSelect: waypoint 3");
+        // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
             // retrieve balances of delegated votes of nominees.
+            accountElects = new address[](MAX_ROLE_HOLDERS);
             uint256[] memory _votes = new uint256[](numberNominees);
             address[] memory _nominees = new address[](numberNominees);
             for (uint256 i; i < numberNominees; i++) {
                 _nominees[i] = NominateMe(nominees).nomineesSorted(i);
                 _votes[i] = ERC20Votes(ERC_20_VOTE_TOKEN).getVotes(_nominees[i]);
             }
+
             // £todo: check what will happen if people have the same amount of delegated votes.
             // note how the following mechanism works:
             // a. we add 1 to each nominee's position, if we found a account that holds more tokens.
@@ -138,9 +159,12 @@ contract DelegateSelect is Law {
             }
         }
         stateChange = abi.encode(accountElects);
+
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    function _changeState(bytes memory stateChange) internal override {
+        console.log("@DelegateSelect: waypoint 4");
         (address[] memory elected) = abi.decode(stateChange, (address[]));
         for (uint256 i; i < electedAccounts.length; i++) {
             electedAccounts.pop();

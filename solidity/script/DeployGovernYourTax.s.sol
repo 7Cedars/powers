@@ -26,7 +26,7 @@ import { PresetAction } from "../src/laws/executive/PresetAction.sol";
 import { Grant } from "../src/laws/bespoke/diversifiedGrants/Grant.sol";
 import { StartGrant } from "../src/laws/bespoke/diversifiedGrants/StartGrant.sol";
 import { StopGrant } from "../src/laws/bespoke/diversifiedGrants/StopGrant.sol";
-import { SelfDestructPresetAction } from "../src/laws/executive/SelfDestructPresetAction.sol";
+import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol";
 import { RoleByTaxPaid } from "../src/laws/bespoke/diversifiedGrants/RoleByTaxPaid.sol";
 import { AssignCouncilRole } from "../src/laws/bespoke/diversifiedGrants/AssignCouncilRole.sol";
 // borrowing one law from another bespoke folder. Not ideal, but ok for now.
@@ -362,7 +362,7 @@ contract DeployGovernYourTax is Script {
         laws.push(address(law));
         delete lawConfig;
 
-        // laws[15]: selfDestructPresetAction: assign initial accounts to security council.
+        // laws[15]: SelfDestructAction: assign initial accounts to security council.
         address[] memory targets = new address[](8);
         uint256[] memory values = new uint256[](8);
         bytes[] memory calldatas = new bytes[](8);
@@ -379,7 +379,7 @@ contract DeployGovernYourTax is Script {
         calldatas[7] = abi.encodeWithSelector(Powers.labelRole.selector, 6, "Grant Council #6");
  
         vm.startBroadcast();
-        law = new SelfDestructPresetAction(
+        law = new SelfDestructAction(
             "Set initial roles and labels", // max 31 chars
             "The admin selects an initial account for the security council. The Admin also assigns labels to roles. The law self destructs when executed.",
             dao_, // separated powers protocol.

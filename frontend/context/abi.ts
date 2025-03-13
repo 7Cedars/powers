@@ -247,7 +247,7 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "castVote",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" },
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" },
         { "name": "support", "type": "uint8", "internalType": "uint8" }
       ],
       "outputs": [],
@@ -257,7 +257,7 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "castVoteWithReason",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" },
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" },
         { "name": "support", "type": "uint8", "internalType": "uint8" },
         { "name": "reason", "type": "string", "internalType": "string" }
       ],
@@ -339,7 +339,7 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "getProposalVotes",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" }
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" }
       ],
       "outputs": [
         {
@@ -368,7 +368,7 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "hasVoted",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" },
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" },
         { "name": "account", "type": "address", "internalType": "address" }
       ],
       "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
@@ -457,7 +457,7 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "proposalDeadline",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" }
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" }
       ],
       "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
       "stateMutability": "view"
@@ -520,13 +520,13 @@ export const powersAbi: Abi = [
       "type": "function",
       "name": "state",
       "inputs": [
-        { "name": "proposalId", "type": "uint256", "internalType": "uint256" }
+        { "name": "actionId", "type": "uint256", "internalType": "uint256" }
       ],
       "outputs": [
         {
           "name": "",
           "type": "uint8",
-          "internalType": "enum PowersTypes.ProposalState"
+          "internalType": "enum PowersTypes.ActionState"
         }
       ],
       "stateMutability": "view"
@@ -614,7 +614,7 @@ export const powersAbi: Abi = [
       "name": "ProposalCancelled",
       "inputs": [
         {
-          "name": "proposalId",
+          "name": "actionId",
           "type": "uint256",
           "indexed": true,
           "internalType": "uint256"
@@ -624,7 +624,7 @@ export const powersAbi: Abi = [
     },
     {
       "type": "event",
-      "name": "ProposalCompleted",
+      "name": "ActionRequested",
       "inputs": [
         {
           "name": "initiator",
@@ -658,7 +658,7 @@ export const powersAbi: Abi = [
       "name": "ProposalCreated",
       "inputs": [
         {
-          "name": "proposalId",
+          "name": "actionId",
           "type": "uint256",
           "indexed": true,
           "internalType": "uint256"
@@ -710,7 +710,7 @@ export const powersAbi: Abi = [
     },
     {
       "type": "event",
-      "name": "ProposalExecuted",
+      "name": "ActionExecuted",
       "inputs": [
         {
           "name": "targets",
@@ -788,7 +788,7 @@ export const powersAbi: Abi = [
           "internalType": "address"
         },
         {
-          "name": "proposalId",
+          "name": "actionId",
           "type": "uint256",
           "indexed": true,
           "internalType": "uint256"
@@ -824,7 +824,7 @@ export const powersAbi: Abi = [
     },
     { "type": "error", "name": "Powers__IncorrectInterface", "inputs": [] },
     { "type": "error", "name": "Powers__InvalidCallData", "inputs": [] },
-    { "type": "error", "name": "Powers__InvalidProposalId", "inputs": [] },
+    { "type": "error", "name": "Powers__InvalidactionId", "inputs": [] },
     { "type": "error", "name": "Powers__InvalidVoteType", "inputs": [] },
     { "type": "error", "name": "Powers__LawAlreadyActive", "inputs": [] },
     { "type": "error", "name": "Powers__LawDidNotPassChecks", "inputs": [] },
@@ -847,7 +847,7 @@ export const powersAbi: Abi = [
     { "type": "error", "name": "Powers__ProposalNotActive", "inputs": [] },
     {
       "type": "error",
-      "name": "Powers__UnexpectedProposalState",
+      "name": "Powers__UnexpectedActionState",
       "inputs": []
     },
     {
@@ -1046,7 +1046,7 @@ export const lawAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "simulateLaw",
+    "name": "handleRequest",
     "inputs": [
       { "name": "initiator", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },

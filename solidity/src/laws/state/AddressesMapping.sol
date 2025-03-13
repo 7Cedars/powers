@@ -12,8 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
-///
+/// @title AddressesMapping - Address Management Contract for Powers Protocol
+/// @notice Manages a mapping of addresses for blacklisting or whitelisting purposes
+/// @dev Inherits from Law contract to implement role-restricted address management
 /// @author 7Cedars
 
 /// @notice This contract ...
@@ -21,9 +22,13 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract AddressesMapping is Law { 
-    mapping(address => bool) public addresses; //
+    using ShortStrings for *;
+
+    mapping(address => bool) public addresses;
 
     event AddressesMapping__Added(address account);
     event AddressesMapping__Removed(address account);
@@ -34,19 +39,25 @@ contract AddressesMapping is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+        
+        bytes memory params = abi.encode(
             "address Account", 
             "bool Add"
-            );
-        stateVars = inputParams;
+        );
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function simulateLaw(address, /*initiator */ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address, /*initiator */ bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         override
-        returns (address[] memory tar, uint256[] memory val, bytes[] memory cal, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
@@ -57,16 +68,11 @@ contract AddressesMapping is Law {
             revert ("Already false.");
         }
 
-        // step 2: return data
-        tar = new address[](1);
-        val = new uint256[](1);
-        cal = new bytes[](1);
-
-        tar[0] = address(1); // signals that powers should not execute anything else.
-        return (tar, val, cal, lawCalldata);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        return (actionId, targets, values, calldatas, lawCalldata);
     }
-
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    
+    function _changeState(bytes memory stateChange) internal override {
         (address account, bool add) = abi.decode(stateChange, (address, bool));
 
         if (add) {
@@ -77,4 +83,4 @@ contract AddressesMapping is Law {
             emit AddressesMapping__Removed(account);
         }
     }
-}
+} 

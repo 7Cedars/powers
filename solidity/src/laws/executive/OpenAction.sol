@@ -27,8 +27,12 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { LawUtils } from "../LawUtils.sol";
+import "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract OpenAction is Law {
+    using ShortStrings for *;
+    
     /// @notice Constructor function for OpenAction contract.
     /// @param name_ name of the law
     /// @param description_ description of the law
@@ -41,29 +45,40 @@ contract OpenAction is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        bytes memory params = abi.encode(
             "address[] Targets", 
             "uint256[] Values", 
             "bytes[] CallDatas"
             );
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
     /// @notice Execute the open action.
     /// @param lawCalldata the calldata of the law
-    function simulateLaw(address, /* initiator */ bytes memory lawCalldata, bytes32 /*descriptionHash*/ )
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         override
         returns (
+            uint256 actionId,
             address[] memory targets,
             uint256[] memory values,
             bytes[] memory calldatas,
-            bytes memory /*stateChange*/
+            bytes memory stateChange
         )
     {
         // decode the calldata.
         // note: no check on decoded call data. If needed, this can be added.
-        (targets, values, calldatas) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
+        (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
+
+        actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+        return (actionId, targetsNew, valuesNew, calldatasNew, "");
     }
 }

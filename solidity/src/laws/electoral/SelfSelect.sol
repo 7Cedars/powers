@@ -31,8 +31,12 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract SelfSelect is Law { 
+    using ShortStrings for *;
+
     uint32 private immutable ROLE_ID;
 
     constructor(
@@ -42,37 +46,42 @@ contract SelfSelect is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         uint32 roleId_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
         ROLE_ID = roleId_;
-        inputParams = abi.encode("bool Revoke");
+        
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
 
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // step 1: decode the calldata.
-        (bool revoke) = abi.decode(lawCalldata, (bool));
-
         // step 2: create & send return calldata conditional if it is an assign or revoke action.
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
 
         targets[0] = powers;
-        if (revoke) {
-            if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) == 0) {
-                revert ("Account does not have role.");
-            }
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, initiator); // selector = revokeRole
-        } else {
-            if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) != 0) {
-                revert ("Account already has role.");
-            }
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, initiator); // selector = assignRole
+        if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) != 0) {
+            revert ("Account already has role.");
         }
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, initiator); // selector = assignRole
+        
+        return (actionId, targets, values, calldatas, "");
+    }
+
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+        internal
+        override
+    {
+        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 }

@@ -43,7 +43,6 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     Erc20VotesMock erc20VotesMock;
     Erc20TaxedMock erc20TaxedMock; 
     HelperConfig.NetworkConfig config;
-
     address[] laws;
 
     // vote options
@@ -57,7 +56,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes lawCalldata;
     string description;
     bytes32 descriptionHash;
-    uint256 proposalId;
+    uint256 actionId;
 
     uint256 roleCount;
     uint256 againstVote;
@@ -111,11 +110,12 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     // the only event in the Law contract
     event Law__Initialized(
         address indexed law,
-        address indexed powers,
         string name,
         string description,
-        uint48 allowedRole,
-        ILaw.LawConfig config
+        address indexed powers,
+        uint32 allowedRole,
+        ILaw.LawConfig lawConfig,
+        bytes params
     );
 }
 
@@ -129,7 +129,7 @@ abstract contract TestHelpers is Test, TestVariables {
         return uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
     }
 
-    function distributeTokens(address erc20VoteMock, address[] memory accounts, uint256 randomiser) public {
+    function distributeERC20VoteTokens(address[] memory accounts, uint256 randomiser) public {
         uint256 currentRandomiser;
         for (uint256 i = 0; i < accounts.length; i++) {
             if (currentRandomiser < 10) {
@@ -165,7 +165,7 @@ abstract contract TestHelpers is Test, TestVariables {
     function voteOnProposal(
         address payable dao,
         address law,
-        uint256 proposalId,
+        uint256 actionId,
         address[] memory accounts,
         uint256 randomiser,
         uint256 passChance // in percentage
@@ -183,15 +183,15 @@ abstract contract TestHelpers is Test, TestVariables {
                 roleCount++;
                 if (currentRandomiser % 100 >= passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 0); // = against
+                    Powers(dao).castVote(actionId, 0); // = against
                     againstVote++;
                 } else if (currentRandomiser % 100 < passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 1); // = for
+                    Powers(dao).castVote(actionId, 1); // = for
                     forVote++;
                 } else {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(proposalId, 2); // = abstain
+                    Powers(dao).castVote(actionId, 2); // = abstain
                     abstainVote++;
                 }
             }
@@ -277,7 +277,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
 
         // initiate constitution & get founders' roles list
         (address[] memory laws_) = constitutionsMock.initiatePowersConstitution(
-            payable(address(daoMock)), payable(address(erc1155Mock))
+            payable(address(daoMock)), payable(address(erc20VotesMock))
         );
 
         // constitute daoMock.
@@ -285,7 +285,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
         daoMock.constitute(laws);
         // assign Roles
         vm.roll(block.number + 4000);
-        daoMock.execute(
+        daoMock.request(
             laws[laws.length - 1],
             abi.encode(), // empty calldata
             "assigning roles"
@@ -305,9 +305,14 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
 
         // constitute daoMock.
         daoMock.constitute(laws);
+
+        address testLaw = laws[laws.length - 1];
+        address powers = Law(testLaw).powers();
+
         // assign Roles
         vm.roll(block.number + 4000);
-        daoMock.execute(
+        vm.prank(address(this));
+        daoMock.request(
             laws[laws.length - 1],
             abi.encode(), // empty calldata
             "assigning roles"
@@ -335,7 +340,7 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
 
         // assign Roles
         vm.roll(block.number + 4000);
-        daoMock.execute(
+        daoMock.request(
             laws[laws.length - 1],
             abi.encode(), // empty calldata
             "assigning roles"
@@ -363,7 +368,8 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
 
         // assign Roles
         vm.roll(block.number + 4000);
-        daoMock.execute(
+        vm.prank(address(this));
+        daoMock.request(
             laws[laws.length - 1],
             abi.encode(), // empty calldata
             "assigning roles"
@@ -387,7 +393,7 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
 
         // assign Roles
         vm.roll(block.number + 4000);
-        daoMock.execute(
+        daoMock.request(
             laws[laws.length - 1],
             abi.encode(), // empty calldata
             "assigning roles"

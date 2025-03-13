@@ -26,13 +26,14 @@ interface PowersTypes {
     ///
     /// @dev in contrast to other Governance protocols, votes are not weighted and can hence be a uint32, not a uint256.
     /// @dev votes are logged at the proposal. In on struct. This is in contrast to other governance protocols where ProposalVote is a separate struct.
-    struct Proposal {
-        // slot 1.
+    struct Action {
+        // slot 1. -- just does not fit, optmise later. £todo/ 
+        bool cancelled; // 1
+        bool requested; // 1
+        bool fulfilled; // 1
         address targetLaw; // 20
         uint48 voteStart; // 6
         uint32 voteDuration; // 4
-        bool cancelled; // 1
-        bool completed; // 1
         // slot 2
         address initiator; // 20
         uint32 againstVotes; // 4 as votes are not weighted, uint32 is sufficient to count number of votes.  -- this is a big gas saver. As such, combining the proposalCore and ProposalVote is (I think) okay
@@ -46,12 +47,13 @@ interface PowersTypes {
     ///
     /// @dev that a proposal cannot be set as 'executed' as in Governor.sol. It can only be set as 'completed'.
     /// This is because execution logic in {Powers} is separated from the proposal logic.
-    enum ProposalState {
+    enum ActionState {
         Active,
         Cancelled,
         Defeated,
         Succeeded,
-        Completed,
+        Requested,
+        Fulfilled,
         NonExistent
     }
 

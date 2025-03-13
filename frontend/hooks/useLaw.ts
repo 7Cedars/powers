@@ -53,13 +53,13 @@ export const useLaw = () => {
             const logs = await publicClient.getContractEvents({ 
               address: organisation.contractAddress as `0x${string}`,
               abi: powersAbi, 
-              eventName: 'ProposalCompleted',
+              eventName: 'ActionRequested',
               fromBlock: supportedChain?.genesisBlock,
               args: {targetLaw: law.law}
             })
             const fetchedLogs = parseEventLogs({
                         abi: powersAbi,
-                        eventName: 'ProposalCompleted',
+                        eventName: 'ActionRequested',
                         logs
                       })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType  
@@ -103,7 +103,7 @@ export const useLaw = () => {
         const result = await readContract(wagmiConfig, {
           abi: lawAbi,
           address: law.law,
-          functionName: 'simulateLaw', 
+          functionName: 'handleRequest', 
           args: [initiator, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
         })
           setSimulation(result as LawSimulation)

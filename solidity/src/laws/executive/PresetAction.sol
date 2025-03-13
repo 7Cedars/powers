@@ -22,8 +22,17 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
+
+
+///// ONLY FOR TESTING /////    
+import "forge-std/Test.sol";
+///// ONLY FOR TESTING /////
 
 contract PresetAction is Law {
+    using ShortStrings for *;
+
     /// the targets, values and calldatas to be used in the calls: set at construction.
     address[] public targets;
     uint256[] public values;
@@ -39,28 +48,41 @@ contract PresetAction is Law {
     /// @param values_ the values to use in the calls.
     /// @param calldatas_ the calldatas to use in the calls.
     constructor(
+        // inherited from Law
         string memory name_,
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_,
+        // specific to preset action
         address[] memory targets_,
         uint256[] memory values_,
         bytes[] memory calldatas_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
         targets = targets_;
         values = values_;
         calldatas = calldatas_;
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, ""); // empty params
     }
 
     /// @notice execute the law.
-    function simulateLaw(address, /*initiator*/ bytes memory, /*lawCalldata*/ bytes32 /*descriptionHash*/ )
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
-        virtual
         override
-        returns (address[] memory, uint256[] memory, bytes[] memory, bytes memory)
+        returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        return (targets, values, calldatas, "0x0");
+        console.log("@PresetAction: waypoint 1");
+        actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+        console.log("@PresetAction: waypoint 2");
+        console.log("@PresetAction: actionId", actionId);
+        return (actionId, targets, values, calldatas, "");  
     }
 }

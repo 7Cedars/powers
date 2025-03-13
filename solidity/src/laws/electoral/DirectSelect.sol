@@ -31,6 +31,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
+import { LawUtils } from "../LawUtils.sol";
+import "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract DirectSelect is Law { 
     uint32 private immutable ROLE_ID;
@@ -42,31 +44,52 @@ contract DirectSelect is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         uint32 roleId_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    ) {
+        // set the standard parameters. Generic to all laws.
+        name = ShortStrings.toShortString(name_);
+        allowedRole = allowedRole_;
+        powers = powers_;
+        config = config_;
+
+        // set the roleId. Specific to this law.
         ROLE_ID = roleId_;
-        inputParams = abi.encode(
-            "bool Revoke", 
+
+        // set the input parameters.
+        bytes memory params = abi.encode(
+            "bool Assign", 
             "address Account"
             );
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets, 
+            uint256[] memory values, 
+            bytes[] memory calldatas, 
+            bytes memory stateChange
+            )
     {
-        // step 1: decode the calldata.
-        (bool revoke, address account) = abi.decode(lawCalldata, (bool, address));
+        // Decode the calldata. Note that validating calldata is not possible at the moment. 
+        // See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
+        // The feature request has been open for almost five years(!) at time of writing.  
+        (bool assign, address account) = abi.decode(lawCalldata, (bool, address));
 
-        // step 2: create & send return calldata conditional if it is an assign or revoke action.
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
+        // step 2: hash the proposal.
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
 
+        // step 3: create the arrays.
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+
+        // step 4: set the targets, values and calldatas.
         targets[0] = powers;
-        if (revoke) {
+        if (!assign) {
             if (Powers(payable(powers)).hasRoleSince(account, ROLE_ID) == 0) {
                 revert ("Account does not have role.");
             }
@@ -77,5 +100,7 @@ contract DirectSelect is Law {
             }
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account); // selector = assignRole
         }
+
+        return (actionId, targets, values, calldatas, "");
     }
 }

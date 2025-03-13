@@ -19,13 +19,17 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../../Law.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { ThrottlePerAccount } from "../../modules/ThrottlePerAccount.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-contract RequestPayment is ThrottlePerAccount {
+contract RequestPayment is Law {
+    using ShortStrings for *;
+
     address public erc1155;
     uint256 public tokenId;
     uint256 public amount;
     uint48 public delay;
+    LawUtils.TransactionsByAccount private transactions;
 
     constructor(
         string memory name_,
@@ -37,25 +41,34 @@ contract RequestPayment is ThrottlePerAccount {
         uint256 tokenId_,
         uint256 amount_,
         uint48 delay_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
         amount = amount_;
         delay = delay_;
         erc1155 = erc1155_;
         tokenId = tokenId_;
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
+
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
-        virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
-        stateChange = abi.encode(initiator); // needed for throttlePerAccount
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        LawUtils.checkThrottle(transactions, initiator, delay);
+
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        stateChange = abi.encode(initiator); // needed to log the transaction
 
         targets[0] = erc1155;
         calldatas[0] = abi.encodeWithSelector(
@@ -63,9 +76,12 @@ contract RequestPayment is ThrottlePerAccount {
             initiator, 
             amount
             );
+
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _delay() internal view override returns (uint48) {
-        return delay;
+    function _changeState(bytes memory stateChange) internal override {
+        address initiator = abi.decode(stateChange, (address));
+        LawUtils.logTransaction(transactions, initiator, uint48(block.number));
     }
 }

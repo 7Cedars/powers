@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { EIP712 } from "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
+import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 contract Erc20VotesMock is ERC20Votes {
     error Erc20VotesMock__NoZeroAmount();

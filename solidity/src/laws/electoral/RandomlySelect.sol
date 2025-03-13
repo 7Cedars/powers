@@ -39,91 +39,91 @@
 
 pragma solidity 0.8.26;
 
-import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
-import { NominateMe } from "../state/NominateMe.sol";
+// import { Law } from "../../Law.sol";
+// import { Powers} from "../../Powers.sol";
+// import { NominateMe } from "../state/NominateMe.sol";
 
-contract RandomlySelect is Law {
-    uint256 private immutable MAX_ROLE_HOLDERS;
-    uint32 private immutable ROLE_ID;
-    address private immutable nominees;
-    address[] public electedAccounts;
+// contract RandomlySelect is Law {
+//     uint256 private immutable MAX_ROLE_HOLDERS;
+//     uint32 private immutable ROLE_ID;
+//     address private immutable nominees;
+//     address[] public electedAccounts;
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawConfig memory config_,
-        uint256 maxRoleHolders_,
-        uint32 roleId_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        MAX_ROLE_HOLDERS = maxRoleHolders_;
-        ROLE_ID = roleId_;
-        stateVars = abi.encode("address[]");
-    }
+//     constructor(
+//         string memory name_,
+//         string memory description_,
+//         address payable powers_,
+//         uint32 allowedRole_,
+//         LawConfig memory config_,
+//         uint256 maxRoleHolders_,
+//         uint32 roleId_
+//     )  {
+//         MAX_ROLE_HOLDERS = maxRoleHolders_;
+//         ROLE_ID = roleId_;
+//         stateVars = abi.encode("address[]");
+//     }
 
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
-        public
-        view
-        virtual
-        override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-    {
-        // setting up array for revoking & assigning roles.
-        address nominees = config.readStateFrom;  
-        uint256 numberNominees = NominateMe(nominees).nomineesCount();
-        uint256 numberRevokees = electedAccounts.length;
-        uint256 arrayLength =
-            numberNominees < MAX_ROLE_HOLDERS ? numberRevokees + numberNominees : numberRevokees + MAX_ROLE_HOLDERS;
-        address[] memory accountElects =
-            new address[](numberNominees < MAX_ROLE_HOLDERS ? numberNominees : MAX_ROLE_HOLDERS);
+//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+//         public
+//         view
+//         virtual
+//         override
+//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+//     {
+//         // setting up array for revoking & assigning roles.
+//         address nominees = config.readStateFrom;  
+//         uint256 numberNominees = NominateMe(nominees).nomineesCount();
+//         uint256 numberRevokees = electedAccounts.length;
+//         uint256 arrayLength =
+//             numberNominees < MAX_ROLE_HOLDERS ? numberRevokees + numberNominees : numberRevokees + MAX_ROLE_HOLDERS;
+//         address[] memory accountElects =
+//             new address[](numberNominees < MAX_ROLE_HOLDERS ? numberNominees : MAX_ROLE_HOLDERS);
 
-        targets = new address[](arrayLength);
-        values = new uint256[](arrayLength);
-        calldatas = new bytes[](arrayLength);
-        for (uint256 i; i < arrayLength; i++) {
-            targets[i] = powers;
-        }
+//         targets = new address[](arrayLength);
+//         values = new uint256[](arrayLength);
+//         calldatas = new bytes[](arrayLength);
+//         for (uint256 i; i < arrayLength; i++) {
+//             targets[i] = powers;
+//         }
 
-        // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
-        for (uint256 i; i < numberRevokees; i++) {
-            calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, electedAccounts[i]);
-        }
+//         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
+//         for (uint256 i; i < numberRevokees; i++) {
+//             calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, electedAccounts[i]);
+//         }
 
-        // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
-        if (numberNominees < MAX_ROLE_HOLDERS) {
-            for (uint256 i; i < numberNominees; i++) {
-                address accountElect = NominateMe(nominees).nomineesSorted(i);
-                calldatas[i + numberRevokees] =
-                    abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, accountElect);
-                accountElects[i] = accountElect;
-            }
-        } else {
-            uint256 pseudoRandomValue = uint256(keccak256(abi.encodePacked(block.number, descriptionHash)));
-            // note: this is very inefficient, but I cannot add a getter function in NominateMe - so have to retrieve addresses one by one..
-            address[] memory _nomineesSorted = new address[](numberNominees);
-            for (uint256 i; i < numberNominees; i++) {
-                _nomineesSorted[i] = NominateMe(nominees).nomineesSorted(i);
-            }
-            for (uint256 i; i < MAX_ROLE_HOLDERS; i++) {
-                uint256 indexSelected = (pseudoRandomValue / 10 ** (i + 1)) % (numberNominees - i);
-                address selectedNominee = _nomineesSorted[indexSelected];
-                // creating call, assigning role, adding nominee to elected, and removing nominee from nominees list.
-                calldatas[i] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, selectedNominee); // selector probably wrong. check later.
-                accountElects[i] = selectedNominee;
-                // note that we do not need to .pop the last item of the list, because it will never be accessed as the modulo decreases each run.
-                _nomineesSorted[indexSelected] = _nomineesSorted[numberNominees - (i + 1)];
-            }
-        }
-        stateChange = abi.encode(accountElects);
-    }
+//         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
+//         if (numberNominees < MAX_ROLE_HOLDERS) {
+//             for (uint256 i; i < numberNominees; i++) {
+//                 address accountElect = NominateMe(nominees).nomineesSorted(i);
+//                 calldatas[i + numberRevokees] =
+//                     abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, accountElect);
+//                 accountElects[i] = accountElect;
+//             }
+//         } else {
+//             uint256 pseudoRandomValue = uint256(keccak256(abi.encodePacked(block.number, descriptionHash)));
+//             // note: this is very inefficient, but I cannot add a getter function in NominateMe - so have to retrieve addresses one by one..
+//             address[] memory _nomineesSorted = new address[](numberNominees);
+//             for (uint256 i; i < numberNominees; i++) {
+//                 _nomineesSorted[i] = NominateMe(nominees).nomineesSorted(i);
+//             }
+//             for (uint256 i; i < MAX_ROLE_HOLDERS; i++) {
+//                 uint256 indexSelected = (pseudoRandomValue / 10 ** (i + 1)) % (numberNominees - i);
+//                 address selectedNominee = _nomineesSorted[indexSelected];
+//                 // creating call, assigning role, adding nominee to elected, and removing nominee from nominees list.
+//                 calldatas[i] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, selectedNominee); // selector probably wrong. check later.
+//                 accountElects[i] = selectedNominee;
+//                 // note that we do not need to .pop the last item of the list, because it will never be accessed as the modulo decreases each run.
+//                 _nomineesSorted[indexSelected] = _nomineesSorted[numberNominees - (i + 1)];
+//             }
+//         }
+//         stateChange = abi.encode(accountElects);
+//     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
-        (address[] memory elected) = abi.decode(stateChange, (address[]));
-        for (uint256 i; i < electedAccounts.length; i++) {
-            electedAccounts.pop();
-        }
-        electedAccounts = elected;
-    }
-}
+//     function _changeState(bytes memory stateChange) internal override {
+//         (address[] memory elected) = abi.decode(stateChange, (address[]));
+//         for (uint256 i; i < electedAccounts.length; i++) {
+//             electedAccounts.pop();
+//         }
+//         electedAccounts = elected;
+//     }
+// }

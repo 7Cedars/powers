@@ -5,85 +5,110 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and its contracts have not been audited.           ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Events used in the Powers protocol.
-/// Code derived from OpenActionZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
-///
+/// @title Law Interface - Contract Interface for Powers Protocol Laws
+/// @notice Defines the interface for implementing role-restricted governance actions
+/// @dev Interface for the Law contract, which provides core functionality for governance laws
 /// @author 7Cedars
-import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import { LawErrors } from "./LawErrors.sol";
-
 pragma solidity 0.8.26;
 
+import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { LawErrors } from "./LawErrors.sol";
+
 interface ILaw is IERC165, LawErrors {
-    // £todo not yet optimised for memory slots.
+    //////////////////////////////////////////////////////////////
+    //                        TYPES                             //
+    //////////////////////////////////////////////////////////////
+
     struct LawConfig {
-        uint8 quorum;
-        uint8 succeedAt;
-        uint32 votingPeriod;
-        address needCompleted;
-        address needNotCompleted;
-        uint48 delayExecution;
-        uint48 throttleExecution;
-        address readStateFrom; 
+        // Slot 1
+        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
+        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
+        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
+        // Slot 2  
+        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
+        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
+        uint8 quorum;              // 1 byte   - Required participation percentage
+        uint8 succeedAt;           // 1 byte   - Required success percentage
+        // Slot 3
+        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
     }
 
-    // @notice emitted when the law is initialized
+    //////////////////////////////////////////////////////////////
+    //                        EVENTS                            //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Emitted when a law is initialized
+    /// @param law Address of the initialized law contract
+    /// @param name Name of the law
+    /// @param description Description of the law's purpose
+    /// @param powers Address of the Powers protocol contract
+    /// @param allowedRole Role ID required to interact with this law
+    /// @param config Configuration parameters for the law
     event Law__Initialized(
         address indexed law,
-        address indexed powers,
         string name,
         string description,
-        uint48 allowedRole,
-        LawConfig config
+        address indexed powers,
+        uint32 allowedRole,
+        LawConfig config,
+        bytes params
     );
 
-    /// @notice function to execute a law.
-    /// @param initiator the address of the account that proposed execution of the law.
-    /// @param lawCallData call data to be executed.
-    /// @param descriptionHash the descriptionHash of the proposal
-    ///
-    /// note that this function is called by {Powers::execute}.
-    /// note it calls the simulateLaw function and adds checks to ensure that the law is valid before execution.
-    /// note that this function cannot be overwritten: powers will _always_ run checks before executing legal logic included in simulate law.
-    ///
-    /// @dev the output arrays of targets, values and calldatas must have the same length.
-    function executeLaw(address initiator, bytes memory lawCallData, bytes32 descriptionHash)
+    //////////////////////////////////////////////////////////////
+    //                   LAW EXECUTION                          //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Executes the law's logic after validation
+    /// @dev Called by the Powers protocol during action execution
+    /// @param initiator Address that initiated the action
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    /// @return success True if execution succeeded
+    function executeLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         external
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas);
+        returns (bool success);
 
-    /// @notice function to include logic of a law. It can be called by anyone, allowing for third parties to simulate input -> output of a law before execution.
-    /// @param initiator the address of the account that proposed execution of the law.
-    /// @param lawCalldata call data to be executed.
-    /// @param descriptionHash the descriptionHash of the proposal
-    ///
-    /// note that this function should be overridden by law implementations to add logic of the law.
-    ///
-    /// @dev the arrays of targets, values and calldatas must have the same length.
-    function simulateLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @notice Simulates the law's execution logic
+    /// @dev Must be overridden by implementing contracts
+    /// @param initiator Address that initiated the action
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    /// @return actionId The action ID
+    /// @return targets Target contract addresses for calls
+    /// @return values ETH values to send with calls
+    /// @return calldatas Encoded function calls
+    /// @return stateChange Encoded state changes to apply
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         external
-        view
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
+        view 
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
 
-    /// @notice a public view function to check that the law is valid before creating a proposal or executing it.
-    /// @dev Optional checks can be added by overriding this function.
-    ///
-    /// @param initiator the address of the proposer.
-    /// @param lawCalldata the calldata for the law.
-    /// @param descriptionHash the hash of the description of the law.
-    function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash) external view;
+    //////////////////////////////////////////////////////////////
+    //                     VALIDATION                           //
+    //////////////////////////////////////////////////////////////
 
-    /// @notice a public view function to check that the law is valid before execution.
-    /// @dev Optional checks can be added by overriding this function.
-    ///
-    /// @param initiator the address of the proposer.
-    /// @param lawCalldata the calldata for the law.
-    /// @param descriptionHash the hash of the description of the law.
-    function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash) external view;
+    /// @notice Validates conditions required to propose an action
+    /// @dev Called during both proposal and execution
+    /// @param initiator Address attempting to propose
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+        external
+        view;
+
+    /// @notice Validates conditions required to execute an action
+    /// @dev Called during execution after proposal checks
+    /// @param initiator Address attempting to execute
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+        external
+        view;
 }

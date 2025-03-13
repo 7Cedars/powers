@@ -24,8 +24,12 @@ import { Powers} from "../../../Powers.sol";
 import { Grant } from "./Grant.sol";
 import { StartGrant } from "./StartGrant.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
+import { LawUtils } from "../../LawUtils.sol";
 
 contract StopGrant is Law { 
+    using ShortStrings for *;
+
     LawConfig public configNewGrants; // config for new grants.
     
     constructor(
@@ -34,8 +38,14 @@ contract StopGrant is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        bytes memory params = abi.encode(
             "string Name", // name
             "string Description", // description
             "uint48 Duration", // duration
@@ -44,23 +54,28 @@ contract StopGrant is Law {
             "uint32 GrantCouncilId", // allowedRole
             "address Proposals" // proposals
         );
-        stateVars = inputParams; // Note: stateVars == inputParams.
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+
         (
-            configNewGrants.quorum,
-            configNewGrants.succeedAt, 
-            configNewGrants.votingPeriod, 
             configNewGrants.needCompleted,
-            , , , ) = StartGrant(config.needCompleted).configNewGrants(); 
+            , 
+            , 
+            ,
+            configNewGrants.votingPeriod,
+            configNewGrants.quorum,
+            configNewGrants.succeedAt,
+            ) = StartGrant(config.needCompleted).configNewGrants(); 
     }
 
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // step 0: decode data from stateChange
+        // step 0: create actionId & decode data from stateChange
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
         (
             string memory name,
             string memory description,
@@ -95,6 +110,6 @@ contract StopGrant is Law {
         calldatas[0] = abi.encodeWithSelector(Powers.revokeLaw.selector, grantAddress);
 
         // step 5: return data
-        return (targets, values, calldatas, stateChange);
+        return (actionId, targets, values, calldatas, stateChange);
     }
 }

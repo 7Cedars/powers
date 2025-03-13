@@ -20,12 +20,16 @@ pragma solidity 0.8.26;
 // protocol
 import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 // open zeppelin contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // NB: no checks on what kind of Erc20 token is used. This is just an example.
 contract Grant is Law {
+    using ShortStrings for *;
+
     uint48 public expiryBlock;
     uint256 public budget;
     uint256 public spent;
@@ -42,13 +46,19 @@ contract Grant is Law {
         uint256 budget_,
         address tokenAddress_,
         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council. 
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        bytes memory params = abi.encode(
             "address Grantee", // grantee address
             "address Grant", // grant address = address(this). This is needed to make abuse of proposals across contracts impossible.
             "uint256 Quantity" // quantity to transfer
         );
-        stateVars = abi.encode("uint256 Quantity"); //  quantity to transfer
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 
         config.needCompleted = proposals_;
         expiryBlock = duration_ + uint48(block.number);
@@ -58,14 +68,15 @@ contract Grant is Law {
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // step 0: decode law calldata
+        // step 0: create actionId & decode law calldata
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
         (address grantee, address grantAddress, uint256 quantity) = abi.decode(lawCalldata, (address, address, uint256));
 
         // step 1: run additional checks
@@ -77,23 +88,17 @@ contract Grant is Law {
         }
 
         // step 2: create arrays
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
-        stateChange = abi.encode("");
-
-        // step 3: fill out arrays with data
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
         targets[0] = tokenAddress;
-        stateChange = abi.encode(quantity);
         calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
-        
-        // step 4: return data
-        return (targets, values, calldatas, stateChange);
+        stateChange = abi.encode(quantity);
+
+        // step 3: return data
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    function _changeState(bytes memory stateChange) internal override {
         (uint256 quantity) = abi.decode(stateChange, (uint256));
-        
         // update spent amount in law.
         spent += quantity;
     }

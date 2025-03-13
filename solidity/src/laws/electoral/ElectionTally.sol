@@ -43,9 +43,12 @@ import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { ElectionCall } from "./ElectionCall.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { LawUtils } from "../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionTally is Law { 
+    using ShortStrings for *;
+
     struct Data {
         string description;
         uint48 startVote;
@@ -64,22 +67,29 @@ contract ElectionTally is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_
-    ) Law(name_, description_, powers_, allowedRole_, config_) {
-        inputParams = abi.encode(
+    )  {
+        LawUtils.checkConstructorInputs(powers_, name_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        bytes memory params = abi.encode(
             "string Description", // description = a description of the election.
             "uint48 StartVote", // startVote = the start date of the election.
             "uint48 EndVote" // endVote = the end date of the election.
         );
-        stateVars = abi.encode("address[] Elected");         
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function simulateLaw(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
         override
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {   
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
         
         // saving the following in state vars to a struct avoid 'stack too deep' errors.
         Data memory data;
@@ -111,15 +121,10 @@ contract ElectionTally is Law {
         uint256 arrayLength =
             numberNominees < data.maxRoleHolders ? numberRevokees + numberNominees + 1 : numberRevokees + data.maxRoleHolders + 1;
 
-        targets = new address[](arrayLength);
-        values = new uint256[](arrayLength);
-        calldatas = new bytes[](arrayLength);
-        accountElects = new address[](numberNominees < data.maxRoleHolders ? numberNominees : data.maxRoleHolders);
-
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(arrayLength); 
         for (uint256 i; i < arrayLength; i++) {
             targets[i] = powers;
         }
-
         // step 2: calls to revoke roles of previously elected accounts.
         for (uint256 i; i < numberRevokees; i++) {
             calldatas[i] = abi.encodeWithSelector(
@@ -136,6 +141,7 @@ contract ElectionTally is Law {
 
         // step 3a: calls to add nominees if fewer than data.maxRoleHolders
         if (numberNominees < data.maxRoleHolders) {
+            accountElects = new address[](numberNominees);
             for (uint256 i; i < numberNominees; i++) {
                 address accountElect = NominateMe(data.nominees).nomineesSorted(i);
                 calldatas[i + numberRevokees] =
@@ -151,6 +157,7 @@ contract ElectionTally is Law {
             // step 3b: calls to add nominees if more than data.maxRoleHolders
         } else {
             // retrieve votes for delegates from ElectionVotes contract.
+            accountElects = new address[](data.maxRoleHolders);
             uint256[] memory _votes = new uint256[](numberNominees);
             address[] memory _nominees = new address[](numberNominees);
             for (uint256 i; i < numberNominees; i++) {
@@ -185,9 +192,11 @@ contract ElectionTally is Law {
             }
         }
         stateChange = abi.encode(accountElects);
+
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeStateVariables(bytes memory stateChange) internal override {
+    function _changeState(bytes memory stateChange) internal override {
         (address[] memory elected) = abi.decode(stateChange, (address[]));
         delete electedAccounts;
         electedAccounts = elected;

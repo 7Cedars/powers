@@ -12,51 +12,59 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A base contract that executes a open action.
+/// @notice Natspecs are tbi. 
 ///
-/// Note As the contract allows for any action to be executed, it severely limits the functionality of the Powers protocol.
-/// - any role that has access to this law, can execute any function. It has full power of the DAO.
-/// - if this law is restricted by PUBLIC_ROLE, it means that anyone has access to it. Which means that anyone is given the right to do anything through the DAO.
-/// - The contract should always be used in combination with modifiers from {PowerModiifiers}.
-///
-/// The logic:
-/// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
-///
-/// @author 7Cedars, 
-
+/// @author 7Cedars
 pragma solidity 0.8.26;
 
+// laws
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
 import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-contract ProposalOnly is Law {
+contract SelfDestructAction is Law {
     using ShortStrings for *;
 
-    /// @notice Constructor function for Open contract.
-    /// @param name_ name of the law
-    /// @param description_ description of the law
-    /// @param powers_ the address of the core governance protocol
-    /// @param allowedRole_ the role that is allowed to execute this law
-    /// @param config_ the configuration of the law
-    /// @param params_ the parameters of the function
+    address[] public targets;
+    uint256[] public values;
+    bytes[] public calldatas;
+
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
-        string[] memory params_
-    ) {
+        LawConfig memory config_, 
+        address[] memory targets_,
+        uint256[] memory values_,
+        bytes[] memory calldatas_
+    ) { 
         LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;
         config = config_;
 
-        bytes memory params = abi.encode(params_);
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+        targets = targets_;
+        values = values_;
+        calldatas = calldatas_;
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, ""); // empty params
     }
 
-    // note this law does not need to override handleRequest as it does not execute any logic.
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
+    {
+        (
+            address[] memory targetsNew, 
+            uint256[] memory valuesNew, 
+            bytes[] memory calldatasNew
+            ) = LawUtils.addSelfDestruct(targets, values, calldatas, powers);
+        
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        return (actionId, targetsNew, valuesNew, calldatasNew, "");
+    }
 }

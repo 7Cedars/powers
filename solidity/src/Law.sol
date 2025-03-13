@@ -12,202 +12,236 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Law.sol v.0.2
-/// @notice Base implementation of a Law in the Powers protocol. Meant to be inherited by law implementations.
+/// @title Law - Base Implementation for Powers Protocol Laws
+/// @notice Abstract base contract for implementing role-restricted governance actions
+/// @dev Provides core functionality for creating governance laws in the Powers protocol
 ///
-/// @dev Laws are role restricted contracts that are executed by the Powers.sol. The provide the following functionality:
-/// 1 - Role restricting a community's actions
-/// 2 - Transforming a {lawCalldata) input into an output of targets[], values[], calldatas[] to be executed by the core protocol.
-/// 3 - Saving a the state of a community.
-/// 4 - Adding conditions to the creation of proposals for and/or execution of the law.
-/// 5 - Prior to changing state and returning output data, all checks are run. 
+/// Laws serve five key functions:
+/// 1. Role restriction of community actions
+/// 2. Transformation of input data into executable calls
+/// 3. State management for the community
+/// 4. Validation of proposal and execution conditions
+/// 5. Execution of governance actions
 ///
-/// Laws can be adapted through the following ways: 
-/// - By inheriting and changing the implementing of the {simulateLaw} function.
-/// - By changing setting of the {config} variable in the constructor.
-/// - By changing any other (bespoke) parameters in the constructor.
-/// Combined, they allow for a wide range of executive, legislative and electoral logics to be implemented.
-///
-/// To enable front end UIs to dynamically generate UIs to interact with laws a `paramsInput` and `stateVars` variable are included.
-/// - paramsInput: an abi.encoded array of strings that denote the input parameters. 
-/// - stateVars: an abi.encoded array of strings that denote the variables that are saved in state. 
+/// Laws can be customized through:
+/// - Inheriting and implementing the {handleRequest} {_replyPowers} and {_changeState} functions
+/// - Configuring parameters in the constructor
+/// - Adding custom state variables and logic
 ///
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-import { Powers} from "./Powers.sol";
+import { Powers } from "./Powers.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
-import { ERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
-import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/ShortStrings.sol";
+
+///// ONLY FOR TESTING /////
+import "forge-std/Test.sol";
+///// ONLY FOR TESTING /////
  
-contract Law is ERC165, ILaw {
+abstract contract Law is ERC165, ILaw {
     using ShortStrings for *;
 
-    //////////////////////////////////////////////////
-    //                 variables                    //
-    //////////////////////////////////////////////////
-    // required parameters
-    uint32 public allowedRole;
-    ShortString public immutable name; // name of the law
-    address payable public powers; // the address of the core governance protocol
-    string public description; // description of the law
-    bytes public inputParams; // an abi.encoded array of strings that denote the input parameters. For example: abi.encode("address", "address", "uint256", "address[]");
-    bytes public stateVars; // an abi.encoded array of strings that denote the variables that are saved in state. For example: abi.encode("address", "address", "uint256", "address[]");
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                           //
+    //////////////////////////////////////////////////////////////
 
-    // optional parameters
+    /// @notice Name of the law
+    ShortString public immutable name;
+
+    /// @notice Role ID required to interact with this law
+    uint32 public allowedRole;
+
+    /// @notice Address of the Powers protocol contract
+    address payable public powers;
+
+    /// @notice Configuration parameters for the law
     LawConfig public config;
 
-    // optional storage
-    uint48[] public executions = [0]; // log of when the law was executed in block.number.
+    /// @notice History of law executions (block numbers)
+    /// @dev First element is always 0
+    uint48[] public executions = [0];
 
-    //////////////////////////////////////////////////
-    //                 FUNCTIONS                    //
-    //////////////////////////////////////////////////
-    /// @dev Constructor function for Law contract.
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawConfig memory config_
-    ) {
-        powers = powers_;
-        name = name_.toShortString();
-        description = description_;
-        allowedRole = allowedRole_;
-        config = config_;
+    // note the absent constructor. This is because the Law contract is intended to be used as an abstract base contract.
+    // Subcontracts will inherit from this contract and implement their own specific logic.
 
-        emit Law__Initialized(address(this), powers, name_, description, allowedRole, config);
-    }
+    //////////////////////////////////////////////////////////////
+    //                   LAW EXECUTION                          //
+    //////////////////////////////////////////////////////////////
 
-    /// note this is the function that is called by the Powers protocol. It always runs checks before execution of law logic.
-    /// @inheritdoc ILaw
+    /// @notice Executes the law's logic after validation
+    /// @dev Called by the Powers protocol during action execution
+    /// @param initiator Address that initiated the action
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    /// @return success True if execution succeeded
     function executeLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+        returns (bool success)
     {
+        console.log("@Law: waypoint 0", powers);
         if (msg.sender != powers) {
             revert Law__OnlyPowers();
         }
+
+        console.log("@Law: waypoint 1");
+
+        // Run all validation checks
         checksAtPropose(initiator, lawCalldata, descriptionHash);
         checksAtExecute(initiator, lawCalldata, descriptionHash);
-        bytes memory stateChange;
-        (targets, values, calldatas, stateChange) = simulateLaw(initiator, lawCalldata, descriptionHash);
-        _changeStateVariables(stateChange);
+
+        console.log("@Law: waypoint 2");
+
+        // Simulate and execute the law's logic
+        (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
+            handleRequest(initiator, lawCalldata, descriptionHash);
+        
+        console.log("@Law: waypoint 3");
+        console.log("@Law: targets.length", targets.length);
+        console.log("@Law: actionId", actionId);
+        // execute the law's logic conditional on data returned by handleRequest
+        if (targets.length > 0) {
+            console.log("@Law: waypoint 4");
+            _replyPowers(actionId, targets, values, calldatas);
+        }
+        if (stateChange.length > 0) {
+            console.log("@Law: waypoint 5");
+            _changeState(stateChange);
+        }
+
+        console.log("@Law: waypoint 6");
+        
         executions.push(uint48(block.number));
+        console.log("@Law: waypoint 7");
+        return true;
     }
 
-    /// note NB! this function needs to be overwritten by law implementations to include law specific logics.
-    /// @inheritdoc ILaw
-    function simulateLaw(
-        address initiator,
-        bytes memory lawCalldata,
-        bytes32 descriptionHash // NB. £bug: simulateLaw can change state of law _without_ checks having been run!
-    )
+    /// @notice Simulates the law's execution logic
+    /// @dev Must be overridden by implementing contracts
+    /// @param initiator Address that initiated the action
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    /// @return actionId The action ID
+    /// @return targets Target contract addresses for calls
+    /// @return values ETH values to send with calls
+    /// @return calldatas Encoded function calls
+    /// @return stateChange Encoded state changes to apply
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
         public
-        view // CANNOT change state of law.
+        view 
         virtual
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // Empty law logic. Needs to be overridden by law implementations
+        // Empty implementation - must be overridden
     }
 
-    //////////////////////////////////////////////////
-    //                  CHECKS                      //
-    //////////////////////////////////////////////////
-    /// @inheritdoc ILaw
-    function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @notice Applies state changes from law execution
+    /// @dev Must be overridden by implementing contracts
+    /// @param stateChange Encoded state changes to apply
+    function _changeState(bytes memory stateChange) internal virtual {
+        // Empty implementation - must be overridden
+    }
+
+    /// @notice Sends execution data back to Powers protocol
+    /// @dev Must be overridden by implementing contracts
+    /// @param actionId The action id of the proposal
+    /// @param targets Target contract addresses for calls
+    /// @param values ETH values to send with calls
+    /// @param calldatas Encoded function calls
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+        // Base implementation: send data back to Powers protocol
+        // this implementation can be overwritten with any kind of bespoke logic. 
+        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                     VALIDATION                           //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Validates conditions required to propose an action
+    /// @dev Called during both proposal and execution
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    function checksAtPropose(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
     {
-        /// Optional check 1: make law conditional on a parent law being completed.
+        // Check if parent law completion is required
         if (config.needCompleted != address(0)) {
-            uint256 parentProposalId = _hashProposal(config.needCompleted, lawCalldata, descriptionHash);
-            if (
-                Powers(payable(powers)).state(parentProposalId)
-                    != PowersTypes.ProposalState.Completed
-            ) {
+            uint256 parentActionId = _hashActionId(config.needCompleted, lawCalldata, descriptionHash);
+
+            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentNotCompleted();
             }
         }
 
-        /// Optional check 2: make law conditional on a parent law NOT being completed.
-        /// Note this means a roleId can be given an effective veto to a legal process. If the RoleId does nothing, the law will pass. If they actively oppose, it will fail.
+        // Check if parent law must not be completed
         if (config.needNotCompleted != address(0)) {
-            uint256 parentProposalId = _hashProposal(config.needNotCompleted, lawCalldata, descriptionHash);
-            if (
-                Powers(payable(powers)).state(parentProposalId)
-                    == PowersTypes.ProposalState.Completed
-            ) {
+            uint256 parentActionId = _hashActionId(config.needNotCompleted, lawCalldata, descriptionHash);
+
+            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentBlocksCompletion();
             }
         }
     }
 
-    /// @inheritdoc ILaw
-    function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @notice Validates conditions required to execute an action
+    /// @dev Called during execution after proposal checks
+    /// @param lawCalldata Encoded function call data
+    /// @param descriptionHash Hash of the action description
+    function checksAtExecute(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         virtual
     {
-        /// Optional check 3: throttle how often the law can be executed.
+        // Check execution throttling
         if (config.throttleExecution != 0) {
             uint256 numberOfExecutions = executions.length - 1;
-            if (
-                executions[numberOfExecutions] != 0
-                    && block.number - executions[numberOfExecutions] < config.throttleExecution
-            ) {
+            if (executions[numberOfExecutions] != 0 && 
+                block.number - executions[numberOfExecutions] < config.throttleExecution) {
                 revert Law__ExecutionGapTooSmall();
             }
         }
 
-        // Optional check 4: make law conditional on a proposal succeeding.
+        // Check if proposal vote succeeded
         if (config.quorum != 0) {
-            uint256 proposalId = _hashProposal(address(this), lawCalldata, descriptionHash);
-            if (
-                Powers(payable(powers)).state(proposalId)
-                    != PowersTypes.ProposalState.Succeeded
-            ) {
+            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
                 revert Law__ProposalNotSucceeded();
             }
         }
 
-        /// Optional check 5: set a deadline for how long after its proposal passed it can be executed.
+        // Check execution delay after proposal
         if (config.delayExecution != 0) {
-            uint256 proposalId = _hashProposal(address(this), lawCalldata, descriptionHash);
-            uint256 currentBlock = block.number;
-            uint256 deadline = Powers(payable(powers)).proposalDeadline(proposalId);
-
-            if (deadline + config.delayExecution > currentBlock) {
+            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
+            if (deadline + config.delayExecution > block.number) {
                 revert Law__DeadlineNotPassed();
             }
         }
     }
 
-    //////////////////////////////////////////////////
-    //                 INTERNALS                    //
-    //////////////////////////////////////////////////
-    function _changeStateVariables(bytes memory stateChange) internal virtual {
-        // Empty function. Needs to be overridden by law implementations
-    }
+    //////////////////////////////////////////////////////////////
+    //                      UTILITIES                           //
+    //////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////
-    //           HELPER & VIEW FUNCTIONS            //
-    //////////////////////////////////////////////////
-    /// @notice implements ERC165
+    /// @notice Checks if contract implements required interfaces
+    /// @dev Implements IERC165
+    /// @param interfaceId Interface identifier to check
+    /// @return True if interface is supported
     function supportsInterface(bytes4 interfaceId) public view override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    /// @notice an internal helper function for hashing proposals.
-    function _hashProposal(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function _hashActionId(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
         internal
         pure
-        returns (uint256)
+        returns (uint256 actionId)
     {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+       actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
     }
 }
