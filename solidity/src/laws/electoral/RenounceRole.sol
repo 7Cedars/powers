@@ -34,10 +34,10 @@ import { Powers} from "../../Powers.sol";
 import { LawUtils } from "../LawUtils.sol";
 import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-contract SelfSelect is Law { 
+contract RenounceRole is Law { 
     using ShortStrings for *;
 
-    uint32 private immutable ROLE_ID;
+    uint32[] public allowedRoleIds; // role that can be renounced.
 
     constructor(
         string memory name_,
@@ -45,7 +45,7 @@ contract SelfSelect is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_,
-        uint32 roleId_
+        uint32[] memory allowedRoleIds_
     )  {
         LawUtils.checkConstructorInputs(powers_, allowedRole_);
         name = name_.toShortString();
@@ -53,9 +53,11 @@ contract SelfSelect is Law {
         allowedRole = allowedRole_;
         config = config_;
 
-        ROLE_ID = roleId_;
-        
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
+        allowedRoleIds = allowedRoleIds_;
+
+        bytes memory params = abi.encode("uint32 RoleID");
+
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
     function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
@@ -66,18 +68,30 @@ contract SelfSelect is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 1: decode the calldata.
-        (bool revoke) = abi.decode(lawCalldata, (bool));
+        (uint32 roleId) = abi.decode(lawCalldata, (uint32));
+        
+        // step2: check if the role is allowed to be renounced.
+        bool allowed = false;
+        for (uint32 i = 0; i < allowedRoleIds.length; i++) {
+            if (roleId == allowedRoleIds[i]) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            revert ("Role not allowed to be renounced.");
+        }
 
-        // step 2: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        // step 3: create & send return calldata conditional if it is an assign or revoke action.
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(allowedRoleIds.length);
         actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
 
         targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) != 0) {
-            revert ("Account already has role.");
+        if (Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0) {
+            revert ("Account does not have role.");
         }
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, initiator); // selector = assignRole
-        
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, initiator); // selector = revokeRole
+
         return (actionId, targets, values, calldatas, "");
     }
 

@@ -17,66 +17,71 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-// import { BespokeAction } from "../../executive/BespokeAction.sol";
-// import { Powers } from "../../../Powers.sol";
-// import { NominateMe } from "../../state/NominateMe.sol";
+import { Law } from "../../../Law.sol";
+import { Powers } from "../../../Powers.sol";
+import { NominateMe } from "../../state/NominateMe.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-// contract AssignCouncilRole is BespokeAction {
-//     uint32[] public allowedRoles;
-//     string[] public placeholder = new string[](1); 
+contract AssignCouncilRole is Law {
+    using ShortStrings for *;
 
-//     constructor(
-//         // standard
-//         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint32 allowedRole_,
-//         LawConfig memory config_,
-//         // 
-//         uint32[] memory allowedRoles_
-//     ) BespokeAction(
-//         name_, 
-//         description_, 
-//         powers_, 
-//         allowedRole_, 
-//         config_, 
-//         // 
-//         powers_, // address targetContract_,
-//         Powers.assignRole.selector, // bytes4 targetFunction_, 
-//         placeholder // string[] memory inputParams_ // note: insert empty, below these values are overwritten.
-//         ) {
-//         allowedRoles = allowedRoles_;
-//         inputParams = abi.encode(["uint32 roleId", "address account"]);
-//     }
+    uint32[] public councilRoles;
 
-//     function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         virtual
-//         override
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {
-//         // step 0: decode the calldata.
-//         (uint32 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
+    constructor(
+        // standard
+        string memory name_,
+        string memory description_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_,
+        // bespoke 
+        uint32[] memory councilRoles_
+    ) {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+
+        councilRoles = councilRoles_;
+        bytes memory params = abi.encode(["uint32 RoleId", "address Account"]);
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    }
+
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        virtual
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+    {
+        // step 0: create actionId & decode the calldata.
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        (uint32 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
         
-//         // step 1: check if the role is allowed.
-//         bool allowed = false;
-//         for (uint8 i = 0; i < allowedRoles.length; i++) {
-//             if (allowedRoles[i] == roleId) {
-//                 allowed = true;
-//                 break;
-//             }
-//         }
-//         if (!allowed) {
-//             revert ("Role not allowed."); 
-//         }
+        // step 1: check if the role is allowed.
+        bool allowed = false;
+        for (uint8 i = 0; i < councilRoles.length; i++) {
+            if (councilRoles[i] == roleId) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            revert ("Role not allowed."); 
+        }
+        // step 2: check if the account is nominated.
+        if (NominateMe(config.readStateFrom).nominees(account) == 0) {
+            revert ("Account not nominated.");
+        }
 
-//         // step 2: check if the account is nominated.
-//         if (NominateMe(config.readStateFrom).nominees(account) == 0) {
-//             revert ("Account not nominated.");
-//         }
-      
-//         // step 2: call super & return values. 
-//         return super.handleRequest(initiator, lawCalldata, descriptionHash);
-//     }
-// }
+        // step 2: create the arrays.
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        targets[0] = powers;
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, account);
+
+        // step 3: call super & return values. 
+        return (actionId, targets, values, calldatas, stateChange);
+    }
+}

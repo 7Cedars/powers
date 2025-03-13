@@ -17,50 +17,57 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-// import { Law } from "../../../Law.sol";
-// import { Powers} from "../../../Powers.sol";
-// import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
+import { Law } from "../../../Law.sol";
+import { Powers} from "../../../Powers.sol";
+import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-// contract RevokeMembership is Law {
-//     uint32 constant ROLE_ID = 1;
+contract RevokeMembership is Law {
+    using ShortStrings for *;
 
-//     address public erc721Token;
+    uint32 constant ROLE_ID = 1;
+    address public erc721Token;
 
-//     constructor(
-//         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint32 allowedRole_,
-//         LawConfig memory config_,
-//         address erc721Token_
-//     )  {
-//         inputParams = abi.encode("uint256 TokenId", "address Account"); // tokenId, account
-//         erc721Token = erc721Token_;
-//     }
+    constructor(
+        string memory name_,
+        string memory description_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_,
+        address erc721Token_
+    )  {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
 
-//     /// @notice execute the law.
-//     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         virtual
-//         override
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {
-//         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
-//         targets = new address[](2);
-//         values = new uint256[](2);
-//         calldatas = new bytes[](2);
-//         stateChange = abi.encode("");
+        bytes memory params = abi.encode("uint256 TokenId", "address Account"); // tokenId, account
+        erc721Token = erc721Token_;
 
-//         // action 0: revoke role member in Separated powers
-//         targets[0] = powers;
-//         calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, account);
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    }
 
-//         // action 1: burn the access token of the member, so they cannot become member again.
-//         targets[1] = erc721Token;
-//         calldatas[1] = abi.encodeWithSelector(Erc721Mock.burnNFT.selector, tokenId, account);
+    /// @notice execute the law.
+    /// @param lawCalldata the calldata _without function signature_ to send to the function.
+    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+    {
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
+        
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(2);
+        // action 0: revoke role member in Separated powers
+        targets[0] = powers;
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, account);
+        // action 1: burn the access token of the member, so they cannot become member again.
+        targets[1] = erc721Token;
+        calldatas[1] = abi.encodeWithSelector(Erc721Mock.burnNFT.selector, tokenId, account);
 
-//         return (targets, values, calldatas, stateChange);
-//     }
-// }
+        return (actionId, targets, values, calldatas, "");
+    }
+}

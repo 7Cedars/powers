@@ -17,57 +17,79 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-// import { DirectSelect } from "../../electoral/DirectSelect.sol";
-// import { Erc20TaxedMock } from "../../../../test/mocks/Erc20TaxedMock.sol";
+import { Law } from "../../../Law.sol";
+import { Powers } from "../../../Powers.sol";
+import { Erc20TaxedMock } from "../../../../test/mocks/Erc20TaxedMock.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-// contract RoleByTaxPaid is DirectSelect {
-//     address public erc20TaxedMock;
-//     uint256 public thresholdTaxPaid;
+contract RoleByTaxPaid is Law {
+    using ShortStrings for *;
 
-//     constructor(
-//         // standard
-//         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint32 allowedRole_,
-//         LawConfig memory config_,
-//         // direct select
-//         uint32 roleId_,
-//         // the taxed token to check
-//         address erc20TaxedMock_,
-//         uint256 thresholdTaxPaid_
-//     ) DirectSelect(name_, description_, powers_, allowedRole_, config_, roleId_) {
-//         erc20TaxedMock = erc20TaxedMock_;
-//         thresholdTaxPaid = thresholdTaxPaid_;
-//     }
+    address public erc20TaxedMock;
+    uint256 public thresholdTaxPaid;
+    uint32 public roleId;
+    constructor(
+        // standard
+        string memory name_,
+        string memory description_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_,
+        // direct select
+        uint32 roleId_,
+        // the taxed token to check
+        address erc20TaxedMock_,
+        uint256 thresholdTaxPaid_
+    )  {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
 
-//     function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         virtual
-//         override
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {
-//         // step 0: decode the calldata.
-//         (bool revoke, address account) = abi.decode(lawCalldata, (bool, address));
+        roleId = roleId_;
+        erc20TaxedMock = erc20TaxedMock_;
+        thresholdTaxPaid = thresholdTaxPaid_;
 
-//         // step 1: check if initiator paid sufficient taxes in the _previous_ epoch.
-//         uint48 epochDuration = Erc20TaxedMock(erc20TaxedMock).epochDuration();
-//         uint48 currentEpoch = uint48(block.number) / epochDuration;
-//         if (currentEpoch == 0) {
-//             revert ("No finished epoch yet."); 
-//         }
+        bytes memory params = abi.encode("address Account");
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    }
 
-//         uint256 taxPaid = Erc20TaxedMock(erc20TaxedMock).getTaxLogs(uint48(block.number) - epochDuration, account);
-//         // step 2: revert of action is not eligible
-//         if (!revoke && taxPaid < thresholdTaxPaid) {
-//             revert ("Not eligible."); 
-//         }
-//         if (revoke && taxPaid >= thresholdTaxPaid) {
-//             revert ("Is eligible."); 
-//         }
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        virtual
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+    {
+        // step 0: create actionId & decode the calldata.
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        (address account) = abi.decode(lawCalldata, (address));
 
-//         // step 3: call super
-//         return super.handleRequest(initiator, lawCalldata, descriptionHash);
-//     }
-// }
+        // step 1: retrieve data 
+        uint48 epochDuration = Erc20TaxedMock(erc20TaxedMock).epochDuration();
+        uint48 currentEpoch = uint48(block.number) / epochDuration;
+        if (currentEpoch == 0) {
+            revert ("No finished epoch yet."); 
+        }
+
+        // step 2: retrieve data on tax paid and role
+        bool hasRole = Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0;
+        uint256 taxPaid = Erc20TaxedMock(erc20TaxedMock).getTaxLogs(uint48(block.number) - epochDuration, account);
+
+        // step 3: create arrays
+        if (hasRole && taxPaid < thresholdTaxPaid) {
+            (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+            targets[0] = powers;
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, account); 
+        } else if (!hasRole && taxPaid >= thresholdTaxPaid) { 
+            (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+            targets[0] = powers;
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, account);
+        }
+
+        // step 4: return data
+        return (actionId, targets, values, calldatas, "");
+    }
+}

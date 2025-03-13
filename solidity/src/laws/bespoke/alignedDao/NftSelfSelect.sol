@@ -17,44 +17,51 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-// import { Law } from "../../../Law.sol";
-// import { NftCheck } from "../../modules/NftCheck.sol";
-// import { SelfSelect } from "../../electoral/SelfSelect.sol";
+import { Law } from "../../../Law.sol";
+import { Powers } from "../../../Powers.sol";
+import { LawUtils } from "../../LawUtils.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-// contract NftSelfSelect is SelfSelect, NftCheck {
-//     address public erc721Token;
+contract NftSelfSelect is Law {
+    using ShortStrings for *;
 
-//     constructor(
-//         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint32 allowedRole_,
-//         LawConfig memory config_,
-//         uint32 roleId_,
-//         address erc721Token_
-//     ) SelfSelect(name_, description_, powers_, allowedRole_, config_, roleId_) {
-//         erc721Token = erc721Token_;
-//     }
+    uint32 public roleId;
+    address public erc721Token;
+    
+    constructor(
+        string memory name_,
+        string memory description_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_,
+        uint32 roleId_,
+        address erc721Token_
+    ) {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
 
-//     function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         virtual
-//         override(Law, SelfSelect)
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {
-//         return super.handleRequest(initiator, lawCalldata, descriptionHash);
-//     }
+        erc721Token = erc721Token_;
+        roleId = roleId_;
 
-//     function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         override(Law, NftCheck)
-//     {
-//         super.checksAtPropose(initiator, lawCalldata, descriptionHash);
-//     }
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
+    }
 
-//     function _nftCheckAddress() internal view override returns (address) {
-//         return erc721Token;
-//     }
-// }
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+    {
+        LawUtils.nftCheck(initiator, erc721Token);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        targets[0] = powers;
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, initiator);
+
+        return (actionId, targets, values, calldatas, "");
+    }
+}

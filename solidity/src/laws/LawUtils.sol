@@ -20,15 +20,15 @@ pragma solidity 0.8.26;
 
 import { ERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { Powers } from "../Powers.sol";
-import { AddressesMapping } from "./state/AddressesMapping.sol";
-
-/// @notice Structure to track transactions by account address
-/// @dev Uses a mapping to store arrays of block numbers for each account
-struct TransactionsByAccount {
-    mapping(address account => uint48[] blockNumber) transactions;
-}
-
+ 
 library LawUtils {
+    /// @notice Structure to track transactions by account address
+    /// @dev Uses a mapping to store arrays of block numbers for each account
+    struct TransactionsByAccount {
+        mapping(address account => uint48[] blockNumber) transactions;
+    }
+
+
     function checkConstructorInputs(address powers, uint32 allowedRole)
         internal
         pure

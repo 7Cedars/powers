@@ -17,84 +17,99 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-// // protocol
-// import { Law } from "../../../Law.sol";
-// import { Powers} from "../../../Powers.sol";
+// protocol
+import { Law } from "../../../Law.sol";
+import { Powers} from "../../../Powers.sol";
 
-// import { Grant } from "./Grant.sol";
-// import { StartGrant } from "./StartGrant.sol";
-// import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Grant } from "./Grant.sol";
+import { StartGrant } from "./StartGrant.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
+import { LawUtils } from "../../LawUtils.sol";
 
-// contract StopGrant is Law { 
-//     LawConfig public configNewGrants; // config for new grants.
+contract StopGrant is Law { 
+    using ShortStrings for *;
+
+    LawConfig public configNewGrants; // config for new grants.
     
-//     constructor(
-//         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint32 allowedRole_,
-//         LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
-//     )  {
-//         inputParams = abi.encode(
-//             "string Name", // name
-//             "string Description", // description
-//             "uint48 Duration", // duration
-//             "uint256 Budget", // budget
-//             "address Erc20Token", // tokenAddress
-//             "uint32 GrantCouncilId", // allowedRole
-//             "address Proposals" // proposals
-//         );
-//         stateVars = inputParams; // Note: stateVars == inputParams.
-//         (
-//             configNewGrants.quorum,
-//             configNewGrants.succeedAt, 
-//             configNewGrants.votingPeriod, 
-//             configNewGrants.needCompleted,
-//             , , , ) = StartGrant(config.needCompleted).configNewGrants(); 
-//     }
+    constructor(
+        string memory name_,
+        string memory description_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
+    )  {
+        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
 
-//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
-//         public
-//         view
-//         virtual
-//         override
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {
-//         // step 0: decode data from stateChange
-//         (
-//             string memory name,
-//             string memory description,
-//             uint48 duration,
-//             uint256 budget,
-//             address tokenAddress,
-//             uint32 grantCouncil, 
-//             address proposals 
-//         ) = abi.decode(lawCalldata, (string, string, uint48, uint256, address, uint32, address));
+        bytes memory params = abi.encode(
+            "string Name", // name
+            "string Description", // description
+            "uint48 Duration", // duration
+            "uint256 Budget", // budget
+            "address Erc20Token", // tokenAddress
+            "uint32 GrantCouncilId", // allowedRole
+            "address Proposals" // proposals
+        );
+        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 
-//         // step 1: calculate address at which grant will be created.
-//         address grantAddress = StartGrant(config.needCompleted).getGrantAddress(
-//             name, description, duration, budget, tokenAddress, grantCouncil, proposals
-//             );
+        (
+            configNewGrants.needCompleted,
+            , 
+            , 
+            ,
+            configNewGrants.votingPeriod,
+            configNewGrants.quorum,
+            configNewGrants.succeedAt,
+            ) = StartGrant(config.needCompleted).configNewGrants(); 
+    }
 
-//         // step 2: run additional checks
-//         if (
-//             budget != Grant(grantAddress).spent() && 
-//             Grant(grantAddress).expiryBlock() > uint48(block.number)
-//         ) {
-//             revert ("Grant not expired."); 
-//         }
+    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+        public
+        view
+        virtual
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+    {
+        // step 0: create actionId & decode data from stateChange
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        (
+            string memory name,
+            string memory description,
+            uint48 duration,
+            uint256 budget,
+            address tokenAddress,
+            uint32 grantCouncil, 
+            address proposals 
+        ) = abi.decode(lawCalldata, (string, string, uint48, uint256, address, uint32, address));
 
-//         // step 3: create arrays
-//         targets = new address[](1);
-//         values = new uint256[](1);
-//         calldatas = new bytes[](1);
-//         stateChange = abi.encode("");
+        // step 1: calculate address at which grant will be created.
+        address grantAddress = StartGrant(config.needCompleted).getGrantAddress(
+            name, description, duration, budget, tokenAddress, grantCouncil, proposals
+            );
 
-//         // step 4: fill out arrays with data
-//         targets[0] = powers;
-//         calldatas[0] = abi.encodeWithSelector(Powers.revokeLaw.selector, grantAddress);
+        // step 2: run additional checks
+        if (
+            budget != Grant(grantAddress).spent() && 
+            Grant(grantAddress).expiryBlock() > uint48(block.number)
+        ) {
+            revert ("Grant not expired."); 
+        }
 
-//         // step 5: return data
-//         return (targets, values, calldatas, stateChange);
-//     }
-// }
+        // step 3: create arrays
+        targets = new address[](1);
+        values = new uint256[](1);
+        calldatas = new bytes[](1);
+        stateChange = abi.encode("");
+
+        // step 4: fill out arrays with data
+        targets[0] = powers;
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeLaw.selector, grantAddress);
+
+        // step 5: return data
+        return (actionId, targets, values, calldatas, stateChange);
+    }
+}

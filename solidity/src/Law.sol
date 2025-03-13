@@ -135,7 +135,7 @@ abstract contract Law is ERC165, ILaw {
         virtual
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-
+        // Empty implementation - must be overridden
     }
 
     /// @notice Applies state changes from law execution
@@ -154,8 +154,6 @@ abstract contract Law is ERC165, ILaw {
     function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
-        console.log("@Law: waypoint 8");
-        console.log("@Law: actionId wp8", actionId);
         Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 
