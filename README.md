@@ -1,4 +1,3 @@
-
 <a name="readme-top"></a>
 
 [![Issues][issues-shield]][issues-url]
@@ -8,25 +7,25 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/7Cedars/separated-powers"> 
+  <a href="https://github.com/7Cedars/powers"> 
     <img src="public/logo.png" alt="Logo" width="300" height="300">
   </a>
 
-<h3 align="center">Separated Powers </h3>
+<h3 align="center">Powers</h3>
   <p align="center">
     A role restricted governance protocol for DAOs
     <br />
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·
     <a href="https://sepolia.arbiscan.io/address/0x001a6a16d2fc45248e00351314bce898b7d8578f">Proof of Concept (Arbiscan)</a> ·
-    <a href="https://separated-powers.vercel.app/">Proof of Concept (dApp)</a>
+    <a href="https://powers.vercel.app/">Proof of Concept (dApp)</a>
   </p>
 </div>
 
 <div align="center">
   For an introduction into the protocol, see
   
-   <a href="https://www.tella.tv/video/separated-powers-1-aijc"><b> the 2 minute project pitch</b> </a> or <a href="https://www.tella.tv/video/separated-powers-solving-dao-governance-challenges-bis6"><b> the 15 minute explanation</b></a>.
+   <a href="https://www.tella.tv/video/powers-1-aijc"><b> the 2 minute project pitch</b> </a> or <a href="https://www.tella.tv/video/powers-solving-dao-governance-challenges-bis6"><b> the 15 minute explanation</b></a>.
 
 </div>
 
@@ -46,18 +45,18 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About
-Separated Powers restricts governance processes along access roles.
+Powers restricts governance processes along access roles.
 
 ## Advantages
-In comparison to existing governance protocols, Separated Powers improves the scalability, security and decentralisation of on-chain governance.
-- _Scalability._ Separated Powers creates a governance process where DAO members only vote on proposals that concern their roles. Role specification is a battle tested approach to enable the seamless scaling of small DAOs into larger ones.  
-- _Security._ Separated Powers allows for the creation of checks and balances between roles. The more checks and balances a DAO implements in its governance structure, the better it will be protected against hostile governance take overs. 
-- _Decentralisation._  Separated Powers enables DAOs to divide their community in groups (such as builders, token holders, users) and give each groups different, restricted, governance powers. Using roles to separate powers in governance is a tried and true approach to safeguarding decentralisation of (social, political and economic) assets in light of their tendency to centralise around informal elites.
-- _Multipliers._ Above all else, Separated Powers creates multipliers between decentralisation, efficiency and security. In Separated Powers, increased decentralisation leads to more efficiency and more security. A focus on security will also increase decentralisation of DAO governance, etc.     
+In comparison to existing governance protocols, Powers improves the scalability, security and decentralisation of on-chain governance.
+- _Scalability._ Powers creates a governance process where DAO members only vote on proposals that concern their roles. Role specification is a battle tested approach to enable the seamless scaling of small DAOs into larger ones.  
+- _Security._ Powers allows for the creation of checks and balances between roles. The more checks and balances a DAO implements in its governance structure, the better it will be protected against hostile governance take overs. 
+- _Decentralisation._  Powers enables DAOs to divide their community in groups (such as builders, token holders, users) and give each groups different, restricted, governance powers. Using roles to separate powers in governance is a tried and true approach to safeguarding decentralisation of (social, political and economic) assets in light of their tendency to centralise around informal elites.
+- _Multipliers._ Above all else, Powers creates multipliers between decentralisation, efficiency and security. In Powers, increased decentralisation leads to more efficiency and more security. A focus on security will also increase decentralisation of DAO governance, etc.     
 
 ## Protocol Architecture 
 For now, the protocol does not have extensive documentation. Instead, you can do the following 
-- Watch the <a href="www.tella.tv/video/separated-powers-solving-dao-governance-challenges-bis6"><b> 15 minute explanation</b></a>.
+- Watch the <a href="www.tella.tv/video/powers-solving-dao-governance-challenges-bis6"><b> 15 minute explanation</b></a>.
 - Read <a href="/solidity"> `/solidity/README.md`</a>. 
 - Then read through the code of `solidity/src/Powers.sol`, `solidity/src/IPowers.sol` and `solidity/src/Law.sol` and read through their code and natspecs.  
 
@@ -112,10 +111,10 @@ Seven Cedars - [Github profile](https://github.com/7Cedars) - cedars7@proton.me
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[issues-shield]: https://img.shields.io/github/issues/7Cedars/loyalty-program-contracts.svg?style=for-the-badge
-[issues-url]: https://github.com/7Cedars/loyalty-program-contracts/issues/
-[license-shield]: https://img.shields.io/github/license/7Cedars/loyalty-program-contracts.svg?style=for-the-badge
-[license-url]: https://github.com/7Cedars/loyalty-program-contracts/LICENSE.txt
+[issues-shield]: https://img.shields.io/github/issues/7Cedars/powers.svg?style=for-the-badge
+[issues-url]: https://github.com/7Cedars/powers/issues/
+[license-shield]: https://img.shields.io/github/license/7Cedars/powers.svg?style=for-the-badge
+[license-url]: https://github.com/7Cedars/powers/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png

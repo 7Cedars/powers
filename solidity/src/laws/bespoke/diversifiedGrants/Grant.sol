@@ -47,7 +47,7 @@ contract Grant is Law {
         address tokenAddress_,
         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council. 
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

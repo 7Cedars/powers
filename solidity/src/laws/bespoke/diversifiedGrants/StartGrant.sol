@@ -41,7 +41,7 @@ contract StartGrant is Law {
         LawConfig memory config_, // this is the configuration for creating new grants, not of the grants themselves.
         address proposals // the address where proposals to the grant are made.
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;
@@ -178,7 +178,7 @@ contract StartGrant is Law {
         uint32 grantCouncil,
         address proposals
     ) internal {
-        Grant newGrant = new Grant{ salt: bytes32(keccak256(abi.encodePacked(name, description))) }(
+        new Grant{ salt: bytes32(keccak256(abi.encodePacked(name, description))) }(
             // standard params
             name,
             description,

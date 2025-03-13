@@ -46,7 +46,7 @@ contract OpenAction is Law {
         uint32 allowedRole_,
         LawConfig memory config_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

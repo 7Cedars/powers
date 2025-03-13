@@ -42,7 +42,7 @@ contract RequestPayment is Law {
         uint256 amount_,
         uint48 delay_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

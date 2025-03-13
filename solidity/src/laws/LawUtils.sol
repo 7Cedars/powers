@@ -28,16 +28,15 @@ library LawUtils {
         mapping(address account => uint48[] blockNumber) transactions;
     }
 
-
-    function checkConstructorInputs(address powers, uint32 allowedRole)
+    function checkConstructorInputs(address powers, string memory name)
         internal
         pure
     {
         if (powers == address(0)) {
             revert ("Invalid Powers Contract Address");
         }
-        if (allowedRole == type(uint32).max) {
-            revert ("Invalid Allowed Role");
+        if (bytes(name).length < 1) {
+            revert ("Empty name not allowed.");
         }
     }
 

@@ -16,7 +16,7 @@
 // import { Grant } from "../../../../src/laws/bespoke/diversifiedGrants/Grant.sol";
 // import { StartGrant } from "../../../../src/laws/bespoke/diversifiedGrants/StartGrant.sol";
 // import { StopGrant } from "../../../../src/laws/bespoke/diversifiedGrants/StopGrant.sol";
-// import { SelfDestructPresetAction } from "../../../../src/laws/executive/SelfDestructPresetAction.sol";
+// import { SelfDestructAction } from "../../../../src/laws/executive/SelfDestructAction.sol";
 
 // import { Erc20VotesMock } from "../../../mocks/Erc20VotesMock.sol";
 

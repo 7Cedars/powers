@@ -103,12 +103,4 @@ contract DirectSelect is Law {
 
         return (actionId, targets, values, calldatas, "");
     }
-
-    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-        internal
-        override
-    {   
-        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
-    }
-
 }

@@ -47,7 +47,7 @@ contract SelfSelect is Law {
         LawConfig memory config_,
         uint32 roleId_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;
@@ -65,9 +65,6 @@ contract SelfSelect is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        // step 1: decode the calldata.
-        (bool revoke) = abi.decode(lawCalldata, (bool));
-
         // step 2: create & send return calldata conditional if it is an assign or revoke action.
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
         actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);

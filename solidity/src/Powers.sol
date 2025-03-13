@@ -168,11 +168,12 @@ contract Powers is EIP712, IPowers {
             revert Powers__InvalidCallData();
         }
         // check 4: execute targets[], values[], calldatas[] received from law.
+        console.log("@Powers: waypoint 3");
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
         }
-        console.log("@Powers: waypoint 3");
+        console.log("@Powers: waypoint 4");
         _actions[actionId].fulfilled = true;
         emit ActionExecuted(actionId,targets, values, calldatas);
     }
@@ -365,11 +366,17 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function assignRole(uint32 roleId, address account) public virtual onlyPowers {
+        console.log("@Powers: waypoint 5: assignRole");
+        console.log("@Powers: waypoint 5.1: roleId", roleId);
+        console.log("@Powers: waypoint 5.2: account", account);
         _setRole(roleId, account, true);
     }
 
     /// @inheritdoc IPowers
     function revokeRole(uint32 roleId, address account) public virtual onlyPowers {
+        console.log("@Powers: waypoint 6: revokeRole");
+        console.log("@Powers: waypoint 6.1: roleId", roleId);
+        console.log("@Powers: waypoint 6.2: account", account);
         _setRole(roleId, account, false);
     }
 
@@ -471,7 +478,6 @@ contract Powers is EIP712, IPowers {
     function state(uint256 actionId) public view virtual returns (ActionState) {
         // We read the struct fields into the stack at once so Solidity emits a single SLOAD
         Action storage proposedAction = _actions[actionId];
-        bool ActionRequested = proposedAction.requested;
         bool ActionFulfilled = proposedAction.fulfilled;
         bool proposedActionCancelled = proposedAction.cancelled;
 

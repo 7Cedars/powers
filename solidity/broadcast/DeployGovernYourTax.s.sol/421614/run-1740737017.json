@@ -429,7 +429,7 @@
     {
       "hash": "0x1f1e5a61f35d2414c1b497e1a09fa92f6751d39f7de912315fddc8f50d88cd74",
       "transactionType": "CREATE",
-      "contractName": "SelfDestructPresetAction",
+      "contractName": "SelfDestructAction",
       "contractAddress": "0x7251a0e7c333576b31f05d1bdce22d6b2e1aac1d",
       "function": null,
       "arguments": [

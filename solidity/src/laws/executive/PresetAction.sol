@@ -59,7 +59,7 @@ contract PresetAction is Law {
         uint256[] memory values_,
         bytes[] memory calldatas_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;
@@ -73,7 +73,7 @@ contract PresetAction is Law {
     }
 
     /// @notice execute the law.
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
         public
         view
         override

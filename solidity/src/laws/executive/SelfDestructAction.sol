@@ -39,7 +39,7 @@ contract SelfDestructAction is Law {
         uint256[] memory values_,
         bytes[] memory calldatas_
     ) { 
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

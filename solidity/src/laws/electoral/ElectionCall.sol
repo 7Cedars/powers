@@ -53,7 +53,7 @@ contract ElectionCall is Law {
         uint32 electedRoleId_, // what role Id is assigned through the elections 
         uint256 maxElectedRoleHolders_ // how many people can be elected.
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

@@ -38,7 +38,7 @@ contract ReinstateRole is Law {
         LawConfig memory config_,
         address erc721Token_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

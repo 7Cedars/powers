@@ -47,7 +47,7 @@ contract RenounceRole is Law {
         LawConfig memory config_,
         uint32[] memory allowedRoleIds_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

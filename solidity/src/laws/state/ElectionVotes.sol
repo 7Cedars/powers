@@ -52,7 +52,7 @@ contract ElectionVotes is Law {
         uint48 startVote_,
         uint48 endVote_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

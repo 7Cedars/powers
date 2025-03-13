@@ -44,7 +44,7 @@ contract PeerSelect is Law {
         uint256 maxRoleHolders_,
         uint32 roleId_
     )  {
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

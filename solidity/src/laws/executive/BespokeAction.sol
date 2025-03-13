@@ -59,7 +59,7 @@ contract BespokeAction is Law {
         string[] memory params_
     ) {
         // Initialize Law contract storage
-        LawUtils.checkConstructorInputs(powers_, allowedRole_);
+        LawUtils.checkConstructorInputs(powers_, name_);
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;

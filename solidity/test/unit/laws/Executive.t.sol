@@ -79,12 +79,12 @@ contract BespokeActionTest is TestSetupExecutive {
 contract SelfDestructActionTest is TestSetupExecutive {
     function testSuccessfulSelfDestruct() public {
         // prep
-        address selfDestructPresetAction = laws[5];
+        address SelfDestructAction = laws[5];
         bytes memory lawCalldata = abi.encode();
         string memory description = "Self destruct action";
 
         // Store initial state
-        bool initialLawStatus = Powers(daoMock).getActiveLaw(selfDestructPresetAction);
+        bool initialLawStatus = Powers(daoMock).getActiveLaw(SelfDestructAction);
         assertTrue(initialLawStatus, "Law should be active initially");
 
         vm.prank(address(daoMock));
@@ -92,10 +92,10 @@ contract SelfDestructActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(selfDestructPresetAction, lawCalldata, description);
+        Powers(daoMock).request(SelfDestructAction, lawCalldata, description);
 
         // assert
-        assertFalse(Powers(daoMock).getActiveLaw(selfDestructPresetAction), "Law should be inactive after self-destruct");
+        assertFalse(Powers(daoMock).getActiveLaw(SelfDestructAction), "Law should be inactive after self-destruct");
     }
 }
 
