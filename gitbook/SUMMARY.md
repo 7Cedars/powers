@@ -7,12 +7,12 @@
 ## For Developers
 
 * [Powers.sol](for-developers/powers.sol/README.md)
-  * [Constitute a new community](for-developers/powers.sol/constitute-a-new-community.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing actions](for-developers/powers.sol/proposing-actions.md)
-  * [Voting on proposals](for-developers/powers.sol/voting-on-proposals.md)
+  * [Voting on proposed actions](for-developers/powers.sol/voting-on-proposals.md)
   * [Assigning, revoking and labelling roles](for-developers/powers.sol/assigning-revoking-and-labelling-roles.md)
   * [Adopting and revoking laws](for-developers/powers.sol/adopting-and-revoking-laws.md)
+  * [Constitute a new community](for-developers/powers.sol/constitute-a-new-community.md)
 * [Law.sol](for-developers/law.sol/README.md)
   * [Execute a law](for-developers/law.sol/execute-a-law.md)
   * [Simulate a law](for-developers/law.sol/simulate-a-law.md)
