@@ -22,15 +22,11 @@ import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { Grant } from "./Grant.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
-
 // open zeppelin contracts
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract StartGrant is Law {
-    using ShortStrings for *;
-
     LawConfig public configNewGrants; // config for new grants.
 
     constructor(
@@ -40,12 +36,7 @@ contract StartGrant is Law {
         uint32 allowedRole_,
         LawConfig memory config_, // this is the configuration for creating new grants, not of the grants themselves.
         address proposals // the address where proposals to the grant are made.
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    ) Law(name_, powers_, allowedRole_, config_) {
 
         bytes memory params = abi.encode(
             "string Name", // name

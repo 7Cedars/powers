@@ -28,11 +28,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ProposalOnly is Law {
-    using ShortStrings for *;
-
     /// @notice Constructor function for Open contract.
     /// @param name_ name of the law
     /// @param description_ description of the law
@@ -47,13 +44,7 @@ contract ProposalOnly is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         string[] memory params_
-    ) {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(params_);
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }

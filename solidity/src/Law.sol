@@ -42,7 +42,7 @@ import "@openzeppelin/contracts/utils/ShortStrings.sol";
 import "forge-std/Test.sol";
 ///// ONLY FOR TESTING /////
  
-abstract contract Law is ERC165, ILaw {
+contract Law is ERC165, ILaw {
     using ShortStrings for *;
 
     //////////////////////////////////////////////////////////////
@@ -65,8 +65,32 @@ abstract contract Law is ERC165, ILaw {
     /// @dev First element is always 0
     uint48[] public executions = [0];
 
-    // note the absent constructor. This is because the Law contract is intended to be used as an abstract base contract.
-    // Subcontracts will inherit from this contract and implement their own specific logic.
+    //////////////////////////////////////////////////////////////
+    //                   CONSTRUCTOR                            //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Constructor for the Law contract
+    /// @param name_ The name of the law
+    /// @param powers_ The address of the Powers protocol
+    /// @param allowedRole_ The role ID required to interact with this law
+    /// @param config_ The configuration parameters for the law 
+    constructor(
+        string memory name_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawConfig memory config_
+    ) { 
+        if (powers_ == address(0)) {
+            revert Law__InvalidPowersContractAddress();
+        }
+        if (bytes(name_).length < 1) {
+            revert Law__EmptyNameNotAllowed();
+        }
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+    }
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //

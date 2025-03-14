@@ -20,11 +20,8 @@ pragma solidity 0.8.26;
 // laws
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract SelfDestructAction is Law {
-    using ShortStrings for *;
-
     address[] public targets;
     uint256[] public values;
     bytes[] public calldatas;
@@ -38,13 +35,7 @@ contract SelfDestructAction is Law {
         address[] memory targets_,
         uint256[] memory values_,
         bytes[] memory calldatas_
-    ) { 
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) { 
         targets = targets_;
         values = values_;
         calldatas = calldatas_;

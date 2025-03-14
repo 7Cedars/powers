@@ -44,7 +44,6 @@ import { Powers} from "../../Powers.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 //// ONLY FOR TESTING ////
 import "forge-std/Test.sol";
@@ -52,8 +51,6 @@ import "forge-std/Test.sol";
 
 
 contract DelegateSelect is Law {
-    using ShortStrings for *;
-
     address public immutable ERC_20_VOTE_TOKEN;
     uint256 public immutable MAX_ROLE_HOLDERS;
     uint32 public immutable ROLE_ID;
@@ -68,13 +65,7 @@ contract DelegateSelect is Law {
         address payable erc20Token_,
         uint256 maxRoleHolders_,
         uint32 roleId_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         ERC_20_VOTE_TOKEN = erc20Token_; // £todo interface should be checked here.
         MAX_ROLE_HOLDERS = maxRoleHolders_;
         ROLE_ID = roleId_;

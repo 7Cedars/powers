@@ -20,11 +20,8 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract NftSelfSelect is Law {
-    using ShortStrings for *;
-
     uint32 public roleId;
     address public erc721Token;
     
@@ -36,13 +33,7 @@ contract NftSelfSelect is Law {
         LawConfig memory config_,
         uint32 roleId_,
         address erc721Token_
-    ) {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         erc721Token = erc721Token_;
         roleId = roleId_;
 

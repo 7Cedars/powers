@@ -22,11 +22,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract StringsArray is Law {
-    using ShortStrings for *;
-
     // the state vars that this law manages: community strings.
     string[] public strings;
     uint256 public numberOfStrings;
@@ -40,13 +37,7 @@ contract StringsArray is Law {
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "string String", 
             "bool Add"

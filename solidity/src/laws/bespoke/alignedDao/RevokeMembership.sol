@@ -21,11 +21,8 @@ import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract RevokeMembership is Law {
-    using ShortStrings for *;
-
     uint32 constant ROLE_ID = 1;
     address public erc721Token;
 
@@ -36,15 +33,9 @@ contract RevokeMembership is Law {
         uint32 allowedRole_,
         LawConfig memory config_,
         address erc721Token_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
-        bytes memory params = abi.encode("uint256 TokenId", "address Account"); // tokenId, account
+    ) Law(name_, powers_, allowedRole_, config_) {
         erc721Token = erc721Token_;
+        bytes memory params = abi.encode("uint256 TokenId", "address Account"); // tokenId, account
 
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }

@@ -21,11 +21,8 @@ import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { Erc20TaxedMock } from "../../../../test/mocks/Erc20TaxedMock.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract RoleByTaxPaid is Law {
-    using ShortStrings for *;
-
     address public erc20TaxedMock;
     uint256 public thresholdTaxPaid;
     uint32 public roleId;
@@ -41,12 +38,7 @@ contract RoleByTaxPaid is Law {
         // the taxed token to check
         address erc20TaxedMock_,
         uint256 thresholdTaxPaid_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    ) Law(name_, powers_, allowedRole_, config_) {
 
         roleId = roleId_;
         erc20TaxedMock = erc20TaxedMock_;

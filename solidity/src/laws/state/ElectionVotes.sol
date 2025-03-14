@@ -29,11 +29,8 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { NominateMe } from "./NominateMe.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionVotes is Law { 
-    using ShortStrings for *;
-
     // the state vars that this law manages: community strings.
     mapping(address => bool) public hasVoted;
     mapping(address => uint256) public votes;
@@ -51,13 +48,7 @@ contract ElectionVotes is Law {
         // bespoke params
         uint48 startVote_,
         uint48 endVote_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         startVote = startVote_;
         endVote = endVote_;
 

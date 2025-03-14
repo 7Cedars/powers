@@ -21,11 +21,8 @@ import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { NominateMe } from "../../state/NominateMe.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract AssignCouncilRole is Law {
-    using ShortStrings for *;
-
     uint32[] public councilRoles;
 
     constructor(
@@ -37,12 +34,7 @@ contract AssignCouncilRole is Law {
         LawConfig memory config_,
         // bespoke 
         uint32[] memory councilRoles_
-    ) {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    )  Law(name_, powers_, allowedRole_, config_) {
 
         councilRoles = councilRoles_;
         bytes memory params = abi.encode(["uint32 RoleId", "address Account"]);

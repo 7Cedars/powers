@@ -24,26 +24,18 @@ import { Powers} from "../../../Powers.sol";
 import { Grant } from "./Grant.sol";
 import { StartGrant } from "./StartGrant.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 import { LawUtils } from "../../LawUtils.sol";
 
-contract StopGrant is Law { 
-    using ShortStrings for *;
-
+contract StopGrant is Law {
     LawConfig public configNewGrants; // config for new grants.
     
     constructor(
-        string memory name_,
+        string memory name_,    
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
         LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    ) Law(name_, powers_, allowedRole_, config_) {
 
         bytes memory params = abi.encode(
             "string Name", // name

@@ -30,11 +30,8 @@ import { Powers} from "../../Powers.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionCall is Law { 
-    using ShortStrings for *;
-
     uint32 public immutable VOTER_ROLE_ID;
     uint32 public immutable ELECTED_ROLE_ID;
     uint256 public immutable MAX_ROLE_HOLDERS;
@@ -52,13 +49,7 @@ contract ElectionCall is Law {
         uint32 voterRoleId_, // who can vote in the election.
         uint32 electedRoleId_, // what role Id is assigned through the elections 
         uint256 maxElectedRoleHolders_ // how many people can be elected.
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         VOTER_ROLE_ID = voterRoleId_;
         ELECTED_ROLE_ID = electedRoleId_;
         MAX_ROLE_HOLDERS = maxElectedRoleHolders_;
