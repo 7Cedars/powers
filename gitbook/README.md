@@ -22,7 +22,7 @@ The Powers protocol provides a minimalist, but very powerful, proof of concept o
 
 It consists of two elements: Powers and Laws.
 
-### Powers
+### ⚡ Powers
 
 `Powers.sol` is the engine of the protocol that manages governance flows. It should be deployed as is and has the following functionalities:
 
@@ -40,11 +40,11 @@ The governance flow is defined by the following restrictions:
 * Roles and laws can only be labelled, assigned and revoked through the execute function of the protocol itself.
 * All actions, may they be subject to a vote or not, are executed via Powers' execute function in reference to a law.
 
-{% content-ref url="for-developers/powers.sol" %}
-[powers.sol](for-developers/powers.sol)
+{% content-ref url="for-developers/powers.sol/" %}
+[powers.sol](for-developers/powers.sol/)
 {% endcontent-ref %}
 
-### Laws
+### 📜 Laws
 
 Laws define under which conditions a role can execute what actions.
 
@@ -71,13 +71,15 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 4. Saves any state change to the law.
 5. Returns the computed function call to Powers for execution.
 
-{% content-ref url="for-developers/law.sol" %}
-[law.sol](for-developers/law.sol)
+{% content-ref url="for-developers/law.sol/" %}
+[law.sol](for-developers/law.sol/)
 {% endcontent-ref %}
 
-### Powers + Laws = Governance
+### 🏛️ Powers + Laws = Governance
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.
+
+\[ here insert diagram ]&#x20;
 
 <details>
 
@@ -119,11 +121,9 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 More examples can be found among the example communities.
 
-## Differences
+## Unique strengths
 
-In comparison to existing governance solutions, role restricted governance protocols are simpler, while being more efficient, modular and flexible. They are also different. It is important to be aware of some of the main implications of these differences.
-
-Consider the following before exploring them in more detail.
+In comparison to existing governance solutions, role restricted governance protocols are simpler, while being more efficient, modular and flexible. They are also different. It is important to be aware of these differences and why they make these protocols so powerful.
 
 ### Assigning roles
 
