@@ -49,5 +49,13 @@ contract ProposalOnly is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
+    // note that we are returning empty arrays as we are not executing any logic. 
+    // we DO need to return the actionId as it has to be set to 'fulfilled' in the Powers contract.
+    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash) public override view returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) {
+        actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        return (actionId, targets, values, calldatas, "");
+    }
+
     // note this law does not need to override handleRequest as it does not execute any logic.
 }

@@ -82,6 +82,9 @@ contract StartGrant is Law {
         if ( budget > ERC20(tokenAddress).balanceOf(powers) ) {
             revert ("Request amount exceeds available funds."); 
         }
+        if (proposals != configNewGrants.needCompleted) {
+            revert ("Invalid proposal law.");
+        }
 
         // step 2: calculate address at which grant will be created.
         address grantAddress =

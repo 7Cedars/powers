@@ -23,12 +23,12 @@ import { ElectionCall } from "../src/laws/electoral/ElectionCall.sol";
 import { ProposalOnly } from "../src/laws/executive/ProposalOnly.sol";
 import { BespokeAction } from "../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../src/laws/executive/PresetAction.sol";
-import { Grant } from "../src/laws/bespoke/diversifiedGrants/Grant.sol";
-import { StartGrant } from "../src/laws/bespoke/diversifiedGrants/StartGrant.sol";
-import { StopGrant } from "../src/laws/bespoke/diversifiedGrants/StopGrant.sol";
+import { Grant } from "../src/laws/bespoke/governYourTax/Grant.sol";
+import { StartGrant } from "../src/laws/bespoke/governYourTax/StartGrant.sol";
+import { StopGrant } from "../src/laws/bespoke/governYourTax/StopGrant.sol";
 import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol";
-import { RoleByTaxPaid } from "../src/laws/bespoke/diversifiedGrants/RoleByTaxPaid.sol";
-import { AssignCouncilRole } from "../src/laws/bespoke/diversifiedGrants/AssignCouncilRole.sol";
+import { RoleByTaxPaid } from "../src/laws/bespoke/governYourTax/RoleByTaxPaid.sol";
+import { AssignCouncilRole } from "../src/laws/bespoke/governYourTax/AssignCouncilRole.sol";
 // borrowing one law from another bespoke folder. Not ideal, but ok for now.
 import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
 

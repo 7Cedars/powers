@@ -66,7 +66,7 @@ contract PeerSelect is Law {
         targets[0] = powers;
 
         if (assign) {
-            if (_electedSorted.length >= MAX_ROLE_HOLDERS) {
+            if (_electedSorted.length == MAX_ROLE_HOLDERS) {
                 revert ("Max role holders reached.");
             }
             address accountElect = NominateMe(nominees).nomineesSorted(index);
@@ -74,7 +74,7 @@ contract PeerSelect is Law {
         } else {
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, _electedSorted[index]);
         }
-        return (actionId, targets, values, calldatas, "");
+        return (actionId, targets, values, calldatas, lawCalldata);
     }
 
     function _changeState(bytes memory stateChange) internal override {

@@ -45,11 +45,6 @@ import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtils } from "../LawUtils.sol";
 
-//// ONLY FOR TESTING ////
-import "forge-std/Test.sol";
-//// ONLY FOR TESTING ////
-
-
 contract DelegateSelect is Law {
     address public immutable ERC_20_VOTE_TOKEN;
     uint256 public immutable MAX_ROLE_HOLDERS;
@@ -79,8 +74,7 @@ contract DelegateSelect is Law {
         virtual
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-    {   
-        console.log("@DelegateSelect: waypoint 0");
+    {  
         actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
 
         // step 1: setting up array for revoking & assigning roles.
@@ -91,8 +85,6 @@ contract DelegateSelect is Law {
         uint256 arrayLength =
             numberNominees < MAX_ROLE_HOLDERS ? numberRevokees + numberNominees : numberRevokees + MAX_ROLE_HOLDERS;
         
-        console.log("@DelegateSelect: waypoint 1");
-        
         (targets, values, calldatas) = LawUtils.createEmptyArrays(arrayLength);
         for (uint256 i; i < arrayLength; i++) {
             targets[i] = powers;
@@ -102,7 +94,6 @@ contract DelegateSelect is Law {
             calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, electedAccounts[i]);
         }
 
-        console.log("@DelegateSelect: waypoint 2");
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
         if (numberNominees < MAX_ROLE_HOLDERS) {
             accountElects = new address[](numberNominees);
@@ -113,7 +104,6 @@ contract DelegateSelect is Law {
                 accountElects[i] = accountElect;
             }
         
-        console.log("@DelegateSelect: waypoint 3");
         // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
             // retrieve balances of delegated votes of nominees.
@@ -155,7 +145,6 @@ contract DelegateSelect is Law {
     }
 
     function _changeState(bytes memory stateChange) internal override {
-        console.log("@DelegateSelect: waypoint 4");
         (address[] memory elected) = abi.decode(stateChange, (address[]));
         for (uint256 i; i < electedAccounts.length; i++) {
             electedAccounts.pop();

@@ -12,6 +12,9 @@ import { BaseSetup } from "../TestSetup.t.sol";
 // electoral laws
 import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
 import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
+import { SelfSelect } from "../../src/laws/electoral/SelfSelect.sol";
+import { RenounceRole } from "../../src/laws/electoral/RenounceRole.sol";
+import { PeerSelect } from "../../src/laws/electoral/PeerSelect.sol";
 // import { RandomlySelect } from "../../src/laws/electoral/RandomlySelect.sol";
 import { ElectionCall } from "../../src/laws/electoral/ElectionCall.sol";
 import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
@@ -33,11 +36,11 @@ import { RequestPayment } from "../../src/laws/bespoke/alignedDao/RequestPayment
 import { ReinstateRole } from "../../src/laws/bespoke/alignedDao/ReinstateRole.sol";
 import { RevokeMembership } from "../../src/laws/bespoke/alignedDao/RevokeMembership.sol";
 // // bespoke: diversified grants laws.
-import { Grant } from "../../src/laws/bespoke/diversifiedGrants/Grant.sol";
-import { StartGrant } from "../../src/laws/bespoke/diversifiedGrants/StartGrant.sol";
-import { StopGrant } from "../../src/laws/bespoke/diversifiedGrants/StopGrant.sol";
-import { RoleByTaxPaid } from "../../src/laws/bespoke/diversifiedGrants/RoleByTaxPaid.sol";
-import { AssignCouncilRole } from "../../src/laws/bespoke/diversifiedGrants/AssignCouncilRole.sol";
+import { Grant } from "../../src/laws/bespoke/governYourTax/Grant.sol";
+import { StartGrant } from "../../src/laws/bespoke/governYourTax/StartGrant.sol";
+import { StopGrant } from "../../src/laws/bespoke/governYourTax/StopGrant.sol";
+import { RoleByTaxPaid } from "../../src/laws/bespoke/governYourTax/RoleByTaxPaid.sol";
+import { AssignCouncilRole } from "../../src/laws/bespoke/governYourTax/AssignCouncilRole.sol";
 // // bespoke: diversified roles laws.
 // import { RoleByKyc } from "../../src/laws/bespoke/diversifiedRoles/RoleByKyc.sol";
 // import { AiAgents } from "../../src/laws/bespoke/diversifiedRoles/AiAgents.sol";
@@ -329,7 +332,7 @@ contract ConstitutionsMock is Test {
         address payable mock20Votes_
     ) external returns (address[] memory laws) {
         Law law;
-        laws = new address[](7);
+        laws = new address[](10);
         ILaw.LawConfig memory lawConfig;
 
         // dummy params
@@ -409,7 +412,7 @@ contract ConstitutionsMock is Test {
         laws[4] = address(law);
         delete lawConfig;
 
-        lawConfig.needCompleted = laws[6]; // electionCall
+        lawConfig.needCompleted = laws[4]; // electionCall
         law = new ElectionTally(
             "Tally an election", // max 31 chars
             "Count votes of an election called through the call election law and assign roles.",
@@ -419,7 +422,46 @@ contract ConstitutionsMock is Test {
         );
         laws[5] = address(law);
         delete lawConfig;
- 
+
+        law = new SelfSelect(
+            "Self select role", // max 31 chars
+            "Self select a role.",
+            dao_,
+            type(uint32).max, // access role
+            lawConfig, // empty config file.
+            // bespoke configs for this law:
+            6 // role id.
+        );
+        laws[6] = address(law);
+        delete lawConfig;
+
+        uint32[] memory allowedRoleIds = new uint32[](1);
+        allowedRoleIds[0] = 3;
+        law = new RenounceRole(
+            "Renounce role", // max 31 chars
+            "Renounce a role.",
+            dao_,
+            1, // access role
+            lawConfig, // empty config file.
+            allowedRoleIds
+        );
+        laws[7] = address(law);
+        delete lawConfig;
+
+        lawConfig.readStateFrom = laws[0];
+        law = new PeerSelect(
+            "Peer select role", // max 31 chars
+            "Peer select a role.",
+            dao_,
+            1, // access role
+            lawConfig, // empty config file.
+            // bespoke configs for this law:
+            2, // max role holders
+            6 // role id.
+        );
+        laws[8] = address(law);
+        delete lawConfig;
+
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
         // set config
@@ -440,7 +482,7 @@ contract ConstitutionsMock is Test {
             calldatasRoles
         );
         vm.stopBroadcast();
-        laws[6] = address(law);
+        laws[9] = address(law);
         delete lawConfig; // reset lawConfig
     }
 

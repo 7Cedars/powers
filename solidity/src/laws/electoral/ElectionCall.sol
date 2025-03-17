@@ -92,11 +92,8 @@ contract ElectionCall is Law {
         }
 
         // step 3: create arrays
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
-        stateChange = abi.encode("");
-
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+    
         // step 4: fill out arrays with data
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.adoptLaw.selector, electionVotesAddress);

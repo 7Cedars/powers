@@ -92,7 +92,7 @@ contract ElectionTally is Law {
         data.electionVotes = ElectionCall(config.needCompleted).electionVotes();
         data.maxRoleHolders = ElectionCall(config.needCompleted).MAX_ROLE_HOLDERS();
         data.electedRoleId = ElectionCall(config.needCompleted).ELECTED_ROLE_ID();
-        ( , , , , , , , data.nominees) =  ElectionCall(config.needCompleted).config();
+        ( , , , data.nominees, , , , ) =  ElectionCall(config.needCompleted).config();
         
         // step 1: run additional checks
         if (!Powers(powers).getActiveLaw(data.electionVotes)) {

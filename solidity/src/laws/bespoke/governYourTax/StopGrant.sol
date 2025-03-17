@@ -92,9 +92,7 @@ contract StopGrant is Law {
         }
 
         // step 3: create arrays
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
+        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
         stateChange = abi.encode("");
 
         // step 4: fill out arrays with data

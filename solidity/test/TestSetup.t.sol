@@ -421,7 +421,7 @@ abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
     }
 }
 
-abstract contract TestSetupDiversifiedGrants is BaseSetup, ConstitutionsMock {
+abstract contract TestSetupGovernYourTax is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
 

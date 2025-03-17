@@ -183,7 +183,10 @@ library LawUtils {
         public
         view
         returns (bool)
-    {
+    {   
+        if (self.transactions[account].length == 0) {
+            return true;
+        }
         uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
         if (uint48(block.number) - lastTransaction < delay) {
             revert ("Delay not passed");

@@ -58,16 +58,12 @@ contract NominateMe is Law {
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
 
         // nominating //
-        if (nominateMe) {
-            if (nominees[initiator] != 0) {
-                revert ("Nominee already nominated.");
-            }
+        if (nominateMe && nominees[initiator] != 0) {
+            revert ("Nominee already nominated.");
         }
         // revoke nomination //
-        if (!nominateMe) {
-            if (nominees[initiator] == 0) {
-                revert ("Nominee not nominated.");
-            }
+        if (!nominateMe && nominees[initiator] == 0) {
+            revert ("Nominee not nominated.");
         }
 
         stateChange = abi.encode(initiator, nominateMe); // encode the state

@@ -52,7 +52,7 @@ contract ReinstateRole is Law {
         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
         
         (targets, values, calldatas) = LawUtils.createEmptyArrays(2);
-        // action 0: revoke role member in Separated powers
+        // action 0: revoke role member in powers
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);
         // action 1: burn the access token of the member, so they cannot become member again.

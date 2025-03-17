@@ -8,6 +8,7 @@ import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { Law } from "../../../src/Law.sol";
 import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
 import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
+import { SelfDestructAction } from "../../../src/laws/executive/SelfDestructAction.sol";
 
 contract OpenActionTest is TestSetupExecutive {
     using ShortStrings for *;
@@ -46,13 +47,14 @@ contract ProposalOnlyTest is TestSetupExecutive {
         bytes memory lawCalldata = abi.encode(Erc1155Mock.mintCoins.selector, 123);
         bytes32 descriptionHash = keccak256("Proposal only action");
 
-        // act
         vm.prank(address(daoMock));
-        bool success = Law(proposalOnly).executeLaw(address(0), lawCalldata, descriptionHash);
+        Powers(payable(address(daoMock))).assignRole(1, alice);
+
+        // act
+        vm.prank(alice);
+        Powers(payable(address(daoMock))).request(proposalOnly, lawCalldata, "Proposal only action");
 
         // assert
-        assertTrue(success);
-        // Verify no state changes as this is proposal only
         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 0);
     }
  
@@ -77,14 +79,24 @@ contract BespokeActionTest is TestSetupExecutive {
 }
 
 contract SelfDestructActionTest is TestSetupExecutive {
+    function testConstructorInitialization() public {
+        // Get the SelfDestructAction contract
+        address selfDestructAction = laws[5];
+        
+        // Test that the contract was initialized correctly
+        assertTrue(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should be active after initialization");
+        assertEq(Law(selfDestructAction).powers(), address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(selfDestructAction).allowedRole(), 0, "Allowed role should be set to ADMIN_ROLE");
+    }
+
     function testSuccessfulSelfDestruct() public {
         // prep
-        address SelfDestructAction = laws[5];
+        address selfDestructAction = laws[5];
         bytes memory lawCalldata = abi.encode();
         string memory description = "Self destruct action";
 
         // Store initial state
-        bool initialLawStatus = Powers(daoMock).getActiveLaw(SelfDestructAction);
+        bool initialLawStatus = Powers(daoMock).getActiveLaw(selfDestructAction);
         assertTrue(initialLawStatus, "Law should be active initially");
 
         vm.prank(address(daoMock));
@@ -92,10 +104,89 @@ contract SelfDestructActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(SelfDestructAction, lawCalldata, description);
+        Powers(daoMock).request(selfDestructAction, lawCalldata, description);
 
         // assert
-        assertFalse(Powers(daoMock).getActiveLaw(SelfDestructAction), "Law should be inactive after self-destruct");
+        assertFalse(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should be inactive after self-destruct");
+    }
+
+    function testUnauthorizedSelfDestruct() public {
+        // prep
+        address selfDestructAction = laws[5];
+        bytes memory lawCalldata = abi.encode();
+        string memory description = "Self destruct action";
+
+        // Try to execute without proper role
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        Powers(daoMock).request(selfDestructAction, lawCalldata, description);
+
+        // Verify law is still active
+        assertTrue(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should remain active after failed attempt");
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        address selfDestructAction = laws[5];
+        bytes memory lawCalldata = abi.encode();
+        bytes32 descriptionHash = keccak256(bytes("Self destruct action"));
+
+        // Call handleRequest directly to verify its output
+        (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        ) = Law(selfDestructAction).handleRequest(address(0), lawCalldata, descriptionHash);
+
+        // Verify the output
+        assertEq(targets.length, 13, "Should have thirteen targets");
+        assertEq(targets[0], address(daoMock), "Target should be the DAO");
+        assertEq(values[0], 0, "Value should be 0");
+        assertEq(calldatas[targets.length - 1], abi.encodeWithSelector(Powers.revokeLaw.selector, selfDestructAction), "Calldata should be revokeLaw");
+        assertEq(stateChange, "", "State change should be empty");
+        assertTrue(actionId != 0, "Action ID should not be 0");
+    }
+
+    function testSelfDestructWithCustomTargets() public {
+        // Create a new SelfDestructAction with custom targets
+        address[] memory customTargets = new address[](1);
+        uint256[] memory customValues = new uint256[](1);
+        bytes[] memory customCalldatas = new bytes[](1);
+        customTargets[0] = address(0x123);
+        customValues[0] = 100;
+        customCalldatas[0] = hex"abcd";
+
+        Law.LawConfig memory config;
+        SelfDestructAction newLaw = new SelfDestructAction(
+            "CustomSelfDestruct",
+            "Custom self destruct law",
+            payable(address(daoMock)),
+            0,
+            config,
+            customTargets,
+            customValues,
+            customCalldatas
+        );
+
+        // Verify the custom targets are included in handleRequest output
+        bytes memory lawCalldata = abi.encode();
+        bytes32 descriptionHash = keccak256(bytes("Custom self destruct"));
+        
+        (
+            ,
+            address[] memory resultTargets,
+            uint256[] memory resultValues,
+            bytes[] memory resultCalldatas,
+        ) = newLaw.handleRequest(address(0), lawCalldata, descriptionHash);
+
+        // Should have original target plus self-destruct target
+        assertEq(resultTargets.length, 2, "Should have two targets");
+        assertEq(resultTargets[0], customTargets[0], "First target should match custom target");
+        assertEq(resultValues[0], customValues[0], "First value should match custom value");
+        assertEq(resultCalldatas[0], customCalldatas[0], "First calldata should match custom calldata");
+        assertEq(resultTargets[1], address(daoMock), "Second target should be DAO for self-destruct");
     }
 }
 

@@ -24,10 +24,6 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
 
-///// ONLY FOR TESTING /////    
-import "forge-std/Test.sol";
-///// ONLY FOR TESTING /////
-
 contract PresetAction is Law {
     /// the targets, values and calldatas to be used in the calls: set at construction.
     address[] public targets;
@@ -69,10 +65,7 @@ contract PresetAction is Law {
         override
         returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        console.log("@PresetAction: waypoint 1");
         actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
-        console.log("@PresetAction: waypoint 2");
-        console.log("@PresetAction: actionId", actionId);
         return (actionId, targets, values, calldatas, "");  
     }
 }

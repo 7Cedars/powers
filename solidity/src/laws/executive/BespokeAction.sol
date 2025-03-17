@@ -25,10 +25,6 @@ import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
 import { Powers } from "../../Powers.sol";
 
-/// Only for testing purposes.
-import "forge-std/console.sol";
-/// 
-
 contract BespokeAction is Law { 
     /// the targets, values and calldatas to be used in the calls: set at construction.
     address private _targetContract;
@@ -58,10 +54,7 @@ contract BespokeAction is Law {
         // Initialize BespokeAction specific storage
         _targetContract = targetContract_;
         _targetFunction = targetFunction_;
-
-        console.log("@BespokeAction: waypoint 0", powers_);
-        console.log("@BespokeAction: powers set to", powers);
-
+        
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, abi.encode(params_));
     }
 
