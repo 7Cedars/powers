@@ -56,7 +56,7 @@ Laws are contracts that follow the `ilaw.sol` interface. They can be created by 
 
 * They are role restricted by a single role.
 * They are linked to a single `Powers.sol` deployment.
-* They have multiple (optional) checks.
+* They have multiple (optional) checks: for instance a proposal vote that needs to pass, or another law that needs to have been completed. 
 * They return a function call.
 * They can save a state.
 * They have a function `executeLaw` that can only be called by their `Powers.sol` deployment.
@@ -122,40 +122,39 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 More examples can be found among the example communities.
 
 ## Unique strengths
-
-In comparison to existing governance solutions, role restricted governance protocols are simpler, while being more efficient, modular and flexible. They are also different. It is important to be aware of these differences and why they make these protocols so powerful.
+Role restricted governance protocols offer several powerful advantages that make them stand out among existing governance solutions. They excel in simplicity, efficiency, modularity, and flexibility, while introducing innovative features that enhance community governance.
 
 ### Assigning roles
 
-You always need mechanisms for assigning roles to accounts. It is not possible to assign roles to accounts outside the Powers protocol: these role allocations will not be recognised.
-
-As any other governance mechanism, role allocation need to be encoded in laws that are adopted in the Powers.sol contract. Without laws to assign roles to accounts, community governance will not work.
+The Powers protocol provides a robust and flexible framework for encoding how roles are assigned to accounts: Communities can implement any mechanism they desire for allocating roles but they always have to use established governance mechanisms. It allows token hodlers, builders, users or any other stake holder in the community to be contractually represented.
 
 ### Voting power
 
-Accounts vote with their roles, not with their tokens. This means that voting on proposals happens on a 1 account = 1 vote basis, similar to the logic of a multisig wallet. This is one of the implications of using role restricted governance, and cannot be changed.
+One of the most powerful features is that accounts vote with their roles, not with their tokens. It creates a democratic "1 account = 1 vote" system similar to multisig wallets. This approach ensures clear, straightforward voting mechanics and promotes equal representation within roles.
 
-What can be done, though, is to assign roles on the basis of (delegated) tokens. See _Example B: Assign governor roles through Liquid Democracy_ above. Through these types of electoral mechanisms, token holdings can translate to having a specific role assigned to an account.
+Communities can enhance this system by implementing sophisticated role assignment mechanisms based on token holdings. As demonstrated in Example B above, this enables flexible governance structures that can incorporate token-based influence while maintaining the benefits of role-based voting.
 
 ### Governance chains
 
-Proposal IDs are calculated by hashing the target law, calldata and description of a proposed action. This means that it is possible to use the same calldata and description across multiple target laws.
+A powerful innovation of the protocol is its support for governance chains through consistent proposal ID calculation. By using the same calldata and description across different laws, governance actions can be tracked along governance chains. 
 
-This allows for the creation of governance chains. If law A and law B require the same calldata, we can check if a proposal at law A has been executed before allowing it to go up for a vote at Law B. This allows different roles in community governance to check each others powers.
+This feature allows communities to create sophisticated checks and balances between different roles, enabling seamless coordination between different governance layers, through robust decision-making processes that reflect their unique needs.
 
-### Multi Calls&#x20;
+### Multi Calls 
 
-Multi calls are supported, with a small caveat. It is only possible to call one law at a time, but each law can instruct the Powers protocol make an unlimited amount of calls.     &#x20;
+The protocol offers powerful multi-call functionality. While each transaction executes one law at a time, that law can trigger multiple actions through the Powers protocol, enabling efficient and coordinated governance actions.
+
+### Async actions 
+
+Powers protocol provides out-of-the-box support for async governance actions. This allows for any type of oracle to be seamlessly integrated into governance actions: randomise allocation of roles, automate governance actions, allow conditional actions based on market conditions, or integrate AI agents in a governance work-flow. Everything is possible.  
 
 ### Upgradability
 
-Any implementation of the Powers protocol that has a law to adopt new (and revoke existing) laws is upgradable. A community's governance is immutable when it does not have such a law. Note that this also implies that upgrading is modular: A governance structure can change one law at a time.
+The protocol provides excellent flexibility in upgradability. Communities can choose their desired level of mutability by implementing laws for adopting and revoking other laws. This modular approach allows for precise control over governance evolution, with changes possible on a law-by-law basis.
 
-Because adopting and revoking laws needs to happen via an existing law, they are subject to existing governance checks. This means that upgrading can be very safe - or not at all. It completely depends on how the governance chain to adopt and revoke laws has been implemented.
+The upgrade process inherently incorporates existing governance checks, allowing communities to implement exactly the level of security and flexibility they need. Whether a community desires rock-solid immutability or dynamic adaptability, the Powers protocol can accommodate their preferences.
 
 ## Governance sandbox
-
-You made it all the way through the main page!
 
 Hopefully you have a high-level sense of the particularities of role restricted governance and the Powers protocol. You can check out other pages in this documentation for more detailed information.
 
