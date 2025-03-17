@@ -24,14 +24,14 @@ pragma solidity 0.8.26;
 // import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 // contract BespokeActionFactory is Law {
-//     LawConfig public configNewBespokeAction; // config for new grants.
+//     LawChecks public configNewBespokeAction; // config for new grants.
 
 //     constructor(
 //         string memory name_,
 //         string memory description_,
 //         address payable powers_,
 //         uint32 allowedRole_,
-//         LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
+//         LawChecks memory config_ // this is the configuration for creating new grants, not of the grants themselves.
 //     )  {
 //         inputParams = abi.encode(
 //             "string Name", // name

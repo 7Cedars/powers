@@ -26,7 +26,7 @@ interface ILaw is IERC165, LawErrors {
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
 
-    struct LawConfig {
+    struct LawChecks {
         // Slot 1
         address needCompleted;      // 20 bytes - Address of law that must be completed before this one
         uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
@@ -57,7 +57,7 @@ interface ILaw is IERC165, LawErrors {
         string description,
         address indexed powers,
         uint32 allowedRole,
-        LawConfig config,
+        LawChecks config,
         bytes params
     );
 

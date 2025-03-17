@@ -27,19 +27,7 @@ library LawUtils {
     struct TransactionsByAccount {
         mapping(address account => uint48[] blockNumber) transactions;
     }
-
-    function checkConstructorInputs(address powers, string memory name)
-        internal
-        pure
-    {
-        if (powers == address(0)) {
-            revert ("Invalid Powers Contract Address");
-        }
-        if (bytes(name).length < 1) {
-            revert ("Empty name not allowed.");
-        }
-    }
-
+    
     /// @notice Creates a unique identifier for an action
     /// @dev Hashes the combination of law address, calldata, and description
     /// @param targetLaw Address of the law contract being called
@@ -195,7 +183,10 @@ library LawUtils {
         public
         view
         returns (bool)
-    {
+    {   
+        if (self.transactions[account].length == 0) {
+            return true;
+        }
         uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
         if (uint48(block.number) - lastTransaction < delay) {
             revert ("Delay not passed");

@@ -27,12 +27,11 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
-import "@openzeppelin/contracts/utils/ShortStrings.sol";
+import { LawUtils } from "../LawUtils.sol"; 
 
 contract OpenAction is Law {
-    using ShortStrings for *;
-    
+    /// @notice Constructor function for OpenAction contract.
+    /// @param name_ name of the law
     /// @notice Constructor function for OpenAction contract.
     /// @param name_ name of the law
     /// @param description_ description of the law
@@ -44,14 +43,8 @@ contract OpenAction is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+        LawChecks memory config_
+    )  Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "address[] Targets", 
             "uint256[] Values", 

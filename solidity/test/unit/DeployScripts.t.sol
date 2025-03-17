@@ -24,7 +24,7 @@
 //           AlignedGrants alignedGrants,
 //           address[] memory laws,
 //           uint32[] memory allowedRoles,
-//           ILaw.LawConfig[] memory lawConfigs,
+//           ILaw.LawChecks[] memory LawCheckss,
 //           uint32[] memory constituentRoles,
 //           address[] memory constituentAccounts
 //           ) = deployAlignedGrants.run();

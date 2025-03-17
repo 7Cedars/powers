@@ -114,7 +114,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
         string description,
         address indexed powers,
         uint32 allowedRole,
-        ILaw.LawConfig lawConfig,
+        ILaw.LawChecks LawChecks,
         bytes params
     );
 }
@@ -421,7 +421,7 @@ abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
     }
 }
 
-abstract contract TestSetupDiversifiedGrants is BaseSetup, ConstitutionsMock {
+abstract contract TestSetupGovernYourTax is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
 

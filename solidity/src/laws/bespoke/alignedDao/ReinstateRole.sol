@@ -21,13 +21,9 @@ import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ReinstateRole is Law {
-    using ShortStrings for *;
-
     uint32 constant ROLE_ID = 1;
-
     address public erc721Token;
 
     constructor(
@@ -35,16 +31,11 @@ contract ReinstateRole is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         address erc721Token_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    ) Law(name_, powers_, allowedRole_, config_) {
         erc721Token = erc721Token_;
-
+        
         bytes memory params = abi.encode("uint256 TokenId", "address Account"); // token id, account
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
@@ -61,7 +52,7 @@ contract ReinstateRole is Law {
         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
         
         (targets, values, calldatas) = LawUtils.createEmptyArrays(2);
-        // action 0: revoke role member in Separated powers
+        // action 0: revoke role member in powers
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);
         // action 1: burn the access token of the member, so they cannot become member again.

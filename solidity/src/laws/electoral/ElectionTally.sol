@@ -44,11 +44,8 @@ import { NominateMe } from "../state/NominateMe.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { ElectionCall } from "./ElectionCall.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract ElectionTally is Law { 
-    using ShortStrings for *;
-
     struct Data {
         string description;
         uint48 startVote;
@@ -66,14 +63,8 @@ contract ElectionTally is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+        LawChecks memory config_
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "string Description", // description = a description of the election.
             "uint48 StartVote", // startVote = the start date of the election.
@@ -101,7 +92,7 @@ contract ElectionTally is Law {
         data.electionVotes = ElectionCall(config.needCompleted).electionVotes();
         data.maxRoleHolders = ElectionCall(config.needCompleted).MAX_ROLE_HOLDERS();
         data.electedRoleId = ElectionCall(config.needCompleted).ELECTED_ROLE_ID();
-        ( , , , , , , , data.nominees) =  ElectionCall(config.needCompleted).config();
+        ( , , , data.nominees, , , , ) =  ElectionCall(config.needCompleted).config();
         
         // step 1: run additional checks
         if (!Powers(powers).getActiveLaw(data.electionVotes)) {

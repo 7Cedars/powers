@@ -743,14 +743,14 @@ contract ConstituteTest is TestSetupPowers {
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
 
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address[] memory newLaws = new address[](1);
         newLaws[0] = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMockTest)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.prank(alice);
@@ -766,14 +766,14 @@ contract ConstituteTest is TestSetupPowers {
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
 
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address[] memory newLaws = new address[](1);
         newLaws[0] = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMockTest)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.prank(alice);
@@ -788,14 +788,14 @@ contract ConstituteTest is TestSetupPowers {
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
 
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address[] memory newLaws = new address[](1);
         newLaws[0] = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMockTest)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.expectRevert(Powers__AccessDenied.selector);
@@ -806,13 +806,13 @@ contract ConstituteTest is TestSetupPowers {
 
 contract SetLawTest is TestSetupPowers {
     function testSetLawSetsNewLaw() public {
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address newLaw = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMock)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.prank(address(daoMock));
@@ -822,13 +822,13 @@ contract SetLawTest is TestSetupPowers {
     }
 
     function testSetLawEmitsEvent() public {
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address newLaw = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMock)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.expectEmit(true, false, false, false);
@@ -838,13 +838,13 @@ contract SetLawTest is TestSetupPowers {
     }
 
     function testSetLawRevertsIfNotCalledFromPowers() public {
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address newLaw = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMock)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.expectRevert(Powers__OnlyPowers.selector);
@@ -869,13 +869,13 @@ contract SetLawTest is TestSetupPowers {
     }
 
     function testRevokeLawRevertsIfAddressNotActive() public {
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
         address newLaw = address(new OpenAction(
             "test law",
             "This is a test Law",
             payable(address(daoMock)),
             ROLE_ONE,
-            lawConfig
+            LawChecks
         ));
 
         vm.expectRevert(Powers__LawNotActive.selector);

@@ -21,14 +21,12 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 // open zeppelin contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // NB: no checks on what kind of Erc20 token is used. This is just an example.
 contract Grant is Law {
-    using ShortStrings for *;
 
     uint48 public expiryBlock;
     uint256 public budget;
@@ -40,18 +38,13 @@ contract Grant is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         //
         uint48 duration_,
         uint256 budget_,
         address tokenAddress_,
         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council. 
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
+    ) Law(name_, powers_, allowedRole_, config_) {
 
         bytes memory params = abi.encode(
             "address Grantee", // grantee address

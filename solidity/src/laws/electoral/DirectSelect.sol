@@ -32,7 +32,6 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { LawUtils } from "../LawUtils.sol";
-import "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract DirectSelect is Law { 
     uint32 private immutable ROLE_ID;
@@ -42,24 +41,15 @@ contract DirectSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         uint32 roleId_
-    ) {
-        // set the standard parameters. Generic to all laws.
-        name = ShortStrings.toShortString(name_);
-        allowedRole = allowedRole_;
-        powers = powers_;
-        config = config_;
-
-        // set the roleId. Specific to this law.
+    ) Law(name_, powers_, allowedRole_, config_) {
         ROLE_ID = roleId_;
 
-        // set the input parameters.
         bytes memory params = abi.encode(
             "bool Assign", 
             "address Account"
             );
-
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 

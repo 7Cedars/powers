@@ -33,7 +33,7 @@ pragma solidity 0.8.26;
 //         string memory description_,
 //         address payable powers_,
 //         uint32 allowedRole_,
-//         LawConfig memory config_,
+//         LawChecks memory config_,
 //         // self select
 //         uint32 roleId_,
 //         // filter

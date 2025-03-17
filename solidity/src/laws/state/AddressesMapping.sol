@@ -23,11 +23,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract AddressesMapping is Law { 
-    using ShortStrings for *;
-
     mapping(address => bool) public addresses;
 
     event AddressesMapping__Added(address account);
@@ -38,14 +35,8 @@ contract AddressesMapping is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-        
+        LawChecks memory config_
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "address Account", 
             "bool Add"

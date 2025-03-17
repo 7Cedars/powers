@@ -24,15 +24,8 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
 import { Powers } from "../../Powers.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
-/// Only for testing purposes.
-import "forge-std/console.sol";
-/// 
-
-contract BespokeAction is Law {
-    using ShortStrings for *;
-
+contract BespokeAction is Law { 
     /// the targets, values and calldatas to be used in the calls: set at construction.
     address private _targetContract;
     bytes4 private _targetFunction;
@@ -52,26 +45,16 @@ contract BespokeAction is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         // specific parameters
         address targetContract_,
         bytes4 targetFunction_,
         string[] memory params_
-    ) {
-        // Initialize Law contract storage
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         // Initialize BespokeAction specific storage
         _targetContract = targetContract_;
         _targetFunction = targetFunction_;
-
-        console.log("@BespokeAction: waypoint 0", powers_);
-        console.log("@BespokeAction: powers set to", powers);
-
+        
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, abi.encode(params_));
     }
 

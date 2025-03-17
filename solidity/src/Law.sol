@@ -37,12 +37,8 @@ import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/ShortStrings.sol";
-
-///// ONLY FOR TESTING /////
-import "forge-std/Test.sol";
-///// ONLY FOR TESTING /////
  
-abstract contract Law is ERC165, ILaw {
+contract Law is ERC165, ILaw {
     using ShortStrings for *;
 
     //////////////////////////////////////////////////////////////
@@ -59,14 +55,38 @@ abstract contract Law is ERC165, ILaw {
     address payable public powers;
 
     /// @notice Configuration parameters for the law
-    LawConfig public config;
+    LawChecks public config;
 
     /// @notice History of law executions (block numbers)
     /// @dev First element is always 0
     uint48[] public executions = [0];
 
-    // note the absent constructor. This is because the Law contract is intended to be used as an abstract base contract.
-    // Subcontracts will inherit from this contract and implement their own specific logic.
+    //////////////////////////////////////////////////////////////
+    //                   CONSTRUCTOR                            //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Constructor for the Law contract
+    /// @param name_ The name of the law
+    /// @param powers_ The address of the Powers protocol
+    /// @param allowedRole_ The role ID required to interact with this law
+    /// @param config_ The configuration parameters for the law 
+    constructor(
+        string memory name_,
+        address payable powers_,
+        uint32 allowedRole_,
+        LawChecks memory config_
+    ) { 
+        if (powers_ == address(0)) {
+            revert Law__InvalidPowersContractAddress();
+        }
+        if (bytes(name_).length < 1) {
+            revert Law__EmptyNameNotAllowed();
+        }
+        name = name_.toShortString();
+        powers = powers_;
+        allowedRole = allowedRole_;
+        config = config_;
+    }
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
@@ -82,40 +102,26 @@ abstract contract Law is ERC165, ILaw {
         public
         returns (bool success)
     {
-        console.log("@Law: waypoint 0", powers);
         if (msg.sender != powers) {
             revert Law__OnlyPowers();
         }
-
-        console.log("@Law: waypoint 1");
 
         // Run all validation checks
         checksAtPropose(initiator, lawCalldata, descriptionHash);
         checksAtExecute(initiator, lawCalldata, descriptionHash);
 
-        console.log("@Law: waypoint 2");
-
         // Simulate and execute the law's logic
         (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
             handleRequest(initiator, lawCalldata, descriptionHash);
         
-        console.log("@Law: waypoint 3");
-        console.log("@Law: targets.length", targets.length);
-        console.log("@Law: actionId", actionId);
         // execute the law's logic conditional on data returned by handleRequest
-        if (targets.length > 0) {
-            console.log("@Law: waypoint 4");
-            _replyPowers(actionId, targets, values, calldatas);
-        }
         if (stateChange.length > 0) {
-            console.log("@Law: waypoint 5");
             _changeState(stateChange);
         }
-
-        console.log("@Law: waypoint 6");
-        
+        if (targets.length > 0) {
+            _replyPowers(actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right? 
+        }
         executions.push(uint48(block.number));
-        console.log("@Law: waypoint 7");
         return true;
     }
 
@@ -138,13 +144,6 @@ abstract contract Law is ERC165, ILaw {
         // Empty implementation - must be overridden
     }
 
-    /// @notice Applies state changes from law execution
-    /// @dev Must be overridden by implementing contracts
-    /// @param stateChange Encoded state changes to apply
-    function _changeState(bytes memory stateChange) internal virtual {
-        // Empty implementation - must be overridden
-    }
-
     /// @notice Sends execution data back to Powers protocol
     /// @dev Must be overridden by implementing contracts
     /// @param actionId The action id of the proposal
@@ -155,6 +154,14 @@ abstract contract Law is ERC165, ILaw {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
         Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
+    }
+
+
+    /// @notice Applies state changes from law execution
+    /// @dev Must be overridden by implementing contracts
+    /// @param stateChange Encoded state changes to apply
+    function _changeState(bytes memory stateChange) internal virtual {
+        // Empty implementation - must be overridden
     }
 
     //////////////////////////////////////////////////////////////

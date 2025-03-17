@@ -25,11 +25,8 @@ import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract PeerSelect is Law { 
-    using ShortStrings for *;
-
     uint256 public immutable MAX_ROLE_HOLDERS;
     uint32 public immutable ROLE_ID;
     mapping(address => uint48) public _elected;
@@ -40,16 +37,10 @@ contract PeerSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         uint256 maxRoleHolders_,
         uint32 roleId_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         MAX_ROLE_HOLDERS = maxRoleHolders_;
         ROLE_ID = roleId_;
         
@@ -75,7 +66,7 @@ contract PeerSelect is Law {
         targets[0] = powers;
 
         if (assign) {
-            if (_electedSorted.length >= MAX_ROLE_HOLDERS) {
+            if (_electedSorted.length == MAX_ROLE_HOLDERS) {
                 revert ("Max role holders reached.");
             }
             address accountElect = NominateMe(nominees).nomineesSorted(index);
@@ -83,7 +74,7 @@ contract PeerSelect is Law {
         } else {
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID, _electedSorted[index]);
         }
-        return (actionId, targets, values, calldatas, "");
+        return (actionId, targets, values, calldatas, lawCalldata);
     }
 
     function _changeState(bytes memory stateChange) internal override {

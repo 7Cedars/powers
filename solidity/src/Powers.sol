@@ -25,7 +25,7 @@
 /// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, for instance, still need to be executed through the {execute} function.
 /// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote.
 /// 5 - The core protocol is intentionally minimalistic. Any complexity (timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
-///
+/// 
 /// For example implementations of DAOs, see the `Deploy...` files in the /script folder.
 ///
 /// Note This protocol is a work in progress. A number of features are planned to be added in the future.
@@ -45,10 +45,6 @@ import { IPowers } from "./interfaces/IPowers.sol";
 import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165Checker.sol";
 import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 import { EIP712 } from "../lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
-
-///// ONLY FOR TESTING /////
-import "forge-std/Test.sol";
-///// ONLY FOR TESTING /////
 
 contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
@@ -111,8 +107,6 @@ contract Powers is EIP712, IPowers {
     function request(address targetLaw, bytes memory lawCalldata, string memory description) external payable virtual {
         bytes32 descriptionHash = keccak256(bytes(description));
         uint256 actionId = _hashAction(targetLaw, lawCalldata, descriptionHash);
-        console.log("@Powers: waypoint 1");
-        console.log("@Powers: actionId", actionId);
 
         // check 1: does executioner have access to law being executed?
         uint32 allowedRole = Law(targetLaw).allowedRole();
@@ -141,23 +135,15 @@ contract Powers is EIP712, IPowers {
         if (!success) {
             revert Powers__LawDidNotPassChecks();
         }
-
-        // console.log("@Powers: waypoint 1.1");
-        // console.log("@wp1.1: requested", _actions[actionId].requested);
-
         emit ActionRequested(msg.sender, targetLaw, lawCalldata, description);
     }
 
     /// @inheritdoc IPowers
     function fulfill(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) external payable virtual {
         // check 1: is msg.sender a targetLaw?
-        console.log("@Powers: waypoint 2");
-        console.log("@Powers wp2: actionId", actionId);
         if (!laws[msg.sender]) {
             revert Powers__NotActiveLaw();
         }
-        console.log("@Powers: waypoint 2.1");
-        console.log("@wp2.1: requested", _actions[actionId].requested);
 
         // check 2: has action already been set as requested?
         if (_actions[actionId].requested != true) {
@@ -168,13 +154,11 @@ contract Powers is EIP712, IPowers {
             revert Powers__InvalidCallData();
         }
         // check 4: execute targets[], values[], calldatas[] received from law.
-        console.log("@Powers: waypoint 3");
+        _actions[actionId].fulfilled = true;
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
         }
-        console.log("@Powers: waypoint 4");
-        _actions[actionId].fulfilled = true;
         emit ActionExecuted(actionId,targets, values, calldatas);
     }
 
@@ -366,17 +350,11 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function assignRole(uint32 roleId, address account) public virtual onlyPowers {
-        console.log("@Powers: waypoint 5: assignRole");
-        console.log("@Powers: waypoint 5.1: roleId", roleId);
-        console.log("@Powers: waypoint 5.2: account", account);
         _setRole(roleId, account, true);
     }
 
     /// @inheritdoc IPowers
     function revokeRole(uint32 roleId, address account) public virtual onlyPowers {
-        console.log("@Powers: waypoint 6: revokeRole");
-        console.log("@Powers: waypoint 6.1: roleId", roleId);
-        console.log("@Powers: waypoint 6.2: account", account);
         _setRole(roleId, account, false);
     }
 

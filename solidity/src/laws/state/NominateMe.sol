@@ -27,12 +27,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";  
 
 contract NominateMe is Law { 
-    using ShortStrings for *;
-
     mapping(address => uint48) public nominees;
     address[] public nomineesSorted;
     uint256 public nomineesCount;
@@ -45,14 +41,8 @@ contract NominateMe is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
-    ) {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+        LawChecks memory config_
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode("bool NominateMe");
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
@@ -68,16 +58,12 @@ contract NominateMe is Law {
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
 
         // nominating //
-        if (nominateMe) {
-            if (nominees[initiator] != 0) {
-                revert ("Nominee already nominated.");
-            }
+        if (nominateMe && nominees[initiator] != 0) {
+            revert ("Nominee already nominated.");
         }
         // revoke nomination //
-        if (!nominateMe) {
-            if (nominees[initiator] == 0) {
-                revert ("Nominee not nominated.");
-            }
+        if (!nominateMe && nominees[initiator] == 0) {
+            revert ("Nominee not nominated.");
         }
 
         stateChange = abi.encode(initiator, nominateMe); // encode the state

@@ -22,15 +22,12 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";  
 
 contract TokensArray is Law {
-    using ShortStrings for *;
-
     enum TokenType {
         Erc20,
         Erc721,
-        Erc1155
+        Erc1155 
     }
 
     struct Token {
@@ -49,14 +46,8 @@ contract TokensArray is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+        LawChecks memory config_
+    ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(   
             "address TokenAddress", 
             "uint256 TokenType", 

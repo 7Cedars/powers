@@ -31,12 +31,9 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
-import { LawUtils } from "../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
+import { LawUtils } from "../LawUtils.sol"; 
 
 contract SelfSelect is Law { 
-    using ShortStrings for *;
-
     uint32 private immutable ROLE_ID;
 
     constructor(
@@ -44,15 +41,9 @@ contract SelfSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         uint32 roleId_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
+    ) Law(name_, powers_, allowedRole_, config_) {
         ROLE_ID = roleId_;
         
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");

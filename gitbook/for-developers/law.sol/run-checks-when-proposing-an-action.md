@@ -1,21 +1,45 @@
-# Run checks when proposing an action
+# Run checks
 
-Describe basic functionality.&#x20;
+Describe basic functionality.
 
-Explain why we have this functionality. When it can / should be used.  &#x20;
+Explain why we have this functionality. When it can / should be used.
 
-## Usage (specific title tbi)
+## When proposing an action
 
-Explain how the functionality is used in practice&#x20;
+Explain how the functionality is used in practice
 
-## Mechanism (specific title tbi)
+### Usage (specific title tbi) &#x20;
 
-Explain how the functionality is implemented under the hood.&#x20;
+Explain how the functionality is used in practice
 
-## Changes  (specific title tbi)&#x20;
+### Mechanism&#x20;
 
-Explain if and how changes can be made to the function.&#x20;
+Explain how the functionality is implemented under the hood.
 
-## Additional considerations (specific title tbi)&#x20;
+### Changes&#x20;
 
-Highlight gothcha's that are important to realise.&#x20;
+Explain if and how changes can be made to the function.
+
+### Additional considerations&#x20;
+
+Highlight gothcha's that are important to realise.
+
+## When executing an action
+
+Explain how the functionality is used in practice
+
+### Usage (specific title tbi) &#x20;
+
+Explain how the functionality is used in practice
+
+### Mechanism&#x20;
+
+Explain how the functionality is implemented under the hood.
+
+### Changes&#x20;
+
+Explain if and how changes can be made to the function.
+
+### Additional considerations&#x20;
+
+Highlight gothcha's that are important to realise.

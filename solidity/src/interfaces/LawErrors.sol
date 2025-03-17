@@ -49,4 +49,10 @@ interface LawErrors {
 
     /// @notice Emitted when an execution gap is too small.
     error Law__ExecutionGapTooSmall();
+
+    /// @notice Emitted when a powers contract address is invalid.
+    error Law__InvalidPowersContractAddress();
+
+    /// @notice Emitted when a name is empty.
+    error Law__EmptyNameNotAllowed();
 }

@@ -21,34 +21,24 @@ import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { Erc20TaxedMock } from "../../../../test/mocks/Erc20TaxedMock.sol";
 import { LawUtils } from "../../LawUtils.sol";
-import { ShortStrings } from "@openzeppelin/contracts/utils/ShortStrings.sol";
 
 contract RoleByTaxPaid is Law {
-    using ShortStrings for *;
-
     address public erc20TaxedMock;
     uint256 public thresholdTaxPaid;
-    uint32 public roleId;
+    uint32 public roleIdToSet;
     constructor(
         // standard
         string memory name_,
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
-        // direct select
-        uint32 roleId_,
-        // the taxed token to check
+        LawChecks memory config_,
+        // bespoke 
+        uint32 roleIdToSet_,
         address erc20TaxedMock_,
         uint256 thresholdTaxPaid_
-    )  {
-        LawUtils.checkConstructorInputs(powers_, name_);
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        config = config_;
-
-        roleId = roleId_;
+    ) Law(name_, powers_, allowedRole_, config_) {
+        roleIdToSet = roleIdToSet_;
         erc20TaxedMock = erc20TaxedMock_;
         thresholdTaxPaid = thresholdTaxPaid_;
 
@@ -75,18 +65,18 @@ contract RoleByTaxPaid is Law {
         }
 
         // step 2: retrieve data on tax paid and role
-        bool hasRole = Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0;
+        bool hasRole = Powers(payable(powers)).hasRoleSince(initiator, roleIdToSet) != 0;
         uint256 taxPaid = Erc20TaxedMock(erc20TaxedMock).getTaxLogs(uint48(block.number) - epochDuration, account);
 
         // step 3: create arrays
         if (hasRole && taxPaid < thresholdTaxPaid) {
             (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, account); 
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleIdToSet, account); 
         } else if (!hasRole && taxPaid >= thresholdTaxPaid) { 
             (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, account);
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIdToSet, account);
         }
 
         // step 4: return data
