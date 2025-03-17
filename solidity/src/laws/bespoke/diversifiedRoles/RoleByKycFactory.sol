@@ -23,7 +23,7 @@ pragma solidity 0.8.26;
 // import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 // contract RoleByKycFactory is Law { 
-//     LawConfig public configNewGrants; // config for new grants.
+//     LawChecks public configNewGrants; // config for new grants.
 //     address public members;
 
 //     constructor(
@@ -31,7 +31,7 @@ pragma solidity 0.8.26;
 //         string memory description_,
 //         address payable powers_,
 //         uint32 allowedRole_,
-//         LawConfig memory config_, // this is the configuration for creating new grants, not of the grants themselves.
+//         LawChecks memory config_, // this is the configuration for creating new grants, not of the grants themselves.
 //         address members_ // the address where account kyc are stored. - note: all on public blockchain..
 //     )  {
 //         inputParams = abi.encode(

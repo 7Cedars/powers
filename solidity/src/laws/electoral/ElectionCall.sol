@@ -44,7 +44,7 @@ contract ElectionCall is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         // bespoke params
         uint32 voterRoleId_, // who can vote in the election.
         uint32 electedRoleId_, // what role Id is assigned through the elections 
@@ -124,7 +124,7 @@ contract ElectionCall is Law {
         uint48 endVote,
         string memory description
     ) public view returns (address) {
-        LawConfig memory config;
+        LawChecks memory config;
         config.readStateFrom = nominees;
 
         address electionVotesAddress = Create2.computeAddress(
@@ -157,7 +157,7 @@ contract ElectionCall is Law {
         uint48 endVote,
         string memory description
     ) internal {
-        LawConfig memory config;
+        LawChecks memory config;
         config.readStateFrom = nominateMe;
 
         ElectionVotes newElectionVotes = new ElectionVotes{ salt: bytes32(keccak256(abi.encodePacked(description))) }(

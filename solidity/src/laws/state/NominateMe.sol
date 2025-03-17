@@ -41,7 +41,7 @@ contract NominateMe is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
+        LawChecks memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode("bool NominateMe");
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);

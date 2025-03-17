@@ -37,7 +37,7 @@ contract PeerSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         uint256 maxRoleHolders_,
         uint32 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {

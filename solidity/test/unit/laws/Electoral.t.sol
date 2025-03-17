@@ -279,7 +279,7 @@ contract ElectionCallTest is TestSetupElectoral {
     }
 
     function testDeployWithoutNomineesContract() public {
-        Law.LawConfig memory config;
+        Law.LawChecks memory config;
         ElectionCall newElectionCall = new ElectionCall(
             "Election without nominees",
             "Test election call without nominees contract",

@@ -94,15 +94,15 @@ contract DeployAlignedDao is Script {
         address payable mock721_
     ) public {
         Law law;
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
 
         //////////////////////////////////////////////////////////////
         //              CHAPTER 1: EXECUTIVE ACTIONS                //
         //////////////////////////////////////////////////////////////
         // laws[0]
-        lawConfig.quorum = 60; // = 60% quorum needed
-        lawConfig.succeedAt = 50; // = Simple majority vote needed.
-        lawConfig.votingPeriod = 25; // = number of blocks, about half an hour.  
+        LawChecks.quorum = 60; // = 60% quorum needed
+        LawChecks.succeedAt = 50; // = Simple majority vote needed.
+        LawChecks.votingPeriod = 25; // = number of blocks, about half an hour.  
         // setting up params
         string[] memory inputParams = new string[](2);
         inputParams[0] = "string Value";
@@ -114,18 +114,18 @@ contract DeployAlignedDao is Script {
             "Members can propose to add a new core value to or remove an existing from the Dao. Subject to a vote and cannot be implemented.",
             dao_,
             1, // access role
-            lawConfig,
+            LawChecks,
             inputParams // input parameters
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[1]
-        lawConfig.quorum = 30; // = 30% quorum needed
-        lawConfig.succeedAt = 66; // =  two/thirds majority needed for
-        lawConfig.votingPeriod = 25; // = number of blocks, about half an hour.
-        lawConfig.needCompleted = laws[0];
+        LawChecks.quorum = 30; // = 30% quorum needed
+        LawChecks.succeedAt = 66; // =  two/thirds majority needed for
+        LawChecks.votingPeriod = 25; // = number of blocks, about half an hour.
+        LawChecks.needCompleted = laws[0];
         // initiating law.
         vm.startBroadcast();
         law = new StringsArray(
@@ -133,16 +133,16 @@ contract DeployAlignedDao is Script {
             "Governors accept & implement a proposed decision to add or remove a value from the Dao.",
             dao_, // separated powers
             2, // access role
-            lawConfig // bespoke configs for this law
+            LawChecks // bespoke configs for this law
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[2]
-        lawConfig.quorum = 80; // = 80% quorum needed
-        lawConfig.succeedAt = 66; // =  two/thirds majority needed for
-        lawConfig.votingPeriod = 25; // = number of blocks, about half an hour.
+        LawChecks.quorum = 80; // = 80% quorum needed
+        LawChecks.succeedAt = 66; // =  two/thirds majority needed for
+        LawChecks.votingPeriod = 25; // = number of blocks, about half an hour.
         // initiating law
         vm.startBroadcast();
         law = new RevokeMembership(
@@ -150,18 +150,18 @@ contract DeployAlignedDao is Script {
             "Seniors can, subject to a vote, revoke a member's role and have their access token burned.",
             dao_, // separated powers
             3, // access role
-            lawConfig, // bespoke configs for this law.
+            LawChecks, // bespoke configs for this law.
             mock721_ // the Erc721 token address.
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[3]
-        lawConfig.quorum = 1; // = 1% quorum needed
-        lawConfig.succeedAt = 80; // = 80 percent of the quorum needs to vote fore reinstatement.
-        lawConfig.votingPeriod = 25; // = number of blocks, about half an hour.
-        lawConfig.needCompleted = laws[2];
+        LawChecks.quorum = 1; // = 1% quorum needed
+        LawChecks.succeedAt = 80; // = 80 percent of the quorum needs to vote fore reinstatement.
+        LawChecks.votingPeriod = 25; // = number of blocks, about half an hour.
+        LawChecks.needCompleted = laws[2];
         // input params
         inputParams = new string[](2);
         inputParams[0] = "uint256 TokenId";
@@ -173,18 +173,18 @@ contract DeployAlignedDao is Script {
             "Members can challenge revoking of another members role.",
             dao_, // separated powers
             1, // access role
-            lawConfig, // bespoke configs for this law.
+            LawChecks, // bespoke configs for this law.
             inputParams // input parameters
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[4]
-        lawConfig.quorum = 20; // = 20% quorum needed
-        lawConfig.succeedAt = 67; // =  two/thirds majority needed for
-        lawConfig.votingPeriod = 25; // = number of blocks, about half an hour.
-        lawConfig.needCompleted = laws[3]; // NB! £todo all the law references need to be changed!
+        LawChecks.quorum = 20; // = 20% quorum needed
+        LawChecks.succeedAt = 67; // =  two/thirds majority needed for
+        LawChecks.votingPeriod = 25; // = number of blocks, about half an hour.
+        LawChecks.needCompleted = laws[3]; // NB! £todo all the law references need to be changed!
         //initiating law
         vm.startBroadcast();
         law = new ReinstateRole(
@@ -192,12 +192,12 @@ contract DeployAlignedDao is Script {
             "Governors can reinstate a member after members formalised a challenge.",
             dao_,
             2, // access role
-            lawConfig,
+            LawChecks,
             mock721_
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[5]
         vm.startBroadcast();
@@ -206,7 +206,7 @@ contract DeployAlignedDao is Script {
             "Members can request a payment of 5_000 tokens every 300 blocks.",
             dao_,
             1,
-            lawConfig, //  config
+            LawChecks, //  config
             // bespoke configs for this law:
             mock20taxed_, // token address.
             0,
@@ -226,7 +226,7 @@ contract DeployAlignedDao is Script {
             string.concat("Anyone who knows how to mint an NFT at ", Strings.toHexString(uint256(addressToInt(mock721_)), 20), " can (de)select themselves for a member role. Mint an NFT and claim the role!"),
             dao_,
             type(uint32).max, // access role = public access
-            lawConfig,
+            LawChecks,
             1, // role id
             mock721_
         );
@@ -240,27 +240,27 @@ contract DeployAlignedDao is Script {
             "Anyone can nominate themselves for a governor role.",
             dao_,
             type(uint32).max, // access role = public access
-            lawConfig
+            LawChecks
         );
         vm.stopBroadcast();
         laws.push(address(law));
 
         // laws[8]
-        lawConfig.readStateFrom = laws[7];
+        LawChecks.readStateFrom = laws[7];
         vm.startBroadcast();
         law = new DelegateSelect(
             "Call governor election", // max 31 chars
             "Governor elections are called by an oracle, as set by the admin. The five nominated accounts with most delegated vote tokens are then assigned as governor.",
             dao_, // separated powers protocol.
             4, // oracle role id designation.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             mock20votes_, // the tokens that will be used as votes in the election.
             5, // maximum amount of governors
             2 // role id to be assigned
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[9]
         vm.startBroadcast();
@@ -269,29 +269,29 @@ contract DeployAlignedDao is Script {
             "Anyone can nominate themselves as a senior.",
             dao_,
             type(uint32).max, // access role = public access
-            lawConfig
+            LawChecks
         );
         vm.stopBroadcast();
         laws.push(address(law));
 
         // laws[10]
-        lawConfig.quorum = 66; // = Two thirds quorum needed to pass the proposal
-        lawConfig.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        lawConfig.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-        lawConfig.readStateFrom = laws[9]; // NominateMe
+        LawChecks.quorum = 66; // = Two thirds quorum needed to pass the proposal
+        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        LawChecks.readStateFrom = laws[9]; // NominateMe
         vm.startBroadcast();
         law = new PeerSelect(
             "Assign senior role", // max 31 chars
             "Senior roles are assigned by their peers through a majority vote.",
             dao_, // separated powers protocol.
             3, // role 3 id designation.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             3, // maximum elected to role, 
             3 // role id to be assigned
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // laws[11]
         // input params
@@ -304,29 +304,29 @@ contract DeployAlignedDao is Script {
             "The admin proposes an account as oracle.",
             dao_, // separated powers protocol.
             0, // admin.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             inputParams
         );
         vm.stopBroadcast();
         laws.push(address(law));
 
         // laws[12]
-        lawConfig.quorum = 30; // = Two thirds quorum needed to pass the proposal
-        lawConfig.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        lawConfig.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-        lawConfig.needCompleted = laws[11]; // ProposalOnly 
+        LawChecks.quorum = 30; // = Two thirds quorum needed to pass the proposal
+        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        LawChecks.needCompleted = laws[11]; // ProposalOnly 
         vm.startBroadcast();
         law = new DirectSelect(
             "Accept oracle", // max 31 chars
             "Seniors accept the proposed account as oracle.",
             dao_, // separated powers protocol.
             3, // role 1.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             4 // role id to be assigned
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // // laws[13]
         // // input params
@@ -339,7 +339,7 @@ contract DeployAlignedDao is Script {
         //     "The admin can assign any role to any account. For testing purposes only.",
         //     dao_, // separated powers protocol.
         //     0, // admin.
-        //     lawConfig, //  config file.
+        //     LawChecks, //  config file.
         //     dao_, // target contract
         //     Powers.assignRole.selector, // target function
         //     inputParams
@@ -348,21 +348,21 @@ contract DeployAlignedDao is Script {
         // laws.push(address(law));
 
         // // laws[14]
-        // lawConfig.needCompleted = laws[13];  
+        // LawChecks.needCompleted = laws[13];  
         // vm.startBroadcast();
         // law = new BespokeAction(
         //     "Revoke role for testing", // max 31 chars
         //     "The admin can revoke roles that they assigned. For testing purposes only.",
         //     dao_, // separated powers protocol.
         //     0, // admin.
-        //     lawConfig, //  config file.
+        //     LawChecks, //  config file.
         //     dao_, // target contract
         //     Powers.revokeRole.selector, // target function
         //     inputParams // same input params as at laws[13]
         // );
         // vm.stopBroadcast();
         // laws.push(address(law));
-        // delete lawConfig;
+        // delete LawChecks;
 
         // laws[13]: SelfDestructAction: assign initial accounts to role 3.
         address[] memory targets = new address[](5);
@@ -383,7 +383,7 @@ contract DeployAlignedDao is Script {
             "The admin assigns an initial account to the senior role and gives role ids their labels. The law self destructs when executed.",
             dao_, // separated powers protocol.
             0, // admin.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             targets,
             values,
             calldatas

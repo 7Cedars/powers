@@ -33,7 +33,7 @@ contract RequestPayment is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         address erc1155_,
         uint256 tokenId_,
         uint256 amount_,

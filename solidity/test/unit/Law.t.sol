@@ -15,10 +15,10 @@ import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
 //////////////////////////////////////////////////
 contract DeployTest is TestSetupLaw {
     using ShortStrings for *;
-    ILaw.LawConfig lawConfig;
+    ILaw.LawChecks LawChecks;
 
     function testDeploy() public {
-        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, lawConfig);
+        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, LawChecks);
 
         string memory lawMockName = lawMock.name().toString();
 
@@ -34,9 +34,9 @@ contract DeployTest is TestSetupLaw {
             );
         vm.expectEmit(false, false, false, false);
         emit Law__Initialized(
-            payable(address(0)), "Mock Law", "This is a mock law contract", address(123), ROLE_ONE, lawConfig, params
+            payable(address(0)), "Mock Law", "This is a mock law contract", address(123), ROLE_ONE, LawChecks, params
         );
-        new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, lawConfig);
+        new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, LawChecks);
     }
 
     function testLawRevertsIfNotCalledFromPowers() public {
@@ -44,7 +44,7 @@ contract DeployTest is TestSetupLaw {
         string memory description = "Executing a proposal vote";
         address powers = address(123);
 
-        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(powers), ROLE_ONE, lawConfig);
+        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(powers), ROLE_ONE, LawChecks);
 
         vm.prank(address(1)); // =! powers
         vm.expectRevert(Law__OnlyPowers.selector);

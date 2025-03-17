@@ -27,14 +27,14 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { LawUtils } from "../../LawUtils.sol";
 
 contract StopGrant is Law {
-    LawConfig public configNewGrants; // config for new grants.
+    LawChecks public configNewGrants; // config for new grants.
     
     constructor(
         string memory name_,    
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_ // this is the configuration for creating new grants, not of the grants themselves.
+        LawChecks memory config_ // this is the configuration for creating new grants, not of the grants themselves.
     ) Law(name_, powers_, allowedRole_, config_) {
 
         bytes memory params = abi.encode(

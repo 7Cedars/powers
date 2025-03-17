@@ -30,7 +30,7 @@ contract NftSelfSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         uint32 roleId_,
         address erc721Token_
     ) Law(name_, powers_, allowedRole_, config_) {

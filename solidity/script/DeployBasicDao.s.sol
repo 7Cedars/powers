@@ -72,7 +72,7 @@ contract DeployBasicDao is Script {
         address payable mock20votes_
         ) public {
         Law law;
-        ILaw.LawConfig memory lawConfig;
+        ILaw.LawChecks memory LawChecks;
 
         //////////////////////////////////////////////////////////////
         //              CHAPTER 1: EXECUTIVE ACTIONS                //
@@ -84,9 +84,9 @@ contract DeployBasicDao is Script {
         inputParams[1] = "uint256[] Values"; // values
         inputParams[2] = "bytes[] Calldatas"; // calldatas
         // setting config.
-        lawConfig.quorum = 66; // = Two thirds quorum needed to pass the proposal
-        lawConfig.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        lawConfig.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        LawChecks.quorum = 66; // = Two thirds quorum needed to pass the proposal
+        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
         // initiating law
         vm.startBroadcast();
         law = new ProposalOnly(
@@ -94,36 +94,36 @@ contract DeployBasicDao is Script {
             "Seniors can propose new actions to be executed. They cannot implement them.",
             dao_,
             2, // access role
-            lawConfig,
+            LawChecks,
             inputParams
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // law[1]
-        lawConfig.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
+        LawChecks.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
         vm.startBroadcast();
         law = new ProposalOnly(
             "Veto an action",
             "The admin can veto any proposed action. They can only veto after a proposed action has been formalised.",
             dao_,
             0, // access role
-            lawConfig,
+            LawChecks,
             inputParams
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // law[2]
         // setting config.
-        lawConfig.quorum = 51; // = 51 majority of seniors need to vote.
-        lawConfig.succeedAt = 66; // =  two/thirds majority FOR vote needed to pass.
-        lawConfig.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-        lawConfig.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
-        lawConfig.needNotCompleted = laws[1]; // needs the admin NOT to have cast a veto.
-        lawConfig.delayExecution = 450; // = duration in number of blocks to vote, about half an hour.
+        LawChecks.quorum = 51; // = 51 majority of seniors need to vote.
+        LawChecks.succeedAt = 66; // =  two/thirds majority FOR vote needed to pass.
+        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        LawChecks.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
+        LawChecks.needNotCompleted = laws[1]; // needs the admin NOT to have cast a veto.
+        LawChecks.delayExecution = 450; // = duration in number of blocks to vote, about half an hour.
         // initiate law
         vm.startBroadcast();
         law = new OpenAction(
@@ -131,11 +131,11 @@ contract DeployBasicDao is Script {
             "Members can execute actions that seniors proposed and passed the proposal vote. They can only be execute if the admin did not cast a veto.",
             dao_, // separated powers
             1, // access role
-            lawConfig
+            LawChecks
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         //////////////////////////////////////////////////////////////
         //              CHAPTER 2: ELECT ROLES                      //
@@ -148,28 +148,28 @@ contract DeployBasicDao is Script {
             "Anyone can nominate themselves for a senior role.",
             dao_,
             type(uint32).max, // access role = public access
-            lawConfig
+            LawChecks
         );
         vm.stopBroadcast();
         laws.push(address(law));
 
         // law[4]
         vm.startBroadcast();
-        lawConfig.throttleExecution = 300; // once every hour
-        lawConfig.readStateFrom = laws[3]; // nominateMe
+        LawChecks.throttleExecution = 300; // once every hour
+        LawChecks.readStateFrom = laws[3]; // nominateMe
         law = new DelegateSelect(
             "Call senior election", // max 31 chars
             "Anyone can call (and pay for) an election to assign seniors. The nominated accounts with most delegated vote tokens will be assigned as seniors. The law can only be called once every 500 blocks.",
             dao_, // separated powers protocol.
             type(uint32).max, // public access
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             mock20votes_, // the tokens that will be used as votes in the election.
             3, // maximum amount of delegates
             2 // role id to be assigned
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete lawConfig;
+        delete LawChecks;
 
         // law[5]
         vm.startBroadcast();
@@ -178,7 +178,7 @@ contract DeployBasicDao is Script {
             "Anyone can self select as member of the community.",
             dao_,
             type(uint32).max, // access role = public access
-            lawConfig, 
+            LawChecks, 
             1
         );
         vm.stopBroadcast();
@@ -199,7 +199,7 @@ contract DeployBasicDao is Script {
             "The admin can label roles. The law self destructs when executed.",
             dao_, // separated powers protocol.
             0, // admin.
-            lawConfig, //  config file.
+            LawChecks, //  config file.
             targets,
             values,
             calldatas

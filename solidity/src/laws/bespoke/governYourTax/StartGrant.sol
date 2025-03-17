@@ -27,14 +27,14 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract StartGrant is Law {
-    LawConfig public configNewGrants; // config for new grants.
+    LawChecks public configNewGrants; // config for new grants.
 
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_, // this is the configuration for creating new grants, not of the grants themselves.
+        LawChecks memory config_, // this is the configuration for creating new grants, not of the grants themselves.
         address proposals // the address where proposals to the grant are made.
     ) Law(name_, powers_, allowedRole_, config_) {
 

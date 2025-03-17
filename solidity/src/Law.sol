@@ -55,7 +55,7 @@ contract Law is ERC165, ILaw {
     address payable public powers;
 
     /// @notice Configuration parameters for the law
-    LawConfig public config;
+    LawChecks public config;
 
     /// @notice History of law executions (block numbers)
     /// @dev First element is always 0
@@ -74,7 +74,7 @@ contract Law is ERC165, ILaw {
         string memory name_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
+        LawChecks memory config_
     ) { 
         if (powers_ == address(0)) {
             revert Law__InvalidPowersContractAddress();

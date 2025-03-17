@@ -38,7 +38,7 @@ contract Grant is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         //
         uint48 duration_,
         uint256 budget_,

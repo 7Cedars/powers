@@ -63,7 +63,7 @@ contract ElectionTally is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
+        LawChecks memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "string Description", // description = a description of the election.

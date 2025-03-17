@@ -35,7 +35,7 @@ contract AddressesMapping is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_
+        LawChecks memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "address Account", 

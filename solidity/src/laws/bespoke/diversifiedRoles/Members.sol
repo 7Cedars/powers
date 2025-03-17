@@ -37,7 +37,7 @@ pragma solidity 0.8.26;
 //         string memory description_,
 //         address payable powers_,
 //         uint32 allowedRole_,
-//         LawConfig memory config_
+//         LawChecks memory config_
 //     )  {
 //         inputParams = abi.encode(
 //             "address Account", // account

@@ -45,7 +45,7 @@ contract PresetAction is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         // specific to preset action
         address[] memory targets_,
         uint256[] memory values_,

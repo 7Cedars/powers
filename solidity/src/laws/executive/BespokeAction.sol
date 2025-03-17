@@ -45,7 +45,7 @@ contract BespokeAction is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         // specific parameters
         address targetContract_,
         bytes4 targetFunction_,

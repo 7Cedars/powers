@@ -56,7 +56,7 @@ contract DelegateSelect is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         address payable erc20Token_,
         uint256 maxRoleHolders_,
         uint32 roleId_

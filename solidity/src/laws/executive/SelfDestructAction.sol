@@ -31,7 +31,7 @@ contract SelfDestructAction is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_, 
+        LawChecks memory config_, 
         address[] memory targets_,
         uint256[] memory values_,
         bytes[] memory calldatas_

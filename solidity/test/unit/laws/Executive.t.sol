@@ -158,7 +158,7 @@ contract SelfDestructActionTest is TestSetupExecutive {
         customValues[0] = 100;
         customCalldatas[0] = hex"abcd";
 
-        Law.LawConfig memory config;
+        Law.LawChecks memory config;
         SelfDestructAction newLaw = new SelfDestructAction(
             "CustomSelfDestruct",
             "Custom self destruct law",

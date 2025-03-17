@@ -32,7 +32,7 @@ contract RoleByTaxPaid is Law {
         string memory description_,
         address payable powers_,
         uint32 allowedRole_,
-        LawConfig memory config_,
+        LawChecks memory config_,
         // bespoke 
         uint32 roleIdToSet_,
         address erc20TaxedMock_,
