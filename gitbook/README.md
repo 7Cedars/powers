@@ -79,7 +79,7 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
 
-<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption><p>Governance flow in Powers protocol</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (3).png" alt="Governance flow Powers protocol"><figcaption><p>Governance flow Powers protocol</p></figcaption></figure>
 
 <details>
 
@@ -119,7 +119,7 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-More examples can be found among the example communities.
+More examples can be found among the case studies.
 
 ## Unique strengths
 
