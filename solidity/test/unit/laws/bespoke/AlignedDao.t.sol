@@ -47,6 +47,7 @@ contract NftSelfSelectTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             nftSelfSelect,
             abi.encode(false), // revoke = false
+            nonce,
             "Self-selecting role with valid NFT"
         );
 
@@ -66,6 +67,7 @@ contract NftSelfSelectTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             nftSelfSelect,
             abi.encode(false),
+            nonce,
             "Attempting self-select without NFT"
         );
 
@@ -76,7 +78,7 @@ contract NftSelfSelectTest is TestSetupAlignedDao {
     function testHandleRequestOutput() public {
         address nftSelfSelect = laws[0];
         bytes memory lawCalldata = abi.encode(false);
-        bytes32 descriptionHash = keccak256("Test description");
+        
 
         // Give alice an NFT
         vm.prank(alice);
@@ -89,7 +91,7 @@ contract NftSelfSelectTest is TestSetupAlignedDao {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = Law(nftSelfSelect).handleRequest(alice, lawCalldata, descriptionHash);
+        ) = Law(nftSelfSelect).handleRequest(alice, lawCalldata, nonce);
 
         // Verify outputs
         assertEq(targets.length, 1, "Should have one target");
@@ -122,9 +124,10 @@ contract NftSelfSelectTest is TestSetupAlignedDao {
             Powers(daoMock).request(
                 nftSelfSelect,
                 abi.encode(false),
+                nonce,
                 string(abi.encodePacked("Self-selecting role for user ", i))
             );
-
+            nonce++;
             // Verify role assignment
             assertNotEq(daoMock.hasRoleSince(testUsers[i], 1), 0, "User should have role after self-select");
         }
@@ -164,6 +167,7 @@ contract RevokeMembershipTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             revokeMembership,
             abi.encode(tokenId, alice),
+            nonce,
             "Revoking alice's membership"
         );
 
@@ -188,6 +192,7 @@ contract RevokeMembershipTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             revokeMembership,
             abi.encode(tokenId, alice),
+            nonce,
             "Attempting to revoke without permission"
         );
 
@@ -217,6 +222,7 @@ contract RevokeMembershipTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             revokeMembership,
             abi.encode(wrongTokenId, alice),
+            nonce,
             "Attempting to revoke with wrong token ID"
         );
 
@@ -229,7 +235,7 @@ contract RevokeMembershipTest is TestSetupAlignedDao {
         address revokeMembership = laws[1];
         uint256 tokenId = 123;
         bytes memory lawCalldata = abi.encode(tokenId, alice);
-        bytes32 descriptionHash = keccak256("Test description");
+        
 
         // Call handleRequest directly to verify output format
         (
@@ -238,7 +244,7 @@ contract RevokeMembershipTest is TestSetupAlignedDao {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = Law(revokeMembership).handleRequest(bob, lawCalldata, descriptionHash);
+        ) = Law(revokeMembership).handleRequest(bob, lawCalldata, nonce);
 
         // Verify outputs
         assertEq(targets.length, 2, "Should have two targets");
@@ -291,6 +297,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             reinstateRole,
             abi.encode(tokenId, alice),
+            nonce,
             "Reinstating alice's membership"
         );
 
@@ -310,6 +317,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             reinstateRole,
             abi.encode(tokenId, alice),
+            nonce,
             "Attempting to reinstate without permission"
         );
 
@@ -336,6 +344,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             reinstateRole,
             abi.encode(tokenId, alice),
+            nonce,
             "Attempting to reinstate with existing token"
         );
 
@@ -349,7 +358,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
         address reinstateRole = laws[2];
         uint256 tokenId = 123;
         bytes memory lawCalldata = abi.encode(tokenId, alice);
-        bytes32 descriptionHash = keccak256("Test description");
+        
 
         // Call handleRequest directly to verify output format
         (
@@ -358,7 +367,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = Law(reinstateRole).handleRequest(bob, lawCalldata, descriptionHash);
+        ) = Law(reinstateRole).handleRequest(bob, lawCalldata, nonce);
 
         // Verify outputs
         assertEq(targets.length, 2, "Should have two targets");
@@ -404,6 +413,7 @@ contract ReinstateRoleTest is TestSetupAlignedDao {
             Powers(daoMock).request(
                 reinstateRole,
                 abi.encode(i + 100, testUsers[i]),
+                nonce,
                 string(abi.encodePacked("Reinstating role for user ", i))
             );
 
@@ -445,6 +455,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             requestPayment,
             abi.encode(),
+            nonce,
             "Requesting payment after delay"
         );
 
@@ -468,6 +479,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             requestPayment,
             abi.encode(),
+            nonce,
             "Attempting payment request without permission"
         );
 
@@ -488,6 +500,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             requestPayment,
             abi.encode(),
+            nonce,
             "First payment request"
         );
 
@@ -498,6 +511,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
         Powers(daoMock).request(
             requestPayment,
             abi.encode(),
+            nonce,
             "Second payment request too soon"
         );
     }
@@ -505,7 +519,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
     function testHandleRequestOutput() public {
         address requestPayment = laws[3];
         bytes memory lawCalldata = abi.encode();
-        bytes32 descriptionHash = keccak256("Test description");
+        
 
         // Call handleRequest directly to verify output format
         (
@@ -514,7 +528,7 @@ contract RequestPaymentTest is TestSetupAlignedDao {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = Law(requestPayment).handleRequest(alice, lawCalldata, descriptionHash);
+        ) = Law(requestPayment).handleRequest(alice, lawCalldata, nonce);
 
         // Verify outputs
         assertEq(targets.length, 1, "Should have one target");
@@ -563,9 +577,10 @@ contract RequestPaymentTest is TestSetupAlignedDao {
             Powers(daoMock).request(
                 requestPayment,
                 abi.encode(),
+                nonce,
                 string(abi.encodePacked("Payment request for user ", i))
             );
-
+            nonce++;
             // Verify payment received and state updated
             assertEq(
                 erc20TaxedMock.balanceOf(testUsers[i]),

@@ -59,7 +59,7 @@ contract ElectionVotes is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -77,7 +77,7 @@ contract ElectionVotes is Law {
         (address vote) = abi.decode(lawCalldata, (address));
         // step 2: create & data arrays 
         stateChange = abi.encode(vote, initiator);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, stateChange);
     }
 

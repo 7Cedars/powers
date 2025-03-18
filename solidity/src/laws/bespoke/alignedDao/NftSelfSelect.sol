@@ -40,14 +40,14 @@ contract NftSelfSelect is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         LawUtils.nftCheck(initiator, erc721Token);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
         targets[0] = powers;

@@ -43,7 +43,7 @@ contract SelfDestructAction is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, ""); // empty params
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -55,7 +55,7 @@ contract SelfDestructAction is Law {
             bytes[] memory calldatasNew
             ) = LawUtils.addSelfDestruct(targets, values, calldatas, powers);
         
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targetsNew, valuesNew, calldatasNew, "");
     }
 }

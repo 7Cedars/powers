@@ -53,7 +53,7 @@ contract DirectSelect is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -72,7 +72,7 @@ contract DirectSelect is Law {
         (bool assign, address account) = abi.decode(lawCalldata, (bool, address));
 
         // step 2: hash the proposal.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         // step 3: create the arrays.
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);

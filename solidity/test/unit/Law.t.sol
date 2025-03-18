@@ -48,7 +48,7 @@ contract DeployTest is TestSetupLaw {
 
         vm.prank(address(1)); // =! powers
         vm.expectRevert(Law__OnlyPowers.selector);
-        lawMock.executeLaw(address(333), lawCalldata, keccak256(bytes(description)));
+        lawMock.executeLaw(address(333), lawCalldata, nonce);
     }
 }
 
@@ -65,7 +65,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, description);
+        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -78,7 +78,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 
         // act
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
 
         // assert
         uint256 balance = erc1155Mock.balanceOf(address(daoMock), 0);
@@ -94,7 +94,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         daoMock.assignRole(ROLE_ONE, alice);
 
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, description);
+        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -108,7 +108,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         // act & assert
         vm.expectRevert(Law__ProposalNotSucceeded.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 
     function testLawRevertsIfVoteStillActive() public {
@@ -117,12 +117,12 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         string memory description = "Executing a proposal vote";
         bytes memory lawCalldata = abi.encode(true);
         vm.prank(alice);
-        daoMock.propose(laws[lawNumber], lawCalldata, description);
+        daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // act & assert
         vm.expectRevert(Law__ProposalNotSucceeded.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 }
 
@@ -136,7 +136,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         
         // First execute parent law
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -149,7 +149,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         
         // Execute parent law
         vm.prank(alice);
-        daoMock.request(laws[parentLawNumber], lawCalldata, description);
+        daoMock.request(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Verify parent law state
         ActionState parentState = daoMock.state(parentActionId);
@@ -160,7 +160,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
 
         // Now execute the dependent law
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
 
         // Verify the execution succeeded by checking balance change
         uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
@@ -176,7 +176,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         
         // Create and vote against parent proposal
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -194,7 +194,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         // Attempt to execute dependent law - should revert
         vm.expectRevert(Law__ParentNotCompleted.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 
     function testLawRevertsIfParentNotFulfilled() public {
@@ -206,7 +206,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         
         // Create and vote for parent proposal
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -224,7 +224,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         // Attempt to execute dependent law - should revert
         vm.expectRevert(Law__ParentNotCompleted.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 }
 
@@ -238,7 +238,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         
         // Create and vote for parent proposal
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -251,7 +251,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         
         // Execute parent law
         vm.prank(alice);
-        daoMock.request(laws[parentLawNumber], lawCalldata, description);
+        daoMock.request(laws[parentLawNumber], lawCalldata, nonce, description);
         
         // Verify parent law is fulfilled
         ActionState parentState = daoMock.state(parentActionId);
@@ -260,7 +260,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         // Attempt to execute blocked law - should revert
         vm.expectRevert(Law__ParentBlocksCompletion.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 
     function testLawSucceedsIfParentHasNotCompleted() public {
@@ -272,7 +272,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         
         // Create and vote against parent proposal
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -292,7 +292,7 @@ contract ParentCanBlockTest is TestSetupLaw {
 
         // Execute blocked law - should succeed since parent is not fulfilled
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
 
         // Verify the execution succeeded by checking balance change
         uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
@@ -308,7 +308,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         
         // Create and vote for parent proposal
         vm.prank(alice);
-        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, description);
+        uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -328,7 +328,7 @@ contract ParentCanBlockTest is TestSetupLaw {
 
         // Execute blocked law - should succeed since parent is not fulfilled
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
 
         // Verify the execution succeeded by checking balance change
         uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
@@ -343,7 +343,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         string memory description = "Executing a delayed proposal vote";
         bytes memory lawCalldata = abi.encode(true);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, description);
+        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -355,7 +355,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         vm.roll(block.number + 10_000); // forward in time, past the delay.
         // act
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
 
         // assert
         uint256 balance = erc1155Mock.balanceOf(address(daoMock), 0);
@@ -368,7 +368,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         string memory description = "Executing a delayed proposal vote";
         bytes memory lawCalldata = abi.encode(true);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, description);
+        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
         for (uint256 i = 0; i < users.length; i++) {
@@ -381,7 +381,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         // act & assert
         vm.expectRevert(Law__DeadlineNotPassed.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, description);
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
 }
 
@@ -397,7 +397,8 @@ contract LimitExecutionsTest is TestSetupLaw {
         for (uint256 i = 0; i < numberOfExecutions; i++) {
             vm.roll(block.number + block.number + numberOfBlockBetweenExecutions);
             vm.prank(alice);
-            daoMock.request(laws[lawNumber], lawCalldata, string(abi.encode(i)));
+            daoMock.request(laws[lawNumber], lawCalldata, nonce, string(abi.encode(i)));
+            nonce++;
         }
 
         // assert
@@ -411,13 +412,14 @@ contract LimitExecutionsTest is TestSetupLaw {
         bytes memory lawCalldata = abi.encode(true);
         // prep: execute once...
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, "first execute");
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, "first execute");
 
         // act & assert: execute twice, very soon after.
         vm.roll(block.number + 5);
+        nonce++;
         vm.expectRevert(Law__ExecutionGapTooSmall.selector);
         vm.prank(alice);
-        daoMock.request(laws[lawNumber], lawCalldata, "second execute");
+        daoMock.request(laws[lawNumber], lawCalldata, nonce, "second execute");
     }
 }
 

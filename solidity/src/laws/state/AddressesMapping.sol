@@ -44,7 +44,7 @@ contract AddressesMapping is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address, /*initiator */ bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address, /*initiator */ bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -59,7 +59,7 @@ contract AddressesMapping is Law {
             revert ("Already false.");
         }
 
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
     

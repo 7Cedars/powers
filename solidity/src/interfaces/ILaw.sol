@@ -50,14 +50,14 @@ interface ILaw is IERC165, LawErrors {
     /// @param description Description of the law's purpose
     /// @param powers Address of the Powers protocol contract
     /// @param allowedRole Role ID required to interact with this law
-    /// @param config Configuration parameters for the law
+    /// @param checks Checks for the law
     event Law__Initialized(
         address indexed law,
         string name,
         string description,
         address indexed powers,
         uint32 allowedRole,
-        LawChecks config,
+        LawChecks checks,
         bytes params
     );
 
@@ -69,9 +69,9 @@ interface ILaw is IERC165, LawErrors {
     /// @dev Called by the Powers protocol during action execution
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
+    /// @param nonce The nonce for the action
     /// @return success True if execution succeeded
-    function executeLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function executeLaw(address initiator, bytes memory lawCalldata, uint256 nonce)
         external
         returns (bool success);
 
@@ -79,13 +79,13 @@ interface ILaw is IERC165, LawErrors {
     /// @dev Must be overridden by implementing contracts
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
+    /// @param nonce The nonce for the action
     /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         external
         view 
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
@@ -98,8 +98,8 @@ interface ILaw is IERC165, LawErrors {
     /// @dev Called during both proposal and execution
     /// @param initiator Address attempting to propose
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
-    function checksAtPropose(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @param nonce The nonce for the action
+    function checksAtPropose(address initiator, bytes memory lawCalldata, uint256 nonce)
         external
         view;
 
@@ -107,8 +107,8 @@ interface ILaw is IERC165, LawErrors {
     /// @dev Called during execution after proposal checks
     /// @param initiator Address attempting to execute
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
-    function checksAtExecute(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @param nonce The nonce for the action
+    function checksAtExecute(address initiator, bytes memory lawCalldata, uint256 nonce)
         external
         view;
 }

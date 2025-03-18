@@ -59,13 +59,13 @@ contract PresetAction is Law {
     }
 
     /// @notice execute the law.
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
         returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, "");  
     }
 }

@@ -34,10 +34,12 @@ interface PowersEvents {
     /// @param targetLaw the address of the target law
     /// @param lawCalldata the calldata of the law
     /// @param description the description of the law action
+    /// @param nonce the nonce of the action
     event ActionRequested(
         address indexed initiator, 
         address indexed targetLaw, 
         bytes lawCalldata, 
+        uint256 nonce,
         string description
     );
 
@@ -64,6 +66,7 @@ interface PowersEvents {
         bytes executeCalldata,
         uint256 voteStart,
         uint256 voteEnd,
+        uint256 nonce,
         string description
     );
 

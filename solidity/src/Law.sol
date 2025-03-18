@@ -96,9 +96,9 @@ contract Law is ERC165, ILaw {
     /// @dev Called by the Powers protocol during action execution
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
+    /// @param nonce The nonce for the action
     /// @return success True if execution succeeded
-    function executeLaw(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function executeLaw(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         returns (bool success)
     {
@@ -107,12 +107,12 @@ contract Law is ERC165, ILaw {
         }
 
         // Run all validation checks
-        checksAtPropose(initiator, lawCalldata, descriptionHash);
-        checksAtExecute(initiator, lawCalldata, descriptionHash);
+        checksAtPropose(initiator, lawCalldata, nonce);
+        checksAtExecute(initiator, lawCalldata, nonce);
 
         // Simulate and execute the law's logic
         (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
-            handleRequest(initiator, lawCalldata, descriptionHash);
+            handleRequest(initiator, lawCalldata, nonce);
         
         // execute the law's logic conditional on data returned by handleRequest
         if (stateChange.length > 0) {
@@ -129,13 +129,13 @@ contract Law is ERC165, ILaw {
     /// @dev Must be overridden by implementing contracts
     /// @param initiator Address that initiated the action
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
+    /// @param nonce The nonce for the action
     /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         view 
         virtual
@@ -171,15 +171,15 @@ contract Law is ERC165, ILaw {
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
-    function checksAtPropose(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @param nonce The nonce for the action
+    function checksAtPropose(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
     {
         // Check if parent law completion is required
         if (config.needCompleted != address(0)) {
-            uint256 parentActionId = _hashActionId(config.needCompleted, lawCalldata, descriptionHash);
+            uint256 parentActionId = _hashActionId(config.needCompleted, lawCalldata, nonce);
 
             if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentNotCompleted();
@@ -188,7 +188,7 @@ contract Law is ERC165, ILaw {
 
         // Check if parent law must not be completed
         if (config.needNotCompleted != address(0)) {
-            uint256 parentActionId = _hashActionId(config.needNotCompleted, lawCalldata, descriptionHash);
+            uint256 parentActionId = _hashActionId(config.needNotCompleted, lawCalldata, nonce);
 
             if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentBlocksCompletion();
@@ -199,8 +199,8 @@ contract Law is ERC165, ILaw {
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
-    function checksAtExecute(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    /// @param nonce The nonce for the action
+    function checksAtExecute(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -216,7 +216,7 @@ contract Law is ERC165, ILaw {
 
         // Check if proposal vote succeeded
         if (config.quorum != 0) {
-            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+            uint256 actionId = _hashActionId(address(this), lawCalldata, nonce);
             if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
                 revert Law__ProposalNotSucceeded();
             }
@@ -224,7 +224,7 @@ contract Law is ERC165, ILaw {
 
         // Check execution delay after proposal
         if (config.delayExecution != 0) {
-            uint256 actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+            uint256 actionId = _hashActionId(address(this), lawCalldata, nonce);
             uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
             if (deadline + config.delayExecution > block.number) {
                 revert Law__DeadlineNotPassed();
@@ -244,11 +244,11 @@ contract Law is ERC165, ILaw {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function _hashActionId(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function _hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
         internal
         pure
         returns (uint256 actionId)
     {
-       actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+       actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
     }
 }

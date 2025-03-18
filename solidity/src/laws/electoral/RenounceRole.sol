@@ -50,7 +50,7 @@ contract RenounceRole is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -74,7 +74,7 @@ contract RenounceRole is Law {
 
         // step 3: create & send return calldata conditional if it is an assign or revoke action.
         (targets, values, calldatas) = LawUtils.createEmptyArrays(allowedRoleIds.length);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
         if (Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0) {

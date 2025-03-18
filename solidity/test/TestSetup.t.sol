@@ -55,7 +55,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes[] calldatas; 
     bytes lawCalldata;
     string description;
-    bytes32 descriptionHash;
+    uint256 nonce;
     uint256 actionId;
 
     uint256 roleCount;
@@ -120,13 +120,13 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
 }
 
 abstract contract TestHelpers is Test, TestVariables {
-    function hashProposal(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function hashProposal(address targetLaw, bytes memory lawCalldata, uint256 nonce)
         public
         pure
         virtual
         returns (uint256)
     {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
     }
 
     function distributeERC20VoteTokens(address[] memory accounts, uint256 randomiser) public {
@@ -218,6 +218,8 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         ROLE_TWO = 2;
         ROLE_THREE = 3;
 
+        nonce = 123; 
+
         // users
         alice = makeAddr("alice");
         bob = makeAddr("bob");
@@ -287,7 +289,8 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
         vm.roll(block.number + 4000);
         daoMock.request(
             laws[laws.length - 1],
-            abi.encode(), // empty calldata
+            abi.encode(), 
+            nonce,// empty calldata,
             "assigning roles"
         );
         daoNames.push("DaoMock");
@@ -314,7 +317,8 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
         vm.prank(address(this));
         daoMock.request(
             laws[laws.length - 1],
-            abi.encode(), // empty calldata
+            abi.encode(), 
+            nonce,// empty calldata
             "assigning roles"
         );
         daoNames.push("DaoMock");
@@ -342,7 +346,8 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
         vm.roll(block.number + 4000);
         daoMock.request(
             laws[laws.length - 1],
-            abi.encode(), // empty calldata
+            abi.encode(), 
+            nonce,// empty calldata
             "assigning roles"
         );
         daoNames.push("DaoMock");
@@ -371,7 +376,8 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
         vm.prank(address(this));
         daoMock.request(
             laws[laws.length - 1],
-            abi.encode(), // empty calldata
+            abi.encode(), 
+            nonce,// empty calldata
             "assigning roles"
         );
         daoNames.push("DaoMock");
@@ -395,7 +401,8 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
         vm.roll(block.number + 4000);
         daoMock.request(
             laws[laws.length - 1],
-            abi.encode(), // empty calldata
+            abi.encode(), 
+            nonce,// empty calldata
             "assigning roles"
         );
         daoNames.push("DaoMock");

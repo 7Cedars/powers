@@ -63,7 +63,7 @@ pragma solidity 0.8.26;
 //         stateVars = abi.encode("address[]");
 //     }
 
-//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, bytes32 descriptionHash)
+//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual
@@ -100,7 +100,7 @@ pragma solidity 0.8.26;
 //                 accountElects[i] = accountElect;
 //             }
 //         } else {
-//             uint256 pseudoRandomValue = uint256(keccak256(abi.encodePacked(block.number, descriptionHash)));
+//             uint256 pseudoRandomValue = uint256(keccak256(abi.encodePacked(block.number, nonce)));
 //             // note: this is very inefficient, but I cannot add a getter function in NominateMe - so have to retrieve addresses one by one..
 //             address[] memory _nomineesSorted = new address[](numberNominees);
 //             for (uint256 i; i < numberNominees; i++) {

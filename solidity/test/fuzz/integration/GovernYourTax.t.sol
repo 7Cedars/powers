@@ -73,7 +73,7 @@ pragma solidity 0.8.26;
 
 //         // Calculate future grant address. -- maybe place this in separate function. £todo
 //         (,, bytes[] memory calldatasOut,) = Law(laws[1]).handleRequest(
-//             eve, lawCalldata, keccak256(bytes(description))
+//             eve, lawCalldata, nonce
 //         );
 //         bytes memory dataWithoutSelector = new bytes(calldatasOut[0].length - 4);
 //         for (uint16 i = 0; i < (calldatasOut[0].length - 4); i++) {

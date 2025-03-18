@@ -127,7 +127,7 @@ pragma solidity 0.8.26;
 
 //     // executing...
 //     vm.prank(account0);
-//     agDao.execute(constituentLaws[4], lawCalldata, keccak256(bytes(description)));
+//     agDao.execute(constituentLaws[4], lawCalldata, nonce);
 
 //     // check
 //     PowersTypes.ActionState ActionStateOne = agDao.state(actionIdOne);
@@ -157,7 +157,7 @@ pragma solidity 0.8.26;
 
 //     // executing...
 //     vm.prank(account1);
-//     agDao.execute(constituentLaws[5], lawCalldata, keccak256(bytes(description)));
+//     agDao.execute(constituentLaws[5], lawCalldata, nonce);
 
 //     // check
 //     PowersTypes.ActionState ActionStateTwo = agDao.state(actionIdTwo);
@@ -167,7 +167,7 @@ pragma solidity 0.8.26;
 //     vm.roll(block.number + 10_000);
 //     vm.prank(account2); // = admin role
 //     if (account2 != alice){ vm.expectRevert(); }
-//     agDao.execute(constituentLaws[6], lawCalldata, keccak256(bytes(description)));
+//     agDao.execute(constituentLaws[6], lawCalldata, nonce);
 //     if (account2 != alice){ return; }
 
 //     // check if law has been set to active.
