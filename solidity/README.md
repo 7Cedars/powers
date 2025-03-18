@@ -6,7 +6,7 @@
     <img src="../public/logo.png" alt="Logo" width="300" height="300">
   </a>
 
-<h2 align="center">Separated Powers </h2>
+<h2 align="center"> Powers protocol </h2>
   <p align="center">
     A role restricted governance protocol for DAOs. 
     <br />
@@ -77,81 +77,106 @@ Contracts have not been verified, but can be interacted with through [our bespok
 ## Directory Structure
 
 ```
-.
-├── lib                                         # Installed dependencies. 
-│    ├── forge-std                              # Forge  
-│    └── openZeppelin-contracts                 # openZeppelin contracts  
-|
-├── script                                      # Deployment scripts  
-│    └── DeployAlignedDao.s.sol              # Deploys the AgDao example implementation of Powers. Also deploys laws that make up AgDao's governance. 
-|
-├── src                                         # Protocol resources
-│    ├── implementations                        # AgDao example resources.
-│    │    ├── daos                              # 
-│    │    │    ├── aligned-grants               # An example dao that revolves around setting and enforcing community values.  
-│    │    │    │    ├── aligned-grants.sol      # The core DAO contract.  
-│    │    │    │    ├── Constitution.sol        # The initial laws of the DAO.  
-│    │    │    │    └── Founders.sol            # The initial founders and their role assignments. 
-│    │    │    ├── arb-aips                     # An example DAO that is inspired by the constitution of Arbitrum DAO. 
-│    │    │    │    ├── aligned-grants.sol      # The core DAO contract.  
-│    │    │    │    ├── Constitution.sol        # The initial laws of the DAO.  
-│    │    │    │    └── Founders.sol            # The initial founders and their role assignments. 
-│    │    │    ├── core-dao                     # A minimalistic DAO that provides all core functionality for an initial DAO and that allows for future growth. 
-│    │    │    │    └── ...                     # 
-│    │    │    ├── opt-two-houses               # An example DAO inspired by the two houses governance process of the Optimism Collective.   
-│    │    │    │    └── ...                     #  
-│    │    │    ├── nouns-dao                    # An example DAO inspired by the NounsDAO governance structure.
-│    │    │    │    └── ...                     # 
-│    │    │    └── ...   
-│    │    │     
-│    │    └── laws                              # 
-│    │         ├── electoral                    # See description of laws above. 
-│    │         │    ├── DelegateSelect.sol      # Assign nominated accounts to a roleId through delegated votes. Uses OpenZeppelin's ERC20Votes.sol 
-│    │         │    ├── DirectSelect.sol        # Assigns a single account to a roleId.  
-│    │         │    ├── RandomlySelect.sol      # Assigns nominated accounts randomly to a roleId.  
-│    │         │    └── TokensSelect.sol        # Assigns nominated accounts to a roleId on the amount of tokens held. 
-│    │         └── executive   
-│    │              ├── BespokeAction.sol       # Preset the contract and function that can be called, takes the (abi.encoded) input of the target function as its own input.  
-│    │              ├── OpenAction.sol          # Takes targets[], values[] and calldatas[] as input, and gives them as output. 
-│    │              ├── PresetAction.sol        # Gives a present targets[], values[] and calldatas[] as output, following a bool 'true' input. 
-│    │              └── ProposalOnly.sol        # Outputs an empty array, following any input. 
-│    │   
-│    ├── interfaces                             # Interfaces of the protocol. 
-│    │    ├── ILaw.sol                          # Interface for Law.sol.  Includes detailed description of functions. 
-│    │    ├── IPowers.sol              # Interface for Powers.sol. Includes detailed description of functions. 
-│    │    ├── LawErrors.sol                     # Law.sol errors. 
-│    │    ├── PowersErrors.sol         # Powerserrors.   
-│    │    ├── PowersEvents.sol         # Powersevents.   
-│    │    └── PowersTypes.sol          # Powers data Types. 
-│    │     
-│    ├── Law.sol                                # The core Law (abstract) contract. It needs to be inherited by law implementations to function. 
-│    └── Powers.sol                    # The core protocol. It needs to be inherited by DAO implementations. 
-|
-├── test                                        # Tests 
-│    ├── fuzz                                   # Fuzz tests on example implementation (wip) 
-│    │    └── SettingLaw_fuzz.t.t.sol           # 
-│    ├── integration-dao                        # Integration tests. 
-│    │    ├── AlignedGrants.t.sol               # Integration tests using the AlignedGrants DAO example. 
-|    │    ├── ArbAips.t.sol                     # Integration tests using the Arbitrum AIPs example. 
-│    │    └── ...                               # 
-│    ├── mocks                                  # Mocks. 
-│    │    ├── ConstitutionMock.sol              # A mock constitution to initiate laws in a new DAO. 
-|    │    ├── DaoMock.sol                       # A mock DAO to be used in testing. 
-|    │    ├── FoundersMock.sol                  # A mock founders document to be used in initiating a DAO.
-│    │    └── ...                               # 
-│    ├── unit                                   # Unit tests.  
-│    │    ├── AlignedGrants.t.sol               # Integration tests using the AlignedGrants DAO example. 
-|    │    ├── ArbAips.t.sol                     # Integration tests using the Arbitrum AIPs example. 
-│    │    └── ...                               # 
-│    └── TestSetup.t.sol                        # Dynamic setup of the various tests environments. 
-│ 
-├── .env.example                   
-├── foundry.toml                   
-├── LICENSE                                     # MIT license 
-├── README.md                                   # This file
-├── Makefile.md                                 # Commands to deploy contracts on mainnet sepolia and optimism sepolia.  
-├── remappings.txt
-└── ...
+solidity/
+├── .github/                                   # GitHub configuration
+├── broadcast/                                 # Deployment broadcast files
+├── cache/                                     # Foundry cache
+├── lib/                                       # Installed dependencies
+│    ├── forge-std/                            # Forge standard library
+│    └── openzeppelin-contracts/               # OpenZeppelin contracts
+│
+├── out/                                       # Compilation output
+├── script/                                    # Deployment scripts
+│    ├── DeployAlignedDao.s.sol                # Deploys the AgDao example implementation
+│    └── ...                                   # Deployment contracts
+│
+├── src/                                       # Protocol resources
+│    ├── integrations/                         # Integration implementations
+│    │    └── ...                              # Integration contracts
+│    │
+│    ├── interfaces/                           # Protocol interfaces
+│    │    ├── ILaw.sol                         # Law interface
+│    │    ├── IPowers.sol                      # Powers interface
+│    │    ├── LawErrors.sol                    # Law errors
+│    │    ├── PowersErrors.sol                 # Powers errors
+│    │    ├── PowersEvents.sol                 # Powers events
+│    │    └── PowersTypes.sol                  # Powers data types
+│    │
+│    ├── laws/                                 # Law implementations
+│    │    ├── bespoke/                         # Custom law implementations
+│    │    │    ├── alignedDao/                 # Aligned DAO specific laws
+│    │    │    ├── diversifiedRoles/           # Diversified roles laws
+│    │    │    └── governYourTax/              # Tax-based governance laws
+│    │    │        ├── RoleByTaxPaid.sol       # Role assignment based on tax
+│    │    │        ├── StartGrant.sol          # Grant initiation
+│    │    │        └── StopGrant.sol           # Grant termination
+│    │    │
+│    │    ├── electoral/                       # Electoral laws
+│    │    │    ├── DelegateSelect.sol          # Role assignment via delegated votes
+│    │    │    ├── DirectSelect.sol            # Single account role assignment
+│    │    │    ├── ElectionCall.sol            # Election call handling
+│    │    │    ├── ElectionTally.sol           # Election vote tallying
+│    │    │    ├── PeerSelect.sol              # Peer-based selection
+│    │    │    ├── RandomlySelect.sol          # Random role assignment
+│    │    │    ├── RenounceRole.sol            # Role renunciation
+│    │    │    └── SelfSelect.sol              # Self-selection for roles
+│    │    │
+│    │    ├── executive/                       # Executive laws
+│    │    │    ├── BespokeAction.sol           # Preset contract/function calls
+│    │    │    ├── OpenAction.sol              # Dynamic action execution
+│    │    │    ├── PresetAction.sol            # Preset action execution
+│    │    │    ├── ProposalOnly.sol            # Proposal-only execution
+│    │    │    └── SelfDestructAction.sol      # Self-destruct action
+│    │    │
+│    │    ├── state/                           # State management laws
+│    │    │    ├── AddressesMapping.sol        # Address mapping management
+│    │    │    ├── ElectionVotes.sol           # Election votes tracking
+│    │    │    ├── NominateMe.sol              # Self-nomination
+│    │    │    ├── StringsArray.sol            # String array management
+│    │    │    └── TokensArray.sol             # Token array management
+│    │    │
+│    │    └── LawUtils.sol                     # Law utility functions
+│    │
+│    ├── Law.sol                               # Core Law contract
+│    └── Powers.sol                            # Core protocol contract
+│
+├── test/                                      # Tests
+│    ├── fuzz/                                 # Fuzz tests
+│    │    └── SettingLaw_fuzz.t.sol            # Law setting fuzz tests
+│    │
+│    ├── mocks/                                # Mock contracts
+│    │    ├── ConstitutionMock.sol             # Mock constitution
+│    │    ├── DaoMock.sol                      # Mock DAO
+│    │    ├── Erc20TaxedMock.sol               # Mock taxed ERC20
+│    │    └── FoundersMock.sol                 # Mock founders
+│    │
+│    ├── unit/                                 # Unit tests
+│    │    ├── Law.t.sol                        # Core Law contract tests
+│    │    ├── Powers.t.sol                     # Core Powers contract tests
+│    │    ├── DeployScripts.t.sol              # Deployment script tests
+│    │    ├── Mocks.t.sol                      # Mock contract tests
+│    │    │
+│    │    └── laws/                            # Law unit tests
+│    │        ├── Electoral.t.sol              # Electoral law tests
+│    │        ├── Executive.t.sol              # Executive law tests
+│    │        ├── State.t.sol                  # State law tests
+│    │        │
+│    │        └── bespoke/                     # Custom law tests
+│    │            ├── AlignedDao.t.sol         # Aligned DAO law tests
+│    │            ├── GovernYourTax.t.sol      # Tax governance tests
+│    │            └── DiversifiedRoles.t.sol   # Diversified roles tests
+│    │
+│    └── TestSetup.t.sol                       # Test environment setup
+│
+├── .env                                       # Environment variables
+├── .env.example                               # Environment variables template
+├── .gitignore                                 # Git ignore rules
+├── .gitmodules                                # Git submodules
+├── foundry.toml                               # Foundry configuration
+├── lcov.info                                  # Test coverage information
+├── Makefile                                   # Build and test commands
+├── README.md                                  # Project documentation
+└── remappings.txt                             # Solidity import remappings
 
 ```
 

@@ -6,7 +6,7 @@
     <img src="../public/logo.png" alt="Logo" width="300" height="300">
   </a>
 
-<h2 align="center">Separated Powers </h2>
+<h2 align="center"> Powers protocol </h2>
   <p align="center">
     A protocol providing restricted governance processes for DAOs. 
     <br />
@@ -40,7 +40,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see das
 
 ## Live version 
 
-A live version can be seen on [vercel](https://separated-powers.vercel.app/).  
+A live version can be seen on [vercel](https://powers-protocol.vercel.app/).  
 
 Please note that the front end is in active development, and that it currently shows a 'Work in Progress' message. 
 
