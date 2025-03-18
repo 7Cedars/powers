@@ -41,7 +41,7 @@ contract AssignCouncilRole is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -49,7 +49,7 @@ contract AssignCouncilRole is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode the calldata.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         (uint32 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
         
         // step 1: check if the role is allowed.

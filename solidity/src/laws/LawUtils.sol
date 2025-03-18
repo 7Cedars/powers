@@ -29,17 +29,17 @@ library LawUtils {
     }
     
     /// @notice Creates a unique identifier for an action
-    /// @dev Hashes the combination of law address, calldata, and description
+    /// @dev Hashes the combination of law address, calldata, and nonce
     /// @param targetLaw Address of the law contract being called
     /// @param lawCalldata Encoded function call data
-    /// @param descriptionHash Hash of the action description
+    /// @param nonce The nonce for the action
     /// @return actionId Unique identifier for the action
-    function hashActionId(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
         internal
         pure
         returns (uint256 actionId)
     {
-        actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+        actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
     }
 
     /// @notice Creates empty arrays for storing transaction data

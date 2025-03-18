@@ -56,7 +56,7 @@ Laws are contracts that follow the `ilaw.sol` interface. They can be created by 
 
 * They are role restricted by a single role.
 * They are linked to a single `Powers.sol` deployment.
-* They have multiple (optional) checks: for instance a proposal vote that needs to pass, or another law that needs to have been completed. 
+* They have multiple (optional) checks: for instance a proposal vote that needs to pass, or another law that needs to have been completed.
 * They return a function call.
 * They can save a state.
 * They have a function `executeLaw` that can only be called by their `Powers.sol` deployment.
@@ -77,9 +77,9 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 ### 🏛️ Powers + Laws = Governance
 
-Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.
+Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
 
-\[ here insert diagram ]&#x20;
+<figure><img src=".gitbook/assets/image (3).png" alt="Governance flow Powers protocol"><figcaption><p>Governance flow Powers protocol</p></figcaption></figure>
 
 <details>
 
@@ -119,14 +119,17 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-More examples can be found among the example communities.
+More examples can be found among the case studies.
 
 ## Unique strengths
+
 Role restricted governance protocols offer several powerful advantages that make them stand out among existing governance solutions. They excel in simplicity, efficiency, modularity, and flexibility, while introducing innovative features that enhance community governance.
 
 ### Assigning roles
 
-The Powers protocol provides a robust and flexible framework for encoding how roles are assigned to accounts: Communities can implement any mechanism they desire for allocating roles but they always have to use established governance mechanisms. It allows token hodlers, builders, users or any other stake holder in the community to be contractually represented.
+The Powers protocol provides a robust and flexible framework for encoding how roles are assigned to accounts: Communities can implement any mechanism they desire for allocating roles but they always have to use established governance mechanisms.&#x20;
+
+It allows token hodlers, builders, validators, institutional members, users or any other stake holder in the community to be contractually represented.
 
 ### Voting power
 
@@ -136,17 +139,17 @@ Communities can enhance this system by implementing sophisticated role assignmen
 
 ### Governance chains
 
-A powerful innovation of the protocol is its support for governance chains through consistent proposal ID calculation. By using the same calldata and description across different laws, governance actions can be tracked along governance chains. 
+A powerful innovation of the protocol is its support for governance chains through consistent proposal ID calculation. By using the same calldata and nonce across different laws, governance actions can be tracked along governance chains.
 
 This feature allows communities to create sophisticated checks and balances between different roles, enabling seamless coordination between different governance layers, through robust decision-making processes that reflect their unique needs.
 
-### Multi Calls 
+### Multi Calls
 
 The protocol offers powerful multi-call functionality. While each transaction executes one law at a time, that law can trigger multiple actions through the Powers protocol, enabling efficient and coordinated governance actions.
 
-### Async actions 
+### Async actions
 
-Powers protocol provides out-of-the-box support for async governance actions. This allows for any type of oracle to be seamlessly integrated into governance actions: randomise allocation of roles, automate governance actions, allow conditional actions based on market conditions, or integrate AI agents in a governance work-flow. Everything is possible.  
+Powers protocol provides out-of-the-box support for async governance actions. This allows for any type of oracle to be seamlessly integrated into governance actions: randomise allocation of roles, automate governance actions, allow conditional actions based on market conditions, or integrate AI agents in a governance work-flow. Everything is possible.
 
 ### Upgradability
 
@@ -158,4 +161,4 @@ The upgrade process inherently incorporates existing governance checks, allowing
 
 Hopefully you have a high-level sense of the particularities of role restricted governance and the Powers protocol. You can check out other pages in this documentation for more detailed information.
 
-Also, you can use the [Powers app](https://separated-powers.vercel.app/) to play around with practical examples to get a better feel for how a role restricted protocol works.
+Also, you can use the [Powers app](https://powers-protocol.vercel.app) to play around with practical examples to get a better feel for how a role restricted protocol works.

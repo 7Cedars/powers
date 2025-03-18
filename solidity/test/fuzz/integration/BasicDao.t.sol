@@ -92,8 +92,8 @@
 //             basicDao.execute(laws[1], lawCalldata, description);
 
 //             // step 1 results.
-//             descriptionHash = keccak256(bytes(description));
-//             actionId = hashProposal(laws[1], lawCalldata, descriptionHash);
+//             nonce = nonce;
+//             actionId = hashProposal(laws[1], lawCalldata, nonce);
 //             uint8 vetoState = uint8(basicDao.state(actionId));
 //             stepsPassed[1] = vetoState != uint8(ActionState.Completed);
 //             console.log("step 2 result: proposal vetoState: ", vetoState);

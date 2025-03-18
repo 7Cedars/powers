@@ -49,7 +49,7 @@ contract SelfSelect is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -58,7 +58,7 @@ contract SelfSelect is Law {
     {
         // step 2: create & send return calldata conditional if it is an assign or revoke action.
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
         if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) != 0) {

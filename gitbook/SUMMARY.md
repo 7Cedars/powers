@@ -50,11 +50,11 @@
   * [StringsArray.sol](standard-laws/state-laws/stringsarray.sol.md)
   * [TokensArray.sol](standard-laws/state-laws/tokensarray.sol.md)
 
-## Example Communities
+## Case Studies
 
-* [Powers 101](example-communities/basic-dao.md)
-* [Aligned Dao](example-communities/aligned-dao.md)
-* [Govern Your Tax](example-communities/govern-your-tax.md)
+* [Powers 101](case-studies/basic-dao.md)
+* [Aligned Dao](case-studies/aligned-dao.md)
+* [Govern Your Tax](case-studies/govern-your-tax.md)
 
 ## Integrations
 

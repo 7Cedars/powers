@@ -46,13 +46,11 @@ contract AddressMappingTest is TestSetupState {
             address(123), // address
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding an address");
-
         // act + assert emit
         vm.expectEmit(true, false, false, false);
         emit AddressesMapping__Added(address(123));
         vm.prank(address(daoMock));
-        bool success = Law(addressesMapping).executeLaw(address(0), lawCalldata, descriptionHash);
+        bool success = Law(addressesMapping).executeLaw(address(0), lawCalldata, nonce);
 
         // assert execution succeeded
         assertTrue(success);
@@ -68,17 +66,15 @@ contract AddressMappingTest is TestSetupState {
             address(123), // address
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding an address");
-
         // First addition
         vm.prank(address(daoMock));
-        bool success = Law(addressesMapping).executeLaw(address(0), lawCalldata, descriptionHash);
+        bool success = Law(addressesMapping).executeLaw(address(0), lawCalldata, nonce);
         assertTrue(success);
 
         // Second addition attempt - should revert
         vm.prank(address(daoMock));
         vm.expectRevert("Already true.");
-        Law(addressesMapping).executeLaw(address(0), lawCalldata, descriptionHash);
+        Law(addressesMapping).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(AddressesMapping(addressesMapping).addresses(address(123)), true);
@@ -95,19 +91,19 @@ contract AddressMappingTest is TestSetupState {
             address(123), // address
             false // remove
         );
-        bytes32 descriptionHashAdd = keccak256("Adding an address");
-        bytes32 descriptionHashRemove = keccak256("Removing an address");
+        uint256 nonceAdd = 234; 
+        uint256 nonceRemove = 235;
 
         // First add the address
         vm.prank(address(daoMock));
-        bool successAdd = Law(addressesMapping).executeLaw(address(0), lawCalldataAdd, descriptionHashAdd);
+        bool successAdd = Law(addressesMapping).executeLaw(address(0), lawCalldataAdd, nonceAdd);
         assertTrue(successAdd);
 
         // act + assert emit for removal
         vm.expectEmit(true, false, false, false);
         emit AddressesMapping__Removed(address(123));
         vm.prank(address(daoMock));
-        bool successRemove = Law(addressesMapping).executeLaw(address(0), lawCalldataRemove, descriptionHashRemove);
+        bool successRemove = Law(addressesMapping).executeLaw(address(0), lawCalldataRemove, nonceRemove);
 
         // assert execution succeeded
         assertTrue(successRemove);
@@ -123,12 +119,10 @@ contract AddressMappingTest is TestSetupState {
             address(123), // address
             false // remove
         );
-        bytes32 descriptionHash = keccak256("Removing an address not added");
-
         // act + assert revert
         vm.prank(address(daoMock));
         vm.expectRevert("Already false.");
-        Law(addressesMapping).executeLaw(address(0), lawCalldata, descriptionHash);
+        Law(addressesMapping).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(AddressesMapping(addressesMapping).addresses(address(123)), false);
@@ -141,12 +135,11 @@ contract AddressMappingTest is TestSetupState {
             address(123), // address
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding an address");
 
         // act + assert revert when not called by Powers
         vm.prank(alice);
         vm.expectRevert(Law__OnlyPowers.selector);
-        Law(addressesMapping).executeLaw(address(0), lawCalldata, descriptionHash);
+        Law(addressesMapping).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(AddressesMapping(addressesMapping).addresses(address(123)), false);
@@ -164,13 +157,12 @@ contract StringsArrayTest is TestSetupState {
             "hello world", // string to add
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding a string");
 
         // act + assert emit
         vm.expectEmit(true, false, false, false);
         emit StringsArray__StringAdded("hello world");
         vm.prank(address(daoMock));
-        bool success = Law(stringsArray).executeLaw(address(0), lawCalldata, descriptionHash);
+        bool success = Law(stringsArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert execution succeeded
         assertTrue(success);
@@ -194,14 +186,14 @@ contract StringsArrayTest is TestSetupState {
 
         // First add the string
         vm.prank(address(daoMock));
-        bool successAdd = Law(stringsArray).executeLaw(address(0), lawCalldataAdd, keccak256("Adding a string to be removed"));
+        bool successAdd = Law(stringsArray).executeLaw(address(0), lawCalldataAdd, nonce);
         assertTrue(successAdd);
 
         // act + assert emit for removal
         vm.expectEmit(true, false, false, false);
         emit StringsArray__StringRemoved("hello world");
         vm.prank(address(daoMock));
-        bool successRemove = Law(stringsArray).executeLaw(address(0), lawCalldataRemove, keccak256("Removing a string"));
+        bool successRemove = Law(stringsArray).executeLaw(address(0), lawCalldataRemove, nonce);
 
         // assert execution succeeded
         assertTrue(successRemove);
@@ -221,7 +213,7 @@ contract StringsArrayTest is TestSetupState {
         // act + assert revert
         vm.prank(address(daoMock));
         vm.expectRevert("String not found.");
-        Law(stringsArray).executeLaw(address(0), lawCalldata, keccak256("Removing a string not added"));
+        Law(stringsArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(StringsArray(stringsArray).numberOfStrings(), 0);
@@ -241,13 +233,13 @@ contract StringsArrayTest is TestSetupState {
 
         // First add a string
         vm.prank(address(daoMock));
-        bool successAdd = Law(stringsArray).executeLaw(address(0), lawCalldataAdd, keccak256("Adding a string not to be removed"));
+        bool successAdd = Law(stringsArray).executeLaw(address(0), lawCalldataAdd, nonce);
         assertTrue(successAdd);
 
         // act + assert revert when trying to remove different string
         vm.prank(address(daoMock));
         vm.expectRevert("String not found.");
-        Law(stringsArray).executeLaw(address(0), lawCalldataRemove, keccak256("Removing a string that does not exist"));
+        Law(stringsArray).executeLaw(address(0), lawCalldataRemove, nonce);
 
         // assert state remains unchanged
         assertEq(StringsArray(stringsArray).numberOfStrings(), 1);
@@ -261,12 +253,11 @@ contract StringsArrayTest is TestSetupState {
             "hello world", // string to add
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding a string");
 
         // act + assert revert when not called by Powers
         vm.prank(alice);
         vm.expectRevert(Law__OnlyPowers.selector);
-        Law(stringsArray).executeLaw(address(0), lawCalldata, descriptionHash);
+        Law(stringsArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(StringsArray(stringsArray).numberOfStrings(), 0);
@@ -285,13 +276,12 @@ contract TokensArrayTest is TestSetupState {
             TokensArray.TokenType.Erc20, // token type
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding a token");
 
         // act + assert emit
         vm.expectEmit(true, false, false, false);
         emit TokensArray__TokenAdded(address(123), TokensArray.TokenType.Erc20);
         vm.prank(address(daoMock));
-        bool success = Law(tokensArray).executeLaw(address(0), lawCalldata, descriptionHash);
+        bool success = Law(tokensArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert execution succeeded
         assertTrue(success);
@@ -319,14 +309,14 @@ contract TokensArrayTest is TestSetupState {
 
         // First add the token
         vm.prank(address(daoMock));
-        bool successAdd = Law(tokensArray).executeLaw(address(0), lawCalldataAdd, keccak256("Adding a token"));
+        bool successAdd = Law(tokensArray).executeLaw(address(0), lawCalldataAdd, nonce);
         assertTrue(successAdd);
 
         // act + assert emit for removal
         vm.expectEmit(true, false, false, false);
         emit TokensArray__TokenRemoved(address(123), TokensArray.TokenType.Erc20);
         vm.prank(address(daoMock));
-        bool successRemove = Law(tokensArray).executeLaw(address(0), lawCalldataRemove, keccak256("Removing a token"));
+        bool successRemove = Law(tokensArray).executeLaw(address(0), lawCalldataRemove, nonce);
 
         // assert execution succeeded
         assertTrue(successRemove);
@@ -347,7 +337,7 @@ contract TokensArrayTest is TestSetupState {
         // act + assert revert
         vm.prank(address(daoMock));
         vm.expectRevert("Token not found.");
-        Law(tokensArray).executeLaw(address(0), lawCalldata, keccak256("Removing a non-existent token"));
+        Law(tokensArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(TokensArray(tokensArray).numberOfTokens(), 0);
@@ -369,13 +359,13 @@ contract TokensArrayTest is TestSetupState {
 
         // First add a token
         vm.prank(address(daoMock));
-        bool successAdd = Law(tokensArray).executeLaw(address(0), lawCalldataAdd, keccak256("Adding a token"));
+        bool successAdd = Law(tokensArray).executeLaw(address(0), lawCalldataAdd, nonce);
         assertTrue(successAdd);
 
         // act + assert revert when trying to remove different token
         vm.prank(address(daoMock));
         vm.expectRevert("Token not found.");
-        Law(tokensArray).executeLaw(address(0), lawCalldataRemove, keccak256("Removing a token that does not exist"));
+        Law(tokensArray).executeLaw(address(0), lawCalldataRemove, nonce);
 
         // assert state remains unchanged
         assertEq(TokensArray(tokensArray).numberOfTokens(), 1);
@@ -392,12 +382,11 @@ contract TokensArrayTest is TestSetupState {
             TokensArray.TokenType.Erc20, // token type
             true // add
         );
-        bytes32 descriptionHash = keccak256("Adding a token");
 
         // act + assert revert when not called by Powers
         vm.prank(alice);
         vm.expectRevert(Law__OnlyPowers.selector);
-        Law(tokensArray).executeLaw(address(0), lawCalldata, descriptionHash);
+        Law(tokensArray).executeLaw(address(0), lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(TokensArray(tokensArray).numberOfTokens(), 0);
@@ -414,13 +403,12 @@ contract NominateMeTest is TestSetupState {
         bytes memory lawCalldata = abi.encode(
             true // nominateMe
         );
-        bytes32 descriptionHash = keccak256("Nominating charlotte");
 
         // act + assert emit
         vm.expectEmit(true, false, false, false);
         emit NominateMe__NominationReceived(charlotte);
         vm.prank(address(daoMock));
-        bool success = Law(nominateMe).executeLaw(charlotte, lawCalldata, descriptionHash);
+        bool success = Law(nominateMe).executeLaw(charlotte, lawCalldata, nonce);
 
         // assert execution succeeded
         assertTrue(success);
@@ -437,17 +425,16 @@ contract NominateMeTest is TestSetupState {
         bytes memory lawCalldata = abi.encode(
             true // nominateMe
         );
-        bytes32 descriptionHash = keccak256("Nominating charlotte");
 
         // First nomination
         vm.prank(address(daoMock));
-        bool success = Law(nominateMe).executeLaw(charlotte, lawCalldata, descriptionHash);
+        bool success = Law(nominateMe).executeLaw(charlotte, lawCalldata, nonce);
         assertTrue(success);
 
         // Second nomination attempt - should revert
         vm.prank(address(daoMock));
         vm.expectRevert("Nominee already nominated.");
-        Law(nominateMe).executeLaw(charlotte, lawCalldata, descriptionHash);
+        Law(nominateMe).executeLaw(charlotte, lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(NominateMe(nominateMe).nominees(charlotte), block.number);
@@ -467,14 +454,14 @@ contract NominateMeTest is TestSetupState {
 
         // First nominate charlotte
         vm.prank(address(daoMock));
-        bool successAdd = Law(nominateMe).executeLaw(charlotte, lawCalldataAdd, keccak256("Nominating charlotte"));
+        bool successAdd = Law(nominateMe).executeLaw(charlotte, lawCalldataAdd, nonce);
         assertTrue(successAdd);
 
         // act + assert emit for revocation
         vm.expectEmit(true, false, false, false);
         emit NominateMe__NominationRevoked(charlotte);
         vm.prank(address(daoMock));
-        bool successRemove = Law(nominateMe).executeLaw(charlotte, lawCalldataRemove, keccak256("Revoking charlotte's nomination"));
+        bool successRemove = Law(nominateMe).executeLaw(charlotte, lawCalldataRemove, nonce);
 
         // assert execution succeeded
         assertTrue(successRemove);
@@ -490,12 +477,11 @@ contract NominateMeTest is TestSetupState {
         bytes memory lawCalldata = abi.encode(
             false // revokeNomination
         );
-        bytes32 descriptionHash = keccak256("Revoking non-existent nomination");
 
         // act + assert revert
         vm.prank(address(daoMock));
         vm.expectRevert("Nominee not nominated.");
-        Law(nominateMe).executeLaw(charlotte, lawCalldata, descriptionHash);
+        Law(nominateMe).executeLaw(charlotte, lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(NominateMe(nominateMe).nominees(charlotte), 0);
@@ -508,12 +494,11 @@ contract NominateMeTest is TestSetupState {
         bytes memory lawCalldata = abi.encode(
             true // nominateMe
         );
-        bytes32 descriptionHash = keccak256("Nominating charlotte");
 
         // act + assert revert when not called by Powers
         vm.prank(alice);
         vm.expectRevert(Law__OnlyPowers.selector);
-        Law(nominateMe).executeLaw(charlotte, lawCalldata, descriptionHash);
+        Law(nominateMe).executeLaw(charlotte, lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(NominateMe(nominateMe).nominees(charlotte), 0);
@@ -534,12 +519,12 @@ contract ElectionVotesTest is TestSetupState {
         bytes memory lawCalldataVote = abi.encode(
             charlotte // vote for
         );
-        bytes32 descriptionHashNominate = keccak256("Nominating charlotte");
-        bytes32 descriptionHashVote = keccak256("Voting for charlotte");
+        uint256 nonceNominate = 236;
+        uint256 nonceVote = 237;
 
         // First nominate charlotte
         vm.prank(address(daoMock));
-        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, descriptionHashNominate);
+        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, nonceNominate);
         assertTrue(successNominate);
 
         // act + assert emit
@@ -547,7 +532,7 @@ contract ElectionVotesTest is TestSetupState {
         vm.expectEmit(true, false, false, false);
         emit ElectionVotes__VoteCast(alice);
         vm.prank(address(daoMock));
-        bool successVote = Law(peerVote).executeLaw(alice, lawCalldataVote, descriptionHashVote);
+        bool successVote = Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
         // assert execution succeeded
         assertTrue(successVote);
@@ -567,19 +552,19 @@ contract ElectionVotesTest is TestSetupState {
         bytes memory lawCalldataVote = abi.encode(
             charlotte // vote for
         );
-        bytes32 descriptionHashNominate = keccak256("Nominating charlotte");
-        bytes32 descriptionHashVote = keccak256("Voting for charlotte before election opens");
+        uint256 nonceNominate = 238;
+        uint256 nonceVote = 239;
 
         // First nominate charlotte
         vm.prank(address(daoMock));
-        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, descriptionHashNominate);
+        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, nonceNominate);
         assertTrue(successNominate);
 
         // act + assert revert
         vm.roll(40); // vote starts at block 50
         vm.prank(address(daoMock));
         vm.expectRevert("Election not open.");
-        Law(peerVote).executeLaw(alice, lawCalldataVote, descriptionHashVote);
+        Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
         // assert state remains unchanged
         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);
@@ -596,24 +581,24 @@ contract ElectionVotesTest is TestSetupState {
         bytes memory lawCalldataVote = abi.encode(
             charlotte // vote for
         );
-        bytes32 descriptionHashNominate = keccak256("Nominating charlotte");
-        bytes32 descriptionHashVote = keccak256("Voting for charlotte");
+        uint256 nonceNominate = 240;
+        uint256 nonceVote = 241;
 
         // First nominate charlotte
         vm.prank(address(daoMock));
-        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, descriptionHashNominate);
+        bool successNominate = Law(nominateMe).executeLaw(charlotte, lawCalldataNominate, nonceNominate);
         assertTrue(successNominate);
 
         // First vote
         vm.roll(51); // vote starts at block 50
         vm.prank(address(daoMock));
-        bool successVote = Law(peerVote).executeLaw(alice, lawCalldataVote, descriptionHashVote);
+        bool successVote = Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
         assertTrue(successVote);
 
         // act + assert revert on second vote
         vm.prank(address(daoMock));
         vm.expectRevert("Already voted.");
-        Law(peerVote).executeLaw(alice, lawCalldataVote, keccak256("Attempting to vote again"));
+        Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
         // assert state remains unchanged
         assertEq(ElectionVotes(peerVote).hasVoted(alice), true);
@@ -626,13 +611,12 @@ contract ElectionVotesTest is TestSetupState {
         bytes memory lawCalldataVote = abi.encode(
             charlotte // vote for
         );
-        bytes32 descriptionHash = keccak256("Voting for non-nominee");
 
         // act + assert revert
         vm.roll(51); // vote starts at block 50
         vm.prank(address(daoMock));
         vm.expectRevert("Not a nominee.");
-        Law(peerVote).executeLaw(alice, lawCalldataVote, descriptionHash);
+        Law(peerVote).executeLaw(alice, lawCalldataVote, nonce);
 
         // assert state remains unchanged
         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);
@@ -645,13 +629,12 @@ contract ElectionVotesTest is TestSetupState {
         bytes memory lawCalldata = abi.encode(
             charlotte // vote for
         );
-        bytes32 descriptionHash = keccak256("Voting for charlotte");
 
         // act + assert revert when not called by Powers
         vm.roll(51); // vote starts at block 50
         vm.prank(alice);
         vm.expectRevert(Law__OnlyPowers.selector);
-        Law(peerVote).executeLaw(alice, lawCalldata, descriptionHash);
+        Law(peerVote).executeLaw(alice, lawCalldata, nonce);
 
         // assert state remains unchanged
         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);

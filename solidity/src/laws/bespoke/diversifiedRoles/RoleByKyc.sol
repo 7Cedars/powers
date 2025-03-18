@@ -50,7 +50,7 @@ pragma solidity 0.8.26;
 //         youngerThan = youngerThan_;
 //     }
 
-//     function handleRequest(address initiator, bytes memory lawCalldata, bytes32 descriptionHash)
+//     function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual
@@ -108,6 +108,6 @@ pragma solidity 0.8.26;
 //         }
 
 //         // step 5: call super
-//         return super.handleRequest(initiator, lawCalldata, descriptionHash);
+//         return super.handleRequest(initiator, lawCalldata, nonce);
 //     }
 // }

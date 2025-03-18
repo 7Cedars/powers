@@ -51,7 +51,7 @@ contract PeerSelect is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -61,7 +61,7 @@ contract PeerSelect is Law {
         address nominees = config.readStateFrom;  
         (uint256 index, bool assign) = abi.decode(lawCalldata, (uint256, bool));
 
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
         targets[0] = powers;
 

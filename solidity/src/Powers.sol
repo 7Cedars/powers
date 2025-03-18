@@ -104,9 +104,8 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
     /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
-    function request(address targetLaw, bytes memory lawCalldata, string memory description) external payable virtual {
-        bytes32 descriptionHash = keccak256(bytes(description));
-        uint256 actionId = _hashAction(targetLaw, lawCalldata, descriptionHash);
+    function request(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable virtual {
+        uint256 actionId = _hashAction(targetLaw, lawCalldata, nonce);
 
         // check 1: does executioner have access to law being executed?
         uint32 allowedRole = Law(targetLaw).allowedRole();
@@ -131,11 +130,11 @@ contract Powers is EIP712, IPowers {
         _actions[actionId].initiator = msg.sender; // note if initiator had been set during proposedAction, it will be overwritten.
         _actions[actionId].requested = true;
 
-        (bool success) = ILaw(targetLaw).executeLaw(msg.sender, lawCalldata, descriptionHash);
+        (bool success) = ILaw(targetLaw).executeLaw(msg.sender, lawCalldata, nonce);
         if (!success) {
             revert Powers__LawDidNotPassChecks();
         }
-        emit ActionRequested(msg.sender, targetLaw, lawCalldata, description);
+        emit ActionRequested(msg.sender, targetLaw, lawCalldata, nonce, description);
     }
 
     /// @inheritdoc IPowers
@@ -163,7 +162,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function propose(address targetLaw, bytes memory lawCalldata, string memory description)
+    function propose(address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
         external
         virtual
         returns (uint256)
@@ -178,7 +177,7 @@ contract Powers is EIP712, IPowers {
             revert Powers__AccessDenied();
         }
         // if check passes: propose.
-        return _propose(msg.sender, targetLaw, lawCalldata, description);
+        return _propose(msg.sender, targetLaw, lawCalldata, nonce, description);
     }
 
     /// @notice Internal propose mechanism. Can be overridden to add more logic on proposedAction creation.
@@ -186,15 +185,14 @@ contract Powers is EIP712, IPowers {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(address initiator, address targetLaw, bytes memory lawCalldata, string memory description)
+    function _propose(address initiator, address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
         internal
         virtual
         returns (uint256 actionId)
     {
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).config();
         ( , , , , uint32 votingPeriod, uint8 quorum, ,) = Law(targetLaw).config();
-        bytes32 descriptionHash = keccak256(bytes(description));
-        actionId = _hashAction(targetLaw, lawCalldata, descriptionHash);
+        actionId = _hashAction(targetLaw, lawCalldata, nonce);
 
         // check 1: does target law need proposedAction vote to pass?
         if (quorum == 0) {
@@ -205,7 +203,7 @@ contract Powers is EIP712, IPowers {
             revert Powers__UnexpectedActionState();
         }
         // check 3: do proposedAction checks of the law pass?
-        Law(targetLaw).checksAtPropose(initiator, lawCalldata, descriptionHash);
+        Law(targetLaw).checksAtPropose(initiator, lawCalldata, nonce);
 
         // if checks pass: create proposedAction
         uint32 duration = votingPeriod;
@@ -216,24 +214,23 @@ contract Powers is EIP712, IPowers {
         proposedAction.initiator = initiator;
 
         emit ProposedActionCreated(
-            actionId, initiator, targetLaw, "", lawCalldata, block.number, block.number + duration, description
+            actionId, initiator, targetLaw, "", lawCalldata, block.number, block.number + duration, nonce, description
         );
     }
 
     /// @inheritdoc IPowers
-    function cancel(address targetLaw, bytes memory lawCalldata, string memory description)
+    function cancel(address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
         public
         virtual
         returns (uint256)
     {
-        bytes32 descriptionHash = keccak256(bytes(description));
-        uint256 actionId = _hashAction(targetLaw, lawCalldata, descriptionHash);
+        uint256 actionId = _hashAction(targetLaw, lawCalldata, nonce);
         // only initiator can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].initiator == address(0))
         if (msg.sender != _actions[actionId].initiator) {
             revert Powers__AccessDenied();
         }
 
-        return _cancel(targetLaw, lawCalldata, descriptionHash);
+        return _cancel(targetLaw, lawCalldata, nonce);
     }
 
     /// @notice Internal cancel mechanism with minimal restrictions. A proposedAction can be cancelled in any state other than
@@ -241,12 +238,12 @@ contract Powers is EIP712, IPowers {
     ///
     /// @dev the account to cancel must be the account that created the proposedAction.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
-    function _cancel(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash)
+    function _cancel(address targetLaw, bytes memory lawCalldata, uint256 nonce)
         internal
         virtual
         returns (uint256)
     {
-        uint256 actionId = _hashAction(targetLaw, lawCalldata, descriptionHash);
+        uint256 actionId = _hashAction(targetLaw, lawCalldata, nonce);
 
         if (_actions[actionId].fulfilled || _actions[actionId].cancelled) {
             revert Powers__UnexpectedActionState();
@@ -389,8 +386,8 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
-    function _hashAction(address targetLaw, bytes memory lawCalldata, bytes32 descriptionHash) internal view virtual returns (uint256) {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, descriptionHash)));
+    function _hashAction(address targetLaw, bytes memory lawCalldata, uint256 nonce) internal view virtual returns (uint256) {
+        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
     }
 
     /// @notice internal function {quorumReached} that checks if the quorum for a given proposedAction has been reached.

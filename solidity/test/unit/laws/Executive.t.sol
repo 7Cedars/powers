@@ -31,7 +31,7 @@ contract OpenActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(openAction, lawCalldata, description);
+        Powers(daoMock).request(openAction, lawCalldata, nonce, description);
 
         // assert
         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 123);
@@ -45,14 +45,13 @@ contract ProposalOnlyTest is TestSetupExecutive {
         // prep
         address proposalOnly = laws[3];
         bytes memory lawCalldata = abi.encode(Erc1155Mock.mintCoins.selector, 123);
-        bytes32 descriptionHash = keccak256("Proposal only action");
 
         vm.prank(address(daoMock));
         Powers(payable(address(daoMock))).assignRole(1, alice);
 
         // act
         vm.prank(alice);
-        Powers(payable(address(daoMock))).request(proposalOnly, lawCalldata, "Proposal only action");
+        Powers(payable(address(daoMock))).request(proposalOnly, lawCalldata, nonce, "Proposal only action");
 
         // assert
         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 0);
@@ -72,7 +71,7 @@ contract BespokeActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(bespokeAction, lawCalldata, description);
+        Powers(daoMock).request(bespokeAction, lawCalldata, nonce, description);
  
         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 123);
     }
@@ -104,7 +103,7 @@ contract SelfDestructActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(selfDestructAction, lawCalldata, description);
+        Powers(daoMock).request(selfDestructAction, lawCalldata, nonce, description);
 
         // assert
         assertFalse(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should be inactive after self-destruct");
@@ -119,7 +118,7 @@ contract SelfDestructActionTest is TestSetupExecutive {
         // Try to execute without proper role
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(selfDestructAction, lawCalldata, description);
+        Powers(daoMock).request(selfDestructAction, lawCalldata, nonce, description);
 
         // Verify law is still active
         assertTrue(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should remain active after failed attempt");
@@ -129,7 +128,6 @@ contract SelfDestructActionTest is TestSetupExecutive {
         // prep
         address selfDestructAction = laws[5];
         bytes memory lawCalldata = abi.encode();
-        bytes32 descriptionHash = keccak256(bytes("Self destruct action"));
 
         // Call handleRequest directly to verify its output
         (
@@ -138,7 +136,7 @@ contract SelfDestructActionTest is TestSetupExecutive {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = Law(selfDestructAction).handleRequest(address(0), lawCalldata, descriptionHash);
+        ) = Law(selfDestructAction).handleRequest(address(0), lawCalldata, nonce);
 
         // Verify the output
         assertEq(targets.length, 13, "Should have thirteen targets");
@@ -172,14 +170,12 @@ contract SelfDestructActionTest is TestSetupExecutive {
 
         // Verify the custom targets are included in handleRequest output
         bytes memory lawCalldata = abi.encode();
-        bytes32 descriptionHash = keccak256(bytes("Custom self destruct"));
-        
         (
             ,
             address[] memory resultTargets,
             uint256[] memory resultValues,
             bytes[] memory resultCalldatas,
-        ) = newLaw.handleRequest(address(0), lawCalldata, descriptionHash);
+        ) = newLaw.handleRequest(address(0), lawCalldata, nonce);
 
         // Should have original target plus self-destruct target
         assertEq(resultTargets.length, 2, "Should have two targets");

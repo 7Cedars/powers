@@ -55,7 +55,7 @@ contract OpenAction is Law {
 
     /// @notice Execute the open action.
     /// @param lawCalldata the calldata of the law
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, bytes32 descriptionHash)
+    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -71,7 +71,7 @@ contract OpenAction is Law {
         // note: no check on decoded call data. If needed, this can be added.
         (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
 
-        actionId = _hashActionId(address(this), lawCalldata, descriptionHash);
+        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targetsNew, valuesNew, calldatasNew, "");
     }
 }

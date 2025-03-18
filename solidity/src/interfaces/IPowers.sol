@@ -33,7 +33,8 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param targetLaw The law contract to execute the action through
     /// @param lawCalldata The encoded function call data for the law
     /// @param description A human-readable description of the action
-    function request(address targetLaw, bytes memory lawCalldata, string memory description) external payable;
+    /// @param nonce The nonce for the action
+    function request(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable;
 
     /// @notice Completes an action by executing the actual calls
     /// @dev Can only be called by an active law contract
@@ -49,7 +50,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawCalldata The encoded function call data for the law
     /// @param description A human-readable description of the proposal
     /// @return The unique identifier of the created proposal
-    function propose(address targetLaw, bytes memory lawCalldata, string memory description)
+    function propose(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
         external
         returns (uint256);
 
@@ -59,7 +60,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawCalldata The original encoded function call data
     /// @param description The original proposal description
     /// @return The unique identifier of the cancelled proposal
-    function cancel(address targetLaw, bytes memory lawCalldata, string memory description) external returns (uint256);
+    function cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description) external returns (uint256);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain
