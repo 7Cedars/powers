@@ -59,7 +59,7 @@ contract PresetAction is Law {
     }
 
     /// @notice execute the law.
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override

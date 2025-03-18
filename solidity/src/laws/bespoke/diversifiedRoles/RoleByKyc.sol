@@ -50,7 +50,7 @@ pragma solidity 0.8.26;
 //         youngerThan = youngerThan_;
 //     }
 
-//     function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+//     function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual
@@ -62,7 +62,7 @@ pragma solidity 0.8.26;
 //         bool residencyOk;
 //         bool oldEnough;
 //         bool youngEnough;
-//         (uint16 nationality, uint16 countryOfResidence, int64 DoB) = Members(members).members(initiator);
+//         (uint16 nationality, uint16 countryOfResidence, int64 DoB) = Members(members).members(caller);
 
 //         // step 0: check nationalities
 //         if (nationalities.length > 0) {
@@ -108,6 +108,6 @@ pragma solidity 0.8.26;
 //         }
 
 //         // step 5: call super
-//         return super.handleRequest(initiator, lawCalldata, nonce);
+//         return super.handleRequest(caller, lawCalldata, nonce);
 //     }
 // }

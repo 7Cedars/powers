@@ -95,15 +95,15 @@ library LawUtils {
 
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
-    /// @param initiator Address to check token ownership for
+    /// @param caller Address to check token ownership for
     /// @param nftCheckAddress Address of the ERC721 contract
-    /// @return hasToken True if the initiator owns at least one token
-    function nftCheck(address initiator, address nftCheckAddress)
+    /// @return hasToken True if the caller owns at least one token
+    function nftCheck(address caller, address nftCheckAddress)
         internal
         view
         returns (bool hasToken)
     {
-        hasToken = ERC721(nftCheckAddress).balanceOf(initiator) > 0;
+        hasToken = ERC721(nftCheckAddress).balanceOf(caller) > 0;
         if (!hasToken) {
             revert ("Does not own token.");
         }
@@ -111,15 +111,15 @@ library LawUtils {
 
     /// @notice Checks if an address is blacklisted
     /// @dev Queries a mapping contract to check if the address is blacklisted
-    /// @param initiator Address to check blacklist status for
+    /// @param caller Address to check blacklist status for
     /// @param blacklistAddress Address of the blacklist contract
     /// @return isBlacklisted True if the address is blacklisted
-    // function blacklistCheck(address initiator, address blacklistAddress)
+    // function blacklistCheck(address caller, address blacklistAddress)
     //     internal
     //     pure
     //     returns (bool isBlacklisted)
     // {
-    //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(initiator);
+    //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(caller);
         
     //     if (isBlacklisted) {
     //         revert ("Is blacklisted.");
@@ -128,14 +128,14 @@ library LawUtils {
 
     /// @notice Verifies if an address has all specified roles
     /// @dev Checks each role against the Powers contract's role system
-    /// @param initiator Address to check roles for
+    /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasRoleCheck(address initiator, uint32[] memory roles, address powers)
+    function hasRoleCheck(address caller, uint32[] memory roles, address powers)
         internal
         view
     {
         for (uint32 i = 0; i < roles.length; i++) {
-            uint48 since = Powers(payable(powers)).hasRoleSince(initiator, roles[i]);
+            uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since == 0) {
                 revert ("Does not have role.");
             }
@@ -144,14 +144,14 @@ library LawUtils {
 
     /// @notice Verifies if an address does not have any of the specified roles
     /// @dev Checks each role against the Powers contract's role system
-    /// @param initiator Address to check roles for
+    /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasNotRoleCheck(address initiator, uint32[] memory roles, address powers)
+    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers)
         internal
         view
     {
         for (uint32 i = 0; i < roles.length; i++) {
-            uint48 since = Powers(payable(powers)).hasRoleSince(initiator, roles[i]);
+            uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since != 0) {
                 revert ("Has role.");
             }

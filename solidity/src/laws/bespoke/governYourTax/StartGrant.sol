@@ -58,7 +58,7 @@ contract StartGrant is Law {
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual

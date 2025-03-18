@@ -59,7 +59,7 @@ contract StopGrant is Law {
             ) = StartGrant(config.needCompleted).configNewGrants(); 
     }
 
-    function handleRequest(address, /*initiator*/ bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual

@@ -41,7 +41,7 @@ contract AssignCouncilRole is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual

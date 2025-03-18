@@ -46,7 +46,7 @@ contract RoleByTaxPaid is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -65,7 +65,7 @@ contract RoleByTaxPaid is Law {
         }
 
         // step 2: retrieve data on tax paid and role
-        bool hasRole = Powers(payable(powers)).hasRoleSince(initiator, roleIdToSet) != 0;
+        bool hasRole = Powers(payable(powers)).hasRoleSince(caller, roleIdToSet) != 0;
         uint256 taxPaid = Erc20TaxedMock(erc20TaxedMock).getTaxLogs(uint48(block.number) - epochDuration, account);
 
         // step 3: create arrays

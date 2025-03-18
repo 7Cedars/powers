@@ -47,7 +47,7 @@ contract NominateMe is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -58,39 +58,39 @@ contract NominateMe is Law {
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
 
         // nominating //
-        if (nominateMe && nominees[initiator] != 0) {
+        if (nominateMe && nominees[caller] != 0) {
             revert ("Nominee already nominated.");
         }
         // revoke nomination //
-        if (!nominateMe && nominees[initiator] == 0) {
+        if (!nominateMe && nominees[caller] == 0) {
             revert ("Nominee not nominated.");
         }
 
-        stateChange = abi.encode(initiator, nominateMe); // encode the state
+        stateChange = abi.encode(caller, nominateMe); // encode the state
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes memory stateChange) internal override {
-        (address initiator, bool nominateMe) = abi.decode(stateChange, (address, bool));
+        (address caller, bool nominateMe) = abi.decode(stateChange, (address, bool));
 
         if (nominateMe) {
-            nominees[initiator] = uint48(block.number);
-            nomineesSorted.push(initiator);
+            nominees[caller] = uint48(block.number);
+            nomineesSorted.push(caller);
             nomineesCount++;
-            emit NominateMe__NominationReceived(initiator);
+            emit NominateMe__NominationReceived(caller);
         } else {
-            nominees[initiator] = 0;
+            nominees[caller] = 0;
             for (uint256 i; i < nomineesSorted.length; i++) {
-                if (nomineesSorted[i] == initiator) {
+                if (nomineesSorted[i] == caller) {
                     nomineesSorted[i] = nomineesSorted[nomineesSorted.length - 1];
                     nomineesSorted.pop();
                     nomineesCount--;
                     break;
                 }
             }
-            emit NominateMe__NominationRevoked(initiator);
+            emit NominateMe__NominationRevoked(caller);
         }
     }
 }

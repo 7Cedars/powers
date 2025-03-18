@@ -49,7 +49,7 @@ contract SelfSelect is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -61,10 +61,10 @@ contract SelfSelect is Law {
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(initiator, ROLE_ID) != 0) {
+        if (Powers(payable(powers)).hasRoleSince(caller, ROLE_ID) != 0) {
             revert ("Account already has role.");
         }
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, initiator); // selector = assignRole
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, caller); // selector = assignRole
         
         return (actionId, targets, values, calldatas, "");
     }

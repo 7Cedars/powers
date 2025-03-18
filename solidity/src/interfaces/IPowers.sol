@@ -42,7 +42,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param targets The list of contract addresses to call
     /// @param values The list of ETH values to send with each call
     /// @param calldatas The list of encoded function calls
-    function fulfill(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) external payable;
+    function fulfill(uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable;
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
@@ -82,7 +82,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Initializes the DAO by activating its founding laws
     /// @dev Can only be called once by an admin account
     /// @param laws The list of law contracts to activate
-    function constitute(address[] memory laws) external;
+    function constitute(address[] calldata laws) external;
 
     /// @notice Activates a new law in the protocol
     /// @dev Can only be called through the protocol itself
