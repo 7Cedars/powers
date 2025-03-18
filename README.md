@@ -18,7 +18,7 @@
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·
     <a href="https://sepolia.arbiscan.io/address/0x001a6a16d2fc45248e00351314bce898b7d8578f">Proof of Concept (Arbiscan)</a> ·
-    <a href="https://powers.vercel.app/">Proof of Concept (dApp)</a>
+    <a href="https://powers-protocol.vercel.app/">Proof of Concept (dApp)</a>
   </p>
 </div>
 
