@@ -544,11 +544,11 @@ contract RequestPaymentTest is TestSetupAlignedDao {
             "Calldata should be token transfer"
         );
 
-        // State change should contain initiator address for logging
+        // State change should contain caller address for logging
         assertEq(
             abi.decode(stateChange, (address)),
             alice,
-            "State change should contain initiator address"
+            "State change should contain caller address"
         );
         assertTrue(actionId != 0, "Action ID should not be 0");
     }

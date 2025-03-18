@@ -30,13 +30,13 @@ interface PowersEvents {
     event FundsReceived(uint256 value);
 
     /// @notice Emitted when executive action is requested.
-    /// @param initiator the address of the initiator
+    /// @param caller the address of the caller
     /// @param targetLaw the address of the target law
     /// @param lawCalldata the calldata of the law
     /// @param description the description of the law action
     /// @param nonce the nonce of the action
     event ActionRequested(
-        address indexed initiator, 
+        address indexed caller, 
         address indexed targetLaw, 
         bytes lawCalldata, 
         uint256 nonce,
@@ -51,7 +51,7 @@ interface PowersEvents {
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal
-    /// @param initiator the address of the initiator
+    /// @param caller the address of the caller
     /// @param targetLaw the address of the target law
     /// @param signature the signature of the proposal
     /// @param executeCalldata the calldata to be passed to the law
@@ -60,7 +60,7 @@ interface PowersEvents {
     /// @param description the description of the proposal
     event ProposedActionCreated(
         uint256 indexed actionId,
-        address indexed initiator,
+        address indexed caller,
         address targetLaw,
         string signature,
         bytes executeCalldata,

@@ -65,7 +65,7 @@ export type Config = {
 
 type Args = {
   description: string;
-  initiator: `0x${string}`;
+  caller: `0x${string}`;
   lawCalldata: `0x${string}`;
   targetLaw: `0x${string}`;
 }
@@ -158,7 +158,7 @@ export type Proposal = {
   voteEnd: bigint;
   cancelled: boolean;
   completed: boolean;
-  initiator: `0x${string}`;
+  caller: `0x${string}`;
   againstVotes?: bigint;
   forVotes?: bigint;
   abstainVotes?: bigint;
@@ -187,7 +187,7 @@ export type ContractAddress = {
 }
 
 export type CompletedProposal = {
-  initiator: `0x${string}`;
+  caller: `0x${string}`;
   address: `0x${string}`;
   lawCalldata: `0x${string}`;
   descriptionHash: `0x${string}`;

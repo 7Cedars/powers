@@ -63,7 +63,7 @@ pragma solidity 0.8.26;
 //         stateVars = abi.encode("address[]");
 //     }
 
-//     function handleRequest(address, /*initiator*/ bytes memory lawCalldata, uint256 nonce)
+//     function handleRequest(address, /*caller*/ bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual

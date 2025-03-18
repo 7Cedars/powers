@@ -49,22 +49,22 @@ contract RequestPayment is Law {
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
-        LawUtils.checkThrottle(transactions, initiator, delay);
+        LawUtils.checkThrottle(transactions, caller, delay);
 
         (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
-        stateChange = abi.encode(initiator); // needed to log the transaction
+        stateChange = abi.encode(caller); // needed to log the transaction
 
         targets[0] = erc1155;
         calldatas[0] = abi.encodeWithSelector(
             ERC20.transfer.selector, 
-            initiator, 
+            caller, 
             amount
             );
 
@@ -72,7 +72,7 @@ contract RequestPayment is Law {
     }
 
     function _changeState(bytes memory stateChange) internal override {
-        address initiator = abi.decode(stateChange, (address));
-        LawUtils.logTransaction(transactions, initiator, uint48(block.number));
+        address caller = abi.decode(stateChange, (address));
+        LawUtils.logTransaction(transactions, caller, uint48(block.number));
     }
 }

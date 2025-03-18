@@ -627,7 +627,7 @@ export const powersAbi: Abi = [
       "name": "ActionRequested",
       "inputs": [
         {
-          "name": "initiator",
+          "name": "caller",
           "type": "address",
           "indexed": true,
           "internalType": "address"
@@ -664,7 +664,7 @@ export const powersAbi: Abi = [
           "internalType": "uint256"
         },
         {
-          "name": "initiator",
+          "name": "caller",
           "type": "address",
           "indexed": true,
           "internalType": "address"
@@ -924,7 +924,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "checksAtExecute",
     "inputs": [
-      { "name": "initiator", "type": "address", "internalType": "address" },
+      { "name": "caller", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       {
         "name": "descriptionHash",
@@ -939,7 +939,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "checksAtPropose",
     "inputs": [
-      { "name": "initiator", "type": "address", "internalType": "address" },
+      { "name": "caller", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       {
         "name": "descriptionHash",
@@ -997,7 +997,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "executeLaw",
     "inputs": [
-      { "name": "initiator", "type": "address", "internalType": "address" },
+      { "name": "caller", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       {
         "name": "descriptionHash",
@@ -1048,7 +1048,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "handleRequest",
     "inputs": [
-      { "name": "initiator", "type": "address", "internalType": "address" },
+      { "name": "caller", "type": "address", "internalType": "address" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       {
         "name": "descriptionHash",

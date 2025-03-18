@@ -55,7 +55,7 @@ contract OpenAction is Law {
 
     /// @notice Execute the open action.
     /// @param lawCalldata the calldata of the law
-    function handleRequest(address /*initiator*/, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override

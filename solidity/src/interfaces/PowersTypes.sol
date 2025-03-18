@@ -35,7 +35,7 @@ interface PowersTypes {
         uint48 voteStart; // 6
         uint32 voteDuration; // 4
         // slot 2
-        address initiator; // 20
+        address caller; // 20
         uint32 againstVotes; // 4 as votes are not weighted, uint32 is sufficient to count number of votes.  -- this is a big gas saver. As such, combining the proposalCore and ProposalVote is (I think) okay
         uint32 forVotes; // 4
         uint32 abstainVotes; // 4

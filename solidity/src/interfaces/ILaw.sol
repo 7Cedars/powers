@@ -67,17 +67,17 @@ interface ILaw is IERC165, LawErrors {
 
     /// @notice Executes the law's logic after validation
     /// @dev Called by the Powers protocol during action execution
-    /// @param initiator Address that initiated the action
+    /// @param caller Address that initiated the action
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return success True if execution succeeded
-    function executeLaw(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function executeLaw(address caller, bytes calldata lawCalldata, uint256 nonce)
         external
         returns (bool success);
 
     /// @notice Simulates the law's execution logic
     /// @dev Must be overridden by implementing contracts
-    /// @param initiator Address that initiated the action
+    /// @param caller Address that initiated the action
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return actionId The action ID
@@ -85,7 +85,7 @@ interface ILaw is IERC165, LawErrors {
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         external
         view 
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
@@ -96,19 +96,19 @@ interface ILaw is IERC165, LawErrors {
 
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
-    /// @param initiator Address attempting to propose
+    /// @param caller Address attempting to propose
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtPropose(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function checksAtPropose(address caller, bytes calldata lawCalldata, uint256 nonce)
         external
         view;
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
-    /// @param initiator Address attempting to execute
+    /// @param caller Address attempting to execute
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtExecute(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function checksAtExecute(address caller, bytes calldata lawCalldata, uint256 nonce)
         external
         view;
 }

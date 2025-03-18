@@ -99,7 +99,7 @@ contract AssignCouncilRoleTest is TestSetupGovernYourTax {
     vm.expectRevert("Role not allowed.");
     vm.prank(address(daoMock));
     Law(assignCouncilRole).executeLaw(
-      alice, // alice = initiator
+      alice, // alice = caller
       lawCalldata,
       nonce
     );
@@ -123,7 +123,7 @@ contract AssignCouncilRoleTest is TestSetupGovernYourTax {
     vm.expectRevert("Account not nominated.");
     vm.prank(address(daoMock));
     Law(assignCouncilRole).executeLaw(
-      alice, // alice = initiator
+      alice, // alice = caller
       lawCalldata,
       nonce
     );

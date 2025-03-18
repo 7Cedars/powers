@@ -59,7 +59,7 @@ contract ElectionVotes is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -69,20 +69,20 @@ contract ElectionVotes is Law {
         if (block.number < startVote || block.number > endVote) {
             revert ("Election not open.");
         }
-        if (hasVoted[initiator]) {
+        if (hasVoted[caller]) {
             revert ("Already voted.");
         }
 
         // step 1: decode law calldata
         (address vote) = abi.decode(lawCalldata, (address));
         // step 2: create & data arrays 
-        stateChange = abi.encode(vote, initiator);
+        stateChange = abi.encode(vote, caller);
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes memory stateChange) internal override {
-        (address nominee, address initiator) = abi.decode(stateChange, (address, address));
+        (address nominee, address caller) = abi.decode(stateChange, (address, address));
         uint48 since = NominateMe(config.readStateFrom).nominees(nominee);
 
         // step 3: save vote
@@ -90,9 +90,9 @@ contract ElectionVotes is Law {
             revert ("Not a nominee.");
         }
 
-        hasVoted[initiator] = true;
+        hasVoted[caller] = true;
         votes[nominee]++;
-        emit ElectionVotes__VoteCast(initiator);
+        emit ElectionVotes__VoteCast(caller);
     }
 
     

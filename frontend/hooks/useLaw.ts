@@ -95,7 +95,7 @@ export const useLaw = () => {
   }
 
   const fetchSimulation = useCallback( 
-    async (initiator: `0x${string}`, lawCalldata: `0x${string}`, description: string) => {
+    async (caller: `0x${string}`, lawCalldata: `0x${string}`, description: string) => {
       setError(null)
       setStatus("pending")
       // console.log("fetchSimulation:", {law})
@@ -104,7 +104,7 @@ export const useLaw = () => {
           abi: lawAbi,
           address: law.law,
           functionName: 'handleRequest', 
-          args: [initiator, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
+          args: [caller, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
         })
           setSimulation(result as LawSimulation)
           setStatus("success")

@@ -127,7 +127,7 @@ contract Powers is EIP712, IPowers {
         }
         // if checks pass, call executeLaw function of target law. 
                 // If checks passed, set proposedAction as completed and emit event.
-        _actions[actionId].initiator = msg.sender; // note if initiator had been set during proposedAction, it will be overwritten.
+        _actions[actionId].caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
         _actions[actionId].requested = true;
 
         (bool success) = ILaw(targetLaw).executeLaw(msg.sender, lawCalldata, nonce);
@@ -138,7 +138,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function fulfill(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) external payable virtual {
+    function fulfill(uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable virtual {
         // check 1: is msg.sender a targetLaw?
         if (!laws[msg.sender]) {
             revert Powers__NotActiveLaw();
@@ -162,7 +162,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function propose(address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
+    function propose(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
         external
         virtual
         returns (uint256)
@@ -185,7 +185,7 @@ contract Powers is EIP712, IPowers {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(address initiator, address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
+    function _propose(address caller, address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
         internal
         virtual
         returns (uint256 actionId)
@@ -203,7 +203,7 @@ contract Powers is EIP712, IPowers {
             revert Powers__UnexpectedActionState();
         }
         // check 3: do proposedAction checks of the law pass?
-        Law(targetLaw).checksAtPropose(initiator, lawCalldata, nonce);
+        Law(targetLaw).checksAtPropose(caller, lawCalldata, nonce);
 
         // if checks pass: create proposedAction
         uint32 duration = votingPeriod;
@@ -211,22 +211,22 @@ contract Powers is EIP712, IPowers {
         proposedAction.targetLaw = targetLaw;
         proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. There is no delay functionality.
         proposedAction.voteDuration = duration;
-        proposedAction.initiator = initiator;
+        proposedAction.caller = caller;
 
         emit ProposedActionCreated(
-            actionId, initiator, targetLaw, "", lawCalldata, block.number, block.number + duration, nonce, description
+            actionId, caller, targetLaw, "", lawCalldata, block.number, block.number + duration, nonce, description
         );
     }
 
     /// @inheritdoc IPowers
-    function cancel(address targetLaw, bytes memory lawCalldata, uint256 nonce, string memory description)
+    function cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
         public
         virtual
         returns (uint256)
     {
         uint256 actionId = _hashAction(targetLaw, lawCalldata, nonce);
-        // only initiator can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].initiator == address(0))
-        if (msg.sender != _actions[actionId].initiator) {
+        // only caller can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].caller == address(0))
+        if (msg.sender != _actions[actionId].caller) {
             revert Powers__AccessDenied();
         }
 
@@ -238,7 +238,7 @@ contract Powers is EIP712, IPowers {
     ///
     /// @dev the account to cancel must be the account that created the proposedAction.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
-    function _cancel(address targetLaw, bytes memory lawCalldata, uint256 nonce)
+    function _cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce)
         internal
         virtual
         returns (uint256)
@@ -386,7 +386,7 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
-    function _hashAction(address targetLaw, bytes memory lawCalldata, uint256 nonce) internal view virtual returns (uint256) {
+    function _hashAction(address targetLaw, bytes calldata lawCalldata, uint256 nonce) internal view virtual returns (uint256) {
         return uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
     }
 

@@ -41,7 +41,7 @@ const initialStateProposal: ProposalStore = {
   voteEnd: 0n,
   cancelled: false,
   completed: false,
-  initiator: `0x`,
+  caller: `0x`,
   againstVotes: 0n,
   forVotes: 0n,
   abstainVotes: 0n,

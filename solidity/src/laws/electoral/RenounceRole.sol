@@ -50,7 +50,7 @@ contract RenounceRole is Law {
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
-    function handleRequest(address initiator, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -77,10 +77,10 @@ contract RenounceRole is Law {
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(initiator, roleId) == 0) {
+        if (Powers(payable(powers)).hasRoleSince(caller, roleId) == 0) {
             revert ("Account does not have role.");
         }
-        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, initiator); // selector = revokeRole
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, caller); // selector = revokeRole
 
         return (actionId, targets, values, calldatas, "");
     }
