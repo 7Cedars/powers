@@ -1,7 +1,6 @@
 # Table of contents
 
 * [💪 Welcome to Powers Protocol](README.md)
-* [Using the App](using-the-app.md)
 * [Protocol development](protocol-development.md)
 
 ## For Developers

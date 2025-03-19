@@ -15,7 +15,7 @@ There are several aims and ethos that guide the development of the Powers protoc
 
 ## Milestones
 
-### v0.3 (future)
+### v0.3 (under development)
 
 * Implement integration modules for existing protocols.
 * Implement integration for off-chain services.
