@@ -15,7 +15,8 @@ remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gi
 
 # Install modules
 install :; forge install foundry-rs/forge-std@v1.9.1 --no-commit && \
-	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit
+	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit && \
+	forge install Hats-Protocol/hats-protocol@v1.0 --no-commit
 
 # Update Dependencies
 update :; forge update

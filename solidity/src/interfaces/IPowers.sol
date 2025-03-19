@@ -98,19 +98,19 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @dev Can only be called through the protocol itself
     /// @param roleId The identifier of the role to assign
     /// @param account The address to grant the role to
-    function assignRole(uint32 roleId, address account) external;
+    function assignRole(uint256 roleId, address account) external;
 
     /// @notice Removes a role from an account
     /// @dev Can only be called through the protocol itself
     /// @param roleId The identifier of the role to remove
     /// @param account The address to remove the role from
-    function revokeRole(uint32 roleId, address account) external;
+    function revokeRole(uint256 roleId, address account) external;
 
     /// @notice Assigns a human-readable label to a role
     /// @dev Optional. Can only be called through the protocol itself
     /// @param roleId The identifier of the role to label
     /// @param label The human-readable label for the role
-    function labelRole(uint32 roleId, string calldata label) external;
+    function labelRole(uint256 roleId, string calldata label) external;
 
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
@@ -146,12 +146,12 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param account The address to check
     /// @param roleId The identifier of the role
     /// @return since the block number since holding the role, 0 if never held
-    function hasRoleSince(address account, uint32 roleId) external view returns (uint48 since);
+    function hasRoleSince(address account, uint256 roleId) external view returns (uint48 since);
 
     /// @notice Gets the total number of accounts holding a specific role
     /// @param roleId The identifier of the role
     /// @return amountMembers the number of role holders
-    function getAmountRoleHolders(uint32 roleId) external view returns (uint256 amountMembers);
+    function getAmountRoleHolders(uint256 roleId) external view returns (uint256 amountMembers);
 
     /// @notice Checks if a law is currently active
     /// @param law The address of the law contract

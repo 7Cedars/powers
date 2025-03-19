@@ -25,16 +25,16 @@ import { LawUtils } from "../../LawUtils.sol";
 contract RoleByTaxPaid is Law {
     address public erc20TaxedMock;
     uint256 public thresholdTaxPaid;
-    uint32 public roleIdToSet;
+    uint256 public roleIdToSet;
     constructor(
         // standard
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         // bespoke 
-        uint32 roleIdToSet_,
+        uint256 roleIdToSet_,
         address erc20TaxedMock_,
         uint256 thresholdTaxPaid_
     ) Law(name_, powers_, allowedRole_, config_) {

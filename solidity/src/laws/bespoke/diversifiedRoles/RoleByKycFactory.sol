@@ -30,14 +30,14 @@ pragma solidity 0.8.26;
 //         string memory name_,
 //         string memory description_,
 //         address payable powers_,
-//         uint32 allowedRole_,
+//         uint256 allowedRole_,
 //         LawChecks memory config_, // this is the configuration for creating new grants, not of the grants themselves.
 //         address members_ // the address where account kyc are stored. - note: all on public blockchain..
 //     )  {
 //         inputParams = abi.encode(
 //             "string Name", 
 //             "string Description", 
-//             "uint32 RoleId", 
+//             "uint256 roleId", 
 //             "uint16[] Nationalities", 
 //             "uint16[] Residencies", 
 //             "int64 OlderThan", 
@@ -114,7 +114,7 @@ pragma solidity 0.8.26;
 //     function _getContractAddress(
 //         string memory name,
 //         string memory description,
-//         uint32 roleId,
+//         uint256 roleId,
 //         uint16[] memory nationalities,
 //         uint16[] memory countryOfResidences,
 //         int64 olderThan, // in seconds
@@ -149,7 +149,7 @@ pragma solidity 0.8.26;
 //     function _deployContract(
 //         string memory name,
 //         string memory description,
-//         uint32 roleId,
+//         uint256 roleId,
 //         uint16[] memory nationalities,
 //         uint16[] memory countryOfResidences,
 //         int64 olderThan, // in seconds

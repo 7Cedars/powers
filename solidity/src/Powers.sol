@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Powers Protocol v.0.2
+/// @title Powers Protocol v.0.3
 /// @notice Powers is a Role Restricted Governance Protocol. It provides a modular, flexible, decentralised and efficient governance engine for DAOs.
 ///
 /// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Law.sol}. The contract should be used as is, making changes to this contract should be avoided.
@@ -23,19 +23,18 @@
 /// 1 - Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw} interface.
 /// 2 - Proposing, voting, cancelling and executing actions are role restricted along the target law that is called.
 /// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, for instance, still need to be executed through the {execute} function.
-/// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote.
+/// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote. Accounts vote with their roles, not with their tokens.
 /// 5 - The core protocol is intentionally minimalistic. Any complexity (timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
 /// 
 /// For example implementations of DAOs, see the `Deploy...` files in the /script folder.
 ///
 /// Note This protocol is a work in progress. A number of features are planned to be added in the future.
 /// - Integration with, or support for OpenZeppelin's {Governor.sol} and Compound's {GovernorBravo.sol}. The same holds for the Hats Protocol.
-/// - Implementation of a nonce mechanism for proposedActions.  
 /// - Native support for multi-chain governance.
 /// - Gas efficiency improvements.
-/// - Support for EIP-6372 {clock()} for timestamping governance processes.
+/// - Improved time management, including support for EIP-6372 {clock()} for timestamping governance processes.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars
 
 pragma solidity 0.8.26;
 
@@ -50,9 +49,9 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
-    mapping(uint256 actionId => Action) private _actions; // mapping from actionId to proposedAction
-    mapping(address lawAddress => bool active) public laws;
-    mapping(uint32 roleId => Role) public roles;
+    mapping(uint256 actionId => Action) private _actions;  // mapping actionId to Action struct
+    mapping(address lawAddress => bool active) public laws; // mapping law address to bool (true if law is active)
+    mapping(uint256 roleId => Role) public roles; // mapping roleId to Role struct
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint48).max.
     uint32 public constant ADMIN_ROLE = type(uint32).min; // == 0
@@ -108,8 +107,7 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = _hashAction(targetLaw, lawCalldata, nonce);
 
         // check 1: does executioner have access to law being executed?
-        uint32 allowedRole = Law(targetLaw).allowedRole();
-        if (roles[allowedRole].members[msg.sender] == 0 && allowedRole != PUBLIC_ROLE) {
+        if (!canCallLaw(msg.sender, targetLaw)) {
             revert Powers__AccessDenied();
         }
         // check 2: is targetLaw is an active law?
@@ -171,9 +169,8 @@ contract Powers is EIP712, IPowers {
         if (!laws[targetLaw]) {
             revert Powers__NotActiveLaw();
         }
-        // check 2: does msg.sender have access to targetLaw?
-        uint32 allowedRole = Law(targetLaw).allowedRole();
-        if (roles[allowedRole].members[msg.sender] == 0 && allowedRole != PUBLIC_ROLE) {
+        //check 2: does msg.sender have access to targetLaw?
+        if (!canCallLaw(msg.sender, targetLaw)) {
             revert Powers__AccessDenied();
         }
         // if check passes: propose.
@@ -219,6 +216,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
+    /// @dev the account to cancel must be the account that created the proposedAction.
     function cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
         public
         virtual
@@ -235,8 +233,6 @@ contract Powers is EIP712, IPowers {
 
     /// @notice Internal cancel mechanism with minimal restrictions. A proposedAction can be cancelled in any state other than
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
-    ///
-    /// @dev the account to cancel must be the account that created the proposedAction.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
     function _cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce)
         internal
@@ -278,8 +274,7 @@ contract Powers is EIP712, IPowers {
         }
         // Note that we check if account has access to the law targetted in the proposedAction.
         address targetLaw = _actions[actionId].targetLaw;
-        uint32 allowedRole = Law(targetLaw).allowedRole();
-        if (roles[allowedRole].members[account] == 0 && allowedRole != PUBLIC_ROLE) {
+        if (!canCallLaw(account, targetLaw)) {
             revert Powers__AccessDenied();
         }
         // if all this passes: cast vote.
@@ -346,17 +341,17 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function assignRole(uint32 roleId, address account) public virtual onlyPowers {
+    function assignRole(uint256 roleId, address account) public virtual onlyPowers {
         _setRole(roleId, account, true);
     }
 
     /// @inheritdoc IPowers
-    function revokeRole(uint32 roleId, address account) public virtual onlyPowers {
+    function revokeRole(uint256 roleId, address account) public virtual onlyPowers {
         _setRole(roleId, account, false);
     }
 
     /// @inheritdoc IPowers
-    function labelRole(uint32 roleId, string calldata label) public virtual onlyPowers {
+    function labelRole(uint256 roleId, string memory label) public virtual onlyPowers {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) {
             revert Powers__LockedRole();
         }
@@ -366,7 +361,7 @@ contract Powers is EIP712, IPowers {
     /// @notice Internal version of {setRole} without access control.
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
-    function _setRole(uint32 roleId, address account, bool access) internal virtual {
+    function _setRole(uint256 roleId, address account, bool access) internal virtual {
         bool newMember = roles[roleId].members[account] == 0;
 
         if (access) {
@@ -398,7 +393,7 @@ contract Powers is EIP712, IPowers {
     function _quorumReached(uint256 actionId, address targetLaw) internal view virtual returns (bool) {
         Action storage proposedAction = _actions[actionId];
         ( , , , , , uint8 quorum, ,) = Law(targetLaw).config();
-        uint32 allowedRole = Law(targetLaw).allowedRole();
+        uint256 allowedRole = Law(targetLaw).allowedRole();
         uint256 amountMembers = roles[allowedRole].amountMembers;
 
         return (quorum == 0 || amountMembers * quorum <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR); 
@@ -411,7 +406,7 @@ contract Powers is EIP712, IPowers {
     function _voteSucceeded(uint256 actionId, address targetLaw) internal view virtual returns (bool) {
         Action storage proposedAction = _actions[actionId];
         (, , , , , uint8 quorum, uint8 succeedAt ,) = Law(targetLaw).config();
-        uint32 allowedRole = Law(targetLaw).allowedRole();
+        uint256 allowedRole = Law(targetLaw).allowedRole();
         uint256 amountMembers = roles[allowedRole].amountMembers;
 
         // note if quorum is set to 0 in a Law, it will automatically return true.
@@ -485,19 +480,16 @@ contract Powers is EIP712, IPowers {
         return "0.3";
     }
 
-    /// @notice public function {Powers::canCallLaw} that checks if a caller can call a given law.
-    ///
-    /// @param caller address of the caller.
-    /// @param targetLaw address of the law to check.
-    function canCallLaw(address caller, address targetLaw) public view returns (bool) {
-        uint32 allowedRole = Law(targetLaw).allowedRole();
+     /// @inheritdoc IPowers
+    function canCallLaw(address caller, address targetLaw) public virtual view returns (bool) {
+        uint256 allowedRole = Law(targetLaw).allowedRole();
         uint48 since = hasRoleSince(caller, allowedRole);
 
         return since != 0 || allowedRole == PUBLIC_ROLE;
     }
 
     /// @inheritdoc IPowers
-    function hasRoleSince(address account, uint32 roleId) public view returns (uint48 since) {
+    function hasRoleSince(address account, uint256 roleId) public view returns (uint48 since) {
         return roles[roleId].members[account];
     }
 
@@ -518,7 +510,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getAmountRoleHolders(uint32 roleId) public view returns (uint256 amountMembers) {
+    function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].amountMembers;
     }
 

@@ -33,7 +33,7 @@ contract StartGrant is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_, // this is the configuration for creating new grants, not of the grants themselves.
         address proposals // the address where proposals to the grant are made.
     ) Law(name_, powers_, allowedRole_, config_) {

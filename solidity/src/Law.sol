@@ -12,8 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Law - Base Implementation for Powers Protocol Laws
-/// @notice Abstract base contract for implementing role-restricted governance actions
+/// @title Law - Base Implementation for Powers Protocol Laws. v0.3. 
+/// @notice Base contract for implementing role-restricted governance actions
 /// @dev Provides core functionality for creating governance laws in the Powers protocol
 ///
 /// Laws serve five key functions:
@@ -21,12 +21,11 @@
 /// 2. Transformation of input data into executable calls
 /// 3. State management for the community
 /// 4. Validation of proposal and execution conditions
-/// 5. Execution of governance actions
+/// 5. Returning of data to the Powers protocol
 ///
 /// Laws can be customized through:
-/// - Inheriting and implementing the {handleRequest} {_replyPowers} and {_changeState} functions
-/// - Configuring parameters in the constructor
-/// - Adding custom state variables and logic
+/// - Configuring checks in the constructor
+/// - Inheriting and implementing bespoke logic in the {handleRequest} {_replyPowers} and {_changeState} functions. 
 ///
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -49,7 +48,7 @@ contract Law is ERC165, ILaw {
     ShortString public immutable name;
 
     /// @notice Role ID required to interact with this law
-    uint32 public allowedRole;
+    uint256 public allowedRole;
 
     /// @notice Address of the Powers protocol contract
     address payable public powers;
@@ -73,7 +72,7 @@ contract Law is ERC165, ILaw {
     constructor(
         string memory name_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_
     ) { 
         if (powers_ == address(0)) {
@@ -125,7 +124,7 @@ contract Law is ERC165, ILaw {
         return true;
     }
 
-    /// @notice Simulates the law's execution logic
+    /// @notice Handles requests from the Powers protocol and returns data _replyPowers and _changeState can use. 
     /// @dev Must be overridden by implementing contracts
     /// @param caller Address that initiated the action
     /// @param lawCalldata Encoded function call data
@@ -162,8 +161,6 @@ contract Law is ERC165, ILaw {
         // this implementation can be overwritten with any kind of bespoke logic. 
         Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
-
-
 
 
     //////////////////////////////////////////////////////////////

@@ -48,18 +48,18 @@ import { LawUtils } from "../LawUtils.sol";
 contract DelegateSelect is Law {
     address public immutable ERC_20_VOTE_TOKEN;
     uint256 public immutable MAX_ROLE_HOLDERS;
-    uint32 public immutable ROLE_ID;
+    uint256 public immutable ROLE_ID;
     address[] public electedAccounts;
 
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         address payable erc20Token_,
         uint256 maxRoleHolders_,
-        uint32 roleId_
+        uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
         ERC_20_VOTE_TOKEN = erc20Token_; // £todo interface should be checked here.
         MAX_ROLE_HOLDERS = maxRoleHolders_;

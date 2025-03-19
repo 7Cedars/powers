@@ -40,12 +40,12 @@ contract RenounceRole is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         uint32[] memory allowedRoleIds_
     ) Law(name_, powers_, allowedRole_, config_) {
         allowedRoleIds = allowedRoleIds_;
-        bytes memory params = abi.encode("uint32 RoleID");
+        bytes memory params = abi.encode("uint256 roleId");
 
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
@@ -58,7 +58,7 @@ contract RenounceRole is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 1: decode the calldata.
-        (uint32 roleId) = abi.decode(lawCalldata, (uint32));
+        (uint256 roleId) = abi.decode(lawCalldata, (uint32));
         
         // step2: check if the role is allowed to be renounced.
         bool allowed = false;

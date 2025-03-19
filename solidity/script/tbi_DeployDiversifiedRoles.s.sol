@@ -245,7 +245,7 @@ pragma solidity 0.8.26;
 //             type(uint32).max, // access role = public.
 //             LawChecks,
 //             //// self select
-//             1, // uint32 roleId_
+//             1, // uint256 roleId_
 //             //// filter
 //             new uint16[](0), // memory nationalities,
 //             new uint16[](0), // uint16[] memory countryOfResidences,
@@ -281,7 +281,7 @@ pragma solidity 0.8.26;
 //             LawChecks,
 //             //
 //             15,
-//             2 // uint32 roleId_
+//             2 // uint256 roleId_
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));

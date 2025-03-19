@@ -45,7 +45,7 @@ pragma solidity 0.8.26;
 
 // contract RandomlySelect is Law {
 //     uint256 private immutable MAX_ROLE_HOLDERS;
-//     uint32 private immutable ROLE_ID;
+//     uint256 private immutable ROLE_ID;
 //     address private immutable nominees;
 //     address[] public electedAccounts;
 
@@ -53,10 +53,10 @@ pragma solidity 0.8.26;
 //         string memory name_,
 //         string memory description_,
 //         address payable powers_,
-//         uint32 allowedRole_,
+//         uint256 allowedRole_,
 //         LawChecks memory config_,
 //         uint256 maxRoleHolders_,
-//         uint32 roleId_
+//         uint256 roleId_
 //     )  {
 //         MAX_ROLE_HOLDERS = maxRoleHolders_;
 //         ROLE_ID = roleId_;

@@ -331,7 +331,7 @@ contract DeployAlignedDao is Script {
         // // laws[13]
         // // input params
         // inputParams = new string[](2);
-        // inputParams[0] = "uint32 RoleId"; 
+        // inputParams[0] = "uint256 roleId"; 
         // inputParams[1] = "address Account";
         // vm.startBroadcast();
         // law = new BespokeAction(

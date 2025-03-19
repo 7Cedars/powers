@@ -30,14 +30,14 @@ contract AssignCouncilRole is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         // bespoke 
         uint32[] memory councilRoles_
     )  Law(name_, powers_, allowedRole_, config_) {
 
         councilRoles = councilRoles_;
-        bytes memory params = abi.encode(["uint32 RoleId", "address Account"]);
+        bytes memory params = abi.encode(["uint256 roleId", "address Account"]);
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
     }
 
@@ -50,7 +50,7 @@ contract AssignCouncilRole is Law {
     {
         // step 0: create actionId & decode the calldata.
         actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
-        (uint32 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
+        (uint256 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
         
         // step 1: check if the role is allowed.
         bool allowed = false;

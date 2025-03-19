@@ -43,7 +43,7 @@ contract ElectionCall is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         // bespoke params
         uint32 voterRoleId_, // who can vote in the election.
@@ -118,7 +118,7 @@ contract ElectionCall is Law {
      * exact copy from SimpleAccountFactory.sol
      */
     function getElectionVotesAddress(
-        uint32 allowedRole,
+        uint256 allowedRole,
         address nominees,
         uint48 startVote,
         uint48 endVote,
@@ -151,7 +151,7 @@ contract ElectionCall is Law {
     }
 
     function _deployElectionVotes(
-        uint32 allowedRole,
+        uint256 allowedRole,
         address nominateMe,
         uint48 startVote,
         uint48 endVote,

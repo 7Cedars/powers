@@ -56,7 +56,7 @@ interface ILaw is IERC165, LawErrors {
         string name,
         string description,
         address indexed powers,
-        uint32 allowedRole,
+        uint256 allowedRole,
         LawChecks checks,
         bytes params
     );

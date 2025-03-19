@@ -28,7 +28,7 @@ import { LawUtils } from "../LawUtils.sol";
 
 contract PeerSelect is Law { 
     uint256 public immutable MAX_ROLE_HOLDERS;
-    uint32 public immutable ROLE_ID;
+    uint256 public immutable ROLE_ID;
     mapping(address => uint48) public _elected;
     address[] public _electedSorted;
 
@@ -36,10 +36,10 @@ contract PeerSelect is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         uint256 maxRoleHolders_,
-        uint32 roleId_
+        uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
         MAX_ROLE_HOLDERS = maxRoleHolders_;
         ROLE_ID = roleId_;

@@ -113,7 +113,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
         string name,
         string description,
         address indexed powers,
-        uint32 allowedRole,
+        uint256 allowedRole,
         ILaw.LawChecks LawChecks,
         bytes params
     );

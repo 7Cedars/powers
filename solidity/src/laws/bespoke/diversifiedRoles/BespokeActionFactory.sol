@@ -30,13 +30,13 @@ pragma solidity 0.8.26;
 //         string memory name_,
 //         string memory description_,
 //         address payable powers_,
-//         uint32 allowedRole_,
+//         uint256 allowedRole_,
 //         LawChecks memory config_ // this is the configuration for creating new grants, not of the grants themselves.
 //     )  {
 //         inputParams = abi.encode(
 //             "string Name", // name
 //             "string Description", // description
-//             "uint32 RoleId", // allowedRole
+//             "uint256 roleId", // allowedRole
 //             "address TargetContract", // target contract
 //             "bytes4 TargetFunction", // target function
 //             "string[] Params" // params
@@ -56,7 +56,7 @@ pragma solidity 0.8.26;
 //         (
 //             string memory name,
 //             string memory description,
-//             uint32 allowedRole,
+//             uint256 allowedRole,
 //             address targetContract,
 //             bytes4 targetFunction,
 //             string[] memory params
@@ -92,7 +92,7 @@ pragma solidity 0.8.26;
 //         (
 //             string memory name,
 //             string memory description,
-//             uint32 allowedRole,
+//             uint256 allowedRole,
 //             address targetContract,
 //             bytes4 targetFunction,
 //             string[] memory params
@@ -109,7 +109,7 @@ pragma solidity 0.8.26;
 //     function _getContractAddress(
 //         string memory name,
 //         string memory description,
-//         uint32 allowedRole,
+//         uint256 allowedRole,
 //         address targetContract,
 //         bytes4 targetFunction,
 //         string[] memory params
@@ -139,7 +139,7 @@ pragma solidity 0.8.26;
 //     function _deployContract(
 //         string memory name,
 //         string memory description,
-//         uint32 allowedRole,
+//         uint256 allowedRole,
 //         address targetContract,
 //         bytes4 targetFunction,
 //         string[] memory params

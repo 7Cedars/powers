@@ -41,7 +41,7 @@ contract ProposalOnly is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         string[] memory params_
     ) Law(name_, powers_, allowedRole_, config_) {

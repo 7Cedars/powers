@@ -22,16 +22,16 @@ import { Powers } from "../../../Powers.sol";
 import { LawUtils } from "../../LawUtils.sol";
 
 contract NftSelfSelect is Law {
-    uint32 public roleId;
+    uint256 public roleId;
     address public erc721Token;
     
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
-        uint32 roleId_,
+        uint256 roleId_,
         address erc721Token_
     ) Law(name_, powers_, allowedRole_, config_) {
         erc721Token = erc721Token_;

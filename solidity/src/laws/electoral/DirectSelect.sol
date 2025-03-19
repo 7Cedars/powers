@@ -34,15 +34,15 @@ import { Powers} from "../../Powers.sol";
 import { LawUtils } from "../LawUtils.sol";
 
 contract DirectSelect is Law { 
-    uint32 private immutable ROLE_ID;
+    uint256 private immutable ROLE_ID;
 
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
-        uint32 roleId_
+        uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
         ROLE_ID = roleId_;
 

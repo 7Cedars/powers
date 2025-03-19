@@ -43,7 +43,7 @@ contract ElectionVotes is Law {
         string memory name_,
         string memory description_,
         address payable powers_,
-        uint32 allowedRole_,
+        uint256 allowedRole_,
         LawChecks memory config_,
         // bespoke params
         uint48 startVote_,
