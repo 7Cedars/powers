@@ -4,7 +4,7 @@ description: >-
   restricted governance
 ---
 
-# 💪 Welcome to Powers Protocol
+# 💪 Welcome to Powers protocol
 
 🚧 **Documentation is under construction** 🚧
 
@@ -22,8 +22,8 @@ The Powers protocol provides a minimalist, but very powerful, proof of concept o
 
 ## Quick links
 
-* [The github repository.](https://github.com/7Cedars/powers)
-* [The app.](http://powers-protocol.vercel.app/)&#x20;
+* [The Github repository](https://powers-protocol.vercel.app/#usecases)
+* [The Powers app](https://powers-protocol.vercel.app/#usecases)
 
 ## The protocol
 
@@ -86,8 +86,6 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
 
-<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption><p>Governance flow in the Powers protocol </p></figcaption></figure>
-
 <details>
 
 <summary>Example A: Adopt a new law, conditional on a secondary governance check</summary>
@@ -126,7 +124,7 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-More examples can be found among the case studies.
+For a diagram of the governance flow in the Powers protocol, please see&#x20;
 
 ## Unique strengths
 

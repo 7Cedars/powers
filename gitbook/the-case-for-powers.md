@@ -8,15 +8,15 @@ description: Embrace the powers of decentralisation, efficiency and security.
 
 Text here&#x20;
 
-## Decentralisation&#x20;
+## The political case
 
 text here&#x20;
 
-## Efficiency&#x20;
+## The pragmatic case
 
 text here&#x20;
 
-## Security
+## In conclusion
 
 text here.&#x20;
 

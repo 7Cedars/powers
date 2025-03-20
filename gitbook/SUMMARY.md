@@ -6,6 +6,7 @@
 
 ## For Developers
 
+* [Governance](for-developers/governance.md)
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing actions](for-developers/powers.sol/proposing-actions.md)
@@ -53,8 +54,11 @@
 ## Use cases
 
 * [Powers 101](use-cases/basic-dao.md)
-* [Aligned Dao](use-cases/aligned-dao.md)
+* [Hybrid Dao](use-cases/aligned-dao.md)
 * [Govern Your Tax](use-cases/govern-your-tax.md)
+* [AI + Humans](use-cases/ai-+-humans.md)
+* [Attestation Rules](use-cases/attestation-rules.md)
+* [Powers to Hats](use-cases/powers-to-hats.md)
 
 ## Integrations
 
