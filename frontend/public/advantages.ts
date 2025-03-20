@@ -19,7 +19,7 @@ export const advantages = [
     advantage: "Flexibility",
     examples: [
       "Assign roles to any type of account", 
-      "DAOs, AI agents, oracles, humans, unicorns.", 
+      "DAOs, AI agents, oracles, humans, unicorns. Anything.", 
       "Assign roles to users along legal regime.",
     ]
   }, 

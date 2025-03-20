@@ -4,7 +4,7 @@ export const useCases = [
     details: [
       "Avoid hostile takeovers",
       "Avoid centralisation",
-      "By creating checks and balances between roles" 
+      "Create checks and balances between roles" 
     ],
     demo: "Powers 101",
     colourScheme: 0,

@@ -17,7 +17,7 @@ export function SectionRunDemo() {
             Or do you have a demo of your own deployed?
           </div>
           <div className = "w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-400 max-w-2xl text-center text-pretty py-2 px-4">
-              The protocol and examples are proof of concepts. These examples are for TESTING PURPOSES ONLY.
+              The protocol is proof of concept. Please deploy your own examples for TESTING PURPOSES ONLY.
           </div>
           <div className = "w-full flex flex-row justify-center items-center text-md text-slate-400 max-w-2xl text-center text-pretty py-2 pb-16 px-4">
               Really. I'm serious. The protocol has not been audited in any way, shape or form. Don't even think about it using this for anything even remotely resembling an actual community. 
@@ -26,9 +26,9 @@ export function SectionRunDemo() {
 
       <section className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden max-w-5xl">
         <div className="w-full flex flex-row gap-4 min-w-6xl justify-between items-center py-4 px-5 overflow-x-scroll overflow-y-hidden">
-          <div className="text-slate-900 text-center font-bold text-md min-w-24">
+          {/* <div className="text-slate-900 text-center font-bold text-md min-w-24">
             Organisation
-          </div>
+          </div> */}
    
           <div className="grow min-w-28 flex items-center rounded-md bg-white pl-3 outline outline-1 outline-gray-300">  
             <input 
@@ -42,9 +42,10 @@ export function SectionRunDemo() {
           </div>
 
       
-          <div className="h-8 flex flex-row w-20 min-w-24 text-center">
-            {
-              newDemoAddress && 
+          
+          {
+            newDemoAddress && 
+            <div className="h-8 flex flex-row w-20 min-w-24 text-center">
               <Button 
                 size = {0} 
                 role = {8} 
@@ -55,20 +56,20 @@ export function SectionRunDemo() {
                 }
                 </div>    
               </Button>
-            }
-          </div>
+            </div>
+          }
         </div>
       </section>
       
-        <div className = "text-sm h-fit">
-          { status && status == 'error' ? 
+        
+          { status && status == 'error' && 
+            <div className = "text-sm h-fit">
               <div className = "text-red-500 pb-4">
                 {typeof error == "string" ?  error.slice(0, 30) : "Protocol not recognised"}
               </div> 
-            :
-            null 
+            </div>
           }
-        </div>
+        
       </div>
     </section>
   ) 
