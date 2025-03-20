@@ -5,17 +5,26 @@ import { useOrganisations } from "@/hooks/useOrganisations";
 import { useState } from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
-export function RunNewDemo() {
+export function SectionRunDemo() {
   const [newDemoAddress, setNewDemoAddress] = useState<`0x${string}`>()
   const {status, error, organisations, addOrg} = useOrganisations()
 
   return (
-    <section className="h-[80vh] h-0 flex flex-col justify-between items-center pb-8 px-4 snap-start snap-always  opacity-0 md:opacity-100">
-      <div className = "w-full flex flex-row justify-center items-center md:text-3xl text-2xl text-slate-600 text-center text-pretty font-bold pt-16 pb-8 px-4">
-          Or do you have a demo of your own deployed?
-      </div>
+    <section className="min-h-screen h-0 flex flex-col justify-center items-center pb-8 px-4 snap-start snap-always opacity-0 md:opacity-100">
+      <div className="w-full h-fit flex flex-col gap-12 justify-between items-center min-h-[30vh]">
+       <section className = "h-fit flex flex-col justify-center items-center min-h-fit"> 
+          <div className = "w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
+            Or do you have a demo of your own deployed?
+          </div>
+          <div className = "w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-400 max-w-2xl text-center text-pretty py-2 px-4">
+              The protocol and examples are proof of concepts. These examples are for TESTING PURPOSES ONLY.
+          </div>
+          <div className = "w-full flex flex-row justify-center items-center text-md text-slate-400 max-w-2xl text-center text-pretty py-2 pb-16 px-4">
+              Really. I'm serious. The protocol has not been audited in any way, shape or form. Don't even think about it using this for anything even remotely resembling an actual community. 
+          </div>
+      </section> 
 
-      <div className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden max-w-5xl">
+      <section className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden max-w-5xl">
         <div className="w-full flex flex-row gap-4 min-w-6xl justify-between items-center py-4 px-5 overflow-x-scroll overflow-y-hidden">
           <div className="text-slate-900 text-center font-bold text-md min-w-24">
             Organisation
@@ -49,7 +58,7 @@ export function RunNewDemo() {
             }
           </div>
         </div>
-      </div>
+      </section>
       
         <div className = "text-sm h-fit">
           { status && status == 'error' ? 
@@ -60,7 +69,7 @@ export function RunNewDemo() {
             null 
           }
         </div>
+      </div>
     </section>
   ) 
-
 } 

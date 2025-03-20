@@ -1,9 +1,9 @@
-export const advantagesRRGs = [
+export const advantages = [
   {
     advantage: "Upgradability",
     examples: [
       "Fully upgradable",
-      "Upgrades are modular and gradual", 
+      "Upgrades are modular and granular", 
       "Only governed upgrades are possible", 
     ]
   }, 
@@ -42,15 +42,9 @@ export const advantagesRRGs = [
   {
     advantage: "Composability",
     examples: [
-      "Seamlessly integrates with existing protocols", 
-      "Role restricted governance protocols are fully interoperable", 
+      "Any existing smart contract can be integrated into a law",
+      "Existing DAOs can take up dedicated roles", 
+      "Fully interoperable with off-chain systems"
     ]
   }, 
-  // {
-  //   advantage: "Decentralisation",
-  //   examples: [
-  //     "RRGs allow for programmable checks and balances between roles",
-  //     "Decentralises power by creating horizontal power structures" 
-  //   ]
-  // },
 ]

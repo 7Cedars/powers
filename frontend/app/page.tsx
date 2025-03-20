@@ -8,11 +8,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ExampleUseCases } from "./ExampleUsecases";
-import { ExampleDemos } from "./ExampleDemos";
-import { RunNewDemo } from "./RunNewDemo";
+import { SectionIntro } from "./SectionIntro";
+import { SectionUsecases } from "./SectionUsecases";
+import { SectionDemos } from "./SectionDemos";
+import { SectionRunDemo } from "./SectionRunDemo";
 import { Footer } from "./Footer";
-import { AdvantagesRRG } from "./AdvantagesRRG";
+import { SectionAdvantages } from "./SectionAdvantages";
 import { 
     ChevronDownIcon
   } from '@heroicons/react/24/outline';
@@ -21,7 +22,7 @@ export default function Page() {
           
     return (
         <main className="w-full flex flex-col gap-0 overflow-y-scroll snap-y snap-mandatory overflow-x-hidden">
-            <section className="w-full min-h-[100vh] h-fit flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-blue-600 snap-start snap-always border-b-0 -m-1"> 
+            <section className="w-full min-h-[100vh] h-fit flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-indigo-700 snap-start snap-always border-b-0 -m-1"> 
             
                 {/* Title and subtitle */}
                 <section className="w-full h-fit flex flex-col justify-center items-center p-4 pt-20 pb-20">
@@ -42,10 +43,11 @@ export default function Page() {
                 </div>
             </section>
 
-            < ExampleUseCases /> 
-            < AdvantagesRRG /> 
-            < ExampleDemos  /> 
-            < RunNewDemo />
+            < SectionIntro /> 
+            < SectionAdvantages /> 
+            < SectionUsecases /> 
+            {/* < SectionDemos  />  */}
+            < SectionRunDemo />
             <div className = "min-h-48"/>  
             < Footer /> 
            
