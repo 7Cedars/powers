@@ -9,7 +9,7 @@ import { colourScheme } from "@/context/Theme"
 import { Organisation } from "@/context/types";
 import { useRouter } from "next/navigation";
 
-export function ExampleDemos() {
+export function SectionDemos() {
   const { organisations, status, fetchOrgs, initialise } = useOrganisations()
   const router = useRouter() 
 
@@ -23,7 +23,9 @@ export function ExampleDemos() {
     // min-w-[60vw]
     <>
     
-    <section className = "w-full  min-h-fit flex flex-col justify-between items-center snap-start px-4 pb-10"> 
+    <section className = "w-full  min-h-fit flex flex-col justify-between items-center snap-start px-4 pb-10"
+      id="demos"
+    > 
       <div className = "h-fit flex flex-col justify-center items-center min-h-60"> 
         <div className = "w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold pt-24 px-4">
             Want to play around with a live demo?
