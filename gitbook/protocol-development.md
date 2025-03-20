@@ -9,9 +9,10 @@ description: The Powers protocol is under active development.
 There are several aims and ethos that guide the development of the Powers protocol.
 
 * **Open source.** The core protocol and example laws are and will always remain open source.
-* **Simplicity.** In developing the protocol simplicity is prioritised over gas efficiency.
-* **Composability.** The protocol integrates seamlessly with a range of on- and off-chain services, existing DAOs, as well as with other implementations of the protocol. There will be integration modules available for existing governance solutions such as OpenZeppelin's Governor.sol and the Hats protocol.
-* **Security.** The protocol should not be allowed to govern actual assets before being properly audited and being subject to a well funded bounty program. This also applies to future upgrades and (current and future) law implementations.
+* **Simplicity.** In developing the protocol whenever a trade of between the two emerges, simplicity is prioritised over gas efficiency.
+* **Composability.** Laws provide a fully composable layer of smart contracts that integrates seamlessly with a range of on- and off-chain services, existing DAOs, as well as with other implementations of the protocol.&#x20;
+* **Security.** No protocol will ever be a 100% safe. But a governance protocol that divides powers allows for the elimination of single points of failure. It allowis for new levels of security in on-chain governance. &#x20;
+* **Community.** Protocol development and security are demand constant attention. The ultimate aim is to create a sustainable community that develops and secure the protocol.&#x20;
 
 ## Milestones
 

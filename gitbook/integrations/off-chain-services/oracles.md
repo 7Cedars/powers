@@ -43,8 +43,8 @@ oracle.sendNotification({
 
 The Powers protocol comes standard with a law that integrates a push oracle.&#x20;
 
-{% content-ref url="../../standard-laws/executive-laws/automatedaction.sol.md" %}
-[automatedaction.sol.md](../../standard-laws/executive-laws/automatedaction.sol.md)
+{% content-ref url="../../example-laws/executive-laws/automatedaction.sol.md" %}
+[automatedaction.sol.md](../../example-laws/executive-laws/automatedaction.sol.md)
 {% endcontent-ref %}
 
 
