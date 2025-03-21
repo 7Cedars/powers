@@ -70,7 +70,7 @@ library LawUtilities {
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
     function baseChecksAtPropose(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers)
-        internal
+        external
         view
       {
         // Check if parent law completion is required
@@ -98,7 +98,7 @@ library LawUtilities {
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
     function baseChecksAtExecute(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers, uint48[] memory executions)
-        internal
+        external
         view
     {
         // Check execution throttling
@@ -140,7 +140,7 @@ library LawUtilities {
     /// @param nonce The nonce for the action
     /// @return actionId Unique identifier for the action
     function hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
-        internal
+        public
         pure
         returns (uint256 actionId)
     {
@@ -154,7 +154,7 @@ library LawUtilities {
     /// @return values Array of ETH values
     /// @return calldatas Array of encoded function calls
     function createEmptyArrays(uint256 length) 
-        internal
+        external
         pure
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
@@ -173,7 +173,7 @@ library LawUtilities {
     /// @return valuesNew Updated array of ETH values including the self-destruct call
     /// @return calldatasNew Updated array of encoded function calls including the self-destruct call
     function addSelfDestruct(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, address powers)
-        internal
+        external
         view
         returns (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew)
     {
@@ -204,7 +204,7 @@ library LawUtilities {
     /// @param nftCheckAddress Address of the ERC721 contract
     /// @return hasToken True if the caller owns at least one token
     function nftCheck(address caller, address nftCheckAddress)
-        internal
+        external
         view
         returns (bool hasToken)
     {
@@ -236,7 +236,7 @@ library LawUtilities {
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
     function hasRoleCheck(address caller, uint32[] memory roles, address powers)
-        internal
+        external
         view
     {
         for (uint32 i = 0; i < roles.length; i++) {
@@ -252,7 +252,7 @@ library LawUtilities {
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
     function hasNotRoleCheck(address caller, uint32[] memory roles, address powers)
-        internal
+        external
         view
     {
         for (uint32 i = 0; i < roles.length; i++) {
@@ -271,7 +271,7 @@ library LawUtilities {
     /// @return True if the transaction was successfully logged
     /// see for explanation: https://docs.soliditylang.org/en/v0.8.29/contracts.html#libraries
     function logTransaction(TransactionsByAccount storage self, address account, uint48 blockNumber)
-        public  
+        external
         returns (bool)
     {
         self.transactions[account].push(blockNumber);
@@ -285,7 +285,7 @@ library LawUtilities {
     /// @param delay The minimum number of blocks required between transactions
     /// @return True if the delay requirement is met
     function checkThrottle(TransactionsByAccount storage self, address account, uint48 delay)
-        public
+        external
         view
         returns (bool)
     {   
@@ -307,7 +307,7 @@ library LawUtilities {
     /// @param end The ending block number
     /// @return numberOfTransactions The count of transactions within the range
     function checkNumberOfTransactions(TransactionsByAccount storage self, address account, uint48 start, uint48 end)
-        public  
+        external
         view
         returns (uint256 numberOfTransactions)
     {   

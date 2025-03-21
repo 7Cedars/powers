@@ -31,7 +31,6 @@
 pragma solidity 0.8.26;
 
 import { Powers } from "./Powers.sol";
-import { PowersTypes } from "./interfaces/PowersTypes.sol";
 import { LawUtilities } from "./LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";

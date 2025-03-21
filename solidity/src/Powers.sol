@@ -46,6 +46,8 @@ import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/int
 import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 import { EIP712 } from "../lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying. 
+
 contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                           STORAGE                        //
@@ -81,14 +83,15 @@ contract Powers is EIP712, IPowers {
     ///
     /// @param name_ name of the contract
     constructor(string memory name_, string memory uri_) EIP712(name_, version()) {
+        if (bytes(name_).length == 0) { revert Powers__InvalidName(); } 
         name = name_;
         uri = uri_;
+        
         _setRole(ADMIN_ROLE, msg.sender, true); // the account that initiates a Powerscontract is set to its admin.
-
         roles[ADMIN_ROLE].amountMembers = 1; // the number of admins at set up is 1.
         roles[PUBLIC_ROLE].amountMembers = type(uint256).max; // the number for holders of the PUBLIC_ROLE is type(uint256).max. As in, everyone has this role.
 
-        emit Powers__Initialized(address(this), name);
+        emit Powers__Initialized(address(this), name, uri);
     }
 
     /// @notice receive function enabling ETH deposits.
@@ -142,7 +145,6 @@ contract Powers is EIP712, IPowers {
         if (!laws[msg.sender]) {
             revert Powers__NotActiveLaw();
         }
-
         // check 2: has action already been set as requested?
         if (_actions[actionId].requested != true) {
             revert Powers__ActionNotRequested();
@@ -156,7 +158,7 @@ contract Powers is EIP712, IPowers {
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
-        }
+        } 
         emit ActionExecuted(actionId,targets, values, calldatas);
     }
 
@@ -207,7 +209,7 @@ contract Powers is EIP712, IPowers {
         uint32 duration = votingPeriod;
         Action storage proposedAction = _actions[actionId];
         proposedAction.targetLaw = targetLaw;
-        proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. There is no delay functionality.
+        proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
         proposedAction.voteDuration = duration;
         proposedAction.caller = caller;
 
@@ -331,11 +333,10 @@ contract Powers is EIP712, IPowers {
     ///
     /// Emits a {SeperatedPowersEvents::LawAdopted} event.
     function _adoptLaw(address law) internal virtual {
-        // check if added address is indeed a law
+        // check if added address is indeed a law. Note that this will also revert with address(0).
         if (!ERC165Checker.supportsInterface(law, type(ILaw).interfaceId)) {
             revert Powers__IncorrectInterface();
         }
-
         laws[law] = true;
 
         emit LawAdopted(law);
@@ -360,10 +361,20 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @notice Internal version of {setRole} without access control.
+    /// @dev This function is used to set a role for a given account. Public role is locked as everyone has it.
+    /// @dev Note that it does allow Admin role to be assigned and revoked. 
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
     function _setRole(uint256 roleId, address account, bool access) internal virtual {
         bool newMember = roles[roleId].members[account] == 0;
+        // check 1: Public role is locked.
+        if (roleId == PUBLIC_ROLE) {
+            revert Powers__CannotAddToPublicRole();
+        }
+        // check 2: Zero address is not allowed.
+        if (account == address(0)) {
+            revert Powers__CannotAddZeroAddress();
+        }
 
         if (access) {
             roles[roleId].members[account] = uint48(block.number); // 'since' is set at current block.number

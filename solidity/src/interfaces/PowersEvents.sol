@@ -23,7 +23,8 @@ interface PowersEvents {
     /// @notice Emitted when protocol is initialized.
     /// @param contractAddress the address of the contract
     /// @param name the name of the contract
-    event Powers__Initialized(address contractAddress, string name);
+    /// @param uri the uri of the contract
+    event Powers__Initialized(address contractAddress, string name, string uri);
 
     /// @notice Emitted when protocol receives funds.
     /// @param value the amount of funds received

@@ -72,5 +72,11 @@ interface PowersErrors {
 
     /// @notice Emitted when a vote type is invalid.
     error Powers__InvalidVoteType();
+
+    /// @notice Emitted when a role is locked.
+    error Powers__CannotAddToPublicRole();
+
+    /// @notice Emitted when a zero address is added.
+    error Powers__CannotAddZeroAddress();
 }
 

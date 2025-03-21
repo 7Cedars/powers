@@ -555,7 +555,7 @@ contract ExecuteTest is TestSetupPowers {
         uint32 lawNumber = 0;
         description = "Assigning mockAddress ROLE_ONE";
         address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress); // assign = truee
+        lawCalldata = abi.encode(true, mockAddress); // assign = true
 
         // build return expected return data
         address[] memory tar = new address[](1);
@@ -564,10 +564,11 @@ contract ExecuteTest is TestSetupPowers {
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.assignRole.selector, ROLE_ONE, mockAddress); // selector = assignRole
+        actionId = LawUtilities.hashActionId(laws[lawNumber], lawCalldata, nonce);
 
         // act & assert
         vm.expectEmit(true, false, false, false);
-        emit ActionExecuted(LawUtilities.hashActionId(laws[lawNumber], lawCalldata, nonce), tar, val, cal);
+        emit ActionExecuted(actionId, tar, val, cal);
         vm.prank(mockAddress);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
