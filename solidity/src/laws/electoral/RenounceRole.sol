@@ -31,7 +31,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract RenounceRole is Law { 
     uint32[] public allowedRoleIds; // role that can be renounced.
@@ -41,7 +41,7 @@ contract RenounceRole is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         uint32[] memory allowedRoleIds_
     ) Law(name_, powers_, allowedRole_, config_) {
         allowedRoleIds = allowedRoleIds_;
@@ -73,8 +73,8 @@ contract RenounceRole is Law {
         }
 
         // step 3: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(allowedRoleIds.length);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(allowedRoleIds.length);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
         if (Powers(payable(powers)).hasRoleSince(caller, roleId) == 0) {

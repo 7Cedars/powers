@@ -20,7 +20,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { Erc20TaxedMock } from "../../../../test/mocks/Erc20TaxedMock.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 contract RoleByTaxPaid is Law {
     address public erc20TaxedMock;
@@ -32,7 +32,7 @@ contract RoleByTaxPaid is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         // bespoke 
         uint256 roleIdToSet_,
         address erc20TaxedMock_,
@@ -54,7 +54,7 @@ contract RoleByTaxPaid is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode the calldata.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (address account) = abi.decode(lawCalldata, (address));
 
         // step 1: retrieve data 
@@ -70,11 +70,11 @@ contract RoleByTaxPaid is Law {
 
         // step 3: create arrays
         if (hasRole && taxPaid < thresholdTaxPaid) {
-            (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleIdToSet, account); 
         } else if (!hasRole && taxPaid >= thresholdTaxPaid) { 
-            (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIdToSet, account);
         }

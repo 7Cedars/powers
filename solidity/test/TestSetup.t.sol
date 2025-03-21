@@ -9,6 +9,7 @@ import { Powers} from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { Law } from "../src/Law.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
+import { LawUtilities } from "../src/LawUtilities.sol";
 import { PowersErrors } from "../src/interfaces/PowersErrors.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
@@ -43,6 +44,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     Erc20VotesMock erc20VotesMock;
     Erc20TaxedMock erc20TaxedMock; 
     HelperConfig.NetworkConfig config;
+    LawUtilities.Conditions Conditions;
     address[] laws;
 
     // vote options
@@ -114,7 +116,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
         string description,
         address indexed powers,
         uint256 allowedRole,
-        ILaw.LawChecks LawChecks,
+         LawUtilities.Conditions Conditions,
         bytes params
     );
 }

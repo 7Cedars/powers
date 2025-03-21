@@ -31,7 +31,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract DirectSelect is Law { 
     uint256 private immutable ROLE_ID;
@@ -41,7 +41,7 @@ contract DirectSelect is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
         ROLE_ID = roleId_;
@@ -72,10 +72,10 @@ contract DirectSelect is Law {
         (bool assign, address account) = abi.decode(lawCalldata, (bool, address));
 
         // step 2: hash the proposal.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         // step 3: create the arrays.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 
         // step 4: set the targets, values and calldatas.
         targets[0] = powers;

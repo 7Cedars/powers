@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import { Powers } from "../../../src/Powers.sol";
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { Law } from "../../../src/Law.sol";
+import { LawUtilities } from "../../../src/LawUtilities.sol";
 import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
 import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { ElectionVotes } from "../../../src/laws/state/ElectionVotes.sol";
@@ -249,7 +250,7 @@ contract ElectionCallTest is TestSetupElectoral {
             "Test Election"
         );
 
-        ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).config();
+        ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).conditions();
         assertTrue(
             Powers(daoMock).getActiveLaw(
                 ElectionCall(laws[4]).getElectionVotesAddress(
@@ -290,7 +291,7 @@ contract ElectionCallTest is TestSetupElectoral {
     }
 
     function testDeployWithoutNomineesContract() public {
-        Law.LawChecks memory config;
+        LawUtilities.Conditions memory config;
         ElectionCall newElectionCall = new ElectionCall(
             "Election without nominees",
             "Test election call without nominees contract",
@@ -303,7 +304,7 @@ contract ElectionCallTest is TestSetupElectoral {
         );
 
         vm.prank(address(daoMock));
-        vm.expectRevert("Nominees contract not set at `config.readStateFrom`.");
+        vm.expectRevert("Nominees contract not set at `conditions.readStateFrom`.");
         newElectionCall.handleRequest(
             address(0),
             abi.encode("Test Election", uint48(block.number), uint48(block.number + 100)),
@@ -348,7 +349,7 @@ contract ElectionCallTest is TestSetupElectoral {
             nonce
         );
 
-        ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).config();
+        ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).conditions();
         address expectedAddr = ElectionCall(laws[4]).getElectionVotesAddress(
             ElectionCall(laws[4]).VOTER_ROLE_ID(),
             readStateFromAddress,
@@ -461,7 +462,7 @@ contract ElectionTallyTest is TestSetupElectoral {
         }
 
         // act: tally votes
-        (address needCompleted , , , , , , ,) = Law(electionTally).config();
+        (address needCompleted , , , , , , ,) = Law(electionTally).conditions();
         assertEq(needCompleted, electionCall);
 
         vm.roll(endVote + 1);

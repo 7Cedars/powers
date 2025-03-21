@@ -33,6 +33,7 @@
 /// - Native support for multi-chain governance.
 /// - Gas efficiency improvements.
 /// - Improved time management, including support for EIP-6372 {clock()} for timestamping governance processes.
+/// - And more. 
 ///
 /// @author 7Cedars
 
@@ -187,8 +188,8 @@ contract Powers is EIP712, IPowers {
         virtual
         returns (uint256 actionId)
     {
-        // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).config();
-        ( , , , , uint32 votingPeriod, uint8 quorum, ,) = Law(targetLaw).config();
+        // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
+        ( , , , , uint32 votingPeriod, uint8 quorum, ,) = Law(targetLaw).conditions();
         actionId = _hashAction(targetLaw, lawCalldata, nonce);
 
         // check 1: does target law need proposedAction vote to pass?
@@ -392,9 +393,9 @@ contract Powers is EIP712, IPowers {
     ///
     function _quorumReached(uint256 actionId, address targetLaw) internal view virtual returns (bool) {
         Action storage proposedAction = _actions[actionId];
-        ( , , , , , uint8 quorum, ,) = Law(targetLaw).config();
+        ( , , , , , uint8 quorum, ,) = Law(targetLaw).conditions();
         uint256 allowedRole = Law(targetLaw).allowedRole();
-        uint256 amountMembers = roles[allowedRole].amountMembers;
+        uint256 amountMembers = _countMembersRole(allowedRole);
 
         return (quorum == 0 || amountMembers * quorum <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR); 
     }
@@ -405,9 +406,9 @@ contract Powers is EIP712, IPowers {
     /// @param targetLaw address of the law that the proposedAction belongs to.
     function _voteSucceeded(uint256 actionId, address targetLaw) internal view virtual returns (bool) {
         Action storage proposedAction = _actions[actionId];
-        (, , , , , uint8 quorum, uint8 succeedAt ,) = Law(targetLaw).config();
+        (, , , , , uint8 quorum, uint8 succeedAt ,) = Law(targetLaw).conditions();
         uint256 allowedRole = Law(targetLaw).allowedRole();
-        uint256 amountMembers = roles[allowedRole].amountMembers;
+        uint256 amountMembers = _countMembersRole(allowedRole);
 
         // note if quorum is set to 0 in a Law, it will automatically return true.
         return quorum == 0 || amountMembers * succeedAt <= proposedAction.forVotes * DENOMINATOR;
@@ -434,6 +435,10 @@ contract Powers is EIP712, IPowers {
         } else {
             revert Powers__InvalidVoteType();
         }
+    }
+
+    function _countMembersRole(uint256 roleId) internal view virtual returns (uint256 amountMembers) {
+        return roles[roleId].amountMembers;
     }
 
     /// @inheritdoc IPowers

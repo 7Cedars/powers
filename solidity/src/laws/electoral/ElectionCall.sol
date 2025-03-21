@@ -29,7 +29,7 @@ import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract ElectionCall is Law { 
     uint32 public immutable VOTER_ROLE_ID;
@@ -44,7 +44,7 @@ contract ElectionCall is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         // bespoke params
         uint32 voterRoleId_, // who can vote in the election.
         uint32 electedRoleId_, // what role Id is assigned through the elections 
@@ -71,16 +71,16 @@ contract ElectionCall is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {        
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         // step 1: decode the law calldata.
         (string memory description, uint48 startVote, uint48 endVote) =
             abi.decode(lawCalldata, (string, uint48, uint48));
 
         // step 2: calculate address at which grant will be created.
-        address nominees = config.readStateFrom;
+        address nominees = conditions.readStateFrom;
         if (nominees == address(0)) {
-            revert("Nominees contract not set at `config.readStateFrom`.");
+            revert("Nominees contract not set at `conditions.readStateFrom`.");
         }
         address electionVotesAddress =
             getElectionVotesAddress(VOTER_ROLE_ID, nominees, startVote, endVote, description);
@@ -92,7 +92,7 @@ contract ElectionCall is Law {
         }
 
         // step 3: create arrays
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
     
         // step 4: fill out arrays with data
         targets[0] = powers;
@@ -110,7 +110,7 @@ contract ElectionCall is Law {
 
         // stp 1: deploy new grant
         electionVotes = electionVotesAddress;
-        _deployElectionVotes(VOTER_ROLE_ID, config.readStateFrom, startVote, endVote, description);
+        _deployElectionVotes(VOTER_ROLE_ID, conditions.readStateFrom, startVote, endVote, description);
     }
 
     /**
@@ -118,14 +118,14 @@ contract ElectionCall is Law {
      * exact copy from SimpleAccountFactory.sol
      */
     function getElectionVotesAddress(
-        uint256 allowedRole,
+        uint256 roleId,
         address nominees,
         uint48 startVote,
         uint48 endVote,
         string memory description
     ) public view returns (address) {
-        LawChecks memory config;
-        config.readStateFrom = nominees;
+        LawUtilities.Conditions memory conditionsLocal;
+        conditionsLocal.readStateFrom = nominees;
 
         address electionVotesAddress = Create2.computeAddress(
             bytes32(keccak256(abi.encodePacked(description))),
@@ -137,8 +137,8 @@ contract ElectionCall is Law {
                         "Election",
                         description,
                         powers,
-                        allowedRole,
-                        config,
+                        roleId,
+                        conditionsLocal,
                         // remaining params
                         startVote,
                         endVote
@@ -151,22 +151,22 @@ contract ElectionCall is Law {
     }
 
     function _deployElectionVotes(
-        uint256 allowedRole,
+        uint256 roleId,
         address nominateMe,
         uint48 startVote,
         uint48 endVote,
         string memory description
     ) internal {
-        LawChecks memory config;
-        config.readStateFrom = nominateMe;
+        LawUtilities.Conditions memory conditionsLocal;
+        conditionsLocal.readStateFrom = nominateMe;
 
         ElectionVotes newElectionVotes = new ElectionVotes{ salt: bytes32(keccak256(abi.encodePacked(description))) }(
             // standard params
             "Election",
             description,
             powers,
-            allowedRole,
-            config,
+            roleId,
+            conditionsLocal,
             // remaining params
             startVote,
             endVote

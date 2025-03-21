@@ -48,7 +48,7 @@ pragma solidity 0.8.26;
 //             )
 //     {
 //         HelperConfig helperConfig = new HelperConfig();
-//         config = helperConfig.getConfigByChainId(block.chainid);
+//         config = HelperConfig.getConfigByChainId(block.chainid);
 
 //         vm.startBroadcast();
 //         // Initiating Dao.
@@ -85,7 +85,7 @@ pragma solidity 0.8.26;
 //         address payable mock1155_
 //     ) public {
 //         Law law;
-//         ILaw.LawChecks memory LawChecks;
+//          LawUtilities.Conditions memory Conditions;
 
 //         //////////////////////////////////////////////////////////////
 //         //              CHAPTER 1: EXECUTIVE ACTIONS                //
@@ -99,16 +99,16 @@ pragma solidity 0.8.26;
 //             "Add Know Your Customer (KYC) data to an account. This law is accessible for any one, for testing purposes only.",
 //             dao_,
 //             type(uint32).max, // access role = public.
-//             LawChecks
+//             Conditions
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
 
 //         // laws[1]
 //         // propose new role filter. (Role 2)
-//         LawChecks.quorum = 70; // = 60% quorum needed
-//         LawChecks.succeedAt = 60; // = Simple majority vote needed.
-//         LawChecks.votingPeriod = 1200; // = number of blocks
+//         Conditions.quorum = 70; // = 60% quorum needed
+//         Conditions.succeedAt = 60; // = Simple majority vote needed.
+//         Conditions.votingPeriod = 1200; // = number of blocks
 //         // setting up params
 //         string[] memory inputParams = new string[](6); // same as DeployRoleByKyc inputParams
 //         inputParams[0] = "string Name"; // name
@@ -124,36 +124,36 @@ pragma solidity 0.8.26;
 //             "Make a proposal to create a role filter based on Know Your Customer (KYC) data to assign a specific role to a subsection of community members. Input [0] = grantee address to transfer to. Inputs: 0 = name; 1: description; 2: nationalities to select (IBAN code); 3: Country of Residence to select (IBAN code); 4: older than (in seconds); 5: younger than (in seconds);     ",
 //             dao_,
 //             2, // access role
-//             LawChecks,
+//             Conditions,
 //             inputParams // input parameters
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete LawChecks;
+//         delete Conditions;
 
 //         // laws[2]
 //         // ok & implement new role self Select filter (Role 1)
-//         LawChecks.quorum = 5; // = 5% quorum needed
-//         LawChecks.succeedAt = 51; // = Simple majority vote needed.
-//         LawChecks.votingPeriod = 1200; // = number of blocks
+//         Conditions.quorum = 5; // = 5% quorum needed
+//         Conditions.succeedAt = 51; // = Simple majority vote needed.
+//         Conditions.votingPeriod = 1200; // = number of blocks
 //         vm.startBroadcast();
 //         law = new RoleByKycFactory(
 //             "Accept role filter.",
 //             "Accept and implement a role filter based on Know Your Customer (KYC) data to assign a specific role to a subsection of community members. Input [0] = grantee address to transfer to. Inputs: 0 = name; 1: description; 2: nationalities to select (IBAN code); 3: Country of Residence to select (IBAN code); 4: older than (in seconds); 5: younger than (in seconds);     ",
 //             dao_,
 //             1, // access role
-//             LawChecks,
+//             Conditions,
 //             laws[0]
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete LawChecks;
+//         delete Conditions;
 
 //         // laws[3]
 //         // propose new AiAgent (Role 2)
-//         LawChecks.quorum = 60; // = 60% quorum needed
-//         LawChecks.succeedAt = 51; // = Simple majority vote needed.
-//         LawChecks.votingPeriod = 1200; // = number of blocks
+//         Conditions.quorum = 60; // = 60% quorum needed
+//         Conditions.succeedAt = 51; // = Simple majority vote needed.
+//         Conditions.votingPeriod = 1200; // = number of blocks
 //         // setting up params
 //         inputParams = new string[](4); // same as AiAgents inputParams
 //         inputParams[0] = "string Name"; // name
@@ -167,35 +167,35 @@ pragma solidity 0.8.26;
 //             "Make a proposal to add an AI agent to the DAO. Inputs: 0 = name agent; 1: account of AI agent; 2: uri; 3: add? (false = remove entry)",
 //             dao_,
 //             2, // access role
-//             LawChecks,
+//             Conditions,
 //             inputParams // input parameters
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete LawChecks;
+//         delete Conditions;
 
 //         // laws[4]
 //         // ok & implement new AiAgent (Role 1)
-//         LawChecks.quorum = 5; // = 5% quorum needed
-//         LawChecks.succeedAt = 51; // = Simple majority vote needed.
-//         LawChecks.votingPeriod = 1200; // = number of blocks
+//         Conditions.quorum = 5; // = 5% quorum needed
+//         Conditions.succeedAt = 51; // = Simple majority vote needed.
+//         Conditions.votingPeriod = 1200; // = number of blocks
 //         vm.startBroadcast();
 //         law = new AiAgents(
 //             "Accept and add AI Agent.",
 //             "Accept and add an AI agent to the DAO.",
 //             dao_,
 //             1, // access role
-//             LawChecks
+//             Conditions
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete LawChecks;
+//         delete Conditions;
 
 //         // laws[5]
 //         // propose new bespoke action (Role 2)
-//         LawChecks.quorum = 60; // = 60% quorum needed
-//         LawChecks.succeedAt = 51; // = Simple majority vote needed.
-//         LawChecks.votingPeriod = 1200; // = number of blocks
+//         Conditions.quorum = 60; // = 60% quorum needed
+//         Conditions.succeedAt = 51; // = Simple majority vote needed.
+//         Conditions.votingPeriod = 1200; // = number of blocks
 //         // setting up params
 //         inputParams = new string[](6); // same as AiAgents inputParams
 //         inputParams[0] = "string"; // name
@@ -211,12 +211,12 @@ pragma solidity 0.8.26;
 //             "Propose to deploy a new, role restricted, bespoke action. Inputs: 0 = name; 1: description; 2: allowed Role; 3: target contract; 4: target function; 5: input parameters.",
 //             dao_,
 //             2, // access role
-//             LawChecks,
+//             Conditions,
 //             inputParams // input parameters
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete LawChecks;
+//         delete Conditions;
 
 //         // laws [6]
 //         // ok & implement new role restricted bespoke action (Admin)
@@ -226,7 +226,7 @@ pragma solidity 0.8.26;
 //             "Accept and deploy bespoke action.",
 //             dao_,
 //             0, // access role = Admin.
-//             LawChecks
+//             Conditions
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
@@ -243,7 +243,7 @@ pragma solidity 0.8.26;
 //             "Claim community role.",
 //             dao_,
 //             type(uint32).max, // access role = public.
-//             LawChecks,
+//             Conditions,
 //             //// self select
 //             1, // uint256 roleId_
 //             //// filter
@@ -264,21 +264,21 @@ pragma solidity 0.8.26;
 //             "Community members can nominate themselves for role 2.",
 //             dao_,
 //             type(uint32).max, // access role = public access
-//             LawChecks
+//             Conditions
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
 
 //         // laws[9]
 //         // peer select Role 2 (allowedRole = Role 1)
-//         LawChecks.readStateFrom = laws[8]; // = nominateMe
+//         Conditions.readStateFrom = laws[8]; // = nominateMe
 //         vm.startBroadcast();
 //         law = new PeerSelect(
 //             "Claim community role.",
 //             "Claim community role.",
 //             dao_,
 //             type(uint32).max, // access role = public.
-//             LawChecks,
+//             Conditions,
 //             //
 //             15,
 //             2 // uint256 roleId_

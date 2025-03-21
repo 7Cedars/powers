@@ -8,6 +8,7 @@ import { TestSetupLaw } from "../TestSetup.t.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 import { PresetAction } from "../../src/laws/executive/PresetAction.sol";
 import { Law } from "../../src/Law.sol";
+import { LawUtilities } from "../../src/LawUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
 //////////////////////////////////////////////////
@@ -15,10 +16,9 @@ import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
 //////////////////////////////////////////////////
 contract DeployTest is TestSetupLaw {
     using ShortStrings for *;
-    ILaw.LawChecks LawChecks;
 
     function testDeploy() public {
-        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, LawChecks);
+        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, Conditions);
 
         string memory lawMockName = lawMock.name().toString();
 
@@ -34,17 +34,17 @@ contract DeployTest is TestSetupLaw {
             );
         vm.expectEmit(false, false, false, false);
         emit Law__Initialized(
-            payable(address(0)), "Mock Law", "This is a mock law contract", address(123), ROLE_ONE, LawChecks, params
+            payable(address(0)), "Mock Law", "This is a mock law contract", address(123), ROLE_ONE, Conditions, params
         );
-        new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, LawChecks);
+        new OpenAction("Mock Law", "This is a mock law contract", payable(address(123)), ROLE_ONE, Conditions);
     }
 
     function testLawRevertsIfNotCalledFromPowers() public {
         lawCalldata = abi.encode([address(123)], [0], ["0x0"]);
-        string memory description = "Executing a proposal vote";
-        address powers = address(123);
+        description = "Executing a proposal vote";
+        address powersTemp = address(123);
 
-        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(powers), ROLE_ONE, LawChecks);
+        Law lawMock = new OpenAction("Mock Law", "This is a mock law contract", payable(powersTemp), ROLE_ONE, Conditions);
 
         vm.prank(address(1)); // =! powers
         vm.expectRevert(Law__OnlyPowers.selector);
@@ -59,16 +59,16 @@ contract NeedsProposalVoteTest is TestSetupLaw {
     function testExecuteLawSucceedsWithSuccessfulVote() public {
         // prep: create a proposal
         uint32 lawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
 
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
+        actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(actionId, FOR);
@@ -88,16 +88,16 @@ contract NeedsProposalVoteTest is TestSetupLaw {
     function testLawRevertsWithUnsuccessfulVote() public {
         // prep: create a proposal
         uint32 lawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
 
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
+        actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(actionId, AGAINST);
@@ -106,7 +106,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         vm.roll(block.number + 4000); // forward in time
 
         // act & assert
-        vm.expectRevert(Law__ProposalNotSucceeded.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -114,13 +114,13 @@ contract NeedsProposalVoteTest is TestSetupLaw {
     function testLawRevertsIfVoteStillActive() public {
         // prep: create a proposal
         uint32 lawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         vm.prank(alice);
         daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // act & assert
-        vm.expectRevert(Law__ProposalNotSucceeded.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -131,15 +131,15 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         // prep: create a parent proposal, vote & execute.
         uint32 lawNumber = 1;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // First execute parent law
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, FOR);
@@ -171,15 +171,15 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         // prep: create a parent proposal and have it be defeated
         uint32 lawNumber = 1;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // Create and vote against parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, AGAINST);
@@ -192,7 +192,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         assertEq(uint8(parentState), uint8(ActionState.Defeated));
 
         // Attempt to execute dependent law - should revert
-        vm.expectRevert(Law__ParentNotCompleted.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ParentNotCompleted.selector);    
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -201,15 +201,15 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         // prep: create a parent proposal that succeeds vote but isn't executed
         uint32 lawNumber = 1;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // Create and vote for parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, FOR);
@@ -222,7 +222,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         assertEq(uint8(parentState), uint8(ActionState.Succeeded));
 
         // Attempt to execute dependent law - should revert
-        vm.expectRevert(Law__ParentNotCompleted.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ParentNotCompleted.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -233,15 +233,15 @@ contract ParentCanBlockTest is TestSetupLaw {
         // prep: create a parent proposal and execute it
         uint32 lawNumber = 2;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // Create and vote for parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, FOR);
@@ -258,7 +258,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         assertEq(uint8(parentState), uint8(ActionState.Fulfilled));
 
         // Attempt to execute blocked law - should revert
-        vm.expectRevert(Law__ParentBlocksCompletion.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ParentBlocksCompletion.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -267,15 +267,15 @@ contract ParentCanBlockTest is TestSetupLaw {
         // prep: create a parent proposal and have it be defeated
         uint32 lawNumber = 2;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // Create and vote against parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote against the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, AGAINST);
@@ -303,15 +303,15 @@ contract ParentCanBlockTest is TestSetupLaw {
         // prep: create a parent proposal that succeeds vote but isn't executed
         uint32 lawNumber = 2;
         uint32 parentLawNumber = 0;
-        string memory description = "Executing a proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a proposal vote";
+        lawCalldata = abi.encode(true);
         
         // Create and vote for parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(laws[parentLawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(parentActionId, FOR);
@@ -340,13 +340,13 @@ contract DelayProposalExecutionTest is TestSetupLaw {
     function testExecuteLawSucceedsAfterDelay() public {
         // prep: create a proposal
         uint32 lawNumber = 3;
-        string memory description = "Executing a delayed proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a delayed proposal vote";
+        lawCalldata = abi.encode(true);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
+        actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(actionId, FOR);
@@ -365,13 +365,13 @@ contract DelayProposalExecutionTest is TestSetupLaw {
     function testExecuteLawRevertsBeforeDelay() public {
         // prep: create a proposal
         uint32 lawNumber = 3;
-        string memory description = "Executing a delayed proposal vote";
-        bytes memory lawCalldata = abi.encode(true);
+        description = "Executing a delayed proposal vote";
+        lawCalldata = abi.encode(true);
         vm.prank(alice);
-        uint256 actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
+        actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
 
         // Loop through users, they vote for the proposal
-        for (uint256 i = 0; i < users.length; i++) {
+        for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
                 vm.prank(users[i]);
                 daoMock.castVote(actionId, FOR);
@@ -379,7 +379,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         }
         vm.roll(block.number + 4000); // forward in time, but NOT past the delay.
         // act & assert
-        vm.expectRevert(Law__DeadlineNotPassed.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__DeadlineNotPassed.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
     }
@@ -391,10 +391,10 @@ contract LimitExecutionsTest is TestSetupLaw {
         uint32 lawNumber = 4;
         uint256 numberOfExecutions = 5;
         uint256 numberOfBlockBetweenExecutions = 15;
-        bytes memory lawCalldata = abi.encode(true);
+        lawCalldata = abi.encode(true);
 
         // act
-        for (uint256 i = 0; i < numberOfExecutions; i++) {
+        for (i = 0; i < numberOfExecutions; i++) {
             vm.roll(block.number + block.number + numberOfBlockBetweenExecutions);
             vm.prank(alice);
             daoMock.request(laws[lawNumber], lawCalldata, nonce, string(abi.encode(i)));
@@ -409,7 +409,7 @@ contract LimitExecutionsTest is TestSetupLaw {
     function testExecuteRevertsIfGapTooSmall() public {
         // prep: execute 10 times
         uint32 lawNumber = 4;
-        bytes memory lawCalldata = abi.encode(true);
+        lawCalldata = abi.encode(true);
         // prep: execute once...
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, "first execute");
@@ -417,9 +417,8 @@ contract LimitExecutionsTest is TestSetupLaw {
         // act & assert: execute twice, very soon after.
         vm.roll(block.number + 5);
         nonce++;
-        vm.expectRevert(Law__ExecutionGapTooSmall.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);
         vm.prank(alice);
         daoMock.request(laws[lawNumber], lawCalldata, nonce, "second execute");
     }
 }
-

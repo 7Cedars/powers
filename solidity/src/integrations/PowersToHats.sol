@@ -38,7 +38,7 @@ contract PowersToHats is Powers {
 
     event PowerToHats__Initialised(uint256 topHatId);
 
-    constructor(string memory name_, string memory uri_, address hats_, string memory details, string memory imageURI) Powers(name_, uri_) {
+    constructor(string memory name_, string memory uri_, string memory details, string memory imageURI) Powers(name_, uri_) {
         (bool success, bytes memory data) = HATS_ADDRESS.call(abi.encodeWithSignature("mintTopHat(address,string,string)", address(this), details, imageURI));
         if (!success) {
             revert PowersToHats__MintFailed();
@@ -73,18 +73,27 @@ contract PowersToHats is Powers {
         return balance > 0 || allowedRole == PUBLIC_ROLE;
     }
 
+    // @dev override _countMembersRole to count the number of members in a role using the Hats contract.
+    // Necessary for votes to work properly.  
+    function _countMembersRole(uint256 roleId) internal view override returns (uint256 amountMembers) {
+        (bool success, bytes memory data) = HATS_ADDRESS.staticcall(abi.encodeWithSignature("viewHat(uint256)", roleId));
+        if (!success) {
+            revert PowersToHats__CallFailed(msg.sender, roleId);
+        }
+        ( , , uint32 memberAmount , , , , , , ) = abi.decode(data, (string, uint32, uint32, address, address, string, uint16, bool, bool));
+
+        return uint256(memberAmount);
+    }
+
     /////////////////////////////////////////////////////////////////
     //            DISABLED ROLE MANAGEMENT FUNCTIONS               //
     // All role related function are handled by the Hats protocol. //
     /////////////////////////////////////////////////////////////////
     /// @dev disabled functions
-    function assignRole(uint256 roleId, address account) public override onlyPowers {
+    function _setRole(uint256 roleId, address account, bool access) internal override {
         revert PowersToHats__FunctionDisabled();
     }
-    /// @dev disabled functions
-    function revokeRole(uint256 roleId, address account) public override onlyPowers {
-        revert PowersToHats__FunctionDisabled();
-    }
+    
     /// @dev disabled functions
     function labelRole(uint256 roleId, string memory label) public override onlyPowers {
         revert PowersToHats__FunctionDisabled();

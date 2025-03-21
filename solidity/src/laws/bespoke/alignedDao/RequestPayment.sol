@@ -19,21 +19,21 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../../Law.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
     
 contract RequestPayment is Law {
     address public erc1155;
     uint256 public tokenId;
     uint256 public amount;
     uint48 public delay;
-    LawUtils.TransactionsByAccount private transactions;
+    LawUtilities.TransactionsByAccount private transactions;
 
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         address erc1155_,
         uint256 tokenId_,
         uint256 amount_,
@@ -55,10 +55,10 @@ contract RequestPayment is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
-        LawUtils.checkThrottle(transactions, caller, delay);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        LawUtilities.checkThrottle(transactions, caller, delay);
 
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         stateChange = abi.encode(caller); // needed to log the transaction
 
         targets[0] = erc1155;
@@ -73,6 +73,6 @@ contract RequestPayment is Law {
 
     function _changeState(bytes memory stateChange) internal override {
         address caller = abi.decode(stateChange, (address));
-        LawUtils.logTransaction(transactions, caller, uint48(block.number));
+        LawUtilities.logTransaction(transactions, caller, uint48(block.number));
     }
 }

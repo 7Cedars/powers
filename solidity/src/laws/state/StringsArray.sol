@@ -21,7 +21,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract StringsArray is Law {
     // the state vars that this law manages: community strings.
@@ -36,7 +36,7 @@ contract StringsArray is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "string String", 
@@ -51,7 +51,7 @@ contract StringsArray is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 

@@ -24,17 +24,17 @@ import { Powers} from "../../../Powers.sol";
 import { Grant } from "./Grant.sol";
 import { StartGrant } from "./StartGrant.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 contract StopGrant is Law {
-    LawChecks public configNewGrants; // config for new grants.
+    LawUtilities.Conditions public configNewGrants; // config for new grants.
     
     constructor(
         string memory name_,    
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_ // this is the configuration for creating new grants, not of the grants themselves.
+        LawUtilities.Conditions memory config_ // this is the configuration for creating new grants, not of the grants themselves.
     ) Law(name_, powers_, allowedRole_, config_) {
 
         bytes memory params = abi.encode(
@@ -56,7 +56,7 @@ contract StopGrant is Law {
             configNewGrants.votingPeriod,
             configNewGrants.quorum,
             configNewGrants.succeedAt,
-            ) = StartGrant(config.needCompleted).configNewGrants(); 
+            ) = StartGrant(conditions.needCompleted).configNewGrants(); 
     }
 
     function handleRequest(address, /*caller*/ bytes memory lawCalldata, uint256 nonce)
@@ -67,7 +67,7 @@ contract StopGrant is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode data from stateChange
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (
             string memory name,
             string memory description,
@@ -79,7 +79,7 @@ contract StopGrant is Law {
         ) = abi.decode(lawCalldata, (string, string, uint48, uint256, address, uint32, address));
 
         // step 1: calculate address at which grant will be created.
-        address grantAddress = StartGrant(config.needCompleted).getGrantAddress(
+        address grantAddress = StartGrant(conditions.needCompleted).getGrantAddress(
             name, description, duration, budget, tokenAddress, grantCouncil, proposals
             );
 
@@ -92,7 +92,7 @@ contract StopGrant is Law {
         }
 
         // step 3: create arrays
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         stateChange = abi.encode("");
 
         // step 4: fill out arrays with data

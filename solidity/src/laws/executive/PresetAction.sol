@@ -22,7 +22,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PresetAction is Law {
     /// the targets, values and calldatas to be used in the calls: set at construction.
@@ -45,7 +45,7 @@ contract PresetAction is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         // specific to preset action
         address[] memory targets_,
         uint256[] memory values_,
@@ -65,7 +65,7 @@ contract PresetAction is Law {
         override
         returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, "");  
     }
 }

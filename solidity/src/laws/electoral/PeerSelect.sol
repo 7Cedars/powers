@@ -24,7 +24,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { NominateMe } from "../state/NominateMe.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PeerSelect is Law { 
     uint256 public immutable MAX_ROLE_HOLDERS;
@@ -37,7 +37,7 @@ contract PeerSelect is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         uint256 maxRoleHolders_,
         uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
@@ -58,11 +58,11 @@ contract PeerSelect is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        address nominees = config.readStateFrom;  
+        address nominees = conditions.readStateFrom;  
         (uint256 index, bool assign) = abi.decode(lawCalldata, (uint256, bool));
 
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers;
 
         if (assign) {
@@ -81,7 +81,7 @@ contract PeerSelect is Law {
         (uint256 index, bool assign) = abi.decode(stateChange, (uint256, bool));
 
         if (assign) {
-            address nominees = config.readStateFrom; 
+            address nominees = conditions.readStateFrom; 
             address accountElect = NominateMe(nominees).nomineesSorted(index);
             _electedSorted.push(accountElect);
         } else {

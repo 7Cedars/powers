@@ -20,7 +20,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { Erc721Mock } from "../../../../test/mocks/Erc721Mock.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 contract ReinstateRole is Law {
     uint32 constant ROLE_ID = 1;
@@ -31,7 +31,7 @@ contract ReinstateRole is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         address erc721Token_
     ) Law(name_, powers_, allowedRole_, config_) {
         erc721Token = erc721Token_;
@@ -48,10 +48,10 @@ contract ReinstateRole is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
         
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(2);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
         // action 0: revoke role member in powers
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);

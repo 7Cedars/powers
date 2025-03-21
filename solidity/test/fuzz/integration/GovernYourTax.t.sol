@@ -95,7 +95,7 @@ pragma solidity 0.8.26;
 //         );
 
 //         // step 0 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[1]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[1]).conditions();
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100; 
 //         // role forward in time. 
@@ -143,7 +143,7 @@ pragma solidity 0.8.26;
 //             console.log("step 1 votes: ", againstVote, forVote, abstainVote);
 
 //             // step 1 results.
-//             (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).config();
+//             (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).conditions();
 //             console.log("step 1 config: ", quorum, succeedAt, votingPeriod);
 //             quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //             voteSucceeded = roleCount * succeedAt <= forVote * 100; 
@@ -186,7 +186,7 @@ pragma solidity 0.8.26;
 //             console.log("step 2 votes: ", againstVote, forVote, abstainVote);
 
 //              // step 2 results.
-//             (quorum, succeedAt, votingPeriod,,,,,) = Law(grantAddress).config();
+//             (quorum, succeedAt, votingPeriod,,,,,) = Law(grantAddress).conditions();
 //             console.log("step 2 config: ", quorum, succeedAt, votingPeriod);
 //             quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //             voteSucceeded = roleCount * succeedAt <= forVote * 100; 
@@ -281,7 +281,7 @@ pragma solidity 0.8.26;
 //         );
 
 //         // step 0 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[3]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[3]).conditions();
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100; 
 //         // role forward in time. 
@@ -322,7 +322,7 @@ pragma solidity 0.8.26;
 //         );
 
 //         // step 1 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[4]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[4]).conditions();
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100; 
 //         // role forward in time. 
@@ -386,7 +386,7 @@ pragma solidity 0.8.26;
 //         );
 
 //         // step 0 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[5]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[5]).conditions();
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100; 
 //         // role forward in time. 
@@ -426,7 +426,7 @@ pragma solidity 0.8.26;
 //         );
 
 //         // step 1 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[6]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[6]).conditions();
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100; 
 //         // role forward in time. 

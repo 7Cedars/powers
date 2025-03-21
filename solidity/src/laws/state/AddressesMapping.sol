@@ -22,7 +22,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract AddressesMapping is Law { 
     mapping(address => bool) public addresses;
@@ -35,7 +35,7 @@ contract AddressesMapping is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "address Account", 
@@ -59,7 +59,7 @@ contract AddressesMapping is Law {
             revert ("Already false.");
         }
 
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
     

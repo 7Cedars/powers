@@ -43,7 +43,7 @@ import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { ElectionVotes } from "../state/ElectionVotes.sol";
 import { ElectionCall } from "./ElectionCall.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract ElectionTally is Law { 
     struct Data {
@@ -63,7 +63,7 @@ contract ElectionTally is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "string Description", // description = a description of the election.
@@ -80,7 +80,7 @@ contract ElectionTally is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {   
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         
         // saving the following in state vars to a struct avoid 'stack too deep' errors.
         Data memory data;
@@ -89,10 +89,10 @@ contract ElectionTally is Law {
         (data.description, data.startVote, data.endVote) =
             abi.decode(lawCalldata, (string, uint48, uint48));
         // step 0b: retrieving data from ElectionCall contract. 
-        data.electionVotes = ElectionCall(config.needCompleted).electionVotes();
-        data.maxRoleHolders = ElectionCall(config.needCompleted).MAX_ROLE_HOLDERS();
-        data.electedRoleId = ElectionCall(config.needCompleted).ELECTED_ROLE_ID();
-        ( , , , data.nominees, , , , ) =  ElectionCall(config.needCompleted).config();
+        data.electionVotes = ElectionCall(conditions.needCompleted).electionVotes();
+        data.maxRoleHolders = ElectionCall(conditions.needCompleted).MAX_ROLE_HOLDERS();
+        data.electedRoleId = ElectionCall(conditions.needCompleted).ELECTED_ROLE_ID();
+        ( , , , data.nominees, , , , ) =  ElectionCall(conditions.needCompleted).conditions();
         
         // step 1: run additional checks
         if (!Powers(powers).getActiveLaw(data.electionVotes)) {
@@ -112,7 +112,7 @@ contract ElectionTally is Law {
         uint256 arrayLength =
             numberNominees < data.maxRoleHolders ? numberRevokees + numberNominees + 1 : numberRevokees + data.maxRoleHolders + 1;
 
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(arrayLength); 
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength); 
         for (uint256 i; i < arrayLength; i++) {
             targets[i] = powers;
         }

@@ -12,22 +12,127 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title LawUtils - Utility Functions for Powers Protocol Laws
+/// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
 /// @dev Provides common functionality for law implementation and validation
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-import { ERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import { Powers } from "../Powers.sol";
- 
-library LawUtils {
+import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import { Powers } from "./Powers.sol";
+import { ILaw } from "./interfaces/ILaw.sol";
+import { PowersTypes } from "./interfaces/PowersTypes.sol";    
+
+
+library LawUtilities {
+    //////////////////////////////////////////////////////////////
+    //                        ERRORS                            //
+    //////////////////////////////////////////////////////////////
+    error LawUtilities__ParentNotCompleted();
+    error LawUtilities__ParentBlocksCompletion();
+    error LawUtilities__ExecutionGapTooSmall();
+    error LawUtilities__ProposalNotSucceeded();
+    error LawUtilities__DeadlineNotPassed();
+    
+    //////////////////////////////////////////////////////////////
+    //                  STORAGE POINTERS                        //
+    //////////////////////////////////////////////////////////////
+
     /// @notice Structure to track transactions by account address
     /// @dev Uses a mapping to store arrays of block numbers for each account
     struct TransactionsByAccount {
         mapping(address account => uint48[] blockNumber) transactions;
     }
-    
+
+    /// @notice Structure to track conditions for a law
+    /// @dev Uses a mapping to store arrays of block numbers for each account
+    struct Conditions {
+        // Slot 1
+        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
+        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
+        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
+        // Slot 2  
+        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
+        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
+        uint8 quorum;              // 1 byte   - Required participation percentage
+        uint8 succeedAt;           // 1 byte   - Required success percentage
+        // Slot 3
+        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
+    }
+
+    /////////////////////////////////////////////////////////////
+    //                  CHECKS                                 //
+    /////////////////////////////////////////////////////////////
+
+    /// @notice Checks if a parent law has been completed
+    /// @dev Checks if a parent law has been completed
+    /// @param conditions The conditionsuration parameters for the law
+    /// @param lawCalldata The calldata of the law
+    /// @param nonce The nonce of the law
+    function baseChecksAtPropose(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers)
+        internal
+        view
+      {
+        // Check if parent law completion is required
+        if (conditions.needCompleted != address(0)) {
+            uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
+                revert LawUtilities__ParentNotCompleted();
+            }
+        }
+
+        // Check if parent law must not be completed
+        if (conditions.needNotCompleted != address(0)) {
+            uint256 parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
+                revert LawUtilities__ParentBlocksCompletion();
+            }
+        }
+    }
+
+    /// @notice Checks if a parent law has been completed
+    /// @dev Checks if a parent law has been completed
+    /// @param conditions The conditionsuration parameters for the law
+    /// @param lawCalldata The calldata of the law
+    /// @param nonce The nonce of the law
+    function baseChecksAtExecute(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers, uint48[] memory executions)
+        internal
+        view
+    {
+        // Check execution throttling
+        if (conditions.throttleExecution != 0) {
+            uint256 numberOfExecutions = executions.length - 1;
+            if (executions[numberOfExecutions] != 0 && 
+                block.number - executions[numberOfExecutions] < conditions.throttleExecution) {
+                revert LawUtilities__ExecutionGapTooSmall();
+            }
+        }
+
+        // Check if proposal vote succeeded
+        if (conditions.quorum != 0) {
+            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
+                revert LawUtilities__ProposalNotSucceeded();
+            }
+        }
+
+        // Check execution delay after proposal
+        if (conditions.delayExecution != 0) {
+            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
+            if (deadline + conditions.delayExecution > block.number) {
+                revert LawUtilities__DeadlineNotPassed();
+            }
+        }
+    }
+
+
+    /////////////////////////////////////////////////////////////
+    //                  FUNCTIONS                              //
+    /////////////////////////////////////////////////////////////
+
     /// @notice Creates a unique identifier for an action
     /// @dev Hashes the combination of law address, calldata, and nonce
     /// @param targetLaw Address of the law contract being called

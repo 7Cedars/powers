@@ -19,7 +19,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 contract NftSelfSelect is Law {
     uint256 public roleId;
@@ -30,7 +30,7 @@ contract NftSelfSelect is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         uint256 roleId_,
         address erc721Token_
     ) Law(name_, powers_, allowedRole_, config_) {
@@ -46,10 +46,10 @@ contract NftSelfSelect is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        LawUtils.nftCheck(caller, erc721Token);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        LawUtilities.nftCheck(caller, erc721Token);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, caller);
 

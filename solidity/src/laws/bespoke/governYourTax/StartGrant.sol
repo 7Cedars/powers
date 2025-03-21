@@ -21,20 +21,20 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
 import { Grant } from "./Grant.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 // open zeppelin contracts
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract StartGrant is Law {
-    LawChecks public configNewGrants; // config for new grants.
+    LawUtilities.Conditions public configNewGrants; // config for new grants.
 
     constructor(
         string memory name_,
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_, // this is the configuration for creating new grants, not of the grants themselves.
+        LawUtilities.Conditions memory config_, // this is the configuration for creating new grants, not of the grants themselves.
         address proposals // the address where proposals to the grant are made.
     ) Law(name_, powers_, allowedRole_, config_) {
 
@@ -66,7 +66,7 @@ contract StartGrant is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode the calldata.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (
             string memory name,
             string memory description,
@@ -97,7 +97,7 @@ contract StartGrant is Law {
         }
 
         // step 4: create arrays
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         stateChange = abi.encode("");
 
         // step 5: fill out arrays with data

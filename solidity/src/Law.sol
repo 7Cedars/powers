@@ -24,7 +24,7 @@
 /// 5. Returning of data to the Powers protocol
 ///
 /// Laws can be customized through:
-/// - Configuring checks in the constructor
+/// - conditionsuring checks in the constructor
 /// - Inheriting and implementing bespoke logic in the {handleRequest} {_replyPowers} and {_changeState} functions. 
 ///
 /// @author 7Cedars
@@ -32,6 +32,7 @@ pragma solidity 0.8.26;
 
 import { Powers } from "./Powers.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";
+import { LawUtilities } from "./LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
@@ -43,7 +44,6 @@ contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
-
     /// @notice Name of the law
     ShortString public immutable name;
 
@@ -53,8 +53,8 @@ contract Law is ERC165, ILaw {
     /// @notice Address of the Powers protocol contract
     address payable public powers;
 
-    /// @notice Configuration parameters for the law
-    LawChecks public config;
+    /// @notice conditionsuration parameters for the law
+    LawUtilities.Conditions public conditions;
 
     /// @notice History of law executions (block numbers)
     /// @dev First element is always 0
@@ -68,12 +68,12 @@ contract Law is ERC165, ILaw {
     /// @param name_ The name of the law
     /// @param powers_ The address of the Powers protocol
     /// @param allowedRole_ The role ID required to interact with this law
-    /// @param config_ The configuration parameters for the law 
+    /// @param conditions_ The conditionsuration parameters for the law 
     constructor(
         string memory name_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory conditions_
     ) { 
         if (powers_ == address(0)) {
             revert Law__InvalidPowersContractAddress();
@@ -84,14 +84,14 @@ contract Law is ERC165, ILaw {
         name = name_.toShortString();
         powers = powers_;
         allowedRole = allowedRole_;
-        config = config_;
+        conditions = conditions_;
     }
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Executes the law's logic after validation
+    /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
     /// @dev Called by the Powers protocol during action execution
     /// @param caller Address that initiated the action
     /// @param lawCalldata Encoded function call data
@@ -146,7 +146,8 @@ contract Law is ERC165, ILaw {
     /// @notice Applies state changes from law execution
     /// @dev Must be overridden by implementing contracts
     /// @param stateChange Encoded state changes to apply
-    function _changeState(bytes memory stateChange) internal virtual {
+    function _changeState(bytes memory stateChange) internal virtual 
+    {
         // Empty implementation - must be overridden
     }
     
@@ -156,7 +157,8 @@ contract Law is ERC165, ILaw {
     /// @param targets Target contract addresses for calls
     /// @param values ETH values to send with calls
     /// @param calldatas Encoded function calls
-    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual 
+    {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
         Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
@@ -166,7 +168,6 @@ contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                     VALIDATION                           //
     //////////////////////////////////////////////////////////////
-
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
     /// @param lawCalldata Encoded function call data
@@ -176,23 +177,7 @@ contract Law is ERC165, ILaw {
         view
         virtual
     {
-        // Check if parent law completion is required
-        if (config.needCompleted != address(0)) {
-            uint256 parentActionId = _hashActionId(config.needCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
-                revert Law__ParentNotCompleted();
-            }
-        }
-
-        // Check if parent law must not be completed
-        if (config.needNotCompleted != address(0)) {
-            uint256 parentActionId = _hashActionId(config.needNotCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
-                revert Law__ParentBlocksCompletion();
-            }
-        }
+        LawUtilities.baseChecksAtPropose(conditions, lawCalldata, nonce, powers);
     }
 
     /// @notice Validates conditions required to execute an action
@@ -204,31 +189,7 @@ contract Law is ERC165, ILaw {
         view
         virtual
     {
-        // Check execution throttling
-        if (config.throttleExecution != 0) {
-            uint256 numberOfExecutions = executions.length - 1;
-            if (executions[numberOfExecutions] != 0 && 
-                block.number - executions[numberOfExecutions] < config.throttleExecution) {
-                revert Law__ExecutionGapTooSmall();
-            }
-        }
-
-        // Check if proposal vote succeeded
-        if (config.quorum != 0) {
-            uint256 actionId = _hashActionId(address(this), lawCalldata, nonce);
-            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
-                revert Law__ProposalNotSucceeded();
-            }
-        }
-
-        // Check execution delay after proposal
-        if (config.delayExecution != 0) {
-            uint256 actionId = _hashActionId(address(this), lawCalldata, nonce);
-            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
-            if (deadline + config.delayExecution > block.number) {
-                revert Law__DeadlineNotPassed();
-            }
-        }
+        LawUtilities.baseChecksAtExecute(conditions, lawCalldata, nonce, powers, executions);
     }
 
     //////////////////////////////////////////////////////////////
@@ -243,11 +204,4 @@ contract Law is ERC165, ILaw {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function _hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
-        internal
-        pure
-        returns (uint256 actionId)
-    {
-       actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
-    }
 }

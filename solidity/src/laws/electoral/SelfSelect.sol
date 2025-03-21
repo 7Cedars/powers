@@ -31,7 +31,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
-import { LawUtils } from "../LawUtils.sol"; 
+import { LawUtilities } from "../../LawUtilities.sol"; 
 
 contract SelfSelect is Law { 
     uint256 private immutable ROLE_ID;
@@ -41,7 +41,7 @@ contract SelfSelect is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         uint256 roleId_
     ) Law(name_, powers_, allowedRole_, config_) {
         ROLE_ID = roleId_;
@@ -57,8 +57,8 @@ contract SelfSelect is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 2: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         targets[0] = powers;
         if (Powers(payable(powers)).hasRoleSince(caller, ROLE_ID) != 0) {

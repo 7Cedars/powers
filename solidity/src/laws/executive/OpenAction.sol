@@ -27,7 +27,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol"; 
+import { LawUtilities } from "../../LawUtilities.sol"; 
 
 contract OpenAction is Law {
     /// @notice Constructor function for OpenAction contract.
@@ -43,7 +43,7 @@ contract OpenAction is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory config_
     )  Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode(
             "address[] Targets", 
@@ -71,7 +71,7 @@ contract OpenAction is Law {
         // note: no check on decoded call data. If needed, this can be added.
         (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
 
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targetsNew, valuesNew, calldatasNew, "");
     }
 }

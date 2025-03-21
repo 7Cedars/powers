@@ -54,7 +54,7 @@ pragma solidity 0.8.26;
 //         string memory description_,
 //         address payable powers_,
 //         uint256 allowedRole_,
-//         LawChecks memory config_,
+//         LawUtilities.Conditions memory config_,
 //         uint256 maxRoleHolders_,
 //         uint256 roleId_
 //     )  {
@@ -71,7 +71,7 @@ pragma solidity 0.8.26;
 //         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {
 //         // setting up array for revoking & assigning roles.
-//         address nominees = config.readStateFrom;  
+//         address nominees = conditions.readStateFrom;  
 //         uint256 numberNominees = NominateMe(nominees).nomineesCount();
 //         uint256 numberRevokees = electedAccounts.length;
 //         uint256 arrayLength =

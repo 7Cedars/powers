@@ -26,7 +26,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract NominateMe is Law { 
     mapping(address => uint48) public nominees;
@@ -41,7 +41,7 @@ contract NominateMe is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_
+        LawUtilities.Conditions memory config_
     ) Law(name_, powers_, allowedRole_, config_) {
         bytes memory params = abi.encode("bool NominateMe");
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
@@ -67,7 +67,7 @@ contract NominateMe is Law {
         }
 
         stateChange = abi.encode(caller, nominateMe); // encode the state
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas, stateChange);
     }

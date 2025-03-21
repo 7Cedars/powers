@@ -20,7 +20,7 @@ pragma solidity 0.8.26;
 // protocol
 import { Law } from "../../../Law.sol";
 import { Powers} from "../../../Powers.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 // open zeppelin contracts
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -38,7 +38,7 @@ contract Grant is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         //
         uint48 duration_,
         uint256 budget_,
@@ -53,7 +53,7 @@ contract Grant is Law {
         );
         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 
-        config.needCompleted = proposals_;
+        conditions.needCompleted = proposals_;
         expiryBlock = duration_ + uint48(block.number);
         budget = budget_;
         tokenAddress = tokenAddress_;
@@ -69,7 +69,7 @@ contract Grant is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode law calldata
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (address grantee, address grantAddress, uint256 quantity) = abi.decode(lawCalldata, (address, address, uint256));
 
         // step 1: run additional checks
@@ -81,7 +81,7 @@ contract Grant is Law {
         }
 
         // step 2: create arrays
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = tokenAddress;
         calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
         stateChange = abi.encode(quantity);

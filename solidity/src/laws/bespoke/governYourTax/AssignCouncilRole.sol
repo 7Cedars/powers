@@ -20,7 +20,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../../Law.sol";
 import { Powers } from "../../../Powers.sol";
 import { NominateMe } from "../../state/NominateMe.sol";
-import { LawUtils } from "../../LawUtils.sol";
+import { LawUtilities } from "../../../LawUtilities.sol";
 
 contract AssignCouncilRole is Law {
     uint32[] public councilRoles;
@@ -31,7 +31,7 @@ contract AssignCouncilRole is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         // bespoke 
         uint32[] memory councilRoles_
     )  Law(name_, powers_, allowedRole_, config_) {
@@ -49,7 +49,7 @@ contract AssignCouncilRole is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         // step 0: create actionId & decode the calldata.
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         (uint256 roleId, address account) = abi.decode(lawCalldata, (uint32, address));
         
         // step 1: check if the role is allowed.
@@ -64,12 +64,12 @@ contract AssignCouncilRole is Law {
             revert ("Role not allowed."); 
         }
         // step 2: check if the account is nominated.
-        if (NominateMe(config.readStateFrom).nominees(account) == 0) {
+        if (NominateMe(conditions.readStateFrom).nominees(account) == 0) {
             revert ("Account not nominated.");
         }
 
         // step 2: create the arrays.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, account);
 

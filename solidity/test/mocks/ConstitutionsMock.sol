@@ -8,7 +8,7 @@ import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Erc1155Mock } from "./Erc1155Mock.sol";
 import { DaoMock } from "./DaoMock.sol";
 import { BaseSetup } from "../TestSetup.t.sol";
-
+import { LawUtilities } from "../../src/LawUtilities.sol";
 // electoral laws
 import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
 import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
@@ -57,7 +57,7 @@ contract ConstitutionsMock is Test {
         returns (address[] memory laws)
     {
         Law law;
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
         laws = new address[](7);
 
         // dummy call.
@@ -72,7 +72,7 @@ contract ConstitutionsMock is Test {
             "Anyone can apply for 1",
             dao_,
             type(uint32).max, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             1
         );
         laws[0] = address(law);
@@ -82,17 +82,17 @@ contract ConstitutionsMock is Test {
             "Anyone can nominate themselves for 2",
             dao_,
             type(uint32).max, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[1] = address(law);
 
-        LawChecks.readStateFrom = laws[1]; // nominateMe
+        Conditions.readStateFrom = laws[1]; // nominateMe
         law = new DelegateSelect(
             "1 elects 2", // max 31 chars
             "1 holders can call (and pay for) a whale election at any time. They can also nominate themselves.",
             dao_,
             1,
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             mock20Votes_,
             15,
@@ -108,62 +108,62 @@ contract ConstitutionsMock is Test {
             "3 holders can make any proposal, without vote.",
             dao_,
             3,
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             params
         );
         laws[3] = address(law);
 
         // setting up config file
-        LawChecks.quorum = 20; // = 30% quorum needed
-        LawChecks.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 1200; // = number of blocks
-        LawChecks.needCompleted = laws[2];
+        Conditions.quorum = 20; // = 30% quorum needed
+        Conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 1200; // = number of blocks
+        Conditions.needCompleted = laws[2];
         // initiating law.
         law = new OpenAction(
             "2 accepts proposal", // max 31 chars
             "2 holders can vote on and accept proposal proposed by 3.",
             dao_,
             2, // access role
-            LawChecks
+            Conditions
         );
         // bespoke configs for this law:
         laws[4] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         // setting up config file
-        LawChecks.quorum = 30; // = 30% quorum needed
-        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 1200; // = number of blocks
+        Conditions.quorum = 30; // = 30% quorum needed
+        Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 1200; // = number of blocks
         // initiating law.
         law = new PresetAction(
             "1 votes on preset action", // max 31 chars
             "1 can vote on executing preset actions",
             dao_,
             1, // access role
-            LawChecks, // config file.
+            Conditions, // config file.
             // bespoke configs for this law:
             targets,
             values,
             calldatas
         );
         laws[5] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
-        LawChecks.throttleExecution = type(uint48).max - uint48(block.number);
+        Conditions.throttleExecution = type(uint48).max - uint48(block.number);
         law = new PresetAction(
             "Admin assigns initial roles",
             "The admin assigns initial roles. This law can only be used once.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         laws[6] = address(law);
-        delete LawChecks;
+        delete Conditions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -179,13 +179,13 @@ contract ConstitutionsMock is Test {
         laws = new address[](1);
 
         Law law;
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
         law = new OpenAction(
             "Admin can do anything", // max 31 chars
             "The admin has the power to execute any internal or external action.",
             dao_,
             0, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[0] = address(law);
     }
@@ -212,17 +212,17 @@ contract ConstitutionsMock is Test {
         calldatas[0] = abi.encodeWithSelector(Erc1155Mock.mintCoins.selector, 123);
 
         // setting up config file
-        ILaw.LawChecks memory LawChecks;
-        LawChecks.quorum = 20; // = 30% quorum needed
-        LawChecks.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 1200; // = number of blocks
+         LawUtilities.Conditions memory Conditions;
+        Conditions.quorum = 20; // = 30% quorum needed
+        Conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 1200; // = number of blocks
         // initiating law.
         law = new PresetAction(
             "Needs Proposal Vote", // max 31 chars
             "Needs Proposal Vote to pass",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             targets,
             values,
@@ -231,15 +231,15 @@ contract ConstitutionsMock is Test {
         laws[0] = address(law);
 
         // setting up config file
-        delete LawChecks;
-        LawChecks.needCompleted = laws[0];
+        delete Conditions;
+        Conditions.needCompleted = laws[0];
         // initiating law.
         law = new PresetAction(
             "Needs Parent Completed", // max 31 chars
             "Needs Parent Completed to pass",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             targets,
             values,
@@ -248,15 +248,15 @@ contract ConstitutionsMock is Test {
         laws[1] = address(law);
 
         // setting up config file
-        delete LawChecks;
-        LawChecks.needNotCompleted = laws[0];
+        delete Conditions;
+        Conditions.needNotCompleted = laws[0];
         // initiating law.
         law = new PresetAction(
             "Parent Can Block", // max 31 chars
             "Parent can block a law, making it impossible to pass",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             targets,
             values,
@@ -265,18 +265,18 @@ contract ConstitutionsMock is Test {
         laws[2] = address(law);
 
         // setting up config file
-        delete LawChecks;
-        LawChecks.quorum = 30; // = 30% quorum needed
-        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 1200; // = number of blocks
-        LawChecks.delayExecution = 5000;
+        delete Conditions;
+        Conditions.quorum = 30; // = 30% quorum needed
+        Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 1200; // = number of blocks
+        Conditions.delayExecution = 5000;
         // initiating law.
         law = new PresetAction(
             "Delay Execution", // max 31 chars
             "Delay execution of a law, by a preset number of blocks . ",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             targets,
             values,
@@ -285,15 +285,15 @@ contract ConstitutionsMock is Test {
         laws[3] = address(law);
 
         // setting up config file
-        delete LawChecks;
-        LawChecks.throttleExecution = 10;
+        delete Conditions;
+        Conditions.throttleExecution = 10;
         // initiating law.
         law = new PresetAction(
             "Throttle Executions", // max 31 chars
             "Throttle the number of executions of a by setting minimum time that should have passed since last execution.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             targets,
             values,
@@ -305,7 +305,7 @@ contract ConstitutionsMock is Test {
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
         // set config
         // setting the throttle to max means the law can only be called once.
-        LawChecks.throttleExecution = type(uint48).max - uint48(block.number);
+        Conditions.throttleExecution = type(uint48).max - uint48(block.number);
         // initiate law
         vm.startBroadcast();
         law = new PresetAction(
@@ -313,14 +313,14 @@ contract ConstitutionsMock is Test {
             "The admin assigns initial roles. This law can only be used once.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         vm.stopBroadcast();
         laws[5] = address(law);
-        delete LawChecks;
+        delete Conditions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -333,7 +333,7 @@ contract ConstitutionsMock is Test {
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](10);
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         // dummy params
         string[] memory params = new string[](0);
@@ -343,7 +343,7 @@ contract ConstitutionsMock is Test {
             "This is a placeholder nomination law.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[0] = address(law);
 
@@ -352,7 +352,7 @@ contract ConstitutionsMock is Test {
             "This is a placeholder nomination law.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[1] = address(law);
 
@@ -362,78 +362,78 @@ contract ConstitutionsMock is Test {
             "Directly select a role.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             3
         );
         laws[2] = address(law);
 
-        // // Note: all laws from here on keep the same config. 
-        // LawChecks.readStateFrom = laws[0];
+        // // Note: all laws from here on keep the same conditions. 
+        // Conditions.readStateFrom = laws[0];
         // law = new RandomlySelect(
         //     "Randomly select role", // max 31 chars
         //     "Randomly select a role.",
         //     dao_,
         //     1, // access role
-        //     LawChecks, // empty config file.
+        //     Conditions, // empty config file.
         //     // bespoke configs for this law:
         //     3, // max role holders
         //     3 // role id.
         // );
         // laws[3] = address(law);
         
-        LawChecks.readStateFrom = laws[0];
+        Conditions.readStateFrom = laws[0];
         law = new DelegateSelect(
             "Delegate Select", // max 31 chars
             "Select a role by delegated votes.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             mock20Votes_,
             3, // max role holders
             3 // role id.
         );
         laws[3] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
-        LawChecks.readStateFrom = laws[0]; // NominateMe.
+        Conditions.readStateFrom = laws[0]; // NominateMe.
         law = new ElectionCall(
             "Create Election", // max 31 chars
             "Create an election for role 3.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             2, // voter role id 
             3, // elected role id
             2 // max elected role holders
         );
         laws[4] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
-        LawChecks.needCompleted = laws[4]; // electionCall
+        Conditions.needCompleted = laws[4]; // electionCall
         law = new ElectionTally(
             "Tally an election", // max 31 chars
             "Count votes of an election called through the call election law and assign roles.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[5] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         law = new SelfSelect(
             "Self select role", // max 31 chars
             "Self select a role.",
             dao_,
             type(uint32).max, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             6 // role id.
         );
         laws[6] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         uint32[] memory allowedRoleIds = new uint32[](1);
         allowedRoleIds[0] = 3;
@@ -442,33 +442,33 @@ contract ConstitutionsMock is Test {
             "Renounce a role.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             allowedRoleIds
         );
         laws[7] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
-        LawChecks.readStateFrom = laws[0];
+        Conditions.readStateFrom = laws[0];
         law = new PeerSelect(
             "Peer select role", // max 31 chars
             "Peer select a role.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             2, // max role holders
             6 // role id.
         );
         laws[8] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
         // set config
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
         // config
         // setting the throttle to max means the law can only be called once.
-        LawChecks.throttleExecution = type(uint48).max - uint48(block.number);
+        Conditions.throttleExecution = type(uint48).max - uint48(block.number);
         // initiate law
         vm.startBroadcast();
         law = new PresetAction(
@@ -476,14 +476,14 @@ contract ConstitutionsMock is Test {
             "The admin assigns initial roles. This law can only be used once.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         vm.stopBroadcast();
         laws[9] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
     }
 
     //////////////////////////////////////////////////////////////
@@ -496,7 +496,7 @@ contract ConstitutionsMock is Test {
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](7);
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         // dummy call: mint coins at mock1155 contract.
         address[] memory targets = new address[](1);
@@ -510,28 +510,28 @@ contract ConstitutionsMock is Test {
         string[] memory params = new string[](0);
 
         // setting up config file
-        LawChecks.quorum = 30; // = 30% quorum needed
-        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 1200; // = number of blocks
+        Conditions.quorum = 30; // = 30% quorum needed
+        Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 1200; // = number of blocks
         // initiating law.
         law = new ProposalOnly(
             "Proposal Only With Vote", // max 31 chars
             "Proposal Only With Vote to pass.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             params
         );
         laws[0] = address(law);
-        delete LawChecks; // reset LawChecks.
+        delete Conditions; // reset Conditions.
 
         law = new OpenAction(
             "Open Action", // max 31 chars
             "Execute an action, any action.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[1] = address(law);
 
@@ -543,7 +543,7 @@ contract ConstitutionsMock is Test {
             "Execute any action, but confined by a contract and function selector.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             mock1155_, // target contract that can be called.
             Erc1155Mock.mintCoins.selector, // the function selector that can be called.
@@ -556,18 +556,18 @@ contract ConstitutionsMock is Test {
             "Proposal Only without vote or other checks.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             params
         );
         laws[3] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
 
         // config
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
         // setting the throttle to max means the law can only be called once.
-        LawChecks.throttleExecution = type(uint48).max - uint48(block.number);
+        Conditions.throttleExecution = type(uint48).max - uint48(block.number);
         // initiate law
         vm.startBroadcast();
         law = new PresetAction(
@@ -575,40 +575,40 @@ contract ConstitutionsMock is Test {
             "The admin assigns initial roles. This law can only be used once.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         vm.stopBroadcast();
         laws[4] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
 
         law = new SelfDestructAction(
             "Admin assigns initial roles",
             "The admin assigns initial roles. This law will self destruct when used.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         laws[5] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
 
         law = new SelfDestructAction(
             "Admin assigns initial roles",
             "The admin assigns initial roles. This law will self destruct when used.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         laws[6] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
     }
 
     //////////////////////////////////////////////////////////////
@@ -621,7 +621,7 @@ contract ConstitutionsMock is Test {
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](6);
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         // dummy params
         string[] memory params = new string[](0);
@@ -631,7 +631,7 @@ contract ConstitutionsMock is Test {
             "Free address mapping without additional checks.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[0] = address(law);
 
@@ -640,7 +640,7 @@ contract ConstitutionsMock is Test {
             "Save strings in an array. No additional checks.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[1] = address(law);
 
@@ -649,7 +649,7 @@ contract ConstitutionsMock is Test {
             "Save tokens in an array. No additional checks.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[2] = address(law);
 
@@ -658,38 +658,38 @@ contract ConstitutionsMock is Test {
             "This is a placeholder nomination law.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         );
         laws[3] = address(law);
 
-        LawChecks.readStateFrom = laws[3]; // nominate me
+        Conditions.readStateFrom = laws[3]; // nominate me
         law = new ElectionVotes(
             "Collect votes for an election", // max 31 chars
             "This is a placeholder election law.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             50, // start vote in block number
             75 // end vote in block number.
         );
         laws[4] = address(law);
-        delete LawChecks; 
+        delete Conditions; 
 
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_);
-        LawChecks.throttleExecution = type(uint48).max - uint48(block.number);
+        Conditions.throttleExecution = type(uint48).max - uint48(block.number);
         law = new PresetAction(
             "Admin assigns initial roles",
             "The admin assigns initial roles. This law can only be used once.",
             dao_, // separated powers
             0, // access role = ADMIN
-            LawChecks,
+            Conditions,
             targetsRoles,
             valuesRoles,
             calldatasRoles
         );
         laws[5] = address(law);
-        delete LawChecks; // reset LawChecks
+        delete Conditions; // reset Conditions
     }
 
     //////////////////////////////////////////////////////////////
@@ -703,7 +703,7 @@ contract ConstitutionsMock is Test {
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](4);
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         // initiating law.
         law = new NftSelfSelect(
@@ -711,7 +711,7 @@ contract ConstitutionsMock is Test {
             "Claim role 1, conditional on owning an NFT. See asset page for address of ERC721 contract.",
             dao_,
             type(uint32).max, // access role = public.
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             1,
             mock721_
         );
@@ -722,7 +722,7 @@ contract ConstitutionsMock is Test {
             "Anyone can revoke membership for role 1. This law is unrestricted for this test.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             mock721_
         );
         laws[1] = address(law);
@@ -732,18 +732,18 @@ contract ConstitutionsMock is Test {
             "Roles can be reinstated and NFTs returned. Note that this laws usually should be conditional on a needCompleted[RevokeMembership]",
             dao_,
             1, // access role
-            LawChecks,
+            Conditions,
             mock721_
         );
         laws[2] = address(law);
-        delete LawChecks;
+        delete Conditions;
 
         law = new RequestPayment(
             "Request preset payment", // max 31 chars
             "Every 100 blocks, role 1 holders can request payment of 5000 ERC20 tokens.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             mock20Taxed_,
             0, // tokenId
             5000, // amount
@@ -763,7 +763,7 @@ contract ConstitutionsMock is Test {
     ) external returns (address[] memory laws) {
         Law law;
         laws = new address[](7);
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         // grant input params.
         string[] memory inputParams = new string[](3);
@@ -776,7 +776,7 @@ contract ConstitutionsMock is Test {
             "Here anyone can make a proposal for a grant request.",
             dao_,
             1, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // bespoke configs for this law:
             inputParams
         );
@@ -788,7 +788,7 @@ contract ConstitutionsMock is Test {
             "A test grant that anyone can apply to until it is empty or it expires.",
             dao_,
             type(uint32).max, // access role = public.
-            LawChecks, // empty config file. 
+            Conditions, // empty config file. 
             // grant config
             2700, // duration
             5000, // budget
@@ -803,29 +803,29 @@ contract ConstitutionsMock is Test {
             "Start a grant with a bespoke role restriction, token, budget and duration.",
             dao_,
             2, // access role
-            LawChecks, // empty config file.
+            Conditions, // empty config file.
             // start grant config
             laws[0] // proposals that need to be completed before grant can be considered.
         );
         laws[2] = address(law);
         
-        LawChecks.needCompleted = laws[2]; // needs the exact grant to have been completed. 
+        Conditions.needCompleted = laws[2]; // needs the exact grant to have been completed. 
         law = new StopGrant(
             "Stop a grant", // max 31 chars
             "Delete Grant that has either expired or has spent its budget.",
             dao_,
             2, // access role
-            LawChecks
+            Conditions
         );
         laws[3] = address(law);
-        delete LawChecks; 
+        delete Conditions; 
 
         law = new RoleByTaxPaid(
             "(De)select role by tax paid", // max 31 chars
             "(De)select an account for role 3 on the basis of tax paid.",
             dao_,
             2, // access role
-            LawChecks,
+            Conditions,
             3, // role Id to be assigned
             mock20Taxed_,
             100 // threshold tax paid per epoch.
@@ -837,11 +837,11 @@ contract ConstitutionsMock is Test {
             "This is a placeholder nomination law.",
             dao_,
             1, // access role
-            LawChecks // empty config file.
+            Conditions // empty config file.
         ); 
         laws[5] = address(law);
 
-        LawChecks.readStateFrom = laws[5]; // nominate me
+        Conditions.readStateFrom = laws[5]; // nominate me
         uint32[] memory allowedRoles = new uint32[](3);
         allowedRoles[0] = 4; // council A
         allowedRoles[1] = 5; // council B
@@ -851,11 +851,11 @@ contract ConstitutionsMock is Test {
             "Assign accounts to grant council A (role 4), B (role 5) or C (role 6).",
             dao_,
             2, // access role
-            LawChecks,
+            Conditions,
             allowedRoles
         );
         laws[6] = address(law);
-        delete LawChecks;
+        delete Conditions;
     }
 
     //////////////////////////////////////////////////////////////

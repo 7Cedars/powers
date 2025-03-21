@@ -20,25 +20,26 @@ pragma solidity 0.8.26;
 
 import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import { LawErrors } from "./LawErrors.sol";
+import { LawUtilities } from "../LawUtilities.sol";
 
 interface ILaw is IERC165, LawErrors {
     //////////////////////////////////////////////////////////////
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
 
-    struct LawChecks {
-        // Slot 1
-        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
-        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
-        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
-        // Slot 2  
-        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
-        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
-        uint8 quorum;              // 1 byte   - Required participation percentage
-        uint8 succeedAt;           // 1 byte   - Required success percentage
-        // Slot 3
-        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
-    }
+    // struct Conditions {
+    //     // Slot 1
+    //     address needCompleted;      // 20 bytes - Address of law that must be completed before this one
+    //     uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
+    //     uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
+    //     // Slot 2  
+    //     address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
+    //     uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
+    //     uint8 quorum;              // 1 byte   - Required participation percentage
+    //     uint8 succeedAt;           // 1 byte   - Required success percentage
+    //     // Slot 3
+    //     address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
+    // }
 
     //////////////////////////////////////////////////////////////
     //                        EVENTS                            //
@@ -50,14 +51,14 @@ interface ILaw is IERC165, LawErrors {
     /// @param description Description of the law's purpose
     /// @param powers Address of the Powers protocol contract
     /// @param allowedRole Role ID required to interact with this law
-    /// @param checks Checks for the law
+    /// @param conditions Conditions for the law
     event Law__Initialized(
         address indexed law,
         string name,
         string description,
         address indexed powers,
         uint256 allowedRole,
-        LawChecks checks,
+        LawUtilities.Conditions conditions,
         bytes params
     );
 

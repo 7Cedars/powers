@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/utils/ShortStrings.sol";
 import { Powers } from "../../../src/Powers.sol";
 import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { Law } from "../../../src/Law.sol";
+import { LawUtilities } from "../../../src/LawUtilities.sol";
 import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
 import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { SelfDestructAction } from "../../../src/laws/executive/SelfDestructAction.sol";
@@ -156,7 +157,7 @@ contract SelfDestructActionTest is TestSetupExecutive {
         customValues[0] = 100;
         customCalldatas[0] = hex"abcd";
 
-        Law.LawChecks memory config;
+        LawUtilities.Conditions memory config;
         SelfDestructAction newLaw = new SelfDestructAction(
             "CustomSelfDestruct",
             "Custom self destruct law",

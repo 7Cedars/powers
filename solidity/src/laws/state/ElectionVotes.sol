@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { NominateMe } from "./NominateMe.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract ElectionVotes is Law { 
     // the state vars that this law manages: community strings.
@@ -44,7 +44,7 @@ contract ElectionVotes is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         // bespoke params
         uint48 startVote_,
         uint48 endVote_
@@ -77,13 +77,13 @@ contract ElectionVotes is Law {
         (address vote) = abi.decode(lawCalldata, (address));
         // step 2: create & data arrays 
         stateChange = abi.encode(vote, caller);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
         return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes memory stateChange) internal override {
         (address nominee, address caller) = abi.decode(stateChange, (address, address));
-        uint48 since = NominateMe(config.readStateFrom).nominees(nominee);
+        uint48 since = NominateMe(conditions.readStateFrom).nominees(nominee);
 
         // step 3: save vote
         if (since == 0) {

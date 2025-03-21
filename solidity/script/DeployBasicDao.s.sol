@@ -7,6 +7,7 @@ import "lib/forge-std/src/Script.sol";
 import { Powers} from "../src/Powers.sol";
 import { Law } from "../src/Law.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
+import { LawUtilities } from "../src/LawUtilities.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 // laws
@@ -72,7 +73,7 @@ contract DeployBasicDao is Script {
         address payable mock20votes_
         ) public {
         Law law;
-        ILaw.LawChecks memory LawChecks;
+         LawUtilities.Conditions memory Conditions;
 
         //////////////////////////////////////////////////////////////
         //              CHAPTER 1: EXECUTIVE ACTIONS                //
@@ -83,10 +84,10 @@ contract DeployBasicDao is Script {
         inputParams[0] = "address[] Targets"; // targets
         inputParams[1] = "uint256[] Values"; // values
         inputParams[2] = "bytes[] Calldatas"; // calldatas
-        // setting config.
-        LawChecks.quorum = 66; // = Two thirds quorum needed to pass the proposal
-        LawChecks.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        // setting conditions.
+        Conditions.quorum = 66; // = Two thirds quorum needed to pass the proposal
+        Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
+        Conditions.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
         // initiating law
         vm.startBroadcast();
         law = new ProposalOnly(
@@ -94,36 +95,36 @@ contract DeployBasicDao is Script {
             "Seniors can propose new actions to be executed. They cannot implement them.",
             dao_,
             2, // access role
-            LawChecks,
+            Conditions,
             inputParams
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete LawChecks;
+        delete Conditions;
 
         // law[1]
-        LawChecks.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
+        Conditions.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
         vm.startBroadcast();
         law = new ProposalOnly(
             "Veto an action",
             "The admin can veto any proposed action. They can only veto after a proposed action has been formalised.",
             dao_,
             0, // access role
-            LawChecks,
+            Conditions,
             inputParams
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete LawChecks;
+        delete Conditions;
 
         // law[2]
-        // setting config.
-        LawChecks.quorum = 51; // = 51 majority of seniors need to vote.
-        LawChecks.succeedAt = 66; // =  two/thirds majority FOR vote needed to pass.
-        LawChecks.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-        LawChecks.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
-        LawChecks.needNotCompleted = laws[1]; // needs the admin NOT to have cast a veto.
-        LawChecks.delayExecution = 450; // = duration in number of blocks to vote, about half an hour.
+        // setting conditions.
+        Conditions.quorum = 51; // = 51 majority of seniors need to vote.
+        Conditions.succeedAt = 66; // =  two/thirds majority FOR vote needed to pass.
+        Conditions.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
+        Conditions.needCompleted = laws[0]; // needs the proposal by Delegates to be completed.
+        Conditions.needNotCompleted = laws[1]; // needs the admin NOT to have cast a veto.
+        Conditions.delayExecution = 450; // = duration in number of blocks to vote, about half an hour.
         // initiate law
         vm.startBroadcast();
         law = new OpenAction(
@@ -131,11 +132,11 @@ contract DeployBasicDao is Script {
             "Members can execute actions that seniors proposed and passed the proposal vote. They can only be execute if the admin did not cast a veto.",
             dao_, // separated powers
             1, // access role
-            LawChecks
+            Conditions
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete LawChecks;
+        delete Conditions;
 
         //////////////////////////////////////////////////////////////
         //              CHAPTER 2: ELECT ROLES                      //
@@ -148,28 +149,28 @@ contract DeployBasicDao is Script {
             "Anyone can nominate themselves for a senior role.",
             dao_,
             type(uint32).max, // access role = public access
-            LawChecks
+            Conditions
         );
         vm.stopBroadcast();
         laws.push(address(law));
 
         // law[4]
         vm.startBroadcast();
-        LawChecks.throttleExecution = 300; // once every hour
-        LawChecks.readStateFrom = laws[3]; // nominateMe
+        Conditions.throttleExecution = 300; // once every hour
+        Conditions.readStateFrom = laws[3]; // nominateMe
         law = new DelegateSelect(
             "Call senior election", // max 31 chars
             "Anyone can call (and pay for) an election to assign seniors. The nominated accounts with most delegated vote tokens will be assigned as seniors. The law can only be called once every 500 blocks.",
             dao_, // separated powers protocol.
             type(uint32).max, // public access
-            LawChecks, //  config file.
+            Conditions, //  config file.
             mock20votes_, // the tokens that will be used as votes in the election.
             3, // maximum amount of delegates
             2 // role id to be assigned
         );
         vm.stopBroadcast();
         laws.push(address(law));
-        delete LawChecks;
+        delete Conditions;
 
         // law[5]
         vm.startBroadcast();
@@ -178,7 +179,7 @@ contract DeployBasicDao is Script {
             "Anyone can self select as member of the community.",
             dao_,
             type(uint32).max, // access role = public access
-            LawChecks, 
+            Conditions, 
             1
         );
         vm.stopBroadcast();
@@ -199,7 +200,7 @@ contract DeployBasicDao is Script {
             "The admin can label roles. The law self destructs when executed.",
             dao_, // separated powers protocol.
             0, // admin.
-            LawChecks, //  config file.
+            Conditions, //  config file.
             targets,
             values,
             calldatas

@@ -67,7 +67,7 @@
 //         );
 
 //         // step 0 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).conditions();
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[0] = quorumReached && voteSucceeded;
@@ -118,7 +118,7 @@
 //         );
 
 //         // step 2 results.
-//         (quorum, succeedAt, votingPeriod,,, delayExecution,,) = Law(laws[2]).config();
+//         (quorum, succeedAt, votingPeriod,,, delayExecution,,) = Law(laws[2]).conditions();
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[2] = quorumReached && voteSucceeded;

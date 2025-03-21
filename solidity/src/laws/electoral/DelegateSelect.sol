@@ -43,7 +43,7 @@ import { Law } from "../../Law.sol";
 import { Powers} from "../../Powers.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract DelegateSelect is Law {
     address public immutable ERC_20_VOTE_TOKEN;
@@ -56,7 +56,7 @@ contract DelegateSelect is Law {
         string memory description_,
         address payable powers_,
         uint256 allowedRole_,
-        LawChecks memory config_,
+        LawUtilities.Conditions memory config_,
         address payable erc20Token_,
         uint256 maxRoleHolders_,
         uint256 roleId_
@@ -75,17 +75,17 @@ contract DelegateSelect is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {  
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.
-        address nominees = config.readStateFrom;  
+        address nominees = conditions.readStateFrom;  
         address[] memory accountElects;
         uint256 numberNominees = NominateMe(nominees).nomineesCount();
         uint256 numberRevokees = electedAccounts.length;
         uint256 arrayLength =
             numberNominees < MAX_ROLE_HOLDERS ? numberRevokees + numberNominees : numberRevokees + MAX_ROLE_HOLDERS;
         
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(arrayLength);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength);
         for (uint256 i; i < arrayLength; i++) {
             targets[i] = powers;
         }
