@@ -78,5 +78,8 @@ interface PowersErrors {
 
     /// @notice Emitted when a zero address is added.
     error Powers__CannotAddZeroAddress();
+
+    /// @notice Emitted when a name is invalid.
+    error Powers__InvalidName();
 }
 

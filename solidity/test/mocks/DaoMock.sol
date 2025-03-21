@@ -14,6 +14,6 @@ contract DaoMock is Powers{
     uint32 public constant ROLE_THREE = 3;
 
     constructor()
-        Powers("DaoMock", "") // name of the DAO.
+        Powers("DaoMock", "https://example.com") // name of the DAO.
     { }
 }

@@ -37,7 +37,7 @@ contract DeployTest is TestSetupPowers {
 
     function testDeployProtocolEmitsEvent() public {
         vm.expectEmit(true, false, false, false);
-        emit Powers__Initialized(address(daoMock), "DaoMock");
+        emit Powers__Initialized(address(daoMock), "DaoMock", "https://example.com");
 
         vm.prank(alice);
         daoMock = new DaoMock();

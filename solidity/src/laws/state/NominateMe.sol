@@ -93,4 +93,8 @@ contract NominateMe is Law {
             emit NominateMe__NominationRevoked(caller);
         }
     }
+
+    function getNominees() public view returns (address[] memory) {
+        return nomineesSorted;
+    }
 }

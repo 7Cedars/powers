@@ -108,14 +108,13 @@ contract DelegateSelect is Law {
         } else {
             // retrieve balances of delegated votes of nominees.
             accountElects = new address[](MAX_ROLE_HOLDERS);
-            uint256[] memory _votes = new uint256[](numberNominees);
-            address[] memory _nominees = new address[](numberNominees);
-            for (uint256 i; i < numberNominees; i++) {
-                _nominees[i] = NominateMe(nominees).nomineesSorted(i);
+            uint256[] memory _votes = new uint256[](numberNominees); 
+            address[] memory _nominees = NominateMe(nominees).getNominees();
+            
+            for (uint256 i; i < numberNominees; i++) { 
                 _votes[i] = ERC20Votes(ERC_20_VOTE_TOKEN).getVotes(_nominees[i]);
             }
 
-            // £todo: check what will happen if people have the same amount of delegated votes.
             // note how the following mechanism works:
             // a. we add 1 to each nominee's position, if we found a account that holds more tokens.
             // b. if the position is greater than MAX_ROLE_HOLDERS, we break. (it means there are more accounts that have more tokens than MAX_ROLE_HOLDERS)
