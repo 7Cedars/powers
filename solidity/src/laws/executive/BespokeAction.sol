@@ -70,7 +70,7 @@ contract BespokeAction is Law {
         actionId = hashActionId(lawId, lawCalldata, nonce);
 
         // send the calldata to the target function
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        (targets, values, calldatas) = createEmptyArrays(1);
         targets[0] = targetContract[lawHash];
         calldatas[0] = abi.encodePacked(targetFunction[lawHash], lawCalldata);
 

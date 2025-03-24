@@ -96,8 +96,7 @@ contract NominateMe is Law {
         }
     }
 
-    function getNominees(uint16 lawId) public view returns (address[] memory) {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+    function getNominees(bytes32 lawHash) public view returns (address[] memory) {
         return nomineesSorted[lawHash];
     }
 

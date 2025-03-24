@@ -70,7 +70,7 @@ contract Law is ERC165, ILaw {
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public virtual {
         bytes32 lawHash = hashLaw(msg.sender, index);
         initialisedLaws[lawHash] = LawData({
-            powers: msg.sender,
+            powers: payable(msg.sender),
             index: index,
             executions: new uint48[](0),
             configs: config, 
@@ -257,6 +257,23 @@ contract Law is ERC165, ILaw {
     {
         lawHash = keccak256(abi.encode(powers, index));
     }
+
+    /// @notice Creates empty arrays for storing transaction data
+    /// @dev Initializes three arrays of the same length for targets, values, and calldata
+    /// @param length The desired length of the arrays
+    /// @return targets Array of target addresses
+    /// @return values Array of ETH values
+    /// @return calldatas Array of encoded function calls
+    function createEmptyArrays(uint256 length) 
+        public
+        pure
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        targets = new address[](length);
+        values = new uint256[](length);
+        calldatas = new bytes[](length);
+    }
+
 
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return initialisedLaws[hashLaw(msg.sender, lawId)].conditions;

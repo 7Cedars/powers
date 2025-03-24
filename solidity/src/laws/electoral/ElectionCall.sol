@@ -27,151 +27,91 @@
 
 // import { Law } from "../../Law.sol";
 // import { Powers} from "../../Powers.sol";
+// import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 // import { ElectionVotes } from "../state/ElectionVotes.sol";
 // import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 // import { LawUtilities } from "../../LawUtilities.sol";
 
 // contract ElectionCall is Law { 
-//     uint32 public immutable VOTER_ROLE_ID;
-//     uint32 public immutable ELECTED_ROLE_ID;
-//     uint256 public immutable MAX_ROLE_HOLDERS;
-//     address public electionVotes; 
-
-//     event ElectionCall__ElectionDeployed(address electionVotes);
-
+//     mapping(bytes32 lawHash => uint32 voterRoleId) public  voterRoleId; 
+//     mapping(bytes32 lawHash => address electionVotes) public electionVotes;
+//     mapping(bytes32 lawHash => uint256 maxRoleHolders) public maxRoleHolders;
+//     mapping(bytes32 lawHash => uint32 electedRoleId) public electedRoleId;
 //     constructor(
 //         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint256 allowedRole_,
-//         LawUtilities.Conditions memory config_,
-//         // bespoke params
-//         uint32 voterRoleId_, // who can vote in the election.
-//         uint32 electedRoleId_, // what role Id is assigned through the elections 
-//         uint256 maxElectedRoleHolders_ // how many people can be elected.
-//     ) Law(name_, powers_, allowedRole_, config_) {
-//         VOTER_ROLE_ID = voterRoleId_;
-//         ELECTED_ROLE_ID = electedRoleId_;
-//         MAX_ROLE_HOLDERS = maxElectedRoleHolders_;
+//         string memory description_
+//     ) Law(name_) {
+//         bytes memory configParams = abi.encode(
+//             "address electionVotes",
+//             "uint32 voterRoleId",
+//             "uint256 maxRoleHolders",
+//             "uint32 electedRoleId"
+//         );
+//         emit Law__Deployed(name_, description_, configParams);
+//     }
 
-//         bytes memory inputParams = abi.encode(
-//             "string Description", // description = a description of the election.
+//     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+//         (address electionVotes_, uint32 voterRoleId_, uint256 maxRoleHolders_, uint32 electedRoleId_) = abi.decode(config, (address, uint32, uint256, uint32));
+//         bytes32 lawHash = hashLaw(msg.sender, index);
+//         electionVotes[lawHash] = electionVotes_;
+//         voterRoleId[lawHash] = voterRoleId_;
+//         maxRoleHolders[lawHash] = maxRoleHolders_;
+//         electedRoleId[lawHash] = electedRoleId_;
+
+//         inputParams = abi.encode(
 //             "uint48 StartVote", // startVote = the start date of the election.
 //             "uint48 EndVote" // endVote = the end date of the election.
 //         );
-//         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+
+//         super.initializeLaw(index, conditions, config, inputParams);
 //     }
 
 //     /// @notice execute the law.
 //     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-//     function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
+//     function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {        
-//         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+//         // step 0: get data.
+//         bytes32 lawHash = hashLaw(msg.sender, lawId);
+//         actionId = hashActionId(lawId, lawCalldata, nonce);
+//         LawData memory lawData = initialisedLaws[lawHash];
+//         (uint48 startVote, uint48 endVote) =
+//             abi.decode(lawCalldata, (uint48, uint48));
 
-//         // step 1: decode the law calldata.
-//         (string memory description, uint48 startVote, uint48 endVote) =
-//             abi.decode(lawCalldata, (string, uint48, uint48));
-
-//         // step 2: calculate address at which grant will be created.
-//         address nominees = conditions.readStateFrom;
+//         // step 1: calculate address at which grant will be created.
+//         address nominees = lawData.conditions.readStateFrom;
 //         if (nominees == address(0)) {
 //             revert("Nominees contract not set at `conditions.readStateFrom`.");
 //         }
-//         address electionVotesAddress =
-//             getElectionVotesAddress(VOTER_ROLE_ID, nominees, startVote, endVote, description);
-
-//         // step 2: if address is already in use, revert.
-//         uint256 codeSize = electionVotesAddress.code.length;
-//         if (codeSize > 0) {
-//             revert("Election Votes address already exists.");
-//         }
 
 //         // step 3: create arrays
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//         Conditions memory conditionsLocal;
+//         conditionsLocal.readStateFrom = nominees;
+//         conditionsLocal.allowedRole = voterRoleId[lawHash];
+        
+//         PowersTypes.LawInitData memory lawInitData;
+//         lawInitData.targetLaw = electionVotes[lawHash];
+//         lawInitData.conditions = conditionsLocal;
+//         lawInitData.config = abi.encode(startVote, endVote);
     
+//         (targets, values, calldatas) = createEmptyArrays(1);
 //         // step 4: fill out arrays with data
-//         targets[0] = powers;
-//         calldatas[0] = abi.encodeWithSelector(Powers.adoptLaw.selector, electionVotesAddress);
-//         stateChange = abi.encode(description, startVote, endVote, electionVotesAddress);
+//         targets[0] = msg.sender;
+//         calldatas[0] = abi.encodeWithSelector(Powers.adoptLaw.selector, lawInitData);
+//         stateChange = abi.encode(startVote, endVote);
 
 //         // step 5: return data
 //         return (actionId, targets, values, calldatas, stateChange);
 //     }
 
-//     function _changeState(bytes memory stateChange) internal override {
-//         // step 0: decode data from stateChange
-//         (string memory description, uint48 startVote, uint48 endVote, address electionVotesAddress) =
-//             abi.decode(stateChange, (string, uint48, uint48, address));
-
-//         // stp 1: deploy new grant
-//         electionVotes = electionVotesAddress;
-//         _deployElectionVotes(VOTER_ROLE_ID, conditions.readStateFrom, startVote, endVote, description);
+//     function getElectionVotes(bytes32 lawHash) public view returns (address) {
+//         return electionVotes[lawHash];
 //     }
 
-//     /**
-//      * calculate the counterfactual address of this account as it would be returned by createAccount()
-//      * exact copy from SimpleAccountFactory.sol
-//      */
-//     function getElectionVotesAddress(
-//         uint256 roleId,
-//         address nominees,
-//         uint48 startVote,
-//         uint48 endVote,
-//         string memory description
-//     ) public view returns (address) {
-//         LawUtilities.Conditions memory conditionsLocal;
-//         conditionsLocal.readStateFrom = nominees;
 
-//         address electionVotesAddress = Create2.computeAddress(
-//             bytes32(keccak256(abi.encodePacked(description))),
-//             keccak256(
-//                 abi.encodePacked(
-//                     type(ElectionVotes).creationCode,
-//                     abi.encode(
-//                         // standard params
-//                         "Election",
-//                         description,
-//                         powers,
-//                         roleId,
-//                         conditionsLocal,
-//                         // remaining params
-//                         startVote,
-//                         endVote
-//                     )
-//                 )
-//             )
-//         );
 
-//         return electionVotesAddress;
-//     }
-
-//     function _deployElectionVotes(
-//         uint256 roleId,
-//         address nominateMe,
-//         uint48 startVote,
-//         uint48 endVote,
-//         string memory description
-//     ) internal {
-//         LawUtilities.Conditions memory conditionsLocal;
-//         conditionsLocal.readStateFrom = nominateMe;
-
-//         ElectionVotes newElectionVotes = new ElectionVotes{ salt: bytes32(keccak256(abi.encodePacked(description))) }(
-//             // standard params
-//             "Election",
-//             description,
-//             powers,
-//             roleId,
-//             conditionsLocal,
-//             // remaining params
-//             startVote,
-//             endVote
-//         );
-
-//         emit ElectionCall__ElectionDeployed(address(newElectionVotes));
-//     }
 // }

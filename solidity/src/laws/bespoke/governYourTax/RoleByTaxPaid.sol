@@ -70,11 +70,11 @@
 
 //         // step 3: create arrays
 //         if (hasRole && taxPaid < thresholdTaxPaid) {
-//             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//             (targets, values, calldatas) = createEmptyArrays(1);
 //             targets[0] = powers;
 //             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleIdToSet, account); 
 //         } else if (!hasRole && taxPaid >= thresholdTaxPaid) { 
-//             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//             (targets, values, calldatas) = createEmptyArrays(1);
 //             targets[0] = powers;
 //             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIdToSet, account);
 //         }

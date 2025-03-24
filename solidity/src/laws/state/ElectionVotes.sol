@@ -27,6 +27,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { Powers } from "../../Powers.sol";
 import { NominateMe } from "./NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
@@ -43,10 +44,18 @@ contract ElectionVotes is Law {
         string memory name_,
         string memory description_
     ) Law(name_) {
-        emit Law__Deployed(name_, description_, "");
+        bytes memory configParams = abi.encode(
+            "uint48 startVote",
+            "uint48 endVote"
+        );
+        emit Law__Deployed(name_, description_, configParams);
     }
 
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+        (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
+        startVote[hashLaw(msg.sender, index)] = startVote_;
+        endVote[hashLaw(msg.sender, index)] = endVote_;
+        
         inputParams = abi.encode(
             "address VoteFor"
         );
@@ -59,7 +68,8 @@ contract ElectionVotes is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         bytes32 lawHash = hashLaw(caller, lawId);
-        address nomineesContract = initialisedLaws[lawHash].conditions.readStateFrom; 
+        uint16 nomineesId = initialisedLaws[lawHash].conditions.readStateFrom; 
+        address nomineesContract = Powers(payable(msg.sender)).getActiveLawAddress(nomineesId);
 
         // step 0: run additional checks
         if (block.number < startVote[lawHash] || block.number > endVote[lawHash]) {

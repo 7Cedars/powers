@@ -58,7 +58,7 @@
 //         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 //         LawUtilities.checkThrottle(transactions, caller, delay);
 
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//         (targets, values, calldatas) = createEmptyArrays(1);
 //         stateChange = abi.encode(caller); // needed to log the transaction
 
 //         targets[0] = erc1155;

@@ -155,7 +155,7 @@
 //         uint256 arrayLength = numberRevokees + numberToElect;
         
 //         // setting up empty target, value, and calldata arrays.
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength);
+//         (targets, values, calldatas) = createEmptyArrays(arrayLength);
 //         // setting up targets to be the powers contract.
 //         for (uint256 i; i < arrayLength; i++) {
 //             targets[i] = powers;

@@ -51,7 +51,7 @@
 //         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 //         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
         
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
+//         (targets, values, calldatas) = createEmptyArrays(2);
 //         // action 0: revoke role member in powers
 //         targets[0] = powers;
 //         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, account);

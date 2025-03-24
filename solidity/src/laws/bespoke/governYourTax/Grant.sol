@@ -81,7 +81,7 @@
 //         }
 
 //         // step 2: create arrays
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//         (targets, values, calldatas) = createEmptyArrays(1);
 //         targets[0] = tokenAddress;
 //         calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
 //         stateChange = abi.encode(quantity);

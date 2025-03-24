@@ -12,6 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
+/// NB: This library will soon be depricated. 
+
 /// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
 /// @dev Provides common functionality for law implementation and validation
@@ -24,16 +26,7 @@ import { ILaw } from "./interfaces/ILaw.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";    
 
 
-library LawUtilities {
-    //////////////////////////////////////////////////////////////
-    //                        ERRORS                            //
-    //////////////////////////////////////////////////////////////
-    error LawUtilities__ParentNotCompleted();
-    error LawUtilities__ParentBlocksCompletion();
-    error LawUtilities__ExecutionGapTooSmall();
-    error LawUtilities__ProposalNotSucceeded();
-    error LawUtilities__DeadlineNotPassed();
-    
+library LawUtilities {    
     //////////////////////////////////////////////////////////////
     //                  STORAGE POINTERS                        //
     //////////////////////////////////////////////////////////////
@@ -47,23 +40,6 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     //                  FUNCTIONS                              //
     ///////////////////////////////////////////////////////////// 
-
-    /// @notice Creates empty arrays for storing transaction data
-    /// @dev Initializes three arrays of the same length for targets, values, and calldata
-    /// @param length The desired length of the arrays
-    /// @return targets Array of target addresses
-    /// @return values Array of ETH values
-    /// @return calldatas Array of encoded function calls
-    function createEmptyArrays(uint256 length) 
-        external
-        pure
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    {
-        targets = new address[](length);
-        values = new uint256[](length);
-        calldatas = new bytes[](length);
-    }
-
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for

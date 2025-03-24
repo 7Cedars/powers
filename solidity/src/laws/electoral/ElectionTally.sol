@@ -56,46 +56,52 @@
 //         uint32 electedRoleId;
 //     } 
 
-//     address[] public electedAccounts;
+//     mapping(bytes32 lawHash => address[] electedAccounts) public electedAccounts;
     
 //     constructor(
 //         string memory name_,
-//         string memory description_,
-//         address payable powers_,
-//         uint256 allowedRole_,
-//         LawUtilities.Conditions memory config_
-//     ) Law(name_, powers_, allowedRole_, config_) {
-//         bytes memory inputParams = abi.encode(
-//             "string Description", // description = a description of the election.
+//         string memory description_
+//     ) Law(name_) {
+
+//         emit Law__Deployed(name_, description_, "");
+//     }
+
+//     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+//         inputParams = abi.encode(
 //             "uint48 StartVote", // startVote = the start date of the election.
 //             "uint48 EndVote" // endVote = the end date of the election.
 //         );
-//         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+
+//         super.initializeLaw(index, conditions, config, inputParams);
 //     }
 
-//     function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
+//     function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
 //         public
 //         view
 //         virtual
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {   
-//         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
-        
+//         actionId = hashActionId(lawId, lawCalldata, nonce);
+//         bytes32 lawHash = hashLaw(msg.sender, lawId);
+//         LawData memory lawData = initialisedLaws[lawHash];
+//         address electionCall = Powers(payable(msg.sender)).getActiveLawAddress(lawData.conditions.needCompleted);
+//         bytes32 electionCallHash = hashLaw(msg.sender, lawData.conditions.needCompleted);
+
 //         // saving the following in state vars to a struct avoid 'stack too deep' errors.
 //         Data memory data;
         
 //         // step 0a: unpacking calldata
-//         (data.description, data.startVote, data.endVote) =
-//             abi.decode(lawCalldata, (string, uint48, uint48));
+//         (data.startVote, data.endVote) = abi.decode(lawCalldata, (uint48, uint48));
 //         // step 0b: retrieving data from ElectionCall contract. 
-//         data.electionVotes = ElectionCall(conditions.needCompleted).electionVotes();
-//         data.maxRoleHolders = ElectionCall(conditions.needCompleted).MAX_ROLE_HOLDERS();
-//         data.electedRoleId = ElectionCall(conditions.needCompleted).ELECTED_ROLE_ID();
-//         ( , , , data.nominees, , , , ) =  ElectionCall(conditions.needCompleted).conditions();
+//         data.electionVotes = ElectionCall(electionCall).electionVotes(electionCallHash);
+//         data.maxRoleHolders = ElectionCall(electionCall).maxRoleHolders(electionCallHash);
+//         data.electedRoleId = ElectionCall(electionCall).electedRoleId(electionCallHash);
+//         ( , , , Conditions memory conditions) = ElectionCall(electionCall).initialisedLaws(electionCallHash);
+//         data.nominees = conditions.readStateFrom;
         
 //         // step 1: run additional checks
-//         if (!Powers(powers).getActiveLaw(data.electionVotes)) {
+//         if (!Powers(lawData.powers).getActiveLaw(data.electionVotes)) {
 //             revert ("ElectionVotes contract not recognised.");
 //         }
 //         if (NominateMe(data.nominees).nomineesCount() == 0) {
@@ -112,9 +118,9 @@
 //         uint256 arrayLength =
 //             numberNominees < data.maxRoleHolders ? numberRevokees + numberNominees + 1 : numberRevokees + data.maxRoleHolders + 1;
 
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength); 
+//         (targets, values, calldatas) = createEmptyArrays(arrayLength); 
 //         for (uint256 i; i < arrayLength; i++) {
-//             targets[i] = powers;
+//             targets[i] = msg.sender;
 //         }
 //         // step 2: calls to revoke roles of previously elected accounts.
 //         for (uint256 i; i < numberRevokees; i++) {

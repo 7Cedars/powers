@@ -27,7 +27,7 @@ interface ILaw is IERC165, LawErrors {
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
     struct LawData {
-        address powers; // 20 bytes
+        address payable powers; // 20 bytes
         uint16 index; // 2 bytes
         uint48[] executions; // 32 bytes
         bytes configs; // 32 bytes
@@ -41,12 +41,10 @@ interface ILaw is IERC165, LawErrors {
         uint16 needCompleted;      // 2 bytes - index of law that must be completed before this one
         uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
         uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
-        // Slot 2  
-        address readStateFrom;      // 20 bytes - address of law to read state from (for law dependencies)
+        uint16 readStateFrom;      // 2 bytes - index of law to read state from (for law dependencies)
         uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
         uint8 quorum;              // 1 byte   - Required participation percentage
         uint8 succeedAt;           // 1 byte   - Required success percentage
-        // Slot 3
         uint16 needNotCompleted;   // 2 bytes - index of law that must NOT be completed
     }
 

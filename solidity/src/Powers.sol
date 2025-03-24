@@ -538,6 +538,13 @@ contract Powers is EIP712, IPowers {
         return laws[lawId].active;
     }
 
+    function getActiveLawAddress(uint16 lawId) external view returns (address law) {
+        if (!laws[lawId].active) {
+            revert Powers__LawNotActive();
+        }
+        return laws[lawId].targetLaw;
+    }
+
     //////////////////////////////////////////////////////////////
     //                       COMPLIANCE                         //
     //////////////////////////////////////////////////////////////

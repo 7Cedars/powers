@@ -27,7 +27,6 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
 
 contract ProposalOnly is Law {
     /// @notice Constructor function for Open contract.
@@ -42,7 +41,7 @@ contract ProposalOnly is Law {
     }
 
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
-        bytes memory inputParams = config;
+        inputParams = config;
 
         super.initializeLaw(index, conditions, config, inputParams);
     }
@@ -53,7 +52,7 @@ contract ProposalOnly is Law {
         uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange
         ) {
         actionId = hashActionId(lawId, lawCalldata, nonce);
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        (targets, values, calldatas) = createEmptyArrays(1);
         return (actionId, targets, values, calldatas, "");
     }
 

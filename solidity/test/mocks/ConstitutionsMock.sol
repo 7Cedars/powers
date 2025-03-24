@@ -1,36 +1,35 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.26;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.26;
 
-// import "forge-std/Test.sol";
-// import { IPowers } from "../../src/interfaces/IPowers.sol";
-// import { Law } from "../../src/Law.sol";
-// import { ILaw } from "../../src/interfaces/ILaw.sol";
+import "forge-std/Test.sol";
+import { IPowers } from "../../src/interfaces/IPowers.sol";
+import { Law } from "../../src/Law.sol";
+import { ILaw } from "../../src/interfaces/ILaw.sol";
 // import { Erc1155Mock } from "./Erc1155Mock.sol";
 // import { DaoMock } from "./DaoMock.sol";
 // import { BaseSetup } from "../TestSetup.t.sol";
-// import { LawUtilities } from "../../src/LawUtilities.sol";
-// // electoral laws
-// import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
-// import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
-// import { SelfSelect } from "../../src/laws/electoral/SelfSelect.sol";
-// import { RenounceRole } from "../../src/laws/electoral/RenounceRole.sol";
-// import { PeerSelect } from "../../src/laws/electoral/PeerSelect.sol";
-// // import { RandomlySelect } from "../../src/laws/electoral/RandomlySelect.sol";
+import { LawUtilities } from "../../src/LawUtilities.sol";
+// electoral laws
+import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
+import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
+import { SelfSelect } from "../../src/laws/electoral/SelfSelect.sol";
+import { RenounceRole } from "../../src/laws/electoral/RenounceRole.sol";
+import { PeerSelect } from "../../src/laws/electoral/PeerSelect.sol";
+// import { RandomlySelect } from "../../src/laws/electoral/RandomlySelect.sol";
 // import { ElectionCall } from "../../src/laws/electoral/ElectionCall.sol";
 // import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
-// // executive laws.
-// import { ProposalOnly } from "../../src/laws/executive/ProposalOnly.sol";
-// import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
-// import { PresetAction } from "../../src/laws/executive/PresetAction.sol";
-// import { BespokeAction } from "../../src/laws/executive/BespokeAction.sol";
-// import { SelfDestructAction } from "../../src/laws/executive/SelfDestructAction.sol";
-// // state laws.
-// import { StringsArray } from "../../src/laws/state/StringsArray.sol";
-// import { TokensArray } from "../../src/laws/state/TokensArray.sol";
-// import { AddressesMapping } from "../../src/laws/state/AddressesMapping.sol";
-// import { NominateMe } from "../../src/laws/state/NominateMe.sol";
-// import { ElectionVotes } from "../../src/laws/state/ElectionVotes.sol";
-// // bespoke: aligned dao laws.
+// executive laws.
+import { ProposalOnly } from "../../src/laws/executive/ProposalOnly.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import { PresetAction } from "../../src/laws/executive/PresetAction.sol";
+import { BespokeAction } from "../../src/laws/executive/BespokeAction.sol";
+// state laws.
+import { StringsArray } from "../../src/laws/state/StringsArray.sol";
+import { TokensArray } from "../../src/laws/state/TokensArray.sol";
+import { AddressesMapping } from "../../src/laws/state/AddressesMapping.sol";
+import { NominateMe } from "../../src/laws/state/NominateMe.sol";
+import { ElectionVotes } from "../../src/laws/state/ElectionVotes.sol";
+// bespoke: aligned dao laws.
 // import { NftSelfSelect } from "../../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
 // import { RequestPayment } from "../../src/laws/bespoke/alignedDao/RequestPayment.sol";
 // import { ReinstateRole } from "../../src/laws/bespoke/alignedDao/ReinstateRole.sol";
@@ -41,12 +40,12 @@
 // import { StopGrant } from "../../src/laws/bespoke/governYourTax/StopGrant.sol";
 // import { RoleByTaxPaid } from "../../src/laws/bespoke/governYourTax/RoleByTaxPaid.sol";
 // import { AssignCouncilRole } from "../../src/laws/bespoke/governYourTax/AssignCouncilRole.sol";
-// // // bespoke: diversified roles laws.
-// // import { RoleByKyc } from "../../src/laws/bespoke/diversifiedRoles/RoleByKyc.sol";
-// // import { AiAgents } from "../../src/laws/bespoke/diversifiedRoles/AiAgents.sol";
-// // import { BespokeActionFactory } from "../../src/laws/bespoke/diversifiedRoles/BespokeActionFactory.sol";
-// // import { Members } from "../../src/laws/bespoke/diversifiedRoles/Members.sol";
-// // import { RoleByKycFactory } from "../../src/laws/bespoke/diversifiedRoles/RoleByKycFactory.sol";
+// // bespoke: diversified roles laws.
+// import { RoleByKyc } from "../../src/laws/bespoke/diversifiedRoles/RoleByKyc.sol";
+// import { AiAgents } from "../../src/laws/bespoke/diversifiedRoles/AiAgents.sol";
+// import { BespokeActionFactory } from "../../src/laws/bespoke/diversifiedRoles/BespokeActionFactory.sol";
+// import { Members } from "../../src/laws/bespoke/diversifiedRoles/Members.sol";
+// import { RoleByKycFactory } from "../../src/laws/bespoke/diversifiedRoles/RoleByKycFactory.sol";
 
 // contract ConstitutionsMock is Test {
 //     //////////////////////////////////////////////////////////////
@@ -866,41 +865,41 @@
 //     //////////////////////////////////////////////////////////////
 //     //                  INTERNAL HELPER FUNCTION                //
 //     //////////////////////////////////////////////////////////////
-//     function _getRoles(address payable dao_)
-//         internal
-//         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-//     {
-//         // create addresses.
-//         address alice = makeAddr("alice");
-//         address bob = makeAddr("bob");
-//         address charlotte = makeAddr("charlotte");
-//         address david = makeAddr("david");
-//         address eve = makeAddr("eve");
-//         address frank = makeAddr("frank");
-//         address gary = makeAddr("gary");
-//         address helen = makeAddr("helen");
+    // function _getRoles(address payable dao_)
+    //     internal
+    //     returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    // {
+    //     // create addresses.
+    //     address alice = makeAddr("alice");
+    //     address bob = makeAddr("bob");
+    //     address charlotte = makeAddr("charlotte");
+    //     address david = makeAddr("david");
+    //     address eve = makeAddr("eve");
+    //     address frank = makeAddr("frank");
+    //     address gary = makeAddr("gary");
+    //     address helen = makeAddr("helen");
 
-//         // call to set initial roles. Also used as dummy call data.
-//         targets = new address[](12);
-//         values = new uint256[](12);
-//         calldatas = new bytes[](12);
-//         for (uint256 i = 0; i < targets.length; i++) {
-//             targets[i] = dao_;
-//         }
+    //     // call to set initial roles. Also used as dummy call data.
+    //     targets = new address[](12);
+    //     values = new uint256[](12);
+    //     calldatas = new bytes[](12);
+    //     for (uint256 i = 0; i < targets.length; i++) {
+    //         targets[i] = dao_;
+    //     }
 
-//         calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);
-//         calldatas[1] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, bob);
-//         calldatas[2] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, charlotte);
-//         calldatas[3] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, david);
-//         calldatas[4] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, eve);
-//         calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, frank);
-//         calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, gary);
-//         calldatas[7] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, alice);
-//         calldatas[8] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, bob);
-//         calldatas[9] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, charlotte);
-//         calldatas[10] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, alice);
-//         calldatas[11] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, bob);
+    //     calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);
+    //     calldatas[1] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, bob);
+    //     calldatas[2] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, charlotte);
+    //     calldatas[3] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, david);
+    //     calldatas[4] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, eve);
+    //     calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, frank);
+    //     calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, gary);
+    //     calldatas[7] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, alice);
+    //     calldatas[8] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, bob);
+    //     calldatas[9] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, charlotte);
+    //     calldatas[10] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, alice);
+    //     calldatas[11] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, bob);
 
-//         return (targets, values, calldatas);
-//     }
+    //     return (targets, values, calldatas);
+    // }
 // }
