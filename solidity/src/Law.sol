@@ -67,7 +67,7 @@ contract Law is ERC165, ILaw {
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config) public {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public virtual {
         bytes32 lawHash = hashLaw(msg.sender, index);
         initialisedLaws[lawHash] = LawData({
             powers: msg.sender,
@@ -77,7 +77,7 @@ contract Law is ERC165, ILaw {
             conditions: conditions
         });
 
-        emit Law__Initialized(address(this), msg.sender, index, conditions, config);
+        emit Law__Initialized(address(this), msg.sender, index, conditions, inputParams);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers

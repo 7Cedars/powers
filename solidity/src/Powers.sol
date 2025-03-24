@@ -331,7 +331,7 @@ contract Powers is EIP712, IPowers {
         laws[lawCount].targetLaw = lawInitData.targetLaw; 
         lawCount++;
 
-        Law(lawInitData.targetLaw).initializeLaw(lawCount - 1, lawInitData.conditions, lawInitData.config);
+        Law(lawInitData.targetLaw).initializeLaw(lawCount - 1, lawInitData.conditions, lawInitData.config, "");
         
         // emit event.
         emit LawAdopted(lawCount - 1);

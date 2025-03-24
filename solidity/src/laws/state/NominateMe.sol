@@ -40,9 +40,12 @@ contract NominateMe is Law {
         string memory name_,
         string memory description_
     ) Law(name_) {
-        bytes memory configParams = abi.encode();
-        bytes memory inputParams = abi.encode("bool NominateMe");
-        emit Law__Deployed(name_, description_, configParams, inputParams);
+        emit Law__Deployed(name_, description_, "");
+    }
+
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+        inputParams = abi.encode("bool NominateMe");
+        super.initializeLaw(index, conditions, config, inputParams);
     }
 
     function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
