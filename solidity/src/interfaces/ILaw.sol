@@ -27,39 +27,54 @@ interface ILaw is IERC165, LawErrors {
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
 
-    // struct Conditions {
-    //     // Slot 1
-    //     address needCompleted;      // 20 bytes - Address of law that must be completed before this one
-    //     uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
-    //     uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
-    //     // Slot 2  
-    //     address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
-    //     uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
-    //     uint8 quorum;              // 1 byte   - Required participation percentage
-    //     uint8 succeedAt;           // 1 byte   - Required success percentage
-    //     // Slot 3
-    //     address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
-    // }
+    struct LawData {
+        address powers; // 20 bytes
+        uint16 index; // 2 bytes
+        uint48[] executions; // 32 bytes
+        bytes configs; // 32 bytes
+        Conditions conditions; // 104 bytes
+    }
+
+    struct Conditions {
+        // Slot 0
+        uint256 allowedRole; // 32 bytes
+        // Slot 1
+        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
+        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
+        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
+        // Slot 2  
+        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
+        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
+        uint8 quorum;              // 1 byte   - Required participation percentage
+        uint8 succeedAt;           // 1 byte   - Required success percentage
+        // Slot 3
+        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
+    }
 
     //////////////////////////////////////////////////////////////
     //                        EVENTS                            //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Emitted when a law is initialized
-    /// @param law Address of the initialized law contract
+    /// @notice Emitted when a law is deployed
     /// @param name Name of the law
     /// @param description Description of the law's purpose
-    /// @param powers Address of the Powers protocol contract
-    /// @param allowedRole Role ID required to interact with this law
-    /// @param conditions Conditions for the law
-    event Law__Initialized(
-        address indexed law,
+    event Law__Deployed(
         string name,
         string description,
+        bytes configParams,  
+        bytes inputParams
+    );
+
+    /// @notice Emitted when a law is initialized
+    /// @param powers Address of the Powers protocol contract
+    /// @param index Index of the law
+    /// @param conditions Conditions for the law
+    /// @param config Configuration parameters for the law
+    event Law__Initialized(
         address indexed powers,
-        uint256 allowedRole,
-        LawUtilities.Conditions conditions,
-        bytes params
+        uint16 index,
+        Conditions conditions,
+        bytes config
     );
 
     //////////////////////////////////////////////////////////////

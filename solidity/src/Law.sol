@@ -35,29 +35,14 @@ import { LawUtilities } from "./LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import "@openzeppelin/contracts/utils/ShortStrings.sol";
  
 contract Law is ERC165, ILaw {
-    using ShortStrings for *;
-
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
     /// @notice Name of the law
-    ShortString public immutable name;
-
-    /// @notice Role ID required to interact with this law
-    uint256 public allowedRole;
-
-    /// @notice Address of the Powers protocol contract
-    address payable public powers;
-
-    /// @notice conditionsuration parameters for the law
-    LawUtilities.Conditions public conditions;
-
-    /// @notice History of law executions (block numbers)
-    /// @dev First element is always 0
-    uint48[] public executions = [0];
+    string public immutable name;
+    mapping(bytes32 lawHash => LawData) public initialisedLaws;
 
     //////////////////////////////////////////////////////////////
     //                   CONSTRUCTOR                            //
@@ -65,30 +50,33 @@ contract Law is ERC165, ILaw {
 
     /// @notice Constructor for the Law contract
     /// @param name_ The name of the law
-    /// @param powers_ The address of the Powers protocol
-    /// @param allowedRole_ The role ID required to interact with this law
-    /// @param conditions_ The conditionsuration parameters for the law 
     constructor(
-        string memory name_,
-        address payable powers_,
-        uint256 allowedRole_,
-        LawUtilities.Conditions memory conditions_
+        string memory name_
     ) { 
-        if (powers_ == address(0)) {
-            revert Law__InvalidPowersContractAddress();
-        }
         if (bytes(name_).length < 1) {
             revert Law__EmptyNameNotAllowed();
         }
-        name = name_.toShortString();
-        powers = powers_;
-        allowedRole = allowedRole_;
-        conditions = conditions_;
+        if (bytes(name_).length > 31) {
+            revert Law__StringTooLong();
+        }
+        name = name_;
     }
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
+
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config) public {
+        bytes32 lawHash = hashLaw(msg.sender, index);
+        initialisedLaws[lawHash] = LawData({
+            powers: msg.sender,
+            index: index,
+            conditions: conditions,
+            config: config
+        });
+
+        emit Law__Initialized(address(this), name, description, config);
+    }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
     /// @dev Called by the Powers protocol during action execution
@@ -96,21 +84,23 @@ contract Law is ERC165, ILaw {
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return success True if execution succeeded
-    function executeLaw(address caller, bytes calldata lawCalldata, uint256 nonce)
+    function executeLaw(address caller, uint16 index, bytes calldata lawCalldata, uint256 nonce)
         public
         returns (bool success)
     {
-        if (msg.sender != powers) {
+        bytes32 lawHash = hashLaw(msg.sender, index);
+        if (initialisedLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
+        lawData memory law = initialisedLaws[lawHash];
 
         // Run all validation checks
-        checksAtPropose(caller, lawCalldata, nonce);
-        checksAtExecute(caller, lawCalldata, nonce);
+        checksAtPropose(caller, law, lawCalldata, nonce);
+        checksAtExecute(caller, law, lawCalldata, nonce);
 
         // Simulate and execute the law's logic
         (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
-            handleRequest(caller, lawCalldata, nonce);
+            handleRequest(caller, law, lawCalldata, nonce);
         
         // execute the law's logic conditional on data returned by handleRequest
         if (stateChange.length > 0) {
@@ -119,7 +109,7 @@ contract Law is ERC165, ILaw {
         if (targets.length > 0) {
             _replyPowers(actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right? 
         }
-        executions.push(uint48(block.number));
+        law.executions.push(uint48(block.number));
         return true;
     }
 
@@ -133,7 +123,7 @@ contract Law is ERC165, ILaw {
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, LawData memory law, bytes memory lawCalldata, uint256 nonce)
         public
         view 
         virtual
@@ -163,7 +153,6 @@ contract Law is ERC165, ILaw {
         Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 
-
     //////////////////////////////////////////////////////////////
     //                     VALIDATION                           //
     //////////////////////////////////////////////////////////////
@@ -171,30 +160,99 @@ contract Law is ERC165, ILaw {
     /// @dev Called during both proposal and execution
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtPropose(address /*caller*/, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtPropose(address /*caller*/, LawData memory law, bytes calldata lawCalldata, uint256 nonce)
         public
         view
         virtual
     {
-        LawUtilities.baseChecksAtPropose(conditions, lawCalldata, nonce, powers);
+        // Check if parent law completion is required
+        if (law.conditions.needCompleted != address(0)) {
+            uint256 parentActionId = hashActionId(law.conditions.needCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
+                revert Law__ParentNotCompleted();
+            }
+        }
+
+        // Check if parent law must not be completed
+        if (law.conditions.needNotCompleted != address(0)) {
+            uint256 parentActionId = hashActionId(law.conditions.needNotCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
+                revert Law__ParentBlocksCompletion();
+            }
+        }
     }
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtExecute(address /*caller*/, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtExecute(address /*caller*/, LawData memory law, bytes calldata lawCalldata, uint256 nonce)
         public
         view
         virtual
     {
-        LawUtilities.baseChecksAtExecute(conditions, lawCalldata, nonce, powers, executions);
+         // Check execution throttling
+        if (law.conditions.throttleExecution != 0) {
+            uint256 numberOfExecutions = executions.length - 1;
+            if (executions[numberOfExecutions] != 0 && 
+                block.number - executions[numberOfExecutions] < law.conditions.throttleExecution) {
+                revert Law__ExecutionGapTooSmall();
+            }
+        }
+
+        // Check if proposal vote succeeded
+        if (law.conditions.quorum != 0) {
+            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
+                revert Law__ProposalNotSucceeded();
+            }
+        }
+
+        // Check execution delay after proposal
+        if (law.conditions.delayExecution != 0) {
+            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
+            if (deadline + law.conditions.delayExecution > block.number) {
+                revert Law__DeadlineNotPassed();
+            }
+        }
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                      HELPER FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+    /// @notice Creates a unique identifier for an action
+    /// @dev Hashes the combination of law address, calldata, and nonce
+    /// @param targetLaw Address of the law contract being called
+    /// @param lawCalldata Encoded function call data
+    /// @param nonce The nonce for the action
+    /// @return actionId Unique identifier for the action
+    function hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
+        public
+        pure
+        returns (uint256 actionId)
+    {
+        actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
+    }
+
+    /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
+    /// @dev Hashes the combination of law address and index
+    /// @param powers Address of the Powers contract
+    /// @param index Index of the law
+    /// @return lawHash Unique identifier for the law
+    function hashLaw(address powers, uint16 index)
+        public
+        pure
+        returns (bytes32 lawHash)
+    {
+        lawHash = keccak256(abi.encode(powers, index));
     }
 
     //////////////////////////////////////////////////////////////
     //                      UTILITIES                           //
     //////////////////////////////////////////////////////////////
-
     /// @notice Checks if contract implements required interfaces
     /// @dev Implements IERC165
     /// @param interfaceId Interface identifier to check
