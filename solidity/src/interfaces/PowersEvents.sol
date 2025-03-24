@@ -32,28 +32,30 @@ interface PowersEvents {
 
     /// @notice Emitted when executive action is requested.
     /// @param caller the address of the caller
-    /// @param targetLaw the address of the target law
+    /// @param lawId the id of the law
     /// @param lawCalldata the calldata of the law
     /// @param description the description of the law action
     /// @param nonce the nonce of the action
     event ActionRequested(
         address indexed caller, 
-        address indexed targetLaw, 
+        uint16 indexed lawId, 
         bytes lawCalldata, 
         uint256 nonce,
         string description
     );
 
     /// @notice Emitted when an executive action has been executed.
+    /// @param lawId the id of the law
+    /// @param actionId the id of the action
     /// @param targets the targets of the action
     /// @param values the values of the action
     /// @param calldatas the calldatas of the action
-    event ActionExecuted(uint256 actionId, address[] targets, uint256[] values, bytes[] calldatas);
+    event ActionExecuted(uint16 lawId, uint256 actionId, address[] targets, uint256[] values, bytes[] calldatas);
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal
     /// @param caller the address of the caller
-    /// @param targetLaw the address of the target law
+    /// @param lawId the id of the law
     /// @param signature the signature of the proposal
     /// @param executeCalldata the calldata to be passed to the law
     /// @param voteStart the start of the voting period
@@ -62,7 +64,7 @@ interface PowersEvents {
     event ProposedActionCreated(
         uint256 indexed actionId,
         address indexed caller,
-        address targetLaw,
+        uint16 indexed lawId,
         string signature,
         bytes executeCalldata,
         uint256 voteStart,
@@ -94,10 +96,10 @@ interface PowersEvents {
     event RoleLabel(uint256 indexed roleId, string label);
 
     /// @notice Emitted when a law is adopted.
-    /// @param law the address of the law
-    event LawAdopted(address indexed law);
+    /// @param lawId the id of the law
+    event LawAdopted(uint16 indexed lawId);
 
     /// @notice Emitted when a law is revoked.
-    /// @param law the address of the law
-    event LawRevoked(address indexed law);
+    /// @param lawId the id of the law
+    event LawRevoked(uint16 indexed lawId);
 }

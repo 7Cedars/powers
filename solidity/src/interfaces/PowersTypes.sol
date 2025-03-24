@@ -18,7 +18,21 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
+import {ILaw} from "./ILaw.sol";
+
 interface PowersTypes {
+    
+    struct ActiveLaw {
+        address targetLaw; // 20 bytes
+        bool active; // 1
+    }
+
+    struct LawInitData {
+        address targetLaw; // 20 bytes
+        bytes config; // 32 bytes
+        ILaw.Conditions conditions; // 104 bytes
+    }
+
     /// @notice struct to keep track of a proposal.
     ///
     /// @dev in contrast to other Governance protocols, a proposal in {Powers} always includes a reference to a law.
@@ -31,7 +45,7 @@ interface PowersTypes {
         bool cancelled; // 1
         bool requested; // 1
         bool fulfilled; // 1
-        address targetLaw; // 20
+        uint16 lawId; // 2
         uint48 voteStart; // 6
         uint32 voteDuration; // 4
         // slot 2

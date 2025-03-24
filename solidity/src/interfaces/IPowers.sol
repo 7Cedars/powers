@@ -30,37 +30,38 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Initiates an action to be executed through a law
     /// @dev This is the entry point for all actions in the protocol, whether they require voting or not
-    /// @param targetLaw The law contract to execute the action through
+    /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param description A human-readable description of the action
     /// @param nonce The nonce for the action
-    function request(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable;
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable;
 
     /// @notice Completes an action by executing the actual calls
     /// @dev Can only be called by an active law contract
+    /// @param lawId The id of the law
     /// @param actionId The unique identifier of the action
     /// @param targets The list of contract addresses to call
     /// @param values The list of ETH values to send with each call
     /// @param calldatas The list of encoded function calls
-    function fulfill(uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable;
+    function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable;
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
-    /// @param targetLaw The law contract the proposal is for
+    /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param description A human-readable description of the proposal
     /// @return The unique identifier of the created proposal
-    function propose(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
         external
         returns (uint256);
 
     /// @notice Cancels an existing proposal
     /// @dev Can only be called by the original proposer
-    /// @param targetLaw The law contract the proposal was for
+    /// @param lawId The id of the law
     /// @param lawCalldata The original encoded function call data
     /// @param description The original proposal description
     /// @return The unique identifier of the cancelled proposal
-    function cancel(address targetLaw, bytes calldata lawCalldata, uint256 nonce, string memory description) external returns (uint256);
+    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external returns (uint256);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain
@@ -82,17 +83,17 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Initializes the DAO by activating its founding laws
     /// @dev Can only be called once by an admin account
     /// @param laws The list of law contracts to activate
-    function constitute(address[] calldata laws) external;
+    function constitute(LawInitData[] calldata laws) external;
 
     /// @notice Activates a new law in the protocol
     /// @dev Can only be called through the protocol itself
-    /// @param law The law contract to activate
-    function adoptLaw(address law) external;
+    /// @param lawInitData The data of the law
+    function adoptLaw(LawInitData calldata lawInitData) external;
 
     /// @notice Deactivates an existing law
     /// @dev Can only be called through the protocol itself
-    /// @param law The law contract to deactivate
-    function revokeLaw(address law) external;
+    /// @param lawId The id of the law
+    function revokeLaw(uint16 lawId) external;
 
     /// @notice Grants a role to an account
     /// @dev Can only be called through the protocol itself
@@ -154,15 +155,15 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     function getAmountRoleHolders(uint256 roleId) external view returns (uint256 amountMembers);
 
     /// @notice Checks if a law is currently active
-    /// @param law The address of the law contract
+    /// @param lawId The id of the law
     /// @return active if the law is active, false otherwise
-    function getActiveLaw(address law) external view returns (bool active);
+    function getActiveLaw(uint16 lawId) external view returns (bool active);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law
-    /// @param targetLaw The law contract to check
+    /// @param lawId The law id to check
     /// @return canCall True if the caller has permission, false otherwise
-    function canCallLaw(address caller, address targetLaw) external view returns (bool canCall);
+    function canCallLaw(address caller, uint16 lawId) external view returns (bool canCall);
 
     /// @notice Gets the protocol version
     /// @return version the version string
