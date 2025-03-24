@@ -64,41 +64,6 @@ library LawUtilities {
         calldatas = new bytes[](length);
     }
 
-    /// @notice Adds a self-destruct call to existing transaction arrays
-    /// @dev Appends a revokeLaw call to the end of the transaction arrays
-    /// @param targets Existing array of target addresses
-    /// @param values Existing array of ETH values
-    /// @param calldatas Existing array of encoded function calls
-    /// @param powers Address of the Powers protocol contract
-    /// @return targetsNew Updated array of target addresses including the self-destruct call
-    /// @return valuesNew Updated array of ETH values including the self-destruct call
-    /// @return calldatasNew Updated array of encoded function calls including the self-destruct call
-    function addSelfDestruct(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, address powers)
-        external
-        view
-        returns (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew)
-    {
-        // create new arrays
-        targetsNew = new address[](targets.length + 1);
-        valuesNew = new uint256[](values.length + 1);
-        calldatasNew = new bytes[](calldatas.length + 1);
-
-        // pasting in old arrays. This method is super inefficient. Is there no other way of doing this?
-        for (uint256 i; i < targets.length; i++) {
-            targetsNew[i] = targets[i];
-            valuesNew[i] = values[i];
-            calldatasNew[i] = calldatas[i];
-        }
-
-        // adding self destruct data to array
-        targetsNew[targets.length] = powers;
-        valuesNew[values.length] = 0;
-        calldatasNew[calldatas.length] = abi.encodeWithSelector(Powers.revokeLaw.selector, address(this));
-
-        // return new arrays
-        return (targetsNew, valuesNew, calldatasNew);
-    }
-
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for

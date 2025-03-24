@@ -27,7 +27,7 @@
 //     }
 
 //     function testDeployEmitsEvent() public {
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "address[] Targets", 
 //             "uint256[] Values", 
 //             "bytes[] CallDatas"

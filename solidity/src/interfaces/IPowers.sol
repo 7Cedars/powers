@@ -49,6 +49,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @dev Only callable if the law requires voting (quorum > 0)
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
+    /// @param nonce The nonce for the action
     /// @param description A human-readable description of the proposal
     /// @return The unique identifier of the created proposal
     function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
@@ -59,9 +60,9 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @dev Can only be called by the original proposer
     /// @param lawId The id of the law
     /// @param lawCalldata The original encoded function call data
-    /// @param description The original proposal description
+    /// @param nonce The nonce for the action
     /// @return The unique identifier of the cancelled proposal
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external returns (uint256);
+    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain

@@ -46,7 +46,7 @@
 //     ) Law(name_, powers_, allowedRole_, config_) {
 //         ROLE_ID = roleId_;
 
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "bool Assign", 
 //             "address Account"
 //             );

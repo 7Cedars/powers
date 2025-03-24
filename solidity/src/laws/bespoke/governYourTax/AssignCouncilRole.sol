@@ -37,7 +37,7 @@
 //     )  Law(name_, powers_, allowedRole_, config_) {
 
 //         councilRoles = councilRoles_;
-//         bytes memory params = abi.encode(["uint256 roleId", "address Account"]);
+//         bytes memory inputParams = abi.encode(["uint256 roleId", "address Account"]);
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }
 

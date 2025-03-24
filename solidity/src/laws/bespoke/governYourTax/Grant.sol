@@ -46,7 +46,7 @@
 //         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council. 
 //     ) Law(name_, powers_, allowedRole_, config_) {
 
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "address Grantee", // grantee address
 //             "address Grant", // grant address = address(this). This is needed to make abuse of proposals across contracts impossible.
 //             "uint256 Quantity" // quantity to transfer

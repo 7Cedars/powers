@@ -106,7 +106,7 @@ contract Law is ERC165, ILaw {
         
         // execute the law's logic conditional on data returned by handleRequest
         if (stateChange.length > 0) {
-            _changeState(stateChange);
+            _changeState(lawHash, stateChange);
         }
         if (targets.length > 0) {
             _replyPowers(law, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right? 
@@ -138,7 +138,7 @@ contract Law is ERC165, ILaw {
     /// @notice Applies state changes from law execution
     /// @dev Must be overridden by implementing contracts
     /// @param stateChange Encoded state changes to apply
-    function _changeState(bytes memory stateChange) internal virtual 
+    function _changeState(bytes32 lawHash, bytes memory stateChange) internal virtual 
     {
         // Empty implementation - must be overridden
     }

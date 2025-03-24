@@ -45,7 +45,7 @@
 //         uint256 allowedRole_,
 //         LawUtilities.Conditions memory config_
 //     )  Law(name_, powers_, allowedRole_, config_) {
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "address[] Targets", 
 //             "uint256[] Values", 
 //             "bytes[] CallDatas"

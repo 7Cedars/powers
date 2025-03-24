@@ -44,7 +44,7 @@
 //         MAX_ROLE_HOLDERS = maxRoleHolders_;
 //         ROLE_ID = roleId_;
         
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "uint256 NomineeIndex", 
 //             "bool Assign"
 //         );

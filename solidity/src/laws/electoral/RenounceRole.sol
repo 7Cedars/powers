@@ -45,7 +45,7 @@
 //         uint32[] memory allowedRoleIds_
 //     ) Law(name_, powers_, allowedRole_, config_) {
 //         allowedRoleIds = allowedRoleIds_;
-//         bytes memory params = abi.encode("uint256 roleId");
+//         bytes memory inputParams = abi.encode("uint256 roleId");
 
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }

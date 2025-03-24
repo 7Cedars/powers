@@ -42,7 +42,7 @@
 //         erc20TaxedMock = erc20TaxedMock_;
 //         thresholdTaxPaid = thresholdTaxPaid_;
 
-//         bytes memory params = abi.encode("address Account");
+//         bytes memory inputParams = abi.encode("address Account");
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }
 

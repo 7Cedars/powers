@@ -64,7 +64,7 @@ contract Powers is EIP712, IPowers {
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO.
     bool private _constituteExecuted; // has the constitute function been called before?
-    // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'fase' value.
+    // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCount = 1; // number of laws that have been initiated throughout the life of the organisation.
 
     //////////////////////////////////////////////////////////////
@@ -220,12 +220,11 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     /// @dev the account to cancel must be the account that created the proposedAction.
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
         public
         virtual
         returns (uint256)   
     {
-        ActiveLaw memory law = laws[lawId];
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         // only caller can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].caller == address(0))
         if (msg.sender != _actions[actionId].caller) revert Powers__AccessDenied();
@@ -241,7 +240,6 @@ contract Powers is EIP712, IPowers {
         virtual
         returns (uint256)
     {
-        ActiveLaw memory law = laws[lawId];
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
 
         // check 1: is action already fulfilled or cancelled?
@@ -480,7 +478,6 @@ contract Powers is EIP712, IPowers {
         }
 
         uint256 deadline = getProposedActionDeadline(actionId);
-        uint16 lawId = _actions[actionId].lawId;
 
         if (deadline >= block.number) {
             return ActionState.Active;
@@ -498,8 +495,7 @@ contract Powers is EIP712, IPowers {
 
      /// @inheritdoc IPowers
     function canCallLaw(address caller, uint16 lawId) public virtual view returns (bool) {
-        ActiveLaw memory law = laws[lawId];
-        uint256 allowedRole = Law(law.targetLaw).getConditions(lawId).allowedRole;
+        uint256 allowedRole = Law(laws[lawId].targetLaw).getConditions(lawId).allowedRole;
         uint48 since = hasRoleSince(caller, allowedRole);
 
         return since != 0 || allowedRole == PUBLIC_ROLE;

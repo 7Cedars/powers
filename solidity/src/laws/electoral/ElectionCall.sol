@@ -54,7 +54,7 @@
 //         ELECTED_ROLE_ID = electedRoleId_;
 //         MAX_ROLE_HOLDERS = maxElectedRoleHolders_;
 
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "string Description", // description = a description of the election.
 //             "uint48 StartVote", // startVote = the start date of the election.
 //             "uint48 EndVote" // endVote = the end date of the election.

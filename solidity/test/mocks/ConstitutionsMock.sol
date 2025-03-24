@@ -102,7 +102,7 @@
 
 //         // Note this proposalOnly law has no internal data, as such it cannot actually do anyting.
 //         // This law is only for example and testing purposes.
-//         string[] memory params = new string[](0);
+//         string[] memory inputParams = new string[](0);
 //         law = new ProposalOnly(
 //             "3 makes proposals", // max 31 chars
 //             "3 holders can make any proposal, without vote.",
@@ -336,7 +336,7 @@
 //          LawUtilities.Conditions memory Conditions;
 
 //         // dummy params
-//         string[] memory params = new string[](0);
+//         string[] memory inputParams = new string[](0);
 
 //         law = new NominateMe(
 //             "Nominate for any role", // max 31 chars
@@ -507,7 +507,7 @@
 //         calldatas[0] = abi.encodeWithSelector(Erc1155Mock.mintCoins.selector, 123);
 
 //         // dummy params
-//         string[] memory params = new string[](0);
+//         string[] memory inputParams = new string[](0);
 
 //         // setting up config file
 //         Conditions.quorum = 30; // = 30% quorum needed
@@ -624,7 +624,7 @@
 //          LawUtilities.Conditions memory Conditions;
 
 //         // dummy params
-//         string[] memory params = new string[](0);
+//         string[] memory inputParams = new string[](0);
 //         // initiating law.
 //         law = new AddressesMapping(
 //             "Free Address Mapping", // max 31 chars

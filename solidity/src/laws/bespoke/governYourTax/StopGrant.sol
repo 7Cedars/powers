@@ -37,7 +37,7 @@
 //         LawUtilities.Conditions memory config_ // this is the configuration for creating new grants, not of the grants themselves.
 //     ) Law(name_, powers_, allowedRole_, config_) {
 
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "string Name", // name
 //             "string Description", // description
 //             "uint48 Duration", // duration

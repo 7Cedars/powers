@@ -45,7 +45,7 @@
 //         LawUtilities.Conditions memory config_,
 //         string[] memory params_
 //     ) Law(name_, powers_, allowedRole_, config_) {
-//         bytes memory params = abi.encode(params_);
+//         bytes memory inputParams = abi.encode(params_);
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }
 

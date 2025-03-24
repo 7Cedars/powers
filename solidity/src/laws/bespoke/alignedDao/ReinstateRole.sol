@@ -36,7 +36,7 @@
 //     ) Law(name_, powers_, allowedRole_, config_) {
 //         erc721Token = erc721Token_;
         
-//         bytes memory params = abi.encode("uint256 TokenId", "address Account"); // token id, account
+//         bytes memory inputParams = abi.encode("uint256 TokenId", "address Account"); // token id, account
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }
 

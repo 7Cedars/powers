@@ -59,7 +59,7 @@ pragma solidity 0.8.26;
 //             uint256 allowedRole,
 //             address targetContract,
 //             bytes4 targetFunction,
-//             string[] memory params
+//             string[] memory inputParams
 //         ) = abi.decode(lawCalldata, (string, string, uint32, address, bytes4, string[]));
 
 //         // step 0: calculate address at which grant will be created.
@@ -95,7 +95,7 @@ pragma solidity 0.8.26;
 //             uint256 allowedRole,
 //             address targetContract,
 //             bytes4 targetFunction,
-//             string[] memory params
+//             string[] memory inputParams
 //         ) = abi.decode(stateChange, (string, string, uint32, address, bytes4, string[]));
 
 //         // stp 1: deploy new grant
@@ -112,7 +112,7 @@ pragma solidity 0.8.26;
 //         uint256 allowedRole,
 //         address targetContract,
 //         bytes4 targetFunction,
-//         string[] memory params
+//         string[] memory inputParams
 //     ) internal view returns (address) {
 //         Create2.computeAddress(
 //             bytes32(keccak256(abi.encodePacked(name, description))),
@@ -142,7 +142,7 @@ pragma solidity 0.8.26;
 //         uint256 allowedRole,
 //         address targetContract,
 //         bytes4 targetFunction,
-//         string[] memory params
+//         string[] memory inputParams
 //     ) internal {
 //         BespokeAction newBespokeAction = new BespokeAction{
 //             salt: bytes32(keccak256(abi.encodePacked(name, description)))

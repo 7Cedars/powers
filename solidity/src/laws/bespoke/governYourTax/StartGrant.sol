@@ -38,7 +38,7 @@
 //         address proposals // the address where proposals to the grant are made.
 //     ) Law(name_, powers_, allowedRole_, config_) {
 
-//         bytes memory params = abi.encode(
+//         bytes memory inputParams = abi.encode(
 //             "string Name", // name
 //             "string Description", // description
 //             "uint48 Duration", // duration
