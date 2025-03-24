@@ -6,7 +6,7 @@
 
 ## For Developers
 
-* [Governance](for-developers/governance.md)
+* [Governance flow](for-developers/governance-flow.md)
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing actions](for-developers/powers.sol/proposing-actions.md)

@@ -53,7 +53,7 @@ The governance flow is defined by the following restrictions:
 
 ### 📜 Laws
 
-Laws define under which conditions a role can execute what actions.
+Laws define under which conditions a role is allowed to execute what actions.
 
 Example:
 
@@ -63,10 +63,10 @@ Laws are contracts that follow the `ilaw.sol` interface. They can be created by 
 
 * They are role restricted by a single role.
 * They are linked to a single `Powers.sol` deployment.
-* They have multiple (optional) checks: for instance a proposal vote that needs to pass, or another law that needs to have been completed.
-* They return a function call.
-* They can save a state.
+* They have multiple (optional) checks.
 * They have a function `executeLaw` that can only be called by their `Powers.sol` deployment.
+* They can return three arrays to the Powers contract: targets laws, values and function calls.
+* They can save a state.
 
 Many elements of laws can be changed: the input parameters, the function call that is returned, which checks need to pass, what state (if any) is saved. Pretty much anything is possible. Laws are the meat on the bones provided by Powers engine.
 
@@ -85,6 +85,8 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 ### 🏛️ Powers + Laws = Governance
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
+
+Laws can be used to whitelist actions on a role by role basis or they can be combined in governance chains to create granular checks and balances to the power of roles to execute actions.&#x20;
 
 <details>
 
@@ -124,7 +126,7 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-For a diagram of the governance flow in the Powers protocol, please see&#x20;
+For a diagram of the governance flow in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
 ## Unique strengths
 
@@ -135,6 +137,8 @@ Role restricted governance protocols offer several powerful advantages that make
 The Powers protocol provides a robust and flexible framework for encoding how roles are assigned to accounts: Communities can implement any mechanism they desire for allocating roles but they always have to use established governance mechanisms.&#x20;
 
 It allows token hodlers, builders, validators, institutional members, users or any other stake holder in the community to be contractually represented.
+
+It also allows the use of existing protocols, such as the Hats protocol, to be used for role management.&#x20;
 
 ### Voting power
 

@@ -2,9 +2,7 @@
 description: Getting a sense of governance under Powers.
 ---
 
-# Governance
-
-## Governance flow
+# Governance flow
 
 Powers and Laws together allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
 
