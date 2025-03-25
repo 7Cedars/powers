@@ -56,7 +56,7 @@ contract AddressesMapping is Law {
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
-        bytes32 lawHash = hashLaw(caller, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
 
         if (add && addresses[lawHash][account]) {
             revert ("Already true.");
@@ -64,7 +64,7 @@ contract AddressesMapping is Law {
             revert ("Already false.");
         }
 
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
     

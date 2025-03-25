@@ -67,7 +67,7 @@ contract ElectionVotes is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        bytes32 lawHash = hashLaw(caller, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
         uint16 nomineesId = conditionsLaws[lawHash].readStateFrom; 
         (address nomineesContract, , ) = Powers(payable(msg.sender)).getActiveLaw(nomineesId);
 
@@ -83,7 +83,7 @@ contract ElectionVotes is Law {
         (address vote) = abi.decode(lawCalldata, (address));
         // step 2: create & data arrays 
         stateChange = abi.encode(vote, caller, nomineesContract);
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, stateChange);
     }
 

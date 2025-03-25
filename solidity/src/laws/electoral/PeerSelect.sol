@@ -27,37 +27,38 @@ import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PeerSelect is Law { 
-    // struct Data {
-
-    // }
-    
-    mapping(bytes32 lawHash => uint256 maxRoleHolders) public MAX_ROLE_HOLDERS;
-    mapping(bytes32 lawHash => uint256 roleId) public ROLE_ID;
-    mapping(bytes32 lawHash => address[] _elected) public _elected;
-    mapping(bytes32 lawHash => address[] _electedSorted) public _electedSorted;
+    struct Data {
+        uint256 maxRoleHolders;
+        uint256 roleId;
+        address[] elected;
+        address[] electedSorted;
+    }    
+    mapping(bytes32 lawHash => Data) public data;
 
     constructor(
         string memory name_,
         string memory description_ 
     ) Law(name_) {
-        bytes memory configParams = abi.encode(
+        emit Law__Deployed(name_, description_, abi.encode(
             "uint256 maxRoleHolders",
             "uint256 roleId"
-        );
-        emit Law__Deployed(name_, description_, configParams);
+        ));
     }
     
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
         (uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (uint256, uint256));
-        MAX_ROLE_HOLDERS[hashLaw(msg.sender, index)] = maxRoleHolders_;
-        ROLE_ID[hashLaw(msg.sender, index)] = roleId_;
-
-        inputParams = abi.encode(
+        
+        data[hashLaw(msg.sender, index)] = Data({
+            maxRoleHolders: maxRoleHolders_,
+            roleId: roleId_,
+            elected: new address[](0),
+            electedSorted: new address[](0)
+        }); 
+        
+        super.initializeLaw(index, conditions, config, abi.encode(
             "uint256 NomineeIndex", 
             "bool Assign"
-        );
-
-        super.initializeLaw(index, conditions, config, inputParams);
+        )); 
     }
 
     function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
@@ -68,22 +69,22 @@ contract PeerSelect is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {   
         
-        (address nomineesAddress, bytes32 lawHash, Conditions memory conditions) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        (address nomineesAddress, bytes32 lawHash, ) = Powers(payable(msg.sender)).getActiveLaw(lawId);
         address[] memory nominees = NominateMe(nomineesAddress).getNominees(lawHash);
         (uint256 index, bool assign) = abi.decode(lawCalldata, (uint256, bool));
 
-        actionId = hashActionId(lawId, lawCalldata, nonce);
-        (targets, values, calldatas) = createEmptyArrays(1);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = msg.sender;
 
         if (assign) {
-            if (_electedSorted[lawHash].length == MAX_ROLE_HOLDERS[lawHash]) {
+            if (data[lawHash].electedSorted.length == data[lawHash].maxRoleHolders) {
                 revert ("Max role holders reached.");
             }
             address accountElect = nominees[index];
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID[lawHash], accountElect);
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[lawHash].roleId, accountElect);
         } else {
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_ID[lawHash], _electedSorted[lawHash][index]);
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data[lawHash].roleId, data[lawHash].electedSorted[index]);
         }
         return (actionId, targets, values, calldatas, lawCalldata);
     }
@@ -95,10 +96,11 @@ contract PeerSelect is Law {
             uint16 nomineesId = conditionsLaws[lawHash].readStateFrom; 
             (address nomineesContract, , ) = Powers(payable(msg.sender)).getActiveLaw(nomineesId);
             address accountElect = NominateMe(nomineesContract).getNominees(lawHash)[index];
-            _electedSorted[lawHash].push(accountElect);
+            data[lawHash].elected.push(accountElect);
+            data[lawHash].electedSorted.push(accountElect);
         } else {
-            _electedSorted[lawHash][index] = _electedSorted[lawHash][_electedSorted[lawHash].length - 1];
-            _electedSorted[lawHash].pop();
+            data[lawHash].electedSorted[index] = data[lawHash].electedSorted[data[lawHash].electedSorted.length - 1];
+            data[lawHash].electedSorted.pop();
         }
     }
 }

@@ -1,6 +1,6 @@
-// // SPDX-License-Identifier: UNLICENSED
-// // This setup is an adaptation from the Hats protocol test. See //
-// pragma solidity ^0.8.13;
+// SPDX-License-Identifier: UNLICENSED
+// This setup is an adaptation from the Hats protocol test. See //
+pragma solidity ^0.8.26;
 
 // import "forge-std/Test.sol";
 

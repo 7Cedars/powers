@@ -69,7 +69,7 @@ contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
 
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public virtual {
-        bytes32 lawHash = hashLaw(msg.sender, index);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         conditionsLaws[lawHash] = conditions;
         actionsLaws[lawHash] = Actions({
             powers: address(this),
@@ -90,14 +90,14 @@ contract Law is ERC165, ILaw {
         public
         returns (bool success)
     {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         if (actionsLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
 
         // Run all validation checks
-        checksAtPropose(caller, lawId, lawCalldata, nonce);
-        checksAtExecute(caller, lawId, lawCalldata, nonce);
+        checksAtPropose(caller, conditionsLaws[lawHash], lawCalldata, nonce, msg.sender);
+        checksAtExecute(caller, conditionsLaws[lawHash], lawCalldata, nonce, actionsLaws[lawHash].executions, msg.sender, lawId);
 
         // Simulate and execute the law's logic
         (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
@@ -152,7 +152,7 @@ contract Law is ERC165, ILaw {
     {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         Powers(payable(actionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
 
@@ -163,70 +163,24 @@ contract Law is ERC165, ILaw {
     /// @dev Called during both proposal and execution
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtPropose(address /*caller*/, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtPropose(address /*caller*/, Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers)
         public
         view
         virtual
     {
-        // Check if parent law completion is required
-        Conditions memory conditions = conditionsLaws[hashLaw(msg.sender, lawId)];
-        uint256 parentActionId;
-
-        if (conditions.needCompleted != 0) {
-            parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(actionsLaws[hashLaw(msg.sender, conditions.needCompleted)].powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
-                revert Law__ParentNotCompleted();
-            }
-        }
-
-        // Check if parent law must not be completed
-        if (conditions.needNotCompleted != 0) {
-            parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(actionsLaws[hashLaw(msg.sender, conditions.needNotCompleted)].powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
-                revert Law__ParentBlocksCompletion();
-            }
-        }
+        LawUtilities.baseChecksAtPropose(conditions, lawCalldata, powers, nonce);
     }
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtExecute(address /*caller*/, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtExecute(address /*caller*/, Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, uint48[] memory executions, address powers, uint16 lawId)
         public
         view
         virtual
     {
-         // Check execution throttling
-        Conditions memory conditions = conditionsLaws[hashLaw(msg.sender, lawId)];
-        uint256 actionId;
-
-        if (conditions.throttleExecution != 0) {
-            uint256 numberOfExecutions = actionsLaws[hashLaw(msg.sender, lawId)].executions.length - 1;
-            if (actionsLaws[hashLaw(msg.sender, lawId)].executions[numberOfExecutions] != 0 && 
-                block.number - actionsLaws[hashLaw(msg.sender, lawId)].executions[numberOfExecutions] < conditions.throttleExecution) {
-                revert Law__ExecutionGapTooSmall();
-            }
-        }
-
-        // Check if proposal vote succeeded
-        if (conditions.quorum != 0) {
-            actionId = hashActionId(lawId, lawCalldata, nonce);
-            if (Powers(payable(actionsLaws[hashLaw(msg.sender, lawId)].powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
-                revert Law__ProposalNotSucceeded();
-            }
-        }
-
-        // Check execution delay after proposal
-        if (conditions.delayExecution != 0) {
-            actionId = hashActionId(lawId, lawCalldata, nonce);
-            uint256 deadline = Powers(payable(actionsLaws[hashLaw(msg.sender, lawId)].powers)).getProposedActionDeadline(actionId);
-            if (deadline + conditions.delayExecution > block.number) {
-                revert Law__DeadlineNotPassed();
-            }
-        }
+        LawUtilities.baseChecksAtExecute(conditions, lawCalldata, powers, nonce, executions, lawId);
     }
 
     //////////////////////////////////////////////////////////////

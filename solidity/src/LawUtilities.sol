@@ -26,7 +26,16 @@ import { ILaw } from "./interfaces/ILaw.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";    
 
 
-library LawUtilities {    
+library LawUtilities {
+    //////////////////////////////////////////////////////////////
+    //                        ERRORS                            //
+    //////////////////////////////////////////////////////////////
+    error LawUtilities__ParentNotCompleted();
+    error LawUtilities__ParentBlocksCompletion();
+    error LawUtilities__ExecutionGapTooSmall();
+    error LawUtilities__ProposalNotSucceeded();
+    error LawUtilities__DeadlineNotPassed();
+
     //////////////////////////////////////////////////////////////
     //                  STORAGE POINTERS                        //
     //////////////////////////////////////////////////////////////
@@ -35,6 +44,74 @@ library LawUtilities {
     /// @dev Uses a mapping to store arrays of block numbers for each account
     struct TransactionsByAccount {
         mapping(address account => uint48[] blockNumber) transactions;
+    }
+
+    /////////////////////////////////////////////////////////////
+    //                  CHECKS                                 //
+    /////////////////////////////////////////////////////////////
+
+    /// @notice Checks if a parent law has been completed
+    /// @dev Checks if a parent law has been completed
+    /// @param conditions The conditionsuration parameters for the law
+    /// @param lawCalldata The calldata of the law
+    /// @param nonce The nonce of the law
+    function baseChecksAtPropose(ILaw.Conditions memory conditions, bytes memory lawCalldata, address powers, uint256 nonce)
+        external
+        view
+      {
+        // Check if parent law completion is required
+        if (conditions.needCompleted != 0) {
+            uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
+                revert LawUtilities__ParentNotCompleted();
+            }
+        }
+
+        // Check if parent law must not be completed
+        if (conditions.needNotCompleted != 0) {
+            uint256 parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
+                revert LawUtilities__ParentBlocksCompletion();
+            }
+        }
+    }
+
+    /// @notice Checks if a parent law has been completed
+    /// @dev Checks if a parent law has been completed
+    /// @param conditions The conditionsuration parameters for the law
+    /// @param lawCalldata The calldata of the law
+    /// @param nonce The nonce of the law
+    function baseChecksAtExecute(ILaw.Conditions memory conditions, bytes memory lawCalldata, address powers, uint256 nonce, uint48[] memory executions, uint16 lawId)
+        external
+        view
+    {
+        // Check execution throttling
+        if (conditions.throttleExecution != 0) {
+            uint256 numberOfExecutions = executions.length - 1;
+            if (executions[numberOfExecutions] != 0 && 
+                block.number - executions[numberOfExecutions] < conditions.throttleExecution) {
+                revert LawUtilities__ExecutionGapTooSmall();
+            }
+        }
+
+        // Check if proposal vote succeeded
+        if (conditions.quorum != 0) {
+            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
+            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
+                revert LawUtilities__ProposalNotSucceeded();
+            }
+        }
+
+        // Check execution delay after proposal
+        if (conditions.delayExecution != 0) {
+            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
+            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
+            if (deadline + conditions.delayExecution > block.number) {
+                revert LawUtilities__DeadlineNotPassed();
+            }
+        }
     }
 
     /////////////////////////////////////////////////////////////
@@ -160,4 +237,53 @@ library LawUtilities {
         }
         return numberOfTransactions;
     }
+
+    //////////////////////////////////////////////////////////////
+    //                      HELPER FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+    /// @notice Creates a unique identifier for an action
+    /// @dev Hashes the combination of law address, calldata, and nonce
+    /// @param lawId Address of the law contract being called
+    /// @param lawCalldata Encoded function call data
+    /// @param nonce The nonce for the action
+    /// @return actionId Unique identifier for the action
+    function hashActionId(uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+        public
+        pure
+        returns (uint256 actionId)
+    {
+        actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
+    }
+
+        /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
+    /// @dev Hashes the combination of law address and index
+    /// @param powers Address of the Powers contract
+    /// @param index Index of the law
+    /// @return lawHash Unique identifier for the law
+    function hashLaw(address powers, uint16 index)
+        public
+        pure
+        returns (bytes32 lawHash)
+    {
+        lawHash = keccak256(abi.encode(powers, index));
+    }
+
+    /// @notice Creates empty arrays for storing transaction data
+    /// @dev Initializes three arrays of the same length for targets, values, and calldata
+    /// @param length The desired length of the arrays
+    /// @return targets Array of target addresses
+    /// @return values Array of ETH values
+    /// @return calldatas Array of encoded function calls
+    function createEmptyArrays(uint256 length) 
+        public
+        pure
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        targets = new address[](length);
+        values = new uint256[](length);
+        calldatas = new bytes[](length);
+    }
+
+
+
 }

@@ -204,7 +204,7 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
 
         // check 3: do proposedAction checks of the law pass?
-        Law(law.targetLaw).checksAtPropose(caller, lawId, lawCalldata, nonce);
+        Law(law.targetLaw).checksAtPropose(caller, conditions, lawCalldata, nonce, address(this));
 
         // if checks pass: create proposedAction
         Action storage proposedAction = _actions[actionId];

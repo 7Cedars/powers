@@ -69,7 +69,7 @@
 //         }
 
 //         // step 2: create the arrays.
-//         (targets, values, calldatas) = createEmptyArrays(1);
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //         targets[0] = powers;
 //         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, account);
 

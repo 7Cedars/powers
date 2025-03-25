@@ -71,7 +71,7 @@ contract DirectSelect is Law {
             bytes memory stateChange
             )
     {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 
         // Decode the calldata. Note that validating calldata is not possible at the moment. 
         // See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
@@ -79,10 +79,10 @@ contract DirectSelect is Law {
         (bool assign, address account) = abi.decode(lawCalldata, (bool, address));
 
         // step 2: hash the proposal.
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 3: create the arrays.
-        (targets, values, calldatas) = createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 
         // step 4: set the targets, values and calldatas.
         targets[0] = msg.sender;

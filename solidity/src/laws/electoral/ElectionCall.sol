@@ -52,7 +52,7 @@
 
 //     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
 //         (address electionVotes_, uint32 voterRoleId_, uint256 maxRoleHolders_, uint32 electedRoleId_) = abi.decode(config, (address, uint32, uint256, uint32));
-//         bytes32 lawHash = hashLaw(msg.sender, index);
+//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 //         electionVotes[lawHash] = electionVotes_;
 //         voterRoleId[lawHash] = voterRoleId_;
 //         maxRoleHolders[lawHash] = maxRoleHolders_;
@@ -76,14 +76,13 @@
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {        
 //         // step 0: get data.
-//         bytes32 lawHash = hashLaw(msg.sender, lawId);
-//         actionId = hashActionId(lawId, lawCalldata, nonce);
-//         LawData memory lawData = initialisedLaws[lawHash];
+//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+//         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 //         (uint48 startVote, uint48 endVote) =
 //             abi.decode(lawCalldata, (uint48, uint48));
 
 //         // step 1: calculate address at which grant will be created.
-//         address nominees = lawData.conditions.readStateFrom;
+//         address nominees = conditionsLaws[lawHash].readStateFrom;
 //         if (nominees == address(0)) {
 //             revert("Nominees contract not set at `conditions.readStateFrom`.");
 //         }
@@ -98,7 +97,7 @@
 //         lawInitData.conditions = conditionsLocal;
 //         lawInitData.config = abi.encode(startVote, endVote);
     
-//         (targets, values, calldatas) = createEmptyArrays(1);
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //         // step 4: fill out arrays with data
 //         targets[0] = msg.sender;
 //         calldatas[0] = abi.encodeWithSelector(Powers.adoptLaw.selector, lawInitData);

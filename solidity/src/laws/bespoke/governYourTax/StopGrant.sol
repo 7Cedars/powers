@@ -92,7 +92,7 @@
 //         }
 
 //         // step 3: create arrays
-//         (targets, values, calldatas) = createEmptyArrays(1);
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //         stateChange = abi.encode("");
 
 //         // step 4: fill out arrays with data

@@ -57,7 +57,7 @@ contract NominateMe is Law {
     {
         // decode the calldata.
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 
         // nominating //
         if (nominateMe && nominees[lawHash][caller] != 0) {
@@ -69,7 +69,7 @@ contract NominateMe is Law {
         }
 
         stateChange = abi.encode(caller, nominateMe); // encode the state
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas, stateChange);
     }
@@ -105,7 +105,7 @@ contract NominateMe is Law {
     }
 
     function getNomineesCount(uint16 lawId) public view returns (uint256) {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         return nomineesCount[lawHash];
     }
 }

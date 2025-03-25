@@ -50,7 +50,7 @@ contract PresetAction is Law {
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
         (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) = abi.decode(inputParams, (address[], uint256[], bytes[]));
         
-        bytes32 lawHash = hashLaw(msg.sender, index);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         targets[lawHash] = targets_;
         values[lawHash] = values_;
         calldatas[lawHash] = calldatas_;
@@ -65,8 +65,8 @@ contract PresetAction is Law {
         override
         returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets[lawHash], values[lawHash], calldatas[lawHash], "");  
     }
 }

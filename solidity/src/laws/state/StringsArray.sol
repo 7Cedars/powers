@@ -52,7 +52,7 @@ contract StringsArray is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 

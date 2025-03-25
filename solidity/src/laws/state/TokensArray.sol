@@ -21,6 +21,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract TokensArray is Law {
     enum TokenType {
@@ -64,7 +65,7 @@ contract TokensArray is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 

@@ -115,20 +115,20 @@ interface ILaw is IERC165, LawErrors {
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
     /// @param caller Address attempting to propose
-    /// @param lawId The id of the law
+    /// @param conditions The conditions for the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtPropose(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtPropose(address caller, Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers)
         external
         view;
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
     /// @param caller Address attempting to execute
-    /// @param lawId The id of the law
+    /// @param conditions The conditions for the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtExecute(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+    function checksAtExecute(address caller, Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, uint48[] memory executions, address powers, uint16 lawId)
         external
         view;
 

@@ -65,7 +65,7 @@ contract OpenAction is Law {
             bytes memory stateChange
         )
     {
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         // note: no check on decoded call data. If needed, this can be added.
         (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
 

@@ -82,11 +82,11 @@
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {   
-//         actionId = hashActionId(lawId, lawCalldata, nonce);
-//         bytes32 lawHash = hashLaw(msg.sender, lawId);
-//         LawData memory lawData = initialisedLaws[lawHash];
-//         address electionCall = Powers(payable(msg.sender)).getActiveLawAddress(lawData.conditions.needCompleted);
-//         bytes32 electionCallHash = hashLaw(msg.sender, lawData.conditions.needCompleted);
+//         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        
+//         address electionCall = Powers(payable(msg.sender)).getActiveLawAddress(conditionsLaws[lawHash].needCompleted);
+//         bytes32 electionCallHash = LawUtilities.hashLaw(msg.sender, conditionsLaws[lawHash].needCompleted);
 
 //         // saving the following in state vars to a struct avoid 'stack too deep' errors.
 //         Data memory data;
@@ -98,27 +98,27 @@
 //         data.maxRoleHolders = ElectionCall(electionCall).maxRoleHolders(electionCallHash);
 //         data.electedRoleId = ElectionCall(electionCall).electedRoleId(electionCallHash);
 //         ( , , , Conditions memory conditions) = ElectionCall(electionCall).initialisedLaws(electionCallHash);
-//         data.nominees = conditions.readStateFrom;
+//         data.nominees = conditionsLaws[lawHash].readStateFrom;
         
 //         // step 1: run additional checks
-//         if (!Powers(lawData.powers).getActiveLaw(data.electionVotes)) {
+//         if (!Powers(msg.sender).getActiveLaw(data.electionVotes)) {
 //             revert ("ElectionVotes contract not recognised.");
 //         }
-//         if (NominateMe(data.nominees).nomineesCount() == 0) {
+//         if (NominateMe(data.nominees).nomineesCount(lawHash) == 0) {
 //             revert ("No nominees.");
 //         }
-//         if (ElectionVotes(data.electionVotes).endVote() > block.number) {
+//         if (ElectionVotes(data.electionVotes).endVote(electionCallHash) > block.number) {
 //             revert ("Election still active.");
 //         }
 
 //         // step 2: setting up array for revoking & assigning roles.
 //         address[] memory accountElects;
-//         uint256 numberNominees = NominateMe(data.nominees).nomineesCount();
-//         uint256 numberRevokees = electedAccounts.length;
+//         uint256 numberNominees = NominateMe(data.nominees).nomineesCount(lawHash);
+//         uint256 numberRevokees = electedAccounts[lawHash].length;
 //         uint256 arrayLength =
 //             numberNominees < data.maxRoleHolders ? numberRevokees + numberNominees + 1 : numberRevokees + data.maxRoleHolders + 1;
 
-//         (targets, values, calldatas) = createEmptyArrays(arrayLength); 
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength); 
 //         for (uint256 i; i < arrayLength; i++) {
 //             targets[i] = msg.sender;
 //         }
@@ -193,9 +193,9 @@
 //         return (actionId, targets, values, calldatas, stateChange);
 //     }
 
-//     function _changeState(bytes memory stateChange) internal override {
+//     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
 //         (address[] memory elected) = abi.decode(stateChange, (address[]));
-//         delete electedAccounts;
-//         electedAccounts = elected;
+//         delete electedAccounts[lawHash];
+//         electedAccounts[lawHash] = elected;
 //     }
 // }

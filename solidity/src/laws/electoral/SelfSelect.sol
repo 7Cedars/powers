@@ -60,9 +60,9 @@ contract SelfSelect is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        (targets, values, calldatas) = createEmptyArrays(1);
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         targets[0] = msg.sender;
         if (Powers(payable(msg.sender)).hasRoleSince(caller, roleIds[lawHash]) != 0) {

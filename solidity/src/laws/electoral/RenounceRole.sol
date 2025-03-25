@@ -62,7 +62,7 @@ contract RenounceRole is Law {
     {
         // step 1: decode the calldata.
         (uint256 roleId) = abi.decode(lawCalldata, (uint256));
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 
         // step2: check if the role is allowed to be renounced.
         bool allowed = false;
@@ -77,8 +77,8 @@ contract RenounceRole is Law {
         }
 
         // step 3: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = createEmptyArrays(1);
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         targets[0] = msg.sender;
         if (Powers(payable(msg.sender)).hasRoleSince(caller, roleId) == 0) {

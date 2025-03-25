@@ -36,74 +36,74 @@ contract DeployLaws is Script {
         bytes creationCode;
     }
     function run() external returns (address[] memory) {
-        LawDeployData[] memory laws = new LawDeployData[](13);
+        LawDeployData[] memory laws = new LawDeployData[](1);
         
         // laws[0] = LawDeployData({
         //     name: "DelegateSelect",
         //     description: "A law to elect accounts to roles via delegated votes.",
         //     creationCode: type(DelegateSelect).creationCode
         // });
-        laws[1] = LawDeployData({
-            name: "DirectSelect",
-            description: "A law to select an account to a specific role directly.",
-            creationCode: type(DirectSelect).creationCode
-        });
-        laws[2] = LawDeployData({
-            name: "PeerSelect",
-            description: "A law to elect accounts to by their peers.",
-            creationCode: type(PeerSelect).creationCode
-        });
-        laws[3] = LawDeployData({
-            name: "RenounceRole",
-            description: "A law to renounce a role.",
-            creationCode: type(RenounceRole).creationCode
-        });
-        laws[4] = LawDeployData({
-            name: "SelfSelect",
-            description: "A law to select a role for oneself.",
-            creationCode: type(SelfSelect).creationCode
-        });
-        laws[5] = LawDeployData({
-            name: "BespokeAction",
-            description: "A law to execute a bespoke action.",
-            creationCode: type(BespokeAction).creationCode
-        });
-        laws[6] = LawDeployData({
-            name: "OpenAction",
-            description: "A law to execute an open action.",
-            creationCode: type(OpenAction).creationCode
-        });
-        laws[7] = LawDeployData({
-            name: "PresetAction",
-            description: "A law to execute a preset action.",
-            creationCode: type(PresetAction).creationCode
-        });
-        laws[8] = LawDeployData({
+        // laws[1] = LawDeployData({
+        //     name: "DirectSelect",
+        //     description: "A law to select an account to a specific role directly.",
+        //     creationCode: type(DirectSelect).creationCode
+        // });
+        // laws[2] = LawDeployData({
+        //     name: "PeerSelect",
+        //     description: "A law to elect accounts to by their peers.",
+        //     creationCode: type(PeerSelect).creationCode
+        // });
+        // laws[3] = LawDeployData({
+        //     name: "RenounceRole",
+        //     description: "A law to renounce a role.",
+        //     creationCode: type(RenounceRole).creationCode
+        // });
+        // laws[4] = LawDeployData({
+        //     name: "SelfSelect",
+        //     description: "A law to select a role for oneself.",
+        //     creationCode: type(SelfSelect).creationCode
+        // });
+        // laws[5] = LawDeployData({
+        //     name: "BespokeAction",
+        //     description: "A law to execute a bespoke action.",
+        //     creationCode: type(BespokeAction).creationCode
+        // });
+        // laws[6] = LawDeployData({
+        //     name: "OpenAction",
+        //     description: "A law to execute an open action.",
+        //     creationCode: type(OpenAction).creationCode
+        // });
+        // laws[7] = LawDeployData({
+        //     name: "PresetAction",
+        //     description: "A law to execute a preset action.",
+        //     creationCode: type(PresetAction).creationCode
+        // });
+        laws[0] = LawDeployData({
             name: "ProposalOnly",
             description: "A law to propose a new core value to or remove an existing from the Dao. Subject to a vote and cannot be implemented.",
             creationCode: type(ProposalOnly).creationCode
         });
-        // state laws
-        laws[9] = LawDeployData({
-            name: "AddressesMapping",
-            description: "A law to add and remove addresses from a mapping.",
-            creationCode: type(AddressesMapping).creationCode
-        });
-        laws[10] = LawDeployData({
-            name: "NominateMe",
-            description: "A law for accounts to nominate themselves for a role.",
-            creationCode: type(NominateMe).creationCode
-        });
-        laws[11] = LawDeployData({
-            name: "StringsArray",
-            description: "A law to add and remove values from an array.",
-            creationCode: type(StringsArray).creationCode
-        });
-        laws[12] = LawDeployData({
-            name: "TokensArray",
-            description: "A law to add and remove values from an array.",
-            creationCode: type(TokensArray).creationCode
-        });
+        // // state laws
+        // laws[9] = LawDeployData({
+        //     name: "AddressesMapping",
+        //     description: "A law to add and remove addresses from a mapping.",
+        //     creationCode: type(AddressesMapping).creationCode
+        // });
+        // laws[10] = LawDeployData({
+        //     name: "NominateMe",
+        //     description: "A law for accounts to nominate themselves for a role.",
+        //     creationCode: type(NominateMe).creationCode
+        // });
+        // laws[11] = LawDeployData({
+        //     name: "StringsArray",
+        //     description: "A law to add and remove values from an array.",
+        //     creationCode: type(StringsArray).creationCode
+        // });
+        // laws[12] = LawDeployData({
+        //     name: "TokensArray",
+        //     description: "A law to add and remove values from an array.",
+        //     creationCode: type(TokensArray).creationCode
+        // });
 
         address[] memory lawsDeployed = new address[](laws.length);
 
@@ -127,6 +127,9 @@ contract DeployLaws is Script {
         string memory description, 
         bytes memory creationCode
     ) public returns (address lawAddress) {
+        if (creationCode.length == 0) {
+            return address(0);
+        }
         lawAddress = Create2.computeAddress(
             bytes32(keccak256(abi.encodePacked(description))),
             keccak256(
@@ -143,7 +146,7 @@ contract DeployLaws is Script {
             vm.startBroadcast();
             lawAddress = Create2.deploy(
                 0, 
-                bytes32(keccak256(abi.encodePacked(description))),
+                bytes32(keccak256(abi.encodePacked("test"))),
                 abi.encodePacked(
                     creationCode, 
                     abi.encodePacked(name, description)

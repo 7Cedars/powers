@@ -49,7 +49,7 @@ contract BespokeAction is Law {
 
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
         (address targetContract_, bytes4 targetFunction_, string[] memory params_) = abi.decode(config, (address, bytes4, string[]));         
-        bytes32 lawHash = hashLaw(msg.sender, index);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 
         targetContract[lawHash] = targetContract_;
         targetFunction[lawHash] = targetFunction_;
@@ -66,11 +66,11 @@ contract BespokeAction is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
-        actionId = hashActionId(lawId, lawCalldata, nonce);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // send the calldata to the target function
-        (targets, values, calldatas) = createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = targetContract[lawHash];
         calldatas[0] = abi.encodePacked(targetFunction[lawHash], lawCalldata);
 
