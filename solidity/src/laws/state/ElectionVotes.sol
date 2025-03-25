@@ -68,8 +68,8 @@ contract ElectionVotes is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
         bytes32 lawHash = hashLaw(caller, lawId);
-        uint16 nomineesId = initialisedLaws[lawHash].conditions.readStateFrom; 
-        address nomineesContract = Powers(payable(msg.sender)).getActiveLawAddress(nomineesId);
+        uint16 nomineesId = conditionsLaws[lawHash].readStateFrom; 
+        (address nomineesContract, , ) = Powers(payable(msg.sender)).getActiveLaw(nomineesId);
 
         // step 0: run additional checks
         if (block.number < startVote[lawHash] || block.number > endVote[lawHash]) {

@@ -68,11 +68,8 @@ contract PeerSelect is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {   
         
-        bytes32 lawHash = hashLaw(msg.sender, lawId);
-        address[] memory nominees = NominateMe(
-            Powers(payable(msg.sender)).getActiveLawAddress(
-                initialisedLaws[lawHash].conditions.readStateFrom
-            )).getNominees(lawHash);
+        (address nomineesAddress, bytes32 lawHash, Conditions memory conditions) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        address[] memory nominees = NominateMe(nomineesAddress).getNominees(lawHash);
         (uint256 index, bool assign) = abi.decode(lawCalldata, (uint256, bool));
 
         actionId = hashActionId(lawId, lawCalldata, nonce);
@@ -95,8 +92,8 @@ contract PeerSelect is Law {
         (uint256 index, bool assign) = abi.decode(stateChange, (uint256, bool));
 
         if (assign) {
-            uint16 nomineesId = initialisedLaws[lawHash].conditions.readStateFrom; 
-            address nomineesContract = Powers(payable(msg.sender)).getActiveLawAddress(nomineesId);
+            uint16 nomineesId = conditionsLaws[lawHash].readStateFrom; 
+            (address nomineesContract, , ) = Powers(payable(msg.sender)).getActiveLaw(nomineesId);
             address accountElect = NominateMe(nomineesContract).getNominees(lawHash)[index];
             _electedSorted[lawHash].push(accountElect);
         } else {

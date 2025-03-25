@@ -19,28 +19,24 @@
 pragma solidity 0.8.26;
 
 import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import { LawErrors } from "./LawErrors.sol";
-import { LawUtilities } from "../LawUtilities.sol";
-
+import { LawErrors } from "./LawErrors.sol"; 
 interface ILaw is IERC165, LawErrors {
-    //////////////////////////////////////////////////////////////
+     //////////////////////////////////////////////////////////////
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
-    struct LawData {
-        address payable powers; // 20 bytes
-        uint16 index; // 2 bytes
-        uint48[] executions; // 32 bytes
-        bytes configs; // 32 bytes
-        Conditions conditions; // 104 bytes
+    struct Actions {
+        address powers;
+        bytes config;
+        uint48[] executions;
     }
-
+    
     struct Conditions {
         // Slot 0
         uint256 allowedRole; // 32 bytes
         // Slot 1
         uint16 needCompleted;      // 2 bytes - index of law that must be completed before this one
-        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
-        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
+        uint48 delayExecution;     // 6 bytes  - Blocks to wait after proposal success before execution
+        uint48 throttleExecution;  // 6 bytes  - Minimum blocks between executions
         uint16 readStateFrom;      // 2 bytes - index of law to read state from (for law dependencies)
         uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
         uint8 quorum;              // 1 byte   - Required participation percentage
@@ -73,7 +69,7 @@ interface ILaw is IERC165, LawErrors {
         uint16 indexed index,
         Conditions conditions,
         bytes inputParams
-    );
+    ); 
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //

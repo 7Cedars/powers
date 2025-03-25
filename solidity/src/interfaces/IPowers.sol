@@ -157,8 +157,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Checks if a law is currently active
     /// @param lawId The id of the law
-    /// @return active if the law is active, false otherwise
-    function getActiveLaw(uint16 lawId) external view returns (bool active);
+    /// @return law The address of the law
+    /// @return lawHash The hash of the law
+    /// @return conditions The conditions set to the law
+    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

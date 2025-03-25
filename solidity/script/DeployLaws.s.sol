@@ -38,11 +38,11 @@ contract DeployLaws is Script {
     function run() external returns (address[] memory) {
         LawDeployData[] memory laws = new LawDeployData[](13);
         
-        laws[0] = LawDeployData({
-            name: "DelegateSelect",
-            description: "A law to elect accounts to roles via delegated votes.",
-            creationCode: type(DelegateSelect).creationCode
-        });
+        // laws[0] = LawDeployData({
+        //     name: "DelegateSelect",
+        //     description: "A law to elect accounts to roles via delegated votes.",
+        //     creationCode: type(DelegateSelect).creationCode
+        // });
         laws[1] = LawDeployData({
             name: "DirectSelect",
             description: "A law to select an account to a specific role directly.",

@@ -43,14 +43,15 @@ contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     /// @notice Name of the law
     string public name;
-    mapping(bytes32 lawHash => LawData data) public initialisedLaws;
+    mapping(bytes32 lawHash => Conditions) public conditionsLaws;
+    mapping(bytes32 lawHash => Actions) public actionsLaws;
 
-    //////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////// 
     //                   CONSTRUCTOR                            //
     //////////////////////////////////////////////////////////////
 
     /// @notice Constructor for the Law contract
-    /// @param name_ The name of the law
+    /// @param name_ The name of the law. It has to fit in one storage slot. (this way it will be saved as a short string)
     constructor(
         string memory name_
     ) { 
@@ -69,12 +70,11 @@ contract Law is ERC165, ILaw {
 
     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public virtual {
         bytes32 lawHash = hashLaw(msg.sender, index);
-        initialisedLaws[lawHash] = LawData({
-            powers: payable(msg.sender),
-            index: index,
-            executions: new uint48[](0),
-            configs: config, 
-            conditions: conditions
+        conditionsLaws[lawHash] = conditions;
+        actionsLaws[lawHash] = Actions({
+            powers: address(this),
+            config: config,
+            executions: new uint48[](0)
         });
 
         emit Law__Initialized(address(this), msg.sender, index, conditions, inputParams);
@@ -91,10 +91,9 @@ contract Law is ERC165, ILaw {
         returns (bool success)
     {
         bytes32 lawHash = hashLaw(msg.sender, lawId);
-        if (initialisedLaws[lawHash].powers != msg.sender) {
+        if (actionsLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
-        LawData memory law = initialisedLaws[lawHash];
 
         // Run all validation checks
         checksAtPropose(caller, lawId, lawCalldata, nonce);
@@ -109,9 +108,8 @@ contract Law is ERC165, ILaw {
             _changeState(lawHash, stateChange);
         }
         if (targets.length > 0) {
-            _replyPowers(law, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right? 
+            _replyPowers(lawId, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right? 
         }
-        initialisedLaws[lawHash].executions.push(uint48(block.number));
         return true;
     }
 
@@ -145,16 +143,17 @@ contract Law is ERC165, ILaw {
     
     /// @notice Sends execution data back to Powers protocol
     /// @dev Must be overridden by implementing contracts
-    /// @param law The law data of the proposal
+    /// @param lawId The law id of the proposal
     /// @param actionId The action id of the proposal
     /// @param targets Target contract addresses for calls
     /// @param values ETH values to send with calls
     /// @param calldatas Encoded function calls
-    function _replyPowers(LawData memory law, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual 
+    function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual 
     {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
-        Powers(payable(law.powers)).fulfill(law.index, actionId, targets, values, calldatas);
+        bytes32 lawHash = hashLaw(msg.sender, lawId);
+        Powers(payable(actionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -170,21 +169,22 @@ contract Law is ERC165, ILaw {
         virtual
     {
         // Check if parent law completion is required
-        LawData memory law = initialisedLaws[hashLaw(msg.sender, lawId)];
-        
-        if (law.conditions.needCompleted != 0) {
-            uint256 parentActionId = hashActionId(law.conditions.needCompleted, lawCalldata, nonce);
+        Conditions memory conditions = conditionsLaws[hashLaw(msg.sender, lawId)];
+        uint256 parentActionId;
 
-            if (Powers(payable(law.powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
+        if (conditions.needCompleted != 0) {
+            parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
+
+            if (Powers(payable(actionsLaws[hashLaw(msg.sender, conditions.needCompleted)].powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentNotCompleted();
             }
         }
 
         // Check if parent law must not be completed
-        if (law.conditions.needNotCompleted != 0) {
-            uint256 parentActionId = hashActionId(law.conditions.needNotCompleted, lawCalldata, nonce);
+        if (conditions.needNotCompleted != 0) {
+            parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
 
-            if (Powers(payable(law.powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
+            if (Powers(payable(actionsLaws[hashLaw(msg.sender, conditions.needNotCompleted)].powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
                 revert Law__ParentBlocksCompletion();
             }
         }
@@ -200,29 +200,30 @@ contract Law is ERC165, ILaw {
         virtual
     {
          // Check execution throttling
-        LawData memory law = initialisedLaws[hashLaw(msg.sender, lawId)];
-        
-        if (law.conditions.throttleExecution != 0) {
-            uint256 numberOfExecutions = law.executions.length - 1;
-            if (law.executions[numberOfExecutions] != 0 && 
-                block.number - law.executions[numberOfExecutions] < law.conditions.throttleExecution) {
+        Conditions memory conditions = conditionsLaws[hashLaw(msg.sender, lawId)];
+        uint256 actionId;
+
+        if (conditions.throttleExecution != 0) {
+            uint256 numberOfExecutions = actionsLaws[hashLaw(msg.sender, lawId)].executions.length - 1;
+            if (actionsLaws[hashLaw(msg.sender, lawId)].executions[numberOfExecutions] != 0 && 
+                block.number - actionsLaws[hashLaw(msg.sender, lawId)].executions[numberOfExecutions] < conditions.throttleExecution) {
                 revert Law__ExecutionGapTooSmall();
             }
         }
 
         // Check if proposal vote succeeded
-        if (law.conditions.quorum != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            if (Powers(payable(law.powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
+        if (conditions.quorum != 0) {
+            actionId = hashActionId(lawId, lawCalldata, nonce);
+            if (Powers(payable(actionsLaws[hashLaw(msg.sender, lawId)].powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
                 revert Law__ProposalNotSucceeded();
             }
         }
 
         // Check execution delay after proposal
-        if (law.conditions.delayExecution != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            uint256 deadline = Powers(payable(law.powers)).getProposedActionDeadline(actionId);
-            if (deadline + law.conditions.delayExecution > block.number) {
+        if (conditions.delayExecution != 0) {
+            actionId = hashActionId(lawId, lawCalldata, nonce);
+            uint256 deadline = Powers(payable(actionsLaws[hashLaw(msg.sender, lawId)].powers)).getProposedActionDeadline(actionId);
+            if (deadline + conditions.delayExecution > block.number) {
                 revert Law__DeadlineNotPassed();
             }
         }
@@ -276,7 +277,7 @@ contract Law is ERC165, ILaw {
 
 
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
-        return initialisedLaws[hashLaw(msg.sender, lawId)].conditions;
+        return conditionsLaws[hashLaw(msg.sender, lawId)];
     }
 
     //////////////////////////////////////////////////////////////

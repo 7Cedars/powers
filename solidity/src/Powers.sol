@@ -534,15 +534,15 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getActiveLaw(uint16 lawId) external view returns (bool active) {
-        return laws[lawId].active;
-    }
-
-    function getActiveLawAddress(uint16 lawId) external view returns (address law) {
+    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions) {
         if (!laws[lawId].active) {
             revert Powers__LawNotActive();
         }
-        return laws[lawId].targetLaw;
+        law = laws[lawId].targetLaw;
+        lawHash = keccak256(abi.encode(law, lawId));
+        conditions = Law(law).getConditions(lawId);
+
+        return (law, lawHash, conditions);
     }
 
     //////////////////////////////////////////////////////////////
