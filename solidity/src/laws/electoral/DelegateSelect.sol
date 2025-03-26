@@ -45,7 +45,7 @@ import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-abstract contract DelegateSelect is Law {
+contract DelegateSelect is Law {
     struct StateData {
         address erc20Token;
         uint256 maxRoleHolders;
@@ -65,21 +65,20 @@ abstract contract DelegateSelect is Law {
         address[] accountElects;
     } 
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode("address erc20Token", "uint256 maxRoleHolders", "uint256 roleId");
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         stateData[lawHash].erc20Token = erc20Token_; 
         stateData[lawHash].maxRoleHolders = maxRoleHolders_;
         stateData[lawHash].roleId = roleId_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("bool Assign", "address Account"));
+        super.initializeLaw(index, conditions, config, abi.encode("bool Assign", "address Account"), description);
     }
 
     function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

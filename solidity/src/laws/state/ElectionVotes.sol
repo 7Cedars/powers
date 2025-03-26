@@ -41,17 +41,16 @@ contract ElectionVotes is Law {
     event ElectionVotes__VoteCast(address voter);
 
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode(
             "uint48 startVote",
             "uint48 endVote"
         );
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
         startVote[hashLaw(msg.sender, index)] = startVote_;
         endVote[hashLaw(msg.sender, index)] = endVote_;
@@ -59,7 +58,7 @@ contract ElectionVotes is Law {
         inputParams = abi.encode(
             "address VoteFor"
         );
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
     function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public

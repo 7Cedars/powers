@@ -36,16 +36,16 @@ contract PeerSelect is Law {
     mapping(bytes32 lawHash => Data) public data;
 
     constructor(
-        string memory name_,
-        string memory description_ 
+        string memory name_
     ) Law(name_) {
-        emit Law__Deployed(name_, description_, abi.encode(
+        bytes memory configParams = abi.encode(
             "uint256 maxRoleHolders",
             "uint256 roleId"
-        ));
+        );
+        emit Law__Deployed(name_, configParams);
     }
     
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         (uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (uint256, uint256));
         
         data[hashLaw(msg.sender, index)] = Data({
@@ -58,7 +58,7 @@ contract PeerSelect is Law {
         super.initializeLaw(index, conditions, config, abi.encode(
             "uint256 NomineeIndex", 
             "bool Assign"
-        )); 
+        ), description); 
     }
 
     function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

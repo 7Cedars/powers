@@ -32,19 +32,17 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract ProposalOnly is Law {
     /// @notice Constructor function for Open contract.
     /// @param name_ name of the law
-    /// @param description_ description of the law
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode("string[] InputParams");
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         inputParams = config;
 
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     // note that we are returning empty arrays as we are not executing any logic. 

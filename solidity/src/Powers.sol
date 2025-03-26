@@ -76,6 +76,12 @@ contract Powers is EIP712, IPowers {
         _;
     }
 
+    /// @notice A modifier that sets a function to only be callable by the {Powers} contract.
+    modifier onlyActiveLaw(uint16 lawId) {
+        if (laws[lawId].active == false) revert Powers__LawNotActive();
+        _;
+    }
+
     //////////////////////////////////////////////////////////////
     //              CONSTRUCTOR & RECEIVE                       //
     //////////////////////////////////////////////////////////////
@@ -107,15 +113,12 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
     /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable virtual {
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable virtual onlyActiveLaw(lawId) {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         ActiveLaw memory law = laws[lawId];   
 
         // check 1: does executioner have access to law being executed?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
-        
-        // check 2: is targetLaw is an active law?
-        if (!law.active) revert Powers__NotActiveLaw();
         
         // check 3: has action already been set as requested?
         if (_actions[actionId].requested == true) revert Powers__ActionAlreadyInitiated();
@@ -137,10 +140,10 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable virtual {
+    function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable virtual onlyActiveLaw(lawId) {
         ActiveLaw memory law = laws[lawId];
         // check 1: is msg.sender a targetLaw?
-        if (!law.active) revert Powers__NotActiveLaw();
+        if (!law.active) revert Powers__LawNotActive();
         
         // check 2: is msg.sender the targetLaw?
         if (law.targetLaw != msg.sender) revert Powers__AccessDenied();
@@ -168,12 +171,13 @@ contract Powers is EIP712, IPowers {
     function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
         external
         virtual
+        onlyActiveLaw(lawId)
         returns (uint256)
     {
         ActiveLaw memory law = laws[lawId];
 
         // check 1: is targetLaw is an active law?
-        if (!law.active) revert Powers__NotActiveLaw();
+        if (!law.active) revert Powers__LawNotActive();
 
         // check 2: does msg.sender have access to targetLaw?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
@@ -223,6 +227,7 @@ contract Powers is EIP712, IPowers {
     function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
         public
         virtual
+        onlyActiveLaw(lawId)
         returns (uint256)   
     {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
@@ -331,7 +336,7 @@ contract Powers is EIP712, IPowers {
         laws[lawCount].targetLaw = lawInitData.targetLaw; 
         lawCount++;
 
-        Law(lawInitData.targetLaw).initializeLaw(lawCount - 1, lawInitData.conditions, lawInitData.config, "");
+        Law(lawInitData.targetLaw).initializeLaw(lawCount - 1, lawInitData.conditions, lawInitData.config, "", lawInitData.description);
         
         // emit event.
         emit LawAdopted(lawCount - 1);

@@ -37,21 +37,20 @@ contract SelfSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode(
             "uint256 RoleId"
         );
         
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         uint256 roleId_ = abi.decode(config, (uint256));
         roleIds[hashLaw(msg.sender, index)] = roleId_;
 
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

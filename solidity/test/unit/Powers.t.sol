@@ -1,740 +1,713 @@
-// // SPDX-License-Identifier: UNLICENSED
-// pragma solidity 0.8.26;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.26;
 
-// import "forge-std/Test.sol";
-// import { Powers} from "../../src/Powers.sol";
-// import { Law } from "../../src/Law.sol";
-// import { LawUtilities } from "../../src/LawUtilities.sol";
-// import { ILaw } from "../../src/interfaces/ILaw.sol";
-// import { TestSetupPowers } from "../TestSetup.t.sol";
-// import { DaoMock } from "../mocks/DaoMock.sol";
-// import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import "forge-std/Test.sol";
+import { Powers} from "../../src/Powers.sol";
+import { Law } from "../../src/Law.sol";
+import { LawUtilities } from "../../src/LawUtilities.sol";
+import { ILaw } from "../../src/interfaces/ILaw.sol";
+import { TestSetupPowers } from "../TestSetup.t.sol";
+import { DaoMock } from "../mocks/DaoMock.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
-// /// @notice Unit tests for the core Separated Powers protocol.
-// /// @dev tests build on the Hats protocol example. See // https.... £todo
+/// @notice Unit tests for the core Separated Powers protocol.
+/// @dev tests build on the Hats protocol example. See // https.... £todo
 
-// //////////////////////////////////////////////////////////////
-// //               CONSTRUCTOR & RECEIVE                      //
-// //////////////////////////////////////////////////////////////
-// contract DeployTest is TestSetupPowers {
-//     function testDeployAlignedDao() public view { 
-//         assertEq(daoMock.name(), daoNames[0]);
-//         assertEq(daoMock.version(), "0.3");
+//////////////////////////////////////////////////////////////
+//               CONSTRUCTOR & RECEIVE                      //
+//////////////////////////////////////////////////////////////
+contract DeployTest is TestSetupPowers {
+    function testDeployDaoMock() public { 
+        assertEq(daoMock.name(), "DaoMock");
+        assertEq(daoMock.version(), "0.3");
+        assertNotEq(daoMock.lawCount(), 0);
 
-//         assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
-//     }
+        assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
+    }
 
-//     function testReceive() public {
-//         vm.prank(alice);
+    function testReceive() public {
+        vm.prank(alice);
 
-//         vm.expectEmit(true, false, false, false);
-//         emit FundsReceived(1 ether);
-//         (bool success,) = address(daoMock).call{ value: 1 ether }("");
+        vm.expectEmit(true, false, false, false);
+        emit FundsReceived(1 ether);
+        (bool success,) = address(daoMock).call{ value: 1 ether }("");
 
-//         assertTrue(success);
-//         assertEq(address(daoMock).balance, 1 ether);
-//     }
+        assertTrue(success);
+        assertEq(address(daoMock).balance, 1 ether);
+    }
 
-//     function testDeployProtocolEmitsEvent() public {
-//         vm.expectEmit(true, false, false, false);
-//         emit Powers__Initialized(address(daoMock), "DaoMock", "https://example.com");
-
-//         vm.prank(alice);
-//         daoMock = new DaoMock();
-//     }
-
-//     function testDeployProtocolSetsSenderToAdmin() public {
-//         vm.prank(alice);
-//         daoMock = new DaoMock();
-
-//         assertNotEq(daoMock.hasRoleSince(alice, ADMIN_ROLE), 0);
-//     }
-
-//     function testDeployProtocolSetsPublicRole() public {
-//         vm.prank(alice);
-//         daoMock = new DaoMock();
-
-//         assertEq(daoMock.getAmountRoleHolders(PUBLIC_ROLE), type(uint256).max);
-//     }
-
-//     function testDeployProtocolSetsAdminRole() public {
-//         vm.prank(alice);
-//         daoMock = new DaoMock();
-
-//         assertEq(daoMock.getAmountRoleHolders(ADMIN_ROLE), 1);
-//     }
-// }
-
-// //////////////////////////////////////////////////////////////
-// //                  GOVERNANCE LOGIC                        //
-// //////////////////////////////////////////////////////////////
-// contract ProposeTest is TestSetupPowers {
-//     function testProposeRevertsWhenAccountLacksCredentials() public {
-//         uint32 lawNumber = 4;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         // check if mockAddress does not have correct role
-//         address mockAddress = makeAddr("mock");
-//         assertFalse(daoMock.canCallLaw(mockAddress, laws[lawNumber]));
-
-//         // act & assert
-//         vm.expectRevert(Powers__AccessDenied.selector);
-//         vm.prank(mockAddress);
-//         daoMock.propose(laws[4], lawCalldata, nonce, description);
-//     }
-
-//     function testProposeRevertsIfLawNotActive() public {
-//         uint32 lawNumber = 4;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         // check if charlotte has correct role
-//         assertTrue(daoMock.canCallLaw(charlotte, laws[lawNumber]));
-
-//         vm.prank(address(daoMock));
-//         daoMock.revokeLaw(laws[lawNumber]);
-
-//         vm.expectRevert(Powers__NotActiveLaw.selector);
-//         vm.prank(charlotte);
-//         daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testProposeRevertsIfLawDoesNotNeedVote() public {
-//         uint32 lawNumber = 2;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode("this is dummy Data");
-//         address lawThatDoesNotNeedVote = laws[lawNumber];
-//         // check if david has correct role
-//         assertTrue(daoMock.canCallLaw(david, laws[lawNumber]));
-
-//         vm.prank(david);
-//         vm.expectRevert(Powers__NoVoteNeeded.selector);
-//         daoMock.propose(lawThatDoesNotNeedVote, lawCalldata,  nonce, description);
-//     }
-
-//     function testProposePassesWithCorrectCredentials() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         // check if charlotte has correct role
-//         assertTrue(daoMock.canCallLaw(alice, laws[lawNumber]));
-
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Active));
-//     }
-
-//     function testProposeEmitsEvents() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         address targetLaw = laws[lawNumber];
-//         // check if charlotte has correct role
-//         assertTrue(daoMock.canCallLaw(alice, laws[lawNumber]));
-
-//         actionId = LawUtilities.hashActionId(targetLaw, lawCalldata, nonce);
-//         ( , , , , votingPeriod, , ,) = Law(laws[lawNumber]).conditions();
-
-//         vm.expectEmit(true, false, false, false);
-//         emit ProposedActionCreated(
-//             actionId, alice, targetLaw, "", lawCalldata, block.number, block.number + votingPeriod, nonce, description
-//         );
-//         vm.prank(alice);
-//         daoMock.propose(targetLaw, lawCalldata, nonce, description);
-//     }
-
-//     function testProposeRevertsIfAlreadyExist() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         address targetLaw = laws[lawNumber];
-//         // check if alice has correct role
-//         assertTrue(daoMock.canCallLaw(alice, laws[lawNumber]));
-
-//         vm.prank(alice);
-//         daoMock.propose(targetLaw, lawCalldata, nonce, description);
-
-//         vm.expectRevert(Powers__UnexpectedActionState.selector);
-//         vm.prank(alice);
-//         daoMock.propose(targetLaw, lawCalldata, nonce, description);
-//     }
-
-//     function testProposeSetsCorrectVoteStartAndDuration() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         address targetLaw = laws[lawNumber];
+    function testDeployProtocolEmitsEvent() public {
+        vm.expectEmit(true, false, false, false);
         
-//         vm.prank(alice);
-//         actionId = daoMock.propose(targetLaw, lawCalldata, nonce, description);
-//         ( , , , , votingPeriod, , ,) = Law(laws[lawNumber]).conditions();
-
-//         assertEq(daoMock.getProposedActionDeadline(actionId), block.number + votingPeriod);
-//     }
-// }
-
-// contract CancelTest is TestSetupPowers {
-//     function testCancellingProposalsEmitsCorrectEvent() public {
-//         // prep: create a proposal
-//         address targetLaw = laws[5];
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(targetLaw, lawCalldata, nonce, description);
-
-//         // act: cancel the proposal
-//         vm.expectEmit(true, false, false, false);
-//         emit ProposedActionCancelled(actionId);
-//         vm.prank(alice);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-//     }
-
-//     function testCancellingProposalsSetsStateToCancelled() public {
-//         // prep: create a proposal
-//         address targetLaw = laws[5];
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(targetLaw, lawCalldata, nonce, description);
-
-//         // act: cancel the proposal
-//         vm.prank(alice);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-
-//         // check the state
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Cancelled));
-//     }
-
-//     function testCancelRevertsWhenAccountDidNotCreateProposal() public {
-//         // prep: create a proposal
-//         address targetLaw = laws[5];
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         daoMock.propose(targetLaw, lawCalldata, nonce, description);
-
-//         // act: try to cancel the proposal
-//         vm.expectRevert(Powers__AccessDenied.selector);
-//         vm.prank(helen);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-//     }
-
-//     function testCancelledProposalsCannotBeExecuted() public {
-//         // prep: create a proposal
-//         address targetLaw = laws[5];
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         daoMock.propose(targetLaw, lawCalldata, nonce, description);
-
-//         // prep: cancel the proposal one time...
-//         vm.prank(alice);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-
-//         // act: try to cancel proposal a second time. Should revert
-//         vm.expectRevert(Powers__UnexpectedActionState.selector);
-//         vm.prank(alice);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-//     }
-
-//     function testCancelRevertsIfProposalAlreadyExecuted() public {
-//         // prep: create a proposal
-//         address targetLaw = laws[5];
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(targetLaw, lawCalldata, nonce, description);
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(targetLaw).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, FOR);
-//             }
-//         }
-
-//         // prep: execute the proposal
-//         vm.roll(block.number + 4000);
-//         vm.prank(alice);
-//         daoMock.request(targetLaw, lawCalldata, nonce, description);
-
-//         // act: try to cancel an executed proposal
-//         vm.expectRevert(Powers__UnexpectedActionState.selector);
-//         vm.prank(alice);
-//         daoMock.cancel(targetLaw, lawCalldata, nonce, description);
-//     }
-// }
-
-// contract VoteTest is TestSetupPowers {
-//     function testVotingRevertsIfAccountNotAuthorised() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // create unauthorised account.
-//         address mockAddress = makeAddr("mock");
-//         assertEq(daoMock.hasRoleSince(mockAddress, Law(laws[lawNumber]).allowedRole()), 0);
-
-//         // act: try to vote, without credentials
-//         vm.expectRevert(Powers__AccessDenied.selector);
-//         vm.prank(mockAddress);
-//         daoMock.castVote(actionId, FOR);
-//     }
-
-//     function testProposalDefeatedIfQuorumNotReachedInTime() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // act: go forward in time. -- no votes are cast.
-//         vm.roll(block.number + 4000);
-
-//         // check state of proposal
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Defeated));
-//     }
-
-//     function testVotingIsNotPossibleForDefeatedProposals() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // prep: defeat proposal: by going beyond voting period, quorum not reached. Proposal is defeated.
-//         vm.roll(block.number + 4000);
-
-//         // act : try to vote
-//         vm.expectRevert(Powers__ProposedActionNotActive.selector);
-//         vm.prank(charlotte);
-//         daoMock.castVote(actionId, FOR);
-//     }
-
-//     function testProposalSucceededIfQuorumReachedInTime() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'FOR'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, FOR);
-//             }
-//         }
-//         // go forward in time.
-//         vm.roll(block.number + 4000);
-
-//         // assert
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Succeeded));
-//     }
-
-//     function testVotesWithReasonsWorks() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'FOR'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVoteWithReason(actionId, FOR, "This is a test");
-//             }
-//         }
-//         // go forward in time.
-//         vm.roll(block.number + 4000);
-
-//         // assert
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Succeeded));
-//     }
-
-//     function testProposalDefeatedIfQuorumReachedButNotEnoughForVotes() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'AGAINST'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, AGAINST);
-//             }
-//         }
-//         // go forward in time.
-//         vm.roll(block.number + 4000);
-
-//         // assert
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Defeated));
-//     }
-
-//     function testAccountCannotVoteTwice() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // alice votes once..
-//         vm.prank(alice);
-//         daoMock.castVote(actionId, FOR);
-
-//         // alice tries to vote twice...
-//         vm.prank(alice);
-//         vm.expectRevert(Powers__AlreadyCastVote.selector);
-//         daoMock.castVote(actionId, FOR);
-//     }
-
-//     function testAgainstVoteIsCorrectlyCounted() public {
-//         // prep: create a proposal
-//         uint256 numberAgainstVotes;
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'AGAINST'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, AGAINST);
-//                 numberAgainstVotes++;
-//             }
-//         }
-
-//         // check
-//         (uint256 againstVotes,,) = daoMock.getProposedActionVotes(actionId);
-//         assertEq(againstVotes, numberAgainstVotes);
-//     }
-
-//     function testForVoteIsCorrectlyCounted() public {
-//         // prep: create a proposal
-//         uint256 numberForVotes;
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'FOR'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, FOR);
-//                 numberForVotes++;
-//             }
-//         }
-
-//         // check
-//         (, uint256 forVotes,) = daoMock.getProposedActionVotes(actionId);
-//         assertEq(forVotes, numberForVotes);
-//     }
-
-//     function testAbstainVoteIsCorrectlyCounted() public {
-//         // prep: create a proposal
-//         uint256 numberAbstainVotes;
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'ABSTAIN'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, ABSTAIN);
-//                 numberAbstainVotes++;
-//             }
-//         }
-
-//         // check
-//         (,, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
-//         assertEq(abstainVotes, numberAbstainVotes);
-//     }
-
-//     function testVoteRevertsWithInvalidVote() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // act
-//         vm.prank(charlotte);
-//         vm.expectRevert(Powers__InvalidVoteType.selector);
-//         daoMock.castVote(actionId, 4); // = incorrect vote type
-
-//         // check if indeed not stored as a vote
-//         (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
-//         assertEq(againstVotes, 0);
-//         assertEq(forVotes, 0);
-//         assertEq(abstainVotes, 0);
-//     }
-
-//     function testHasVotedReturnCorrectData() public {
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // act
-//         vm.prank(charlotte);
-//         daoMock.castVote(actionId, ABSTAIN);
-
-//         // check
-//         assertTrue(daoMock.hasVoted(actionId, charlotte));
-//     }
-// }
-
-// contract ExecuteTest is TestSetupPowers {
-//     function testExecuteCanChangeState() public {
-//         // prep
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); //  assign = true
-
-//         // check that mockAddress does NOT have ROLE_ONE
-//         assertEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
-
-//         // act
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // assert that mockAddress now has ROLE_ONE
-//         assertNotEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
-//     }
-
-//     function testExecuteSuccessSetsStateToFulfilled() public {
-//         // prep
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = truee
-
-//         // act
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // assert
-//         actionId = LawUtilities.hashActionId(laws[lawNumber], lawCalldata, nonce);
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
-//     }
-
-//     function testExecuteEmitsEvent() public {
-//         // prep
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = true
-
-//         // build return expected return data
-//         address[] memory tar = new address[](1);
-//         uint256[] memory val = new uint256[](1);
-//         bytes[] memory cal = new bytes[](1);
-//         tar[0] = address(daoMock);
-//         val[0] = 0;
-//         cal[0] = abi.encodeWithSelector(daoMock.assignRole.selector, ROLE_ONE, mockAddress); // selector = assignRole
-//         actionId = LawUtilities.hashActionId(laws[lawNumber], lawCalldata, nonce);
-
-//         // act & assert
-//         vm.expectEmit(true, false, false, false);
-//         emit ActionExecuted(actionId, tar, val, cal);
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfNotAuthorised() public {
-//         // prep
-//         uint32 lawNumber = 3;
-//         description = "Unauthorised call to law 3";
-//         lawCalldata = abi.encode(false, true); // (bool nominateMe, bool assignRoles)
-//         address mockAddress = makeAddr("mock");
-//         // check that mockAddress is not authorised
-//         assertEq(daoMock.hasRoleSince(mockAddress, Law(laws[lawNumber]).allowedRole()), 0);
-
-//         // act & assert
-//         vm.expectRevert(Powers__AccessDenied.selector);
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfActionAlreadyExecuted() public {
-//         // prep
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = truee
-
-//         // execute action once...
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // act: try to execute action again.
-//         vm.expectRevert(Powers__ActionAlreadyInitiated.selector);
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfLawNotActive() public {
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = truee
-
-//         // revoke law
-//         vm.prank(address(daoMock));
-//         daoMock.revokeLaw(laws[lawNumber]);
-
-//         // act & assert
-//         vm.expectRevert(Powers__NotActiveLaw.selector);
-//         vm.prank(mockAddress);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfProposalNeeded() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 4;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-
-//         vm.expectRevert(LawUtilities.LawUtilities__ParentNotCompleted.selector);
-//         vm.prank(charlotte);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfProposalDefeated() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // Loop through users,
-//         // each user that is authorised to vote, votes 'AGAINST'.
-//         for (i = 0; i < users.length; i++) {
-//             if (daoMock.hasRoleSince(users[i], Law(laws[lawNumber]).allowedRole()) != 0) {
-//                 vm.prank(users[i]);
-//                 daoMock.castVote(actionId, AGAINST);
-//             }
-//         }
-//         // go forward in time.
-//         vm.roll(block.number + 4000);
-
-//         // check if proposal is defeated.
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Defeated));
-
-//         // act & assert: try to execute proposal.
-//         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
-//         vm.prank(charlotte);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfProposalCancelled() public {
-//         // prep: create a proposal
-//         uint32 lawNumber = 5;
-//         description = "Creating a proposal";
-//         lawCalldata = abi.encode(true);
-//         vm.prank(alice);
-//         actionId = daoMock.propose(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // cancel proposal
-//         vm.prank(alice);
-//         daoMock.cancel(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // check if proposal is cancelled.
-//         ActionState actionState = daoMock.state(actionId);
-//         assertEq(uint8(actionState), uint8(ActionState.Cancelled));
-
-//         // act & assert: try to execute proposal.
-//         vm.expectRevert(Powers__ActionCancelled.selector);
-//         vm.prank(alice);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-//     }
-
-//     function testExecuteRevertsIfConditionsNotPassed() public {
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = truee
-
-//         address[] memory tar = new address[](0);
-//         uint256[] memory val = new uint256[](0);
-//         bytes[] memory cal = new bytes[](0);
-
-//         vm.mockCall(
-//             laws[lawNumber],
-//             abi.encodeWithSelector(Law.executeLaw.selector, charlotte, lawCalldata, nonce),
-//             abi.encode(false)
-//         );
-
-//         // act & assert
-//         vm.expectRevert(Powers__LawDidNotPassChecks.selector);
-//         vm.prank(charlotte);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-
-//         vm.clearMockedCalls();
-//     }
-
-//     function testIfReturnDataIsAddressOneNothingGetsExecuted() public {
-//         uint32 lawNumber = 0;
-//         description = "Assigning mockAddress ROLE_ONE";
-//         address mockAddress = makeAddr("mock");
-//         lawCalldata = abi.encode(true, mockAddress); // assign = truee
-
-//         address[] memory tar = new address[](1);
-//         uint256[] memory val = new uint256[](1);
-//         bytes[] memory cal = new bytes[](1);
-//         tar[0] = address(1);
-
-//         vm.mockCall(
-//             laws[lawNumber],
-//             abi.encodeWithSelector(Law.executeLaw.selector, charlotte, lawCalldata, nonce),
-//             abi.encode(true)
-//         );
-
-//         // act
-//         vm.prank(charlotte);
-//         daoMock.request(laws[lawNumber], lawCalldata, nonce, description);
-
-//         // assert
-//         assertEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
-
-//         // clear mock calls
-//         vm.clearMockedCalls();
-//     }
-// }
+        emit Powers__Initialized(address(daoMock), "DaoMock", "https://example.com");
+        vm.prank(alice);
+        daoMock = new DaoMock();
+    }
+
+    function testDeployProtocolSetsSenderToAdmin() public {
+        vm.prank(alice);
+        daoMock = new DaoMock();
+
+        assertNotEq(daoMock.hasRoleSince(alice, ADMIN_ROLE), 0);
+    }
+
+    function testDeployProtocolSetsPublicRole() public {
+        vm.prank(alice);
+        daoMock = new DaoMock();
+
+        assertEq(daoMock.getAmountRoleHolders(PUBLIC_ROLE), type(uint256).max);
+    }
+
+    function testDeployProtocolSetsAdminRole() public {
+        vm.prank(alice);
+        daoMock = new DaoMock();
+
+        assertEq(daoMock.getAmountRoleHolders(ADMIN_ROLE), 1);
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//                  GOVERNANCE LOGIC                        //
+//////////////////////////////////////////////////////////////
+contract ProposeTest is TestSetupPowers {
+    function testProposeRevertsWhenAccountLacksCredentials() public {
+        uint16 lawId = 4;
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        // check if mockAddress does not have correct role
+        address mockAddress = makeAddr("mock");
+        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+
+        // act & assert
+        vm.expectRevert(Powers__AccessDenied.selector);
+        vm.prank(mockAddress);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+    }
+
+    function testProposeRevertsIfLawNotActive() public {
+        uint16 lawId = 4;
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        // check if charlotte has correct role
+        assertTrue(daoMock.canCallLaw(bob, lawId), "bob should be able to call law 4");
+
+        vm.prank(address(daoMock));
+        daoMock.revokeLaw(lawId);
+
+        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.prank(charlotte);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+    }
+
+    function testProposeRevertsIfLawDoesNotNeedVote() public {
+        uint16 lawId = 2; // does not need vote.
+        description = "Creating a proposal";
+        lawCalldata = abi.encode("this is dummy Data"); 
+        // check if david has correct role
+        assertTrue(daoMock.canCallLaw(david, lawId), "david should be able to call law 2");
+
+        vm.prank(david);
+        vm.expectRevert(Powers__NoVoteNeeded.selector);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+    }
+
+    function testProposePassesWithCorrectCredentials() public {
+        uint16 lawId = 5;
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        // check if charlotte has correct role
+        assertTrue(daoMock.canCallLaw(alice, lawId));
+
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Active));
+    }
+
+    function testProposeEmitsEvents() public {
+        uint16 lawId = 5; 
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        // check if charlotte has correct role
+        assertTrue(daoMock.hasRoleSince(alice, 2) != 0, "alice should have role 2");
+        assertTrue(daoMock.canCallLaw(alice, lawId), "alice should be able to call law 4");
+
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        vm.expectEmit(true, false, false, false);
+        emit ProposedActionCreated(
+            actionId, alice, lawId, "", lawCalldata, block.number, block.number + conditions.votingPeriod, nonce, description
+        );
+        vm.prank(alice);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+    }
+
+    function testProposeRevertsIfAlreadyExist() public {
+        uint16 lawId = 5;
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        // check if alice has correct role
+        assertTrue(daoMock.canCallLaw(alice, lawId));
+
+        vm.prank(alice);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        vm.expectRevert(Powers__UnexpectedActionState.selector);
+        vm.prank(alice);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+    }
+
+    function testProposeSetsCorrectVoteStartAndDuration() public {
+        uint16 lawId = 5;
+        description = "Creating a proposal";
+        lawCalldata = abi.encode(true);
+        
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        assertEq(daoMock.getProposedActionDeadline(actionId), block.number + conditions.votingPeriod);
+    }
+}
+
+contract CancelTest is TestSetupPowers {
+    function testCancellingProposalsEmitsCorrectEvent() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: cancel the proposal
+        vm.expectEmit(true, false, false, false);
+        emit ProposedActionCancelled(actionId);
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+    }
+
+    function testCancellingProposalsSetsStateToCancelled() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: cancel the proposal
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+
+        // check the state
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Cancelled));
+    }
+
+    function testCancelRevertsWhenAccountDidNotCreateProposal() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: try to cancel the proposal
+        vm.expectRevert(Powers__AccessDenied.selector);
+        vm.prank(helen);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+    }
+
+    function testCancelledProposalsCannotBeCancelledAgain() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: cancel the proposal
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+
+        // act: try to cancel proposal a second time
+        vm.expectRevert(Powers__UnexpectedActionState.selector);
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+    }
+
+    function testCancelRevertsIfProposalAlreadyExecuted() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(
+            targets,
+            values,
+            calldatas
+        );
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+        
+        // prep: execute the proposal
+        for ( i = 0; i < users.length; i++) {    
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, FOR);
+            }
+        }
+        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.prank(alice);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+
+        // act: try to cancel an executed proposal
+        vm.expectRevert(Powers__UnexpectedActionState.selector);
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+    }
+
+    function testCancelRevertsIfLawNotActive() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: revoke the law
+        vm.prank(address(daoMock));
+        daoMock.revokeLaw(lawId);
+
+        // act: try to cancel proposal for inactive law
+        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+    }
+}
+
+contract VoteTest is TestSetupPowers {
+    function testVotingRevertsIfAccountNotAuthorised() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // create unauthorised account
+        address mockAddress = makeAddr("mock");
+        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+
+        // act: try to vote without credentials
+        vm.expectRevert(Powers__AccessDenied.selector);
+        vm.prank(mockAddress);
+        daoMock.castVote(actionId, FOR);
+    }
+
+    function testProposalDefeatedIfQuorumNotReachedInTime() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: go forward in time without votes
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // assert
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Defeated));
+    }
+
+    function testVotingIsNotPossibleForDefeatedProposals() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // prep: defeat proposal by going beyond voting period
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // act: try to vote
+        vm.expectRevert(Powers__ProposedActionNotActive.selector);
+        vm.prank(charlotte);
+        daoMock.castVote(actionId, FOR);
+    }
+
+    function testProposalSucceededIfQuorumReachedInTime() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: vote with authorized users
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, FOR);
+            }
+        }
+
+        // act: go forward in time
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // assert
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Succeeded));
+    }
+
+    function testVotesWithReasonsWorks() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: vote with reasons
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVoteWithReason(actionId, FOR, "This is a test");
+            }
+        }
+
+        // act: go forward in time
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // assert
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Succeeded));
+    }
+
+    function testProposalDefeatedIfQuorumReachedButNotEnoughForVotes() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: vote against
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, AGAINST);
+            }
+        }
+
+        // act: go forward in time
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // assert
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Defeated));
+    }
+
+    function testAccountCannotVoteTwice() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: vote once
+        vm.prank(alice);
+        daoMock.castVote(actionId, FOR);
+
+        // act: try to vote again
+        vm.prank(alice);
+        vm.expectRevert(Powers__AlreadyCastVote.selector);
+        daoMock.castVote(actionId, FOR);
+    }
+
+    function testAgainstVoteIsCorrectlyCounted() public {
+        // prep: create a proposal
+        uint256 numberAgainstVotes;
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: vote against
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, AGAINST);
+                numberAgainstVotes++;
+            }
+        }
+
+        // assert
+        (uint256 againstVotes,,) = daoMock.getProposedActionVotes(actionId);
+        assertEq(againstVotes, numberAgainstVotes);
+    }
+
+    function testForVoteIsCorrectlyCounted() public {
+        // prep: create a proposal
+        uint256 numberForVotes;
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: vote for
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, FOR);
+                numberForVotes++;
+            }
+        }
+
+        // assert
+        (, uint256 forVotes,) = daoMock.getProposedActionVotes(actionId);
+        assertEq(forVotes, numberForVotes);
+    }
+
+    function testAbstainVoteIsCorrectlyCounted() public {
+        // prep: create a proposal
+        uint256 numberAbstainVotes;
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // act: abstain
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, ABSTAIN);
+                numberAbstainVotes++;
+            }
+        }
+
+        // assert
+        (,, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
+        assertEq(abstainVotes, numberAbstainVotes);
+    }
+
+    function testVoteRevertsWithInvalidVote() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: try invalid vote
+        vm.prank(charlotte);
+        vm.expectRevert(Powers__InvalidVoteType.selector);
+        daoMock.castVote(actionId, 4); // invalid vote type
+
+        // assert
+        (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
+        assertEq(againstVotes, 0);
+        assertEq(forVotes, 0);
+        assertEq(abstainVotes, 0);
+    }
+
+    function testHasVotedReturnCorrectData() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // act: vote
+        vm.prank(charlotte);
+        daoMock.castVote(actionId, ABSTAIN);
+
+        // assert
+        assertTrue(daoMock.hasVoted(actionId, charlotte));
+    }
+}
+
+contract ExecuteTest is TestSetupPowers {
+    function testExecuteCanChangeState() public {
+        // prep: create proposal data
+        uint16 lawId = 1;
+        address mockAddress = makeAddr("mock");
+        lawCalldata = abi.encode(true, mockAddress);
+
+        // prep: verify initial state
+        assertEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
+
+        // act: execute the action
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+
+        // assert: verify state change
+        assertNotEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
+    }
+
+    function testExecuteSuccessSetsStateToFulfilled() public {
+        // prep: create proposal data
+        uint16 lawId = 1;
+        address mockAddress = makeAddr("mock");
+        lawCalldata = abi.encode(true, mockAddress);
+
+        // act: execute the action
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+
+        // assert: verify state
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
+    }
+
+    function testExecuteEmitsEvent() public {
+        // prep: create proposal data
+        uint16 lawId = 1;
+        address mockAddress = makeAddr("mock");
+        lawCalldata = abi.encode(true, mockAddress);
+
+        // prep: build expected event data
+        address[] memory tar = new address[](1);
+        uint256[] memory val = new uint256[](1);
+        bytes[] memory cal = new bytes[](1);
+        tar[0] = address(daoMock);
+        val[0] = 0;
+        cal[0] = abi.encodeWithSelector(daoMock.assignRole.selector, ROLE_ONE, mockAddress);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+
+        // act: execute and verify event
+        vm.expectEmit(true, false, false, false);
+        emit ActionExecuted(lawId, actionId, tar, val, cal);
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfNotAuthorised() public {
+        // prep: create proposal data
+        uint16 lawId = 3;
+        lawCalldata = abi.encode(false, true);
+        address mockAddress = makeAddr("mock");
+
+        // prep: verify unauthorized state
+        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+
+        // act: try to execute without authorization
+        vm.expectRevert(Powers__AccessDenied.selector);
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfActionAlreadyExecuted() public {
+        // prep: create proposal data
+        uint16 lawId = 1;
+        address mockAddress = makeAddr("mock");
+        lawCalldata = abi.encode(true, mockAddress);
+
+        // prep: execute action once
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+
+        // act: try to execute again
+        vm.expectRevert(Powers__ActionAlreadyInitiated.selector);
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfLawNotActive() public {
+        // prep: create proposal data
+        uint16 lawId = 1;
+        address mockAddress = makeAddr("mock");
+        lawCalldata = abi.encode(true, mockAddress);
+
+        // prep: revoke the law
+        vm.prank(address(daoMock));
+        daoMock.revokeLaw(lawId);
+
+        // act: try to execute with inactive law
+        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.prank(mockAddress);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfProposalNeeded() public {
+        // prep: create proposal data
+        uint16 lawId = 6;
+        lawCalldata = abi.encode(true);
+
+        // act: try to execute without proposal
+        vm.expectRevert(LawUtilities.LawUtilities__ParentNotCompleted.selector);
+        vm.prank(charlotte);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfProposalDefeated() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: get conditions for voting
+        ( , , conditions) = daoMock.getActiveLaw(lawId);
+
+        // prep: vote against proposal
+        for (i = 0; i < users.length; i++) {
+            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
+                vm.prank(users[i]);
+                daoMock.castVote(actionId, AGAINST);
+            }
+        }
+
+        // prep: advance time past voting period
+        vm.roll(block.number + conditions.votingPeriod + 1);
+
+        // prep: verify proposal is defeated
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Defeated));
+
+        // act: try to execute defeated proposal
+        vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
+        vm.prank(charlotte);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+    function testExecuteRevertsIfProposalCancelled() public {
+        // prep: create a proposal
+        uint16 lawId = 5;
+        lawCalldata = abi.encode(true);
+        vm.prank(alice);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+
+        // prep: cancel the proposal
+        vm.prank(alice);
+        daoMock.cancel(lawId, lawCalldata, nonce);
+
+        // prep: verify proposal is cancelled
+        ActionState actionState = daoMock.state(actionId);
+        assertEq(uint8(actionState), uint8(ActionState.Cancelled));
+
+        // act: try to execute cancelled proposal
+        vm.expectRevert(Powers__ActionCancelled.selector);
+        vm.prank(alice);
+        daoMock.request(lawId, lawCalldata, nonce, description);
+    }
+
+}
 
 // //////////////////////////////////////////////////////////////
 // //                  ROLE AND LAW ADMIN                      //
@@ -860,11 +833,11 @@
 //     }
 
 //     function testAdoptLawRevertsIfAddressAlreadyLaw() public {
-//         uint32 lawNumber = 0;
+//         uint16 lawId = 0;
 
 //         vm.expectRevert(Powers__LawAlreadyActive.selector);
 //         vm.prank(address(daoMock));
-//         daoMock.adoptLaw(laws[lawNumber]);
+//         daoMock.adoptLaw(lawId);
 //     }
 
 //     function testRevokeLawRevertsIfAddressNotActive() public {
@@ -1027,3 +1000,4 @@
 //         assertEq(response, daoMock.onERC1155BatchReceived.selector, "Should return correct selector");
 //     }
 // }
+

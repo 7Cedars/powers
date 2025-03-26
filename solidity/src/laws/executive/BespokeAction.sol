@@ -32,11 +32,9 @@ contract BespokeAction is Law {
 
     /// @notice constructor of the law
     /// @param name_ the name of the law.
-    /// @param description_ the description of the law.
     constructor(
         // standard parameters
-        string memory name_,
-        string memory description_ 
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode(
             "address TargetContract",
@@ -44,10 +42,10 @@ contract BespokeAction is Law {
             "string[] Params"
         );
 
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         (address targetContract_, bytes4 targetFunction_, string[] memory params_) = abi.decode(config, (address, bytes4, string[]));         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 
@@ -55,7 +53,7 @@ contract BespokeAction is Law {
         targetFunction[lawHash] = targetFunction_;
         inputParams = abi.encode(params_); 
 
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     /// @notice execute the law.

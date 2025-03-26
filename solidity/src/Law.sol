@@ -36,7 +36,9 @@ import { LawUtilities } from "./LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
- 
+
+import { console2 } from "forge-std/console2.sol";
+
 contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
@@ -44,7 +46,7 @@ contract Law is ERC165, ILaw {
     /// @notice Name of the law
     string public name;
     mapping(bytes32 lawHash => Conditions) public conditionsLaws;
-    mapping(bytes32 lawHash => Actions) public actionsLaws;
+    mapping(bytes32 lawHash => Executions) public executionsLaws;
 
     ////////////////////////////////////////////////////////////// 
     //                   CONSTRUCTOR                            //
@@ -68,16 +70,16 @@ contract Law is ERC165, ILaw {
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public virtual {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         conditionsLaws[lawHash] = conditions;
-        actionsLaws[lawHash] = Actions({
-            powers: address(this),
+        executionsLaws[lawHash] = Executions({
+            powers: msg.sender,
             config: config,
             executions: new uint48[](0)
         });
 
-        emit Law__Initialized(address(this), msg.sender, index, conditions, inputParams);
+        emit Law__Initialized(msg.sender, index, conditions, inputParams, description);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
@@ -91,13 +93,16 @@ contract Law is ERC165, ILaw {
         returns (bool success)
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        if (actionsLaws[lawHash].powers != msg.sender) {
+        console2.logBytes32(lawHash);
+        console2.log(executionsLaws[lawHash].powers);
+        console2.log(msg.sender);
+        if (executionsLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
 
         // Run all validation checks
         checksAtPropose(caller, conditionsLaws[lawHash], lawCalldata, nonce, msg.sender);
-        checksAtExecute(caller, conditionsLaws[lawHash], lawCalldata, nonce, actionsLaws[lawHash].executions, msg.sender, lawId);
+        checksAtExecute(caller, conditionsLaws[lawHash], lawCalldata, nonce, executionsLaws[lawHash].executions, msg.sender, lawId);
 
         // Simulate and execute the law's logic
         (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange) = 
@@ -153,7 +158,7 @@ contract Law is ERC165, ILaw {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic. 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        Powers(payable(actionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
+        Powers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -180,6 +185,13 @@ contract Law is ERC165, ILaw {
         view
         virtual
     {
+        console2.log("checksAtExecute");
+        console2.log(lawId);
+        console2.log(conditions.allowedRole);
+        console2.logBytes(lawCalldata);
+        console2.log(nonce);
+        console2.log(powers);
+
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, powers, nonce, executions, lawId);
     }
 

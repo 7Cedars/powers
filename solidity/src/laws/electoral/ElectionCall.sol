@@ -47,10 +47,10 @@
 //             "uint256 maxRoleHolders",
 //             "uint32 electedRoleId"
 //         );
-//         emit Law__Deployed(name_, description_, configParams);
+//         emit Law__Deployed(name_, configParams);
 //     }
 
-//     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+//     function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
 //         (address electionVotes_, uint32 voterRoleId_, uint256 maxRoleHolders_, uint32 electedRoleId_) = abi.decode(config, (address, uint32, uint256, uint32));
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 //         electionVotes[lawHash] = electionVotes_;
@@ -63,7 +63,7 @@
 //             "uint48 EndVote" // endVote = the end date of the election.
 //         );
 
-//         super.initializeLaw(index, conditions, config, inputParams);
+//         super.initializeLaw(index, conditions, config, inputParams, description);
 //     }
 
 //     /// @notice execute the law.

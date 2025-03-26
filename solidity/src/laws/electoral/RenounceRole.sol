@@ -37,20 +37,19 @@ contract RenounceRole is Law {
     mapping(bytes32 lawHash => uint32[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
         bytes memory configParams = abi.encode("uint256[] allowedRoleIds");
 
-        emit Law__Deployed(name_, description_, configParams);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
         allowedRoleIds[hashLaw(msg.sender, index)] = allowedRoleIds_;
         
         inputParams = abi.encode("uint256 roleId");
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

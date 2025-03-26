@@ -32,22 +32,21 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract OpenAction is Law {
     /// @notice Constructor function for OpenAction contract.
     /// @param name_ name of the law
-    /// @param description_ description of the law
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     )  Law(name_) {
-        emit Law__Deployed(name_, description_, "");
+        bytes memory configParams = abi.encode(); 
+        emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         inputParams = abi.encode(
             "address[] Targets", 
             "uint256[] Values", 
             "bytes[] CallDatas"
             );
 
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
 

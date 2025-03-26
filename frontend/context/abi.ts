@@ -836,7 +836,7 @@ export const powersAbi: Abi = [
     { "type": "error", "name": "Powers__LawNotActive", "inputs": [] },
     { "type": "error", "name": "Powers__LockedRole", "inputs": [] },
     { "type": "error", "name": "Powers__NoVoteNeeded", "inputs": [] },
-    { "type": "error", "name": "Powers__NotActiveLaw", "inputs": [] },
+    { "type": "error", "name": "Powers__LawNotActive", "inputs": [] },
     { "type": "error", "name": "Powers__OnlyPowers", "inputs": [] },
     {
       "type": "error",

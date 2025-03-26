@@ -38,7 +38,7 @@ interface PowersErrors {
     error Powers__LawDidNotPassChecks();
 
     /// @notice Emitted when a law is not active.
-    error Powers__NotActiveLaw();
+    error Powers__LawNotActive();
 
     /// @notice Emitted when a function is called that does not need a vote.
     error Powers__NoVoteNeeded();
@@ -63,9 +63,6 @@ interface PowersErrors {
 
     /// @notice Emitted when a law is already active.
     error Powers__LawAlreadyActive();
-
-    /// @notice Emitted when a law is not active.
-    error Powers__LawNotActive();
 
     /// @notice Emitted when a law is not adopted.
     error Powers__AlreadyCastVote();

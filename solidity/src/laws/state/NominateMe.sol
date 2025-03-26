@@ -37,15 +37,14 @@ contract NominateMe is Law {
     event NominateMe__NominationRevoked(address indexed nominee);
 
     constructor(
-        string memory name_,
-        string memory description_
+        string memory name_
     ) Law(name_) {
-        emit Law__Deployed(name_, description_, "");
+        emit Law__Deployed(name_, "");
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams) public override {
+    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
         inputParams = abi.encode("bool NominateMe");
-        super.initializeLaw(index, conditions, config, inputParams);
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
