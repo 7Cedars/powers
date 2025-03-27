@@ -17,7 +17,7 @@
 /// Note 1: as of now, it only allows for a single function to be called.
 /// Note 2: as of now, it does not allow sending of ether values to the target function.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
@@ -25,7 +25,7 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 
-contract BespokeAction is Law { 
+contract BespokeAction is Law {
     /// the targets, values and calldatas to be used in the calls: set at construction.
     mapping(bytes32 lawHash => address targetContract) public targetContract;
     mapping(bytes32 lawHash => bytes4 targetFunction) public targetFunction;
@@ -36,33 +36,42 @@ contract BespokeAction is Law {
         // standard parameters
         string memory name_
     ) Law(name_) {
-        bytes memory configParams = abi.encode(
-            "address TargetContract",
-            "bytes4 TargetFunction",
-            "string[] Params"
-        );
+        bytes memory configParams = abi.encode("address TargetContract", "bytes4 TargetFunction", "string[] Params");
 
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        (address targetContract_, bytes4 targetFunction_, string[] memory params_) = abi.decode(config, (address, bytes4, string[]));         
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        (address targetContract_, bytes4 targetFunction_, string[] memory params_) =
+            abi.decode(config, (address, bytes4, string[]));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 
         targetContract[lawHash] = targetContract_;
         targetFunction[lawHash] = targetFunction_;
-        inputParams = abi.encode(params_); 
+        inputParams = abi.encode(params_);
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);

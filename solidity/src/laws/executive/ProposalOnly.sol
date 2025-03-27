@@ -22,7 +22,7 @@
 /// The logic:
 /// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
@@ -32,24 +32,37 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract ProposalOnly is Law {
     /// @notice Constructor function for Open contract.
     /// @param name_ name of the law
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         bytes memory configParams = abi.encode("string[] InputParams");
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
         inputParams = config;
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    // note that we are returning empty arrays as we are not executing any logic. 
+    // note that we are returning empty arrays as we are not executing any logic.
     // we DO need to return the actionId as it has to be set to 'fulfilled' in the Powers contract.
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce) public override view returns (
-        uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange
-        ) {
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+        public
+        view
+        override
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
+    {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         return (actionId, targets, values, calldatas, "");

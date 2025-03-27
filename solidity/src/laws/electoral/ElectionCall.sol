@@ -20,7 +20,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -32,8 +32,8 @@
 // import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 // import { LawUtilities } from "../../LawUtilities.sol";
 
-// contract ElectionCall is Law { 
-//     mapping(bytes32 lawHash => uint32 voterRoleId) public  voterRoleId; 
+// contract ElectionCall is Law {
+//     mapping(bytes32 lawHash => uint32 voterRoleId) public  voterRoleId;
 //     mapping(bytes32 lawHash => address electionVotes) public electionVotes;
 //     mapping(bytes32 lawHash => uint256 maxRoleHolders) public maxRoleHolders;
 //     mapping(bytes32 lawHash => uint32 electedRoleId) public electedRoleId;
@@ -74,7 +74,7 @@
 //         virtual
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {        
+//     {
 //         // step 0: get data.
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -91,12 +91,12 @@
 //         Conditions memory conditionsLocal;
 //         conditionsLocal.readStateFrom = nominees;
 //         conditionsLocal.allowedRole = voterRoleId[lawHash];
-        
+
 //         PowersTypes.LawInitData memory lawInitData;
 //         lawInitData.targetLaw = electionVotes[lawHash];
 //         lawInitData.conditions = conditionsLocal;
 //         lawInitData.config = abi.encode(startVote, endVote);
-    
+
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //         // step 4: fill out arrays with data
 //         targets[0] = msg.sender;
@@ -110,7 +110,5 @@
 //     function getElectionVotes(bytes32 lawHash) public view returns (address) {
 //         return electionVotes[lawHash];
 //     }
-
-
 
 // }

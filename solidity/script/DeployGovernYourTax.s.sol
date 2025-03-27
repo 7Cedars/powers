@@ -15,7 +15,7 @@
 // import { HelperConfig } from "./HelperConfig.s.sol";
 
 // // laws
-// import { NominateMe } from "../src/laws/state/NominateMe.sol"; 
+// import { NominateMe } from "../src/laws/state/NominateMe.sol";
 // import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
 // import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
 // import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
@@ -33,7 +33,7 @@
 // // borrowing one law from another bespoke folder. Not ideal, but ok for now.
 // import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
 
-// // mocks 
+// // mocks
 // import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 // import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 // import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
@@ -44,9 +44,9 @@
 //     function run()
 //         external
 //         returns (
-//             address payable dao, 
-//             address[] memory constituentLaws, 
-//             HelperConfig.NetworkConfig memory config, 
+//             address payable dao,
+//             address[] memory constituentLaws,
+//             HelperConfig.NetworkConfig memory config,
 //             address payable mock20Taxed_
 //             )
 //     {
@@ -55,23 +55,23 @@
 
 //         vm.startBroadcast();
 //         Powers powers = new Powers(
-//             "Govern Your Tax", 
+//             "Govern Your Tax",
 //             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibcd4k5jmq3zpydwclgdmf3f2pkej24wlm5ufmq6x6t6yptdnubqm");
 //         Erc20TaxedMock erc20TaxedMock = new Erc20TaxedMock(
 //             10, // rate
-//             100, // denominator  
-//             25 // 7% tax, (tax = 7, denominator = 2),  25 block epoch, about 5 minutes. 
+//             100, // denominator
+//             25 // 7% tax, (tax = 7, denominator = 2),  25 block epoch, about 5 minutes.
 //         );
 //         vm.stopBroadcast();
 
 //         dao = payable(address(powers));
-//         mock20Taxed_ = payable(address(erc20TaxedMock)); 
+//         mock20Taxed_ = payable(address(erc20TaxedMock));
 //         initiateConstitution(dao, mock20Taxed_);
 
 //         // // constitute dao.
 //         vm.startBroadcast();
 //         powers.constitute(laws);
-//         // // transferring ownership of erc721 and erc20Taxed token contracts.. 
+//         // // transferring ownership of erc721 and erc20Taxed token contracts..
 //         erc20TaxedMock.transferOwnership(address(powers));
 //         vm.stopBroadcast();
 
@@ -91,7 +91,7 @@
 //         // laws[0]
 //         Conditions.quorum = 60; // = 60% quorum needed
 //         Conditions.succeedAt = 50; // = Simple majority vote needed.
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
 //         // setting up params
 //         string[] memory inputParams = new string[](3);
 //         inputParams[0] = "address To"; // grantee
@@ -115,7 +115,7 @@
 //         // laws[1]
 //         Conditions.quorum = 80; // = 80% quorum needed
 //         Conditions.succeedAt = 66; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
 //         // initiating law
 //         vm.startBroadcast();
 //         law = new StartGrant(
@@ -131,7 +131,7 @@
 //         delete Conditions;
 
 //         // laws[2]
-//         Conditions.needCompleted = laws[1]; // needs the exact grant to have been completed. 
+//         Conditions.needCompleted = laws[1]; // needs the exact grant to have been completed.
 //         // initiating law
 //         vm.startBroadcast();
 //         law = new StopGrant(
@@ -148,7 +148,7 @@
 //         // laws[3]
 //         Conditions.quorum = 40; // = 40% quorum needed
 //         Conditions.succeedAt = 80; // =  80 majority needed
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
 //         // input params
 //         inputParams = new string[](1);
 //         inputParams[0] = "address Law";
@@ -171,7 +171,7 @@
 //         // laws[4]
 //         Conditions.quorum = 50; // = 50% quorum needed
 //         Conditions.succeedAt = 66; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
 //         Conditions.needCompleted = laws[3]; // NB! first a law needs to be stopped before it can be restarted!
 //         // This does mean that the reason given needs to be the same as when the law was stopped.
 //         // initiating law.
@@ -191,13 +191,13 @@
 //         delete Conditions;
 
 //         // laws[5]
-//         // mint tokens 
+//         // mint tokens
 //         Conditions.quorum = 67; // = two-thirds quorum needed
 //         Conditions.succeedAt = 67; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
-//         // bespoke inputParams 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
+//         // bespoke inputParams
 //         inputParams = new string[](1);
-//         inputParams[0] = "uint256 Quantity"; // number of tokens to mint. 
+//         inputParams[0] = "uint256 Quantity"; // number of tokens to mint.
 //         vm.startBroadcast();
 //         law = new BespokeAction(
 //             "Mint tokens",
@@ -207,27 +207,27 @@
 //             Conditions, // bespoke configs for this law
 //             mock20Taxed_,
 //             Erc20TaxedMock.mint.selector,
-//             inputParams  
+//             inputParams
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
 
 //         // laws[6]
-//         // burn token 
+//         // burn token
 //         vm.startBroadcast();
 //         law = new BespokeAction(
 //             "Burn tokens",
 //             "Governors can decide to burn tokens.",
 //             dao_, // separated powers
 //             2, // access role
-//             Conditions, // same Conditions as laws[5] 
+//             Conditions, // same Conditions as laws[5]
 //             mock20Taxed_,
 //             Erc20TaxedMock.burn.selector,
 //             inputParams // same Conditions as laws[5]
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
-//         delete Conditions; // here we delete Conditions. 
+//         delete Conditions; // here we delete Conditions.
 
 //         //////////////////////////////////////////////////////////////
 //         //              CHAPTER 2: ELECT ROLES                      //
@@ -237,8 +237,8 @@
 //         law = new RoleByTaxPaid(
 //             "Claim community membership", // max 31 chars
 //             string.concat(
-//                 "Anyone who has paid sufficient tax (by using the Dao's ERC20 token @", 
-//                 Strings.toHexString(uint256(addressToInt(mock20Taxed_)), 20), 
+//                 "Anyone who has paid sufficient tax (by using the Dao's ERC20 token @",
+//                 Strings.toHexString(uint256(addressToInt(mock20Taxed_)), 20),
 //                 ") can become a community member. The threshold is 100MCK tokens per 150 blocks. Tax rate is 10 percent(!) on each transaction and tokens can be minted at the contract's faucet function."
 //                 ),
 //             dao_,
@@ -264,13 +264,13 @@
 //         laws.push(address(law));
 
 //         // laws[9]
-//         Conditions.readStateFrom = laws[8]; // =  nominees law. 
+//         Conditions.readStateFrom = laws[8]; // =  nominees law.
 //         vm.startBroadcast();
 //         law = new ElectionCall(
 //             "Call governor election", // max 31 chars
 //             "Any member of the security council can create a governor election. Calling the law creates an election contract at which people can vote on nominees between the start and end block of the election.",
 //             dao_, // separated powers protocol.
-//             3, // = role security council 
+//             3, // = role security council
 //             Conditions, //  config file.
 //             // bespoke configs for this law:
 //             1, // role id that is allowed to vote.
@@ -282,7 +282,7 @@
 //         delete Conditions;
 
 //         // laws[10]
-//         Conditions.needCompleted = laws[9]; // = electionCall law. 
+//         Conditions.needCompleted = laws[9]; // = electionCall law.
 //         vm.startBroadcast();
 //         law = new ElectionTally(
 //             "Tally governor elections", // max 31 chars
@@ -310,7 +310,7 @@
 //         // laws[12]: security council: peer select. - role 3
 //         Conditions.quorum = 66; // = Two thirds quorum needed to pass the proposal
 //         Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour) 
+//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
 //         Conditions.readStateFrom = laws[11]; // nominateMe
 //         //
 //         vm.startBroadcast();
@@ -320,27 +320,27 @@
 //             dao_, // separated powers protocol.
 //             3, // role 3 id designation.
 //             Conditions, //  config file.
-//             3, // maximum elected to role 
+//             3, // maximum elected to role
 //             3 // role id to be assigned
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
 //         delete Conditions;
 
-//         // laws[13]:nominate self for grant council role.  
+//         // laws[13]:nominate self for grant council role.
 //         vm.startBroadcast();
 //         law = new NominateMe(
 //             "Nominate for a Grant Council", // max 31 chars
 //             "Any community member can nominate themselves to become part of a grant council.",
 //             dao_, // separated powers protocol.
 //             1, // community member
-//             Conditions 
+//             Conditions
 //         );
 //         vm.stopBroadcast();
 //         laws.push(address(law));
 //         delete Conditions;
 
-//         // laws[14]: assign members to grant councils.  
+//         // laws[14]: assign members to grant councils.
 //         uint32[] memory allowedRoles = new uint32[](3);
 //         allowedRoles[0] = 4; // Grant Council A
 //         allowedRoles[1] = 5; // Grant Council B
@@ -378,7 +378,7 @@
 //         calldatas[5] = abi.encodeWithSelector(Powers.labelRole.selector, 4, "Grant Council #4");
 //         calldatas[6] = abi.encodeWithSelector(Powers.labelRole.selector, 5, "Grant Council #5");
 //         calldatas[7] = abi.encodeWithSelector(Powers.labelRole.selector, 6, "Grant Council #6");
- 
+
 //         vm.startBroadcast();
 //         law = new SelfDestructAction(
 //             "Set initial roles and labels", // max 31 chars

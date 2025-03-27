@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -24,7 +24,7 @@
 // contract NftSelfSelect is Law {
 //     uint256 public roleId;
 //     address public erc721Token;
-    
+
 //     constructor(
 //         string memory name_,
 //         string memory description_,

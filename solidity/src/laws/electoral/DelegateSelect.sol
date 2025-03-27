@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -40,7 +40,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
+import { Powers } from "../../Powers.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
@@ -52,6 +52,7 @@ contract DelegateSelect is Law {
         uint256 roleId;
         address[] electedAccounts;
     }
+
     mapping(bytes32 lawHash => StateData) internal stateData;
 
     struct MemoryData {
@@ -63,53 +64,67 @@ contract DelegateSelect is Law {
         uint256 numberRevokees;
         uint256 arrayLength;
         address[] accountElects;
-    } 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    }
+
+    constructor(string memory name_) Law(name_) {
         bytes memory configParams = abi.encode("address erc20Token", "uint256 maxRoleHolders", "uint256 roleId");
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (address, uint256, uint256));
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) =
+            abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].erc20Token = erc20Token_; 
+        stateData[lawHash].erc20Token = erc20Token_;
         stateData[lawHash].maxRoleHolders = maxRoleHolders_;
         stateData[lawHash].roleId = roleId_;
 
         super.initializeLaw(index, conditions, config, abi.encode("bool Assign", "address Account"), description);
     }
 
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-    {  
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
+    {
         MemoryData memory mem;
-
 
         (, mem.lawHash, mem.conditions) = Powers(payable(msg.sender)).getActiveLaw(lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
-        (mem.nominateMeAddress, , ) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId); 
+        (mem.nominateMeAddress,,) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId);
 
         mem.numberNominees = NominateMe(mem.nominateMeAddress).nomineesCount(mem.lawHash);
         mem.numberRevokees = stateData[mem.lawHash].electedAccounts.length;
-        mem.arrayLength =
-            mem.numberNominees < stateData[mem.lawHash].maxRoleHolders ? mem.numberRevokees + mem.numberNominees : mem.numberRevokees + stateData[mem.lawHash].maxRoleHolders;
-        
+        mem.arrayLength = mem.numberNominees < stateData[mem.lawHash].maxRoleHolders
+            ? mem.numberRevokees + mem.numberNominees
+            : mem.numberRevokees + stateData[mem.lawHash].maxRoleHolders;
+
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
             targets[i] = msg.sender;
         }
         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
         for (uint256 i; i < mem.numberRevokees; i++) {
-            calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, stateData[mem.lawHash].roleId, stateData[mem.lawHash].electedAccounts[i]);
+            calldatas[i] = abi.encodeWithSelector(
+                Powers.revokeRole.selector, stateData[mem.lawHash].roleId, stateData[mem.lawHash].electedAccounts[i]
+            );
         }
 
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
@@ -121,15 +136,15 @@ contract DelegateSelect is Law {
                     abi.encodeWithSelector(Powers.assignRole.selector, stateData[mem.lawHash].roleId, accountElect);
                 mem.accountElects[i] = accountElect;
             }
-        
-        // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
+
+            // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
             // retrieve balances of delegated votes of nominees.
             mem.accountElects = new address[](stateData[mem.lawHash].maxRoleHolders);
-            uint256[] memory _votes = new uint256[](mem.numberNominees); 
+            uint256[] memory _votes = new uint256[](mem.numberNominees);
             address[] memory _nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash);
-            
-            for (uint256 i; i < mem.numberNominees; i++) { 
+
+            for (uint256 i; i < mem.numberNominees; i++) {
                 _votes[i] = ERC20Votes(stateData[mem.lawHash].erc20Token).getVotes(_nominees[i]);
             }
 

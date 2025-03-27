@@ -11,13 +11,13 @@
 // /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
- 
+
 // // This is an integration for OpenZeppelin's Governor contract into the Powers protocol.
-// // Note that it does not inherit Powers into Governor.sol, rather, it creates a dedicated roleId for the governor contract. 
-// // The reason for this is simple: in Governor.sol you vote with tokens, while in Powers you vote with roles. The two cannot be mixed. 
-// // 
+// // Note that it does not inherit Powers into Governor.sol, rather, it creates a dedicated roleId for the governor contract.
+// // The reason for this is simple: in Governor.sol you vote with tokens, while in Powers you vote with roles. The two cannot be mixed.
+// //
 // // This module dedicates a single roleId to a governor contract.
-// // It is possible to use the module with multiple governor contracts: creating a governance platform on which DAOs can interact on the basis of a shared set of laws. 
+// // It is possible to use the module with multiple governor contracts: creating a governance platform on which DAOs can interact on the basis of a shared set of laws.
 
 // /// @title PowersToGovernor
 // /// @notice A module that integrates the Powers protocol with the Governor contract.
@@ -33,9 +33,9 @@
 //     error GovernorModule__GovernorNotAdded();
 //     error GovernorModule__CannotSetGovernorRole();
 
-//     // have a mapping for Governor contracts. 
+//     // have a mapping for Governor contracts.
 //     mapping(uint256 => bool) public governorIds;
-    
+
 //     event PowersToGovernor_GovernorAdded(address indexed governor, uint256 indexed governorRoleId);
 //     event PowersToGovernor_GovernorRemoved(address indexed governor, uint256 indexed governorRoleId);
 
@@ -80,9 +80,7 @@
 //     /// @param governor The address of the governor to hash.
 //     /// @return governorRoleId The roleId of the governor.
 //     function _hashGovernorRole(address governor) internal view returns (uint256 governorRoleId) {
-//         return uint256(keccak256(abi.encode(governor))); 
+//         return uint256(keccak256(abi.encode(governor)));
 //     }
 
-
 // }
-

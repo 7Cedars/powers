@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -28,9 +28,9 @@
 
 // contract StopGrant is Law {
 //     LawUtilities.Conditions public configNewGrants; // config for new grants.
-    
+
 //     constructor(
-//         string memory name_,    
+//         string memory name_,
 //         string memory description_,
 //         address payable powers_,
 //         uint256 allowedRole_,
@@ -50,13 +50,13 @@
 
 //         (
 //             configNewGrants.needCompleted,
-//             , 
-//             , 
+//             ,
+//             ,
 //             ,
 //             configNewGrants.votingPeriod,
 //             configNewGrants.quorum,
 //             configNewGrants.succeedAt,
-//             ) = StartGrant(conditions.needCompleted).configNewGrants(); 
+//             ) = StartGrant(conditions.needCompleted).configNewGrants();
 //     }
 
 //     function handleRequest(address, /*caller*/ bytes memory lawCalldata, uint256 nonce)
@@ -74,8 +74,8 @@
 //             uint48 duration,
 //             uint256 budget,
 //             address tokenAddress,
-//             uint32 grantCouncil, 
-//             address proposals 
+//             uint32 grantCouncil,
+//             address proposals
 //         ) = abi.decode(lawCalldata, (string, string, uint48, uint256, address, uint32, address));
 
 //         // step 1: calculate address at which grant will be created.
@@ -85,10 +85,10 @@
 
 //         // step 2: run additional checks
 //         if (
-//             budget != Grant(grantAddress).spent() && 
+//             budget != Grant(grantAddress).spent() &&
 //             Grant(grantAddress).expiryBlock() > uint48(block.number)
 //         ) {
-//             revert ("Grant not expired."); 
+//             revert ("Grant not expired.");
 //         }
 
 //         // step 3: create arrays

@@ -57,7 +57,7 @@
 //         // assert
 //         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 0);
 //     }
- 
+
 // }
 
 // contract BespokeActionTest is TestSetupExecutive {
@@ -73,7 +73,7 @@
 //         // act
 //         vm.prank(alice);
 //         Powers(daoMock).request(bespokeAction, lawCalldata, nonce, description);
- 
+
 //         assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 123);
 //     }
 // }
@@ -82,7 +82,7 @@
 //     function testConstructorInitialization() public {
 //         // Get the SelfDestructAction contract
 //         address selfDestructAction = laws[5];
-        
+
 //         // Test that the contract was initialized correctly
 //         assertTrue(Powers(daoMock).getActiveLaw(selfDestructAction), "Law should be active after initialization");
 //         assertEq(Law(selfDestructAction).powers(), address(daoMock), "Powers address should be set correctly");
@@ -186,4 +186,3 @@
 //         assertEq(resultTargets[1], address(daoMock), "Second target should be DAO for self-destruct");
 //     }
 // }
-

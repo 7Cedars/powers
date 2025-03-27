@@ -24,26 +24,27 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract AddressesMapping is Law { 
+contract AddressesMapping is Law {
     mapping(bytes32 lawHash => mapping(address account => bool isAllowed)) public addresses;
 
     event AddressesMapping__Added(address account);
     event AddressesMapping__Removed(address account);
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         bytes memory configParams = abi.encode();
 
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        inputParams = abi.encode(
-            "address Account", 
-            "bool Add" 
-        );
-        
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("address Account", "bool Add");
+
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
@@ -51,22 +52,28 @@ contract AddressesMapping is Law {
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
         bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
 
         if (add && addresses[lawHash][account]) {
-            revert ("Already true.");
+            revert("Already true.");
         } else if (!add && !addresses[lawHash][account]) {
-            revert ("Already false.");
+            revert("Already false.");
         }
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
-    
+
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (address account, bool add) = abi.decode(stateChange, (address, bool));
 
@@ -78,4 +85,4 @@ contract AddressesMapping is Law {
             emit AddressesMapping__Removed(account);
         }
     }
-} 
+}

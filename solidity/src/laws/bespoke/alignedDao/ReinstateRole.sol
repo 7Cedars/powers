@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -35,7 +35,7 @@
 //         address erc721Token_
 //     ) Law(name_, powers_, allowedRole_, config_) {
 //         erc721Token = erc721Token_;
-        
+
 //         bytes memory inputParams = abi.encode("uint256 TokenId", "address Account"); // token id, account
 //         emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
 //     }
@@ -50,7 +50,7 @@
 //     {
 //         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 //         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
-        
+
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
 //         // action 0: revoke role member in powers
 //         targets[0] = powers;

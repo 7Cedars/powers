@@ -17,7 +17,7 @@
 /// The logic:
 /// - anythe lawCalldata includes a single bool. If the bool is set to true, it will aend the present calldatas to the execute function of the Powers protocol.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
@@ -36,18 +36,21 @@ contract PresetAction is Law {
         // inherited from Law
         string memory name_
     ) Law(name_) {
-        bytes memory configParams = abi.encode(
-            "address[] targets",
-            "uint256[] values",
-            "bytes[] calldatas"
-        ); 
+        bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
 
         emit Law__Deployed(name_, configParams); // empty params
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) = abi.decode(config, (address[], uint256[], bytes[]));
-        
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
+            abi.decode(config, (address[], uint256[], bytes[]));
+
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         targets[lawHash] = targets_;
         values[lawHash] = values_;
@@ -57,7 +60,7 @@ contract PresetAction is Law {
     }
 
     /// @notice execute the law.
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -65,6 +68,6 @@ contract PresetAction is Law {
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        return (actionId, targets[lawHash], values[lawHash], calldatas[lawHash], "");  
+        return (actionId, targets[lawHash], values[lawHash], calldatas[lawHash], "");
     }
 }

@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -20,7 +20,7 @@ pragma solidity 0.8.26;
 // import { SelfSelect } from "../../electoral/SelfSelect.sol";
 // import { Members } from "./Members.sol";
 
-// contract RoleByKyc is SelfSelect { 
+// contract RoleByKyc is SelfSelect {
 //     uint16[] public nationalities;
 //     uint16[] public countryOfResidences;
 //     int64 public olderThan; // in seconds
@@ -104,7 +104,7 @@ pragma solidity 0.8.26;
 
 //         // step 4: revert if any of the checks fail
 //         if (!nationalityOk || !residencyOk || !oldEnough || !youngEnough) {
-//             revert ("Not eligible."); 
+//             revert ("Not eligible.");
 //         }
 
 //         // step 5: call super

@@ -10,7 +10,7 @@ pragma solidity 0.8.26;
 // import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 // // laws
-// import { NominateMe } from "../src/laws/state/NominateMe.sol"; 
+// import { NominateMe } from "../src/laws/state/NominateMe.sol";
 // import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
 // import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
 // import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 // // config
 // import { HelperConfig } from "./HelperConfig.s.sol";
 
-// // mocks 
+// // mocks
 // import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 // import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
 // import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
@@ -39,11 +39,11 @@ pragma solidity 0.8.26;
 //     function run()
 //         external
 //         returns (
-//             address payable dao, 
-//             address[] memory constituentLaws, 
-//             HelperConfig.NetworkConfig memory config, 
-//             address payable mock20_, 
-//             address payable mock721_, 
+//             address payable dao,
+//             address[] memory constituentLaws,
+//             HelperConfig.NetworkConfig memory config,
+//             address payable mock20_,
+//             address payable mock721_,
 //             address payable mock1155_
 //             )
 //     {
@@ -53,17 +53,17 @@ pragma solidity 0.8.26;
 //         vm.startBroadcast();
 //         // Initiating Dao.
 //         Powers powers = new Powers(
-//             "Diversified Roles", 
+//             "Diversified Roles",
 //             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibszieidbocucrpnwwsljfxktoq46zj45hb7iak6upphl4jow5blm"
 //             );
 //         // deploying token contracts that will be managed by the Dao.
-//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock(); 
+//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
 //         Erc721Mock erc721Mock = new Erc721Mock();
-//         Erc1155Mock erc1155Mock = new Erc1155Mock(); 
+//         Erc1155Mock erc1155Mock = new Erc1155Mock();
 //         vm.stopBroadcast();
 
 //         dao = payable(address(powers));
-//         mock20_ = payable(address(erc20VotesMock)); 
+//         mock20_ = payable(address(erc20VotesMock));
 //         mock721_ = payable(address(erc721Mock));
 //         mock1155_ = payable(address(erc1155Mock));
 //         initiateConstitution(dao, mock20_, mock721_, mock1155_);

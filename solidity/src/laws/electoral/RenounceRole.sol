@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -30,24 +30,28 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
+import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract RenounceRole is Law { 
+contract RenounceRole is Law {
     mapping(bytes32 lawHash => uint32[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         bytes memory configParams = abi.encode("uint256[] allowedRoleIds");
 
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
         uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
         allowedRoleIds[hashLaw(msg.sender, index)] = allowedRoleIds_;
-        
+
         inputParams = abi.encode("uint256 roleId");
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
@@ -57,7 +61,13 @@ contract RenounceRole is Law {
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // step 1: decode the calldata.
         (uint256 roleId) = abi.decode(lawCalldata, (uint256));
@@ -72,7 +82,7 @@ contract RenounceRole is Law {
             }
         }
         if (!allowed) {
-            revert ("Role not allowed to be renounced.");
+            revert("Role not allowed to be renounced.");
         }
 
         // step 3: create & send return calldata conditional if it is an assign or revoke action.
@@ -81,7 +91,7 @@ contract RenounceRole is Law {
 
         targets[0] = msg.sender;
         if (Powers(payable(msg.sender)).hasRoleSince(caller, roleId) == 0) {
-            revert ("Account does not have role.");
+            revert("Account does not have role.");
         }
         calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, caller); // selector = revokeRole
 

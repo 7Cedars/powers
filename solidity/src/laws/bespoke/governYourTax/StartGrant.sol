@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -73,14 +73,14 @@
 //             uint48 duration,
 //             uint256 budget,
 //             address tokenAddress,
-//             uint32 grantCouncil, 
+//             uint32 grantCouncil,
 //             address proposals
 //         ) = abi.decode(lawCalldata, (string, string, uint48, uint256, address, uint32, address));
- 
+
 //         // step 1: run additional checks
 //         // - if budget of grant does not exceed available funds.
 //         if ( budget > ERC20(tokenAddress).balanceOf(powers) ) {
-//             revert ("Request amount exceeds available funds."); 
+//             revert ("Request amount exceeds available funds.");
 //         }
 //         if (proposals != configNewGrants.needCompleted) {
 //             revert ("Invalid proposal law.");
@@ -117,7 +117,7 @@
 //             uint48 duration,
 //             uint256 budget,
 //             address tokenAddress,
-//             uint32 grantCouncil, 
+//             uint32 grantCouncil,
 //             address proposals
 //         ) = abi.decode(stateChange, (string, string, uint48, uint256, address, uint32, address));
 
@@ -135,7 +135,7 @@
 //         uint48 duration,
 //         uint256 budget,
 //         address tokenAddress,
-//         uint32 grantCouncil, 
+//         uint32 grantCouncil,
 //         address proposals
 //     ) public view returns (address) {
 //         address grantAddress = Create2.computeAddress(

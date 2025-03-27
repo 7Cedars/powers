@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -43,7 +43,7 @@
 //         uint48 duration_,
 //         uint256 budget_,
 //         address tokenAddress_,
-//         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council. 
+//         address proposals_ // address from where proposals are made. Note that these proposals need to be executed by the applicant before they can be considered by the grant council.
 //     ) Law(name_, powers_, allowedRole_, config_) {
 
 //         bytes memory inputParams = abi.encode(
@@ -77,7 +77,7 @@
 //             revert ("Incorrect grant address.");
 //         }
 //         if (quantity > budget - spent) {
-//             revert ("Request amount exceeds available funds."); 
+//             revert ("Request amount exceeds available funds.");
 //         }
 
 //         // step 2: create arrays

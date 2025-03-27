@@ -30,7 +30,7 @@
 
 //   function testConstructorInitialization() public {
 //     address assignCouncilRole = laws[6];
-    
+
 //     assertTrue(Powers(daoMock).getActiveLaw(assignCouncilRole), "Law should be active after initialization");
 //     assertEq(Law(assignCouncilRole).powers(), address(daoMock), "Powers address should be set correctly");
 //     assertEq(Law(assignCouncilRole).allowedRole(), 2, "Allowed role should be Governors");
@@ -45,16 +45,16 @@
 //       alice // account
 //     );
 
-//     // assign roles 
+//     // assign roles
 //     vm.startPrank(address(daoMock));
 //     daoMock.assignRole(2, alice); // assign alice to role 2 (Governors)
 //     daoMock.assignRole(1, alice); // assign alice to role 1 (Member)
 //     vm.stopPrank();
 
-//     vm.prank(alice); 
+//     vm.prank(alice);
 //     daoMock.request(
-//       nominateMe, 
-//       abi.encode(true), 
+//       nominateMe,
+//       abi.encode(true),
 //       nonce,
 //       "Alice nominates herself"
 //     );
@@ -62,7 +62,7 @@
 //     vm.roll(100);
 //     vm.startPrank(alice);
 //     daoMock.request(
-//       assignCouncilRole, 
+//       assignCouncilRole,
 //       lawCalldata,
 //       nonce,
 //       "Alice requests to be assigned council role"
@@ -81,8 +81,8 @@
 //       3, // roleId - Not in allowed council roles [4,5,6]
 //       alice // account
 //     );
-    
-//     // assign roles 
+
+//     // assign roles
 //     vm.startPrank(address(daoMock));
 //     daoMock.assignRole(2, alice); // assign alice to role 2 (Governors)
 //     daoMock.assignRole(1, alice); // assign alice to role 2 (Governors)
@@ -90,8 +90,8 @@
 
 //     vm.prank(alice);
 //     daoMock.request(
-//       nominateMe, 
-//       abi.encode(true), 
+//       nominateMe,
+//       abi.encode(true),
 //       nonce,
 //       "Alice nominates herself"
 //     );
@@ -113,12 +113,11 @@
 //       alice // account
 //     );
 
-//     // assign roles 
+//     // assign roles
 //     vm.prank(address(daoMock));
 //     daoMock.assignRole(2, alice); // assign alice to role 2 (Governors)
-    
 
-//     // note: no nomination. 
+//     // note: no nomination.
 
 //     vm.expectRevert("Account not nominated.");
 //     vm.prank(address(daoMock));
@@ -134,15 +133,14 @@
 //     address nominateMe = laws[5];
 //     address assignCouncilRole = laws[6];
 //     bytes memory lawCalldata = abi.encode(4, alice); // roleId 4, alice
-    
 
 //     vm.prank(address(daoMock));
 //     daoMock.assignRole(1, alice); // assign alice to role 1 (Member)
 
 //     vm.startPrank(alice);
 //     daoMock.request(
-//       nominateMe, 
-//       abi.encode(true), 
+//       nominateMe,
+//       abi.encode(true),
 //       nonce,
 //       "Alice nominates herself"
 //     );
@@ -161,7 +159,7 @@
 //     assertEq(targets.length, 1, "Should have one target");
 //     assertEq(values.length, 1, "Should have one value");
 //     assertEq(calldatas.length, 1, "Should have one calldata");
-    
+
 //     // Role assignment action
 //     assertEq(targets[0], address(daoMock), "Target should be the DAO");
 //     assertEq(values[0], 0, "Value should be 0");
@@ -179,7 +177,7 @@
 // contract GrantTest is TestSetupGovernYourTax {
 //     function testConstructorInitialization() public {
 //         address grant = laws[1];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(grant), "Law should be active after initialization");
 //         assertEq(Law(grant).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(grant).allowedRole(), type(uint32).max, "Allowed role should be Public Role");
@@ -284,7 +282,7 @@
 //         Law(grant).executeLaw(
 //             alice,
 //             lawCalldata,
-//             nonce 
+//             nonce
 //         );
 //         vm.stopPrank();
 //     }
@@ -310,7 +308,7 @@
 
 //         // act
 //         while (totalRequested + amountRequested < budget) {
-//             string memory description = string.concat("Alice requests grant payment at block: ", Strings.toString(block.number)); 
+//             string memory description = string.concat("Alice requests grant payment at block: ", Strings.toString(block.number));
 //             vm.prank(alice);
 //             Powers(daoMock).request(
 //                 grantProposal,
@@ -319,7 +317,7 @@
 //                 description
 //             );
 //             console.log("request grant, should pass");
-            
+
 //             vm.roll(block.number + 100);
 //             vm.prank(alice);
 //             Powers(daoMock).request(
@@ -334,7 +332,7 @@
 
 //         // Try to request more after budget is spent
 //         console.log("request grant, should revert");
-//         string memory description = string.concat("Alice requests grant payment at block that should revert: ", Strings.toString(block.number)); 
+//         string memory description = string.concat("Alice requests grant payment at block that should revert: ", Strings.toString(block.number));
 //         vm.prank(alice);
 //         Powers(daoMock).request(
 //             grantProposal,
@@ -363,7 +361,6 @@
 //             grant, // grant address
 //             amountRequested
 //         );
-        
 
 //         // Call handleRequest directly to verify output format
 //         (
@@ -378,7 +375,7 @@
 //         assertEq(targets.length, 1, "Should have one target");
 //         assertEq(values.length, 1, "Should have one value");
 //         assertEq(calldatas.length, 1, "Should have one calldata");
-        
+
 //         // Grant transfer action
 //         assertEq(targets[0], address(erc20VotesMock), "Target should be the token contract");
 //         assertEq(values[0], 0, "Value should be 0");
@@ -494,10 +491,9 @@
 //             2,
 //             laws[0]
 //         );
-        
+
 //         vm.prank(address(daoMock));
 //         erc20VotesMock.mintVotes(2500);
-
 
 //         // Call handleRequest directly to verify output format
 //         (
@@ -512,7 +508,7 @@
 //         assertEq(targets.length, 1, "Should have one target");
 //         assertEq(values.length, 1, "Should have one value");
 //         assertEq(calldatas.length, 1, "Should have one calldata");
-        
+
 //         // Grant creation action
 //         assertEq(targets[0], address(daoMock), "Target should be the DAO");
 //         assertEq(values[0], 0, "Value should be 0");
@@ -551,7 +547,7 @@
 //         for (uint i = 0; i < 3; i++) {
 //             bytes memory lawCalldata = abi.encode(
 //                 "Test Grant",
-//                 string(abi.encodePacked("Starting grant ", i)), 
+//                 string(abi.encodePacked("Starting grant ", i)),
 //                 3000,
 //                 1000,
 //                 address(erc20VotesMock),
@@ -573,7 +569,7 @@
 // contract StopGrantTest is TestSetupGovernYourTax {
 //     function testConstructorInitialization() public {
 //         address stopGrant = laws[3];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(stopGrant), "Law should be active after initialization");
 //         assertEq(Law(stopGrant).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(stopGrant).allowedRole(), 2, "Allowed role should be ROLE_TWO");
@@ -584,7 +580,7 @@
 //         address proposalLaw = laws[0];
 //         address startGrant = laws[2];
 //         address stopGrant = laws[3];
-        
+
 //         // Create grant parameters
 //         bytes memory lawCalldata = abi.encode(
 //             "Test Grant",
@@ -604,7 +600,7 @@
 //             1000,
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Give alice permission to start grant
@@ -639,7 +635,7 @@
 //         vm.startPrank(address(daoMock));
 //         erc20VotesMock.mintVotes(2500);
 //         vm.stopPrank();
-        
+
 //         // Create grant parameters
 //         bytes memory lawCalldata = abi.encode(
 //             "Test Grant",
@@ -648,7 +644,7 @@
 //             uint256(1000),
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Try to stop grant without proper role
@@ -664,7 +660,7 @@
 //         vm.startPrank(address(daoMock));
 //         erc20VotesMock.mintVotes(2500);
 //         vm.stopPrank();
-        
+
 //         // Create grant parameters
 //         bytes memory lawCalldata = abi.encode(
 //             "Test Grant",
@@ -673,7 +669,7 @@
 //             uint256(1000),
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Get grant address
@@ -684,7 +680,7 @@
 //             1000 ,
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Give alice permission to start grant
@@ -707,7 +703,7 @@
 //     function testStopGrantFailsWhenGrantNotSpent() public {
 //         address startGrant = laws[2];
 //         address stopGrant = laws[3];
-        
+
 //         // Create grant parameters
 //         bytes memory lawCalldata = abi.encode(
 //             "Test Grant",
@@ -716,7 +712,7 @@
 //             uint256(1000 ),
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Get grant address
@@ -727,7 +723,7 @@
 //             1000 ,
 //             address(erc20TaxedMock),
 //             2,
-//             laws[0] 
+//             laws[0]
 //         );
 
 //         // Give alice permission to start grant
@@ -788,7 +784,7 @@
 //         assertEq(targets.length, 1, "Should have one target");
 //         assertEq(values.length, 1, "Should have one value");
 //         assertEq(calldatas.length, 1, "Should have one calldata");
-        
+
 //         // Verify revocation action
 //         assertEq(targets[0], address(daoMock), "Target should be the DAO");
 //         assertEq(values[0], 0, "Value should be 0");
@@ -801,7 +797,7 @@
 //                 1000 ,
 //                 address(erc20TaxedMock),
 //                 2,
-//                 laws[0] 
+//                 laws[0]
 //             ))),
 //             "Calldata should be for grant revocation"
 //         );
@@ -812,7 +808,7 @@
 // contract RoleByTaxPaidTest is TestSetupGovernYourTax {
 //     function testConstructorInitialization() public {
 //         address roleByTax = laws[4];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(roleByTax), "Law should be active after initialization");
 //         assertEq(Law(roleByTax).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(roleByTax).allowedRole(), 2, "Allowed role should be 2");
@@ -825,7 +821,7 @@
 //         // prep
 //         address roleByTax = laws[4];
 //         bytes memory lawCalldata = abi.encode(alice);
-        
+
 //         // Give alice some tokens and make her pay tax
 //         vm.startPrank(address(daoMock));
 //         erc20TaxedMock.mint(10000);
@@ -852,7 +848,7 @@
 //         // prep
 //         address roleByTax = laws[4];
 //         bytes memory lawCalldata = abi.encode(alice);
-        
+
 //         // Give alice some tokens and make her pay tax
 //         vm.startPrank(address(daoMock));
 //         erc20TaxedMock.mint(1000);
@@ -871,7 +867,7 @@
 //         vm.prank(alice);
 //         daoMock.request(roleByTax, lawCalldata, nonce, "Alice requests role based on tax paid");
 //         nonce++;
-        
+
 //         // Verify role was assigned
 //         assertEq(daoMock.hasRoleSince(alice, 3), block.number, "Alice should have role 3");
 
@@ -899,8 +895,8 @@
 //         bytes memory lawCalldata = abi.encode(alice);
 //         vm.startPrank(address(daoMock));
 //         Powers(daoMock).assignRole(2, alice);
-//         vm.stopPrank(); 
-        
+//         vm.stopPrank();
+
 //         // Try to request role before any epoch has finished
 //         vm.prank(alice);
 //         vm.expectRevert("No finished epoch yet.");
@@ -911,8 +907,7 @@
 //         // prep
 //         address roleByTax = laws[4];
 //         bytes memory lawCalldata = abi.encode(alice);
-        
-        
+
 //         // Give alice some tokens and make her pay tax
 //         vm.startPrank(address(daoMock));
 //         erc20TaxedMock.mint(1000);
@@ -940,7 +935,7 @@
 //         assertEq(targets.length, 1, "Should have one target");
 //         assertEq(values.length, 1, "Should have one value");
 //         assertEq(calldatas.length, 1, "Should have one calldata");
-        
+
 //         // Role assignment action
 //         assertEq(targets[0], address(daoMock), "Target should be the DAO");
 //         assertEq(values[0], 0, "Value should be 0");
@@ -959,7 +954,7 @@
 //         address roleByTax = laws[4];
 //         bytes memory aliceCalldata = abi.encode(alice);
 //         bytes memory bobCalldata = abi.encode(bob);
-        
+
 //         // Give users tokens
 //         vm.startPrank(address(daoMock));
 //         erc20TaxedMock.mint(2000);
@@ -991,5 +986,4 @@
 //         assertEq(daoMock.hasRoleSince(alice, 3), block.number, "Alice should have role 3");
 //         assertEq(daoMock.hasRoleSince(bob, 3), 0, "Bob should not have role 3");
 //     }
-// } 
-
+// }

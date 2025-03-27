@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -33,7 +33,7 @@
 //         address payable powers_,
 //         uint256 allowedRole_,
 //         LawUtilities.Conditions memory config_,
-//         // bespoke 
+//         // bespoke
 //         uint256 roleIdToSet_,
 //         address erc20TaxedMock_,
 //         uint256 thresholdTaxPaid_
@@ -57,11 +57,11 @@
 //         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 //         (address account) = abi.decode(lawCalldata, (address));
 
-//         // step 1: retrieve data 
+//         // step 1: retrieve data
 //         uint48 epochDuration = Erc20TaxedMock(erc20TaxedMock).epochDuration();
 //         uint48 currentEpoch = uint48(block.number) / epochDuration;
 //         if (currentEpoch == 0) {
-//             revert ("No finished epoch yet."); 
+//             revert ("No finished epoch yet.");
 //         }
 
 //         // step 2: retrieve data on tax paid and role
@@ -72,8 +72,8 @@
 //         if (hasRole && taxPaid < thresholdTaxPaid) {
 //             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //             targets[0] = powers;
-//             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleIdToSet, account); 
-//         } else if (!hasRole && taxPaid >= thresholdTaxPaid) { 
+//             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleIdToSet, account);
+//         } else if (!hasRole && taxPaid >= thresholdTaxPaid) {
 //             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //             targets[0] = powers;
 //             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIdToSet, account);

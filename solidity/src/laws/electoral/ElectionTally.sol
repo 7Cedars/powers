@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 
@@ -45,7 +45,7 @@
 // import { ElectionCall } from "./ElectionCall.sol";
 // import { LawUtilities } from "../../LawUtilities.sol";
 
-// contract ElectionTally is Law { 
+// contract ElectionTally is Law {
 //     struct Data {
 //         string description;
 //         uint48 startVote;
@@ -54,10 +54,10 @@
 //         uint256 maxRoleHolders;
 //         address nominees;
 //         uint32 electedRoleId;
-//     } 
+//     }
 
 //     mapping(bytes32 lawHash => address[] electedAccounts) public electedAccounts;
-    
+
 //     constructor(
 //         string memory name_,
 //         string memory description_
@@ -81,25 +81,25 @@
 //         virtual
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
-//     {   
+//     {
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        
+
 //         address electionCall = Powers(payable(msg.sender)).getActiveLawAddress(conditionsLaws[lawHash].needCompleted);
 //         bytes32 electionCallHash = LawUtilities.hashLaw(msg.sender, conditionsLaws[lawHash].needCompleted);
 
 //         // saving the following in state vars to a struct avoid 'stack too deep' errors.
 //         Data memory data;
-        
+
 //         // step 0a: unpacking calldata
 //         (data.startVote, data.endVote) = abi.decode(lawCalldata, (uint48, uint48));
-//         // step 0b: retrieving data from ElectionCall contract. 
+//         // step 0b: retrieving data from ElectionCall contract.
 //         data.electionVotes = ElectionCall(electionCall).electionVotes(electionCallHash);
 //         data.maxRoleHolders = ElectionCall(electionCall).maxRoleHolders(electionCallHash);
 //         data.electedRoleId = ElectionCall(electionCall).electedRoleId(electionCallHash);
 //         ( , , , Conditions memory conditions) = ElectionCall(electionCall).initialisedLaws(electionCallHash);
 //         data.nominees = conditionsLaws[lawHash].readStateFrom;
-        
+
 //         // step 1: run additional checks
 //         if (!Powers(msg.sender).getActiveLaw(data.electionVotes)) {
 //             revert ("ElectionVotes contract not recognised.");
@@ -118,21 +118,21 @@
 //         uint256 arrayLength =
 //             numberNominees < data.maxRoleHolders ? numberRevokees + numberNominees + 1 : numberRevokees + data.maxRoleHolders + 1;
 
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength); 
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength);
 //         for (uint256 i; i < arrayLength; i++) {
 //             targets[i] = msg.sender;
 //         }
 //         // step 2: calls to revoke roles of previously elected accounts.
 //         for (uint256 i; i < numberRevokees; i++) {
 //             calldatas[i] = abi.encodeWithSelector(
-//                 Powers.revokeRole.selector, 
-//                 data.electedRoleId, 
+//                 Powers.revokeRole.selector,
+//                 data.electedRoleId,
 //                 electedAccounts[i]
 //             );
 //         }
-//         // deleting the election contract law. 
+//         // deleting the election contract law.
 //         calldatas[arrayLength - 1] = abi.encodeWithSelector(
-//                 Powers.revokeLaw.selector, 
+//                 Powers.revokeLaw.selector,
 //                 data.electionVotes
 //             );
 
@@ -143,10 +143,10 @@
 //                 address accountElect = NominateMe(data.nominees).nomineesSorted(i);
 //                 calldatas[i + numberRevokees] =
 //                     abi.encodeWithSelector(
-//                         Powers.assignRole.selector, 
-//                         data.electedRoleId, 
+//                         Powers.assignRole.selector,
+//                         data.electedRoleId,
 //                         accountElect
-                        
+
 //                         );
 //                 accountElects[i] = accountElect;
 //             }
@@ -180,8 +180,8 @@
 //                 if (rank < data.maxRoleHolders && index < arrayLength - numberRevokees) {
 //                     calldatas[index + numberRevokees] =
 //                         abi.encodeWithSelector(
-//                             Powers.assignRole.selector, 
-//                             data.electedRoleId, 
+//                             Powers.assignRole.selector,
+//                             data.electedRoleId,
 //                             _nominees[i]);
 //                     accountElects[index] = _nominees[i];
 //                     index++;

@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 
@@ -28,7 +28,7 @@
 // contract RandomSelect is Law, VRFV2PlusWrapperConsumerBase, ConfirmedOwner {
 //     error RandomSelect__NumberToElectMustBeLessThanNumberNominees();
 //     error RandomSelect__NumberToElectMustBeGreaterThan0();
-    
+
 //     uint256 private immutable ROLE_ID;
 //     address[] public electedAccounts;
 //     uint256 public numberToElect;
@@ -68,7 +68,7 @@
 //          bytes memory inputParams = abi.encode(
 //             "uint256 NumberToElect" //  Number of accounts to elect.
 //         );
-        
+
 //         if (_wrapperAddress == address(0)) revert RandomSelect__WrapperAddressCannotBe0();
 //         requestConfig =
 //             RequestConfig({callbackGasLimit: _callbackGasLimit, requestConfirmations: _requestConfirmations, numWords: 1});
@@ -84,16 +84,16 @@
 //         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
 //     {
 //         // retrieve nominees.
-//         address nominees = conditions.readStateFrom;  
+//         address nominees = conditions.readStateFrom;
 //         uint256 numberNominees = NominateMe(nominees).nomineesCount();
-//         numberToElect = abi.decode(lawCalldata, (uint256)); 
-        
+//         numberToElect = abi.decode(lawCalldata, (uint256));
+
 //         // check that number to elect is less than number of nominees.
 //         if (numberToElect > numberNominees) revert RandomSelect__NumberToElectMustBeLessThanNumberNominees();
-        
+
 //         // check that number to elect is greater than 0.
 //         if (numberToElect < 1) revert RandomSelect__NumberToElectMustBeGreaterThan0();
-        
+
 //         // request random value here and handle rest of request in fulfillRandomWords.
 //         _requestRandomWords();
 
@@ -120,16 +120,16 @@
 //             );
 //         (uint256 requestId, uint256 reqPrice) =
 //             requestRandomnessPayInNative(
-//                 requestConfig.callbackGasLimit, 
-//                 requestConfig.requestConfirmations, 
-//                 1, 
+//                 requestConfig.callbackGasLimit,
+//                 requestConfig.requestConfirmations,
+//                 1,
 //                 extraArgs
 //                 );
 //         s_requests[requestId] =
 //             VRFRequestStatus({
-//                 paid: reqPrice, 
+//                 paid: reqPrice,
 //                 randomWords: new uint256[](0),  // or 1? See example cards
-//                 fulfilled: false, 
+//                 fulfilled: false,
 //                 requester: powers
 //                 });
 //         requestIds.push(requestId);
@@ -142,18 +142,18 @@
 //         uint256 _requestId,
 //         uint256[] memory _randomWords
 //     ) internal override {
-//         // check that vrf request has been paid for. 
+//         // check that vrf request has been paid for.
 //         require(s_requests[_requestId].paid > 0, "request not found");
 //         s_requests[_requestId].fulfilled = true;
 //         s_requests[_requestId].randomWords = _randomWords;
 
 //         // if this passes: retrieve nominees.
-//         address nominees = conditions.readStateFrom;  
+//         address nominees = conditions.readStateFrom;
 //         uint256 numberNominees = NominateMe(nominees).nomineesCount();
 //         uint256 numberRevokees = electedAccounts.length;
 //         // calculate length of target, value, and calldata arrays.
 //         uint256 arrayLength = numberRevokees + numberToElect;
-        
+
 //         // setting up empty target, value, and calldata arrays.
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(arrayLength);
 //         // setting up targets to be the powers contract.
@@ -209,7 +209,5 @@
 //     receive() external payable {
 //         emit Received(msg.sender, msg.value);
 //     }
-
-
 
 // }

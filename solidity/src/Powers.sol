@@ -25,7 +25,7 @@
 /// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, for instance, still need to be executed through the {execute} function.
 /// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote. Accounts vote with their roles, not with their tokens.
 /// 5 - The core protocol is intentionally minimalistic. Any complexity (timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
-/// 
+///
 /// For example implementations of DAOs, see the `Deploy...` files in the /script folder.
 ///
 /// Note This protocol is a work in progress. A number of features are planned to be added in the future.
@@ -33,7 +33,7 @@
 /// - Native support for multi-chain governance.
 /// - Gas efficiency improvements.
 /// - Improved time management, including support for EIP-6372 {clock()} for timestamping governance processes.
-/// - And more. 
+/// - And more.
 ///
 /// @author 7Cedars
 
@@ -46,13 +46,13 @@ import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/int
 import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 import { EIP712 } from "../lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 
-// import { console2 } from "forge-std/console2.sol"; // remove before deploying. 
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
 contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
-    mapping(uint256 actionId => Action) private _actions;  // mapping actionId to Action struct
+    mapping(uint256 actionId => Action) private _actions; // mapping actionId to Action struct
     mapping(uint16 lawId => ActiveLaw) public laws; // mapping law address to Law struct
     mapping(uint256 roleId => Role) public roles; // mapping roleId to Role struct
 
@@ -89,10 +89,10 @@ contract Powers is EIP712, IPowers {
     ///
     /// @param name_ name of the contract
     constructor(string memory name_, string memory uri_) EIP712(name_, version()) {
-        if (bytes(name_).length == 0) { revert Powers__InvalidName(); } 
+        if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
-        
+
         _setRole(ADMIN_ROLE, msg.sender, true); // the account that initiates a Powerscontract is set to its admin.
         roles[ADMIN_ROLE].amountMembers = 1; // the number of admins at set up is 1.
         roles[PUBLIC_ROLE].amountMembers = type(uint256).max; // the number for holders of the PUBLIC_ROLE is type(uint256).max. As in, everyone has this role.
@@ -113,16 +113,21 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
     /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable virtual onlyActiveLaw(lawId) {
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+        external
+        payable
+        virtual
+        onlyActiveLaw(lawId)
+    {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
-        ActiveLaw memory law = laws[lawId];   
+        ActiveLaw memory law = laws[lawId];
 
         // check 1: does executioner have access to law being executed?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
-        
+
         // check 3: has action already been set as requested?
         if (_actions[actionId].requested == true) revert Powers__ActionAlreadyInitiated();
-        
+
         // check 4: is proposedAction cancelled?
         // if law did not need a proposedAction proposedAction vote to start with, check will pass.
         if (_actions[actionId].cancelled == true) revert Powers__ActionCancelled();
@@ -140,29 +145,35 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable virtual onlyActiveLaw(lawId) {
+    function fulfill(
+        uint16 lawId,
+        uint256 actionId,
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata calldatas
+    ) external payable virtual onlyActiveLaw(lawId) {
         ActiveLaw memory law = laws[lawId];
         // check 1: is msg.sender a targetLaw?
         if (!law.active) revert Powers__LawNotActive();
-        
+
         // check 2: is msg.sender the targetLaw?
         if (law.targetLaw != msg.sender) revert Powers__AccessDenied();
 
         // check 3: has action already been set as requested?
         if (_actions[actionId].requested != true) revert Powers__ActionNotRequested();
-        
+
         // check 4: are the lengths of targets, values and calldatas equal?
         if (targets.length != values.length || targets.length != calldatas.length) revert Powers__InvalidCallData();
-        
+
         // set action as fulfilled.
         _actions[actionId].fulfilled = true;
-        
+
         // execute targets[], values[], calldatas[] received from law.
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
-        } 
-        
+        }
+
         // emit event.
         emit ActionExecuted(lawId, actionId, targets, values, calldatas);
     }
@@ -191,11 +202,13 @@ contract Powers is EIP712, IPowers {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
-        internal
-        virtual
-        returns (uint256 actionId)
-    {
+    function _propose(
+        address caller,
+        uint16 lawId,
+        bytes calldata lawCalldata,
+        uint256 nonce,
+        string memory description
+    ) internal virtual returns (uint256 actionId) {
         ActiveLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
         ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(lawId);
@@ -214,11 +227,19 @@ contract Powers is EIP712, IPowers {
         Action storage proposedAction = _actions[actionId];
         proposedAction.lawId = lawId;
         proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
-        proposedAction.voteDuration =  conditions.votingPeriod;
+        proposedAction.voteDuration = conditions.votingPeriod;
         proposedAction.caller = caller;
 
         emit ProposedActionCreated(
-            actionId, caller, lawId, "", lawCalldata, block.number, block.number + conditions.votingPeriod, nonce, description
+            actionId,
+            caller,
+            lawId,
+            "",
+            lawCalldata,
+            block.number,
+            block.number + conditions.votingPeriod,
+            nonce,
+            description
         );
     }
 
@@ -228,7 +249,7 @@ contract Powers is EIP712, IPowers {
         public
         virtual
         onlyActiveLaw(lawId)
-        returns (uint256)   
+        returns (uint256)
     {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         // only caller can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].caller == address(0))
@@ -240,11 +261,7 @@ contract Powers is EIP712, IPowers {
     /// @notice Internal cancel mechanism with minimal restrictions. A proposedAction can be cancelled in any state other than
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
-    function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
-        internal
-        virtual
-        returns (uint256)
-    {
+    function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal virtual returns (uint256) {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
 
         // check 1: is action already fulfilled or cancelled?
@@ -277,7 +294,9 @@ contract Powers is EIP712, IPowers {
     /// Emits a {SeperatedPowersEvents::VoteCast} event.
     function _castVote(uint256 actionId, address account, uint8 support, string memory reason) internal virtual {
         // Check that the proposedAction is active, that it has not been paused, cancelled or ended yet.
-        if (Powers(payable(address(this))).state(actionId) != ActionState.Active) revert Powers__ProposedActionNotActive();
+        if (Powers(payable(address(this))).state(actionId) != ActionState.Active) {
+            revert Powers__ProposedActionNotActive();
+        }
 
         // Note that we check if account has access to the law targetted in the proposedAction.
         uint16 lawId = _actions[actionId].lawId;
@@ -305,19 +324,21 @@ contract Powers is EIP712, IPowers {
 
         // ...and set laws as active.
         for (uint256 i = 0; i < constituentLaws.length; i++) {
-            _adoptLaw(constituentLaws[i]);
+            // note: ignore empty slots in LawInitData array.
+            if (constituentLaws[i].targetLaw != address(0)) {
+                _adoptLaw(constituentLaws[i]);
+            }
         }
     }
 
     /// @inheritdoc IPowers
     function adoptLaw(LawInitData memory lawInitData) public onlyPowers {
         _adoptLaw(lawInitData);
-
     }
 
     /// @inheritdoc IPowers
     function revokeLaw(uint16 lawId) public onlyPowers {
-        if (lawId >= lawCount) revert Powers__LawNotActive();
+        if (laws[lawId].active == false) revert Powers__LawNotActive();
 
         laws[lawId].active = false;
         emit LawRevoked(lawId);
@@ -330,14 +351,18 @@ contract Powers is EIP712, IPowers {
     /// Emits a {SeperatedPowersEvents::LawAdopted} event.
     function _adoptLaw(LawInitData memory lawInitData) internal virtual {
         // check if added address is indeed a law. Note that this will also revert with address(0).
-        if (!ERC165Checker.supportsInterface(lawInitData.targetLaw, type(ILaw).interfaceId)) revert Powers__IncorrectInterface();
-    
+        if (!ERC165Checker.supportsInterface(lawInitData.targetLaw, type(ILaw).interfaceId)) {
+            revert Powers__IncorrectInterface();
+        }
+
         laws[lawCount].active = true;
-        laws[lawCount].targetLaw = lawInitData.targetLaw; 
+        laws[lawCount].targetLaw = lawInitData.targetLaw;
         lawCount++;
 
-        Law(lawInitData.targetLaw).initializeLaw(lawCount - 1, lawInitData.conditions, lawInitData.config, "", lawInitData.description);
-        
+        Law(lawInitData.targetLaw).initializeLaw(
+            lawCount - 1, lawInitData.conditions, lawInitData.config, "", lawInitData.description
+        );
+
         // emit event.
         emit LawAdopted(lawCount - 1);
     }
@@ -360,7 +385,7 @@ contract Powers is EIP712, IPowers {
 
     /// @notice Internal version of {setRole} without access control.
     /// @dev This function is used to set a role for a given account. Public role is locked as everyone has it.
-    /// @dev Note that it does allow Admin role to be assigned and revoked. 
+    /// @dev Note that it does allow Admin role to be assigned and revoked.
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
     function _setRole(uint256 roleId, address account, bool access) internal virtual {
@@ -387,7 +412,12 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
-    function _hashAction(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal view virtual returns (uint256) {
+    function _hashAction(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+        internal
+        view
+        virtual
+        returns (uint256)
+    {
         return uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
     }
 
@@ -403,7 +433,11 @@ contract Powers is EIP712, IPowers {
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // check if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if quorum has been reached.
-        return (conditions.quorum == 0 || amountMembers * conditions.quorum <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR); 
+        return (
+            conditions.quorum == 0
+                || amountMembers * conditions.quorum
+                    <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR
+        );
     }
 
     /// @notice internal function {voteSucceeded} that checks if a vote for a given proposedAction has succeeded.
@@ -498,8 +532,8 @@ contract Powers is EIP712, IPowers {
         return "0.3";
     }
 
-     /// @inheritdoc IPowers
-    function canCallLaw(address caller, uint16 lawId) public virtual view returns (bool) {
+    /// @inheritdoc IPowers
+    function canCallLaw(address caller, uint16 lawId) public view virtual returns (bool) {
         uint256 allowedRole = Law(laws[lawId].targetLaw).getConditions(lawId).allowedRole;
         uint48 since = hasRoleSince(caller, allowedRole);
 
@@ -539,7 +573,11 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions) {
+    function getActiveLaw(uint16 lawId)
+        external
+        view
+        returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions)
+    {
         if (!laws[lawId].active) {
             revert Powers__LawNotActive();
         }

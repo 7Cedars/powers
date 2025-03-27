@@ -79,4 +79,3 @@ interface PowersErrors {
     /// @notice Emitted when a name is invalid.
     error Powers__InvalidName();
 }
-

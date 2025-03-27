@@ -14,9 +14,9 @@
 
 /// @notice Errors used in {Law.sol}.
 ///
-/// @dev Errors in implementations of law.sol have to use strings (as in revert("this is an error") instead of using custom function, to allow errors to bubble up.)  
+/// @dev Errors in implementations of law.sol have to use strings (as in revert("this is an error") instead of using custom function, to allow errors to bubble up.)
 /// @author 7Cedars
-/// 
+///
 pragma solidity 0.8.26;
 
 interface LawErrors {
@@ -43,7 +43,6 @@ interface LawErrors {
 
     /// @notice Emitted when a string is too long.
     error Law__StringTooLong();
-
 
     error Law__ParentNotCompleted();
 

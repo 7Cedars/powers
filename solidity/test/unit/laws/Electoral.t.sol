@@ -19,7 +19,6 @@
 // import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 // import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 
-
 // contract DirectSelectTest is TestSetupElectoral {
 //     using ShortStrings for *;
 
@@ -34,8 +33,8 @@
 
 //         vm.prank(charlotte);
 //         Powers(payable(address(daoMock))).request(
-//             directSelect, 
-//             lawCalldata, 
+//             directSelect,
+//             lawCalldata,
 //             nonce,
 //             "selecting role for account!"
 //         );
@@ -54,8 +53,8 @@
 //         vm.prank(alice);
 //         vm.expectRevert("Account already has role.");
 //         Powers(payable(address(daoMock))).request(
-//             directSelect, 
-//             lawCalldata, 
+//             directSelect,
+//             lawCalldata,
 //             nonce,
 //             "selecting role for account!"
 //         );
@@ -67,11 +66,11 @@
 //         address directSelect = laws[2];
 //         bytes memory lawCalldata = abi.encode(false, alice); // assign
 //         bytes memory expectedCalldata = abi.encodeWithSelector(Powers.revokeRole.selector, ROLE_THREE, alice);
-        
+
 //         vm.prank(alice);
 //         Powers(payable(address(daoMock))).request(
-//             directSelect, 
-//             lawCalldata, 
+//             directSelect,
+//             lawCalldata,
 //             nonce,
 //             "selecting role for account!"
 //         );
@@ -90,8 +89,8 @@
 //         vm.prank(charlotte);
 //         vm.expectRevert("Account does not have role.");
 //         Powers(payable(address(daoMock))).request(
-//             directSelect, 
-//             lawCalldata, 
+//             directSelect,
+//             lawCalldata,
 //             nonce,
 //             "selecting role for account!"
 //         );
@@ -244,7 +243,7 @@
 
 //         vm.prank(alice);
 //         Powers(daoMock).request(
-//             laws[4], 
+//             laws[4],
 //             abi.encode("Test Election", uint48(block.number), uint48(block.number + 100)),
 //             nonce,
 //             "Test Election"
@@ -270,7 +269,7 @@
 //         daoMock.assignRole(ROLE_ONE, alice);
 
 //         bytes memory callData = abi.encode("Test Election", uint48(block.number), uint48(block.number + 100));
-        
+
 //         vm.prank(alice);
 //         Powers(daoMock).request(laws[4], callData, nonce, "Test Election");
 
@@ -363,14 +362,14 @@
 //         assertEq(values[0], 0);
 //         assertEq(calldatas[0], abi.encodeWithSelector(Powers.adoptLaw.selector, expectedAddr));
 //         assertTrue(actionId != 0);
-        
+
 //         (
 //             string memory desc,
 //             uint48 start,
 //             uint48 end,
 //             address addr
 //         ) = abi.decode(stateChange, (string, uint48, uint48, address));
-        
+
 //         assertEq(desc, "Test Election");
 //         assertEq(start, startBlock);
 //         assertEq(end, endBlock);
@@ -403,12 +402,12 @@
 //             }
 //         }
 
-//         // create an election 
+//         // create an election
 //         vm.prank(address(daoMock));
 //         daoMock.assignRole(ROLE_ONE, alice);
 //         vm.prank(alice);
 //         Powers(payable(address(daoMock))).request(
-//             electionCall, 
+//             electionCall,
 //             lawCalldataElection,
 //             electionNonce,
 //             "This is a test election"
@@ -424,11 +423,11 @@
 
 //         // prep: vote on accounts
 //         vm.roll(startVote + 1);
-      
+
 //         for (uint256 i = 0; i < users.length; i++) {
 //             vm.prank(address(daoMock));
 //             daoMock.assignRole(ROLE_TWO, users[i]); // Give  voting rights
-            
+
 //             if (i <= 4) {
 //                 vm.prank(users[i]);
 //                 Powers(payable(address(daoMock))).request(
@@ -478,7 +477,7 @@
 //         assertNotEq(daoMock.hasRoleSince(users[0], ROLE_THREE), 0, "First user should have role");
 //         assertNotEq(daoMock.hasRoleSince(users[1], ROLE_THREE), 0, "Second user should have role");
 //         assertEq(daoMock.hasRoleSince(users[2], ROLE_THREE), 0, "Third user should not have role");
-        
+
 //         // assert: check elected accounts array
 //         assertEq(ElectionTally(electionTally).electedAccounts(0), users[0]);
 //         assertEq(ElectionTally(electionTally).electedAccounts(1), users[1]);
@@ -539,7 +538,7 @@
 
 //         // assert: check role assignment
 //         assertNotEq(daoMock.hasRoleSince(users[0], ROLE_THREE), 0, "Nominee should have role");
-        
+
 //         // assert: check elected accounts array
 //         assertEq(ElectionTally(electionTally).electedAccounts(0), users[0]);
 //     }
@@ -627,7 +626,7 @@
 //     function testConstructorInitialization() public {
 //         // Get the SelfSelect contract from the test setup
 //         address selfSelect = laws[6];
-        
+
 //         // Test that the contract was initialized correctly
 //         assertTrue(Powers(daoMock).getActiveLaw(selfSelect), "Law should be active after initialization");
 //         assertEq(Law(selfSelect).powers(), address(daoMock), "Powers address should be set correctly");
@@ -654,7 +653,7 @@
 //     function testCannotAssignRoleTwice() public {
 //         // prep
 //         address selfSelect = laws[6];
-//         bytes memory lawCalldata = abi.encode(); 
+//         bytes memory lawCalldata = abi.encode();
 
 //         // First assignment
 //         vm.prank(bob);
@@ -724,12 +723,12 @@
 //     function testConstructorInitialization() public {
 //         // Get the RenounceRole contract from the test setup
 //         address renounceRole = laws[7];
-        
+
 //         // Test that the contract was initialized correctly
 //         assertTrue(Powers(daoMock).getActiveLaw(renounceRole), "Law should be active after initialization");
 //         assertEq(Law(renounceRole).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(renounceRole).allowedRole(), ROLE_ONE, "Allowed role should be set to ROLE_ONE");
-        
+
 //         // Test that the allowed role IDs were set correctly
 //         assertEq(RenounceRole(renounceRole).allowedRoleIds(0), ROLE_THREE, "First allowed role ID should be ROLE_THREE");
 //     }
@@ -815,7 +814,7 @@
 //     function testConstructorInitialization() public {
 //         // Get PeerSelect from laws array
 //         address peerSelect = laws[8]; // Adjust index based on ConstitutionsMock setup
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(peerSelect), "Law should be active after initialization");
 //         assertEq(Law(peerSelect).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(peerSelect).allowedRole(), ROLE_ONE, "Allowed role should be ROLE_ONE");
@@ -1027,4 +1026,3 @@
 //         );
 //     }
 // }
-

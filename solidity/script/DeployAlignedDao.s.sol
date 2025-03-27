@@ -15,7 +15,7 @@
 // import { HelperConfig } from "./HelperConfig.s.sol";
 
 // // laws
-// import { NominateMe } from "../src/laws/state/NominateMe.sol"; 
+// import { NominateMe } from "../src/laws/state/NominateMe.sol";
 // import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
 // import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
 // import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
@@ -28,9 +28,9 @@
 // import { ReinstateRole } from "../src/laws/bespoke/alignedDao/ReinstateRole.sol";
 // import { RequestPayment } from "../src/laws/bespoke/alignedDao/RequestPayment.sol";
 // import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
-// import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol"; 
+// import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol";
 
-// // mocks 
+// // mocks
 // import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 // import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 // import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
@@ -41,28 +41,28 @@
 //     function run()
 //         external
 //         returns (
-//             address payable dao,  
-//             address[] memory constituentLaws, 
-//             HelperConfig.NetworkConfig memory config, 
-//             address payable mock20votes_, 
-//             address payable mock20taxed_, 
+//             address payable dao,
+//             address[] memory constituentLaws,
+//             HelperConfig.NetworkConfig memory config,
+//             address payable mock20votes_,
+//             address payable mock20taxed_,
 //             address payable mock721_
 //             )
 //     {
 //         HelperConfig helperConfig = new HelperConfig();
 //         config = helperConfig.getConfigByChainId(block.chainid);
 
-//         // deploying token contracts that will be managed by the Dao. 
+//         // deploying token contracts that will be managed by the Dao.
 //         vm.startBroadcast();
 //         // initiating Dao
 //         Powers powers = new Powers(
-//             "Aligned Dao", 
+//             "Aligned Dao",
 //             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihwvloi4rmzeertaclrz4pom4a42fn6asbcxex2iw3kggmdmsexee"
 //             );
 //         // Deploying token contracts that will be controlled by the Dao
-//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock(); 
+//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
 //         Erc20TaxedMock erc20TaxedMock = new Erc20TaxedMock(
-//             5, // taxRate_, 
+//             5, // taxRate_,
 //             3, // DENOMINATOR_,
 //             25 //uint48 epochDuration_
 //             );
@@ -70,21 +70,21 @@
 //         vm.stopBroadcast();
 
 //         dao = payable(address(powers));
-//         mock20votes_ = payable(address(erc20VotesMock)); 
-//         mock20taxed_ = payable(address(erc20TaxedMock)); 
+//         mock20votes_ = payable(address(erc20VotesMock));
+//         mock20taxed_ = payable(address(erc20TaxedMock));
 //         mock721_ = payable(address(erc721Mock));
 
-//         // initiating constitution: creates the Daos laws. 
+//         // initiating constitution: creates the Daos laws.
 //         initiateConstitution(dao, mock20votes_, mock20taxed_, mock721_);
 
 //         vm.startBroadcast();
 //         // constitute dao.
 //         powers.constitute(laws);
-//         // & transferring ownership of tokens to the Dao. 
+//         // & transferring ownership of tokens to the Dao.
 //         erc20TaxedMock.transferOwnership(address(powers));
 //         erc721Mock.transferOwnership(address(powers));
 //         vm.stopBroadcast();
- 
+
 //         return (dao, laws, config, mock20votes_,  mock20taxed_, mock721_);
 //     }
 
@@ -103,7 +103,7 @@
 //         // laws[0]
 //         Conditions.quorum = 60; // = 60% quorum needed
 //         Conditions.succeedAt = 50; // = Simple majority vote needed.
-//         Conditions.votingPeriod = 25; // = number of blocks, about half an hour.  
+//         Conditions.votingPeriod = 25; // = number of blocks, about half an hour.
 //         // setting up params
 //         string[] memory inputParams = new string[](2);
 //         inputParams[0] = "string Value";
@@ -287,7 +287,7 @@
 //             dao_, // separated powers protocol.
 //             3, // role 3 id designation.
 //             Conditions, //  config file.
-//             3, // maximum elected to role, 
+//             3, // maximum elected to role,
 //             3 // role id to be assigned
 //         );
 //         vm.stopBroadcast();
@@ -297,7 +297,7 @@
 //         // laws[11]
 //         // input params
 //         inputParams = new string[](2);
-//         inputParams[0] = "bool revoke"; 
+//         inputParams[0] = "bool revoke";
 //         inputParams[1] = "address Account";
 //         vm.startBroadcast();
 //         law = new ProposalOnly(
@@ -315,7 +315,7 @@
 //         Conditions.quorum = 30; // = Two thirds quorum needed to pass the proposal
 //         Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
 //         Conditions.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-//         Conditions.needCompleted = laws[11]; // ProposalOnly 
+//         Conditions.needCompleted = laws[11]; // ProposalOnly
 //         vm.startBroadcast();
 //         law = new DirectSelect(
 //             "Accept oracle", // max 31 chars
@@ -332,7 +332,7 @@
 //         // // laws[13]
 //         // // input params
 //         // inputParams = new string[](2);
-//         // inputParams[0] = "uint256 roleId"; 
+//         // inputParams[0] = "uint256 roleId";
 //         // inputParams[1] = "address Account";
 //         // vm.startBroadcast();
 //         // law = new BespokeAction(
@@ -349,7 +349,7 @@
 //         // laws.push(address(law));
 
 //         // // laws[14]
-//         // Conditions.needCompleted = laws[13];  
+//         // Conditions.needCompleted = laws[13];
 //         // vm.startBroadcast();
 //         // law = new BespokeAction(
 //         //     "Revoke role for testing", // max 31 chars
@@ -377,7 +377,7 @@
 //         calldatas[2] = abi.encodeWithSelector(Powers.labelRole.selector, 2, "Governor");
 //         calldatas[3] = abi.encodeWithSelector(Powers.labelRole.selector, 3, "Senior");
 //         calldatas[4] = abi.encodeWithSelector(Powers.labelRole.selector, 4, "Oracle");
-        
+
 //         vm.startBroadcast();
 //         law = new SelfDestructAction(
 //             "Set initial labels & role", // max 31 chars

@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -20,7 +20,7 @@
 // import { Law } from "../../../Law.sol";
 // import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import { LawUtilities } from "../../../LawUtilities.sol";
-    
+
 // contract RequestPayment is Law {
 //     address public erc1155;
 //     uint256 public tokenId;
@@ -63,8 +63,8 @@
 
 //         targets[0] = erc1155;
 //         calldatas[0] = abi.encodeWithSelector(
-//             ERC20.transfer.selector, 
-//             caller, 
+//             ERC20.transfer.selector,
+//             caller,
 //             amount
 //             );
 

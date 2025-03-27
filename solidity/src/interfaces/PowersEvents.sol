@@ -37,11 +37,7 @@ interface PowersEvents {
     /// @param description the description of the law action
     /// @param nonce the nonce of the action
     event ActionRequested(
-        address indexed caller, 
-        uint16 indexed lawId, 
-        bytes lawCalldata, 
-        uint256 nonce,
-        string description
+        address indexed caller, uint16 indexed lawId, bytes lawCalldata, uint256 nonce, string description
     );
 
     /// @notice Emitted when an executive action has been executed.
@@ -75,7 +71,7 @@ interface PowersEvents {
 
     /// @notice Emitted when a proposal is cancelled.
     /// @param actionId the id of the proposal
-    event ProposedActionCancelled(uint256 indexed actionId); 
+    event ProposedActionCancelled(uint256 indexed actionId);
 
     /// @notice Emitted when a vote is cast.
     /// @param account the address of the account that cast the vote

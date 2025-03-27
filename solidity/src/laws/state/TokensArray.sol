@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -27,7 +27,7 @@ contract TokensArray is Law {
     enum TokenType {
         Erc20,
         Erc721,
-        Erc1155 
+        Erc1155
     }
 
     struct Token {
@@ -41,28 +41,33 @@ contract TokensArray is Law {
     event TokensArray__TokenAdded(address indexed tokenAddress, TokenType tokenType);
     event TokensArray__TokenRemoved(address indexed tokenAddress, TokenType tokenType);
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         emit Law__Deployed(name_, "");
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        inputParams = abi.encode(   
-            "address TokenAddress", 
-            "uint256 TokenType", 
-            "bool Add"
-        );
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("address TokenAddress", "uint256 TokenType", "bool Add");
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
@@ -72,7 +77,6 @@ contract TokensArray is Law {
         // step 1: decode
         (address tokenAddress, TokenType tokenType, bool add) = abi.decode(stateChange, (address, TokenType, bool)); // don't know if this is going to work...
 
-
         // step 2: change state
         // note: address is not type checked. We trust the caller
         if (add) {
@@ -80,7 +84,7 @@ contract TokensArray is Law {
             numberOfTokens[lawHash]++;
             emit TokensArray__TokenAdded(tokenAddress, tokenType);
         } else if (numberOfTokens[lawHash] == 0) {
-            revert ("Token not found.");
+            revert("Token not found.");
         } else {
             for (uint256 index; index < numberOfTokens[lawHash]; index++) {
                 if (tokens[lawHash][index].tokenAddress == tokenAddress) {
@@ -91,7 +95,7 @@ contract TokensArray is Law {
                 }
 
                 if (index == numberOfTokens[lawHash] - 1) {
-                    revert ("Token not found.");
+                    revert("Token not found.");
                 }
             }
             emit TokensArray__TokenRemoved(tokenAddress, tokenType);

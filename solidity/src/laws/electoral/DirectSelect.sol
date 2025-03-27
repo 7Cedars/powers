@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -30,51 +30,50 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
+import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract DirectSelect is Law { 
+contract DirectSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleId;
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
-        bytes memory configParams = abi.encode(
-            "uint256 roleId"
-        );
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode("uint256 roleId");
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
         (uint256 roleId_) = abi.decode(config, (uint256));
         roleId[hashLaw(msg.sender, index)] = roleId_;
-        
-        inputParams = abi.encode(
-            "bool Assign", 
-            "address Account"
-            );
+
+        inputParams = abi.encode("bool Assign", "address Account");
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
         returns (
             uint256 actionId,
-            address[] memory targets, 
-            uint256[] memory values, 
-            bytes[] memory calldatas, 
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
             bytes memory stateChange
-            )
+        )
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 
-        // Decode the calldata. Note that validating calldata is not possible at the moment. 
+        // Decode the calldata. Note that validating calldata is not possible at the moment.
         // See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
-        // The feature request has been open for almost five years(!) at time of writing.  
+        // The feature request has been open for almost five years(!) at time of writing.
         (bool assign, address account) = abi.decode(lawCalldata, (bool, address));
 
         // step 2: hash the proposal.
@@ -87,12 +86,12 @@ contract DirectSelect is Law {
         targets[0] = msg.sender;
         if (!assign) {
             if (Powers(payable(msg.sender)).hasRoleSince(account, roleId[lawHash]) == 0) {
-                revert ("Account does not have role.");
+                revert("Account does not have role.");
             }
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId[lawHash], account); // selector = revokeRole
         } else {
             if (Powers(payable(msg.sender)).hasRoleSince(account, roleId[lawHash]) != 0) {
-                revert ("Account already has role.");
+                revert("Account already has role.");
             }
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId[lawHash], account); // selector = assignRole
         }

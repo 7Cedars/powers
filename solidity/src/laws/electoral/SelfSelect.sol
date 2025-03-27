@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -30,23 +30,25 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
-import { LawUtilities } from "../../LawUtilities.sol"; 
+import { Powers } from "../../Powers.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
-contract SelfSelect is Law { 
+contract SelfSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
-        bytes memory configParams = abi.encode(
-            "uint256 RoleId"
-        );
-        
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode("uint256 RoleId");
+
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
         uint256 roleId_ = abi.decode(config, (uint256));
         roleIds[hashLaw(msg.sender, index)] = roleId_;
 
@@ -57,7 +59,13 @@ contract SelfSelect is Law {
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
@@ -65,11 +73,10 @@ contract SelfSelect is Law {
 
         targets[0] = msg.sender;
         if (Powers(payable(msg.sender)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
-            revert ("Account already has role.");
+            revert("Account already has role.");
         }
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
-        
+
         return (actionId, targets, values, calldatas, "");
     }
-
 }

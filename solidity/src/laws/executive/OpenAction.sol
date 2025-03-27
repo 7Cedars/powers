@@ -22,37 +22,38 @@
 /// The logic:
 /// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol"; 
+import { LawUtilities } from "../../LawUtilities.sol";
+
+import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
 contract OpenAction is Law {
     /// @notice Constructor function for OpenAction contract.
     /// @param name_ name of the law
-    constructor(
-        string memory name_
-    )  Law(name_) {
-        bytes memory configParams = abi.encode(); 
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode();
         emit Law__Deployed(name_, configParams);
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        inputParams = abi.encode(
-            "address[] Targets", 
-            "uint256[] Values", 
-            "bytes[] CallDatas"
-            );
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("address[] Targets", "uint256[] Values", "bytes[] CallDatas");
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-
     /// @notice Execute the open action.
     /// @param lawCalldata the calldata of the law
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -66,7 +67,8 @@ contract OpenAction is Law {
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         // note: no check on decoded call data. If needed, this can be added.
-        (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
+        (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew) =
+            abi.decode(lawCalldata, (address[], uint256[], bytes[]));
 
         return (actionId, targetsNew, valuesNew, calldatasNew, "");
     }

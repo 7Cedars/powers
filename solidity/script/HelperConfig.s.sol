@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Script} from "forge-std/Script.sol";
+import { Script } from "forge-std/Script.sol";
 
 contract HelperConfig is Script {
     error HelperConfig__UnsupportedChain();
 
-    // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.  
+    // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.
     struct NetworkConfig {
         uint256 blocksPerHour; // a basic way of establishing time. As long as block times are fairly stable on a chain, this will work.
     }

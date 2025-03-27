@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// NB: This library will soon be depricated. 
+/// NB: This library will soon be depricated.
 
 /// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
@@ -23,8 +23,9 @@ pragma solidity 0.8.26;
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { Powers } from "./Powers.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
-import { PowersTypes } from "./interfaces/PowersTypes.sol";    
+import { PowersTypes } from "./interfaces/PowersTypes.sol";
 
+import { console2 } from "forge-std/console2.sol"; // @audit-info: console2 is used for logging // remove before deployment
 
 library LawUtilities {
     //////////////////////////////////////////////////////////////
@@ -55,14 +56,19 @@ library LawUtilities {
     /// @param conditions The conditionsuration parameters for the law
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
-    function baseChecksAtPropose(ILaw.Conditions memory conditions, bytes memory lawCalldata, address powers, uint256 nonce)
-        external
-        view
-      {
+    function baseChecksAtPropose(
+        ILaw.Conditions memory conditions,
+        bytes memory lawCalldata,
+        address powers,
+        uint256 nonce
+    ) external view {
+        console2.log("ChecksAtPropose");
         // Check if parent law completion is required
         if (conditions.needCompleted != 0) {
             uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-
+            console2.log("parentActionId", parentActionId);
+            uint8 stateLog = uint8(Powers(payable(powers)).state(parentActionId));
+            console2.log("state", stateLog);
             if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert LawUtilities__ParentNotCompleted();
             }
@@ -83,15 +89,21 @@ library LawUtilities {
     /// @param conditions The conditionsuration parameters for the law
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
-    function baseChecksAtExecute(ILaw.Conditions memory conditions, bytes memory lawCalldata, address powers, uint256 nonce, uint48[] memory executions, uint16 lawId)
-        external
-        view
-    {
+    function baseChecksAtExecute(
+        ILaw.Conditions memory conditions,
+        bytes memory lawCalldata,
+        address powers,
+        uint256 nonce,
+        uint48[] memory executions,
+        uint16 lawId
+    ) external view {
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
             uint256 numberOfExecutions = executions.length - 1;
-            if (executions[numberOfExecutions] != 0 && 
-                block.number - executions[numberOfExecutions] < conditions.throttleExecution) {
+            if (
+                executions[numberOfExecutions] != 0
+                    && block.number - executions[numberOfExecutions] < conditions.throttleExecution
+            ) {
                 revert LawUtilities__ExecutionGapTooSmall();
             }
         }
@@ -116,20 +128,16 @@ library LawUtilities {
 
     /////////////////////////////////////////////////////////////
     //                  FUNCTIONS                              //
-    ///////////////////////////////////////////////////////////// 
+    /////////////////////////////////////////////////////////////
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for
     /// @param nftCheckAddress Address of the ERC721 contract
     /// @return hasToken True if the caller owns at least one token
-    function nftCheck(address caller, address nftCheckAddress)
-        external
-        view
-        returns (bool hasToken)
-    {
+    function nftCheck(address caller, address nftCheckAddress) external view returns (bool hasToken) {
         hasToken = ERC721(nftCheckAddress).balanceOf(caller) > 0;
         if (!hasToken) {
-            revert ("Does not own token.");
+            revert("Does not own token.");
         }
     }
 
@@ -144,7 +152,7 @@ library LawUtilities {
     //     returns (bool isBlacklisted)
     // {
     //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(caller);
-        
+
     //     if (isBlacklisted) {
     //         revert ("Is blacklisted.");
     //     }
@@ -154,14 +162,11 @@ library LawUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasRoleCheck(address caller, uint32[] memory roles, address powers)
-        external
-        view
-    {
+    function hasRoleCheck(address caller, uint32[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since == 0) {
-                revert ("Does not have role.");
+                revert("Does not have role.");
             }
         }
     }
@@ -170,14 +175,11 @@ library LawUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers)
-        external
-        view
-    {
+    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since != 0) {
-                revert ("Has role.");
+                revert("Has role.");
             }
         }
     }
@@ -207,13 +209,13 @@ library LawUtilities {
         external
         view
         returns (bool)
-    {   
+    {
         if (self.transactions[account].length == 0) {
             return true;
         }
         uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
         if (uint48(block.number) - lastTransaction < delay) {
-            revert ("Delay not passed");
+            revert("Delay not passed");
         }
         return true;
     }
@@ -229,7 +231,7 @@ library LawUtilities {
         external
         view
         returns (uint256 numberOfTransactions)
-    {   
+    {
         for (uint256 i = 0; i < self.transactions[account].length; i++) {
             if (self.transactions[account][i] >= start && self.transactions[account][i] <= end) {
                 numberOfTransactions++;
@@ -255,16 +257,12 @@ library LawUtilities {
         actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
     }
 
-        /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
+    /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
     /// @dev Hashes the combination of law address and index
     /// @param powers Address of the Powers contract
     /// @param index Index of the law
     /// @return lawHash Unique identifier for the law
-    function hashLaw(address powers, uint16 index)
-        public
-        pure
-        returns (bytes32 lawHash)
-    {
+    function hashLaw(address powers, uint16 index) public pure returns (bytes32 lawHash) {
         lawHash = keccak256(abi.encode(powers, index));
     }
 
@@ -274,7 +272,7 @@ library LawUtilities {
     /// @return targets Array of target addresses
     /// @return values Array of ETH values
     /// @return calldatas Array of encoded function calls
-    function createEmptyArrays(uint256 length) 
+    function createEmptyArrays(uint256 length)
         public
         pure
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
@@ -283,7 +281,4 @@ library LawUtilities {
         values = new uint256[](length);
         calldatas = new bytes[](length);
     }
-
-
-
 }

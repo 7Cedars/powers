@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract NominateMe is Law { 
+contract NominateMe is Law {
     mapping(bytes32 lawHash => mapping(address => uint48) nominees) public nominees;
     mapping(bytes32 lawHash => address[] nomineesSorted) public nomineesSorted;
     mapping(bytes32 lawHash => uint256 nomineesCount) public nomineesCount;
@@ -36,13 +36,17 @@ contract NominateMe is Law {
     event NominateMe__NominationReceived(address indexed nominee);
     event NominateMe__NominationRevoked(address indexed nominee);
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         emit Law__Deployed(name_, "");
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
         inputParams = abi.encode("bool NominateMe");
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
@@ -52,7 +56,13 @@ contract NominateMe is Law {
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // decode the calldata.
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
@@ -60,11 +70,11 @@ contract NominateMe is Law {
 
         // nominating //
         if (nominateMe && nominees[lawHash][caller] != 0) {
-            revert ("Nominee already nominated.");
+            revert("Nominee already nominated.");
         }
         // revoke nomination //
         if (!nominateMe && nominees[lawHash][caller] == 0) {
-            revert ("Nominee not nominated.");
+            revert("Nominee not nominated.");
         }
 
         stateChange = abi.encode(caller, nominateMe); // encode the state

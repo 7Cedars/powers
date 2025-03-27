@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -31,39 +31,46 @@ contract StringsArray is Law {
     event StringsArray__StringAdded(string str);
     event StringsArray__StringRemoved(string str);
 
-    constructor(
-        string memory name_
-    ) Law(name_) {
+    constructor(string memory name_) Law(name_) {
         emit Law__Deployed(name_, "");
     }
 
-    function initializeLaw(uint16 index, Conditions memory conditions, bytes memory config, bytes memory inputParams, string memory description) public override {
-        inputParams = abi.encode(
-            "string String", 
-            "bool Add"
-            );
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("string String", "bool Add");
         super.initializeLaw(index, conditions, config, inputParams, description);
-    } 
+    }
 
-    function handleRequest(address /*caller*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        (string memory str, bool add) = abi.decode(stateChange, (string, bool));  
+        (string memory str, bool add) = abi.decode(stateChange, (string, bool));
 
         if (add) {
             strings[lawHash].push(str);
             numberOfStrings[lawHash]++;
             emit StringsArray__StringAdded(str);
         } else if (numberOfStrings[lawHash] == 0) {
-            revert ("String not found.");
+            revert("String not found.");
         } else {
             for (uint256 index; index < numberOfStrings[lawHash]; index++) {
                 if (keccak256(bytes(strings[lawHash][index])) == keccak256(bytes(str))) {
@@ -74,7 +81,7 @@ contract StringsArray is Law {
                 }
 
                 if (index == numberOfStrings[lawHash] - 1) {
-                    revert ("String not found.");
+                    revert("String not found.");
                 }
             }
             emit StringsArray__StringRemoved(str);

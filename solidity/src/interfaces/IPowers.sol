@@ -34,7 +34,9 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawCalldata The encoded function call data for the law
     /// @param description A human-readable description of the action
     /// @param nonce The nonce for the action
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description) external payable;
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+        external
+        payable;
 
     /// @notice Completes an action by executing the actual calls
     /// @dev Can only be called by an active law contract
@@ -43,7 +45,13 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param targets The list of contract addresses to call
     /// @param values The list of ETH values to send with each call
     /// @param calldatas The list of encoded function calls
-    function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable;
+    function fulfill(
+        uint16 lawId,
+        uint256 actionId,
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata calldatas
+    ) external payable;
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
@@ -160,7 +168,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return law The address of the law
     /// @return lawHash The hash of the law
     /// @return conditions The conditions set to the law
-    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions);
+    function getActiveLaw(uint16 lawId)
+        external
+        view
+        returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law
@@ -191,5 +202,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Handles the receipt of multiple ERC1155 tokens
     /// @dev Implements IERC1155Receiver
-    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory) external returns (bytes4);
+    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory)
+        external
+        returns (bytes4);
 }

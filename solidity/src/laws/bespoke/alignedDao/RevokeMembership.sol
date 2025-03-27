@@ -12,7 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice Natspecs are tbi. 
+// /// @notice Natspecs are tbi.
 // ///
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -50,7 +50,7 @@
 //     {
 //         actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
 //         (uint256 tokenId, address account) = abi.decode(lawCalldata, (uint256, address));
-        
+
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
 //         // action 0: revoke role member in Separated powers
 //         targets[0] = powers;

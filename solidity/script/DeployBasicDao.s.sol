@@ -11,7 +11,7 @@
 // import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 // // laws
-// import { NominateMe } from "../src/laws/state/NominateMe.sol"; 
+// import { NominateMe } from "../src/laws/state/NominateMe.sol";
 // import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
 // import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
 // import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
@@ -20,12 +20,12 @@
 // import { OpenAction } from "../src/laws/executive/OpenAction.sol";
 // import { PresetAction } from "../src/laws/executive/PresetAction.sol";
 
-// import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol"; 
+// import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol";
 
 // // config
 // import { HelperConfig } from "./HelperConfig.s.sol";
 
-// // mocks 
+// // mocks
 // import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 // import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
 
@@ -39,9 +39,9 @@
 //     function run()
 //         external
 //         returns (
-//             address payable dao, 
-//             address[] memory constituentLaws, 
-//             HelperConfig.NetworkConfig memory config, 
+//             address payable dao,
+//             address[] memory constituentLaws,
+//             HelperConfig.NetworkConfig memory config,
 //             address payable mock20votes_
 //             )
 //     {
@@ -53,13 +53,13 @@
 //             "Powers 101",
 //             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiebpc5ynyisal3ee426jgpib2vawejibzfgmopjxtmucranjy26py"
 //         );
-//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock(); 
+//         Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
 //         vm.stopBroadcast();
-        
-//         dao = payable(address(powers)); 
-//         mock20votes_ = payable(address(erc20VotesMock)); 
+
+//         dao = payable(address(powers));
+//         mock20votes_ = payable(address(erc20VotesMock));
 //         initiateConstitution(dao, mock20votes_);
-        
+
 //         // constitute dao.
 //         vm.startBroadcast();
 //         powers.constitute(laws);
@@ -69,7 +69,7 @@
 //     }
 
 //     function initiateConstitution(
-//         address payable dao_, 
+//         address payable dao_,
 //         address payable mock20votes_
 //         ) public {
 //         Law law;
@@ -179,7 +179,7 @@
 //             "Anyone can self select as member of the community.",
 //             dao_,
 //             type(uint32).max, // access role = public access
-//             Conditions, 
+//             Conditions,
 //             1
 //         );
 //         vm.stopBroadcast();

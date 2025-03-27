@@ -22,7 +22,7 @@
 // contract NftSelfSelectTest is TestSetupAlignedDao {
 //     function testConstructorInitialization() public {
 //         address nftSelfSelect = laws[0];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(nftSelfSelect), "Law should be active after initialization");
 //         assertEq(Law(nftSelfSelect).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(nftSelfSelect).allowedRole(), type(uint32).max, "Allowed role should be PUBLIC_ROLE");
@@ -78,7 +78,6 @@
 //     function testHandleRequestOutput() public {
 //         address nftSelfSelect = laws[0];
 //         bytes memory lawCalldata = abi.encode(false);
-        
 
 //         // Give alice an NFT
 //         vm.prank(alice);
@@ -137,7 +136,7 @@
 // contract RevokeMembershipTest is TestSetupAlignedDao {
 //     function testConstructorInitialization() public {
 //         address revokeMembership = laws[1];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(revokeMembership), "Law should be active after initialization");
 //         assertEq(Law(revokeMembership).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(revokeMembership).allowedRole(), 1, "Allowed role should be ROLE_ONE");
@@ -235,7 +234,6 @@
 //         address revokeMembership = laws[1];
 //         uint256 tokenId = 123;
 //         bytes memory lawCalldata = abi.encode(tokenId, alice);
-        
 
 //         // Call handleRequest directly to verify output format
 //         (
@@ -250,7 +248,7 @@
 //         assertEq(targets.length, 2, "Should have two targets");
 //         assertEq(values.length, 2, "Should have two values");
 //         assertEq(calldatas.length, 2, "Should have two calldatas");
-        
+
 //         // First action: revoke role
 //         assertEq(targets[0], address(daoMock), "First target should be the DAO");
 //         assertEq(values[0], 0, "First value should be 0");
@@ -277,7 +275,7 @@
 // contract ReinstateRoleTest is TestSetupAlignedDao {
 //     function testConstructorInitialization() public {
 //         address reinstateRole = laws[2];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(reinstateRole), "Law should be active after initialization");
 //         assertEq(Law(reinstateRole).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(reinstateRole).allowedRole(), 1, "Allowed role should be ROLE_ONE");
@@ -358,7 +356,6 @@
 //         address reinstateRole = laws[2];
 //         uint256 tokenId = 123;
 //         bytes memory lawCalldata = abi.encode(tokenId, alice);
-        
 
 //         // Call handleRequest directly to verify output format
 //         (
@@ -373,7 +370,7 @@
 //         assertEq(targets.length, 2, "Should have two targets");
 //         assertEq(values.length, 2, "Should have two values");
 //         assertEq(calldatas.length, 2, "Should have two calldatas");
-        
+
 //         // First action: assign role
 //         assertEq(targets[0], address(daoMock), "First target should be the DAO");
 //         assertEq(values[0], 0, "First value should be 0");
@@ -428,7 +425,7 @@
 // contract RequestPaymentTest is TestSetupAlignedDao {
 //     function testConstructorInitialization() public {
 //         address requestPayment = laws[3];
-        
+
 //         assertTrue(Powers(daoMock).getActiveLaw(requestPayment), "Law should be active after initialization");
 //         assertEq(Law(requestPayment).powers(), address(daoMock), "Powers address should be set correctly");
 //         assertEq(Law(requestPayment).allowedRole(), 1, "Allowed role should be ROLE_ONE");
@@ -519,7 +516,6 @@
 //     function testHandleRequestOutput() public {
 //         address requestPayment = laws[3];
 //         bytes memory lawCalldata = abi.encode();
-        
 
 //         // Call handleRequest directly to verify output format
 //         (
@@ -534,7 +530,7 @@
 //         assertEq(targets.length, 1, "Should have one target");
 //         assertEq(values.length, 1, "Should have one value");
 //         assertEq(calldatas.length, 1, "Should have one calldata");
-        
+
 //         // Payment action
 //         assertEq(targets[0], address(erc20TaxedMock), "Target should be the token contract");
 //         assertEq(values[0], 0, "Value should be 0");
@@ -572,7 +568,7 @@
 //         // Each user requests payment
 //         for (uint i = 0; i < testUsers.length; i++) {
 //             uint256 initialBalance = erc20TaxedMock.balanceOf(testUsers[i]);
-            
+
 //             vm.prank(testUsers[i]);
 //             Powers(daoMock).request(
 //                 requestPayment,

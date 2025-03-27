@@ -6,7 +6,7 @@
 // import { TestSetupState } from "../../TestSetup.t.sol";
 // import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-// // protocol 
+// // protocol
 // import { Powers } from "../../../src/Powers.sol";
 // import { Law } from "../../../src/Law.sol";
 
@@ -21,16 +21,16 @@
 //     event AddressesMapping__Added(address account);
 //     event AddressesMapping__Removed(address account);
 
-//     // take this out later 
+//     // take this out later
 //     function testParsingAddress() public {
 //         address mock721_ = makeAddr("mock721");
 //         string memory description = string.concat(
-//             "Anyone who knows how to mint an NFT at ", 
-//             Strings.toHexString(uint256(addressToInt(mock721_)), 20), 
+//             "Anyone who knows how to mint an NFT at ",
+//             Strings.toHexString(uint256(addressToInt(mock721_)), 20),
 //             " can (de)select themselves for role 1."
-//             ); 
-//         console.log(mock721_); 
-//         console.log(description); 
+//             );
+//         console.log(mock721_);
+//         console.log(description);
 
 //         assertNotEq(description, "");
 //     }
@@ -91,7 +91,7 @@
 //             address(123), // address
 //             false // remove
 //         );
-//         uint256 nonceAdd = 234; 
+//         uint256 nonceAdd = 234;
 //         uint256 nonceRemove = 235;
 
 //         // First add the address

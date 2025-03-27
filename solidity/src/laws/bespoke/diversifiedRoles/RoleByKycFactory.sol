@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -22,7 +22,7 @@ pragma solidity 0.8.26;
 // import { RoleByKyc } from "./RoleByKyc.sol";
 // import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-// contract RoleByKycFactory is Law { 
+// contract RoleByKycFactory is Law {
 //     Conditions public configNewGrants; // config for new grants.
 //     address public members;
 
@@ -35,12 +35,12 @@ pragma solidity 0.8.26;
 //         address members_ // the address where account kyc are stored. - note: all on public blockchain..
 //     )  {
 //         inputParams = abi.encode(
-//             "string Name", 
-//             "string Description", 
-//             "uint256 roleId", 
-//             "uint16[] Nationalities", 
-//             "uint16[] Residencies", 
-//             "int64 OlderThan", 
+//             "string Name",
+//             "string Description",
+//             "uint256 roleId",
+//             "uint16[] Nationalities",
+//             "uint16[] Residencies",
+//             "int64 OlderThan",
 //             "int64 YoungerThan"
 //             );
 //         stateVars = inputParams; // Note: stateVars == inputParams.
@@ -73,7 +73,7 @@ pragma solidity 0.8.26;
 //         // step 1: if address is already in use, revert.
 //         uint256 codeSize = contractAddress.code.length;
 //         if (codeSize > 0) {
-//             revert ("Address occupied"); 
+//             revert ("Address occupied");
 //         }
 
 //         // step 3: create arrays
