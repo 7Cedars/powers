@@ -51,6 +51,7 @@ anvilDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDa
 anvilDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ANVIL_ARGS_0)
 anvilDeployRoles  :; forge script script/DeployDiversifiedRoles.s.sol:DeployDiversifiedRoles $(ANVIL_ARGS_0)
 
+arbSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployBasic :; forge script script/DeployBasicDao.s.sol:DeployBasicDao $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDao $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ARB_SEPOLIA_DEPLOY_ARGS)

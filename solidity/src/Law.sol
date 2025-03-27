@@ -37,7 +37,7 @@ import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
-import { console2 } from "forge-std/console2.sol"; // remove before deploying
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
 contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
@@ -77,7 +77,8 @@ contract Law is ERC165, ILaw {
     ) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         conditionsLaws[lawHash] = conditions;
-        executionsLaws[lawHash] = Executions({ powers: msg.sender, config: config, executions: new uint48[](block.number) });
+        executionsLaws[lawHash] = Executions({ powers: msg.sender, config: config, executions: new uint48[](1) });
+        executionsLaws[lawHash].executions[0] = uint48(block.number); // we save initiation block number as first execution. 
 
         emit Law__Initialized(msg.sender, index, conditions, inputParams, description);
     }
@@ -93,9 +94,9 @@ contract Law is ERC165, ILaw {
         returns (bool success)
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        console2.logBytes32(lawHash);
-        console2.log(executionsLaws[lawHash].powers);
-        console2.log(msg.sender);
+        // console2.logBytes32(lawHash);
+        // console2.log(executionsLaws[lawHash].powers);
+        // console2.log(msg.sender);
         if (executionsLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
@@ -122,6 +123,7 @@ contract Law is ERC165, ILaw {
         if (targets.length > 0) {
             _replyPowers(lawId, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right?
         }
+        executionsLaws[lawHash].executions.push(uint48(block.number));
         return true;
     }
 
@@ -192,11 +194,11 @@ contract Law is ERC165, ILaw {
         uint256 nonce,
         address powers
     ) public view virtual {
-        console2.log("checksAtPropose");
-        console2.log(conditions.allowedRole);
-        console2.logBytes(lawCalldata);
-        console2.log(nonce);
-        console2.log(powers);
+        // console2.log("checksAtPropose");
+        // console2.log(conditions.allowedRole);
+        // console2.logBytes(lawCalldata);
+        // console2.log(nonce);
+        // console2.log(powers);
         LawUtilities.baseChecksAtPropose(conditions, lawCalldata, powers, nonce);
     }
 
@@ -213,12 +215,12 @@ contract Law is ERC165, ILaw {
         address powers,
         uint16 lawId
     ) public view virtual {
-        console2.log("checksAtExecute");
-        console2.log(lawId);
-        console2.log(conditions.allowedRole);
-        console2.logBytes(lawCalldata);
-        console2.log(nonce);
-        console2.log(powers);
+        // console2.log("checksAtExecute");
+        // console2.log(lawId);
+        // console2.log(conditions.allowedRole);
+        // console2.logBytes(lawCalldata);
+        // console2.log(nonce);
+        // console2.log(powers);
 
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, powers, nonce, executions, lawId);
     }

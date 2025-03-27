@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { console2 } from "forge-std/console2.sol";
+// import { console2 } from "forge-std/console2.sol";
 // core protocol
 import { Powers } from "../src/Powers.sol";
 import { Law } from "../src/Law.sol";
@@ -31,9 +31,10 @@ import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
 // Note: we do not return addresses of the deployed laws.
 // addresses should be computed on basis of deployment data using create2.
 contract DeployLaws is Script {
-    function run() external returns (string[] memory names, bytes[] memory creationCodes) {
+    function run() external returns (string[] memory names, address[] memory addresses) {
         names = new string[](13);
-        creationCodes = new bytes[](13);
+        addresses = new address[](13);
+        bytes[] memory creationCodes = new bytes[](13);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -76,14 +77,14 @@ contract DeployLaws is Script {
         creationCodes[12] = type(TokensArray).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
-            deployLaw(creationCodes[i], names[i]);
+           addresses[i] = deployLaw(creationCodes[i], names[i]);
         }
     }
 
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //
     //////////////////////////////////////////////////////////////
-    function deployLaw(bytes memory creationCode, string memory name) public {
+    function deployLaw(bytes memory creationCode, string memory name) public returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(name));
         address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
 
@@ -97,9 +98,11 @@ contract DeployLaws is Script {
             vm.startBroadcast();
             address lawAddress = Create2.deploy(0, salt, abi.encodePacked(creationCode, abi.encode(name)));
             vm.stopBroadcast();
-            console2.log(string.concat(name, " deployed at (new deployment): "), lawAddress);
+            // console2.log(string.concat(name, " deployed at (new deployment): "), lawAddress);
+            return lawAddress;
         } else {
-            console2.log(string.concat(name, " deployed at: "), computedAddress);
+            // console2.log(string.concat(name, " deployed at: "), computedAddress);
+            return computedAddress;
         }
     }
 }

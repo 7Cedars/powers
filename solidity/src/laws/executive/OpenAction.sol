@@ -29,7 +29,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-import { console2 } from "forge-std/console2.sol"; // remove before deploying
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
 contract OpenAction is Law {
     /// @notice Constructor function for OpenAction contract.

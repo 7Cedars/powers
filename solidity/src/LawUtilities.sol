@@ -25,7 +25,7 @@ import { Powers } from "./Powers.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";
 
-import { console2 } from "forge-std/console2.sol"; // @audit-info: console2 is used for logging // remove before deployment
+// import { console2 } from "forge-std/console2.sol"; // @audit-info: console2 is used for logging // remove before deployment
 
 library LawUtilities {
     //////////////////////////////////////////////////////////////
@@ -62,13 +62,12 @@ library LawUtilities {
         address powers,
         uint256 nonce
     ) external view {
-        console2.log("ChecksAtPropose");
         // Check if parent law completion is required
         if (conditions.needCompleted != 0) {
             uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-            console2.log("parentActionId", parentActionId);
+            // console2.log("parentActionId", parentActionId);
             uint8 stateLog = uint8(Powers(payable(powers)).state(parentActionId));
-            console2.log("state", stateLog);
+            // console2.log("state", stateLog);
             if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert LawUtilities__ParentNotCompleted();
             }
@@ -100,6 +99,11 @@ library LawUtilities {
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
             uint256 numberOfExecutions = executions.length - 1;
+            // console2.log("numberOfExecutions", numberOfExecutions);
+            // console2.log("block.number", block.number);
+            // console2.log("executions[numberOfExecutions]", executions[numberOfExecutions]);
+            // console2.log("conditions.throttleExecution", conditions.throttleExecution);
+            
             if (
                 executions[numberOfExecutions] != 0
                     && block.number - executions[numberOfExecutions] < conditions.throttleExecution

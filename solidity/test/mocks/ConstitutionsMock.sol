@@ -19,7 +19,7 @@ contract ConstitutionsMock is Test {
     //                  FIRST CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
     function initiatePowersConstitution(
-        bytes[] memory creationCodes,
+        address[] memory lawAddresses,
         address payable dao_,
         address payable mock20Votes_
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
@@ -40,10 +40,7 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = type(uint32).max;
         lawInitData[1] = PowersTypes.LawInitData({
             // = directSelect
-            targetLaw: calculateLawAddress(
-                creationCodes[1],
-                "DirectSelect" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[1],
             config: abi.encode(1), // role that can be assigned.
             conditions: conditions,
             description: "A law to select an account to a specific role directly."
@@ -54,10 +51,7 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = type(uint32).max;
         lawInitData[2] = PowersTypes.LawInitData({
             // = nominateMe
-            targetLaw: calculateLawAddress(
-                creationCodes[10],
-                "NominateMe" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[10],
             config: abi.encode(), // empty config.
             conditions: conditions,
             description: "A law for accounts to nominate themselves for a role."
@@ -67,10 +61,7 @@ contract ConstitutionsMock is Test {
         // delegateSelect
         conditions.allowedRole = 1;
         lawInitData[3] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[0],
-                "DelegateSelect" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[0],
             config: abi.encode(
                 mock20Votes_,
                 15, // max role holders
@@ -89,10 +80,7 @@ contract ConstitutionsMock is Test {
 
         conditions.allowedRole = 3;
         lawInitData[4] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[8],
-                "ProposalOnly" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[8],
             config: abi.encode(inputParams),
             conditions: conditions,
             description: "A law to propose a new core value to or remove an existing from the Dao. Subject to a vote and cannot be implemented."
@@ -105,10 +93,7 @@ contract ConstitutionsMock is Test {
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
         conditions.votingPeriod = 1200; // = number of blocks
         lawInitData[5] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[6],
-                "OpenAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[6],
             config: abi.encode(), // empty config.
             conditions: conditions,
             description: "A law to execute an open action."
@@ -122,10 +107,7 @@ contract ConstitutionsMock is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.needCompleted = 3;
         lawInitData[6] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[7],
-                "PresetAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[7],
             config: abi.encode(targets, values, calldatas), // empty config.
             conditions: conditions,
             description: "A law to execute a preset action."
@@ -137,10 +119,7 @@ contract ConstitutionsMock is Test {
             _getRoles(dao_, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[7],
-                "PresetAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.
             conditions: conditions,
             description: "A law to execute a preset action."
@@ -173,7 +152,7 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[1] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(creationCodes[8], "ProposalOnly"),
+            targetLaw: lawAddresses[8],
             config: abi.encode(),
             conditions: conditions,
             description: "Needs Proposal Vote to pass"
@@ -185,8 +164,8 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[2] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(creationCodes[6], "OpenAction"),
-            config: abi.encode(),
+            targetLaw: lawAddresses[7],
+            config: abi.encode(targets, values, calldatas),
             conditions: conditions,
             description: "Needs Parent Completed to pass"
         });
@@ -197,8 +176,8 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[3] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(creationCodes[6], "OpenAction"),
-            config: abi.encode(),
+            targetLaw: lawAddresses[7],
+            config: abi.encode(targets, values, calldatas),
             conditions: conditions,
             description: "Parent can block a law, making it impossible to pass"
         });
@@ -212,19 +191,20 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[4] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(creationCodes[6], "OpenAction"),
-            config: abi.encode(),
+            targetLaw: lawAddresses[7],
+            config: abi.encode(targets, values, calldatas),
             conditions: conditions,
             description: "Delay execution of a law, by a preset number of blocks"
         });
         delete conditions;
 
         // setting up config file
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 1;
+        conditions.throttleExecution = 5000;
         // initiating law.
         lawInitData[5] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(creationCodes[6], "OpenAction"),
-            config: abi.encode(),
+            targetLaw: lawAddresses[7],
+            config: abi.encode(targets, values, calldatas),
             conditions: conditions,
             description: "Throttle the number of executions of a by setting minimum time that should have passed since last execution"
         });
@@ -235,10 +215,7 @@ contract ConstitutionsMock is Test {
             _getRoles(dao_, 6);
         conditions.allowedRole = 0;
         lawInitData[6] = PowersTypes.LawInitData({
-            targetLaw: calculateLawAddress(
-                creationCodes[7],
-                "PresetAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.
             conditions: conditions,
             description: "A law to execute a preset action."
@@ -289,23 +266,5 @@ contract ConstitutionsMock is Test {
         }
 
         return (targets, values, calldatas);
-    }
-
-    function calculateLawAddress(bytes memory creationCode, string memory name)
-        public
-        returns (address computedAddress)
-    {
-        bytes32 salt = bytes32(abi.encodePacked(name));
-        address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
-
-        computedAddress = Create2.computeAddress(
-            salt,
-            keccak256(abi.encodePacked(creationCode, abi.encode(name))),
-            create2Factory // create2 factory address. NEED TO INCLUDE THIS!
-        );
-        if (computedAddress.code.length == 0) {
-            revert("Law does not exist. Did you make a typo or does the law really not exist?");
-        }
-        return computedAddress;
     }
 }
