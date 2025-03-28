@@ -55,6 +55,7 @@ contract Powers is EIP712, IPowers {
     mapping(uint256 actionId => Action) private _actions; // mapping actionId to Action struct
     mapping(uint16 lawId => ActiveLaw) public laws; // mapping law address to Law struct
     mapping(uint256 roleId => Role) public roles; // mapping roleId to Role struct
+    mapping(address account => Deposit) public deposits; // mapping account to deposit
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint48).max.
     uint32 public constant ADMIN_ROLE = type(uint32).min; // == 0
@@ -103,8 +104,10 @@ contract Powers is EIP712, IPowers {
     /// @notice receive function enabling ETH deposits.
     ///
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
-    /// @dev No access control on this function: anyone can send funds into the main contract.
+    /// @dev No access control on this function: anyone can send funds in native currency into the contract.
     receive() external payable virtual {
+        deposits[msg.sender].amount += msg.value;
+        deposits[msg.sender].atBlock.push(uint48(block.number));
         emit FundsReceived(msg.value);
     }
 

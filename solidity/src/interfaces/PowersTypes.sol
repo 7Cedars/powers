@@ -85,4 +85,10 @@ interface PowersTypes {
         mapping(address account => uint48 since) members;
         uint256 amountMembers;
     }
+
+    /// @notice struct keeping track of a deposit.
+    struct Deposit {
+        uint256 amount;
+        uint48[] atBlock;
+    }
 }

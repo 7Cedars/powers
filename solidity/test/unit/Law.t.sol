@@ -126,7 +126,7 @@ contract DeployTest is TestSetupLaw {
         nonce = 123;
 
         // act: hash the action ID
-        actionId = lawMock.hashActionId(lawId, lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // assert: verify hash is consistent
         assertEq(
@@ -143,7 +143,7 @@ contract DeployTest is TestSetupLaw {
         uint16 lawId = 1;
 
         // act: hash the law
-        lawHash = lawMock.hashLaw(address(daoMock), lawId);
+        lawHash = LawUtilities.hashLaw(address(daoMock), lawId);
 
         // assert: verify hash is consistent
         assertEq(
@@ -158,7 +158,7 @@ contract DeployTest is TestSetupLaw {
 
         // act: create empty arrays
         uint256 length = 3;
-        (targets, values, calldatas) = lawMock.createEmptyArrays(length);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
 
         // assert: verify arrays are created with correct length
         assertEq(targets.length, length);
