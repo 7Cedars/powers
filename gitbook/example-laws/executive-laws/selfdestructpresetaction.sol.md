@@ -1,0 +1,2 @@
+# SelfDestructAction.sol
+
