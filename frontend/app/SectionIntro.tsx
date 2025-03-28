@@ -8,9 +8,9 @@ import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 export function SectionIntro() { 
 
   return (    
-    <section id="intro" className="w-full min-h-[100vh] h-full max-h-fit flex flex-col gap-6 justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always py-12 px-6">
+    <section id="intro" className="w-full min-h-screen h-fit flex flex-col gap-6 justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always py-12 px-6">
         {/* title  */}
-          <section className="w-full min-h-fit flex flex-col justify-center items-center pt-12">
+          <section className="w-full h-screen min-h-fit flex flex-col justify-center items-center pt-12">
               <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
                   The next generation of on-chain governance
               </div>
@@ -47,7 +47,7 @@ export function SectionIntro() {
 
 
       {/* arrow down */}
-      <div className = "flex flex-col align-center justify-end"> 
+      <div className = "flex flex-col align-center justify-end pb-20"> 
         <ChevronDownIcon
             className = "w-16 h-16 text-slate-100" 
         /> 
