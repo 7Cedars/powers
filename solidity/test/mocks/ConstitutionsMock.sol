@@ -130,7 +130,7 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  THIRD CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateLawTestConstitution(bytes[] memory creationCodes, address payable dao_, address payable mock1155_)
+    function initiateLawTestConstitution(address[] memory lawAddresses, address payable dao_, address payable mock1155_)
         external
         returns (PowersTypes.LawInitData[] memory lawInitData)
     {

@@ -31,14 +31,16 @@ import { Powers } from "../../Powers.sol";
 import { NominateMe } from "./NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract ElectionVotes is Law {
-    // the state vars that this law manages: community strings.
-    mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) public hasVoted;
+contract VoteOnNominees is Law {
+    struct Election {
+        uint48 startVote;
+        uint48 endVote;
+    }
+    mapping(bytes32 lawHash => Election) public elections;
     mapping(bytes32 lawHash => mapping(address nominee => uint256 votes)) public votes;
-    mapping(bytes32 lawHash => uint48 startVote) public startVote;
-    mapping(bytes32 lawHash => uint48 endVote) public endVote;
+    mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) public hasVoted;
 
-    event ElectionVotes__VoteCast(address voter);
+    event VoteOnNominees__VoteCast(address voter);
 
     constructor(string memory name_) Law(name_) {
         bytes memory configParams = abi.encode("uint48 startVote", "uint48 endVote");
@@ -53,8 +55,7 @@ contract ElectionVotes is Law {
         string memory description
     ) public override {
         (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
-        startVote[hashLaw(msg.sender, index)] = startVote_;
-        endVote[hashLaw(msg.sender, index)] = endVote_;
+        elections[LawUtilities.hashLaw(msg.sender, index)] = Election({startVote: startVote_, endVote: endVote_});
 
         inputParams = abi.encode("address VoteFor");
         super.initializeLaw(index, conditions, config, inputParams, description);
@@ -73,11 +74,11 @@ contract ElectionVotes is Law {
         )
     {
         bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
-        uint16 nomineesId = conditionsLaws[lawHash].readStateFrom;
-        (address nomineesContract,,) = Powers(payable(msg.sender)).getActiveLaw(nomineesId);
+        uint16 nominateMeId = conditionsLaws[lawHash].readStateFrom;
+        (address nomineesContract,,) = Powers(payable(msg.sender)).getActiveLaw(nominateMeId);
 
         // step 0: run additional checks
-        if (block.number < startVote[lawHash] || block.number > endVote[lawHash]) {
+        if (block.number < elections[lawHash].startVote || block.number > elections[lawHash].endVote) {
             revert("Election not open.");
         }
         if (hasVoted[lawHash][caller]) {
@@ -104,6 +105,6 @@ contract ElectionVotes is Law {
 
         hasVoted[lawHash][caller] = true;
         votes[lawHash][nominee]++;
-        emit ElectionVotes__VoteCast(caller);
+        emit VoteOnNominees__VoteCast(caller);
     }
 }

@@ -39,9 +39,9 @@
 
 // import { Law } from "../../Law.sol";
 // import { Powers} from "../../Powers.sol";
-// import { ElectionVotes } from "../state/ElectionVotes.sol";
+// import { VoteOnNominees } from "../state/VoteOnNominees.sol";
 // import { NominateMe } from "../state/NominateMe.sol";
-// import { ElectionVotes } from "../state/ElectionVotes.sol";
+// import { VoteOnNominees } from "../state/VoteOnNominees.sol";
 // import { ElectionCall } from "./ElectionCall.sol";
 // import { LawUtilities } from "../../LawUtilities.sol";
 
@@ -102,12 +102,12 @@
 
 //         // step 1: run additional checks
 //         if (!Powers(msg.sender).getActiveLaw(data.electionVotes)) {
-//             revert ("ElectionVotes contract not recognised.");
+//             revert ("VoteOnNominees contract not recognised.");
 //         }
 //         if (NominateMe(data.nominees).nomineesCount(lawHash) == 0) {
 //             revert ("No nominees.");
 //         }
-//         if (ElectionVotes(data.electionVotes).endVote(electionCallHash) > block.number) {
+//         if (VoteOnNominees(data.electionVotes).endVote(electionCallHash) > block.number) {
 //             revert ("Election still active.");
 //         }
 
@@ -153,13 +153,13 @@
 
 //             // step 3b: calls to add nominees if more than data.maxRoleHolders
 //         } else {
-//             // retrieve votes for delegates from ElectionVotes contract.
+//             // retrieve votes for delegates from VoteOnNominees contract.
 //             accountElects = new address[](data.maxRoleHolders);
 //             uint256[] memory _votes = new uint256[](numberNominees);
 //             address[] memory _nominees = new address[](numberNominees);
 //             for (uint256 i; i < numberNominees; i++) {
 //                 _nominees[i] = NominateMe(data.nominees).nomineesSorted(i);
-//                 _votes[i] = ElectionVotes(data.electionVotes).votes(_nominees[i]);
+//                 _votes[i] = VoteOnNominees(data.electionVotes).votes(_nominees[i]);
 //             }
 //             // £todo: check what will happen if people have the same amount of delegated votes.
 //             // note how the following mechanism works:

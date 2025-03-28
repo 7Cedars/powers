@@ -10,7 +10,7 @@
 // import { LawUtilities } from "../../../src/LawUtilities.sol";
 // import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
 // import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
-// import { ElectionVotes } from "../../../src/laws/state/ElectionVotes.sol";
+// import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
 // import { ElectionCall } from "../../../src/laws/electoral/ElectionCall.sol";
 // import { ElectionTally } from "../../../src/laws/electoral/ElectionTally.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
@@ -237,7 +237,7 @@
 //         assertEq(ElectionCall(laws[4]).MAX_ROLE_HOLDERS(), 2, "Max role holders should be set correctly");
 //     }
 
-//     function testDeployElectionVotes() public {
+//     function testDeployVoteOnNominees() public {
 //         vm.prank(address(daoMock));
 //         daoMock.assignRole(ROLE_ONE, alice);
 
@@ -252,7 +252,7 @@
 //         ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).conditions();
 //         assertTrue(
 //             Powers(daoMock).getActiveLaw(
-//                 ElectionCall(laws[4]).getElectionVotesAddress(
+//                 ElectionCall(laws[4]).getVoteOnNomineesAddress(
 //                     ElectionCall(laws[4]).VOTER_ROLE_ID(),
 //                     readStateFromAddress,
 //                     uint48(block.number),
@@ -260,7 +260,7 @@
 //                     "Test Election"
 //                 )
 //             ),
-//             "ElectionVotes should be active"
+//             "VoteOnNominees should be active"
 //         );
 //     }
 
@@ -311,7 +311,7 @@
 //         );
 //     }
 
-//     function testElectionVotesInitialization() public {
+//     function testVoteOnNomineesInitialization() public {
 //         vm.prank(address(daoMock));
 //         daoMock.assignRole(ROLE_ONE, alice);
 
@@ -326,7 +326,7 @@
 //             "Test Election"
 //         );
 
-//         ElectionVotes electionVotes = ElectionVotes(ElectionCall(laws[4]).electionVotes());
+//         VoteOnNominees electionVotes = VoteOnNominees(ElectionCall(laws[4]).electionVotes());
 //         assertEq(electionVotes.startVote(), startBlock);
 //         assertEq(electionVotes.endVote(), endBlock);
 //         assertEq(electionVotes.allowedRole(), ElectionCall(laws[4]).VOTER_ROLE_ID());
@@ -349,7 +349,7 @@
 //         );
 
 //         ( , , , address readStateFromAddress, , , , ) = ElectionCall(laws[4]).conditions();
-//         address expectedAddr = ElectionCall(laws[4]).getElectionVotesAddress(
+//         address expectedAddr = ElectionCall(laws[4]).getVoteOnNomineesAddress(
 //             ElectionCall(laws[4]).VOTER_ROLE_ID(),
 //             readStateFromAddress,
 //             startBlock,
@@ -543,7 +543,7 @@
 //         assertEq(ElectionTally(electionTally).electedAccounts(0), users[0]);
 //     }
 
-//     function testTallyRevertsIfElectionVotesNotFinishedYet() public {
+//     function testTallyRevertsIfVoteOnNomineesNotFinishedYet() public {
 //         // prep: data
 //         address nominateMe = laws[0];
 //         address electionCall = laws[4];

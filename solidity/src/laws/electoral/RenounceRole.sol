@@ -50,7 +50,7 @@ contract RenounceRole is Law {
         string memory description
     ) public override {
         uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
-        allowedRoleIds[hashLaw(msg.sender, index)] = allowedRoleIds_;
+        allowedRoleIds[LawUtilities.hashLaw(msg.sender, index)] = allowedRoleIds_;
 
         inputParams = abi.encode("uint256 roleId");
         super.initializeLaw(index, conditions, config, inputParams, description);

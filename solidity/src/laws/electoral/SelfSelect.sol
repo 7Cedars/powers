@@ -50,7 +50,7 @@ contract SelfSelect is Law {
         string memory description
     ) public override {
         uint256 roleId_ = abi.decode(config, (uint256));
-        roleIds[hashLaw(msg.sender, index)] = roleId_;
+        roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }

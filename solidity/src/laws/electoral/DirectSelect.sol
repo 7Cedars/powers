@@ -49,7 +49,7 @@ contract DirectSelect is Law {
         string memory description
     ) public override {
         (uint256 roleId_) = abi.decode(config, (uint256));
-        roleId[hashLaw(msg.sender, index)] = roleId_;
+        roleId[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
         inputParams = abi.encode("bool Assign", "address Account");
 

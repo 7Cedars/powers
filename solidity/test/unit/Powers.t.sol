@@ -724,7 +724,8 @@ contract ExecuteTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract ConstituteTest is TestSetupPowers {
     function testConstituteSetsLawsToActive() public {
-        (, bytes[] memory creationCodes) = deployLaws.run();
+        // prep: deploy laws
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
@@ -735,10 +736,7 @@ contract ConstituteTest is TestSetupPowers {
         // prep: create new law
         lawInitData[0] = LawInitData({
             // = directSelect
-            targetLaw: calculateLawAddress(
-                creationCodes[6],
-                "OpenAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
             conditions: conditions, // empty conditions
             description: "Dummy law."
@@ -753,7 +751,7 @@ contract ConstituteTest is TestSetupPowers {
     }
 
     function testConstituteRevertsOnSecondCall() public {
-        (, bytes[] memory creationCodes) = deployLaws.run();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
@@ -761,10 +759,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             // = directSelect
-            targetLaw: calculateLawAddress(
-                creationCodes[6],
-                "OpenAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
             conditions: conditions, // empty conditions
             description: "Dummy law."
@@ -779,7 +774,7 @@ contract ConstituteTest is TestSetupPowers {
     }
 
     function testConstituteCannotBeCalledByNonAdmin() public {
-        (, bytes[] memory creationCodes) = deployLaws.run();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
         DaoMock daoMockTest = new DaoMock();
@@ -787,10 +782,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             // = directSelect
-            targetLaw: calculateLawAddress(
-                creationCodes[6],
-                "OpenAction" // to ensure we are using the correct law, we do not retrieve the name from DeployLaws.s.sol.
-            ),
+            targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
             conditions: conditions, // empty conditions
             description: "Dummy law."

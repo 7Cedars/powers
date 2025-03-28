@@ -31,6 +31,7 @@ import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
 // Note: we do not return addresses of the deployed laws.
 // addresses should be computed on basis of deployment data using create2.
 contract DeployLaws is Script {
+    
     function run() external returns (string[] memory names, address[] memory addresses) {
         names = new string[](13);
         addresses = new address[](13);

@@ -30,8 +30,7 @@
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
-import { Powers } from "./Powers.sol";
-import { PowersTypes } from "./interfaces/PowersTypes.sol";
+import { IPowers } from "./interfaces/IPowers.sol";
 import { LawUtilities } from "./LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
@@ -94,9 +93,6 @@ contract Law is ERC165, ILaw {
         returns (bool success)
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        // console2.logBytes32(lawHash);
-        // console2.log(executionsLaws[lawHash].powers);
-        // console2.log(msg.sender);
         if (executionsLaws[lawHash].powers != msg.sender) {
             revert Law__OnlyPowers();
         }
@@ -177,7 +173,7 @@ contract Law is ERC165, ILaw {
         // Base implementation: send data back to Powers protocol
         // this implementation can be overwritten with any kind of bespoke logic.
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        Powers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
+        IPowers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -194,11 +190,6 @@ contract Law is ERC165, ILaw {
         uint256 nonce,
         address powers
     ) public view virtual {
-        // console2.log("checksAtPropose");
-        // console2.log(conditions.allowedRole);
-        // console2.logBytes(lawCalldata);
-        // console2.log(nonce);
-        // console2.log(powers);
         LawUtilities.baseChecksAtPropose(conditions, lawCalldata, powers, nonce);
     }
 
@@ -215,60 +206,14 @@ contract Law is ERC165, ILaw {
         address powers,
         uint16 lawId
     ) public view virtual {
-        // console2.log("checksAtExecute");
-        // console2.log(lawId);
-        // console2.log(conditions.allowedRole);
-        // console2.logBytes(lawCalldata);
-        // console2.log(nonce);
-        // console2.log(powers);
-
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, powers, nonce, executions, lawId);
     }
 
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
-    /// @notice Creates a unique identifier for an action
-    /// @dev Hashes the combination of law address, calldata, and nonce
-    /// @param lawId Address of the law contract being called
-    /// @param lawCalldata Encoded function call data
-    /// @param nonce The nonce for the action
-    /// @return actionId Unique identifier for the action
-    function hashActionId(uint16 lawId, bytes memory lawCalldata, uint256 nonce)
-        public
-        pure
-        returns (uint256 actionId)
-    {
-        actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
-    }
-
-    /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
-    /// @dev Hashes the combination of law address and index
-    /// @param powers Address of the Powers contract
-    /// @param index Index of the law
-    /// @return lawHash Unique identifier for the law
-    function hashLaw(address powers, uint16 index) public pure returns (bytes32 lawHash) {
-        lawHash = keccak256(abi.encode(powers, index));
-    }
-
-    /// @notice Creates empty arrays for storing transaction data
-    /// @dev Initializes three arrays of the same length for targets, values, and calldata
-    /// @param length The desired length of the arrays
-    /// @return targets Array of target addresses
-    /// @return values Array of ETH values
-    /// @return calldatas Array of encoded function calls
-    function createEmptyArrays(uint256 length)
-        public
-        pure
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    {
-        targets = new address[](length);
-        values = new uint256[](length);
-        calldatas = new bytes[](length);
-    }
-
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
-        return conditionsLaws[hashLaw(msg.sender, lawId)];
+        return conditionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
     }
 
     //////////////////////////////////////////////////////////////

@@ -44,6 +44,7 @@ import { Powers } from "../../Powers.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
+import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 
 contract DelegateSelect is Law {
     struct StateData {
@@ -73,7 +74,7 @@ contract DelegateSelect is Law {
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
+        Conditions memory conditions, 
         bytes memory config,
         bytes memory inputParams,
         string memory description
@@ -110,7 +111,7 @@ contract DelegateSelect is Law {
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
         (mem.nominateMeAddress,,) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId);
 
-        mem.numberNominees = NominateMe(mem.nominateMeAddress).nomineesCount(mem.lawHash);
+        mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
         mem.numberRevokees = stateData[mem.lawHash].electedAccounts.length;
         mem.arrayLength = mem.numberNominees < stateData[mem.lawHash].maxRoleHolders
             ? mem.numberRevokees + mem.numberNominees
@@ -131,7 +132,7 @@ contract DelegateSelect is Law {
         if (mem.numberNominees < stateData[mem.lawHash].maxRoleHolders) {
             mem.accountElects = new address[](mem.numberNominees);
             for (uint256 i; i < mem.numberNominees; i++) {
-                address accountElect = NominateMe(mem.nominateMeAddress).nomineesSorted(mem.lawHash, i);
+                address accountElect = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash)[i];
                 calldatas[i + mem.numberRevokees] =
                     abi.encodeWithSelector(Powers.assignRole.selector, stateData[mem.lawHash].roleId, accountElect);
                 mem.accountElects[i] = accountElect;

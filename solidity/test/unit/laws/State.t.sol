@@ -15,7 +15,7 @@
 // import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 // import { TokensArray } from "../../../src/laws/state/TokensArray.sol";
 // import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
-// import { ElectionVotes } from "../../../src/laws/state/ElectionVotes.sol";
+// import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
 
 // contract AddressMappingTest is TestSetupState {
 //     event AddressesMapping__Added(address account);
@@ -506,8 +506,8 @@
 //     }
 // }
 
-// contract ElectionVotesTest is TestSetupState {
-//     event ElectionVotes__VoteCast(address voter);
+// contract VoteOnNomineesTest is TestSetupState {
+//     event VoteOnNominees__VoteCast(address voter);
 
 //     function testVoteCorrectlyRegistered() public {
 //         // prep
@@ -530,7 +530,7 @@
 //         // act + assert emit
 //         vm.roll(51); // vote starts at block 50
 //         vm.expectEmit(true, false, false, false);
-//         emit ElectionVotes__VoteCast(alice);
+//         emit VoteOnNominees__VoteCast(alice);
 //         vm.prank(address(daoMock));
 //         bool successVote = Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
@@ -538,8 +538,8 @@
 //         assertTrue(successVote);
 
 //         // assert state change
-//         assertEq(ElectionVotes(peerVote).hasVoted(alice), true);
-//         assertEq(ElectionVotes(peerVote).votes(charlotte), 1);
+//         assertEq(VoteOnNominees(peerVote).hasVoted(alice), true);
+//         assertEq(VoteOnNominees(peerVote).votes(charlotte), 1);
 //     }
 
 //     function testVoteRevertsIfElectionNotOpen() public {
@@ -567,8 +567,8 @@
 //         Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
 //         // assert state remains unchanged
-//         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);
-//         assertEq(ElectionVotes(peerVote).votes(charlotte), 0);
+//         assertEq(VoteOnNominees(peerVote).hasVoted(alice), false);
+//         assertEq(VoteOnNominees(peerVote).votes(charlotte), 0);
 //     }
 
 //     function testVoteRevertsIfAlreadyVoted() public {
@@ -601,8 +601,8 @@
 //         Law(peerVote).executeLaw(alice, lawCalldataVote, nonceVote);
 
 //         // assert state remains unchanged
-//         assertEq(ElectionVotes(peerVote).hasVoted(alice), true);
-//         assertEq(ElectionVotes(peerVote).votes(charlotte), 1);
+//         assertEq(VoteOnNominees(peerVote).hasVoted(alice), true);
+//         assertEq(VoteOnNominees(peerVote).votes(charlotte), 1);
 //     }
 
 //     function testVoteRevertsIfNotNominee() public {
@@ -619,8 +619,8 @@
 //         Law(peerVote).executeLaw(alice, lawCalldataVote, nonce);
 
 //         // assert state remains unchanged
-//         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);
-//         assertEq(ElectionVotes(peerVote).votes(charlotte), 0);
+//         assertEq(VoteOnNominees(peerVote).hasVoted(alice), false);
+//         assertEq(VoteOnNominees(peerVote).votes(charlotte), 0);
 //     }
 
 //     function testOnlyPowersCanExecute() public {
@@ -637,7 +637,7 @@
 //         Law(peerVote).executeLaw(alice, lawCalldata, nonce);
 
 //         // assert state remains unchanged
-//         assertEq(ElectionVotes(peerVote).hasVoted(alice), false);
-//         assertEq(ElectionVotes(peerVote).votes(charlotte), 0);
+//         assertEq(VoteOnNominees(peerVote).hasVoted(alice), false);
+//         assertEq(VoteOnNominees(peerVote).votes(charlotte), 0);
 //     }
 // }

@@ -278,11 +278,11 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
 abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
-        (, bytes[] memory creationCodes) = deployLaws.run();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiatePowersConstitution(
-            creationCodes, payable(address(daoMock)), payable(address(erc20VotesMock))
+            lawAddresses, payable(address(daoMock)), payable(address(erc20VotesMock))
         );
 
         // constitute daoMock.
@@ -303,11 +303,11 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
 abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
-        (, bytes[] memory creationCodes) = deployLaws.run();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateLawTestConstitution(
-            creationCodes, payable(address(daoMock)), payable(address(erc1155Mock))
+            lawAddresses, payable(address(daoMock)), payable(address(erc1155Mock))
         );
 
         // constitute daoMock.

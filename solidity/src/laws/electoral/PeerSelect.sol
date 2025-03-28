@@ -50,7 +50,7 @@ contract PeerSelect is Law {
     ) public override {
         (uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (uint256, uint256));
 
-        data[hashLaw(msg.sender, index)] = Data({
+        data[LawUtilities.hashLaw(msg.sender, index)] = Data({
             maxRoleHolders: maxRoleHolders_,
             roleId: roleId_,
             elected: new address[](0),
