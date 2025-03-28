@@ -59,7 +59,9 @@ Example:
 
 > Any account that has been assigned a 'senior' role can propose to mint tokens at contract X, but the proposal will only be accepted if 20 percent of all seniors vote in favour.
 
-Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol`. Laws have the following functionalities:
+Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once: they can be re-used by Powers.sol instances.&#x20;
+
+Laws have the following functionalities:
 
 * They are role restricted by a single role.
 * They are linked to a single `Powers.sol` deployment.
@@ -84,9 +86,13 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 ### 🏛️ Powers + Laws = Governance
 
-Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
+Together, Powers and Laws allow communities to build any governance structure that fit their needs. A community starts by deploying a Powers.sol instance, configuring laws, and adopting them in their Powers.sol instance.
 
-Laws can be used to whitelist actions on a role by role basis or they can be combined in governance chains to create granular checks and balances to the power of roles to execute actions.&#x20;
+The Powers protocol ensures that each community can only interact with their instance of a law. The Yellow community below, for instance, cannot interfere with assigning roles in the Red community. Community governance is protected against outside interference.   &#x20;
+
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption><p>Governance space of the Powers protocol </p></figcaption></figure>
+
+By configuring and adopting laws, it is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change. Laws can be used to whitelist actions on a role by role basis or they can be combined in governance chains to create granular checks and balances to the power of roles to execute actions.&#x20;
 
 <details>
 
@@ -126,7 +132,7 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-For a diagram of the governance flow in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
+For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
 ## Unique strengths
 
