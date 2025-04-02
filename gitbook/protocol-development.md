@@ -21,7 +21,7 @@ There are several aims and ethos that guide the development of the Powers protoc
 * Implement integration modules for existing protocols.
 * Implement integration for off-chain services.
 * Revise naming of function and variables in Powers.sol.
-* Further develop and simplify laws.
+* Refactor laws into singleton contracts.&#x20;
 * Improve error handling.
 
 ### v0.2 (current)

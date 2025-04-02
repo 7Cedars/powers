@@ -1,2 +1,2 @@
-# SelfDestructPresetAction.sol
+# SelfDestructAction.sol
 
