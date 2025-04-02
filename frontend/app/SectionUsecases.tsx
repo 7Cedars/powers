@@ -45,13 +45,11 @@ export function SectionUsecases() {
                         }
                       </ul>
                       <div className="w-full max-w-4xl h-fit flex flex-row justify-between items-center text-center ps-3 pe-2 p-3"> 
-                          <button className="h-full w-full flex flex-row justify-between items-start border border-slate-300 hover:border-slate-600 rounded-md p-2"
+                          <button className="h-full w-full flex flex-row justify-between items-start border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
+                            disabled={organisations.find(org => org.name ===  useCase.demo) ? false : true}
                             onClick={() => {
-                              const org = organisations.find(org => org.name ===  useCase.demo)
-                              if (org) {
-                                assignOrg({...org, colourScheme: useCase.colourScheme})
+                                assignOrg({...organisations.find(org => org.name ===  useCase.demo), colourScheme: useCase.colourScheme})
                                 router.push('/home')
-                              }
                             }}> 
                             {useCase.demo}
                             <ArrowUpRightIcon

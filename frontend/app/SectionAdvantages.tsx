@@ -5,10 +5,10 @@ import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 export function SectionAdvantages() {
 
   return (
-    <main className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-blue-600 to-blue-500 snap-start snap-always py-12 px-2"
+    <main className="w-full min-h-screen h-fit flex flex-col justify-center items-center bg-gradient-to-b from-blue-600 to-blue-500 snap-start snap-always py-12 px-2"
       id="advantages"
     > 
-    <div className="w-full h-fit flex flex-col gap-12 justify-between items-center min-h-[60vh]">
+    <div className="w-full min-h-fit flex flex-col gap-12 justify-between items-center min-h-[60vh]">
       {/* title & subtitle */}
       <section className="w-full h-fit flex flex-col justify-center items-center">
           <div className = "w-full flex flex-col gap-1 justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
