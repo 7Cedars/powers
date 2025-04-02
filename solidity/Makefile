@@ -47,14 +47,10 @@ arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
 anvilDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0)
 anvilDeployBasic :; forge script script/DeployBasicDao.s.sol:DeployBasicDao $(ANVIL_ARGS_0)
-anvilDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDao $(ANVIL_ARGS_0)
-anvilDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ANVIL_ARGS_0)
 anvilDeployRoles  :; forge script script/DeployDiversifiedRoles.s.sol:DeployDiversifiedRoles $(ANVIL_ARGS_0)
 
 arbSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployBasic :; forge script script/DeployBasicDao.s.sol:DeployBasicDao $(ARB_SEPOLIA_DEPLOY_ARGS)
-arbSepoliaDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDao $(ARB_SEPOLIA_DEPLOY_ARGS)
-arbSepoliaDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployRoles  :; forge script script/DeployDiversifiedRoles.s.sol:DeployDiversifiedRoles $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 arbSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 421614 --etherscan-api-key $(ARBISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch
