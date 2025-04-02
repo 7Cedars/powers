@@ -29,7 +29,7 @@
 //         uint256 step1Chance = bound(step1Chance, 0, 100);
 //         uint256 step2Chance = bound(step2Chance, 0, 100);
 //         uint256 balanceBefore = erc20VotesMock.balanceOf(address(basicDao));
-//         uint256 seed = 9034273427; 
+//         uint256 seed = 9034273427;
 
 //         bool[] memory stepsPassed = new bool[](3);
 
@@ -62,12 +62,12 @@
 //             laws[0],
 //             actionId,
 //             users,
-//             seed, 
+//             seed,
 //             step0Chance
 //         );
 
 //         // step 0 results.
-//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).config();
+//         (quorum, succeedAt, votingPeriod,,,,,) = Law(laws[0]).conditions();
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[0] = quorumReached && voteSucceeded;
@@ -79,7 +79,7 @@
 //             vm.prank(gary);
 //             basicDao.execute(laws[0], lawCalldata, description);
 //         }
-        
+
 //         // only resume if previous step passed
 //         vm.assume(stepsPassed[0]);
 
@@ -104,7 +104,7 @@
 
 //         // only resume if previous step passed
 //         vm.assume(stepsPassed[1]);
-//         // step 2 action: propose and vote on action. 
+//         // step 2 action: propose and vote on action.
 //         vm.prank(bob); // has role 1.
 //         actionId = basicDao.propose(laws[2], lawCalldata, description);
 
@@ -118,7 +118,7 @@
 //         );
 
 //         // step 2 results.
-//         (quorum, succeedAt, votingPeriod,,, delayExecution,,) = Law(laws[2]).config();
+//         (quorum, succeedAt, votingPeriod,,, delayExecution,,) = Law(laws[2]).conditions();
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[2] = quorumReached && voteSucceeded;

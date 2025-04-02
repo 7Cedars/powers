@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 // This setup is an adaptation from the Hats protocol test. See //
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
 
 // protocol
-import { Powers} from "../src/Powers.sol";
+import { Powers } from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { Law } from "../src/Law.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
@@ -15,9 +15,7 @@ import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
 import { LawErrors } from "../src/interfaces/LawErrors.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
 
-// openZeppelin
-import { PresetAction } from "../src/laws/executive/PresetAction.sol"; 
-import "@openzeppelin/contracts/utils/ShortStrings.sol";
+import { PresetAction } from "../src/laws/executive/PresetAction.sol";
 
 // mocks
 import { DaoMock } from "./mocks/DaoMock.sol";
@@ -27,36 +25,40 @@ import { Erc20VotesMock } from "./mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "./mocks/Erc20TaxedMock.sol";
 import { ConstitutionsMock } from "./mocks/ConstitutionsMock.sol";
 
-// deploy scripts 
-import { DeployBasicDao } from "../script/DeployBasicDao.s.sol";
-import { DeployAlignedDao } from "../script/DeployAlignedDao.s.sol";
-import { DeployGovernYourTax } from "../script/DeployGovernYourTax.s.sol"; 
+// deploy scripts
+import { DeployLaws } from "../script/DeployLaws.s.sol";
+// import { DeployBasicDao } from "../script/DeployBasicDao.s.sol";
+// import { DeployAlignedDao } from "../script/DeployAlignedDao.s.sol";
+// import { DeployGovernYourTax } from "../script/DeployGovernYourTax.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawErrors {
     // protocol and mocks
     Powers powers;
     HelperConfig helperConfig;
     DaoMock daoMock;
+    DeployLaws deployLaws;
     ConstitutionsMock constitutionsMock;
     Erc1155Mock erc1155Mock;
     Erc721Mock erc721Mock;
     Erc20VotesMock erc20VotesMock;
-    Erc20TaxedMock erc20TaxedMock; 
+    Erc20TaxedMock erc20TaxedMock;
     HelperConfig.NetworkConfig config;
+    ILaw.Conditions conditions;
     address[] laws;
 
     // vote options
     uint8 AGAINST;
     uint8 FOR;
     uint8 ABSTAIN;
-    
-    address[] targets; 
+
+    address[] targets;
     uint256[] values;
-    bytes[] calldatas; 
+    bytes[] calldatas;
     bytes lawCalldata;
     string description;
     uint256 nonce;
     uint256 actionId;
+    bytes32 lawHash;
 
     uint256 roleCount;
     uint256 againstVote;
@@ -93,45 +95,38 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     address jacob;
     address kate;
     address lisa;
-    address oracle; 
+    address oracle;
     address[] users;
 
     // list of dao names
     string[] daoNames;
 
     // loop variables.
-    uint256 i; 
-    uint256 j; 
+    uint256 i;
+    uint256 j;
 
-    mapping (address => uint256) taxPaid;
-    mapping (address => uint256) votesReceived;
-    mapping (address => bool) hasVoted;    
-
-    // the only event in the Law contract
-    event Law__Initialized(
-        address indexed law,
-        string name,
-        string description,
-        address indexed powers,
-        uint32 allowedRole,
-        ILaw.LawChecks LawChecks,
-        bytes params
-    );
+    mapping(address => uint256) taxPaid;
+    mapping(address => uint256) votesReceived;
+    mapping(address => bool) hasVoted;
 }
 
 abstract contract TestHelpers is Test, TestVariables {
-    function hashProposal(address targetLaw, bytes memory lawCalldata, uint256 nonce)
+    function hashProposal(address targetLaw, bytes memory lawCalldataLocal, uint256 nonceLocal)
         public
         pure
         virtual
         returns (uint256)
     {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
+        return uint256(keccak256(abi.encode(targetLaw, lawCalldataLocal, nonceLocal)));
+    }
+
+    function hashLaw(address targetLaw, uint16 lawId) public pure virtual returns (bytes32) {
+        return keccak256(abi.encode(targetLaw, lawId));
     }
 
     function distributeERC20VoteTokens(address[] memory accounts, uint256 randomiser) public {
         uint256 currentRandomiser;
-        for (uint256 i = 0; i < accounts.length; i++) {
+        for (i = 0; i < accounts.length; i++) {
             if (currentRandomiser < 10) {
                 currentRandomiser = randomiser;
             } else {
@@ -145,10 +140,12 @@ abstract contract TestHelpers is Test, TestVariables {
         }
     }
 
-    function distributeNFTs(address erc721Mock, address[] memory accounts, uint256 randomiser, uint256 density) public {
+    function distributeNFTs(address erc721MockLocal, address[] memory accounts, uint256 randomiser, uint256 density)
+        public
+    {
         uint256 currentRandomiser;
         randomiser = bound(randomiser, 10, 100 * 10 ** 18);
-        for (uint256 i = 0; i < accounts.length; i++) {
+        for (i = 0; i < accounts.length; i++) {
             if (currentRandomiser < 10) {
                 currentRandomiser = randomiser;
             } else {
@@ -157,21 +154,24 @@ abstract contract TestHelpers is Test, TestVariables {
             bool getNft = (currentRandomiser % 100) < density;
             if (getNft) {
                 vm.prank(accounts[i]);
-                Erc721Mock(erc721Mock).cheatMint(randomiser + i);
+                Erc721Mock(erc721MockLocal).cheatMint(randomiser + i);
             }
         }
     }
 
     function voteOnProposal(
         address payable dao,
-        address law,
-        uint256 actionId,
+        uint16 lawId,
+        uint256 actionIdLocal,
         address[] memory accounts,
         uint256 randomiser,
         uint256 passChance // in percentage
-    ) public returns (uint256 roleCount, uint256 againstVote, uint256 forVote, uint256 abstainVote) {
+    )
+        public
+        returns (uint256 roleCountLocal, uint256 againstVoteLocal, uint256 forVoteLocal, uint256 abstainVoteLocal)
+    {
         uint256 currentRandomiser;
-        for (uint256 i = 0; i < accounts.length; i++) {
+        for (i = 0; i < accounts.length; i++) {
             // set randomiser..
             if (currentRandomiser < 10) {
                 currentRandomiser = randomiser;
@@ -179,20 +179,20 @@ abstract contract TestHelpers is Test, TestVariables {
                 currentRandomiser = currentRandomiser / 10;
             }
             // vote
-            if (Powers(dao).canCallLaw(accounts[i], law)) {
-                roleCount++;
+            if (Powers(dao).canCallLaw(accounts[i], lawId)) {
+                roleCountLocal++;
                 if (currentRandomiser % 100 >= passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(actionId, 0); // = against
-                    againstVote++;
+                    Powers(dao).castVote(actionIdLocal, 0); // = against
+                    againstVoteLocal++;
                 } else if (currentRandomiser % 100 < passChance) {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(actionId, 1); // = for
-                    forVote++;
+                    Powers(dao).castVote(actionIdLocal, 1); // = for
+                    forVoteLocal++;
                 } else {
                     vm.prank(accounts[i]);
-                    Powers(dao).castVote(actionId, 2); // = abstain
-                    abstainVote++;
+                    Powers(dao).castVote(actionIdLocal, 2); // = abstain
+                    abstainVoteLocal++;
                 }
             }
         }
@@ -203,6 +203,7 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
     function setUp() public virtual {
         vm.roll(block.number + 10);
         setUpVariables();
+        // run laws deploy script here.
     }
 
     function setUpVariables() public virtual {
@@ -218,7 +219,7 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         ROLE_TWO = 2;
         ROLE_THREE = 3;
 
-        nonce = 123; 
+        nonce = 123;
 
         // users
         alice = makeAddr("alice");
@@ -233,7 +234,7 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         jacob = makeAddr("jacob");
         kate = makeAddr("kate");
         lisa = makeAddr("lisa");
-        oracle = makeAddr("oracle"); 
+        oracle = makeAddr("oracle");
 
         // assign funds
         vm.deal(alice, 10 ether);
@@ -256,14 +257,15 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         erc1155Mock = new Erc1155Mock();
         erc20VotesMock = new Erc20VotesMock();
         daoMock = new DaoMock();
+        deployLaws = new DeployLaws();
         constitutionsMock = new ConstitutionsMock();
 
         vm.startPrank(address(daoMock));
         erc721Mock = new Erc721Mock();
         erc20TaxedMock = new Erc20TaxedMock(
             7, // 7
-            100, // denominator works out to 7 percent (7 / 100). 
-            100 // duration of epoch = 100 blocks 
+            100, // denominator works out to 7 percent (7 / 100).
+            100 // duration of epoch = 100 blocks
         );
         vm.stopPrank();
     }
@@ -276,21 +278,22 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
 abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiatePowersConstitution(
-            payable(address(daoMock)), payable(address(erc20VotesMock))
+        (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiatePowersConstitution(
+            lawAddresses, payable(address(daoMock)), payable(address(erc20VotesMock))
         );
 
         // constitute daoMock.
-        laws = laws_;
-        daoMock.constitute(laws);
+        // vm.prank(address(daoMock));
+        daoMock.constitute(lawInitData_);
         // assign Roles
         vm.roll(block.number + 4000);
         daoMock.request(
-            laws[laws.length - 1],
-            abi.encode(), 
-            nonce,// empty calldata,
+            uint16(lawInitData_.length - 1), // should be last selected law. As laws start counting at 1, this should be the last law.
+            abi.encode(),
+            nonce,
             "assigning roles"
         );
         daoNames.push("DaoMock");
@@ -300,217 +303,216 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
 abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
+        (, address[] memory lawAddresses) = deployLaws.run();
 
         // initiate constitution & get founders' roles list
-        (address[] memory laws_) =
-            constitutionsMock.initiateLawTestConstitution(payable(address(daoMock)), payable(address(erc1155Mock)));
-        laws = laws_;
+        (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateLawTestConstitution(
+            lawAddresses, payable(address(daoMock)), payable(address(erc1155Mock))
+        );
 
         // constitute daoMock.
-        daoMock.constitute(laws);
-
-        address testLaw = laws[laws.length - 1];
-        address powers = Law(testLaw).powers();
+        // vm.prank(address(daoMock));
+        daoMock.constitute(lawInitData_);
 
         // assign Roles
         vm.roll(block.number + 4000);
         vm.prank(address(this));
         daoMock.request(
-            laws[laws.length - 1],
-            abi.encode(), 
-            nonce,// empty calldata
+            uint16(lawInitData_.length - 1),
+            abi.encode(),
+            nonce, // empty calldata
             "assigning roles"
         );
         daoNames.push("DaoMock");
     }
 }
 
-abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiateElectoralTestConstitution(
-            payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
-        );
-        laws = laws_;
+// //         // initiate constitution & get founders' roles list
+// //         (address[] memory laws_) = constitutionsMock.initiateElectoralTestConstitution(
+// //             payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
+// //         );
+// //         laws = laws_;
 
-        // constitute daoMock.
-        daoMock.constitute(laws);
+// //         // constitute daoMock.
+// //         daoMock.constitute(laws);
 
-        // testing...
-        PresetAction presetAction = PresetAction(laws[laws.length - 1]);
-        console.logAddress(presetAction.targets(0));
+// //         // testing...
+// //         PresetAction presetAction = PresetAction(laws[laws.length - 1]);
+// //         console.logAddress(presetAction.targets(0));
 
-        // assign Roles
-        vm.roll(block.number + 4000);
-        daoMock.request(
-            laws[laws.length - 1],
-            abi.encode(), 
-            nonce,// empty calldata
-            "assigning roles"
-        );
-        daoNames.push("DaoMock");
-    }
-}
+// //         // assign Roles
+// //         vm.roll(block.number + 4000);
+// //         daoMock.request(
+// //             laws[laws.length - 1],
+// //             abi.encode(),
+// //             nonce,// empty calldata
+// //             "assigning roles"
+// //         );
+// //         daoNames.push("DaoMock");
+// //     }
+// // }
 
-abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiateExecutiveTestConstitution(
-            payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
-        );
-        laws = laws_;
+// //         // initiate constitution & get founders' roles list
+// //         (address[] memory laws_) = constitutionsMock.initiateExecutiveTestConstitution(
+// //             payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
+// //         );
+// //         laws = laws_;
 
-        // constitute daoMock.
-        daoMock.constitute(laws);
+// //         // constitute daoMock.
+// //         daoMock.constitute(laws);
 
-        // testing...
-        PresetAction presetAction = PresetAction(laws[laws.length - 1]);
-        console.logAddress(presetAction.targets(0));
+// //         // testing...
+// //         PresetAction presetAction = PresetAction(laws[laws.length - 1]);
+// //         console.logAddress(presetAction.targets(0));
 
-        // assign Roles
-        vm.roll(block.number + 4000);
-        vm.prank(address(this));
-        daoMock.request(
-            laws[laws.length - 1],
-            abi.encode(), 
-            nonce,// empty calldata
-            "assigning roles"
-        );
-        daoNames.push("DaoMock");
-    }
-}
+// //         // assign Roles
+// //         vm.roll(block.number + 4000);
+// //         vm.prank(address(this));
+// //         daoMock.request(
+// //             laws[laws.length - 1],
+// //             abi.encode(),
+// //             nonce,// empty calldata
+// //             "assigning roles"
+// //         );
+// //         daoNames.push("DaoMock");
+// //     }
+// // }
 
-abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiateStateTestConstitution(
-            payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
-        );
-        laws = laws_;
+// //         // initiate constitution & get founders' roles list
+// //         (address[] memory laws_) = constitutionsMock.initiateStateTestConstitution(
+// //             payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
+// //         );
+// //         laws = laws_;
 
-        // constitute daoMock.
-        daoMock.constitute(laws);
+// //         // constitute daoMock.
+// //         daoMock.constitute(laws);
 
-        // assign Roles
-        vm.roll(block.number + 4000);
-        daoMock.request(
-            laws[laws.length - 1],
-            abi.encode(), 
-            nonce,// empty calldata
-            "assigning roles"
-        );
-        daoNames.push("DaoMock");
-    }
-}
+// //         // assign Roles
+// //         vm.roll(block.number + 4000);
+// //         daoMock.request(
+// //             laws[laws.length - 1],
+// //             abi.encode(),
+// //             nonce,// empty calldata
+// //             "assigning roles"
+// //         );
+// //         daoNames.push("DaoMock");
+// //     }
+// // }
 
-abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiateAlignedDaoTestConstitution(
-            payable(address(daoMock)),
-            payable(address(erc20VotesMock)),
-            payable(address(erc20TaxedMock)),
-            payable(address(erc721Mock))
-        );
-        laws = laws_;
+// //         // initiate constitution & get founders' roles list
+// //         (address[] memory laws_) = constitutionsMock.initiateAlignedDaoTestConstitution(
+// //             payable(address(daoMock)),
+// //             payable(address(erc20VotesMock)),
+// //             payable(address(erc20TaxedMock)),
+// //             payable(address(erc721Mock))
+// //         );
+// //         laws = laws_;
 
-        // constitute daoMock.
-        daoMock.constitute(laws);
-        daoNames.push("AlignedDao");
-    }
-}
+// //         // constitute daoMock.
+// //         daoMock.constitute(laws);
+// //         daoNames.push("AlignedDao");
+// //     }
+// // }
 
-abstract contract TestSetupGovernYourTax is BaseSetup, ConstitutionsMock {
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupGovernYourTax is BaseSetup, ConstitutionsMock {
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        // initiate constitution & get founders' roles list
-        (address[] memory laws_) = constitutionsMock.initiateGovernYourTaxTestConstitution(
-            payable(address(daoMock)), 
-            payable(address(erc20VotesMock)),  
-            payable(address(erc20TaxedMock)),  
-            payable(address(erc1155Mock))
-        );
-        laws = laws_;
+// //         // initiate constitution & get founders' roles list
+// //         (address[] memory laws_) = constitutionsMock.initiateGovernYourTaxTestConstitution(
+// //             payable(address(daoMock)),
+// //             payable(address(erc20VotesMock)),
+// //             payable(address(erc20TaxedMock)),
+// //             payable(address(erc1155Mock))
+// //         );
+// //         laws = laws_;
 
-        // constitute daoMock.
-        daoMock.constitute(laws);
-        daoNames.push("DiversifiedGrants");
-    }
-}
+// //         // constitute daoMock.
+// //         daoMock.constitute(laws);
+// //         daoNames.push("DiversifiedGrants");
+// //     }
+// // }
 
-abstract contract TestSetupBasicDao_fuzzIntegration is BaseSetup {
-    Powers basicDao;
+// // abstract contract TestSetupBasicDao_fuzzIntegration is BaseSetup {
+// //     Powers basicDao;
 
-    function setUpVariables() public override {
-        super.setUpVariables();
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        DeployBasicDao deployBasicDao = new DeployBasicDao();
-        (
-            address payable basicDaoAddress, 
-            address[] memory laws_, 
-            HelperConfig.NetworkConfig memory config_,
-            address mock20_ 
-            ) = deployBasicDao.run();
-        laws = laws_;
-        config = config_;
+// //         DeployBasicDao deployBasicDao = new DeployBasicDao();
+// //         (
+// //             address payable basicDaoAddress,
+// //             address[] memory laws_,
+// //             HelperConfig.NetworkConfig memory config_,
+// //             address mock20_
+// //             ) = deployBasicDao.run();
+// //         laws = laws_;
+// //         config = config_;
 
-        erc20VotesMock = Erc20VotesMock(mock20_);  
-        basicDao = Powers(basicDaoAddress);
-    }
-}
+// //         erc20VotesMock = Erc20VotesMock(mock20_);
+// //         basicDao = Powers(basicDaoAddress);
+// //     }
+// // }
 
-abstract contract TestSetupAlignedDao_fuzzIntegration is BaseSetup {
-    Powers alignedDao;
+// // abstract contract TestSetupAlignedDao_fuzzIntegration is BaseSetup {
+// //     Powers alignedDao;
 
-    function setUpVariables() public override {
-        super.setUpVariables();
-        
-        DeployAlignedDao deployAlignedDao = new DeployAlignedDao();
-        (
-            address payable alignedDaoAddress, 
-            address[] memory laws_, 
-            HelperConfig.NetworkConfig memory config_, 
-            address mock20votes_, 
-            address mock20taxed_,
-            address mock721_ 
-            ) = deployAlignedDao.run();
-        laws = laws_;
-        config = config_;
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        erc20VotesMock = Erc20VotesMock(mock20votes_); 
-        erc20TaxedMock = Erc20TaxedMock(mock20taxed_); 
-        erc721Mock = Erc721Mock(mock721_); 
-        alignedDao = Powers(alignedDaoAddress);
-    } 
-}
+// //         DeployAlignedDao deployAlignedDao = new DeployAlignedDao();
+// //         (
+// //             address payable alignedDaoAddress,
+// //             address[] memory laws_,
+// //             HelperConfig.NetworkConfig memory config_,
+// //             address mock20votes_,
+// //             address mock20taxed_,
+// //             address mock721_
+// //             ) = deployAlignedDao.run();
+// //         laws = laws_;
+// //         config = config_;
 
-abstract contract TestSetupGovernYourTax_fuzzIntegration is BaseSetup {
-    Powers governYourTax;
+// //         erc20VotesMock = Erc20VotesMock(mock20votes_);
+// //         erc20TaxedMock = Erc20TaxedMock(mock20taxed_);
+// //         erc721Mock = Erc721Mock(mock721_);
+// //         alignedDao = Powers(alignedDaoAddress);
+// //     }
+// // }
 
-    function setUpVariables() public override {
-        super.setUpVariables();
+// // abstract contract TestSetupGovernYourTax_fuzzIntegration is BaseSetup {
+// //     Powers governYourTax;
 
-        DeployGovernYourTax deployGovernYourTax = new DeployGovernYourTax();
-        (
-            address payable governYourTaxAddress, 
-            address[] memory laws_, 
-            HelperConfig.NetworkConfig memory config_, 
-            address mock20Taxed_
-            ) = deployGovernYourTax.run();
-        laws = laws_;
-        config = config_;
+// //     function setUpVariables() public override {
+// //         super.setUpVariables();
 
-        erc20TaxedMock = Erc20TaxedMock(mock20Taxed_); 
-        
-        governYourTax = Powers(governYourTaxAddress);
-    }
-}
+// //         DeployGovernYourTax deployGovernYourTax = new DeployGovernYourTax();
+// //         (
+// //             address payable governYourTaxAddress,
+// //             address[] memory laws_,
+// //             HelperConfig.NetworkConfig memory config_,
+// //             address mock20Taxed_
+// //             ) = deployGovernYourTax.run();
+// //         laws = laws_;
+// //         config = config_;
+
+// //         erc20TaxedMock = Erc20TaxedMock(mock20Taxed_);
+
+// //         governYourTax = Powers(governYourTaxAddress);
+// //     }
+// // }

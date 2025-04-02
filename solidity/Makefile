@@ -15,7 +15,10 @@ remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gi
 
 # Install modules
 install :; forge install foundry-rs/forge-std@v1.9.1 --no-commit && \
-	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit
+	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit && \
+	forge install Hats-Protocol/hats-protocol@v1.0 --no-commit && \
+	forge install smartcontractkit/chainlink --no-git --no-commit && \
+	forge install smartcontractkit/foundry-chainlink-toolkit --no-git --no-commit
 
 # Update Dependencies
 update :; forge update
@@ -42,11 +45,13 @@ OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_2 --se
 anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
+anvilDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0)
 anvilDeployBasic :; forge script script/DeployBasicDao.s.sol:DeployBasicDao $(ANVIL_ARGS_0)
 anvilDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDao $(ANVIL_ARGS_0)
 anvilDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ANVIL_ARGS_0)
 anvilDeployRoles  :; forge script script/DeployDiversifiedRoles.s.sol:DeployDiversifiedRoles $(ANVIL_ARGS_0)
 
+arbSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployBasic :; forge script script/DeployBasicDao.s.sol:DeployBasicDao $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployAligned :; forge script script/DeployAlignedDao.s.sol:DeployAlignedDao $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployTax :; forge script script/DeployGovernYourTax.s.sol:DeployGovernYourTax $(ARB_SEPOLIA_DEPLOY_ARGS)

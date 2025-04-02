@@ -14,9 +14,9 @@
 
 /// @notice Errors used in {Law.sol}.
 ///
-/// @dev Errors in implementations of law.sol have to use strings (as in revert("this is an error") instead of using custom function, to allow errors to bubble up.)  
+/// @dev Errors in implementations of law.sol have to use strings (as in revert("this is an error") instead of using custom function, to allow errors to bubble up.)
 /// @author 7Cedars
-/// 
+///
 pragma solidity 0.8.26;
 
 interface LawErrors {
@@ -32,27 +32,26 @@ interface LawErrors {
     /// @notice Emitted when a parent law is not set.
     error Law__ParentLawNotSet();
 
-    /// @notice Emitted when a parent law is not completed.
-    error Law__ParentNotCompleted();
-
-    /// @notice Emitted when a parent law blocks completion.
-    error Law__ParentBlocksCompletion();
-
-    /// @notice Emitted when a deadline is not passed.
-    error Law__DeadlineNotPassed();
-
     /// @notice Emitted when a deadline is not set.
     error Law__NoDeadlineSet();
-
-    /// @notice Emitted when an execution limit is reached.
-    error Law__ExecutionLimitReached();
-
-    /// @notice Emitted when an execution gap is too small.
-    error Law__ExecutionGapTooSmall();
 
     /// @notice Emitted when a powers contract address is invalid.
     error Law__InvalidPowersContractAddress();
 
     /// @notice Emitted when a name is empty.
     error Law__EmptyNameNotAllowed();
+
+    /// @notice Emitted when a string is too long.
+    error Law__StringTooLong();
+
+    error Law__ParentNotCompleted();
+
+    /// @notice Emitted when a parent law is not completed.
+    error Law__ParentBlocksCompletion();
+
+    /// @notice Emitted when a execution gap is too small.
+    error Law__ExecutionGapTooSmall();
+
+    /// @notice Emitted when a deadline is not passed.
+    error Law__DeadlineNotPassed();
 }

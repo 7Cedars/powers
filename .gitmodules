@@ -4,3 +4,6 @@
 [submodule "solidity/lib/openzeppelin-contracts"]
 	path = solidity/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "solidity/lib/hats-protocol"]
+	path = solidity/lib/hats-protocol
+	url = https://github.com/Hats-Protocol/hats-protocol

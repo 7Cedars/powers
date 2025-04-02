@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -26,71 +26,98 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
-contract NominateMe is Law { 
-    mapping(address => uint48) public nominees;
-    address[] public nomineesSorted;
-    uint256 public nomineesCount;
+contract NominateMe is Law {
+    struct Nominees {
+        mapping(address nominee => uint48 nominationTime) nominations;
+        address[] nomineesSorted;
+        uint256 nomineesCount;
+    }
+    mapping(bytes32 lawHash => Nominees nominees) public nominees;
 
     event NominateMe__NominationReceived(address indexed nominee);
     event NominateMe__NominationRevoked(address indexed nominee);
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawChecks memory config_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        bytes memory params = abi.encode("bool NominateMe");
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    constructor(string memory name_) Law(name_) {
+        emit Law__Deployed(name_, "");
     }
 
-    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("bool NominateMe");
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // decode the calldata.
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
 
         // nominating //
-        if (nominateMe && nominees[caller] != 0) {
-            revert ("Nominee already nominated.");
+        if (nominateMe && nominees[lawHash].nominations[caller] != 0) {
+            revert("Nominee already nominated.");
         }
         // revoke nomination //
-        if (!nominateMe && nominees[caller] == 0) {
-            revert ("Nominee not nominated.");
+        if (!nominateMe && nominees[lawHash].nominations[caller] == 0) {
+            revert("Nominee not nominated.");
         }
 
         stateChange = abi.encode(caller, nominateMe); // encode the state
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas, stateChange);
     }
 
-    function _changeState(bytes memory stateChange) internal override {
+    function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (address caller, bool nominateMe) = abi.decode(stateChange, (address, bool));
 
         if (nominateMe) {
-            nominees[caller] = uint48(block.number);
-            nomineesSorted.push(caller);
-            nomineesCount++;
+            nominees[lawHash].nominations[caller] = uint48(block.number);
+            nominees[lawHash].nomineesSorted.push(caller);
+            nominees[lawHash].nomineesCount++;
             emit NominateMe__NominationReceived(caller);
         } else {
-            nominees[caller] = 0;
-            for (uint256 i; i < nomineesSorted.length; i++) {
-                if (nomineesSorted[i] == caller) {
-                    nomineesSorted[i] = nomineesSorted[nomineesSorted.length - 1];
-                    nomineesSorted.pop();
-                    nomineesCount--;
+            nominees[lawHash].nominations[caller] = 0;
+            for (uint256 i; i < nominees[lawHash].nomineesSorted.length; i++) {
+                if (nominees[lawHash].nomineesSorted[i] == caller) {
+                    nominees[lawHash].nomineesSorted[i] = nominees[lawHash].nomineesSorted[nominees[lawHash].nomineesSorted.length - 1];
+                    nominees[lawHash].nomineesSorted.pop();
+                    nominees[lawHash].nomineesCount--;
                     break;
                 }
             }
             emit NominateMe__NominationRevoked(caller);
         }
+    }
+
+    function getNominees(bytes32 lawHash) public view returns (address[] memory) {
+        return nominees[lawHash].nomineesSorted;
+    }
+
+    function isNominee(bytes32 lawHash, address nominee) public view returns (bool) {
+        return nominees[lawHash].nominations[nominee] != 0;
+    }
+
+    function getNomineesCount(uint16 lawId) public view returns (uint256) {
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        return nominees[lawHash].nomineesCount;
     }
 }

@@ -25,59 +25,75 @@ interface ILaw is IERC165, LawErrors {
     //////////////////////////////////////////////////////////////
     //                        TYPES                             //
     //////////////////////////////////////////////////////////////
+    struct Executions {
+        address powers;
+        bytes config;
+        uint48[] executions;
+    }
 
-    struct LawChecks {
+    struct Conditions {
+        // Slot 0
+        uint256 allowedRole; // 32 bytes
         // Slot 1
-        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
-        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
-        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
-        // Slot 2  
-        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
-        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
-        uint8 quorum;              // 1 byte   - Required participation percentage
-        uint8 succeedAt;           // 1 byte   - Required success percentage
-        // Slot 3
-        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
+        uint16 needCompleted; // 2 bytes - index of law that must be completed before this one
+        uint48 delayExecution; // 6 bytes  - Blocks to wait after proposal success before execution
+        uint48 throttleExecution; // 6 bytes  - Minimum blocks between executions
+        uint16 readStateFrom; // 2 bytes - index of law to read state from (for law dependencies)
+        uint32 votingPeriod; // 4 bytes  - Number of blocks for voting period
+        uint8 quorum; // 1 byte   - Required participation percentage
+        uint8 succeedAt; // 1 byte   - Required success percentage
+        uint16 needNotCompleted; // 2 bytes - index of law that must NOT be completed
     }
 
     //////////////////////////////////////////////////////////////
     //                        EVENTS                            //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Emitted when a law is initialized
-    /// @param law Address of the initialized law contract
+    /// @notice Emitted when a law is deployed
     /// @param name Name of the law
-    /// @param description Description of the law's purpose
-    /// @param powers Address of the Powers protocol contract
-    /// @param allowedRole Role ID required to interact with this law
-    /// @param checks Checks for the law
+    event Law__Deployed(string name, bytes configParams);
+
+    /// @notice Emitted when a law is initialized
+    /// @param powers Address of the Powers protocol
+    /// @param index Index of the law
+    /// @param conditions Conditions for the law
+    /// @param inputParams Input parameters for the law
+    /// @param description Description of the law
     event Law__Initialized(
-        address indexed law,
-        string name,
-        string description,
-        address indexed powers,
-        uint32 allowedRole,
-        LawChecks checks,
-        bytes params
+        address indexed powers, uint16 indexed index, Conditions conditions, bytes inputParams, string description
     );
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
+    /// @notice Initializes the law
+    /// @param index Index of the law
+    /// @param conditions Conditions for the law
+    /// @param config Configuration parameters for the law
+    /// @param inputParams Input parameters for the law
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) external;
 
     /// @notice Executes the law's logic after validation
     /// @dev Called by the Powers protocol during action execution
     /// @param caller Address that initiated the action
+    /// @param lawId The id of the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return success True if execution succeeded
-    function executeLaw(address caller, bytes calldata lawCalldata, uint256 nonce)
+    function executeLaw(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
         external
         returns (bool success);
 
     /// @notice Simulates the law's execution logic
     /// @dev Must be overridden by implementing contracts
     /// @param caller Address that initiated the action
+    /// @param lawId The id of the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return actionId The action ID
@@ -85,10 +101,16 @@ interface ILaw is IERC165, LawErrors {
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         external
-        view 
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange);
+        view
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        );
 
     //////////////////////////////////////////////////////////////
     //                     VALIDATION                           //
@@ -97,18 +119,35 @@ interface ILaw is IERC165, LawErrors {
     /// @notice Validates conditions required to propose an action
     /// @dev Called during both proposal and execution
     /// @param caller Address attempting to propose
+    /// @param conditions The conditions for the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtPropose(address caller, bytes calldata lawCalldata, uint256 nonce)
-        external
-        view;
+    function checksAtPropose(
+        address caller,
+        Conditions memory conditions,
+        bytes memory lawCalldata,
+        uint256 nonce,
+        address powers
+    ) external view;
 
     /// @notice Validates conditions required to execute an action
     /// @dev Called during execution after proposal checks
     /// @param caller Address attempting to execute
+    /// @param conditions The conditions for the law
     /// @param lawCalldata Encoded function call data
     /// @param nonce The nonce for the action
-    function checksAtExecute(address caller, bytes calldata lawCalldata, uint256 nonce)
-        external
-        view;
+    function checksAtExecute(
+        address caller,
+        Conditions memory conditions,
+        bytes memory lawCalldata,
+        uint256 nonce,
+        uint48[] memory executions,
+        address powers,
+        uint16 lawId
+    ) external view;
+
+    /// @notice Gets the conditions for a law
+    /// @param lawId The id of the law
+    /// @return conditions The conditions for the law
+    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
 }

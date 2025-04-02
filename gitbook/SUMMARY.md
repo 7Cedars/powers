@@ -1,11 +1,12 @@
 # Table of contents
 
-* [💪 Welcome to Powers Protocol](README.md)
-* [Using the App](using-the-app.md)
+* [💪 Welcome to Powers protocol](README.md)
+* [The case for Powers](the-case-for-powers.md)
 * [Protocol development](protocol-development.md)
 
 ## For Developers
 
+* [Governance](for-developers/governance.md)
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing actions](for-developers/powers.sol/proposing-actions.md)
@@ -23,38 +24,41 @@
   * [ParamsInput & StateVars](for-developers/law.sol/paramsinput-and-statevars.md)
 * [Deploy Community Governance](for-developers/deploy-community-governance.md)
 
-## Standard Laws
+## Example Laws
 
-* [Electoral laws](standard-laws/electoral-laws/README.md)
-  * [DelegateSelect.sol](standard-laws/electoral-laws/delegateselect.sol.md)
-  * [DirectSelect.sol](standard-laws/electoral-laws/directselect.sol.md)
-  * [ElectionCall.sol](standard-laws/electoral-laws/electioncall.sol.md)
-  * [ElectionTally.sol](standard-laws/electoral-laws/electiontally.sol.md)
-  * [PeerSelect.sol](standard-laws/electoral-laws/peerselect.sol.md)
-  * [RandomSelect.sol](standard-laws/electoral-laws/randomlyselect.sol.md)
-  * [SelfResign.sol](standard-laws/electoral-laws/selfresign.sol.md)
-  * [SelfSelect.sol](standard-laws/electoral-laws/selfselect.sol.md)
-  * [AttestedSelect.sol](standard-laws/electoral-laws/attestedselect.sol.md)
-* [Executive Laws](standard-laws/executive-laws/README.md)
-  * [BespokeAction.sol](standard-laws/executive-laws/bespokeaction.sol.md)
-  * [OpenAction.sol](standard-laws/executive-laws/openaction.sol.md)
-  * [PresetAction.sol](standard-laws/executive-laws/presetaction.sol.md)
-  * [ProposalOnly.sol](standard-laws/executive-laws/proposalonly.sol.md)
-  * [SelfDestructAction.sol](standard-laws/executive-laws/selfdestructpresetaction.sol.md)
-  * [AutomatedAction.sol](standard-laws/executive-laws/automatedaction.sol.md)
-  * [AiAgentAction.sol](standard-laws/executive-laws/aiagentaction.sol.md)
-* [State laws](standard-laws/state-laws/README.md)
-  * [AddressesMapping.sol](standard-laws/state-laws/addressesmapping.sol.md)
-  * [ElectionVotes.sol](standard-laws/state-laws/electionvotes.sol.md)
-  * [NominateMe.sol](standard-laws/state-laws/nominateme.sol.md)
-  * [StringsArray.sol](standard-laws/state-laws/stringsarray.sol.md)
-  * [TokensArray.sol](standard-laws/state-laws/tokensarray.sol.md)
+* [Electoral laws](example-laws/electoral-laws/README.md)
+  * [DelegateSelect.sol](example-laws/electoral-laws/delegateselect.sol.md)
+  * [DirectSelect.sol](example-laws/electoral-laws/directselect.sol.md)
+  * [ElectionCall.sol](example-laws/electoral-laws/electioncall.sol.md)
+  * [ElectionTally.sol](example-laws/electoral-laws/electiontally.sol.md)
+  * [PeerSelect.sol](example-laws/electoral-laws/peerselect.sol.md)
+  * [RandomSelect.sol](example-laws/electoral-laws/randomlyselect.sol.md)
+  * [SelfResign.sol](example-laws/electoral-laws/selfresign.sol.md)
+  * [SelfSelect.sol](example-laws/electoral-laws/selfselect.sol.md)
+  * [AttestedSelect.sol](example-laws/electoral-laws/attestedselect.sol.md)
+* [Executive Laws](example-laws/executive-laws/README.md)
+  * [BespokeAction.sol](example-laws/executive-laws/bespokeaction.sol.md)
+  * [OpenAction.sol](example-laws/executive-laws/openaction.sol.md)
+  * [PresetAction.sol](example-laws/executive-laws/presetaction.sol.md)
+  * [ProposalOnly.sol](example-laws/executive-laws/proposalonly.sol.md)
+  * [SelfDestructAction.sol](example-laws/executive-laws/selfdestructpresetaction.sol.md)
+  * [AutomatedAction.sol](example-laws/executive-laws/automatedaction.sol.md)
+  * [AiAgentAction.sol](example-laws/executive-laws/aiagentaction.sol.md)
+* [State laws](example-laws/state-laws/README.md)
+  * [AddressesMapping.sol](example-laws/state-laws/addressesmapping.sol.md)
+  * [ElectionVotes.sol](example-laws/state-laws/electionvotes.sol.md)
+  * [NominateMe.sol](example-laws/state-laws/nominateme.sol.md)
+  * [StringsArray.sol](example-laws/state-laws/stringsarray.sol.md)
+  * [TokensArray.sol](example-laws/state-laws/tokensarray.sol.md)
 
-## Case Studies
+## Use cases
 
-* [Powers 101](case-studies/basic-dao.md)
-* [Aligned Dao](case-studies/aligned-dao.md)
-* [Govern Your Tax](case-studies/govern-your-tax.md)
+* [Powers 101](use-cases/basic-dao.md)
+* [Hybrid Dao](use-cases/aligned-dao.md)
+* [Govern Your Tax](use-cases/govern-your-tax.md)
+* [AI + Humans](use-cases/ai-+-humans.md)
+* [Attestation Rules](use-cases/attestation-rules.md)
+* [Powers to Hats](use-cases/powers-to-hats.md)
 
 ## Integrations
 

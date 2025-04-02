@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -30,49 +30,53 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
-import { LawUtils } from "../LawUtils.sol"; 
+import { Powers } from "../../Powers.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
-contract SelfSelect is Law { 
-    uint32 private immutable ROLE_ID;
+contract SelfSelect is Law {
+    mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawChecks memory config_,
-        uint32 roleId_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        ROLE_ID = roleId_;
-        
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, "");
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode("uint256 RoleId");
+
+        emit Law__Deployed(name_, configParams);
     }
 
-    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        uint256 roleId_ = abi.decode(config, (uint256));
+        roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
+
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
-        virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
-        // step 2: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = LawUtils.createEmptyArrays(1);
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(caller, ROLE_ID) != 0) {
-            revert ("Account already has role.");
+        targets[0] = msg.sender;
+        if (Powers(payable(msg.sender)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
+            revert("Account already has role.");
         }
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, ROLE_ID, caller); // selector = assignRole
-        
-        return (actionId, targets, values, calldatas, "");
-    }
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
 
-    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-        internal
-        override
-    {
-        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
+        return (actionId, targets, values, calldatas, "");
     }
 }

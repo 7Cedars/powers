@@ -4,7 +4,7 @@ description: >-
   restricted governance
 ---
 
-# 💪 Welcome to Powers Protocol
+# 💪 Welcome to Powers protocol
 
 🚧 **Documentation is under construction** 🚧
 
@@ -20,7 +20,14 @@ The challenge is that actions need to be _restricted_ before they can be _role_ 
 
 The Powers protocol provides a minimalist, but very powerful, proof of concept of a role restricted governance protocol.
 
-It consists of two elements: Powers and Laws.
+## Quick links
+
+* [The Github repository](https://powers-protocol.vercel.app/#usecases)
+* [The Powers app](https://powers-protocol.vercel.app/#usecases)
+
+## The protocol
+
+The Powers protocol consists of two elements: Powers and Laws.
 
 ### ⚡ Powers
 
@@ -79,8 +86,6 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. It is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change.&#x20;
 
-<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption><p>Governance flow in the Powers protocol </p></figcaption></figure>
-
 <details>
 
 <summary>Example A: Adopt a new law, conditional on a secondary governance check</summary>
@@ -119,7 +124,7 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 
 </details>
 
-More examples can be found among the case studies.
+For a diagram of the governance flow in the Powers protocol, please see&#x20;
 
 ## Unique strengths
 
@@ -147,9 +152,11 @@ This feature allows communities to create sophisticated checks and balances betw
 
 The protocol offers powerful multi-call functionality. While each transaction executes one law at a time, that law can trigger multiple actions through the Powers protocol, enabling efficient and coordinated governance actions.
 
-### Async actions
+### Integrations
 
-Powers protocol provides out-of-the-box support for async governance actions. This allows for any type of oracle to be seamlessly integrated into governance actions: randomise allocation of roles, automate governance actions, allow conditional actions based on market conditions, or integrate AI agents in a governance work-flow. Everything is possible.
+Powers protocol provides out-of-the-box support for async governance actions. This allows for any type of oracle to be seamlessly integrated into governance actions: randomise allocation of roles, automate governance actions, integrate off-chain voting mechanisms, allow conditional actions based on market conditions, or integrate AI agents in a governance work-flow. Everything is possible.
+
+The protocol also comes with integration modules for popular existing governance protocols such as OpenZeppelin's Governor.sol and Haberdasher's Hats protocol. &#x20;
 
 ### Upgradability
 

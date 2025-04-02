@@ -17,55 +17,57 @@
 /// The logic:
 /// - anythe lawCalldata includes a single bool. If the bool is set to true, it will aend the present calldatas to the execute function of the Powers protocol.
 ///
-/// @author 7Cedars, 
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtils } from "../LawUtils.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PresetAction is Law {
     /// the targets, values and calldatas to be used in the calls: set at construction.
-    address[] public targets;
-    uint256[] public values;
-    bytes[] public calldatas;
+    mapping(bytes32 lawHash => address[] targets) public targets;
+    mapping(bytes32 lawHash => uint256[] values) public values;
+    mapping(bytes32 lawHash => bytes[] calldatas) public calldatas;
 
     /// @notice constructor of the law
     /// @param name_ the name of the law.
-    /// @param description_ the description of the law.
-    /// @param powers_ the address of the core governance protocol
-    /// @param targets_ the targets to use in the calls.
-    /// @param allowedRole_ the role that is allowed to execute this law
-    /// @param config_ the configuration of the law
-    /// @param values_ the values to use in the calls.
-    /// @param calldatas_ the calldatas to use in the calls.
     constructor(
         // inherited from Law
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint32 allowedRole_,
-        LawChecks memory config_,
-        // specific to preset action
-        address[] memory targets_,
-        uint256[] memory values_,
-        bytes[] memory calldatas_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        targets = targets_;
-        values = values_;
-        calldatas = calldatas_;
+        string memory name_
+    ) Law(name_) {
+        bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
 
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, ""); // empty params
+        emit Law__Deployed(name_, configParams); // empty params
+    }
+
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
+            abi.decode(config, (address[], uint256[], bytes[]));
+
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        targets[lawHash] = targets_;
+        values[lawHash] = values_;
+        calldatas[lawHash] = calldatas_;
+
+        super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
     /// @notice execute the law.
-    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
         returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
     {
-        actionId = LawUtils.hashActionId(address(this), lawCalldata, nonce);
-        return (actionId, targets, values, calldatas, "");  
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        return (actionId, targets[lawHash], values[lawHash], calldatas[lawHash], "");
     }
 }
