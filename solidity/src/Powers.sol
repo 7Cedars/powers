@@ -55,7 +55,7 @@ contract Powers is EIP712, IPowers {
     mapping(uint256 actionId => Action) private _actions; // mapping actionId to Action struct
     mapping(uint16 lawId => ActiveLaw) public laws; // mapping law address to Law struct
     mapping(uint256 roleId => Role) public roles; // mapping roleId to Role struct
-    mapping(address account => Deposit) public deposits; // mapping account to deposit
+    mapping(address account => Deposit) public deposits; // mapping deposits from accounts (note: this only covers chain native currency)
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint48).max.
     uint32 public constant ADMIN_ROLE = type(uint32).min; // == 0
