@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { Powers} from "../../src/Powers.sol";
+import { Powers } from "../../src/Powers.sol";
 import { Erc20VotesMock } from "../mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../mocks/Erc20TaxedMock.sol";
 import { Erc721Mock } from "../mocks/Erc721Mock.sol";
@@ -66,10 +66,10 @@ contract Erc20TaxedMockTest is Test {
         vm.prank(address(daoMock));
         erc20TaxedMock = new Erc20TaxedMock(taxRate_, DENOMINATOR_, epochDuration_);
         uint256 balanceBefore = erc20TaxedMock.balanceOf(address(daoMock));
-        
+
         vm.prank(address(daoMock));
         erc20TaxedMock.mint(10_000);
-        
+
         assertEq(erc20TaxedMock.totalSupply(), 10_000 + balanceBefore);
         assertEq(erc20TaxedMock.balanceOf(address(daoMock)), 10_000 + balanceBefore);
         assertEq(erc20TaxedMock.taxRate(), taxRate_);
@@ -225,7 +225,10 @@ contract Erc1155MockTest is Test {
     }
 
     function testDeploy() public {
-        assertEq(erc1155Mock.uri(0), "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi");
+        assertEq(
+            erc1155Mock.uri(0),
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi"
+        );
     }
 
     function testMintCoinsRevertsWithZeroAmount() public {

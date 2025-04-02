@@ -27,7 +27,7 @@ contract Erc20TaxedMock is ERC20, Ownable {
         taxRate = taxRate_;
         DENOMINATOR = DENOMINATOR_;
         epochDuration = epochDuration_;
-        _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens. 
+        _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens.
     }
 
     // a public non-restricted function that allows anyone to mint coins. Only restricted by max allowed coins to mint.
@@ -83,8 +83,8 @@ contract Erc20TaxedMock is ERC20, Ownable {
             uint48 currentEpoch = uint48(block.number) / epochDuration;
             taxLogs[currentEpoch][from] += tax;
         }
-        
-        // continue with legacy _update function: 
+
+        // continue with legacy _update function:
         super._update(from, to, value);
     }
 
