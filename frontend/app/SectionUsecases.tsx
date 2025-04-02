@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import { useCases } from  "../public/useCases";
 import Image from 'next/image'
-import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/Button";
 import { assignOrg } from "@/context/store";
 import { useRouter } from "next/navigation";
 import { useOrganisations } from "@/hooks/useOrganisations";
+import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 
 export function SectionUsecases() { 
@@ -34,7 +35,7 @@ export function SectionUsecases() {
 
         {/* info blocks */}
         <section className="h-fit flex flex-wrap gap-4 max-w-6xl justify-center items-start">  
-            { organisations &&
+            { organisations ?
               useCases.map((useCase, index) => (
                     <div className="w-72 min-h-64 h-fit flex flex-col justify-start items-start border border-slate-300 rounded-md bg-slate-50 overflow-hidden" key={index}>  
                       <div className="w-full h-fit font-bold text-slate-700 p-3 ps-5 border-b border-slate-300 bg-slate-100">
@@ -62,6 +63,18 @@ export function SectionUsecases() {
                       </div>
                     </div>
               ))
+              : 
+              <div className="w-full h-fit flex flex-col justify-center items-center">
+                <button 
+                  className="py-2 w-12 h-full flex justify-center items-center text-center aria-selected:animate-spin"
+                  onClick = {() => fetchOrgs()}
+                  >
+                      <ArrowPathIcon
+                        className="w-4 h-4 text-slate-500 aria-selected:animate-spin"
+                        aria-selected={status == 'pending'}
+                      />
+                  </button>
+              </div>
             }
         </section>
 
