@@ -36,6 +36,8 @@ library LawUtilities {
     error LawUtilities__ExecutionGapTooSmall();
     error LawUtilities__ProposalNotSucceeded();
     error LawUtilities__DeadlineNotPassed();
+    error LawUtilities__EmptyNameNotAllowed();
+    error LawUtilities__StringTooLong();
 
     //////////////////////////////////////////////////////////////
     //                  STORAGE POINTERS                        //
@@ -50,6 +52,16 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
+    function checkStringLength(string memory name_) internal pure {
+        if (bytes(name_).length < 1) {
+            revert LawUtilities__EmptyNameNotAllowed();
+        }
+        if (bytes(name_).length > 31) {
+            revert LawUtilities__StringTooLong();
+        }
+    }
+
+
 
     /// @notice Checks if a parent law has been completed
     /// @dev Checks if a parent law has been completed

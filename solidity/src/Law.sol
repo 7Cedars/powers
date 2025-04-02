@@ -38,7 +38,7 @@ import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspec
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
-contract Law is ERC165, ILaw {
+abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
@@ -48,24 +48,8 @@ contract Law is ERC165, ILaw {
     mapping(bytes32 lawHash => Executions) public executionsLaws;
 
     //////////////////////////////////////////////////////////////
-    //                   CONSTRUCTOR                            //
-    //////////////////////////////////////////////////////////////
-    /// @notice Constructor for the Law contract
-    /// @param name_ The name of the law. It has to fit in one storage slot. (this way it will be saved as a short string)
-    constructor(string memory name_) {
-        if (bytes(name_).length < 1) {
-            revert Law__EmptyNameNotAllowed();
-        }
-        if (bytes(name_).length > 31) {
-            revert Law__StringTooLong();
-        }
-        name = name_;
-    }
-
-    //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
-
     // note this is an unrestricted function. Anyone can initialize a law. 
     function initializeLaw(
         uint16 index,

@@ -30,7 +30,9 @@ contract AddressesMapping is Law {
     event AddressesMapping__Added(address account);
     event AddressesMapping__Removed(address account);
 
-    constructor(string memory name_) Law(name_) {
+    constructor(string memory name_) {
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         bytes memory configParams = abi.encode();
 
         emit Law__Deployed(name_, configParams);

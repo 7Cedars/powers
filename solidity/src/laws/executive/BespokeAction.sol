@@ -35,7 +35,9 @@ contract BespokeAction is Law {
     constructor(
         // standard parameters
         string memory name_
-    ) Law(name_) {
+    ) { 
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         bytes memory configParams = abi.encode("address TargetContract", "bytes4 TargetFunction", "string[] Params");
 
         emit Law__Deployed(name_, configParams);
