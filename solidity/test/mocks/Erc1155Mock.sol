@@ -15,7 +15,11 @@ contract Erc1155Mock is ERC1155 {
     uint256 constant COIN_ID = 0;
 
     // the dao address receives half of mintable coins.
-    constructor() ERC1155("https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi") { }
+    constructor()
+        ERC1155(
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi"
+        )
+    { }
 
     // a public non-restricted function that allows anyone to mint coins. Only restricted by max allowed coins to mint.
     function mintCoins(uint256 amount) public {

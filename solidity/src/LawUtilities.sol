@@ -12,6 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
+/// NB: This library will soon be depricated.
+
 /// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
 /// @dev Provides common functionality for law implementation and validation
@@ -21,8 +23,9 @@ pragma solidity 0.8.26;
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { Powers } from "./Powers.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
-import { PowersTypes } from "./interfaces/PowersTypes.sol";    
+import { PowersTypes } from "./interfaces/PowersTypes.sol";
 
+// import { console2 } from "forge-std/console2.sol"; // @audit-info: console2 is used for logging // remove before deployment
 
 library LawUtilities {
     //////////////////////////////////////////////////////////////
@@ -33,7 +36,7 @@ library LawUtilities {
     error LawUtilities__ExecutionGapTooSmall();
     error LawUtilities__ProposalNotSucceeded();
     error LawUtilities__DeadlineNotPassed();
-    
+
     //////////////////////////////////////////////////////////////
     //                  STORAGE POINTERS                        //
     //////////////////////////////////////////////////////////////
@@ -42,22 +45,6 @@ library LawUtilities {
     /// @dev Uses a mapping to store arrays of block numbers for each account
     struct TransactionsByAccount {
         mapping(address account => uint48[] blockNumber) transactions;
-    }
-
-    /// @notice Structure to track conditions for a law
-    /// @dev Uses a mapping to store arrays of block numbers for each account
-    struct Conditions {
-        // Slot 1
-        address needCompleted;      // 20 bytes - Address of law that must be completed before this one
-        uint48 delayExecution;      // 6 bytes  - Blocks to wait after proposal success before execution
-        uint48 throttleExecution;   // 6 bytes  - Minimum blocks between executions
-        // Slot 2  
-        address readStateFrom;      // 20 bytes - Address to read state from (for law dependencies)
-        uint32 votingPeriod;       // 4 bytes  - Number of blocks for voting period
-        uint8 quorum;              // 1 byte   - Required participation percentage
-        uint8 succeedAt;           // 1 byte   - Required success percentage
-        // Slot 3
-        address needNotCompleted;   // 20 bytes - Address of law that must NOT be completed
     }
 
     /////////////////////////////////////////////////////////////
@@ -69,21 +56,25 @@ library LawUtilities {
     /// @param conditions The conditionsuration parameters for the law
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
-    function baseChecksAtPropose(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers)
-        external
-        view
-      {
+    function baseChecksAtPropose(
+        ILaw.Conditions memory conditions,
+        bytes memory lawCalldata,
+        address powers,
+        uint256 nonce
+    ) external view {
         // Check if parent law completion is required
-        if (conditions.needCompleted != address(0)) {
+        if (conditions.needCompleted != 0) {
             uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-
+            // console2.log("parentActionId", parentActionId);
+            uint8 stateLog = uint8(Powers(payable(powers)).state(parentActionId));
+            // console2.log("state", stateLog);
             if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
                 revert LawUtilities__ParentNotCompleted();
             }
         }
 
         // Check if parent law must not be completed
-        if (conditions.needNotCompleted != address(0)) {
+        if (conditions.needNotCompleted != 0) {
             uint256 parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
 
             if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
@@ -97,22 +88,33 @@ library LawUtilities {
     /// @param conditions The conditionsuration parameters for the law
     /// @param lawCalldata The calldata of the law
     /// @param nonce The nonce of the law
-    function baseChecksAtExecute(Conditions memory conditions, bytes memory lawCalldata, uint256 nonce, address powers, uint48[] memory executions)
-        external
-        view
-    {
+    function baseChecksAtExecute(
+        ILaw.Conditions memory conditions,
+        bytes memory lawCalldata,
+        address powers,
+        uint256 nonce,
+        uint48[] memory executions,
+        uint16 lawId
+    ) external view {
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
             uint256 numberOfExecutions = executions.length - 1;
-            if (executions[numberOfExecutions] != 0 && 
-                block.number - executions[numberOfExecutions] < conditions.throttleExecution) {
+            // console2.log("numberOfExecutions", numberOfExecutions);
+            // console2.log("block.number", block.number);
+            // console2.log("executions[numberOfExecutions]", executions[numberOfExecutions]);
+            // console2.log("conditions.throttleExecution", conditions.throttleExecution);
+            
+            if (
+                executions[numberOfExecutions] != 0
+                    && block.number - executions[numberOfExecutions] < conditions.throttleExecution
+            ) {
                 revert LawUtilities__ExecutionGapTooSmall();
             }
         }
 
         // Check if proposal vote succeeded
         if (conditions.quorum != 0) {
-            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
             if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
                 revert LawUtilities__ProposalNotSucceeded();
             }
@@ -120,7 +122,7 @@ library LawUtilities {
 
         // Check execution delay after proposal
         if (conditions.delayExecution != 0) {
-            uint256 actionId = hashActionId(address(this), lawCalldata, nonce);
+            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
             uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
             if (deadline + conditions.delayExecution > block.number) {
                 revert LawUtilities__DeadlineNotPassed();
@@ -128,89 +130,18 @@ library LawUtilities {
         }
     }
 
-
     /////////////////////////////////////////////////////////////
     //                  FUNCTIONS                              //
     /////////////////////////////////////////////////////////////
-
-    /// @notice Creates a unique identifier for an action
-    /// @dev Hashes the combination of law address, calldata, and nonce
-    /// @param targetLaw Address of the law contract being called
-    /// @param lawCalldata Encoded function call data
-    /// @param nonce The nonce for the action
-    /// @return actionId Unique identifier for the action
-    function hashActionId(address targetLaw, bytes memory lawCalldata, uint256 nonce)
-        public
-        pure
-        returns (uint256 actionId)
-    {
-        actionId = uint256(keccak256(abi.encode(targetLaw, lawCalldata, nonce)));
-    }
-
-    /// @notice Creates empty arrays for storing transaction data
-    /// @dev Initializes three arrays of the same length for targets, values, and calldata
-    /// @param length The desired length of the arrays
-    /// @return targets Array of target addresses
-    /// @return values Array of ETH values
-    /// @return calldatas Array of encoded function calls
-    function createEmptyArrays(uint256 length) 
-        external
-        pure
-        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    {
-        targets = new address[](length);
-        values = new uint256[](length);
-        calldatas = new bytes[](length);
-    }
-
-    /// @notice Adds a self-destruct call to existing transaction arrays
-    /// @dev Appends a revokeLaw call to the end of the transaction arrays
-    /// @param targets Existing array of target addresses
-    /// @param values Existing array of ETH values
-    /// @param calldatas Existing array of encoded function calls
-    /// @param powers Address of the Powers protocol contract
-    /// @return targetsNew Updated array of target addresses including the self-destruct call
-    /// @return valuesNew Updated array of ETH values including the self-destruct call
-    /// @return calldatasNew Updated array of encoded function calls including the self-destruct call
-    function addSelfDestruct(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, address powers)
-        external
-        view
-        returns (address[] memory targetsNew, uint256[] memory valuesNew, bytes[] memory calldatasNew)
-    {
-        // create new arrays
-        targetsNew = new address[](targets.length + 1);
-        valuesNew = new uint256[](values.length + 1);
-        calldatasNew = new bytes[](calldatas.length + 1);
-
-        // pasting in old arrays. This method is super inefficient. Is there no other way of doing this?
-        for (uint256 i; i < targets.length; i++) {
-            targetsNew[i] = targets[i];
-            valuesNew[i] = values[i];
-            calldatasNew[i] = calldatas[i];
-        }
-
-        // adding self destruct data to array
-        targetsNew[targets.length] = powers;
-        valuesNew[values.length] = 0;
-        calldatasNew[calldatas.length] = abi.encodeWithSelector(Powers.revokeLaw.selector, address(this));
-
-        // return new arrays
-        return (targetsNew, valuesNew, calldatasNew);
-    }
-
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for
     /// @param nftCheckAddress Address of the ERC721 contract
     /// @return hasToken True if the caller owns at least one token
-    function nftCheck(address caller, address nftCheckAddress)
-        external
-        view
-        returns (bool hasToken)
-    {
+    function nftCheck(address caller, address nftCheckAddress) external view returns (bool hasToken) {
         hasToken = ERC721(nftCheckAddress).balanceOf(caller) > 0;
         if (!hasToken) {
-            revert ("Does not own token.");
+            revert("Does not own token.");
         }
     }
 
@@ -225,7 +156,7 @@ library LawUtilities {
     //     returns (bool isBlacklisted)
     // {
     //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(caller);
-        
+
     //     if (isBlacklisted) {
     //         revert ("Is blacklisted.");
     //     }
@@ -235,14 +166,11 @@ library LawUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasRoleCheck(address caller, uint32[] memory roles, address powers)
-        external
-        view
-    {
+    function hasRoleCheck(address caller, uint32[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since == 0) {
-                revert ("Does not have role.");
+                revert("Does not have role.");
             }
         }
     }
@@ -251,14 +179,11 @@ library LawUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers)
-        external
-        view
-    {
+    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since != 0) {
-                revert ("Has role.");
+                revert("Has role.");
             }
         }
     }
@@ -288,13 +213,13 @@ library LawUtilities {
         external
         view
         returns (bool)
-    {   
+    {
         if (self.transactions[account].length == 0) {
             return true;
         }
         uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
         if (uint48(block.number) - lastTransaction < delay) {
-            revert ("Delay not passed");
+            revert("Delay not passed");
         }
         return true;
     }
@@ -310,12 +235,54 @@ library LawUtilities {
         external
         view
         returns (uint256 numberOfTransactions)
-    {   
+    {
         for (uint256 i = 0; i < self.transactions[account].length; i++) {
             if (self.transactions[account][i] >= start && self.transactions[account][i] <= end) {
                 numberOfTransactions++;
             }
         }
         return numberOfTransactions;
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                      HELPER FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+    /// @notice Creates a unique identifier for an action
+    /// @dev Hashes the combination of law address, calldata, and nonce
+    /// @param lawId Address of the law contract being called
+    /// @param lawCalldata Encoded function call data
+    /// @param nonce The nonce for the action
+    /// @return actionId Unique identifier for the action
+    function hashActionId(uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+        public
+        pure
+        returns (uint256 actionId)
+    {
+        actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
+    }
+
+    /// @notice Creates a unique identifier for a law, used for sandboxing executions of laws.
+    /// @dev Hashes the combination of law address and index
+    /// @param powers Address of the Powers contract
+    /// @param index Index of the law
+    /// @return lawHash Unique identifier for the law
+    function hashLaw(address powers, uint16 index) public pure returns (bytes32 lawHash) {
+        lawHash = keccak256(abi.encode(powers, index));
+    }
+
+    /// @notice Creates empty arrays for storing transaction data
+    /// @dev Initializes three arrays of the same length for targets, values, and calldata
+    /// @param length The desired length of the arrays
+    /// @return targets Array of target addresses
+    /// @return values Array of ETH values
+    /// @return calldatas Array of encoded function calls
+    function createEmptyArrays(uint256 length)
+        public
+        pure
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        targets = new address[](length);
+        values = new uint256[](length);
+        calldatas = new bytes[](length);
     }
 }

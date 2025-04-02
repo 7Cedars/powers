@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -30,65 +30,71 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers} from "../../Powers.sol";
+import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract RenounceRole is Law { 
-    uint32[] public allowedRoleIds; // role that can be renounced.
+contract RenounceRole is Law {
+    mapping(bytes32 lawHash => uint32[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint256 allowedRole_,
-        LawUtilities.Conditions memory config_,
-        uint32[] memory allowedRoleIds_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        allowedRoleIds = allowedRoleIds_;
-        bytes memory params = abi.encode("uint256 roleId");
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode("uint256[] allowedRoleIds");
 
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+        emit Law__Deployed(name_, configParams);
     }
 
-    function handleRequest(address caller, bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
+        allowedRoleIds[LawUtilities.hashLaw(msg.sender, index)] = allowedRoleIds_;
+
+        inputParams = abi.encode("uint256 roleId");
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // step 1: decode the calldata.
-        (uint256 roleId) = abi.decode(lawCalldata, (uint32));
-        
+        (uint256 roleId) = abi.decode(lawCalldata, (uint256));
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+
         // step2: check if the role is allowed to be renounced.
         bool allowed = false;
-        for (uint32 i = 0; i < allowedRoleIds.length; i++) {
-            if (roleId == allowedRoleIds[i]) {
+        for (uint32 i = 0; i < allowedRoleIds[lawHash].length; i++) {
+            if (roleId == allowedRoleIds[lawHash][i]) {
                 allowed = true;
                 break;
             }
         }
         if (!allowed) {
-            revert ("Role not allowed to be renounced.");
+            revert("Role not allowed to be renounced.");
         }
 
         // step 3: create & send return calldata conditional if it is an assign or revoke action.
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(allowedRoleIds.length);
-        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(caller, roleId) == 0) {
-            revert ("Account does not have role.");
+        targets[0] = msg.sender;
+        if (Powers(payable(msg.sender)).hasRoleSince(caller, roleId) == 0) {
+            revert("Account does not have role.");
         }
         calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, caller); // selector = revokeRole
 
         return (actionId, targets, values, calldatas, "");
-    }
-
-    function _replyPowers(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-        internal
-        override
-    {
-        Powers(payable(powers)).fulfill(actionId, targets, values, calldatas);
     }
 }

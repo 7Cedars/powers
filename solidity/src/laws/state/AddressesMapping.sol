@@ -24,54 +24,65 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract AddressesMapping is Law { 
-    mapping(address => bool) public addresses;
+contract AddressesMapping is Law {
+    mapping(bytes32 lawHash => mapping(address account => bool isAllowed)) public addresses;
 
     event AddressesMapping__Added(address account);
     event AddressesMapping__Removed(address account);
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint256 allowedRole_,
-        LawUtilities.Conditions memory config_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        bytes memory params = abi.encode(
-            "address Account", 
-            "bool Add"
-        );
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    constructor(string memory name_) Law(name_) {
+        bytes memory configParams = abi.encode();
+
+        emit Law__Deployed(name_, configParams);
     }
 
-    function handleRequest(address, /*caller */ bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("address Account", "bool Add");
+
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
+        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
 
-        if (add && addresses[account]) {
-            revert ("Already true.");
-        } else if (!add && !addresses[account]) {
-            revert ("Already false.");
+        if (add && addresses[lawHash][account]) {
+            revert("Already true.");
+        } else if (!add && !addresses[lawHash][account]) {
+            revert("Already false.");
         }
 
-        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
-    
-    function _changeState(bytes memory stateChange) internal override {
+
+    function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (address account, bool add) = abi.decode(stateChange, (address, bool));
 
         if (add) {
-            addresses[account] = true;
+            addresses[lawHash][account] = true;
             emit AddressesMapping__Added(account);
         } else {
-            addresses[account] = false;
+            addresses[lawHash][account] = false;
             emit AddressesMapping__Removed(account);
         }
     }
-} 
+}

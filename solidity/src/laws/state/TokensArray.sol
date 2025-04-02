@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -27,7 +27,7 @@ contract TokensArray is Law {
     enum TokenType {
         Erc20,
         Erc721,
-        Erc1155 
+        Erc1155
     }
 
     struct Token {
@@ -35,60 +35,67 @@ contract TokensArray is Law {
         TokenType tokenType;
     }
 
-    Token[] public tokens;
-    uint256 public numberOfTokens; 
+    mapping(bytes32 lawHash => Token[] tokens) public tokens;
+    mapping(bytes32 lawHash => uint256 numberOfTokens) public numberOfTokens;
 
     event TokensArray__TokenAdded(address indexed tokenAddress, TokenType tokenType);
     event TokensArray__TokenRemoved(address indexed tokenAddress, TokenType tokenType);
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint256 allowedRole_,
-        LawUtilities.Conditions memory config_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        bytes memory params = abi.encode(   
-            "address TokenAddress", 
-            "uint256 TokenType", 
-            "bool Add"
-            );
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    constructor(string memory name_) Law(name_) {
+        emit Law__Deployed(name_, "");
     }
 
-    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("address TokenAddress", "uint256 TokenType", "bool Add");
+
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
-        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 
-    function _changeState(bytes memory stateChange) internal override {
+    function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         // step 1: decode
         (address tokenAddress, TokenType tokenType, bool add) = abi.decode(stateChange, (address, TokenType, bool)); // don't know if this is going to work...
 
         // step 2: change state
         // note: address is not type checked. We trust the caller
         if (add) {
-            tokens.push(Token({ tokenAddress: tokenAddress, tokenType: tokenType }));
-            numberOfTokens++;
+            tokens[lawHash].push(Token({ tokenAddress: tokenAddress, tokenType: tokenType }));
+            numberOfTokens[lawHash]++;
             emit TokensArray__TokenAdded(tokenAddress, tokenType);
-        } else if (numberOfTokens == 0) {
-            revert ("Token not found.");
+        } else if (numberOfTokens[lawHash] == 0) {
+            revert("Token not found.");
         } else {
-            for (uint256 index; index < numberOfTokens; index++) {
-                if (tokens[index].tokenAddress == tokenAddress) {
-                    tokens[index] = tokens[numberOfTokens - 1];
-                    tokens.pop();
-                    numberOfTokens--;
+            for (uint256 index; index < numberOfTokens[lawHash]; index++) {
+                if (tokens[lawHash][index].tokenAddress == tokenAddress) {
+                    tokens[lawHash][index] = tokens[lawHash][numberOfTokens[lawHash] - 1];
+                    tokens[lawHash].pop();
+                    numberOfTokens[lawHash]--;
                     break;
                 }
 
-                if (index == numberOfTokens - 1) {
-                    revert ("Token not found.");
+                if (index == numberOfTokens[lawHash] - 1) {
+                    revert("Token not found.");
                 }
             }
             emit TokensArray__TokenRemoved(tokenAddress, tokenType);

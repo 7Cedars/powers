@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi. 
+/// @notice Natspecs are tbi.
 ///
 /// @author 7Cedars
 
@@ -25,56 +25,63 @@ import { LawUtilities } from "../../LawUtilities.sol";
 
 contract StringsArray is Law {
     // the state vars that this law manages: community strings.
-    string[] public strings;
-    uint256 public numberOfStrings;
+    mapping(bytes32 lawHash => string[] strings) public strings;
+    mapping(bytes32 lawHash => uint256 numberOfStrings) public numberOfStrings;
 
     event StringsArray__StringAdded(string str);
     event StringsArray__StringRemoved(string str);
 
-    constructor(
-        string memory name_,
-        string memory description_,
-        address payable powers_,
-        uint256 allowedRole_,
-        LawUtilities.Conditions memory config_
-    ) Law(name_, powers_, allowedRole_, config_) {
-        bytes memory params = abi.encode(
-            "string String", 
-            "bool Add"
-            );
-        emit Law__Initialized(address(this), name_, description_, powers_, allowedRole_, config_, params);
+    constructor(string memory name_) Law(name_) {
+        emit Law__Deployed(name_, "");
     }
 
-    function handleRequest(address /*caller*/, bytes memory lawCalldata, uint256 nonce)
+    function initializeLaw(
+        uint16 index,
+        Conditions memory conditions,
+        bytes memory config,
+        bytes memory inputParams,
+        string memory description
+    ) public override {
+        inputParams = abi.encode("string String", "bool Add");
+        super.initializeLaw(index, conditions, config, inputParams, description);
+    }
+
+    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
-        actionId = LawUtilities.hashActionId(address(this), lawCalldata, nonce);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 
-    function _changeState(bytes memory stateChange) internal override {
-        (string memory str, bool add) = abi.decode(stateChange, (string, bool));  
+    function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
+        (string memory str, bool add) = abi.decode(stateChange, (string, bool));
 
         if (add) {
-            strings.push(str);
-            numberOfStrings++;
+            strings[lawHash].push(str);
+            numberOfStrings[lawHash]++;
             emit StringsArray__StringAdded(str);
-        } else if (numberOfStrings == 0) {
-            revert ("String not found.");
+        } else if (numberOfStrings[lawHash] == 0) {
+            revert("String not found.");
         } else {
-            for (uint256 index; index < numberOfStrings; index++) {
-                if (keccak256(bytes(strings[index])) == keccak256(bytes(str))) {
-                    strings[index] = strings[numberOfStrings - 1];
-                    strings.pop();
-                    numberOfStrings--;
+            for (uint256 index; index < numberOfStrings[lawHash]; index++) {
+                if (keccak256(bytes(strings[lawHash][index])) == keccak256(bytes(str))) {
+                    strings[lawHash][index] = strings[lawHash][numberOfStrings[lawHash] - 1];
+                    strings[lawHash].pop();
+                    numberOfStrings[lawHash]--;
                     break;
                 }
 
-                if (index == numberOfStrings - 1) {
-                    revert ("String not found.");
+                if (index == numberOfStrings[lawHash] - 1) {
+                    revert("String not found.");
                 }
             }
             emit StringsArray__StringRemoved(str);
