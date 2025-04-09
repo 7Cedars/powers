@@ -14,6 +14,7 @@ export function SectionUsecases() {
   const { organisations, status, fetchOrgs, initialise } = useOrganisations()
 
   console.log("@usecases:", {organisations})
+  console.log("@usecases, status:", {status})
 
   useEffect(() => {
     initialise()
@@ -32,7 +33,7 @@ export function SectionUsecases() {
         </div>
 
         {/* info blocks */}
-        <section className="h-fit flex flex-wrap gap-4 max-w-6xl justify-center items-start">  
+        <section className="h-full flex flex-wrap gap-4 max-w-6xl justify-center items-start">  
             { organisations ?
               useCases.map((useCase, index) => (
                     <div className="w-72 min-h-64 h-fit flex flex-col justify-start items-start border border-slate-300 rounded-md bg-slate-50 overflow-hidden" key={index}>  
@@ -60,16 +61,16 @@ export function SectionUsecases() {
                     </div>
               ))
               : 
-              <div className="w-full h-fit flex flex-col justify-center items-center">
-                <button 
-                  className="py-2 w-12 h-full flex justify-center items-center text-center aria-selected:animate-spin"
-                  onClick = {() => fetchOrgs()}
-                  >
-                      <ArrowPathIcon
-                        className="w-4 h-4 text-slate-500 aria-selected:animate-spin"
-                        aria-selected={status == 'pending'}
-                      />
-                  </button>
+              <div className="w-64 grow h-full flex flex-col justify-center items-center">
+                 <button  className="h-fit w-full flex flex-row justify-between items-center border border-slate-300 bg-slate-50 hover:border-slate-600 rounded-md p-4 text-slate-700"
+                          onClick = {() => fetchOrgs()}
+                          >
+                          Fetch use cases
+                          <ArrowPathIcon
+                            className="w-5 h-5 text-slate-700 aria-selected:animate-spin"
+                            aria-selected={status == 'pending'}
+                          />
+                </button>
               </div>
             }
         </section>

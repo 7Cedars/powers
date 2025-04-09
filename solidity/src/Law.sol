@@ -141,7 +141,7 @@ abstract contract Law is ERC165, ILaw {
     }
 
     /// @notice Sends execution data back to Powers protocol
-    /// @dev Must be overridden by implementing contracts
+    /// @dev cannot be overridden by implementing contracts. 
     /// @param lawId The law id of the proposal
     /// @param actionId The action id of the proposal
     /// @param targets Target contract addresses for calls
@@ -153,9 +153,9 @@ abstract contract Law is ERC165, ILaw {
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas
-    ) internal virtual {
+    ) internal {
         // Base implementation: send data back to Powers protocol
-        // this implementation can be overwritten with any kind of bespoke logic.
+        // note that it cannot be overridden by implementing contracts. The exact data returned by handleRequest is returned to Powers.
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         IPowers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
@@ -198,6 +198,10 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return conditionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
+    }
+
+    function getExecutions(uint16 lawId) public view returns (Executions memory executions) {
+        return executionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
     }
 
     //////////////////////////////////////////////////////////////
