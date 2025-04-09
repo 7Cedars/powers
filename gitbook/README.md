@@ -98,6 +98,8 @@ For a detailed diagram of how Powers.sol and Law.sol structure governance flows 
 
 ## Use Cases&#x20;
 
+Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. Consider the following use cases.&#x20;
+
 <details>
 
 <summary>Managing grant programs in an existing on-chain organisation.  </summary>
