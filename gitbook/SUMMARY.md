@@ -57,17 +57,6 @@
   * [Erc20Deposits.sol](deployed-laws/state-laws/erc20deposits.sol.md)
   * [Grant.sol](deployed-laws/state-laws/grant.sol.md)
 
-## Use cases
-
-* [Powers 101](use-cases/basic-dao.md)
-* [Community of DAOs](use-cases/community-of-daos.md)
-* [Govern Your Grants](use-cases/govern-your-tax.md)
-* [AI + Humans](use-cases/ai-+-humans.md)
-* [Modular rights](use-cases/modular-rights.md)
-* [Powers to Hats](use-cases/powers-to-hats.md)
-* [Hybrid Dao](use-cases/aligned-dao.md)
-* [Tokenomics](use-cases/tokenomics.md)
-
 ## Integrations
 
 * [Existing DAOs](integrations/existing-daos.md)

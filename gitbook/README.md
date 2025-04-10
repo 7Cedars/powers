@@ -90,11 +90,13 @@ Together, Powers and Laws allow communities to build any governance structure th
 
 The result can be something like this:&#x20;
 
-<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
 
-By configuring and adopting laws, it is possible to define the mechanisms through which a role is assigned, the power it has, how roles check and balance each other, and under what conditions this can change. Laws can be used to whitelist actions on a role by role basis or they can be combined in governance chains to create granular checks and balances to the power of roles to execute actions.&#x20;
+This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/#usecases) on Arbitrum sepolia.
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
+
+In essence, by adopting laws an on-chain community creates the legal system that will govern interactions its internal and external interactions. This legal system can be very simple, it cal also be very complex.&#x20;
 
 ## Use Cases&#x20;
 
@@ -102,9 +104,37 @@ Introducing the ability to role restrict governance flows solves several common 
 
 <details>
 
+<summary>Enforcing decentralization of power.  </summary>
+
+**Problem:** Many decision-making processes in on-chain organisations are highly centralized. Either token based voting is dominated by a small number of whales, or a multisig controls all crucial decision-making or a foundation has been set up to govern day-to-day actions for a community. It goes against one of the central aims of organizing on-chain: decentralization.      &#x20;
+
+**Solution:** The Powers protocol allows for the creation of mechanisms that check and balance powers between roles. For example, we can create a governance chain where an action proposed by one role, can be vetoed by another and only executed by a third. This is a well known, and effective, way of addressing centralization of power in communities. The most famous example is the separation of powers between legislature, judiciary and executive in traditional countries. &#x20;
+
+**Implementation:** Because Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if the same calldata and nonce have been executed at another law instance. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law.&#x20;
+
+In its most basic implementation, we allow one role to only have the power to propose an action, another to only execute a (previously proposed) action and a third to veto this action. See the [Powers 101](https://powers-protocol.vercel.app/#usecases) example mentioned above.
+
+</details>
+
+<details>
+
+<summary>Upgrading an on-chain organisation.</summary>
+
+**Problem:** Any community or organisation evolves over time. It implies that governance is modular and flexible. As it stands now, most governance setups are anything but flexible. They require extensive changes to be transformed. It leads postponed transitions, which in turn leads to frustration among community members and eventual disengagement.&#x20;
+
+**Solution:** The Powers protocol allows for modular and governed upgradability. Powers.sol does not manage the state of a community: saving the core values of a community, nominees for an election, or any other state is done in laws that can be adopted or revoked. As a community can adopt and revoke laws through its governance system, it allows communities to completely transform their governance structure.&#x20;
+
+**Implementation:** A governance chain that allows for the adoption and revoking of laws. This chain can be setup as permissive or restrictive as needed. It can also be completely absent, which means that the governance system is immutable.
+
+Example: See \[TBI] as an example on-chain organisation with a governed upgradable governance system. &#x20;
+
+</details>
+
+<details>
+
 <summary>Managing grant programs in an existing on-chain organisation.  </summary>
 
-**Problem:** Here description of problem.&#x20;
+**Problem:** A common issue in on-chain organisations is how to manage assets that are distributed to parties after they have been allocated. This often happens in the case of grants: a general area needs to be supported (say protocol development) and an amount of assets is set aside for this goal. But then several complexities arise: who is going to decide who can receive a grant, how to assess if recipients have created promised product, how to retract funding if not, and what to do with money that has not been spent? &#x20;
 
 **Solution:** A high level description of solution.
 
@@ -116,7 +146,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 <details>
 
-<summary>Upgrading an on-chain organisation.</summary>
+<summary>Defend against governance vote capture. </summary>
 
 **Problem:** Here description of problem.&#x20;
 
@@ -156,19 +186,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 </details>
 
-<details>
 
-<summary>Defend against governance vote capture. </summary>
-
-**Problem:** Here description of problem.&#x20;
-
-**Solution:** A high level description of solution.
-
-**Implementation:** Law setup to make this work.
-
-**Example:** link to deployed example in app. &#x20;
-
-</details>
 
 ## Governance sandbox
 
