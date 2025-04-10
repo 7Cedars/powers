@@ -96,7 +96,7 @@ This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/#usecase
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
-In essence, by adopting laws an on-chain community creates the legal system that will govern interactions its internal and external interactions. This legal system can be very simple, it cal also be very complex.&#x20;
+In essence, by adopting laws an on-chain community creates the legal system that will govern its internal and external interactions. This legal system can be simple, it cal also be very complex.&#x20;
 
 ## Use Cases&#x20;
 
