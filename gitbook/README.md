@@ -96,97 +96,77 @@ This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/#usecase
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
-In essence, by adopting laws an on-chain community creates the legal system that will govern its internal and external interactions. This legal system can be simple, it cal also be very complex.&#x20;
-
 ## Use Cases&#x20;
 
 Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. Consider the following use cases.&#x20;
 
 <details>
 
-<summary>Enforcing decentralization of power.  </summary>
+<summary>Decentralize power in an on-chain organization.  </summary>
 
-**Problem:** Many decision-making processes in on-chain organisations are highly centralized. Either token based voting is dominated by a small number of whales, or a multisig controls all crucial decision-making or a foundation has been set up to govern day-to-day actions for a community. It goes against one of the central aims of organizing on-chain: decentralization.      &#x20;
+**Problem:** Many decision-making processes in on-chain organisations are highly centralized. Either token based voting is dominated by a small number of whales, or a multisig controls all crucial decision-making or a foundation has been set up to govern day-to-day actions for a community. It goes against one of the central aims of organizing on-chain - decentralization - and makes governance susceptible to vote capture.&#x20;
 
 **Solution:** The Powers protocol allows for the creation of mechanisms that check and balance powers between roles. For example, we can create a governance chain where an action proposed by one role, can be vetoed by another and only executed by a third. This is a well known, and effective, way of addressing centralization of power in communities. The most famous example is the separation of powers between legislature, judiciary and executive in traditional countries. &#x20;
 
 **Implementation:** Because Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if the same calldata and nonce have been executed at another law instance. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law.&#x20;
 
-In its most basic implementation, we allow one role to only have the power to propose an action, another to only execute a (previously proposed) action and a third to veto this action. See the [Powers 101](https://powers-protocol.vercel.app/#usecases) example mentioned above.
+In its most basic implementation, we allow one role to only have the power to propose an action, another to only execute a (previously proposed) action and a third to veto this action. See the [Powers 101](https://powers-protocol.vercel.app/#usecases) example mentioned above. &#x20;
 
 </details>
 
 <details>
 
-<summary>Upgrading an on-chain organisation.</summary>
+<summary>Upgrade an existing DAO.</summary>
 
-**Problem:** Any community or organisation evolves over time. It implies that governance is modular and flexible. As it stands now, most governance setups are anything but flexible. They require extensive changes to be transformed. It leads postponed transitions, which in turn leads to frustration among community members and eventual disengagement.&#x20;
+**Problem:** How to upgrade an existing DAO? Many of the most popular governance protocols are hard, if not impossible, to adapt. Is it possible to integrate the Powers protocol into existing governance flow of a DAO?&#x20;
 
-**Solution:** The Powers protocol allows for modular and governed upgradability. Powers.sol does not manage the state of a community: saving the core values of a community, nominees for an election, or any other state is done in laws that can be adopted or revoked. As a community can adopt and revoke laws through its governance system, it allows communities to completely transform their governance structure.&#x20;
+**Solution:** Yes. The Powers protocol can be integrated into existing DAOs. Even better, the extent that a community is governed through an existing protocol or Powers can be changed over time by adopting and revoking laws. In other words, the Powers protocol provides a flexible, modular and governed process for upgrading on-chain communities. This ability also allows for a gradual transformation of an existing DAO to one governed by Powers.
 
-**Implementation:** A governance chain that allows for the adoption and revoking of laws. This chain can be setup as permissive or restrictive as needed. It can also be completely absent, which means that the governance system is immutable.
+**Implementation:** Two things are needed. First, a role has to be designated to the existing DAO. Second, a governance chain needs to be implemented that allows for the adoption and revoking of laws. This chain can be setup as permissive or restrictive as needed, but the existing DAO should probably have the final say if a law will or will not be revoked or adopted.&#x20;
 
-Example: See \[TBI] as an example on-chain organisation with a governed upgradable governance system. &#x20;
+With this setup, it is possible to start out with very few (or no) assets in the new Powers protocol and start setting up a number of tasks governed by Powers. As confidence in the protocol grows, more assets can be sent to the protocol, and new tasks and roles can be added. The transition is complete when all stakeholders and tasks from the previous DAO are represented in the new Powers governance system and all assets have been transferred. The existing DAO can then be removed as role holder.&#x20;
 
-</details>
-
-<details>
-
-<summary>Managing grant programs in an existing on-chain organisation.  </summary>
-
-**Problem:** A common issue in on-chain organisations is how to manage assets that are distributed to parties after they have been allocated. This often happens in the case of grants: a general area needs to be supported (say protocol development) and an amount of assets is set aside for this goal. But then several complexities arise: who is going to decide who can receive a grant, how to assess if recipients have created promised product, how to retract funding if not, and what to do with money that has not been spent? &#x20;
-
-**Solution:** A high level description of solution.
-
-**Implementation:** Law setup to make this work.
-
-**Example:** link to deployed example in app.   &#x20;
+**Example:** See \[TBI] as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder. &#x20;
 
 </details>
 
 <details>
 
-<summary>Defend against governance vote capture. </summary>
+<summary>Manage a grant program.   </summary>
 
-**Problem:** Here description of problem.&#x20;
+**Problem:** A common issue in on-chain organisations is how to decentralize powers without weakening accountability. A classic example of this are grant programs: A DAO decides to allocate assets in support for a particular goal (say support protocol development), but the power to decide who actually gets this money is left with several representatives of the organisation. As it stands, this means transferring the assets to a new, separate, protocol that manages the allocation of assets.&#x20;
 
-**Solution:** A high level description of solution.
+This brings a whole set of new challenges around accountability: how to hold DAO representatives to account if the misbehave, how to hold grant recipients to account for meeting targets and, in the most extreme case, how to stop a program and get money back if it is clear that it does not achieve its intended aim? Solving these issues involves a lot of overhead and legal wrangling because, as it stands now, these different tasks are managed by different protocols. Also, many solutions bring in a serious centralization of power. See for instance the Hats protocol. &#x20;
 
-**Implementation:** Law setup to make this work.
+**Solution:** Use a role restricted governance protocol. Combining laws and roles, asset allocation can be managed within a DAO, or with full oversight by a DAO.&#x20;
 
-**Example:** link to deployed example in app. &#x20;
+**Implementation:** As Powers allows to define responsibilities precisely, it is straightforward to define a 'grant' law is only accessible to council members and gives access to, say, 50 ETH. It can then be made conditional on a proposal made by an applicant and a majority vote among council members. If the grant does not have the intended impact, the law can be revoked. Any designated ether will automatically remain in the community.&#x20;
 
-</details>
+Note that this also means that all decisions made by the grant council will be logged, increasing transparency greatly. It is also possible to implement procedures to challenge grant council decisions, to create representation of grant recipients in the DAO, and more. &#x20;
 
-<details>
-
-<summary>Combining on- and off-chain governance.</summary>
-
-**Problem:** Here description of problem.&#x20;
-
-**Solution:** A high level description of solution.
-
-**Implementation:** Law setup to make this work.
-
-**Example:** link to deployed example in app. &#x20;
+**Example:** See \[TBI] as an example of a grant program governed by the Powers protocol. &#x20;
 
 </details>
 
 <details>
 
-<summary>Ring fencing AI agents powers in managing assets.</summary>
+<summary>Integrate off-chain context into on-chain accounts.  </summary>
 
-**Problem:** Here description of problem.&#x20;
+**Problem:** Accounts do not have context, but members of a community do. This creates several concrete challenges in on-chain organisations: how to deal with the plurality of legal regimes in which community members live? How to deal with accounts that are not human, such as institutions and AI agents? How do we attest members using off-chain data? We somehow need to bring in off-chain context to realize the promises of on-chain governance.    &#x20;
 
-**Solution:** A high level description of solution.
+**Solution:** The above problems point to the use of oracles: these are a type of service used to bring off-chain data into on-chain smart contracts. The crucial challenge of these services is that they are asynchronous: the do not return data in the same block that it was requested. What is needed, in short, is a seamless way to integrate asynchronous services into governance processes.
 
-**Implementation:** Law setup to make this work.
+The Powers protocol supports async services out of the box.  &#x20;
 
-**Example:** link to deployed example in app. &#x20;
+**Implementation:** There are several implementations for different specific problems:
+
+* We can randomize the allocation of roles to accounts. Similar to how citizens are called on for jury duty in the USA. &#x20;
+* We can create a law that designates roles to accounts depending on the country of residence of the human that owns the account.
+* We can create a law that in which an AI agent assesses if a proposal should pass or not.  &#x20;
+
+**Example:** See \[TBI] as an example of a grant program governed by the Powers protocol. &#x20;
 
 </details>
-
-
 
 ## Governance sandbox
 
