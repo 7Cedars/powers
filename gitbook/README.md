@@ -31,12 +31,12 @@ The Powers protocol consists of two elements: Powers and Laws.
 
 ### ⚡ Powers
 
-`Powers.sol` is the engine of the protocol that manages governance flows. It should be deployed as is and has the following functionalities:
+`Powers.sol` is the engine of the protocol that manages governance flows. It has the following functionalities:
 
 * Executing actions.
 * Proposing actions.
 * Voting on proposals.
-* Assigning, revoking and labelling roles.
+* Assigning, revoking and labeling roles.
 * Adopting and revoking laws.
 
 In addition there is a `constitute` function that allows adopting multiple laws at once. This function can only be called by the admin, and only once.
@@ -53,32 +53,33 @@ The governance flow is defined by the following restrictions:
 
 ### 📜 Laws
 
-Laws define under which conditions a role is allowed to execute what actions.
+Laws define under what conditions a role is allowed to execute which actions.
 
 Example:
 
-> Any account that has been assigned a 'senior' role can propose to mint tokens at contract X, but the proposal will only be accepted if 20 percent of all seniors vote in favour.
+> Any account that has been assigned a 'senior' role can propose to mint tokens at contract X, but the proposal will only be accepted if 20 percent of all seniors vote in favor.
 
-Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once: they can be re-used by Powers.sol instances.&#x20;
+Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once. One law can be adopted by multiple Powers.sol instances.&#x20;
 
 Laws have the following functionalities:
 
 * They are role restricted by a single role.
-* They are linked to a single `Powers.sol` deployment.
 * They have multiple (optional) checks.
-* They have a function `executeLaw` that can only be called by their `Powers.sol` deployment.
+* They have an `executeLaw` function.
 * They can save a state.
 * They can return three arrays to the Powers contract: targets laws, values and function calls.
+* All functionalities are restricted along the `Powers.sol` deployment that adopted the law.
 
-Many elements of laws can be changed: the input parameters, the function call that is returned, which checks need to pass, what state (if any) is saved. Pretty much anything is possible. Laws are the meat on the bones provided by Powers engine.
+Many elements of laws can be changed: the input parameters, the function call that is returned, which checks need to pass, what state (if any) is saved. All these changes are specific to the Powers protocol that adopted the law. Laws are the meat on the bones provided by Powers engine.
 
 What is not flexible, is how Powers interacts with a law. This is done through the `executeLaw` function. When this function is called, the function:
 
-1. Runs the checks
-2. Decodes input calldata.
-3. Computes return function calls and state change. This can include running additional checks.
-4. Saves any state change to the law.
-5. Returns the computed function call to Powers for execution.
+1. Decodes the Powers deployment that calls the law.&#x20;
+2. Runs the checks.&#x20;
+3. Decodes input calldata.
+4. Computes return function calls and state change. This can include running additional checks.
+5. Saves any state change to the law.
+6. Returns the computed function call to the Powers deployment for execution.
 
 {% content-ref url="for-developers/law.sol/" %}
 [law.sol](for-developers/law.sol/)
