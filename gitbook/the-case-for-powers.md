@@ -4,6 +4,8 @@ description: Embrace the powers of decentralisation, efficiency and security.
 
 # The case for Powers
 
+🚧 **This page is incomplete.** 🚧
+
 ## The power of Powers
 
 Text here&#x20;
