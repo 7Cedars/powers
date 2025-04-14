@@ -15,13 +15,12 @@
   * [Adopting and revoking laws](for-developers/powers.sol/adopting-and-revoking-laws.md)
   * [Constitute a new community](for-developers/powers.sol/constitute-a-new-community.md)
 * [Law.sol](for-developers/law.sol/README.md)
-  * [Setting up a new law](for-developers/law.sol/setting-up-a-new-law.md)
   * [Execute a law](for-developers/law.sol/execute-a-law.md)
   * [Handle a request](for-developers/law.sol/simulate-a-law.md)
   * [Run checks](for-developers/law.sol/run-checks-when-proposing-an-action.md)
   * [Change state](for-developers/law.sol/change-state.md)
   * [Reply to Powers](for-developers/law.sol/reply-to-powers.md)
-  * [ParamsInput & StateVars](for-developers/law.sol/paramsinput-and-statevars.md)
+  * [Setting up a new law](for-developers/law.sol/setting-up-a-new-law.md)
 * [Deploy Community Governance](for-developers/deploy-community-governance.md)
 
 ## Deployed Laws

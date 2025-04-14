@@ -1,5 +1,7 @@
 # Deploy Community Governance
 
+🚧 **This page is incomplete and outdated.** 🚧
+
 ## Deployment sequence
 
 Deploying an organization unfolds in four steps.
