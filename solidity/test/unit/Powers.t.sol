@@ -7,7 +7,7 @@ import { Law } from "../../src/Law.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
-import { DaoMock } from "../mocks/DaoMock.sol";
+import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
 /// @notice Unit tests for the core Separated Powers protocol.
@@ -17,8 +17,8 @@ import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 //               CONSTRUCTOR & RECEIVE                      //
 //////////////////////////////////////////////////////////////
 contract DeployTest is TestSetupPowers {
-    function testDeployDaoMock() public {
-        assertEq(daoMock.name(), "DaoMock");
+    function testDeployPowersMock() public {
+        assertEq(daoMock.name(), "PowersMock");
         assertEq(daoMock.version(), "0.3");
         assertNotEq(daoMock.lawCount(), 0);
 
@@ -39,28 +39,28 @@ contract DeployTest is TestSetupPowers {
     function testDeployProtocolEmitsEvent() public {
         vm.expectEmit(true, false, false, false);
 
-        emit Powers__Initialized(address(daoMock), "DaoMock", "https://example.com");
+        emit Powers__Initialized(address(daoMock), "PowersMock", "https://example.com");
         vm.prank(alice);
-        daoMock = new DaoMock();
+        daoMock = new PowersMock();
     }
 
     function testDeployProtocolSetsSenderToAdmin() public {
         vm.prank(alice);
-        daoMock = new DaoMock();
+        daoMock = new PowersMock();
 
         assertNotEq(daoMock.hasRoleSince(alice, ADMIN_ROLE), 0);
     }
 
     function testDeployProtocolSetsPublicRole() public {
         vm.prank(alice);
-        daoMock = new DaoMock();
+        daoMock = new PowersMock();
 
         assertEq(daoMock.getAmountRoleHolders(PUBLIC_ROLE), type(uint256).max);
     }
 
     function testDeployProtocolSetsAdminRole() public {
         vm.prank(alice);
-        daoMock = new DaoMock();
+        daoMock = new PowersMock();
 
         assertEq(daoMock.getAmountRoleHolders(ADMIN_ROLE), 1);
     }
@@ -728,7 +728,7 @@ contract ConstituteTest is TestSetupPowers {
         (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
-        DaoMock daoMockTest = new DaoMock();
+        PowersMock daoMockTest = new PowersMock();
 
         // prep: create new LawInitData[]
         LawInitData[] memory lawInitData = new LawInitData[](1);
@@ -754,7 +754,7 @@ contract ConstituteTest is TestSetupPowers {
         (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
-        DaoMock daoMockTest = new DaoMock();
+        PowersMock daoMockTest = new PowersMock();
 
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
@@ -777,7 +777,7 @@ contract ConstituteTest is TestSetupPowers {
         (, address[] memory lawAddresses) = deployLaws.run();
 
         vm.prank(alice);
-        DaoMock daoMockTest = new DaoMock();
+        PowersMock daoMockTest = new PowersMock();
 
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
@@ -878,7 +878,7 @@ contract SetLawTest is TestSetupPowers {
         address newLaw = address(new OpenAction("test law"));
 
         vm.prank(alice);
-        DaoMock daoMockTest = new DaoMock();
+        PowersMock daoMockTest = new PowersMock();
 
         // prep: create LawInitData
         LawInitData memory lawInitData = LawInitData({

@@ -8,7 +8,7 @@ import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
-import { DaoMock } from "./DaoMock.sol";
+import { PowersMock } from "./PowersMock.sol";
 import { BaseSetup } from "../TestSetup.t.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
 

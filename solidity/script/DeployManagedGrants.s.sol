@@ -1,5 +1,43 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.26;
+// SPDX-License-Identifier: MIT
+
+///////////////////////////////////////////////////////////////////////////////
+/// This program is free software: you can redistribute it and/or modify    ///
+/// it under the terms of the MIT Public License.                           ///
+///                                                                         ///
+/// This is a Proof Of Concept and is not intended for production use.      ///
+/// Tests are incomplete and it contracts have not been audited.            ///
+///                                                                         ///
+/// It is distributed in the hope that it will be useful and insightful,    ///
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+/// @title Deploy script Managed Grants
+/// @notice Managed Grants is a simple example of a DAO. It acts as an introductory example of grant management using the Powers protocol. 
+/// 
+/// This example needs: (use AI to generate the laws)
+/// Executive laws: 
+/// - A law to start and stop grants. 
+/// - A law that allows community members to request grants. 
+/// - A law that allows allocators to assign grants to grant requests. 
+/// - A law to challenge (and revoke) a decision by allocators.
+
+/// Electoral laws: (possible roles: allocator, judge, community member, delegate)
+/// - a law to self select as community member. Access role: public.
+/// - a law to nominate oneself for a judge role. Access role: public.
+/// - a law to assign a judge role to a nominated account. Access role: delegate, using majority vote.
+/// - a law to remove a judge. Access role: delegate, using majority vote.
+/// - a law to nominate oneself for a delegate role. Access role: public.
+/// - a law to assign a delegate role to a nominated account. Access role: delegate, using delegate election vote.
+/// - a law to nominate oneself for an allocator role. Access role: public.
+/// - a law to assign  or revoke allocator role to a nominated account. Access role: delegate, using majority vote.
+/// 
+
+/// @author 7Cedars
+
+/// NB: This example is not complete and needs to be completely revised. 
+
+pragma solidity 0.8.26;
 
 // import "lib/forge-std/src/Script.sol";
 // import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -33,7 +71,7 @@
 // // borrowing one law from another bespoke folder. Not ideal, but ok for now.
 // import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
 
-// // mocks
+// mocks
 // import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 // import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 // import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
