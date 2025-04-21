@@ -15,13 +15,12 @@
   * [Adopting and revoking laws](for-developers/powers.sol/adopting-and-revoking-laws.md)
   * [Constitute a new community](for-developers/powers.sol/constitute-a-new-community.md)
 * [Law.sol](for-developers/law.sol/README.md)
-  * [Setting up a new law](for-developers/law.sol/setting-up-a-new-law.md)
   * [Execute a law](for-developers/law.sol/execute-a-law.md)
   * [Handle a request](for-developers/law.sol/simulate-a-law.md)
   * [Run checks](for-developers/law.sol/run-checks-when-proposing-an-action.md)
   * [Change state](for-developers/law.sol/change-state.md)
   * [Reply to Powers](for-developers/law.sol/reply-to-powers.md)
-  * [ParamsInput & StateVars](for-developers/law.sol/paramsinput-and-statevars.md)
+  * [Setting up a new law](for-developers/law.sol/setting-up-a-new-law.md)
 * [Deploy Community Governance](for-developers/deploy-community-governance.md)
 
 ## Deployed Laws
@@ -56,17 +55,6 @@
   * [TokensArray.sol](example-laws/state-laws/tokensarray.sol.md)
   * [Erc20Deposits.sol](deployed-laws/state-laws/erc20deposits.sol.md)
   * [Grant.sol](deployed-laws/state-laws/grant.sol.md)
-
-## Use cases
-
-* [Powers 101](use-cases/basic-dao.md)
-* [Community of DAOs](use-cases/community-of-daos.md)
-* [Govern Your Grants](use-cases/govern-your-tax.md)
-* [AI + Humans](use-cases/ai-+-humans.md)
-* [Modular rights](use-cases/modular-rights.md)
-* [Powers to Hats](use-cases/powers-to-hats.md)
-* [Hybrid Dao](use-cases/aligned-dao.md)
-* [Tokenomics](use-cases/tokenomics.md)
 
 ## Integrations
 

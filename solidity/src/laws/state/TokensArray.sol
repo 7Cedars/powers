@@ -41,7 +41,9 @@ contract TokensArray is Law {
     event TokensArray__TokenAdded(address indexed tokenAddress, TokenType tokenType);
     event TokensArray__TokenRemoved(address indexed tokenAddress, TokenType tokenType);
 
-    constructor(string memory name_) Law(name_) {
+    constructor(string memory name_) {
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         emit Law__Deployed(name_, "");
     }
 

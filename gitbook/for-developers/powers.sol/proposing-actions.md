@@ -1,17 +1,19 @@
 # Proposing actions
 
-Describe basic functionality.&#x20;
+🚧 **This page is incomplete.** 🚧
 
-Explain why we have this functionality. When it can / should be used.  &#x20;
+Describe basic functionality.
+
+Explain why we have this functionality. When it can / should be used.
 
 ## Usage (specific title tbi)
 
-Explain how the functionality is used in practice&#x20;
+Explain how the functionality is used in practice
 
 ## Mechanism (specific title tbi)
 
-Explain how the functionality is implemented under the hood.&#x20;
+Explain how the functionality is implemented under the hood.
 
-## Additional considerations (specific title tbi)&#x20;
+## Additional considerations (specific title tbi)
 
-Highlight gothcha's that are important to realise.&#x20;
+Highlight gothcha's that are important to realise.

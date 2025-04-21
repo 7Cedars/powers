@@ -38,7 +38,7 @@ import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspec
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
-contract Law is ERC165, ILaw {
+abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
@@ -48,24 +48,8 @@ contract Law is ERC165, ILaw {
     mapping(bytes32 lawHash => Executions) public executionsLaws;
 
     //////////////////////////////////////////////////////////////
-    //                   CONSTRUCTOR                            //
-    //////////////////////////////////////////////////////////////
-    /// @notice Constructor for the Law contract
-    /// @param name_ The name of the law. It has to fit in one storage slot. (this way it will be saved as a short string)
-    constructor(string memory name_) {
-        if (bytes(name_).length < 1) {
-            revert Law__EmptyNameNotAllowed();
-        }
-        if (bytes(name_).length > 31) {
-            revert Law__StringTooLong();
-        }
-        name = name_;
-    }
-
-    //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
-
     // note this is an unrestricted function. Anyone can initialize a law. 
     function initializeLaw(
         uint16 index,
@@ -157,7 +141,7 @@ contract Law is ERC165, ILaw {
     }
 
     /// @notice Sends execution data back to Powers protocol
-    /// @dev Must be overridden by implementing contracts
+    /// @dev cannot be overridden by implementing contracts. 
     /// @param lawId The law id of the proposal
     /// @param actionId The action id of the proposal
     /// @param targets Target contract addresses for calls
@@ -169,9 +153,9 @@ contract Law is ERC165, ILaw {
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas
-    ) internal virtual {
+    ) internal {
         // Base implementation: send data back to Powers protocol
-        // this implementation can be overwritten with any kind of bespoke logic.
+        // note that it cannot be overridden by implementing contracts. The exact data returned by handleRequest is returned to Powers.
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         IPowers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
@@ -214,6 +198,10 @@ contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return conditionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
+    }
+
+    function getExecutions(uint16 lawId) public view returns (Executions memory executions) {
+        return executionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
     }
 
     //////////////////////////////////////////////////////////////

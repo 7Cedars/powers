@@ -42,7 +42,9 @@ contract VoteOnNominees is Law {
 
     event VoteOnNominees__VoteCast(address voter);
 
-    constructor(string memory name_) Law(name_) {
+    constructor(string memory name_) {
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         bytes memory configParams = abi.encode("uint48 startVote", "uint48 endVote");
         emit Law__Deployed(name_, configParams);
     }

@@ -39,7 +39,9 @@ contract NominateMe is Law {
     event NominateMe__NominationReceived(address indexed nominee);
     event NominateMe__NominationRevoked(address indexed nominee);
 
-    constructor(string memory name_) Law(name_) {
+    constructor(string memory name_) {
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         emit Law__Deployed(name_, "");
     }
 

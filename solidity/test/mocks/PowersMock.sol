@@ -4,8 +4,8 @@ pragma solidity 0.8.26;
 import { Powers } from "../../src/Powers.sol";
 
 /// @notice Example DAO contract based on the Powers protocol.
-contract DaoMock is Powers {
+contract PowersMock is Powers {
     constructor()
-        Powers("DaoMock", "https://example.com") // name of the DAO.
+        Powers("PowersMock", "https://example.com") // name of the DAO.
     { }
 }

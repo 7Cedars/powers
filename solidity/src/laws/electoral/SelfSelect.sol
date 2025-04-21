@@ -36,7 +36,9 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract SelfSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
-    constructor(string memory name_) Law(name_) {
+    constructor(string memory name_) {
+        LawUtilities.checkStringLength(name_);
+        name = name_;
         bytes memory configParams = abi.encode("uint256 RoleId");
 
         emit Law__Deployed(name_, configParams);

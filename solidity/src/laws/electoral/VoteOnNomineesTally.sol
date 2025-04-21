@@ -61,7 +61,7 @@
 //     constructor(
 //         string memory name_,
 //         string memory description_
-//     ) Law(name_) {
+//     ) {
 
 //         emit Law__Deployed(name_, "");
 //     }

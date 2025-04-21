@@ -18,7 +18,7 @@ import { HelperConfig } from "../script/HelperConfig.s.sol";
 import { PresetAction } from "../src/laws/executive/PresetAction.sol";
 
 // mocks
-import { DaoMock } from "./mocks/DaoMock.sol";
+import { PowersMock } from "./mocks/PowersMock.sol";
 import { Erc1155Mock } from "./mocks/Erc1155Mock.sol";
 import { Erc721Mock } from "./mocks/Erc721Mock.sol";
 import { Erc20VotesMock } from "./mocks/Erc20VotesMock.sol";
@@ -35,7 +35,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     // protocol and mocks
     Powers powers;
     HelperConfig helperConfig;
-    DaoMock daoMock;
+    PowersMock daoMock;
     DeployLaws deployLaws;
     ConstitutionsMock constitutionsMock;
     Erc1155Mock erc1155Mock;
@@ -256,7 +256,7 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         // deploy mocks
         erc1155Mock = new Erc1155Mock();
         erc20VotesMock = new Erc20VotesMock();
-        daoMock = new DaoMock();
+        daoMock = new PowersMock();
         deployLaws = new DeployLaws();
         constitutionsMock = new ConstitutionsMock();
 
@@ -296,7 +296,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
             nonce,
             "assigning roles"
         );
-        daoNames.push("DaoMock");
+        daoNames.push("PowersMock");
     }
 }
 
@@ -323,7 +323,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
             nonce, // empty calldata
             "assigning roles"
         );
-        daoNames.push("DaoMock");
+        daoNames.push("PowersMock");
     }
 }
 
@@ -352,7 +352,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
 // //             nonce,// empty calldata
 // //             "assigning roles"
 // //         );
-// //         daoNames.push("DaoMock");
+// //         daoNames.push("PowersMock");
 // //     }
 // // }
 
@@ -382,7 +382,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
 // //             nonce,// empty calldata
 // //             "assigning roles"
 // //         );
-// //         daoNames.push("DaoMock");
+// //         daoNames.push("PowersMock");
 // //     }
 // // }
 
@@ -407,7 +407,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
 // //             nonce,// empty calldata
 // //             "assigning roles"
 // //         );
-// //         daoNames.push("DaoMock");
+// //         daoNames.push("PowersMock");
 // //     }
 // // }
 

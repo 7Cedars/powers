@@ -38,12 +38,7 @@ interface LawErrors {
     /// @notice Emitted when a powers contract address is invalid.
     error Law__InvalidPowersContractAddress();
 
-    /// @notice Emitted when a name is empty.
-    error Law__EmptyNameNotAllowed();
-
-    /// @notice Emitted when a string is too long.
-    error Law__StringTooLong();
-
+    /// @notice Emitted when a parent law is not completed.
     error Law__ParentNotCompleted();
 
     /// @notice Emitted when a parent law is not completed.

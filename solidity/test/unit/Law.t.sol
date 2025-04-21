@@ -27,7 +27,7 @@ contract DeployTest is TestSetupLaw {
 
     function testDeployRevertsWithEmptyName() public {
         // act & assert: verify deployment reverts with empty name
-        vm.expectRevert(Law__EmptyNameNotAllowed.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__EmptyNameNotAllowed.selector);
         new OpenAction("");
     }
 
@@ -36,7 +36,7 @@ contract DeployTest is TestSetupLaw {
         string memory longName = "ThisNameIsWaaaaaayTooLongForALawName";
 
         // act & assert: verify deployment reverts with too long name
-        vm.expectRevert(Law__StringTooLong.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__StringTooLong.selector);
         new OpenAction(longName);
     }
 
