@@ -23,7 +23,7 @@ export function SectionDemos() {
     // min-w-[60vw]
     <>
     
-    <section className = "w-full  min-h-fit flex flex-col justify-between items-center snap-start px-4 pb-10"
+    <section className = "w-full  min-h-fit flex flex-col justify-between items-center snap-start px-4 pb-10 overflow-x-auto overflow-x-hidden"
       id="demos"
     > 
       <div className = "h-fit flex flex-col justify-center items-center min-h-60"> 

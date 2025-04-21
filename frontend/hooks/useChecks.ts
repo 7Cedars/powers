@@ -15,7 +15,6 @@ import { sepolia } from "@wagmi/core/chains";
 export const useChecks = () => {
   const organisation = useOrgStore(); 
   const action = useActionStore();
-  // note: I had a problem that zustand's lawStore did not update for some reason. Hence laws are handled as props.  
   const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({ // this needs to be dynamic, for use in different chains! £todo
     chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
   })
@@ -37,7 +36,7 @@ export const useChecks = () => {
                   abi: powersAbi,
                   address: organisation.contractAddress as `0x${string}`,
                   functionName: 'canCallLaw', 
-                  args: [wallets[0].address, law.law],
+                  args: [wallets[0].address, law.index],
                 })
           return result ? result as boolean : false
         } catch (error) {
@@ -52,7 +51,7 @@ export const useChecks = () => {
 
   const checkProposalExists = (description: string, calldata: `0x${string}`, law: Law) => {
     const selectedProposal = organisation?.proposals?.find(proposal => 
-      proposal.targetLaw == law.law && 
+      proposal.lawId == law.index && 
       proposal.executeCalldata == calldata && 
       proposal.description == description
     ) 
@@ -91,16 +90,16 @@ export const useChecks = () => {
   const checkDelayedExecution = (description: string, calldata: `0x${string}`, law: Law) => {
     // console.log("CheckDelayedExecution triggered")
     const selectedProposal = organisation?.proposals?.find(proposal => 
-      proposal.targetLaw === law.law && 
+      proposal.lawId == law.index && 
       proposal.executeCalldata === calldata && 
       proposal.description === description
     ) 
     // console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
-    const result = Number(selectedProposal?.voteEnd) + Number(law.config.delayExecution) < Number(blockNumber)
+    const result = Number(selectedProposal?.voteEnd) + Number(law.conditions.delayExecution) < Number(blockNumber)
     return result as boolean
   }
 
-  const fetchExecutions = async (lawAddress: `0x${string}`) => {
+  const fetchExecutions = async (lawId: bigint) => {
     if (publicClient) {
       try {
           if (organisation?.contractAddress) {
@@ -109,7 +108,7 @@ export const useChecks = () => {
               abi: powersAbi, 
               eventName: 'ActionRequested',
               fromBlock: supportedChain?.genesisBlock,
-              args: {targetLaw: lawAddress}
+              args: {lawId: lawId}
             })
             const fetchedLogs = parseEventLogs({
                         abi: powersAbi,
@@ -131,10 +130,10 @@ export const useChecks = () => {
   }
 
   const checkThrottledExecution = useCallback( async (law: Law) => {
-    const fetchedExecutions = await fetchExecutions(law.law)
+    const fetchedExecutions = await fetchExecutions(law.index)
 
     if (fetchedExecutions && fetchedExecutions.length > 0) {
-      const result = Number(fetchedExecutions[0].blockNumber) + Number(law.config.throttleExecution) < Number(blockNumber)
+      const result = Number(fetchedExecutions[0].blockNumber) + Number(law.conditions.throttleExecution) < Number(blockNumber)
       return result as boolean
     } else {
       return true
@@ -142,9 +141,9 @@ export const useChecks = () => {
   }, [])
 
   const checkNotCompleted = useCallback( 
-    async (description: string, calldata: `0x${string}`, lawAddress: `0x${string}`) => {
+    async (description: string, calldata: `0x${string}`, lawIndex: bigint) => {
       
-      const fetchedExecutions = await fetchExecutions(lawAddress)
+      const fetchedExecutions = await fetchExecutions(lawIndex)
       const selectedExecution = fetchedExecutions && fetchedExecutions.find(execution => execution.args?.description == description && execution.args?.lawCalldata == calldata)
 
       return selectedExecution == undefined; 
@@ -161,23 +160,23 @@ export const useChecks = () => {
         results[1] = await checkThrottledExecution(law)
         results[2] = await checkAccountAuthorised(law)
         results[3] = await checkProposalStatus(description, callData, [3, 4], law)
-        results[4] = await checkNotCompleted(description, callData, law.law)
-        results[5] = await checkNotCompleted(description, callData, law.config.needCompleted)
-        results[6] = await checkNotCompleted(description, callData, law.config.needNotCompleted)
+        results[4] = await checkNotCompleted(description, callData, law.index)
+        results[5] = await checkNotCompleted(description, callData, law.conditions.needCompleted)
+        results[6] = await checkNotCompleted(description, callData, law.conditions.needNotCompleted)
         results[7] = checkProposalExists(description, callData, law) != undefined
 
         // console.log("@fetchChecks: ", {results})
 
-        if (!results.find(result => !result) && law.config) {// check if all results have come through 
+        if (!results.find(result => !result) && law.conditions) {// check if all results have come through 
           let newChecks: Checks =  {
-            delayPassed: law.config.delayExecution == 0n ? true : results[0],
-            throttlePassed: law.config.throttleExecution == 0n ? true : results[1],
+            delayPassed: law.conditions.delayExecution == 0n ? true : results[0],
+            throttlePassed: law.conditions.throttleExecution == 0n ? true : results[1],
             authorised: results[2],
-            proposalExists: law.config.quorum == 0n ? true : results[7],
-            proposalPassed: law.config.quorum == 0n ? true : results[3],
+            proposalExists: law.conditions.quorum == 0n ? true : results[7],
+            proposalPassed: law.conditions.quorum == 0n ? true : results[3],
             proposalNotCompleted: results[4],
-            lawCompleted: law.config.needCompleted == `0x${'0'.repeat(40)}` ? true : results[5] == false, 
-            lawNotCompleted: law.config.needNotCompleted == `0x${'0'.repeat(40)}` ? true : results[6]
+            lawCompleted: law.conditions.needCompleted == 0n ? true : results[5] == false, 
+            lawNotCompleted: law.conditions.needNotCompleted == 0n ? true : results[6]
           } 
           newChecks.allPassed =  
             newChecks.delayPassed && 

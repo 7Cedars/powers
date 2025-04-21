@@ -8,9 +8,9 @@ import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 export function SectionIntro() { 
 
   return (    
-    <section id="intro" className="w-full min-h-screen h-fit flex flex-col gap-6 justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always py-12 px-6">
+    <section id="intro" className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always py-12 px-6">
         {/* title  */}
-          <section className="w-full h-screen min-h-fit flex flex-col justify-center items-center pt-12">
+          <section className="w-full flex flex-col justify-center items-center pt-12">
               <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
                   The next generation of on-chain governance
               </div>
@@ -19,21 +19,21 @@ export function SectionIntro() {
               </div>
           </section>
 
-          {/* sm:h-full sm:w-full sm:max-h-full sm:max-w-full max-h-0 max-w-0 */}
           {/* Image  */}
-          <section className = "grow h-full w-full max-w-6xl flex flex-col justify-center items-center" style = {{position: 'relative', width: '100%', height: '100%'}}> 
+          <section className = "w-full max-w-6xl flex flex-col justify-center items-center relative aspect-video my-8"> 
             <Image 
                 src={"/home2.png"} 
                 className = "p-2 rounded-md" 
-                style={{objectFit: "contain", objectPosition: "center"}}
+                style={{objectFit: "contain"}}
                 fill={true}
                 alt="Screenshot Powers App"
+                priority
                 >
             </Image>
           </section>
 
           {/* Bottom text */}
-          <section className="w-full min-h-fit flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
+          <section className="w-full flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
               <p>
                 Powers is a Proof of Concept of a role restricted governance protocol. 
               </p>
@@ -41,13 +41,10 @@ export function SectionIntro() {
                 It combines a governance engine with role restricted and modular contracts, called laws. 
                 Together they create a governance protocol that is more flexible, upgradable and safe than existing alternatives.
               </p>
-  
-
           </section>
 
-
       {/* arrow down */}
-      <div className = "flex flex-col align-center justify-end pb-20"> 
+      <div className = "flex flex-col align-center justify-end pb-8"> 
         <ChevronDownIcon
             className = "w-16 h-16 text-slate-100" 
         /> 
@@ -55,5 +52,4 @@ export function SectionIntro() {
 
     </section>
   )
-
 }

@@ -1,5 +1,5 @@
 import { ConnectedWallet } from '@privy-io/react-auth';
-import { GetBlockReturnType } from '@wagmi/core';
+import { Config, GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
 export type Status = "idle" | "pending" | "error" | "success"
@@ -51,12 +51,12 @@ export type ChainProps = {
   erc1155s: `0x${string}`[];
 }
                       
-
-export type Config = {
+export type Conditions = {
+  allowedRole: bigint; 
   delayExecution: bigint; 
-  needNotCompleted: `0x${string}`;
-  needCompleted: `0x${string}`;
-  readStateFrom: `0x${string}`;
+  needNotCompleted: bigint;
+  needCompleted: bigint;
+  readStateFrom: bigint;
   quorum: bigint; 
   succeedAt: bigint; 
   throttleExecution: bigint;
@@ -79,12 +79,13 @@ export type Execution = {
 }
 
 export type Law = {
-  law: `0x${string}`;
+  powers: `0x${string}`;
+  lawAddress: `0x${string}`;
+  index: bigint;
   name?: string;
   description?: string;
-  allowedRole?: bigint;
-  powers?: `0x${string}`;
-  config: Config;
+  conditions: Conditions;
+  config: `0x${string}`;
   params?: string[];
   executions?: Execution[]; 
 }
@@ -150,8 +151,8 @@ export type Action = {
 }
 
 export type Proposal = {
-  actionId: number;
-  targetLaw: `0x${string}`;
+  actionId: bigint;
+  lawId: bigint;
   voteStart: bigint;
   voteStartBlockData?: GetBlockReturnType; 
   voteDuration: bigint;

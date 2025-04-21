@@ -99,8 +99,10 @@ export const useOrganisations = () => {
               logs
             })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
-            const fetchedLaws: Law[] = fetchedLogsTyped.map(log => log.args as Law)
-            
+            let fetchedLaws: Law[] = fetchedLogsTyped.map(log => log.args as Law)
+            fetchedLaws = fetchedLogsTyped.map(log => ({...log.args as Law, lawAddress: log.address}))
+            fetchedLaws.sort((a: Law, b: Law) => Number(a.index) > Number(b.index) ? 1 : -1)
+
             // fetching active laws
             let activeLaws: Law[] = []
             if (fetchedLaws) {
@@ -109,14 +111,14 @@ export const useOrganisations = () => {
                   abi: powersAbi,
                   address: organisation.contractAddress,
                   functionName: 'getActiveLaw', 
-                  args: [law.law]
+                  args: [law.index]
                 })
                 const active = activeLaw as boolean
                 if (active) activeLaws.push(law) 
               }
             }
             // calculating roles
-            const rolesAll = activeLaws.map((law: Law) => law.allowedRole)
+            const rolesAll = activeLaws.map((law: Law) => law.conditions.allowedRole)
             const fetchedRoles = [... new Set(rolesAll)] as bigint[]
           
             if (fetchedLaws && fetchedRoles) {
@@ -178,12 +180,12 @@ export const useOrganisations = () => {
             const logs = await publicClient.getContractEvents({ 
               address: organisation.contractAddress as `0x${string}`,
               abi: powersAbi, 
-              eventName: 'ProposalCreated',
+              eventName: 'ProposedActionCreated',
               fromBlock: supportedChain?.genesisBlock
             })
             const fetchedLogs = parseEventLogs({
               abi: powersAbi,
-              eventName: 'ProposalCreated',
+              eventName: 'ProposedActionCreated',
               logs
             })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType

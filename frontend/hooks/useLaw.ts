@@ -4,7 +4,7 @@ import { Status, LawSimulation, Execution, LogExtended } from "../context/types"
 import { getBlock, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useChainId, useWaitForTransactionReceipt } from "wagmi";
-import { useLawStore, useOrgStore } from "@/context/store";;
+import { useLawStore, useOrgStore } from "@/context/store";
 import { publicClient } from "@/context/clients";
 import { readContract } from "wagmi/actions";
 import { GetBlockReturnType, keccak256, Log, parseEventLogs, ParseEventLogsReturnType, toHex } from "viem";
@@ -53,13 +53,13 @@ export const useLaw = () => {
             const logs = await publicClient.getContractEvents({ 
               address: organisation.contractAddress as `0x${string}`,
               abi: powersAbi, 
-              eventName: 'ProposalCreated',
+              eventName: 'ActionRequested',
               fromBlock: supportedChain?.genesisBlock,
-              args: {targetLaw: law.law}
+              args: {lawId: law.index}
             })
             const fetchedLogs = parseEventLogs({
                         abi: powersAbi,
-                        eventName: 'ProposalCreated',
+                        eventName: 'ActionRequested',
                         logs
                       })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType  
@@ -73,7 +73,6 @@ export const useLaw = () => {
                 if (log.blockNumber) {
                   const fetchedBlockData = await getBlock(wagmiConfig, {
                     blockNumber: log.blockNumber
-                    // chainId: sepolia.id
                   })
                   if (fetchedBlockData) {
                     executions2.push({
@@ -95,16 +94,15 @@ export const useLaw = () => {
   }
 
   const fetchSimulation = useCallback( 
-    async (caller: `0x${string}`, lawCalldata: `0x${string}`, description: string) => {
+    async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint) => {
       setError(null)
       setStatus("pending")
-      // console.log("fetchSimulation:", {law})
       try {
         const result = await readContract(wagmiConfig, {
           abi: lawAbi,
-          address: law.law,
-          functionName: 'simulateLaw', 
-          args: [caller, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
+          address: law.lawAddress,
+          functionName: 'handleRequest', 
+          args: [caller, law.index, lawCalldata, nonce]
         })
           setSimulation(result as LawSimulation)
           setStatus("success")
@@ -128,8 +126,8 @@ export const useLaw = () => {
           const result = await writeContract(wagmiConfig, {
             abi: powersAbi,
             address: organisation.contractAddress,
-            functionName: 'execute', 
-            args: [targetLaw, lawCalldata, description]
+            functionName: 'request', 
+            args: [targetLaw, lawCalldata, keccak256(toHex((description))), description]
           })
           setTransactionHash(result)
       } catch (error) {

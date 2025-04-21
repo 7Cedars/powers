@@ -25,7 +25,7 @@
 /// - Accounts can self select for a 'user' role if they paid more that 100 gwei in tax during the last 1000 blocks
 /// - Accounts can self select for a 'holder' position if they hold more than 1*10^18 in tokens. 
 /// - The 'developer' role is assigned and revoked by developers themselves. 
-/// - No account is allowed to hold more than one role.
+/// - Note: there is no mechanism to avoid double roles for one account. This can be added in the future.  
 
 /// @author 7Cedars
 
@@ -48,7 +48,7 @@ contract DeploySeparatedPowers is Script {
     string[] names;
     address[] lawAddresses;
 
-    function run() external returns (address payable dao, address payable taxedToken_) {
+    function run() external returns (address payable dao_, address payable taxedToken_) {
         // Deploy the DAO and the taxed ERC20 token
         vm.startBroadcast();
         Powers powers = new Powers(
@@ -61,7 +61,7 @@ contract DeploySeparatedPowers is Script {
         Erc20TaxedMock taxedToken = new Erc20TaxedMock(10, 100, 1000);
         vm.stopBroadcast();
 
-        dao = payable(address(powers));
+        dao_ = payable(address(powers));
         taxedToken_ = payable(address(taxedToken));
 
         // Deploy the laws
@@ -69,21 +69,22 @@ contract DeploySeparatedPowers is Script {
         (names, lawAddresses) = deployLaws.run();
 
         // Create the constitution
-        PowersTypes.LawInitData[] memory lawInitData = createConstitution(taxedToken_);
+        PowersTypes.LawInitData[] memory lawInitData = createConstitution(taxedToken_, dao_);
 
         // constitute dao
         vm.startBroadcast();
         powers.constitute(lawInitData);
         vm.stopBroadcast();
 
-        return (dao, taxedToken_);
+        return (dao_, taxedToken_);
     }
 
     function createConstitution(
-        address payable taxedToken_
+        address payable taxedToken_,
+        address payable dao_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](4);
+        lawInitData = new PowersTypes.LawInitData[](7);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
@@ -117,7 +118,7 @@ contract DeploySeparatedPowers is Script {
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
         conditions.delayExecution = 500; // no delay
-        lawInitData[2] = PowersTypes.LawInitData({
+        lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions,
@@ -133,7 +134,7 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 1000; // 1000 blocks
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
-        lawInitData[1] = PowersTypes.LawInitData({
+        lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(6, "OpenAction"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions,
@@ -145,29 +146,99 @@ contract DeploySeparatedPowers is Script {
         //                 Electoral Laws                   // 
         //////////////////////////////////////////////////////
 
-        // From here on, laws create by AI are nonsense. 
-        // A main reason for this is that the necessary laws are not yet created. 
-        // See: TaxSelect & HoldersSelect
-
-        // This law handles role selection based on token holdings and tax payments
-        // It can be used by any role
-        conditions.allowedRole = type(uint32).max; // this is a publically accesible law
+        // Law for users to self-select based on tax payments
+        // No role restrictions, anyone can use this law
+        conditions.allowedRole = type(uint32).max; // no role restriction
         lawInitData[3] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(10, "NominateMe"),
-            config: abi.encode(
-                taxedToken_, // token address
-                1 * 10**18, // minimum token balance for holder role
-                100 gwei, // minimum tax paid for user role
-                1000 // blocks to look back for tax payments
-            ),
+            targetLaw: parseLawAddress(13, "TaxSelect"),
+            config: abi.encode(taxedToken_, 100, 1), // 100 gwei tax threshold, role 1 (user)
             conditions: conditions,
-            description: "A law for accounts to nominate themselves for roles based on token holdings and tax payments."
+            description: "A law to allow accounts to self-select as users based on tax payments."
         });
         delete conditions;
 
+        // Law for holders to self-select based on token holdings
+        // No role restrictions, anyone can use this law
+        conditions.allowedRole = type(uint32).max; // no role restriction
+        lawInitData[4] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(14, "HolderSelect"),
+            config: abi.encode(taxedToken_, 1e18, 2), // 1e18 token threshold, role 2 (holder)
+            conditions: conditions,
+            description: "A law to allow accounts to self-select as holders based on token holdings."
+        });
+        delete conditions;
 
+        // Here add a law that is base don subscription. 
+        // to do. 
 
+        // Law for developers to manage their own role
+        // Only developers can use this law
+        conditions.allowedRole = 3; // developer role
+        conditions.votingPeriod = 1200; // 1200 blocks
+        conditions.quorum = 10; // 10% quorum
+        conditions.succeedAt = 50; // 50% majority
+        lawInitData[5] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(1, "DirectSelect"),
+            config: abi.encode(3), // role 3 (developer)
+            conditions: conditions,
+            description: "A law to allow developers to manage their own role assignments."
+        });
 
+        // PresetAction for roles
+        // This law sets up initial role assignments for the DAO
+        // Only role 0 can use this law
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_, 7);
+        conditions.allowedRole = 0;
+        lawInitData[6] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(7, "PresetAction"),
+            config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
+            conditions: conditions,
+            description: "A law to execute a preset action."
+        });
+        delete conditions;
+
+        return lawInitData;
+    }
+
+    function _getRoles(address payable dao_, uint16 lawId)
+        internal
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        // create addresses
+        address alice = makeAddr("alice");
+        address bob = makeAddr("bob");
+        address charlotte = makeAddr("charlotte");
+        address david = makeAddr("david");
+        address eve = makeAddr("eve");
+        address frank = makeAddr("frank");
+        address gary = makeAddr("gary");
+
+        // call to set initial roles
+        targets = new address[](13);
+        values = new uint256[](13);
+        calldatas = new bytes[](13);
+        for (uint256 i = 0; i < targets.length; i++) {
+            targets[i] = dao_;
+        }
+
+        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);
+        calldatas[1] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, bob);
+        calldatas[2] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, charlotte);
+        calldatas[3] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, david);
+        calldatas[4] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, eve);
+        calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, frank);
+        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, gary);
+        calldatas[7] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, alice);
+        calldatas[8] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, bob);
+        calldatas[9] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, charlotte);
+        calldatas[10] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, alice);
+        calldatas[11] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, bob);
+        // revoke law after use
+        if (lawId != 0) {
+            calldatas[12] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        }
+
+        return (targets, values, calldatas);
     }
 
     function parseLawAddress(uint256 index, string memory lawName) public view returns (address lawAddress) {
