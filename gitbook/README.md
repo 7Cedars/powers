@@ -65,10 +65,11 @@ Laws have the following functionalities:
 
 * They are role restricted by a single role.
 * They have multiple (optional) checks.
-* They have an `executeLaw` function.
+* They have an `initializeLaw` function, that is called when the law is adopted.&#x20;
+* They have an `executeLaw` function, that is called when the law is executed.&#x20;
 * They can save a state.
 * They can return three arrays to the Powers contract: targets laws, values and function calls.
-* All functionalities are restricted along the `Powers.sol` deployment that adopted the law.
+* All functionalities are restricted along the `Powers.sol` deployment that adopted the law by calling `initializeLaw`.
 
 Many elements of laws can be changed: the input parameters, the function call that is returned, which checks need to pass, what state (if any) is saved. All these changes are specific to the Powers protocol that adopted the law. Laws are the meat on the bones provided by Powers engine.
 
