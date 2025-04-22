@@ -7,6 +7,7 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Powers 101",
+    address: "0xD3B7325F770A03a9d629c132cB8445685b0300E7",
     colourScheme: 0,
   }, 
   {
@@ -17,6 +18,7 @@ export const useCases = [
       "Granular controls over AI powers",
     ],
     demo: "AI + Human",
+    address: "0x0000000000000000000000000000000000000000",
     colourScheme: 1,
   },
   {
@@ -26,6 +28,7 @@ export const useCases = [
       "Let off-chain institutions interact with on-chain governance.",
     ],
     demo: "Hybrid DAO",
+    address: "0xd5123747DE48a65aF02172a2Aecec319bdAFF241",
     colourScheme: 2,
   },
   {
@@ -35,6 +38,7 @@ export const useCases = [
       "Granular, governed, upgrades to on-chain governance."
     ],
     demo: "Govern Your Tax",
+    address: "0x0000000000000000000000000000000000000000",
     colourScheme: 4,
   },  
   {
@@ -45,6 +49,7 @@ export const useCases = [
       "Assign powers based on on- or off-chain reputation."
     ],
     demo: "Attestation Rules",
+    address: "0x0000000000000000000000000000000000000000",
     colourScheme: 5,
   },
   {
@@ -55,6 +60,7 @@ export const useCases = [
       "More coming soon..."
     ],
     demo: "Powers to Hats",
+    address: "0x0000000000000000000000000000000000000000",
     colourScheme: 5,
   },
 ]

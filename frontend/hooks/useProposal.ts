@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { powersAbi } from "../context/abi";
-import { Organisation, Proposal, Status } from "../context/types";
+import { Powers, Proposal, Status } from "../context/types";
 import { GetBlockReturnType, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { readContract } from "wagmi/actions";
 import { publicClient } from "@/context/clients";
-import { useOrgStore, assignOrg } from "@/context/store";
 import { parseEventLogs, ParseEventLogsReturnType } from "viem";
 import { useChainId } from 'wagmi'
 import { supportedChains } from "@/context/chains";
@@ -15,7 +14,6 @@ import { mainnet, sepolia } from "@wagmi/core/chains";
 
 export const useProposal = () => {
   const [status, setStatus ] = useState<Status>("idle")
-  const organisation = useOrgStore()
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [proposals, setProposals] = useState<Proposal[] | undefined>()
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()

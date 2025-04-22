@@ -64,6 +64,7 @@ export type Conditions = {
 }
 
 type Args = {
+  nonce: bigint;
   description: string;
   caller: `0x${string}`;
   lawCalldata: `0x${string}`;
@@ -82,11 +83,11 @@ export type Law = {
   powers: `0x${string}`;
   lawAddress: `0x${string}`;
   index: bigint;
-  name?: string;
   description?: string;
   conditions: Conditions;
   config: `0x${string}`;
-  params?: string[];
+  inputParams?: `0x${string}`; 
+  params ?: {varName: string, dataType: DataType}[]; 
   executions?: Execution[]; 
 }
 
@@ -102,7 +103,7 @@ export type RoleLabel = {
   label: string; 
 }
 
-export type Organisation = {
+export type Powers = {
   contractAddress: `0x${string}`;
   name?: string;
   metadatas?: Metadata; 
@@ -143,15 +144,18 @@ export type Checks = {
 }
 
 export type Action = {
+  actionId: bigint;
+  caller: `0x${string}`;
   dataTypes: DataType[] | undefined;
   paramValues: (InputType | InputType[])[] | undefined;
+  nonce: bigint;
   description: string;
   callData: `0x${string}`;
   upToDate: boolean;
 }
 
 export type Proposal = {
-  actionId: bigint;
+  action: Action;
   lawId: bigint;
   voteStart: bigint;
   voteStartBlockData?: GetBlockReturnType; 
@@ -159,12 +163,9 @@ export type Proposal = {
   voteEnd: bigint;
   cancelled: boolean;
   completed: boolean;
-  caller: `0x${string}`;
   againstVotes?: bigint;
   forVotes?: bigint;
   abstainVotes?: bigint;
-  description?: string;
-  executeCalldata?: `0x${string}`;
   state?: number;
   blockNumber: bigint;
   blockHash?: `0x${string}`;

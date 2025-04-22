@@ -1,10 +1,9 @@
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import type { PropsWithChildren } from "react";
 import { useRouter } from 'next/navigation'
 import { useEffect } from "react";
-import { useOrgStore, deleteOrg } from "../context/store";
 import Image from 'next/image'
 import { Button } from "./Button";
 import { 
@@ -16,6 +15,7 @@ import {
   BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
+import { usePowers } from '@/hooks/usePowers';
 
 const layoutIconBox: string = 'flex flex-row md:gap-2 gap-0 align-middle items-center'
 const layoutIcons: string = 'h-5 w-5'
@@ -24,13 +24,21 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 
 const NavigationBar = () => {
   const router = useRouter();
+  const { powers: addressPowers } = useParams<{ powers: string }>()  
   const path = usePathname()
+  const { status: statusUpdate, fetchPowers } = usePowers()
+
+  useEffect(() => {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [addressPowers, fetchPowers])
 
   return (
     <div className="w-full h-full flex flex-row gap-1 justify-center items-center px-2 py-1 md:py-0 overflow-hidden"> 
             <button 
-              onClick={() => router.push('/home')}
-              aria-selected={path == `/home`} 
+              onClick={() => router.push(`/${addressPowers}`)}
+              aria-selected={path == `/${addressPowers}`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -42,8 +50,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push('/laws')}
-              aria-selected={path == `/laws` || path == `/laws/law`} 
+              onClick={() => router.push(`/${addressPowers}/laws`)}
+              aria-selected={path == `/${addressPowers}/laws`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -55,8 +63,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push('/proposals')}
-              aria-selected={path == `/proposals` || path == `/proposals/proposal`} 
+              onClick={() => router.push(`/${addressPowers}/proposals`)}
+              aria-selected={path == `/${addressPowers}/proposals`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -68,8 +76,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push('/roles')}
-              aria-selected={path == `/roles`} 
+              onClick={() => router.push(`/${addressPowers}/roles`)}
+              aria-selected={path == `/${addressPowers}/roles`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -81,8 +89,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push('/treasury')}
-              aria-selected={path == `/treasury`} 
+              onClick={() => router.push(`/${addressPowers}/treasury`)}
+              aria-selected={path == `/${addressPowers}/treasury`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -98,8 +106,16 @@ const NavigationBar = () => {
 
 const Header = () => {
   const router = useRouter();
-  const organisation = useOrgStore(); 
+
+  const { powers: addressPowers } = useParams<{ powers: string }>()  
   const path = usePathname()
+  const { status: statusUpdate, fetchPowers, powers } = usePowers()
+
+  useEffect(() => {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [addressPowers, fetchPowers])
  
   return (
     <div className="absolute top-0 z-20 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
@@ -108,7 +124,6 @@ const Header = () => {
         <Button size = {0} onClick={
             () => {
               router.push('/')
-              deleteOrg({})
             }
             
             } 
@@ -126,15 +141,15 @@ const Header = () => {
         </Button> 
         <div className="">
         {
-            organisation.name != '' ? 
+            addressPowers != '' ? 
             <div className="flex flex-row w-32 text-center h-10">
               <Button 
                 size = {0} 
-                onClick={() =>router.push('/home') }
+                onClick={() =>router.push(`/${addressPowers}`)}
                 selected = {true}
                 filled = {false}
                 >
-                  {organisation.name}
+                  {powers?.name}
               </Button>
             </div>
             :
@@ -158,7 +173,7 @@ const Header = () => {
       </div>
       {
         <div className="flex flex-row grow gap-2 md:max-w-2xl opacity-0 md:opacity-100 max-w-0">
-          {organisation.name != '' ? NavigationBar() : null }
+          {addressPowers != '' ? NavigationBar() : null }
         </div>
       }
         {path == `/` ? null : <ConnectButton /> }
@@ -167,7 +182,7 @@ const Header = () => {
   )
 }
 
-const NavigationSmallScreen = () => {  
+const Footer = () => {  
   return (
      <div className="absolute bottom-0 z-20 bg-slate-50 flex justify-between border-t border-slate-300 h-14 items-center md:collapse w-full text-sm px-4 overflow-hidden">
         {NavigationBar()}  
@@ -176,15 +191,8 @@ const NavigationSmallScreen = () => {
 }
 
 export const NavBars = (props: PropsWithChildren<{}>) => {
-  const organisation = useOrgStore();
-  const router = useRouter();
+  // need to include error handling for when the powers are not found - todo 
   const path = usePathname()
-
-  useEffect(() => {
-    if (organisation.name == '') {
-      router.push('/') 
-    }
-  }, [organisation]);
 
   return (
     <>
@@ -197,13 +205,13 @@ export const NavBars = (props: PropsWithChildren<{}>) => {
         {/* <Footer /> */}
       </div>
       : 
-        <div className="w-full h-full flex flex-col justify-start items-center">
-          <Header /> 
-          <main className="w-full h-full flex flex-col justify-start items-center max-w-6xl overflow-x-scroll">
-            {props.children}   
-          </main>
-          <NavigationSmallScreen /> 
-        </div>
+      <div className="w-full h-full flex flex-col justify-start items-center">
+        <Header /> 
+        <main className="w-full h-full flex flex-col justify-start items-center max-w-6xl overflow-x-scroll">
+          {props.children}   
+        </main>
+        <Footer /> 
+      </div>
       }
     </>
   )

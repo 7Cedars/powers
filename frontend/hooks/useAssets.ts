@@ -3,8 +3,7 @@
 import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
 import { supportedChains } from "@/context/chains"
 import { publicClient } from "@/context/clients"
-import { useOrgStore } from "@/context/store"
-import { Status, Token } from "@/context/types"
+import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
 import { useBalance, useBlockNumber, useChainId } from "wagmi"
 import { Abi, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
@@ -14,14 +13,13 @@ import { parse1155Metadata, parseMetadata } from "@/utils/parsers"
 
 // NB! ALSO retrieve balance in native currency! 
 
-export const useAssets = () => {
+export const useAssets = (powers: Powers | undefined) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
-  const organisation = useOrgStore()
   const chainId = useChainId()
   const {data: native, status: statusBalance}  = useBalance({
-    address: organisation.contractAddress
+    address: powers?.contractAddress
   }) 
   const supportedChain = supportedChains.find(chain => chain.id == chainId)
 
@@ -33,7 +31,7 @@ export const useAssets = () => {
          for await (token of tokenAddresses) {
           try {
             // console.log("fetching token: ", token)
-           if (organisation?.contractAddress) {
+           if (powers?.contractAddress) {
             const name = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
@@ -52,7 +50,7 @@ export const useAssets = () => {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
               functionName: 'balanceOf', 
-              args: [organisation.contractAddress] 
+              args: [powers.contractAddress] 
             })
             const balanceParsed = balance as bigint
 
@@ -151,7 +149,7 @@ export const useAssets = () => {
     if (publicClient) {
       try {
         for await (token of erc1155s) {
-          if (organisation?.contractAddress && token.address) {
+          if (powers?.contractAddress && token.address) {
            const uriRaw = await readContract(wagmiConfig, {
              abi: erc1155Abi,
              address: token.address as `0x${string}`,

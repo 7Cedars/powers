@@ -6,20 +6,19 @@ import { lawAbi } from "@/context/abi";
 import { useLaw } from "@/hooks/useLaw";
 import { bytesToParams, parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { LawSimulation } from "@/context/types";
-import { useLawStore } from "@/context/store";
+import { LawSimulation, Law } from "@/context/types";
 
 type SimulationBoxProps = {
+  law: Law;
   simulation: LawSimulation | undefined;
 };
 
-export const SimulationBox = ({simulation}: SimulationBoxProps) => {
-  const law = useLawStore(); 
+export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   const {status, error, resetStatus, execute, fetchSimulation} = useLaw();
   const [jsxSimulation, setJsxSimulation] = useState<React.JSX.Element[][]> ([]); 
   const { data, isLoading, isError, error: stateVarsError } = useReadContract({
         abi: lawAbi,
-        address: law.law,
+        address: law.lawAddress,
         functionName: 'stateVars'
       })
   const params =  bytesToParams(data as `0x${string}`)  

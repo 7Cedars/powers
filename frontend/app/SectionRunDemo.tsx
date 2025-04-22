@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/Button"; 
-import { useOrganisations } from "@/hooks/useOrganisations";
+import { usePowers } from "@/hooks/usePowers";
 import { useState } from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 export function SectionRunDemo() {
   const [newDemoAddress, setNewDemoAddress] = useState<`0x${string}`>()
-  const {status, error, organisations, addOrg} = useOrganisations()
+  const {status, error, organisations, addOrg} = usePowers()
 
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pb-8 px-4 snap-start snap-always opacity-0 md:opacity-100">

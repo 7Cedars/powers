@@ -4,13 +4,13 @@ import { ArrowPathIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import React, { useState, useEffect } from "react";
 import { assignOrg } from "@/context/store";
 import { Button } from "../components/Button";
-import { useOrganisations } from "@/hooks/useOrganisations";
+import { usePowers } from "@/hooks/usePowers";
 import { colourScheme } from "@/context/Theme"
 import { Organisation } from "@/context/types";
 import { useRouter } from "next/navigation";
 
 export function SectionDemos() {
-  const { organisations, status, fetchOrgs, initialise } = useOrganisations()
+  const { organisations, status, fetchOrgs, initialise } = usePowers()
   const router = useRouter() 
 
   useEffect(() => {

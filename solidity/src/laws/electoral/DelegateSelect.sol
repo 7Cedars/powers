@@ -70,7 +70,7 @@ contract DelegateSelect is Law {
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
-        bytes memory configParams = abi.encode("address erc20Token", "uint256 maxRoleHolders", "uint256 roleId");
+        bytes memory configParams = abi.encode("address Erc20Token", "uint256 MaxRoleHolders", "uint256 RoleId");
         emit Law__Deployed(name_, configParams);
     }
 
