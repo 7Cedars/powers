@@ -19,7 +19,8 @@ export function ProposalList({powers}: {powers: Powers | undefined}) {
   
   const possibleStatus: string[] = ['0', '1', '2', '3', '4']; 
 
-  // console.log({organisation})
+  console.log("@ProposalList: ", {powers})
+
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
 
@@ -115,17 +116,7 @@ export function ProposalList({powers}: {powers: Powers | undefined}) {
                         showBorder={true}
                         role={parseRole(law.conditions.allowedRole)}
                         onClick={() => {
-                          setAction({
-                            actionId: proposal.action.actionId,
-                            caller: proposal.action.caller,
-                            dataTypes: proposal.action.dataTypes,
-                            paramValues: proposal.action.paramValues,
-                            nonce: proposal.action.nonce,
-                            description: proposal.action.description,
-                            callData: proposal.action.callData,
-                            upToDate: true
-                          })
-                          router.push(`/proposals/${proposal.action.actionId}`);
+                          router.push(`/${powers?.contractAddress}/proposals/${proposal.actionId}`);
                         }}
                         align={0}
                         selected={true}
@@ -135,7 +126,7 @@ export function ProposalList({powers}: {powers: Powers | undefined}) {
                       </Button>
                   </td>
                   <td className="pe-4 text-slate-500 min-w-56">{law.description}</td>
-                  <td className="pe-4 text-slate-500 min-w-48">{proposal.action.description}</td>
+                  <td className="pe-4 text-slate-500 min-w-48">{proposal.action?.description}</td>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
                   <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions.allowedRole, powers)}
                   </td>

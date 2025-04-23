@@ -2,9 +2,6 @@
 import { Law, Powers } from "@/context/types";
 
 export const orgToGovernanceTracks = (powers: Powers): {tracks: Law[][] | undefined , orphans: Law[] | undefined}  => {  
-
-  // console.log("@orgToGovernanceTracks: ", {organisation})
-
   const childLawAddresses = powers.activeLaws?.map(law => law.conditions.needCompleted
       ).concat(powers.activeLaws?.map(law => law.conditions.needNotCompleted)
       ).concat(powers.activeLaws?.map(law => law.conditions.readStateFrom)

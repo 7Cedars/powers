@@ -10,7 +10,6 @@
 import React, { useState, useEffect } from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
-import { SectionDemos } from "./SectionDemos";
 import { SectionRunDemo } from "./SectionRunDemo";
 import { Footer } from "./Footer";
 import { SectionAdvantages } from "./SectionAdvantages";
@@ -46,7 +45,6 @@ export default function Page() {
             < SectionIntro /> 
             < SectionAdvantages /> 
             < SectionUsecases /> 
-            {/* < SectionDemos  />  */}
             < SectionRunDemo />
             <div className = "min-h-48"/>  
             < Footer /> 

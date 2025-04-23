@@ -18,6 +18,8 @@ export const useLaw = () => {
   const [error, setError] = useState<any | null>(null)
   const [simulation, setSimulation ] = useState<LawSimulation>()
   const [executions, setExecutions ] = useState<Execution[]>()
+
+  console.log("@useLaw: waypoint 1", {status, error, simulation, executions})
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
@@ -92,6 +94,7 @@ export const useLaw = () => {
 
   const fetchSimulation = useCallback( 
     async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
+      console.log("@fetchSimulation: waypoint 1", {caller, lawCalldata, nonce, law})
       setError(null)
       setStatus("pending")
       try {
@@ -100,7 +103,9 @@ export const useLaw = () => {
           address: law.lawAddress,
           functionName: 'handleRequest', 
           args: [caller, law.index, lawCalldata, nonce]
-        })
+          })
+          
+          console.log("@fetchSimulation: waypoint 2", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
         } catch (error) {

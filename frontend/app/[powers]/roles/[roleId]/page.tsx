@@ -37,6 +37,8 @@ export default function Page() {
   const [error, setError] = useState<any | null>(null)
   const [roleInfo, setRoleInfo ] = useState<Role[]>()
 
+  console.log("@role page: ", {powers, roleInfo})
+
   useEffect(() => {
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
@@ -44,7 +46,7 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
 
   const getRolesSet = async () => {
-      if (publicClient) {
+      if (publicClient && roleId) {
         try {
           const logs = await publicClient.getContractEvents({ 
             address: addressPowers as `0x${string}`,
@@ -52,7 +54,7 @@ export default function Page() {
             eventName: 'RoleSet',
             fromBlock: supportedChain?.genesisBlock,
             args: {
-              roleId: roleId,
+              roleId: BigInt(roleId),
               access: true
             },
           })
@@ -61,7 +63,9 @@ export default function Page() {
             eventName: 'RoleSet',
             logs
           })
+          console.log("@getRolesSet: ", {fetchedLogs})
           const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
+          console.log("@getRolesSet: ", {fetchedLogsTyped})
           const rolesSet: Role[] = fetchedLogsTyped.map(log => log.args as Role)
           return rolesSet
         } catch (error) {
@@ -101,6 +105,8 @@ export default function Page() {
 
         const rolesSet = await getRolesSet() 
         const roles = rolesSet ? await getRoleSince(rolesSet) : []
+
+        console.log("@fetchRoleInfo: ", {roles, rolesSet})
 
         setRoleInfo(roles) 
         setStatus("success")

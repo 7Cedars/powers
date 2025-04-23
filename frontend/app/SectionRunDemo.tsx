@@ -7,7 +7,7 @@ import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 export function SectionRunDemo() {
   const [newDemoAddress, setNewDemoAddress] = useState<`0x${string}`>()
-  const {status, error, organisations, addOrg} = usePowers()
+  const {status, error} = usePowers()
 
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pb-8 px-4 snap-start snap-always opacity-0 md:opacity-100">
@@ -40,7 +40,7 @@ export function SectionRunDemo() {
           {
             newDemoAddress && 
             <div className="h-8 flex flex-row w-20 min-w-24 text-center">
-              <Button 
+              {/* <Button 
                 size = {0} 
                 role = {8} 
                 onClick={() => {addOrg(newDemoAddress)}}
@@ -49,7 +49,7 @@ export function SectionRunDemo() {
                   status && status == 'pending' ? <TwoSeventyRingWithBg /> : "Start"  
                 }
                 </div>    
-              </Button>
+              </Button> */}
             </div>
           }
         </div>

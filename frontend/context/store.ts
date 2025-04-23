@@ -3,7 +3,8 @@ import { Action, Roles } from '../context/types'
 
 type ActionStore = Action;
 const initialStateAction: ActionStore = {
-  actionId: 0n,
+  actionId: "0",
+  lawId: 0n,
   caller: `0x0`,
   description: "",
   dataTypes: [],
@@ -18,7 +19,7 @@ type RoleStore = {
 }
 const initialStateRole: RoleStore = {
   deselectedRoles: []
-}
+} 
 
 // Action Store
 export const useActionStore = create<ActionStore>()(() => initialStateAction);

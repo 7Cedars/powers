@@ -28,7 +28,7 @@ type LawBoxProps = {
   error?: any;  
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
-  onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint) => void;
+  onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
   onExecute: (description: string, nonce: bigint) => void;
 };
 
@@ -52,7 +52,7 @@ export function LawBox({law, checks, params, status, error, simulation, selected
     let currentInput = action.paramValues 
     currentInput ? currentInput[index] = input : currentInput = [input]
     
-    setAction({...action, paramValues: currentInput})
+    setAction({...action, paramValues: currentInput, upToDate: false})
   }
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export function LawBox({law, checks, params, status, error, simulation, selected
         if (dataTypes.length != valuesParsed.length) {
           setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : [0])})
         } else {
-          setAction({...action, paramValues: valuesParsed})
+          setAction({...action, paramValues: valuesParsed, upToDate: false})
         }
       } catch(error) { 
         setAction({...action, paramValues: []})
@@ -140,7 +140,7 @@ export function LawBox({law, checks, params, status, error, simulation, selected
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
-                setAction({...action, nonce: BigInt(Number(event.target.value))})
+                setAction({...action, nonce: BigInt(Number(event.target.value)), upToDate: false})
               }}
             />
           </div>        
@@ -157,8 +157,8 @@ export function LawBox({law, checks, params, status, error, simulation, selected
                 value={action.description}
                 className="min-w-0 p-1 ps-0 w-full text-sm text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0" 
                 placeholder="Describe reason for action here."
-                onChange={(event) => {
-                  setAction({...action, description: event.target.value}); 
+                onChange={(event) => {  
+                  setAction({...action, description: event.target.value, upToDate: false}); 
                 }} />
             </div>
         </div>
@@ -171,36 +171,34 @@ export function LawBox({law, checks, params, status, error, simulation, selected
         </div>
       }
 
-        <div className="w-full flex flex-row justify-center items-center px-6 pb-4">
+        <div className="w-full flex flex-row justify-center items-center pt-2 px-6">
           <Button 
             size={1} 
             showBorder={true} 
             role={law.conditions.allowedRole == 4294967295n ? 6 : Number(law.conditions.allowedRole)}
             filled={false}
             selected={true}
-            onClick={(event) => {
-              event.preventDefault() 
-              onSimulate(action.paramValues ? action.paramValues : [], action.nonce)
+            onClick={() => {
+              onSimulate(action.paramValues ? action.paramValues : [], action.nonce, action.description)
             }} 
             statusButton={
                !action.upToDate && action.description.length > 0 ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>
-        </div>
+        </div>  
       </form>
       }
 
       {/* fetchSimulation output */}
-      {law && <SimulationBox law = {law} simulation = {simulation} />}
+      {simulation && <SimulationBox law = {law} simulation = {simulation} />}
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
           <Button 
             size={1} 
             role={law.conditions.allowedRole == 4294967295n ? 6 : Number(law.conditions.allowedRole)}
-            onClick={(event) => {
-              event.preventDefault() 
+            onClick={() => {
               onExecute(action.description, action.nonce)
             }} 
             filled={false}

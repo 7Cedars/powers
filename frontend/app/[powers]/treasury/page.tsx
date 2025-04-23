@@ -19,7 +19,7 @@ export default function Page() {
   return (
     <main className="w-full h-fit flex flex-col gap-6 justify-center items-center pt-20 px-2">
       <AssetList powers={powers} />
-      <AddAsset /> 
+      <AddAsset powers={powers} /> 
     </main>
   )
 }

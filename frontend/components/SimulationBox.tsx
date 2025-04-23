@@ -14,7 +14,8 @@ type SimulationBoxProps = {
 };
 
 export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
-  const {status, error, resetStatus, execute, fetchSimulation} = useLaw();
+  console.log("@SimulationBox: waypoint 1", {law, simulation})
+  const {status, error} = useLaw();
   const [jsxSimulation, setJsxSimulation] = useState<React.JSX.Element[][]> ([]); 
   const { data, isLoading, isError, error: stateVarsError } = useReadContract({
         abi: lawAbi,
@@ -23,6 +24,8 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
       })
   const params =  bytesToParams(data as `0x${string}`)  
   const dataTypes = params.map(param => param.dataType) 
+
+  console.log("@SimulationBox: waypoint 2", {jsxSimulation})
     
   useEffect(() => {
 
@@ -30,7 +33,7 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
     let jsxElements1: React.JSX.Element[] = []; 
 
     if (simulation && simulation.length > 0) {
-      for (let i = 0; i < simulation[0].length; i++) {
+      for (let i = 0; i < simulation[1].length; i++) {
         jsxElements0 = [ 
           ... jsxElements0, 
           <tr
@@ -38,16 +41,16 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
             className={`text-sm text-slate-800 h-16 p-2 overflow-x-scroll`}
           >
             {/*  */}
-            <td className="ps-6 text-left text-slate-500"> {simulation[0][i]} </td> 
-            <td className="text-center text-slate-500"> {String(simulation[1][i])} </td>
-            <td className="pe-4 text-left text-slate-500"> {simulation[2][i]} </td>
+            <td className="ps-6 text-left text-slate-500"> {simulation[1][i]} </td> 
+            <td className="text-center text-slate-500"> {String(simulation[2][i])} </td>
+            <td className="pe-4 text-left text-slate-500"> {simulation[3][i]} </td>
           </tr>
         ];
       }
     }  
   
-    if (simulation && simulation[3] && simulation[3] != "0x") {
-        const stateVars = dataTypes.length > 0 ? decodeAbiParameters(parseAbiParameters(dataTypes.toString()), simulation[3]) : [];
+    if (simulation && simulation[4] && simulation[4] != "0x") {
+        const stateVars = dataTypes.length > 0 ? decodeAbiParameters(parseAbiParameters(dataTypes.toString()), simulation[4]) : [];
         const stateVarsParsed = parseParamValues(stateVars)
         for (let i = 0; i < stateVarsParsed.length; i++) {
         jsxElements1 = [ 
@@ -68,7 +71,7 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   }, [simulation])
 
   return (
-    <section className="w-full flex flex-col gap-6 justify-start items-center px-6">
+    <section className="w-full flex flex-col gap-6 justify-start items-center px-6 pt-4">
     {dataTypes.length > 0 ? 
       <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
           <div className="w-full text-xs text-center text-slate-500 p-2 ">

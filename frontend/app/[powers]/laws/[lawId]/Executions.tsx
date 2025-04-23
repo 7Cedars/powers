@@ -1,15 +1,15 @@
-import { setAction, useActionStore } from "@/context/store";
-import { Execution, Status } from "@/context/types";
+import { Execution, Law } from "@/context/types";
+import { parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
-import { parseRole } from "@/utils/parsers";
 
 type ExecutionsProps = {
   executions: Execution[] | undefined
   onClick: (execution: Execution) => void;
+  law: Law;
 };
 
-export const Executions = ({executions, onClick}: ExecutionsProps) => {
+export const Executions = ({executions, onClick, law}: ExecutionsProps) => {
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -26,7 +26,7 @@ export const Executions = ({executions, onClick}: ExecutionsProps) => {
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
                       showBorder={true}
-                      role={parseRole(law.allowedRole)}
+                      role={parseRole(law.conditions.allowedRole)}
                       onClick={() => onClick(execution)}
                       align={0}
                       selected={false}

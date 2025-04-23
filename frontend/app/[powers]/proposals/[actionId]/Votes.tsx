@@ -3,7 +3,7 @@
 import { powersAbi } from "@/context/abi";
 import { parseVoteData } from "@/utils/parsers";
 import { useActionStore } from "@/context/store";
-import { Proposal } from "@/context/types";
+import { Powers, Proposal } from "@/context/types";
 import { useLaw } from "@/hooks/useLaw";
 import { CheckIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import { blocksToHoursAndMinutes } from "@/utils/toDates";
 import { supportedChains } from "@/context/chains";
 import { useChecks } from "@/hooks/useChecks";
 
-export const Votes = ({proposal}: {proposal: Proposal}) => {
+export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | undefined}) => {
 
   const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
     chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
@@ -21,10 +21,11 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
   // console.log({blockNumber, errorBlockNumber})
   const chainId = useChainId();
   const supportedChain = supportedChains.find(chain => chain.id === chainId)
+  const law = proposal?.lawId ? powers?.laws?.find(law => law.index == proposal?.lawId) : undefined
   
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
-    address: organisation.contractAddress,
+    address: powers?.contractAddress,
     abi: powersAbi,
   } as const
   const { isSuccess, status, data } = useReadContracts({
@@ -37,7 +38,7 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
       {
         ...powersContract,
         functionName: 'getAmountRoleHolders', 
-        args: [law.allowedRole]
+        args: [proposal?.action?.caller]
       }, 
       {
         ...powersContract,
@@ -49,8 +50,8 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
   const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
   const init = 0
   const allVotes = votes.reduce((acc, current) => acc + current, init)
-  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(law.config.quorum)) : 0
-  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(law.config.succeedAt)) : 0
+  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(proposal?.action?.caller)) : 0
+  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(proposal?.action?.caller)) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
 
   return (
@@ -96,7 +97,7 @@ export const Votes = ({proposal}: {proposal: Proposal}) => {
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-gray-400`} />
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-red-400`} style={{width:`${((votes[1] + votes[0]) / allVotes)*100}%`}} />
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-green-400`} style={{width:`${((votes[1]) / allVotes)*100}%`}} />
-            <div className={`absolute -top-2 w-full leading-none h-6 border-r-4 border-green-500`} style={{width:`${law.config.succeedAt}%`}} />
+            <div className={`absolute -top-2 w-full leading-none h-6 border-r-4 border-green-500`} style={{width:`${law?.conditions?.succeedAt}%`}} />
           </div>
           <div className="w-full flex flex-row justify-between items-center"> 
             <div className="w-fit text-sm text-center text-green-500">

@@ -9,11 +9,12 @@ export type InputType = number | boolean | string | `0x${string}` | undefined
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
 export type LawSimulation = [
+      bigint, 
       `0x${string}`[], 
       bigint[], 
       `0x${string}`[], 
       `0x${string}`
-    ]
+]
 
 export type Attribute = {  
   trait_type: string | number ;  
@@ -144,7 +145,8 @@ export type Checks = {
 }
 
 export type Action = {
-  actionId: bigint;
+  actionId: string;
+  lawId: bigint;
   caller: `0x${string}`;
   dataTypes: DataType[] | undefined;
   paramValues: (InputType | InputType[])[] | undefined;
@@ -155,12 +157,18 @@ export type Action = {
 }
 
 export type Proposal = {
-  action: Action;
+  actionId: string;
+  action?: Action;
+  caller: `0x${string}`;
   lawId: bigint;
+  nonce: bigint;
   voteStart: bigint;
-  voteStartBlockData?: GetBlockReturnType; 
   voteDuration: bigint;
   voteEnd: bigint;
+  calldata: `0x${string}`;
+  executeCalldata: `0x${string}`;
+  voteStartBlockData?: GetBlockReturnType;
+  description: string;
   cancelled: boolean;
   completed: boolean;
   againstVotes?: bigint;

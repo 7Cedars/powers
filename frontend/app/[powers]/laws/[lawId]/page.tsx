@@ -5,13 +5,10 @@ import { LawBox } from "./LawBox";
 import { ChecksBox } from "./ChecksBox";
 import { Children } from "./Children";
 import { Executions } from "./Executions";
-import { deleteAction, setAction, useActionStore } from "@/context/store";
+import { setAction, useActionStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { useChecks } from "@/hooks/useChecks";
-import { decodeAbiParameters, encodeAbiParameters, keccak256, parseAbiParameters, toHex } from "viem";
-import { lawAbi } from "@/context/abi";
-import { useReadContract } from "wagmi";
-import { bytesToParams, parseParamValues } from "@/utils/parsers";
+import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { Execution, InputType, Law, Powers } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
@@ -19,66 +16,69 @@ import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
  
 const Page = () => {
-  const {wallets} = useWallets();
+  const {wallets, ready} = useWallets();
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   const { powers, fetchPowers } = usePowers()
   const {status, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, execute, fetchSimulation} = useLaw();
-  const action = useActionStore();
+  const action = useActionStore();;
   
   const {checks, fetchChecks} = useChecks(powers as Powers); 
   const [error, setError] = useState<any>();
   const [selectedExecution, setSelectedExecution] = useState<Execution | undefined>()
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
-  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action})
+  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action, ready, wallets, addressPowers})
 
-  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint) => {
-      // console.log("Handle Simulate called:", {paramValues, description})
+  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+      console.log("Handle Simulate called:", {paramValues, nonce})
       setError("")
       let lawCalldata: `0x${string}` | undefined
-      // console.log("Handle Simulate waypoint 1") 
+      console.log("Handle Simulate waypoint 1") 
       if (paramValues.length > 0 && paramValues) {
         try {
-          // console.log("Handle Simulate waypoint 2a") 
+          console.log("Handle Simulate waypoint 2a") 
           lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-
+          console.log("Handle Simulate waypoint 2b", {lawCalldata})
         } catch (error) {
-          // console.log("Handle Simulate waypoint 2b") 
+          console.log("Handle Simulate waypoint 2c") 
           setError(error as Error)
         }
       } else {
-        // console.log("Handle Simulate waypoint 2c") 
+        console.log("Handle Simulate waypoint 2d") 
         lawCalldata = '0x0'
       }
         // resetting store
-      if (lawCalldata) { 
-        // console.log("Handle Simulate waypoint 3:", {lawCalldata, dataTypes, paramValues, description}) 
+      if (lawCalldata && ready && wallets && powers?.contractAddress) { 
+        console.log("Handle Simulate waypoint 3a") 
         setAction({
+          lawId: law.index,
+          caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: paramValues,
           nonce: nonce,
+          description: description,
           callData: lawCalldata,
           upToDate: true
         })
-        // console.log("Handle Simulate called, action updated?", {action})
-        
+
+        console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
         // simulating law. 
         fetchSimulation(
           wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
-          lawCalldata as `0x${string}`,
-          nonce,
+          action.callData as `0x${string}`,
+          action.nonce,
           law
         )
 
-        fetchChecks(law, lawCalldata as `0x${string}`, nonce) 
+        fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
       }
   };
 
-  const handleExecute = async (law: Law, nonce: bigint) => {
+  const handleExecute = async (law: Law) => {
       execute(
         law, 
         action.callData as `0x${string}`,
-        nonce,
+        action.nonce,
         action.description
       )
   };
@@ -90,14 +90,23 @@ const Page = () => {
       const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
       if (dissimilarTypes.find(type => type == true)) {
         // console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
-        deleteAction({})
+        setAction({
+          lawId: law.index,
+          dataTypes: law.params?.map(param => param.dataType),
+          paramValues: [],
+          nonce: 0n,
+          callData: '0x0',
+          upToDate: false
+        })
       } else {
         // console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
         setAction({
           ...action, 
+          lawId: law.index,
           upToDate: false
         })
       }
+      fetchExecutions(law)
     }
   }, [, law])
 
@@ -131,8 +140,8 @@ const Page = () => {
                 setSelectedExecution(undefined)
                 }
               }
-              onSimulate = {(paramValues, nonce) => handleSimulate(law, paramValues, nonce)} 
-              onExecute = {(description, nonce) => handleExecute(law, nonce)}/> 
+              onSimulate = {(paramValues, nonce, description) => handleSimulate(law, paramValues, nonce, description)} 
+              onExecute = {() => handleExecute(law)}/> 
               }
         </div>
         }
@@ -144,7 +153,7 @@ const Page = () => {
           </div>
           {<Children law = {law} powers = {powers} />} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            <Executions executions = {executions} onClick = {(execution) => setSelectedExecution(execution) }/> 
+            {law && <Executions executions = {executions} onClick = {(execution) => setSelectedExecution(execution) } law = {law}/> }
           </div>
         </div>
         

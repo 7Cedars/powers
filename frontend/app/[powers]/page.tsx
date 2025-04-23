@@ -29,7 +29,7 @@ const colourScheme = [
 
 export default function Page() {
     const { powers: addressPowers } = useParams<{ powers: string }>()  
-    const { powers, fetchPowers } = usePowers()
+    const { powers, fetchPowers, status: statusPowers } = usePowers()
     const { wallets } = useWallets()
     const { authenticated } = usePrivy();
     const [status, setStatus] = useState<Status>()
@@ -124,9 +124,9 @@ export default function Page() {
           <div className = {"w-full pb-2 flex flex-wrap flex-col lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:flex-col lg:overflow-hidden lg:ps-2 gap-3 overflow-y-hidden overflow-x-scroll scroll-snap-x"}> 
             <Assets /> 
             
-            <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} /> 
+            <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} /> 
 
-            <MyRoles hasRoles = {hasRoles} authenticated = {authenticated}/>
+            <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers}/>
           </div>
         </section>
       </main>

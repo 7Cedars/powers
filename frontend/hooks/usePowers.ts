@@ -2,12 +2,13 @@ import { Status, Proposal, Powers, Law, Metadata, RoleLabel } from "../context/t
 import { wagmiConfig } from '../context/wagmiConfig'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "@/context/abi";
-import { Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
+import { GetBlockReturnType, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
 import { publicClient } from "@/context/clients"; 
-import { readContract } from "wagmi/actions";
+import { getBlock, readContract } from "wagmi/actions";
 import { supportedChains } from "@/context/chains";
 import { useChainId } from 'wagmi'
 import { bytesToParams, parseMetadata } from "@/utils/parsers";
+import { sepolia } from "viem/chains";
 
 export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
@@ -19,10 +20,14 @@ export const usePowers = () => {
   const checkLocalStorage = async (address: `0x${string}`) => {
     let localStore = localStorage.getItem("powersProtocols")
     const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-    const powersToFetch = saved.find(item => item.contractAddress == address) 
+    const powersExists = saved.find(item => item.contractAddress == address) 
 
-    if (powersToFetch) {
-      return powersToFetch
+    console.log("@checkLocalStorage: waypoint 1", {powersExists})
+
+    if (powersExists) {
+      return powersExists
+    } else {
+      return undefined
     }
   }
 
@@ -86,6 +91,7 @@ export const usePowers = () => {
             })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
             let fetchedLaws: Law[] = fetchedLogsTyped.map(log => log.args as Law)
+            console.log("@fetchLawsAndRoles: waypoint 0", {fetchedLaws})
             fetchedLaws = fetchedLogsTyped.map(log => (
               {
                 ...log.args as Law, 
@@ -103,16 +109,19 @@ export const usePowers = () => {
                 const activeLaw = await readContract(wagmiConfig, {
                   abi: powersAbi,
                   address: address,
-                  functionName: 'getActiveLaw', 
+                  functionName: 'isActiveLaw', 
                   args: [law.index]
                 })
                 const active = activeLaw as boolean
+                console.log("@fetchLawsAndRoles: waypoint 1", {active})
                 if (active) activeLaws.push(law)
               }
             } 
             // calculating roles
             const rolesAll = activeLaws.map((law: Law) => law.conditions.allowedRole)
             const fetchedRoles = [... new Set(rolesAll)] as bigint[]
+
+            console.log("@fetchLawsAndRoles: waypoint 2", {fetchedLaws, activeLaws, fetchedRoles})
           
             if (fetchedLaws && fetchedRoles) {
               return {laws: fetchedLaws, activeLaws: activeLaws, roles: fetchedRoles}
@@ -154,7 +163,7 @@ export const usePowers = () => {
       }
   }
 
-  const fetchProposals = async (address: `0x${string}`) => {
+  const getProposals = async (address: `0x${string}`) => {
     if (publicClient) {
       try {
         const logs = await publicClient.getContractEvents({ 
@@ -169,8 +178,10 @@ export const usePowers = () => {
           logs
         })
         const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
+        console.log("@getProposals: waypoint 1", {fetchedLogsTyped})
         const fetchedProposals: Proposal[] = fetchedLogsTyped.map(log => log.args as Proposal)
         fetchedProposals.sort((a: Proposal, b: Proposal) => a.voteStart  > b.voteStart ? 1 : -1)
+        console.log("@getProposals: waypoint 2", {fetchedProposals})
         if (fetchedProposals) {
           return fetchedProposals
         }
@@ -180,6 +191,93 @@ export const usePowers = () => {
       }
     }
   }
+
+  const getBlockData = async (proposals: Proposal[], address: `0x${string}`) => {
+    let proposal: Proposal
+    let blocksData: GetBlockReturnType[] = []
+
+    const powers = await checkLocalStorage(address)
+
+    if (publicClient) {
+      try {
+        for await (proposal of proposals) {
+          const existingProposal = powers?.proposals?.find(p => p.actionId == proposal.actionId)
+          if (!existingProposal || !existingProposal.voteStartBlockData?.chainId) {
+            // console.log("@getBlockData, waypoint 1: ", {proposal})
+            const fetchedBlockData = await getBlock(wagmiConfig, {
+              blockNumber: proposal.voteStart,
+              chainId: sepolia.id, // NB This needs to be made dynamic. In this case need to read of sepolia because arbitrum uses mainnet block numbers.  
+            })
+            const blockDataParsed = fetchedBlockData as GetBlockReturnType
+            // console.log("@getBlockData, waypoint 2: ", {blockDataParsed})
+            blocksData.push(blockDataParsed)
+          } else {
+            blocksData.push(existingProposal.voteStartBlockData ? existingProposal.voteStartBlockData : {} as GetBlockReturnType)
+          }
+        } 
+        // console.log("@getBlockData, waypoint 3: ", {blocksData})
+        return blocksData
+      } catch (error) {
+        setStatus("error") 
+        setError(error)
+      }
+    }
+  }
+
+  const getProposalsState = async (proposals: Proposal[], address: `0x${string}`) => {
+    let proposal: Proposal
+    let state: number[] = []
+
+    if (publicClient) {
+      try {
+        for await (proposal of proposals) {
+          if (proposal?.actionId) {
+              const fetchedState = await readContract(wagmiConfig, {
+                abi: powersAbi,
+                address: address,
+                functionName: 'state', 
+                args: [proposal.actionId]
+              })
+              state.push(Number(fetchedState)) // = 5 is a non-existent state
+            }
+        } 
+        return state
+      } catch (error) {
+        setStatus("error") 
+        setError(error)
+      }
+    }
+  }
+
+  const fetchProposals = useCallback(
+    async (address: `0x${string}`) => {
+      // console.log("fetchProposals called, waypoint 1: ", {organisation})
+
+      let proposals: Proposal[] | undefined = [];
+      let states: number[] | undefined = []; 
+      let blocks: GetBlockReturnType[] | undefined = [];
+      let proposalsFull: Proposal[] | undefined = [];
+
+      proposals = await getProposals(address)
+      // console.log("fetchProposals called, waypoint 2: ", {proposals})
+      if (proposals && proposals.length > 0) {
+        states = await getProposalsState(proposals, address)
+        blocks = await getBlockData(proposals, address)
+      } 
+      // console.log("fetchProposals called, waypoint 3: ", {states, blocks})
+      if (states && blocks) { // + votes later.. 
+        proposalsFull = proposals?.map((proposal, index) => {
+          return ( 
+            {...proposal, state: states[index], voteStartBlockData: {...blocks[index], chainId: sepolia.id}}
+          )
+        })
+      }  
+      console.log("@fetchProposals: waypoint 3", {proposalsFull})
+      // console.log("fetchProposals called, waypoint 4: ", {proposalsFull})
+      // return data - to be saved in local storage. 
+      return proposalsFull
+  }, [ ]) 
+
 
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
@@ -192,11 +290,12 @@ export const usePowers = () => {
         const names = await fetchName(address)
         const metadatas = await fetchMetaData(address)
         const lawsAndRoles = await fetchLawsAndRoles(address)
-        const proposalsPerOrg = await fetchProposals(address)
+        const proposals = await fetchProposals(address)
+        console.log("@fetchPowers: waypoint 4", {proposals})
         const roleLabels = await fetchRoleLabels(address)
 
         // console.log("waypoint 4: data fetched: ", {names, metadatas, lawsAndRoles, proposalsPerOrg, roleLabels})
-        if (names && metadatas && lawsAndRoles && proposalsPerOrg && roleLabels) {
+        if (names && metadatas && lawsAndRoles && proposals && roleLabels) {
             const powersFetched = {
               contractAddress: address,
               name: names, 
@@ -204,17 +303,26 @@ export const usePowers = () => {
               colourScheme: 0, // TODO: make dynamic. 
               laws: lawsAndRoles.laws, 
               activeLaws: lawsAndRoles.activeLaws, 
-              proposals: proposalsPerOrg, 
+              proposals: proposals, 
               roles: lawsAndRoles.roles, 
               roleLabels: roleLabels
             }
 
+            // when multiple components are calling this function at the same time, we need to make sure they do not create separate instances of the same Powers. 
             let localStore = localStorage.getItem("powersProtocols")
             const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-            const allPowers = [...saved, powersFetched]
-            localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
-              typeof value === "bigint" ? Number(value) : value,
-            ));
+            const powersToUpdate = saved.find(item => item.contractAddress == address)
+            if (powersToUpdate) {
+              const allPowers = saved.map(powers => powers.contractAddress == address ? powersFetched : powers)
+              localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
+                typeof value === "bigint" ? value.toString() : value,
+              ));
+            } else {
+              const allPowers = [...saved, powersFetched]
+              localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
+                typeof value === "bigint" ? value.toString() : value,
+              ));
+            }
             setPowers(powersFetched)
           }  
       }
@@ -230,32 +338,42 @@ export const usePowers = () => {
       setStatus("pending")
       // console.log("@updateOrg: TRIGGERED")
 
-      let localStore = localStorage.getItem("powersProtocol")
+      let localStore = localStorage.getItem("powersProtocols")
       const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-      const powersToUpdate = saved.find(item => item.contractAddress == address) 
+      const powersToUpdate = saved.find(item => item.contractAddress == address)
+
+      console.log("@updatePowers: waypoint 1", {powersToUpdate})
       
       if (powersToUpdate) {
         const lawsAndRoles = await fetchLawsAndRoles(address)
         const roleLabels = await fetchRoleLabels(address)
-        const proposalsPerOrg = await fetchProposals(address)
+        const proposals = await fetchProposals(address)
 
-        if (lawsAndRoles && proposalsPerOrg && roleLabels) {
+        console.log("@updatePowers: waypoint 2", {lawsAndRoles, roleLabels, proposals})
+
+        if (lawsAndRoles && proposals && roleLabels) {
           const updatedPowers = 
           { ...powersToUpdate,  
             laws: lawsAndRoles.laws, 
             activeLaws: lawsAndRoles.activeLaws, 
-            proposals: proposalsPerOrg, 
+            proposals: proposals, 
             roles: lawsAndRoles.roles, 
             roleLabels: roleLabels
           }
-          
+
+          console.log("@updatePowers: waypoint 3", {updatedPowers})
+
           const updatedPowersArray: Powers[] = saved.map(
             powers => powers.contractAddress == updatedPowers.contractAddress ? updatedPowers : powers
           )
 
-          localStorage.setItem("powersProtocol", JSON.stringify(updatedPowersArray, (key, value) =>
-            typeof value === "bigint" ? Number(value) : value,
+          console.log("@updatePowers: waypoint 4", {updatedPowersArray})
+        
+          localStorage.setItem("powersProtocols", JSON.stringify(updatedPowersArray, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value,
           ));
+
+          console.log("@updatePowers: waypoint 5")
         }
       } else {
         setStatus("error")
@@ -266,5 +384,36 @@ export const usePowers = () => {
       }, []
     )
 
-  return {status, error, powers, fetchPowers, updatePowers}
+    const updateProposals = useCallback(
+      async (address: `0x${string}`) => {
+        setStatus("pending")
+        // console.log("@updateOrg: TRIGGERED")
+  
+        let localStore = localStorage.getItem("powersProtocols")
+        const saved: Powers[] = localStore ? JSON.parse(localStore) : []
+        const powersToUpdate = saved.find(item => item.contractAddress == address)
+
+        if (powersToUpdate) {
+          const proposals = await fetchProposals(address)
+          const updatedPowers = 
+          { ...powersToUpdate,  
+            proposals: proposals
+          }
+
+          const updatedPowersArray: Powers[] = saved.map(
+            powers => powers.contractAddress == updatedPowers.contractAddress ? updatedPowers : powers
+          )
+          localStorage.setItem("powersProtocols", JSON.stringify(updatedPowersArray, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value,
+          ));
+
+          setStatus("success")
+        } else {
+          setStatus("error")
+          setError("Powers not found")
+        }
+      }, []
+    )
+
+  return {status, error, powers, fetchPowers, updatePowers, updateProposals}
 }

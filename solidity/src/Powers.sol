@@ -591,6 +591,10 @@ contract Powers is EIP712, IPowers {
         return (law, lawHash, conditions);
     }
 
+    function isActiveLaw(uint16 lawId) public view returns (bool) {
+        return laws[lawId].active;
+    }
+
     //////////////////////////////////////////////////////////////
     //                       COMPLIANCE                         //
     //////////////////////////////////////////////////////////////

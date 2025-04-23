@@ -54,7 +54,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers}: MyPro
         onClick={() => 
           { 
              // here have to set deselectedRoles
-            router.push('/proposals')
+            router.push(`/${powers?.contractAddress}/proposals`)
           }
         } 
         className="w-full border-b border-slate-300 p-2"
@@ -82,10 +82,15 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers}: MyPro
                     onClick={
                       () => {
                         setAction({
-                          description: item.proposal.action.description,
-                          callData: item.proposal.action.callData
+                          description: item.proposal.description,
+                          callData: item.proposal.calldata,
+                          nonce: item.proposal.nonce,
+                          lawId: item.proposal.lawId,
+                          caller: item.proposal.caller,
+                          dataTypes: item.law.params?.map(param => param.dataType),
+                          upToDate: true
                         })
-                        router.push(`/proposals/${item.proposal.action.actionId}`)
+                        router.push(`/${powers?.contractAddress}/proposals/${item.proposal.actionId}`)
                         }
                       }>
                       <div className ="w-full flex flex-col gap-1 text-sm text-slate-600 justify-center items-center">

@@ -2,13 +2,14 @@
 // needs to take in: address + type of token (simple drop down menu).
 
 import { Button } from "@/components/Button"; 
+import { Powers } from "@/context/types";
 import { useAssets } from "@/hooks/useAssets";
 import { useState } from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
-export function AddAsset() {
+export function AddAsset({powers}: {powers: Powers | undefined}) {
   const [newToken, setNewToken] = useState<`0x${string}`>()
-  const {status, error, tokens, native, initialise, update, fetchTokens} = useAssets()
+  const {status, error, tokens, native, initialise, update, fetchTokens} = useAssets(powers as Powers)
 
 
   return (

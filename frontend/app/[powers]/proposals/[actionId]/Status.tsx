@@ -6,12 +6,14 @@ import { Proposal } from "@/context/types";
 
 export const Status = ({proposal}: {proposal?: Proposal}) => {
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
-  const { status: readContractStatus, data: ActionState } = useReadContract({
-    address: organisation.contractAddress,
-    abi: powersAbi,  
-    functionName: 'state',
-    args: [proposal?.actionId ? proposal.actionId : '0x0'],
-  })
+  // const { status: readContractStatus, data: ActionState, error: readContractError } = useReadContract({
+  //   address: proposal?.action?.caller,
+  //   abi: powersAbi,  
+  //   functionName: 'state',
+  //   args: [proposal?.actionId],
+  // })
+
+  // console.log("@status block: ", {proposal, ActionState, readContractError, readContractStatus})
 
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
@@ -27,19 +29,19 @@ export const Status = ({proposal}: {proposal?: Proposal}) => {
               !proposal ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> No Proposal Found </div>
               :
-              ActionState == 0 ? 
+              proposal.state == 0 ? 
                 <div className={`${layout} text-blue-500 bg-blue-100`}> Active </div>
               :
-              ActionState == 1 ? 
+              proposal.state == 1 ? 
                 <div className={`${layout} text-orange-500 bg-orange-100`}> Cancelled </div>
               :
-              ActionState ==  2 ? 
+              proposal.state ==  2 ? 
                 <div className={`${layout} text-red-500 bg-red-100`}> Defeated </div>
               :
-              ActionState ==  3 ? 
+              proposal.state ==  3 ? 
                 <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
               :
-              ActionState == 4 ? 
+              proposal.state == 4 ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> Executed </div>
               :
               null 

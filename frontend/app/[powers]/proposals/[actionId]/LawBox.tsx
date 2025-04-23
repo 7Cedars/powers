@@ -13,7 +13,7 @@ const roleColour = [
   "border-slate-600"
 ]
 
-export const Law: React.FC = () => {
+export const LawBox: React.FC<{law: Law}> = ({law}) => {
   const router = useRouter();
 
   return (
@@ -27,14 +27,13 @@ export const Law: React.FC = () => {
         {/* authorised block */}
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <button 
-                className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law?.allowedRole)]} disabled:opacity-50`}
+                className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law?.conditions?.allowedRole)]} disabled:opacity-50`}
                 onClick = {() => {
-                  setLaw(law)
-                  router.push('/laws/law') 
+                  router.push(`/${law.powers}/laws/${law.index}`) 
                 }}
               >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                    {law.name}
+                    {law.description}
                 </div>
             </button>
         </div>

@@ -214,7 +214,7 @@ export const useAssets = (powers: Powers | undefined) => {
 
           setTokens(fetchedTokens) 
           localStorage.setItem("powersProtocol_savedTokens", JSON.stringify(fetchedTokens, (key, value) =>
-            typeof value === "bigint" ? Number(value) : value,
+            typeof value === "bigint" ? value.toString() : value,
           ));
 
           setStatus("success") 
@@ -261,7 +261,7 @@ export const useAssets = (powers: Powers | undefined) => {
  
             setTokens(fetchedTokens)
             localStorage.setItem("powersProtocol_savedTokens", JSON.stringify(fetchedTokens, (key, value) =>
-              typeof value === "bigint" ? Number(value) : value,
+              typeof value === "bigint" ? value.toString() : value,
             ));
             setStatus("success")
           }

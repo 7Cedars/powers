@@ -6,13 +6,15 @@ import { useRouter } from "next/navigation";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { GetBlockReturnType } from "@wagmi/core";
 import { toFullDateFormat } from "@/utils/toDates";
+import { Powers } from "@/context/types";
 
 type MyRolesProps = {
   hasRoles: {role: bigint, since: bigint, blockData: GetBlockReturnType}[]; 
   authenticated: boolean; 
+  powers: Powers | undefined;
 }
 
-export function MyRoles({hasRoles, authenticated}: MyRolesProps ) {
+export function MyRoles({hasRoles, authenticated, powers}: MyRolesProps ) {
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.since != 0n)
 
@@ -46,12 +48,12 @@ export function MyRoles({hasRoles, authenticated}: MyRolesProps ) {
             </div>
           </div>
         {
-        myRoles?.map((role: {role: bigint, since: bigint, blockData: GetBlockReturnType}, i) => 
+        powers && myRoles?.map((role: {role: bigint, since: bigint, blockData: GetBlockReturnType}, i) => 
             <div className ={`w-full flex flex-row text-sm text-slate-600 justify-center items-center rounded-md ps-4 py-3 p-1`} key = {i}>
               <div className = "w-full flex flex-row justify-start items-center text-left">
                 {/* need to get the timestamp.. */}
                 {
-                  bigintToRole(role.role, organisation)
+                  bigintToRole(role.role, powers)
                 }
               </div>
               <div className = "grow w-full min-w-40 flex flex-row justify-end items-center text-right pe-4">
