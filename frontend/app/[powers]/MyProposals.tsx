@@ -101,7 +101,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers}: MyPro
 
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Law: </p> 
-                          <p> {item.law.description}  </p>
+                          <p> {item.law.description?.length && item.law.description?.length > 24 ? item.law.description?.substring(0, 24) + "..." : item.law.description}  </p>
                         </div>
                       </div>
                   </button>

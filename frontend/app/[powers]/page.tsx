@@ -29,7 +29,7 @@ const colourScheme = [
 
 export default function Page() {
     const { powers: addressPowers } = useParams<{ powers: string }>()  
-    const { powers, fetchPowers, status: statusPowers } = usePowers()
+    const { powers, fetchPowers, status: statusPowers, updatePowers, updateProposals } = usePowers()
     const { wallets } = useWallets()
     const { authenticated } = usePrivy();
     const [status, setStatus] = useState<Status>()
@@ -82,10 +82,10 @@ export default function Page() {
       if (addressPowers) {
         fetchPowers(addressPowers as `0x${string}`)
       }
-    }, [addressPowers, fetchPowers])
+    }, [addressPowers, fetchPowers, updateProposals])
 
     return (
-      <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-y-scroll pt-20">
+      <main className="w-full h-full min-h-fit flex flex-col justify-start items-center gap-3 px-2 overflow-y-scroll pt-20">
         {/* hero banner  */}
         <section className={`w-full min-h-64 flex flex-col justify-center items-center text-center text-slate-50 text-5xl bg-gradient-to-bl ${colourScheme[powers?.colourScheme || 0] } rounded-md`}> 
           {powers?.name}
@@ -117,8 +117,8 @@ export default function Page() {
         {/* main body  */}
         <section className="w-full lg:max-w-full h-full flex max-w-3xl lg:flex-row flex-col-reverse justify-end items-start">
           {/* left / bottom panel  */}
-          <div className = {"w-full h-full min-h-fit pb-16"}>
-            <Overview powers = {powers} /> 
+          <div className = {"w-full min-h-fit pb-16"}>
+            <Overview powers = {powers} onUpdatePowers = {() => updatePowers(addressPowers as `0x${string}`)} status = {statusPowers} /> 
           </div>
           {/* right / top panel  */} 
           <div className = {"w-full pb-2 flex flex-wrap flex-col lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:flex-col lg:overflow-hidden lg:ps-2 gap-3 overflow-y-hidden overflow-x-scroll scroll-snap-x"}> 

@@ -62,6 +62,7 @@ const Page = () => {
         })
 
         console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
+        try {
         // simulating law. 
         fetchSimulation(
           wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
@@ -69,6 +70,10 @@ const Page = () => {
           action.nonce,
           law
         )
+        } catch (error) {
+          console.log("Handle Simulate waypoint 3c") 
+          setError(error as Error)
+        }
 
         fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
       }
@@ -88,6 +93,8 @@ const Page = () => {
     if (law) {
       // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)
       const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
+      console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
+      
       if (dissimilarTypes.find(type => type == true)) {
         // console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
         setAction({

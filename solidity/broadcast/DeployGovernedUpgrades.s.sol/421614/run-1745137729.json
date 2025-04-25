@@ -433,7 +433,7 @@
   ],
   "pending": [],
   "returns": {
-    "dao_": {
+    "powers_": {
       "internal_type": "address payable",
       "value": "0xD77ea2f9eB3237c3C980E5FF2d5a30243A612c85"
     },

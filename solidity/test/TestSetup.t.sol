@@ -262,11 +262,7 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
 
         vm.startPrank(address(daoMock));
         erc721Mock = new Erc721Mock();
-        erc20TaxedMock = new Erc20TaxedMock(
-            7, // 7
-            100, // denominator works out to 7 percent (7 / 100).
-            100 // duration of epoch = 100 blocks
-        );
+        erc20TaxedMock = new Erc20TaxedMock();
         vm.stopPrank();
     }
 }

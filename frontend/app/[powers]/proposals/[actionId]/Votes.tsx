@@ -14,6 +14,7 @@ import { supportedChains } from "@/context/chains";
 import { useChecks } from "@/hooks/useChecks";
 
 export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | undefined}) => {
+  console.log("@Votes: waypoint 0", {proposal, powers})
 
   const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
     chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
@@ -32,17 +33,17 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
     contracts: [
       {
         ...powersContract,
-        functionName: 'getProposalVotes',
+        functionName: 'getProposedActionVotes',
         args: [proposal?.actionId]
       }, 
       {
         ...powersContract,
         functionName: 'getAmountRoleHolders', 
-        args: [proposal?.action?.caller]
+        args: [law?.conditions?.allowedRole]
       }, 
       {
         ...powersContract,
-        functionName: 'proposalDeadline', 
+        functionName: 'getProposedActionDeadline', 
         args: [proposal?.actionId]
       }, 
     ]
@@ -50,8 +51,8 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
   const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
   const init = 0
   const allVotes = votes.reduce((acc, current) => acc + current, init)
-  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(proposal?.action?.caller)) : 0
-  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * 100) / Number(proposal?.action?.caller)) : 0
+  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions.quorum)) / 100) : 0
+  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
 
   return (
@@ -115,7 +116,7 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
         {/* Vote still active block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
-            { Number(blockNumber) >= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
+            { Number(blockNumber) <= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
             <div>
             { Number(blockNumber) >= deadline ? "Vote has closed" : "Vote still active"}
             </div>

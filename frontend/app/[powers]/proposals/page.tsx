@@ -7,7 +7,7 @@ import { usePowers } from "@/hooks/usePowers";
 
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, updateProposals, status } = usePowers()
 
   useEffect(() => {
     if (addressPowers) {
@@ -17,7 +17,7 @@ export default function Page() {
    
   return (
     <main className="w-full h-fit flex flex-col justify-start items-center pt-20 px-2">
-      <ProposalList powers={powers} />
+      <ProposalList powers={powers} onUpdateProposals={() => updateProposals(addressPowers as `0x${string}`)} status={status} />
     </main>
   )
 }

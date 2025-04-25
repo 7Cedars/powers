@@ -98,4 +98,8 @@ interface PowersEvents {
     /// @notice Emitted when a law is revoked.
     /// @param lawId the id of the law
     event LawRevoked(uint16 indexed lawId);
+
+    /// @notice Emitted when a law is revived.
+    /// @param lawId the id of the law
+    event LawRevived(uint16 indexed lawId);
 }

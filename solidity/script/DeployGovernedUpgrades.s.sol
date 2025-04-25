@@ -36,120 +36,113 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 
-// core protocol
+// core protocol 
 import { Powers } from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
-
-// mocks
-import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
+import { DeployMocks } from "./DeployMocks.s.sol";
 
 contract DeployGovernedUpgrades is Script {
     string[] names;
     address[] lawAddresses;
+    string[] mockNames;
+    address[] mockAddresses;
 
-    function run() external returns (address payable dao_, address payable mock20votes_) {
-        // Deploy the DAO and a mock erc20 votes contract
+    function run() external returns (address payable powers_) {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Governed Upgrades",
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiebpc5ynyisal3ee426jgpib2vawejibzfgmopjxtmucranjy26py"
         );
-        Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
         vm.stopBroadcast();
+        powers_ = payable(address(powers));
 
-        dao_ = payable(address(powers));
-        mock20votes_ = payable(address(erc20VotesMock));
 
         // Deploy the laws
         DeployLaws deployLaws = new DeployLaws();
         (names, lawAddresses) = deployLaws.run();
+        DeployMocks deployMocks = new DeployMocks();
+        (mockNames, mockAddresses) = deployMocks.run();
 
         // Create the constitution
-        PowersTypes.LawInitData[] memory lawInitData = createConstitution(dao_, mock20votes_);
+        PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
         // constitute dao
         vm.startBroadcast();
         powers.constitute(lawInitData);
         vm.stopBroadcast();
 
-        return (dao_, mock20votes_);
+        return (powers_);
     }
 
     function createConstitution(
-        address payable dao_,
-        address payable mock20votes_
+        address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](9);
+        lawInitData = new PowersTypes.LawInitData[](10);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
         //////////////////////////////////////////////////////
-
-        // Law to adopt a law
-        // Only previous DAO (role 1) can use this law
         string[] memory inputParamsAdopt = new string[](1);
-        inputParamsAdopt[0] = "newLaw address";
+        inputParamsAdopt[0] = "address NewLaw";
 
-        conditions.allowedRole = 1; // previous DAO role
-        conditions.votingPeriod = 1000; // 1000 blocks
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
-        lawInitData[0] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
-            config: abi.encode(inputParamsAdopt),
-            conditions: conditions,
-            description: "A law to adopt new laws in the DAO."
-        });
-        delete conditions;
-
-        // Law to revoke a law
         string[] memory inputParamsRevoke = new string[](1);
-        inputParamsRevoke[0] = "lawId uint16";
+        inputParamsRevoke[0] = "uint16 LawId";
 
-        // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = 1; // previous DAO role
-        conditions.votingPeriod = 1000; // 1000 blocks
+        // Law to veto adopting a law
+        conditions.allowedRole = 1; // delegate role
+        conditions.votingPeriod = 60; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
-            config: abi.encode(inputParamsRevoke),
-            conditions: conditions,
-            description: "A law to revoke existing laws in the DAO."
-        });
-        delete conditions;
-
-        // Law to veto adopting a law
-        // Only delegates (role 2) can use this law
-        conditions.allowedRole = 2; // delegate role
-        conditions.needCompleted = 0; // law 0 needs to have passed
-        conditions.votingPeriod = 1000; // 1000 blocks
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
-        lawInitData[2] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsAdopt),
             conditions: conditions,
-            description: "A law to veto the adoption of new laws."
+            description: "Veto the adoption of a new law."
         });
         delete conditions;
 
         // Law to veto revoking a law
         // Only delegates (role 2) can use this law
-        conditions.allowedRole = 2; // delegate role
-        conditions.needCompleted = 1; // law 1 needs to have passed
-        conditions.votingPeriod = 1000; // 1000 blocks
+        conditions.allowedRole = 1; // delegate role
+        conditions.votingPeriod = 60; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
-        lawInitData[3] = PowersTypes.LawInitData({
+        lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsRevoke),
             conditions: conditions,
-            description: "A law to veto the revocation of existing laws."
+            description: "Veto the revocation of a law."
+        });
+        delete conditions;
+
+
+        // Law to adopt a law
+        // Only previous DAO (role 1) can use this law
+        bytes memory configAdopt = abi.encode(powers_, IPowers.adoptLaw.selector, inputParamsAdopt);
+        conditions.allowedRole = 0; // previous DAO role
+        conditions.needNotCompleted = 1; // law 1 should NOT have passed
+        lawInitData[1] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(5, "BespokeAction"),
+            config: configAdopt,
+            conditions: conditions,
+            description: "Adopt a new law into Powers."
+        });
+        delete conditions;
+
+        // Law to revoke a law
+        // Only previous DAO (role 1) can use this law
+        bytes memory configRevoke = abi.encode(powers_, IPowers.revokeLaw.selector, inputParamsRevoke);
+        conditions.allowedRole = 0; // previous DAO role
+        conditions.needNotCompleted = 2; // law 2 should NOT have passed
+        lawInitData[2] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(5, "BespokeAction"),
+            config: configRevoke,
+            conditions: conditions,
+            description: "Revoke a law in Powers."
         });
         delete conditions;
 
@@ -162,99 +155,98 @@ contract DeployGovernedUpgrades is Script {
         exchangeTargets[0] = address(0x123); // Mock Uniswap router
         exchangeCalldatas[0] = abi.encode("swapExactTokensForTokens");
 
-        conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 1000; // 1000 blocks
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
-        lawInitData[4] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(7, "PresetAction"),
-            config: abi.encode(exchangeTargets, exchangeValues, exchangeCalldatas),
-            conditions: conditions,
-            description: "A preset law to exchange tokens on Uniswap."
-        });
-        delete conditions;
-
         // Preset law to veto token exchange
         // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = 1; // previous DAO role
-        conditions.needCompleted = 4; // law 4 needs to have passed
-        conditions.votingPeriod = 1000; // 1000 blocks
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
+        conditions.allowedRole = 0; // previous DAO role
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(exchangeTargets, exchangeValues, exchangeCalldatas),
             conditions: conditions,
-            description: "A law to veto token exchange operations."
+            description: "Veto token exchange operations."
+        });
+        delete conditions;
+
+        conditions.allowedRole = 1; // delegate role
+        conditions.votingPeriod = 60; // about 5 minutes
+        conditions.quorum = 30; // 30% quorum
+        conditions.succeedAt = 51; // 51% majority
+        conditions.needNotCompleted = 5; // law 5 needs to have passed
+        lawInitData[6] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(7, "PresetAction"),
+            config: abi.encode(exchangeTargets, exchangeValues, exchangeCalldatas),
+            conditions: conditions,
+            description: "Exchange tokens on Uniswap."
         });
         delete conditions;
 
         //////////////////////////////////////////////////////
         //                 Electoral Laws                   // 
         //////////////////////////////////////////////////////
-
         // Law to nominate oneself for delegate role
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint32).max; // no role restriction
-        lawInitData[6] = PowersTypes.LawInitData({
+        lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(),
             conditions: conditions,
-            description: "A law to nominate oneself for the delegate role."
+            description: "Nominate oneself for a delegate role."
         });
         delete conditions;
 
-        // Law to assign delegate role through voting
-        // Only delegates (role 2) can use this law
-        conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 1000; // 1000 blocks
+        // Law to assign delegate role through voting 
+        conditions.allowedRole = type(uint32).max; // no role restriction
+        conditions.votingPeriod = 60; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
-        lawInitData[7] = PowersTypes.LawInitData({
+        lawInitData[8] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
-                mock20votes_,
+                parseMockAddress(2, "Erc20VotesMock"),
                 10, // max delegate holders
                 2 // delegate role ID
             ),
             conditions: conditions,
-            description: "A law to assign delegate roles through voting."
+            description: "Call delegate election (and pay for it)."
         });
         delete conditions;
 
         // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_, 8);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
         conditions.allowedRole = 0; // admin role
-        lawInitData[8] = PowersTypes.LawInitData({
+        lawInitData[9] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "A preset law to assign the previous DAO role."
+            description: "Assign previous DAO role and label roles."
         });
 
         return lawInitData;
     }
 
-    function _getRoles(address payable dao_, uint16 lawId)
+    //////////////////////////////////////////////////////////////
+    //                  HELPER FUNCTIONS                        // 
+    //////////////////////////////////////////////////////////////
+    function _getActions(address payable powers_, uint16 lawId)
         internal
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // create addresses
-        address previousDAO = makeAddr("previousDAO");
-
         // call to set initial roles
-        targets = new address[](2);
-        values = new uint256[](2);
-        calldatas = new bytes[](2);
+        targets = new address[](5);
+        values = new uint256[](5);
+        calldatas = new bytes[](5);
         for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = dao_;
+            targets[i] = powers_;
         }
 
-        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, previousDAO);
+        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
+        calldatas[1] = abi.encodeWithSelector(IPowers.revokeRole.selector, 0, msg.sender); // revoke admin role of address that created the protocol. 
+        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 0, "DAO admin");
+        calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Previous DAO");
+
         // revoke law after use
         if (lawId != 0) {
-            calldatas[1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+            calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         }
 
         return (targets, values, calldatas);
@@ -265,6 +257,13 @@ contract DeployGovernedUpgrades is Script {
             revert("Law name does not match");
         }
         return lawAddresses[index];
+    }
+
+    function parseMockAddress(uint256 index, string memory mockName) public view returns (address mockAddress) {
+        if (keccak256(abi.encodePacked(mockName)) != keccak256(abi.encodePacked(mockNames[index]))) {
+            revert("Mock name does not match");
+        }
+        return mockAddresses[index];
     }
 }
 

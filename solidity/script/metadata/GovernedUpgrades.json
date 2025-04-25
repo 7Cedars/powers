@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "",
   "description": 
-    "A basic implementation of the Powers protocol. It consists of two different mechanisms for assigning roles to accounts (Members and Seniors) and a single governance track for proposing and executing actions.",
+    "An example implementation of the Powers protocol that has a governed upgradable governance system and a legacy DAO as role holder.",
   "attributes": [
     {
       "trait_type": "optional trait 1",

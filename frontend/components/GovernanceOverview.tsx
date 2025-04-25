@@ -69,8 +69,8 @@ export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
   }
 
   return (
-    <section className = "w-full h-full min-h-20 flex flex-col justify-start items-start overflow-x-scroll px-4">
-      <div className = "w-full min-h-fit flex flex-col gap-4">  
+    <section className = "w-full min-h-fit flex flex-col justify-start items-start px-4">
+      <div className = "w-full h-full min-h-fit flex flex-col gap-4">  
         {
           governanceTracks.tracks && governanceTracks.tracks.length > 0 && governanceTracks.tracks.map((track, index) => 
             track && <GovernanceTrack track = {track} roleIds = {roleIdsParsed} lawSelected = {law} key = {index} bgItem = {bgItem} /> 
@@ -97,7 +97,7 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
             <div key = {index} className = {`w-full h-full flex flex-row justify-between items-center gap-1 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md`}>
               { index == track.length - 1 &&  <div className = "w-8"/> }
               <div className = "flex flex-col w-full h-full ps-2 justify-center items-center gap-0">
-                <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700 max-w-40">
+                <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
                   {law.description}
                 </div>
                 <div className = "flex flex-row gap-1"> 
@@ -163,12 +163,12 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
   return (
     <>
       {/* draws the laws */}
-      <div className = {`relative grow w-full h-20 flex flex-wrap gap-4 justify-stretch items-center`}>
+      <div className = {`relative grow w-full h-fit flex flex-wrap gap-4 justify-stretch items-center`}>
         {
           orphans && orphans.map((law, index) => 
             <a 
               key = {index} 
-              className = {`min-w-32 max-w-full grow h-full aria-selected:opacity-100 opacity-50 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md flex flex-row justify-center items-center gap-1`}
+              className = {`min-w-32 min-h-20 max-w-full grow h-full aria-selected:opacity-100 opacity-50 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md flex flex-row justify-center items-center gap-1`}
               aria-selected = {
                 lawSelected ? 
                 law.index == lawSelected.index

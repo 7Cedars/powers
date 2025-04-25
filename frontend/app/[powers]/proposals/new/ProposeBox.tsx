@@ -49,7 +49,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
 
   useEffect(() => {
     if (updateStatus == "success") {
-      router.push(`/proposals/${simulation?.[0]}`)
+      router.push(`/${powers.contractAddress}/proposals`)
     }
   }, [updateStatus, simulation])
 

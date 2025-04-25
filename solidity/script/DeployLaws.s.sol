@@ -29,15 +29,18 @@ import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
 import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../src/laws/state/Grant.sol";
+import { StartGrant } from "../src/laws/executive/StartGrant.sol";
+import { StopGrant } from "../src/laws/executive/StopGrant.sol";
+
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
 // addresses should be computed on basis of deployment data using create2.
 contract DeployLaws is Script {
     
     function run() external returns (string[] memory names, address[] memory addresses) {
-        names = new string[](16);
-        addresses = new address[](16);
-        bytes[] memory creationCodes = new bytes[](16);
+        names = new string[](18);
+        addresses = new address[](18);
+        bytes[] memory creationCodes = new bytes[](18);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -86,6 +89,12 @@ contract DeployLaws is Script {
 
         names[15] = "Grant";
         creationCodes[15] = type(Grant).creationCode;
+
+        names[16] = "StartGrant";
+        creationCodes[16] = type(StartGrant).creationCode;
+
+        names[17] = "StopGrant";
+        creationCodes[17] = type(StopGrant).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
            addresses[i] = deployLaw(creationCodes[i], names[i]);

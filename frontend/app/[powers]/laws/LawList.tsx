@@ -7,9 +7,9 @@ import { Law, Powers } from "@/context/types";
 
 import { bigintToRole } from "@/utils/bigintToRole";
 import { setRole, useRoleStore } from "@/context/store";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 
-export function LawList({powers}: {powers: Powers | undefined}) {
+export function LawList({powers, onUpdatePowers, status}: {powers: Powers | undefined, onUpdatePowers: () => void, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
 
@@ -48,6 +48,20 @@ export function LawList({powers}: {powers: Powers | undefined}) {
               </Button>
             </div>
         )}
+        { powers && 
+          <button 
+            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
+            onClick = {() => {
+              onUpdatePowers()
+            }}
+            disabled={status == 'pending'}
+            >
+              <ArrowPathIcon
+                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
+                aria-selected={status == 'pending'}
+                />
+          </button>
+        }
       </div>
       {/* table laws  */}
       <div className="w-full overflow-scroll">

@@ -222,6 +222,7 @@ export const useProposal = () => {
             args: [actionId, support]
           })
           setTransactionHash(result)
+          setStatus("success")
       } catch (error) {
           setStatus("error") 
           setError(error)

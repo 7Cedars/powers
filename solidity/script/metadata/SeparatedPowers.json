@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "",
   "description": 
-    "Governs a community around a set of shared values. It consists of two main governance chains. The first chain is to propose and accept new values. The second chain is to revoke (and revert revokes) of members that do not abide by the community values.",
+    "An example implementation of the Powers protocol that balances the power to execute actions between token users, holders and developers.",
   "attributes": [
     {
       "trait_type": "optional trait 1",

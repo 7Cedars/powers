@@ -180,7 +180,7 @@ export const usePowers = () => {
         const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
         console.log("@getProposals: waypoint 1", {fetchedLogsTyped})
         const fetchedProposals: Proposal[] = fetchedLogsTyped.map(log => log.args as Proposal)
-        fetchedProposals.sort((a: Proposal, b: Proposal) => a.voteStart  > b.voteStart ? 1 : -1)
+        fetchedProposals.sort((a: Proposal, b: Proposal) => a.voteStart  > b.voteStart ? -1 : 1)
         console.log("@getProposals: waypoint 2", {fetchedProposals})
         if (fetchedProposals) {
           return fetchedProposals
@@ -241,6 +241,7 @@ export const usePowers = () => {
               state.push(Number(fetchedState)) // = 5 is a non-existent state
             }
         } 
+        console.log("@getProposalsState: waypoint 1", {state})
         return state
       } catch (error) {
         setStatus("error") 
@@ -264,7 +265,7 @@ export const usePowers = () => {
         states = await getProposalsState(proposals, address)
         blocks = await getBlockData(proposals, address)
       } 
-      // console.log("fetchProposals called, waypoint 3: ", {states, blocks})
+      // console.log("@fetchProposals: waypoint 2", {states, blocks})
       if (states && blocks) { // + votes later.. 
         proposalsFull = proposals?.map((proposal, index) => {
           return ( 
@@ -373,6 +374,8 @@ export const usePowers = () => {
             typeof value === "bigint" ? value.toString() : value,
           ));
 
+          setPowers(updatedPowers)
+
           console.log("@updatePowers: waypoint 5")
         }
       } else {
@@ -406,6 +409,8 @@ export const usePowers = () => {
           localStorage.setItem("powersProtocols", JSON.stringify(updatedPowersArray, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           ));
+
+          setPowers(updatedPowers)
 
           setStatus("success")
         } else {

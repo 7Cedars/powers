@@ -10,13 +10,12 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 interface OverviewProps {
   powers: Powers | undefined
+  onUpdatePowers: () => void
+  status: string
 }
 
-export function Overview({powers}: OverviewProps) {
+export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
   const {deselectedRoles} = useRoleStore()
-  const {status, updatePowers} = usePowers()
-
-  console.log("@Overview: waypoint 1", {status})
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = [] 
@@ -32,9 +31,9 @@ export function Overview({powers}: OverviewProps) {
   };
   
   return (
-    <div className="w-full h-full flex flex-col gap-0 justify-start items-center bg-slate-50 border slate-300 rounded-md">
+    <div className="w-full min-h-fit flex flex-col gap-0 justify-start items-center bg-slate-50 border border-slate-300 rounded-md">
     {/* table banner  */}
-    <div className="w-full h-fit flex flex-row gap-3 justify-between items-center py-2 px-4 border-b slate-300 overflow-y-scroll">
+    <div className="w-full min-h-fit flex flex-row gap-3 justify-between items-center py-2 px-4 border-b border-slate-300 overflow-y-scroll">
       {powers?.roles.map((role: bigint, i: number) => 
           <div className="flex flex-row w-full min-w-fit h-8" key={i}>
           <Button
@@ -50,8 +49,10 @@ export function Overview({powers}: OverviewProps) {
       )}
       {powers && 
           <button 
-            className="w-fit h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => updatePowers(powers?.contractAddress || "")}
+            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
+            onClick = {() => {
+              onUpdatePowers()
+            }}
             disabled={status == 'pending'}
             >
               <ArrowPathIcon
@@ -63,8 +64,8 @@ export function Overview({powers}: OverviewProps) {
     </div>
 
     {/* Overview here  */}
-    <div className = "w-full h-full min-h-fit pt-2 pb-4"> 
-      {powers && <GovernanceOverview powers = {powers} />}
+    <div className = "min-h-fit w-full pt-2 pb-4"> 
+      <GovernanceOverview powers = {powers} />
     </div> 
   </div>
   )

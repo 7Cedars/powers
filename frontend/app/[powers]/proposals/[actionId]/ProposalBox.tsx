@@ -31,7 +31,7 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
-  console.log("@proposalBox: ", {law, action, checks})
+  console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted, proposal})
 
   const handleCastVote = async (proposal: Proposal, support: bigint) => { 
     if (proposal) {
@@ -45,7 +45,7 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
   };
 
   useEffect(() => {
-    if (action.actionId) {
+    if (action.actionId && wallets.length > 0) {
       fetchSimulation(
         action.caller,
         action.callData,
@@ -59,7 +59,17 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
           powers as Powers
         )
       }
-  }, [, action])
+  }, [action, wallets])
+
+  useEffect(() => {
+    if (statusProposal == "success" && wallets.length > 0) {
+      checkHasVoted(
+        BigInt(action.actionId), 
+        wallets[0].address as `0x${string}`,
+        powers as Powers
+      )
+    }
+  }, [statusProposal])
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
@@ -84,6 +94,22 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
               key = {index}
               />)
         }
+        {/* nonce */}
+        <div className="w-full mt-4 flex flex-row justify-center items-start ps-2 pe-6 gap-3">
+          <label htmlFor="nonce" className="text-sm text-slate-600 ps-4 pt-1 pe-7 ">Nonce</label>
+          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-slate-100 ps-3 outline outline-1 outline-slate-300">
+            <input 
+              type="text" 
+              name="nonce"
+              className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"  
+              id="nonce" 
+              value={action.nonce as unknown as string}
+              disabled={true}
+              />
+          </div>
+        </div>
+        
+        {/* reason */}
         <div className="w-full mt-4 flex flex-row justify-center items-start gap-y-4 px-6 pb-4 min-h-24">
           <label htmlFor="reason" className="block min-w-20 text-sm/6 font-medium text-slate-600 pb-1">Reason</label>
           <div className="w-full flex items-center rounded-md outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
@@ -105,12 +131,17 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
-          { proposal != undefined && proposal.actionId != "0" ?  
+          { proposal && proposal.state && proposal != undefined && proposal.actionId != "0" && proposal.state != 0 ?  
+              <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
+                Vote has closed  
+              </div>
+              :
               hasVoted ? 
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Account has voted  
               </div>
               :
+              proposal && 
               <div className = "w-full flex flex-row gap-2"> 
                 <Button 
                   size={1} 
@@ -163,9 +194,7 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
                     }> 
                     Abstain
                 </Button>
-              </div>
-              : 
-              null 
+              </div> 
           }
         </div>
       </section>

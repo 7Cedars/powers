@@ -120,7 +120,7 @@ const Header = () => {
   return (
     <div className="absolute top-0 z-20 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
-      <div className="flex flex-row gap-1 min-w-48"> 
+      <div className="flex flex-row gap-1 min-w-16"> 
         <Button size = {0} onClick={
             () => {
               router.push('/')
@@ -140,35 +140,7 @@ const Header = () => {
           </Image>
         </Button> 
         <div className="">
-        {
-            addressPowers != '' ? 
-            <div className="flex flex-row w-32 text-center h-10">
-              <Button 
-                size = {0} 
-                onClick={() =>router.push(`/${addressPowers}`)}
-                selected = {true}
-                filled = {false}
-                >
-                  {powers?.name}
-              </Button>
-            </div>
-            :
-            <Button 
-              size = {0} 
-              onClick={() => router.push('/') }
-              selected = {true}
-              filled = {false}
-              >
-                <div className={"flex flex-row gap-1 justify-center items-center"}> 
-                  <MagnifyingGlassIcon
-                  className={layoutIcons} 
-                  />
-                  <div className="w-32">
-                  Select organisation 
-                  </div>
-              </div> 
-          </Button>
-        }
+      
         </div>
       </div>
       {

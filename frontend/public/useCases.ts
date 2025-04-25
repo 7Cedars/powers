@@ -1,13 +1,24 @@
 export const useCases = [
   {
+    title: "Powers 101",
+    details: [
+      "An introduction to the protocol",
+      "A simple DAO with three roles",
+      "Checking powers to execute actions" 
+    ],
+    demo: "Powers 101",
+    address: "0x3D3dA5A73BD3B79B8Abff9aB9672124737941186",
+    colourScheme: 0,
+  }, 
+  {
     title: "Decentralise power",
     details: [
       "Avoid hostile takeovers",
       "Avoid centralisation",
       "Create checks and balances between roles" 
     ],
-    demo: "Powers 101",
-    address: "0xD3B7325F770A03a9d629c132cB8445685b0300E7",
+    demo: "Separated Powers",
+    address: "0x2D31b763ef8c47A9262393ea445767EA670Ca957",
     colourScheme: 0,
   }, 
   {
@@ -32,13 +43,13 @@ export const useCases = [
     colourScheme: 2,
   },
   {
-    title: "Dynamic governance",
+    title: "Managed Grants",
     details: [
       "Remove and add powers over time.",
       "Granular, governed, upgrades to on-chain governance."
     ],
     demo: "Govern Your Tax",
-    address: "0x0000000000000000000000000000000000000000",
+    address: "0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A",
     colourScheme: 4,
   },  
   {

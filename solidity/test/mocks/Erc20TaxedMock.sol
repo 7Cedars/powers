@@ -20,13 +20,14 @@ contract Erc20TaxedMock is ERC20, Ownable {
     uint48 public immutable epochDuration;
     mapping(uint48 epoch => mapping(address account => uint256 taxPaid)) public taxLogs;
 
-    constructor(uint256 taxRate_, uint8 DENOMINATOR_, uint48 epochDuration_)
+    constructor()
         ERC20("mockTaxed", "MTXD")
         Ownable(msg.sender)
     {
-        taxRate = taxRate_;
-        DENOMINATOR = DENOMINATOR_;
-        epochDuration = epochDuration_;
+        // Note: hard coded values for testing.
+        taxRate = 10;
+        DENOMINATOR = 100;
+        epochDuration = 1000;
         _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens.
     }
 

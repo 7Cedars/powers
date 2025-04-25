@@ -10,9 +10,8 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { bigintToRole } from "@/utils/bigintToRole";
 
-
 // NB: need to delete action from store? Just in case? 
-export function ProposalList({powers}: {powers: Powers | undefined}) {
+export function ProposalList({powers, onUpdateProposals, status}: {powers: Powers | undefined, onUpdateProposals: () => void, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>(['1', '2', '3', '4'])
@@ -64,6 +63,20 @@ export function ProposalList({powers}: {powers: Powers | undefined}) {
             </Button>
             </div>
         )}
+        { powers && 
+          <button 
+            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
+            onClick = {() => {
+              onUpdateProposals()
+            }}
+            disabled={status == 'pending'}
+            >
+              <ArrowPathIcon
+                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
+                aria-selected={status == 'pending'}
+                />
+          </button>
+        }
       </div>
 
       {/* table banner:status  */}

@@ -64,7 +64,7 @@ contract Erc20TaxedMockTest is Test {
 
         daoMock = new Powers("DAO", "");
         vm.prank(address(daoMock));
-        erc20TaxedMock = new Erc20TaxedMock(taxRate_, DENOMINATOR_, epochDuration_);
+        erc20TaxedMock = new Erc20TaxedMock();
         uint256 balanceBefore = erc20TaxedMock.balanceOf(address(daoMock));
 
         vm.prank(address(daoMock));

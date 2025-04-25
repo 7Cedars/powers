@@ -104,6 +104,11 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawId The id of the law
     function revokeLaw(uint16 lawId) external;
 
+    /// @notice Revives an existing law
+    /// @dev Can only be called through the protocol itself
+    /// @param lawId The id of the law
+    function reviveLaw(uint16 lawId) external;
+
     /// @notice Grants a role to an account
     /// @dev Can only be called through the protocol itself
     /// @param roleId The identifier of the role to assign

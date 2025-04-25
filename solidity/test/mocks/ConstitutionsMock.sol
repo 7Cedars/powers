@@ -20,7 +20,7 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     function initiatePowersConstitution(
         address[] memory lawAddresses,
-        address payable dao_,
+        address payable powers_,
         address payable mock20Votes_
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
@@ -116,7 +116,7 @@ contract ConstitutionsMock is Test {
 
         // PresetAction
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getRoles(dao_, 7);
+            _getRoles(powers_, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[7],
@@ -130,7 +130,7 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  THIRD CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateLawTestConstitution(address[] memory lawAddresses, address payable dao_, address payable mock1155_)
+    function initiateLawTestConstitution(address[] memory lawAddresses, address payable powers_, address payable mock1155_)
         external
         returns (PowersTypes.LawInitData[] memory lawInitData)
     {
@@ -212,7 +212,7 @@ contract ConstitutionsMock is Test {
 
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getRoles(dao_, 6);
+            _getRoles(powers_, 6);
         conditions.allowedRole = 0;
         lawInitData[6] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[7],
@@ -226,7 +226,7 @@ contract ConstitutionsMock is Test {
     //////////////////////////////////////////////////////////////
     //                  INTERNAL HELPER FUNCTION                //
     //////////////////////////////////////////////////////////////
-    function _getRoles(address payable dao_, uint16 lawId)
+    function _getRoles(address payable powers_, uint16 lawId)
         internal
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
@@ -245,7 +245,7 @@ contract ConstitutionsMock is Test {
         values = new uint256[](13);
         calldatas = new bytes[](13);
         for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = dao_;
+            targets[i] = powers_;
         }
 
         calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);

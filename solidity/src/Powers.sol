@@ -347,6 +347,15 @@ contract Powers is EIP712, IPowers {
         emit LawRevoked(lawId);
     }
 
+    /// @inheritdoc IPowers
+    function reviveLaw(uint16 lawId) public onlyPowers {
+        if (laws[lawId].active == true) revert Powers__LawAlreadyActive();
+        if (lawCount <= lawId) revert Powers__LawDoesNotExist();
+
+        laws[lawId].active = true;
+        emit LawRevived(lawId);
+    }
+
     /// @notice internal function to set a law or revoke it.
     ///
     /// @param lawInitData data of the law.

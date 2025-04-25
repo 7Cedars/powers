@@ -78,4 +78,7 @@ interface PowersErrors {
 
     /// @notice Emitted when a name is invalid.
     error Powers__InvalidName();
+
+    /// @notice Emitted when a law does not exist.
+    error Powers__LawDoesNotExist();
 }

@@ -29,13 +29,11 @@ import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
+import { DeployMocks } from "./DeployMocks.s.sol";
 
 // config
 import { HelperConfig } from "./HelperConfig.s.sol";
 
-// mocks
-import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
-import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol"; 
 
 /// @notice core script to deploy a dao
 /// Note the {run} function for deploying the dao can be used without changes.
@@ -44,44 +42,40 @@ import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
 contract DeployPowers101 is Script {
     string[] names;
     address[] lawAddresses;
-    function run()
-        external
-        returns (
-            address payable dao,
-            address payable mock20votes_
-            )
-    {
+    string[] mockNames;
+    address[] mockAddresses;
+
+    function run() external returns (address payable powers_) {
         // Deploy the DAO and a mock erc20 votes contract.
         vm.startBroadcast();
         Powers powers = new Powers(
             "Powers 101",
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreifn5azisbssrldl4tqfwdmiebzfx4wupefvxw4j74wdudxagodshe"
         );
-        Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
         vm.stopBroadcast();
 
-        dao = payable(address(powers));
-        mock20votes_ = payable(address(erc20VotesMock));
+        powers_ = payable(address(powers));
 
         // Deploy the laws.
         DeployLaws deployLaws = new DeployLaws();
         (names, lawAddresses) = deployLaws.run();
+        DeployMocks deployMocks = new DeployMocks();
+        (mockNames, mockAddresses) = deployMocks.run();
 
         // Create the constitution.
-        PowersTypes.LawInitData[] memory lawInitData = createConstitution(dao, mock20votes_);
+        PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
         // constitute dao.
         vm.startBroadcast();
         powers.constitute(lawInitData);
         vm.stopBroadcast();
 
-        return (dao, mock20votes_);
+        return (powers_);
     }
 
     function createConstitution(
-        address payable dao_,
-        address payable mock20votes_
-        ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+        address payable powers_
+    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](8);
         
@@ -89,8 +83,8 @@ contract DeployPowers101 is Script {
         //                       Electoral laws                         // 
         //////////////////////////////////////////////////////////////////
         // This law allows accounts to self-nominate for any role
-        // It can be used by any one (allowedRole = type(uint32).max)
-        conditions.allowedRole = type(uint32).max; 
+        // It can be used by community members
+        conditions.allowedRole = 1; 
         lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
@@ -106,7 +100,7 @@ contract DeployPowers101 is Script {
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
-                mock20votes_,
+                parseMockAddress(2, "Erc20VotesMock"),
                 15, // max role holders
                 2 // roleId to be elected
             ),
@@ -184,7 +178,7 @@ contract DeployPowers101 is Script {
         // PresetAction for roles
         // This law sets up initial role assignments for the DAO & role labelling. It is a law that self destructs when executed. 
         // Only the admin can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(dao_, 7);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
@@ -195,7 +189,11 @@ contract DeployPowers101 is Script {
         delete conditions;
     }
 
-    function _getActions(address payable dao_, uint16 lawId)
+    //////////////////////////////////////////////////////////////
+    //                  HELPER FUNCTIONS                        // 
+    //////////////////////////////////////////////////////////////
+
+    function _getActions(address payable powers_, uint16 lawId)
         internal
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
@@ -213,7 +211,7 @@ contract DeployPowers101 is Script {
         values = new uint256[](13);
         calldatas = new bytes[](13);
         for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = dao_;
+            targets[i] = powers_;
         }
 
         calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);
@@ -240,5 +238,12 @@ contract DeployPowers101 is Script {
             revert("Law name does not match");
         }
         return lawAddresses[index];
+    }
+
+    function parseMockAddress(uint256 index, string memory mockName) public view returns (address mockAddress) {
+        if (keccak256(abi.encodePacked(mockName)) != keccak256(abi.encodePacked(mockNames[index]))) {
+            revert("Mock name does not match");
+        }
+        return mockAddresses[index];
     }
 } 

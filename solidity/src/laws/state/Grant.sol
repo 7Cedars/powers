@@ -44,7 +44,6 @@ contract Grant is Law {
         uint256 budget;
         uint256 spent;
         address tokenAddress;
-        address proposals;
     }
 
     mapping(bytes32 lawHash => StateData) internal stateData;
@@ -53,10 +52,9 @@ contract Grant is Law {
         LawUtilities.checkStringLength(name_);
         name = name_;
         bytes memory configParams = abi.encode(
-            "uint48 duration",
-            "uint256 budget",
-            "address tokenAddress",
-            "address proposals"
+            "uint48 Duration",
+            "uint256 Budget",
+            "address TokenAddress"
         );
         emit Law__Deployed(name_, configParams);
     }
@@ -74,14 +72,13 @@ contract Grant is Law {
         bytes memory inputParams,
         string memory description
     ) public override {
-        (uint48 duration, uint256 budget, address tokenAddress, address proposals) =
-            abi.decode(config, (uint48, uint256, address, address));
+        (uint48 duration, uint256 budget, address tokenAddress) =
+            abi.decode(config, (uint48, uint256, address));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         stateData[lawHash].expiryBlock = duration + uint48(block.number);
         stateData[lawHash].budget = budget;
         stateData[lawHash].tokenAddress = tokenAddress;
-        stateData[lawHash].proposals = proposals;
 
         super.initializeLaw(index, conditions, config, abi.encode("address Grantee", "address Grant", "uint256 Quantity"), description);
     }
@@ -104,7 +101,6 @@ contract Grant is Law {
     )
         public
         view
-        virtual
         override
         returns (
             uint256 actionId,
@@ -129,9 +125,6 @@ contract Grant is Law {
         if (block.number > stateData[lawHash].expiryBlock) {
             revert("Grant program has expired.");
         }
-        if (caller != stateData[lawHash].proposals) {
-            revert("Caller is not authorized to make proposals.");
-        }
 
         // step 2: create arrays
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -149,5 +142,16 @@ contract Grant is Law {
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (uint256 quantity) = abi.decode(stateChange, (uint256));
         stateData[lawHash].spent += quantity;
+    }
+
+    function getTokensLeft(bytes32 lawHash) external view returns (uint256) {
+        return stateData[lawHash].budget - stateData[lawHash].spent;
+    }
+
+    function getDurationLeft(bytes32 lawHash) external view returns (uint48) {
+        if (block.number > stateData[lawHash].expiryBlock) {
+            return 0;
+        }
+        return stateData[lawHash].expiryBlock - uint48(block.number);
     }
 }
