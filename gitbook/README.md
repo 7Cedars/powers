@@ -23,7 +23,7 @@ The Powers protocol provides a minimalist, but very powerful, proof of concept o
 ## Quick links
 
 * [The Github repository](https://github.com/7Cedars/powers)
-* [The Powers app](https://powers-protocol.vercel.app/#usecases) (currently not fully functional due to changes in the protocol. Will be updated asap.)&#x20;
+* [The Powers app](https://powers-protocol.vercel.app/#usecases)&#x20;
 
 ## The protocol
 
