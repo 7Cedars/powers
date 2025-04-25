@@ -18,9 +18,19 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0x2D31b763ef8c47A9262393ea445767EA670Ca957",
+    address: "0xAc78710724b1A899a8163BECB7d64ef32bE4355a",
     colourScheme: 0,
   }, 
+  {
+    title: "Governed Upgrades",
+    details: [
+      "Granular controls over DAO upgrades",
+      "Modular addoption by existing DAOs"
+    ],
+    demo: "Governed Upgrades",
+    address: "0x1A580e7A20Fd2074F2A4189c064492E1B5680F0F",
+    colourScheme: 1,
+  },
   {
     title: "Guard rails for AI agents",
     details: [
@@ -39,7 +49,7 @@ export const useCases = [
       "Let off-chain institutions interact with on-chain governance.",
     ],
     demo: "Hybrid DAO",
-    address: "0xd5123747DE48a65aF02172a2Aecec319bdAFF241",
+    address: "0x0000000000000000000000000000000000000000",
     colourScheme: 2,
   },
   {
@@ -48,7 +58,7 @@ export const useCases = [
       "Remove and add powers over time.",
       "Granular, governed, upgrades to on-chain governance."
     ],
-    demo: "Govern Your Tax",
+    demo: "Managed Grants",
     address: "0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A",
     colourScheme: 4,
   },  

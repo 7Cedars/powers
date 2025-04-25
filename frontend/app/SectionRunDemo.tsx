@@ -4,8 +4,10 @@ import { Button } from "@/components/Button";
 import { usePowers } from "@/hooks/usePowers";
 import { useState } from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
+import { useRouter } from "next/navigation";
 
 export function SectionRunDemo() {
+  const router = useRouter()
   const [newDemoAddress, setNewDemoAddress] = useState<`0x${string}`>()
   const {status, error} = usePowers()
 
@@ -26,7 +28,7 @@ export function SectionRunDemo() {
 
       <section className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden max-w-5xl">
         <div className="w-full flex flex-row gap-4 justify-between items-center py-4 px-5">
-          <div className="min-w-28 flex items-center rounded-md bg-white pl-3 outline outline-1 outline-gray-300">  
+          <div className="min-w-28 grow flex items-center rounded-md bg-white pl-3 outline outline-1 outline-gray-300">  
             <input 
               type= "text" 
               name={`input`} 
@@ -40,16 +42,18 @@ export function SectionRunDemo() {
           {
             newDemoAddress && 
             <div className="h-8 flex flex-row w-20 min-w-24 text-center">
-              {/* <Button 
+              <Button 
                 size = {0} 
-                role = {8} 
-                onClick={() => {addOrg(newDemoAddress)}}
-                > 
+                role = {6} 
+                onClick={() => { 
+                  router.push(`/${newDemoAddress}`)
+                }}
+              > 
                 <div className = "text-slate-600">{
-                  status && status == 'pending' ? <TwoSeventyRingWithBg /> : "Start"  
+                  status && status == 'pending' ? <TwoSeventyRingWithBg /> : "Visit"  
                 }
                 </div>    
-              </Button> */}
+              </Button>
             </div>
           }
         </div>
