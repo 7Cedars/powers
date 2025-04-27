@@ -6,7 +6,7 @@ description: >-
 
 # 💪 Welcome to Powers protocol
 
-🚧 **Documentation is under construction** 🚧
+🚧 **The Powers protocol is under development. The protocol, app and documentation are a work in progress. They can (and do!) break at any time.** 🚧
 
 ## What it is
 
@@ -23,7 +23,7 @@ The Powers protocol provides a minimalist, but very powerful, proof of concept o
 ## Quick links
 
 * [The Github repository](https://github.com/7Cedars/powers)
-* [The Powers app](https://powers-protocol.vercel.app/#usecases) (currently not fully functional due to changes in the protocol. Will be updated asap.)&#x20;
+* [The Powers app](https://powers-protocol.vercel.app/#usecases)&#x20;
 
 ## The protocol
 
@@ -92,9 +92,9 @@ Together, Powers and Laws allow communities to build any governance structure th
 
 The result can be something like this:&#x20;
 
-<figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
 
-This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/#usecases) on Arbitrum sepolia.
+This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/0x3D3dA5A73BD3B79B8Abff9aB9672124737941186) on Arbitrum sepolia.
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
@@ -112,7 +112,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 **Implementation**: Because the Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if another law has executed the same calldata and nonce. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law. When roles that control these different laws are assigned through divergent means, we can build a very secure and decentralised governance system.&#x20;
 
-**Example**: Separated Powers \[TBI] is an example that balances the power to execute actions between token users, holders and developers.
+**Example**: [Separated Powers](https://powers-protocol.vercel.app/0xAc78710724b1A899a8163BECB7d64ef32bE4355a) is an example that balances the power to execute actions between token users, holders and developers.
 
 </details>
 
@@ -128,7 +128,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 With this setup, it is possible to start out with very few (or no) assets in the new Powers protocol and start setting up several tasks governed by Powers. As confidence in the protocol grows, the DAO can send more assets to the protocol, and add new tasks and roles. The transition is complete when all stakeholders and tasks from the previous DAO are represented in the new Powers governance system and the DAO has transferred all its assets. The existing DAO can then be removed as a role holder.
 
-**Example**: See Governed Upgrades \[TBI] as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
+**Example**: See [Governed Upgrades](https://powers-protocol.vercel.app/0x1A580e7A20Fd2074F2A4189c064492E1B5680F0F) as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
 
 </details>
 
@@ -146,7 +146,7 @@ This brings a whole set of new challenges around accountability: how to hold DAO
 
 Note that this also means that all decisions made by the grant council are logged, increasing transparency. It is also possible to implement procedures to challenge grant council decisions, to create a representation of grant recipients in the DAO, and more.
 
-**Example**: See Managed Grants \[TBI] as an example of a grant program governed by the Powers protocol.
+**Example**: See [Managed Grants](https://powers-protocol.vercel.app/0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A) as an example of a grant program governed by the Powers protocol.
 
 </details>
 
