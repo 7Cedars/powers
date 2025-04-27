@@ -1,20 +1,11 @@
 `use client`
 
-import { Button } from "@/components/Button";
-
+import { LoadingBox } from "@/components/LoadingBox";
 import { Status } from "@/context/types";
-import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
-import { publicClient } from "@/context/clients";
-import { powersAbi } from "@/context/abi";
-import { supportedChains } from "@/context/chains";
-import { Log, parseEventLogs, ParseEventLogsReturnType } from "viem";
-import { useChainId } from "wagmi";
 import { useRouter } from "next/navigation";
 
-export function Assets() {
-  const chainId = useChainId();
-  const supportedChain = supportedChains.find(chain => chain.id === chainId)
+export function Assets({status}: {status: Status}) {
   const router = useRouter();
 
   return (
@@ -41,12 +32,16 @@ export function Assets() {
       </button>
        {/* below should be a button */}
       <div className = "w-full h-fit max-h-full lg:max-h-48 flex flex-col gap-2 justify-start items-center p-4">
+        {status == "pending" || status == "idle" ? <LoadingBox /> : 
+        <>
         <div className="w-full text-slate-800 text-left text-pretty">
           0 ETH 
         </div>
         <div className="w-full text-left text-sm text-slate-500">
           0 USD
         </div>
+        </>
+        }
       </div>
     </div>
   }

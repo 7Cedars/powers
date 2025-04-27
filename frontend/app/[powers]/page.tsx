@@ -17,6 +17,7 @@ import { Overview } from "./Overview";
 import {  sepolia } from "@wagmi/core/chains";
 import { useParams } from 'next/navigation'
 import { usePowers } from "@/hooks/usePowers";
+import { LoadingBox } from "@/components/LoadingBox";
 
 const colourScheme = [
   "from-indigo-500 to-emerald-500", 
@@ -38,7 +39,7 @@ export default function Page() {
     const chainId = useChainId();
     const supportedChain = supportedChains.find(chain => chain.id == chainId)
     
-    console.log("@home:", {addressPowers, powers})
+    console.log("@home:", {addressPowers, powers, statusPowers})
 
     const fetchMyRoles = useCallback(
       async (account: `0x${string}`, roles: bigint[]) => {
@@ -91,11 +92,12 @@ export default function Page() {
           {powers?.name}
         </section>
         
-        {/* Description + link to powers protocol deployment */}
-        { powers?.metadatas?.description &&  
+        {/* Description + link to powers protocol deployment */}  
         <section className="w-full h-fit flex flex-col gap-2 justify-left items-center border border-slate-200 rounded-md bg-slate-50 lg:max-w-full max-w-3xl p-4">
+          {statusPowers == "pending" || statusPowers == "idle" ? <LoadingBox /> : 
+          <>
           <div className="w-full text-slate-800 text-left text-pretty">
-            {powers?.metadatas?.description}
+             {powers?.metadatas?.description} 
           </div>
           <a
             href={`${supportedChain?.blockExplorerUrl}/address/${addressPowers as `0x${string}`}#code`} target="_blank" rel="noopener noreferrer"
@@ -110,9 +112,9 @@ export default function Page() {
                 />
             </div>
           </a>
+          </>
+          }
         </section>
-        }
-
         
         {/* main body  */}
         <section className="w-full lg:max-w-full h-full flex max-w-3xl lg:flex-row flex-col-reverse justify-end items-start">
@@ -122,11 +124,12 @@ export default function Page() {
           </div>
           {/* right / top panel  */} 
           <div className = {"w-full pb-2 flex flex-wrap flex-col lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:flex-col lg:overflow-hidden lg:ps-2 gap-3 overflow-y-hidden overflow-x-scroll scroll-snap-x"}> 
-            <Assets /> 
-            
-            <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} /> 
 
-            <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers}/>
+            <Assets status = {statusPowers}/> 
+
+            <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} /> 
+
+            <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
           </div>
         </section>
       </main>

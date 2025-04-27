@@ -1,15 +1,17 @@
-import { Execution, Law } from "@/context/types";
+import { Execution, Law, Status } from "@/context/types";
 import { parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
+import { LoadingBox } from "@/components/LoadingBox";
 
 type ExecutionsProps = {
   executions: Execution[] | undefined
   onClick: (execution: Execution) => void;
   law: Law;
+  status: Status;
 };
 
-export const Executions = ({executions, onClick, law}: ExecutionsProps) => {
+export const Executions = ({executions, onClick, law, status}: ExecutionsProps) => {
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -19,9 +21,13 @@ export const Executions = ({executions, onClick, law}: ExecutionsProps) => {
         </div>
 
         {/* execution logs block 1 */}
-        {
-          executions && executions?.length != 0 ?  
-          <div className = "w-full flex flex-col max-h-36 lg:max-h-56 overflow-y-scroll divide-y divide-slate-300">
+        {status == "pending" || status == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        executions && executions?.length != 0 ?  
+        <div className = "w-full flex flex-col max-h-36 lg:max-h-56 overflow-y-scroll divide-y divide-slate-300">
             {executions.map((execution: Execution, index: number) => 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button

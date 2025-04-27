@@ -14,11 +14,12 @@ import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
+import { LoadingBox } from "@/components/LoadingBox";
  
 const Page = () => {
   const {wallets, ready} = useWallets();
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, status: statusPowers } = usePowers()
   const {status, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, execute, fetchSimulation} = useLaw();
   const action = useActionStore();;
   
@@ -132,13 +133,19 @@ const Page = () => {
       <section className="w-full px-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
 
         {/* left panel: writing, fetching data is done here  */}
-        {law && 
+        {
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-          {law && <LawBox 
+          {statusPowers == "pending" || statusPowers == "idle" ?
+          <div className = "w-full flex flex-col justify-center items-center p-4 border border-slate-300 bg-slate-50 rounded-md"> 
+            <LoadingBox />
+          </div>
+          :
+          law && 
+          <LawBox 
               law = {law}
               checks = {checks || {}} 
               params = {law.params || []}
-              status = {status} 
+              status = {statusPowers} 
               error = {error} 
               simulation = {simulation} 
               selectedExecution = {selectedExecution}
@@ -156,11 +163,11 @@ const Page = () => {
         {/* right panel: info boxes should only reads from zustand.  */}
         <div className="flex flex-col flex-wrap lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:my-2 my-0 lg:flex-col lg:overflow-hidden lg:ps-4 w-full flex-row gap-4 justify-center items-center overflow-x-scroll overflow-y-hidden scroll-snap-x">
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<ChecksBox checks = {checks} law = {law} powers = {powers} />} 
+            {<ChecksBox checks = {checks} law = {law} powers = {powers} status = {statusPowers} />} 
           </div>
-          {<Children law = {law} powers = {powers} />} 
+          {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {law && <Executions executions = {executions} onClick = {(execution) => setSelectedExecution(execution) } law = {law}/> }
+            {law && <Executions executions = {executions} onClick = {(execution) => setSelectedExecution(execution) } law = {law} status = {statusPowers}/> }
           </div>
         </div>
         

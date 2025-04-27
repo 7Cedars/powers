@@ -2,18 +2,15 @@
 
 import { powersAbi } from "@/context/abi";
 import { parseVoteData } from "@/utils/parsers";
-import { useActionStore } from "@/context/store";
-import { Powers, Proposal } from "@/context/types";
-import { useLaw } from "@/hooks/useLaw";
+import { Powers, Proposal, Status } from "@/context/types";
 import { CheckIcon, XMarkIcon} from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
 import { useBlockNumber, useChainId, useReadContracts } from "wagmi";
-import { mainnet, sepolia } from "@wagmi/core/chains";
+import { sepolia } from "@wagmi/core/chains";
 import { blocksToHoursAndMinutes } from "@/utils/toDates";
 import { supportedChains } from "@/context/chains";
-import { useChecks } from "@/hooks/useChecks";
+import { LoadingBox } from "@/components/LoadingBox";
 
-export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | undefined}) => {
+export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Proposal, powers: Powers | undefined, status: Status}) => {
   console.log("@Votes: waypoint 0", {proposal, powers})
 
   const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
@@ -56,8 +53,6 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
 
   return (
-    <>
-    { proposal && 
       <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-72">
       <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -66,6 +61,11 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
           </div> 
         </div>
 
+        {statusPowers == "pending" || statusPowers == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>  
+        :
         <div className = "w-full h-full flex flex-col lg:min-h-fit overflow-x-scroll divide-y divide-slate-300 max-h-36 lg:max-h-full overflow-y-scroll">
         {/* Quorum block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
@@ -128,10 +128,9 @@ export const Votes = ({proposal, powers}: {proposal: Proposal, powers: Powers | 
             </div>
           }
         </div>
-      </div>
-    </section>
+        </div> 
+        }
+      </section>
     </div>
-    }
-    </>
   )
 }

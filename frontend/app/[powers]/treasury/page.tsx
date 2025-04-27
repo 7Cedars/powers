@@ -8,7 +8,7 @@ import { usePowers } from "@/hooks/usePowers";
 
 export default function Page() {
   const { powers: addressPowers} = useParams<{ powers: string }>()  
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, status } = usePowers()
 
   useEffect(() => {
     if (addressPowers) {
@@ -18,7 +18,7 @@ export default function Page() {
   
   return (
     <main className="w-full h-fit flex flex-col gap-6 justify-center items-center pt-20 px-2">
-      <AssetList powers={powers} />
+      <AssetList powers={powers} status={status} />
       <AddAsset powers={powers} /> 
     </main>
   )

@@ -6,12 +6,13 @@ import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
 import { decodeAbiParameters,  keccak256, parseAbiParameters, toHex } from "viem";
 import { bytesToParams, parseParamValues, parseRole } from "@/utils/parsers";
-import { Checks, InputType, Law, Powers, Proposal } from "@/context/types";
+import { Checks, InputType, Law, Powers, Proposal, Status } from "@/context/types";
 import { StaticInput } from "../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+import { LoadingBox } from "@/components/LoadingBox";
 // import { useChecks } from "@/hooks/useChecks";
 
 const roleColour = [  
@@ -24,7 +25,7 @@ const roleColour = [
   "border-slate-600",
 ]
 
-export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposal, powers?: Powers, law?: Law, checks?: Checks, wallets?: ConnectedWallet[]}) {
+export function ProposalBox({proposal, powers, law, checks, status}: {proposal?: Proposal, powers?: Powers, law?: Law, checks?: Checks, status: Status, wallets?: ConnectedWallet[]}) {
   const action = useActionStore(); 
   const {simulation, fetchSimulation} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
@@ -74,6 +75,12 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
   return (
     <main className="w-full flex flex-col justify-start items-center">
       <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
+      {status == "pending" || status == "idle" ?
+      <div className = "w-full flex flex-col justify-center items-center p-2"> 
+        <LoadingBox />
+      </div>
+      :
+      <>
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
@@ -197,6 +204,8 @@ export function ProposalBox({proposal, powers, law, checks}: {proposal?: Proposa
               </div> 
           }
         </div>
+      </>
+      }
       </section>
     </main>
   );

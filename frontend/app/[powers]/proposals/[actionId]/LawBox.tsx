@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from 'next/navigation'
-import { Law } from "@/context/types";
+import { Law, Status } from "@/context/types";
+import { LoadingBox } from '@/components/LoadingBox';
 
 const roleColour = [  
   "border-blue-600", 
@@ -13,7 +14,7 @@ const roleColour = [
   "border-slate-600"
 ]
 
-export const LawBox: React.FC<{law: Law}> = ({law}) => {
+export const LawBox: React.FC<{law: Law, status: Status}> = ({law, status}) => {
   const router = useRouter();
 
   return (
@@ -24,6 +25,12 @@ export const LawBox: React.FC<{law: Law}> = ({law}) => {
           </div> 
         </div>
 
+        {status == "pending" || status == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        <>
         {/* authorised block */}
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <button 
@@ -37,6 +44,8 @@ export const LawBox: React.FC<{law: Law}> = ({law}) => {
                 </div>
             </button>
         </div>
+        </>
+        }
     </section>
   )
 }

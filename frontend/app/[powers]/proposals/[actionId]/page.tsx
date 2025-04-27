@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { ProposalBox } from "./ProposalBox";
 import { ChecksBox } from "./ChecksBox"; 
-import { Status } from "./Status"; 
+import { StatusProposal } from "./StatusProposal"; 
 import { Votes } from "./Votes"; 
 import { useChecks } from "@/hooks/useChecks";
 import { setAction, useActionStore } from "@/context/store";
-import { Powers, Proposal, Law } from "@/context/types";
+import { Powers, Proposal, Law, Status } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
@@ -17,7 +17,7 @@ import { parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
 
 const Page = () => {
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
   const proposal = powers?.proposals?.find(proposal => proposal.actionId == actionId)
@@ -57,12 +57,6 @@ const Page = () => {
       fetchChecks(law, proposal.executeCalldata, proposal.nonce, wallets, powers as Powers)
     }
   }, [, proposal])
- 
-  // useEffect(() => {
-  //   if (law && action.callData && action.nonce) {
-  //     fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
-  //   }
-  // }, [law, action])
 
   useEffect(() => {
     if (addressPowers) {
@@ -79,24 +73,24 @@ const Page = () => {
       <section className="w-full px-4 lg:max-w-full h-full flex lg:flex-row flex-col-reverse justify-end items-start">
       { proposal && 
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-          <ProposalBox proposal = {proposal} powers = {powers} law = {law} checks = {checks} /> 
+          <ProposalBox proposal = {proposal} powers = {powers} law = {law} checks = {checks} status = {statusChecks} /> 
         </div>
       }
 
         <div className="flex flex-col flex-wrap lg:flex-nowrap lg:max-h-full max-h-48 min-h-48 lg:w-96 lg:my-4 my-0 lg:overflow-hidden w-full flex-row gap-4 justify-center items-center overflow-x-scroll scroll-snap-x overflow-y-hidden"> 
       
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72">
-            { law && <LawBox law = {law} /> }
+            { law && <LawBox law = {law} status = {statusChecks}/> }
           </div>
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72">
-            { proposal && <Status proposal = {proposal} /> }
+            { proposal && <StatusProposal proposal = {proposal} status = {statusChecks}/> }
           </div>
           
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72"> 
-            <ChecksBox checks = {checks} powers = {powers} law = {law} />   
+            <ChecksBox checks = {checks} powers = {powers} law = {law} status = {statusChecks}/>   
           </div>
 
-            { proposal && <Votes proposal = {proposal} powers = {powers} /> }
+            { proposal && <Votes proposal = {proposal} powers = {powers} status = {statusChecks}/> }
         
         </div>
         

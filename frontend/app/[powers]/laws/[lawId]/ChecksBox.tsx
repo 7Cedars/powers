@@ -3,9 +3,9 @@
 import { CalendarDaysIcon, CheckIcon, QueueListIcon, UserGroupIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { parseRole } from "@/utils/parsers";
 import { useRouter } from "next/navigation";
-import { Checks, Law, Powers } from "@/context/types";
+import { Checks, Law, Powers, Status } from "@/context/types";
 import { useActionStore } from "@/context/store";
-
+import { LoadingBox } from "@/components/LoadingBox";
 const roleColour = [  
   "blue-600", 
   "red-600", 
@@ -16,7 +16,7 @@ const roleColour = [
   "slate-600"
 ]
 
-export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, law: Law | undefined, checks: Checks | undefined}) => {
+export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undefined, law: Law | undefined, checks: Checks | undefined, status: Status}) => {
   const router = useRouter();
   const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needCompleted); 
   const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needNotCompleted); 
@@ -38,6 +38,12 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
         <div className = "w-full h-full flex flex-col lg:min-h-fit overflow-x-scroll divide-y divide-slate-300 max-h-36 lg:max-h-full overflow-y-scroll">
 
         {/* authorised block */}
+        {status == "pending" || status == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        <>
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <div className = "w-full flex flex-row px-2 py-1 justify-between items-center">
             { checks?.authorised ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -48,7 +54,7 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
         </div>
 
         {/* proposal passed */}
-        {law?.conditions.quorum != 0n ?
+        {law?.conditions.quorum != 0n && 
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.proposalPassed ? 
@@ -85,12 +91,11 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
                 </div>
               </button>
             </div>
-          </div>
-          : null
+          </div> 
         }
 
         {/* Delay */}
-        {law?.conditions.delayExecution != 0n?
+        {law?.conditions.delayExecution != 0n &&
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <div className = "w-full flex flex-row px-2 justify-between items-center">
             { checks?.delayPassed ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -104,12 +109,11 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
               {`This law can only be executed ${law?.conditions.delayExecution } blocks after a vote passed.`}
             </div>
           </div>
-        </div>
-        : null  
+        </div>  
         }
 
         {/* Throttle */}
-        {law?.conditions.throttleExecution != 0n ? 
+        {law?.conditions.throttleExecution != 0n &&
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <div className = "w-full flex flex-row px-2 justify-between items-center">
             { checks?.throttlePassed ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -124,7 +128,6 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
             </div>
           </div>
         </div>
-        : null
         }
 
         {/* proposal already executed */}
@@ -147,7 +150,7 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
         }
 
         {/* Executed */}
-        {law?.conditions.needCompleted != 0n  ?  
+        {law?.conditions.needCompleted != 0n && 
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
             { checks?.lawCompleted ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -166,12 +169,10 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
               </button>
             </div>
           </div>
-          :
-          null
         }
 
         {/* Not executed */}
-        {law?.conditions.needNotCompleted != 0n ? 
+        {law?.conditions.needNotCompleted != 0n && 
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
             { checks?.lawNotCompleted ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -190,11 +191,9 @@ export const ChecksBox = ({powers, law, checks}: {powers: Powers | undefined, la
               </button>
             </div>
           </div>
-          : null
-          }
-
-
-      
+        }
+        </>
+      }
       </div>
     </section>
   )

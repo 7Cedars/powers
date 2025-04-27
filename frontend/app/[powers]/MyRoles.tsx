@@ -6,15 +6,17 @@ import { useRouter } from "next/navigation";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { GetBlockReturnType } from "@wagmi/core";
 import { toFullDateFormat } from "@/utils/toDates";
-import { Powers } from "@/context/types";
+import { Powers, Status } from "@/context/types";
+import { LoadingBox } from "@/components/LoadingBox";
 
 type MyRolesProps = {
   hasRoles: {role: bigint, since: bigint, blockData: GetBlockReturnType}[]; 
   authenticated: boolean; 
   powers: Powers | undefined;
+  status: Status;
 }
 
-export function MyRoles({hasRoles, authenticated, powers}: MyRolesProps ) {
+export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps ) {
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.since != 0n)
 
@@ -64,6 +66,11 @@ export function MyRoles({hasRoles, authenticated, powers}: MyRolesProps ) {
         }
       </div>
   : 
+  status == "pending" || status == "idle" ? 
+    <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+      <LoadingBox /> 
+    </div>
+  :
   <div className="w-full h-full flex flex-col justify-center text-sm text-slate-500 items-center p-3">
     Connect your wallet to see your roles. 
   </div>

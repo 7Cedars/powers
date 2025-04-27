@@ -7,7 +7,7 @@ import { usePowers } from "@/hooks/usePowers";
 
 export default function Page() {
   const { powers: addressPowers} = useParams<{ powers: string }>()  
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, status } = usePowers()
 
   useEffect(() => {
     if (addressPowers) {
@@ -17,7 +17,7 @@ export default function Page() {
   
     return (
       <main className="w-full h-fit flex flex-col justify-center items-center pt-20 px-2">
-        <RoleList powers={powers} />
+        <RoleList powers={powers} status={status} />
       </main>
     )
 }

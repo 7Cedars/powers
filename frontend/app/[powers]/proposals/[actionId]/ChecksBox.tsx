@@ -1,11 +1,10 @@
 "use client";
 
-import { XCircleIcon, CheckIcon, XMarkIcon,ArrowPathIcon } from "@heroicons/react/24/outline";
-import { Checks, Powers, Law } from "@/context/types";
+import {  CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Checks, Powers, Law, Status } from "@/context/types";
 import { parseRole } from "@/utils/parsers";
 import { useRouter } from "next/navigation";
-import { useActionStore } from "@/context/store";
-
+import { LoadingBox } from "@/components/LoadingBox";
 const roleColour = [  
   "blue-600", 
   "red-600", 
@@ -16,7 +15,7 @@ const roleColour = [
   "slate-600"
 ]
 
-export function ChecksBox ({checks, powers, law}: {checks: Checks | undefined, powers: Powers | undefined, law: Law | undefined}) {
+export function ChecksBox ({checks, powers, law, status}: {checks: Checks | undefined, powers: Powers | undefined, law: Law | undefined, status: Status}) {
   const router = useRouter(); 
   const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needCompleted); 
   const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needNotCompleted); 
@@ -32,6 +31,12 @@ export function ChecksBox ({checks, powers, law}: {checks: Checks | undefined, p
         </div>
 
         {/* authorised block */}
+        {status == "pending" || status == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        <>
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <div className = "w-full flex flex-row px-2 py-1 justify-between items-center">
             { checks?.authorised ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -85,9 +90,10 @@ export function ChecksBox ({checks, powers, law}: {checks: Checks | undefined, p
                 </button>
               </div>
             </div>
-            : null
-            }
-
-    </section>
+            : null    
+          }
+        </>
+        }
+    </section>  
   )
 }

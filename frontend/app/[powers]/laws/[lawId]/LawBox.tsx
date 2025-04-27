@@ -14,6 +14,7 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { supportedChains } from "@/context/chains";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
+import { LoadingBox } from "@/components/LoadingBox";
 
 type LawBoxProps = {
   law: Law;
@@ -112,7 +113,8 @@ export function LawBox({law, checks, params, status, error, simulation, selected
       </div>
 
       {/* dynamic form */}
-      { action && 
+      { 
+      action && 
       <form action="" method="get" className="w-full">
         {
           params.map((param, index) => {
@@ -127,8 +129,8 @@ export function LawBox({law, checks, params, status, error, simulation, selected
                   key = {index}
                   />
             )
-        })
-      }
+          })
+        }
       <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3">
         <label htmlFor="nonce" className="text-sm text-slate-600 ps-3 pt-1 pe-11 ">Nonce</label>
         <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-3 outline outline-1 outline-slate-300">

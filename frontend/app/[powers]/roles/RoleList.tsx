@@ -12,8 +12,9 @@ import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { setRole } from "@/context/store"
 import { bigintToRole } from "@/utils/bigintToRole";
+import { LoadingBox } from "@/components/LoadingBox";
 
-export function RoleList({powers}: {powers: Powers | undefined}) {
+export function RoleList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
@@ -82,6 +83,11 @@ export function RoleList({powers}: {powers: Powers | undefined}) {
         }
       </div>
       {/* table laws  */}
+      {statusPowers == "pending" || statusPowers == "idle" ? 
+      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+        <LoadingBox /> 
+      </div>
+      :
       <table className="w-full table-auto border border-t-0">
       <thead className="w-full">
             <tr className="w-96 bg-slate-50 text-xs font-light text-left text-slate-500 rounded-md border-b border-slate-200">
@@ -115,6 +121,7 @@ export function RoleList({powers}: {powers: Powers | undefined}) {
           }
         </tbody>
       </table>
+      }
     </div>
   );
 }

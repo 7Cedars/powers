@@ -1,7 +1,8 @@
 import { Button } from "@/components/Button";
+import { LoadingBox } from "@/components/LoadingBox";
 
 import {useActionStore} from "@/context/store";
-import { Law, Powers } from "@/context/types";
+import { Law, Powers, Status } from "@/context/types";
 import { useRouter } from "next/navigation";
 
 const roleColour = [  
@@ -14,7 +15,7 @@ const roleColour = [
   "border-slate-600"
 ]
 
-export function Children({law, powers}: {law: Law | undefined, powers: Powers | undefined}) {
+export function Children({law, powers, status}: {law: Law | undefined, powers: Powers | undefined, status: Status}) {
   const router = useRouter();
 
   const childLaws: Law[] | undefined = powers?.laws?.filter(law => 
@@ -31,8 +32,12 @@ export function Children({law, powers}: {law: Law | undefined, powers: Powers | 
         </div>
       </div>
       <div className = "flex flex-col items-center justify-center"> 
-        {    
-          childLaws?.map(law =>
+        {status == "pending" || status == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        childLaws?.map(law =>
               <div key={law.index} className = "w-full flex flex-row p-2 px-3">
                 <button 
                   className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law.conditions.allowedRole) % roleColour.length]} disabled:opacity-50`}

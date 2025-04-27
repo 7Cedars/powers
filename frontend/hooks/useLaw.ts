@@ -41,7 +41,6 @@ export const useLaw = () => {
  
   const fetchExecutions = async (law: Law) => {
     let log: Log
-    let blocksData: GetBlockReturnType[] = []
     let executions2: Execution[] = []
 
     if (publicClient) {
@@ -113,7 +112,6 @@ export const useLaw = () => {
           setError(error)
           console.log(error)
         }
-        setStatus("idle") // immediately reset status
   }, [ ])
 
   const execute = useCallback( 

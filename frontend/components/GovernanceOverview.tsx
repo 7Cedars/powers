@@ -73,7 +73,9 @@ export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
       <div className = "w-full h-full min-h-fit flex flex-col gap-4">  
         {
           governanceTracks.tracks && governanceTracks.tracks.length > 0 && governanceTracks.tracks.map((track, index) => 
-            track && <GovernanceTrack track = {track} roleIds = {roleIdsParsed} lawSelected = {law} key = {index} bgItem = {bgItem} /> 
+            <div key = {index} className = "w-full h-full flex flex-col gap-4 overflow-y-scroll">
+              {track && <GovernanceTrack track = {track} roleIds = {roleIdsParsed} lawSelected = {law} key = {index} bgItem = {bgItem} /> }
+            </div>
           )
         }
         {

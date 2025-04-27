@@ -8,9 +8,10 @@ import { useChainId, useReadContracts } from "wagmi";
 import { erc1155Abi, erc20Abi } from "@/context/abi";
 import Link from "next/link";
 import { useAssets } from "@/hooks/useAssets";
-import { Token, Powers } from "@/context/types";
+import { Token, Powers, Status } from "@/context/types";
+import { LoadingBox } from "@/components/LoadingBox";
 
-export function AssetList({powers}: {powers: Powers | undefined}) {
+export function AssetList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
   const router = useRouter();
   const chainId = useChainId();
   const supportedChain = supportedChains.find(chain => chain.id == chainId)
@@ -103,6 +104,11 @@ export function AssetList({powers}: {powers: Powers | undefined}) {
     </section>
 
     {/* all assets table */}
+    {statusPowers == "pending" || statusPowers == "idle" ? 
+    <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+      <LoadingBox /> 
+    </div>
+    :
     <section className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden">
       {/* table banner  */}
       <div className="w-full flex flex-row gap-3 justify-between items-center py-4 px-6 border-b border-slate-200">
@@ -163,6 +169,7 @@ export function AssetList({powers}: {powers: Powers | undefined}) {
       </table>
       </div>
     </section>
+    }
     </div> 
   );
 }

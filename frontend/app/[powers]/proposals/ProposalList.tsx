@@ -9,6 +9,7 @@ import { parseProposalStatus, parseRole } from "@/utils/parsers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { bigintToRole } from "@/utils/bigintToRole";
+import { LoadingBox } from "@/components/LoadingBox";
 
 // NB: need to delete action from store? Just in case? 
 export function ProposalList({powers, onUpdateProposals, status}: {powers: Powers | undefined, onUpdateProposals: () => void, status: string}) {
@@ -98,6 +99,11 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
       </div>
 
       {/* table laws  */}
+      {status == "pending" || status == "idle" ? 
+      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+        <LoadingBox /> 
+      </div>
+      :
       <div className="w-full overflow-scroll">
       <table className="w-full table-auto">
       <thead className="w-full border-b border-slate-200">
@@ -150,8 +156,9 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
             }
           )}
         </tbody>
-      </table>
+        </table>
       </div>
+      }
     </div>
   );
 }

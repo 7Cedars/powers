@@ -8,6 +8,7 @@ import { Law, Powers } from "@/context/types";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { setRole, useRoleStore } from "@/context/store";
 import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { LoadingBox } from "@/components/LoadingBox";
 
 export function LawList({powers, onUpdatePowers, status}: {powers: Powers | undefined, onUpdatePowers: () => void, status: string}) {
   const router = useRouter();
@@ -64,6 +65,11 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
         }
       </div>
       {/* table laws  */}
+      {status == "pending" || status == "idle" ?  
+      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+        <LoadingBox /> 
+      </div>
+      :
       <div className="w-full overflow-scroll">
       {/* border border-t-0 */}
       <table className="w-full table-auto"> 
@@ -118,6 +124,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
         </tbody>
       </table>
       </div>
+      }
     </div>
   );
 }

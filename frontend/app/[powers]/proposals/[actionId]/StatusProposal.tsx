@@ -1,19 +1,10 @@
 "use client";
 
-import { useReadContract } from 'wagmi'
-import { powersAbi } from "@/context/abi";
-import { Proposal } from "@/context/types";
+import { Proposal, Status } from "@/context/types";
+import { LoadingBox } from '@/components/LoadingBox';
 
-export const Status = ({proposal}: {proposal?: Proposal}) => {
+export const StatusProposal = ({proposal, status: statusPowers}: {proposal?: Proposal, status: Status}) => {
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
-  // const { status: readContractStatus, data: ActionState, error: readContractError } = useReadContract({
-  //   address: proposal?.action?.caller,
-  //   abi: powersAbi,  
-  //   functionName: 'state',
-  //   args: [proposal?.actionId],
-  // })
-
-  // console.log("@status block: ", {proposal, ActionState, readContractError, readContractStatus})
 
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
@@ -24,6 +15,12 @@ export const Status = ({proposal}: {proposal?: Proposal}) => {
         </div>
 
         {/* authorised block */}
+        {statusPowers == "pending" || statusPowers == "idle" ?
+        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <LoadingBox />
+        </div>
+        :
+        <>
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
             { 
               !proposal ? 
@@ -47,6 +44,8 @@ export const Status = ({proposal}: {proposal?: Proposal}) => {
               null 
             }
         </div>
+        </>
+        }
     </section>
   )
 }
