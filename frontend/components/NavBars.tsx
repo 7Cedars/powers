@@ -121,15 +121,8 @@ const Header = () => {
     <div className="absolute top-0 z-20 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
       <div className="flex flex-row gap-1 min-w-16"> 
-        <Button size = {0} onClick={
-            () => {
-              router.push('/')
-            }
-            
-            } 
-            showBorder={true}
-            selected = {true}
-            filled = {false}
+        <a href="/"  
+            className="flex flex-row min-w-12 p-1 justify-center items-center border border-slate-300 bg-slate-50 rounded-md"
             >  
           <Image 
             src='/logo.png' 
@@ -138,7 +131,7 @@ const Header = () => {
             alt="Logo Separated Powers"
             >
           </Image>
-        </Button> 
+        </a> 
         <div className="">
       
         </div>

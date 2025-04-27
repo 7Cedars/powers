@@ -12,7 +12,7 @@ export function SectionRunDemo() {
   const {status, error} = usePowers()
 
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center pb-8 px-4 snap-start snap-always opacity-0 md:opacity-100">
+    <section className="min-h-screen flex flex-col justify-center items-center pb-8 px-4 snap-start snap-always">
       <div className="w-full flex flex-col gap-12 justify-center items-center h-full">
        <section className = "flex flex-col justify-center items-center"> 
           <div className = "w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
