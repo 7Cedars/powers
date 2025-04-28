@@ -44,6 +44,9 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
 
+// mocks
+import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
+
 contract DeployGovernedUpgrades is Script {
     string[] names;
     address[] lawAddresses;
@@ -86,11 +89,22 @@ contract DeployGovernedUpgrades is Script {
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
         //////////////////////////////////////////////////////
-        string[] memory inputParamsAdopt = new string[](1);
-        inputParamsAdopt[0] = "address NewLaw";
+        string[] memory inputParamsAdopt = new string[](11);
 
-        string[] memory inputParamsRevoke = new string[](1);
-        inputParamsRevoke[0] = "uint16 LawId";
+        inputParamsAdopt[0] = "address Law";
+        inputParamsAdopt[1] = "uint256 AllowedRole";
+
+        inputParamsAdopt[2] = "uint32 VotingPeriod";
+        inputParamsAdopt[3] = "uint8 Quorum";
+        inputParamsAdopt[4] = "uint8 SucceedAt";
+        
+        inputParamsAdopt[5] = "uint16 NeedCompleted";
+        inputParamsAdopt[6] = "uint16 NeedNotCompleted";
+        inputParamsAdopt[7] = "uint16 ReadStateFrom";
+        inputParamsAdopt[8] = "uint48 DelayExecution";
+        inputParamsAdopt[9] = "uint48 ThrottleExecution";
+        inputParamsAdopt[10] = "bytes Config";
+        inputParamsAdopt[11] = "string Description";
 
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
@@ -101,7 +115,7 @@ contract DeployGovernedUpgrades is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsAdopt),
             conditions: conditions,
-            description: "Veto the adoption of a new law."
+            description: "Veto adoption of law: Veto the adoption of a new law."
         });
         delete conditions;
 
@@ -113,12 +127,11 @@ contract DeployGovernedUpgrades is Script {
         conditions.succeedAt = 51; // 51% majority
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
-            config: abi.encode(inputParamsRevoke),
+            config: abi.encode("uint16 LawId"),
             conditions: conditions,
-            description: "Veto the revocation of a law."
+            description: "Veto revocation of law: Veto the revocation of an existing law."
         });
         delete conditions;
-
 
         // Law to adopt a law
         // Only previous DAO (role 1) can use this law
@@ -126,43 +139,42 @@ contract DeployGovernedUpgrades is Script {
         conditions.allowedRole = 0; // previous DAO role
         conditions.needNotCompleted = 1; // law 1 should NOT have passed
         lawInitData[1] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(5, "BespokeAction"),
-            config: configAdopt,
+            targetLaw: parseLawAddress(18, "AdoptLaw"),
+            config: abi.encode(""),
             conditions: conditions,
-            description: "Adopt a new law into Powers."
+            description: "Adopt a new law: Adopt a new law into Powers."
         });
         delete conditions;
 
         // Law to revoke a law
         // Only previous DAO (role 1) can use this law
-        bytes memory configRevoke = abi.encode(powers_, IPowers.revokeLaw.selector, inputParamsRevoke);
+        bytes memory configRevoke = abi.encode(powers_, IPowers.revokeLaw.selector, "uint16 LawId");
         conditions.allowedRole = 0; // previous DAO role
         conditions.needNotCompleted = 2; // law 2 should NOT have passed
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(5, "BespokeAction"),
             config: configRevoke,
             conditions: conditions,
-            description: "Revoke a law in Powers."
+            description: "Revoke a law: Revoke a law in Powers."
         });
         delete conditions;
 
         // Preset law for token exchange
         // Only delegates (role 2) can use this law
-        address[] memory exchangeTargets = new address[](1);
-        uint256[] memory exchangeValues = new uint256[](1);
-        bytes[] memory exchangeCalldatas = new bytes[](1);
-        // Mock exchange call - replace with actual Uniswap call
-        exchangeTargets[0] = address(0x123); // Mock Uniswap router
-        exchangeCalldatas[0] = abi.encode("swapExactTokensForTokens");
+        bytes[] memory configMint = abi.encodeWithSelector(
+            parseMockAddress(2, "Erc20VotesMock"), 
+            Erc20VotesMock.mintVotes.selector, 
+            "uint256 amount"
+            );
 
         // Preset law to veto token exchange
         // Only previous DAO (role 1) can use this law
         conditions.allowedRole = 0; // previous DAO role
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
-            config: abi.encode(exchangeTargets, exchangeValues, exchangeCalldatas),
+            config: configMint,
             conditions: conditions,
-            description: "Veto token exchange operations."
+            description: "Veto token mint: veto minting of tokens to a delegate."
         });
         delete conditions;
 
@@ -172,10 +184,10 @@ contract DeployGovernedUpgrades is Script {
         conditions.succeedAt = 51; // 51% majority
         conditions.needNotCompleted = 5; // law 5 needs to have passed
         lawInitData[6] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(7, "PresetAction"),
-            config: abi.encode(exchangeTargets, exchangeValues, exchangeCalldatas),
+            targetLaw: parseLawAddress(5, "BespokeAction"),
+            config: configMint,
             conditions: conditions,
-            description: "Exchange tokens on Uniswap."
+            description: "Mint Tokens: Mint tokens to a delegate address. Note that the address is the executioner of the law."
         });
         delete conditions;
 

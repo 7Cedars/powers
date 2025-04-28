@@ -9,6 +9,7 @@ import { bigintToRole } from "@/utils/bigintToRole";
 import { setRole, useRoleStore } from "@/context/store";
 import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
+import { shorterDescription } from "@/utils/parsers";
 
 export function LawList({powers, onUpdatePowers, status}: {powers: Powers | undefined, onUpdatePowers: () => void, status: string}) {
   const router = useRouter();
@@ -101,7 +102,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                     align={0}
                     selected={true}
                   >
-                    {law.description}
+                    {shorterDescription(law.description, "short")}
                   </Button>
                 </td>
                 <td className="pe-4 text-slate-500 h-full min-w-fit">

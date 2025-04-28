@@ -345,3 +345,28 @@ export const parseErrorMessage = (message: unknown): boolean | string  => {
   }
 };
 
+export const shorterDescription = (message: string | undefined, output: "short" | "long" | "full")  => {
+  if (!message) {
+    return ""
+  }
+
+  if (!isString(message)) {
+    throw new Error(`Incorrect message, not a string: ${message}`);
+  }
+
+  const splitMessage = message.split(":")
+
+  if (output == "short") {
+    return splitMessage[0]
+  }
+
+  if (output == "long") {
+    return splitMessage[1] ? splitMessage[1] : splitMessage[0]
+  } 
+
+  if (output == "full") {
+    return message
+  }
+};
+
+

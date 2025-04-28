@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Law, Status } from "@/context/types";
 import { LoadingBox } from '@/components/LoadingBox';
+import { shorterDescription } from '@/utils/parsers';
 
 const roleColour = [  
   "border-blue-600", 
@@ -40,7 +41,7 @@ export const LawBox: React.FC<{law: Law, status: Status}> = ({law, status}) => {
                 }}
               >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                    {law.description}
+                    {shorterDescription(law.description, "short")}
                 </div>
             </button>
         </div>

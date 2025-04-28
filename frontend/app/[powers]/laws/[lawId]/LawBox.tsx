@@ -7,7 +7,7 @@ import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { SectionText } from "@/components/StandardFonts";
 import { useChainId } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
-import { parseLawError, parseParamValues, parseRole } from "@/utils/parsers";
+import { parseLawError, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation } from "@/context/types";
 import { DynamicInput } from "@/app/[powers]/laws/[lawId]/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
@@ -79,7 +79,8 @@ export function LawBox({law, checks, params, status, error, simulation, selected
       {/* title  */}
       <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={law?.description}
+          text={shorterDescription(law?.description, "short")}
+          subtext={shorterDescription(law?.description, "long")}
           size = {0}
         /> 
          <a

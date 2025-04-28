@@ -18,7 +18,7 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0xAc78710724b1A899a8163BECB7d64ef32bE4355a",
+    address: "0xb12502a70Eaf8133D6380894c240FD069AAd32fB",
     colourScheme: 0,
   }, 
   {

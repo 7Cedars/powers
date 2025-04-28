@@ -136,11 +136,11 @@ const Header = () => {
       
         </div>
       </div>
-      {
-        <div className="flex flex-row grow gap-2 md:max-w-2xl opacity-0 md:opacity-100 max-w-0">
-          {addressPowers != '' ? NavigationBar() : null }
-        </div>
-      }
+      
+      <div className="flex flex-row grow gap-2 md:max-w-2xl opacity-0 md:opacity-100 max-w-0">
+        {addressPowers != '' ? NavigationBar() : null }
+      </div>
+      
         {path == `/` ? null : <ConnectButton /> }
     </section>
   </div>

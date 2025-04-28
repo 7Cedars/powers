@@ -103,14 +103,14 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the input params are the targets, values, and calldatas
             conditions: conditions,
-            description: "Propose new actions to the DAO."
+            description: "Propose new actions: Propose a new action to the DAO that can later be executed by holders."
         });
         delete conditions;
 
         // This law allows developers to veto proposed actions
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
-        conditions.needCompleted = 0; // law 0 needs to have passed. 
+        conditions.needCompleted = 1; // law 0 needs to have passed. 
         conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
@@ -119,15 +119,15 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions,
-            description: "Veto an action."
+            description: "Veto an action: Veto an action that was proposed by users."
         });
         delete conditions;
 
         // This law allows holders to execute previously proposed actions
         // Only holders can use this law
         conditions.allowedRole = 2; // holder role
-        conditions.needCompleted = 0; // law 0 needs to have passed. 
-        conditions.needNotCompleted = 1; // law 1 needs to have not passed. 
+        conditions.needCompleted = 1; // law 1 needs to have passed. 
+        conditions.needNotCompleted = 2; // law 2 needs to have not passed. 
         conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
@@ -135,7 +135,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(6, "OpenAction"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions,
-            description: "Execute a previously proposed action."
+            description: "Execute action: Execute an action that was proposed by users and that has not been vetoed by developers."
         });
         delete conditions;
 
@@ -150,7 +150,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(13, "TaxSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 100, 1), // 100 gwei tax threshold, role 1 (user)
             conditions: conditions,
-            description: "Self-select as a user based on tax payments."
+            description: "Self-select as a user: Self select is conditional on tax payments. You need to have paid at least 100 gwei in tax during the last 1000 blocks."
         });
         delete conditions;
 
@@ -161,7 +161,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(14, "HolderSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 1e18, 2), // 1e18 token threshold, role 2 (holder)
             conditions: conditions,
-            description: "Self-select as a holder based on token holdings."
+            description: "Self-select as a holder: Self select is conditional on token holdings. You need to hold at least 1e18 tokens."
         });
         delete conditions;
 
@@ -178,7 +178,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(3), // role 3 (developer)
             conditions: conditions,
-            description: "Developers manage their own role assignments."
+            description: "Assign developer role to an account: Developers decide to assign an account to the developer role."
         });
         delete conditions;
 
@@ -191,7 +191,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assign initial roles and labels. This law self-destructs after use."
+            description: "Assign initial roles and labels: This law can only be used once. It self-destructs after use."
         });
         delete conditions;
 

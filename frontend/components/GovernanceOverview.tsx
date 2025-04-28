@@ -5,6 +5,7 @@ import { CalendarDaysIcon, QueueListIcon, UserGroupIcon } from "@heroicons/react
 import { Law, Powers } from "@/context/types";
 import { orgToGovernanceTracks } from "@/utils/orgToGovOverview";
 import { usePathname, useRouter } from "next/navigation";
+import { shorterDescription } from "@/utils/parsers";
 
 const roleColour = [  
   "blue-600", 
@@ -100,7 +101,7 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
               { index == track.length - 1 &&  <div className = "w-8"/> }
               <div className = "flex flex-col w-full h-full ps-2 justify-center items-center gap-0">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
-                  {law.description}
+                  {shorterDescription(law.description, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
                   { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
@@ -181,7 +182,7 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
             >
               <div className = "flex flex-col w-full h-full justify-center items-center gap-1">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
-                  {law.description}
+                  {shorterDescription(law.description, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
                   { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
