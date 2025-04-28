@@ -63,12 +63,12 @@ export function LawBox({law, checks, params, status, error, simulation, selected
         const valuesParsed = parseParamValues(values) 
         console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
-          setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : [0])})
+          setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : [0]), upToDate: false})
         } else {
           setAction({...action, paramValues: valuesParsed, upToDate: false})
         }
       } catch(error) { 
-        setAction({...action, paramValues: []})
+        setAction({...action, paramValues: [], upToDate: false})
         // console.error("Error decoding abi parameters at action calldata: ", error)
       }  
   }, [ , law ])
@@ -207,7 +207,7 @@ export function LawBox({law, checks, params, status, error, simulation, selected
             filled={false}
             selected={true}
             statusButton={
-              action.upToDate && checks.allPassed && !error ? status : 'disabled' 
+              action.upToDate && checks.allPassed && status != "error" ? status : 'disabled' 
               }> 
             Execute
           </Button>

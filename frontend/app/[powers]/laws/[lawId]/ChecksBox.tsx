@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDaysIcon, CheckIcon, QueueListIcon, UserGroupIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { parseRole } from "@/utils/parsers";
+import { parseRole, shorterDescription } from "@/utils/parsers";
 import { useRouter } from "next/navigation";
 import { Checks, Law, Powers, Status } from "@/context/types";
 import { useActionStore } from "@/context/store";
@@ -87,7 +87,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
                 disabled = { checks?.proposalExists && checks?.authorised == false && checks?.lawCompleted == false && checks?.lawNotCompleted == false }
                 >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1  px-2 py-1`}>
-                {  law?.description }
+                {shorterDescription(law?.description, "short")}
                 </div>
               </button>
             </div>
@@ -164,7 +164,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
                 }}
                 >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                {needCompletedLaw?.description}
+                {shorterDescription(needCompletedLaw?.description, "short")}
                 </div>
               </button>
             </div>
@@ -186,7 +186,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
                 }}
                 >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                 {needNotCompletedLaw?.description}
+                 {shorterDescription(needNotCompletedLaw?.description, "short")}
                 </div>
               </button>
             </div>

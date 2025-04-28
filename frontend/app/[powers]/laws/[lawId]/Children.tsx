@@ -3,6 +3,7 @@ import { LoadingBox } from "@/components/LoadingBox";
 
 import {useActionStore} from "@/context/store";
 import { Law, Powers, Status } from "@/context/types";
+import { shorterDescription } from "@/utils/parsers";
 import { useRouter } from "next/navigation";
 
 const roleColour = [  
@@ -44,7 +45,7 @@ export function Children({law, powers, status}: {law: Law | undefined, powers: P
                   onClick = {() => {router.push(`${law.powers}/laws/${law.index}`)}}
                 >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                      {law.description}
+                      {shorterDescription(law.description, "short")}
                   </div>
                 </button>
               </div>

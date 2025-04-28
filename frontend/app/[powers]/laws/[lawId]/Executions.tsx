@@ -3,15 +3,17 @@ import { parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 import { LoadingBox } from "@/components/LoadingBox";
+import { setAction, useActionStore } from "@/context/store";
 
 type ExecutionsProps = {
   executions: Execution[] | undefined
-  onClick: (execution: Execution) => void;
-  law: Law;
+  law: Law | undefined;
   status: Status;
 };
 
-export const Executions = ({executions, onClick, law, status}: ExecutionsProps) => {
+export const Executions = ({executions, law, status}: ExecutionsProps) => {
+  const action = useActionStore()
+
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -32,8 +34,18 @@ export const Executions = ({executions, onClick, law, status}: ExecutionsProps) 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
                       showBorder={true}
-                      role={parseRole(law.conditions.allowedRole)}
-                      onClick={() => onClick(execution)}
+                      role={law?.conditions.allowedRole != undefined ? parseRole(law.conditions.allowedRole) : 0}
+                      onClick={() => setAction({
+                        actionId: undefined,
+                        lawId: law?.index,
+                        caller: execution.log.args.caller,
+                        dataTypes: law?.params?.map(param => param.dataType),
+                        paramValues: undefined,
+                        nonce: execution.log.args.nonce,
+                        description: execution.log.args.description,
+                        callData: execution.log.args.lawCalldata,
+                        upToDate: false
+                      })}
                       align={0}
                       selected={false}
                       >  

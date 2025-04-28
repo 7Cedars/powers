@@ -2,7 +2,7 @@
 
 import {  CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Checks, Powers, Law, Status } from "@/context/types";
-import { parseRole } from "@/utils/parsers";
+import { parseRole, shorterDescription } from "@/utils/parsers";
 import { useRouter } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
 const roleColour = [  
@@ -61,7 +61,7 @@ export function ChecksBox ({checks, powers, law, status}: {checks: Checks | unde
                   }}
                   >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                  {needCompletedLaw?.description}
+                  {shorterDescription(needCompletedLaw?.description, "short")}
                   </div>
                 </button>
               </div>
@@ -85,7 +85,7 @@ export function ChecksBox ({checks, powers, law, status}: {checks: Checks | unde
                   }}
                   >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                    {needNotCompletedLaw?.description}
+                    {shorterDescription(needNotCompletedLaw?.description, "short")}
                   </div>
                 </button>
               </div>

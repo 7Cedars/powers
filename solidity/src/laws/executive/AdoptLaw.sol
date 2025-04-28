@@ -24,10 +24,29 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
+import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract AdoptLaw is Law {
     /// @notice constructor of the law
     /// @param name_ the name of the law.
+
+    struct AdoptLawConfig {
+        address law;
+        uint256 allowedRole;
+
+        uint32 votingPeriod;
+        uint8 quorum;
+        uint8 succeedAt;
+
+        uint16 needCompleted;
+        uint16 needNotCompleted;
+        uint16 readStateFrom;
+        uint48 delayExecution;
+        uint48 throttleExecution;
+        
+        bytes config;
+        string description;
+    }
 
     constructor(
         // standard parameters
@@ -46,11 +65,20 @@ contract AdoptLaw is Law {
         bytes memory inputParams,
         string memory description
     ) public override {
-        inputParams = abi.encode("address Law, address Law, uint256 AllowedRole, uint16 NeedCompleted, uint48 DelayExecution, uint48 ThrottleExecution, uint16 ReadStateFrom, uint32 VotingPeriod, uint8 Quorum, uint8 SucceedAt, uint16 NeedNotCompleted, bytes Config, string Description");
-
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        (ILaw.Conditions memory conditionsLaw) = abi.decode(config, (ILaw.Conditions));
-        conditionsNewLaw[lawHash] = conditionsLaw;
+        inputParams = abi.encode(
+            "address Law", 
+            "uint256 AllowedRole", 
+            "uint32 VotingPeriod", 
+            "uint8 Quorum", 
+            "uint8 SucceedAt", 
+            "uint16 NeedCompl", 
+            "uint16 NeedNotCompl", 
+            "uint16 StateFrom", 
+            "uint48 DelayExec", 
+            "uint48 ThrottleExec", 
+            "bytes Config", 
+            "string Description"
+            );
 
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
@@ -72,39 +100,24 @@ contract AdoptLaw is Law {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (
-            address law, 
-            uint256 allowedRole, 
-
-            uint32 votingPeriod, 
-            uint8 quorum, 
-            uint8 succeedAt, 
-
-            uint16 needCompleted, 
-            uint16 needNotCompleted, 
-            uint16 readStateFrom,
-            uint48 delayExecution, 
-            uint48 throttleExecution, 
-             
-            bytes memory config,  
-            string memory description) = abi.decode(lawCalldata, (address, uint256, uint32, uint8, uint8, uint16, uint16, uint16, uint48, uint48, bytes, string));
-
+        (AdoptLawConfig memory config) = abi.decode(lawCalldata, (AdoptLawConfig));
+   
         ILaw.Conditions memory conditions = ILaw.Conditions({
-            allowedRole: allowedRole,
-            needCompleted: needCompleted,
-            delayExecution: delayExecution,
-            throttleExecution: throttleExecution,
-            readStateFrom: readStateFrom,
-            votingPeriod: votingPeriod,
-            quorum: quorum,
-            succeedAt: succeedAt,
-            needNotCompleted: needNotCompleted
+            allowedRole: config.allowedRole,
+            needCompleted: config.needCompleted,
+            delayExecution: config.delayExecution,
+            throttleExecution: config.throttleExecution,
+            readStateFrom: config.readStateFrom,
+            votingPeriod: config.votingPeriod,
+            quorum: config.quorum,
+            succeedAt: config.succeedAt,
+            needNotCompleted: config.needNotCompleted
         });
 
         // send the calldata to the target function
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = law;
-        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, law, config, conditions, description);
+        targets[0] = config.law;
+        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, config.law, config.config, conditions, config.description);
 
         return (actionId, targets, values, calldatas, "");
     }

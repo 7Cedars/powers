@@ -89,7 +89,7 @@ contract DeployPowers101 is Script {
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
             conditions: conditions,
-            description: "Nominate yourself for a delegate role."
+            description: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law."
         });
         delete conditions;
 
@@ -105,7 +105,7 @@ contract DeployPowers101 is Script {
                 2 // roleId to be elected
             ),
             conditions: conditions,
-            description: "Elect delegates using delegated votes."
+            description: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law."
         });
         delete conditions;
 
@@ -118,7 +118,7 @@ contract DeployPowers101 is Script {
                 1 // roleId to be elected
             ),
             conditions: conditions,
-            description: "Self select as community member."
+            description: "Self select as community member: Self select as a community member. Anyone can call this law."
         });
         delete conditions;
 
@@ -141,7 +141,7 @@ contract DeployPowers101 is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams),
             conditions: conditions,
-            description: "Propose a new action."
+            description: "Propose an action: Propose an action that can later be executed by Delegates."
         });
         delete conditions;
 
@@ -153,7 +153,7 @@ contract DeployPowers101 is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams),
             conditions: conditions,
-            description: "Veto a proposed action."
+            description: "Veto an action: Veto an action that has been proposed by the community."
         });
         delete conditions;
 
@@ -171,7 +171,7 @@ contract DeployPowers101 is Script {
             targetLaw: parseLawAddress(6, "OpenAction"),
             config: abi.encode(), // empty config, an open action takes address[], uint256[], bytes[] as input.             
             conditions: conditions,
-            description: "Execute an open action."
+            description: "Execute an action: Execute an action that has been proposed by the community."
         });
         delete conditions;
 
@@ -184,7 +184,7 @@ contract DeployPowers101 is Script {
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assigns roles and labels."
+            description: "Assign roles: Assign roles and labels to the DAO. This law can only be executed once."
         });
         delete conditions;
     }

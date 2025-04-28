@@ -7,7 +7,7 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0x3D3dA5A73BD3B79B8Abff9aB9672124737941186",
+    address: "0xfA32FFEC7a1b62B342ae1a87F61a17d889c29D7e",
     colourScheme: 0,
   }, 
   {
@@ -28,7 +28,7 @@ export const useCases = [
       "Modular addoption by existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0x1A580e7A20Fd2074F2A4189c064492E1B5680F0F",
+    address: "0x7a935D8CFF324da761E3CC225BcC65d3b6782153",
     colourScheme: 1,
   },
   {

@@ -76,7 +76,8 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
       <table className="w-full table-auto"> 
         <thead className="w-full border-b border-slate-200">
             <tr className="w-96 text-xs font-light text-left text-slate-500 ">
-                <th className="ps-4 py-2 font-light rounded-tl-md"> Description </th>
+                <th className="ps-4 py-2 font-light"> Law </th>
+                <th className="font-light"> Description </th>
                 <th className="font-light"> Address </th>
                 <th className="font-light"> Role </th>
             </tr>
@@ -88,6 +89,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                 key={i}
                 className={`text-sm text-left text-slate-800 h-16 p-2`}
               >
+                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {law.index} </td>
                 <td className="max-h-12 text-left px-2 min-w-44 max-w-52 overflow-x-scroll">
                   <Button
                     showBorder={true}

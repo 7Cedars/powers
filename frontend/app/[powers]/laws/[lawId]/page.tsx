@@ -9,7 +9,7 @@ import { setAction, useActionStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { useChecks } from "@/hooks/useChecks";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { Execution, InputType, Law, Powers } from "@/context/types";
+import { InputType, Law, Powers } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
@@ -25,7 +25,6 @@ const Page = () => {
   
   const {checks, fetchChecks} = useChecks(powers as Powers); 
   const [error, setError] = useState<any>();
-  const [selectedExecution, setSelectedExecution] = useState<Execution | undefined>()
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
   console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action, ready, wallets, addressPowers})
@@ -109,12 +108,13 @@ const Page = () => {
       } else {
         // console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
         setAction({
-          ...action, 
+          ...action,  
           lawId: law.index,
           upToDate: false
         })
       }
       fetchExecutions(law)
+      resetStatus()
     }
   }, [, law])
 
@@ -148,10 +148,8 @@ const Page = () => {
               status = {statusPowers} 
               error = {error} 
               simulation = {simulation} 
-              selectedExecution = {selectedExecution}
               onChange = {() => { 
                 setAction({...action, upToDate: false})
-                setSelectedExecution(undefined)
                 }
               }
               onSimulate = {(paramValues, nonce, description) => handleSimulate(law, paramValues, nonce, description)} 
@@ -167,7 +165,7 @@ const Page = () => {
           </div>
           {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {law && <Executions executions = {executions} onClick = {(execution) => setSelectedExecution(execution) } law = {law} status = {statusPowers}/> }
+            {<Executions executions = {executions} law = {law} status = {status}/> }
           </div>
         </div>
         
