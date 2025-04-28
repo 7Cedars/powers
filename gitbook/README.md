@@ -94,7 +94,7 @@ The result can be something like this:&#x20;
 
 <figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
 
-This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/0x3D3dA5A73BD3B79B8Abff9aB9672124737941186) on Arbitrum sepolia.
+This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/0xfA32FFEC7a1b62B342ae1a87F61a17d889c29D7e) on Arbitrum sepolia.
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
@@ -112,7 +112,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 **Implementation**: Because the Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if another law has executed the same calldata and nonce. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law. When roles that control these different laws are assigned through divergent means, we can build a very secure and decentralised governance system.&#x20;
 
-**Example**: [Separated Powers](https://powers-protocol.vercel.app/0xAc78710724b1A899a8163BECB7d64ef32bE4355a) is an example that balances the power to execute actions between token users, holders and developers.
+**Example**: [Separated Powers](https://powers-protocol.vercel.app/0xb12502a70Eaf8133D6380894c240FD069AAd32fB) is an example that balances the power to execute actions between token users, holders and developers.
 
 </details>
 
@@ -128,7 +128,7 @@ Introducing the ability to role restrict governance flows solves several common 
 
 With this setup, it is possible to start out with very few (or no) assets in the new Powers protocol and start setting up several tasks governed by Powers. As confidence in the protocol grows, the DAO can send more assets to the protocol, and add new tasks and roles. The transition is complete when all stakeholders and tasks from the previous DAO are represented in the new Powers governance system and the DAO has transferred all its assets. The existing DAO can then be removed as a role holder.
 
-**Example**: See [Governed Upgrades](https://powers-protocol.vercel.app/0x1A580e7A20Fd2074F2A4189c064492E1B5680F0F) as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
+**Example**: See [Governed Upgrades](https://powers-protocol.vercel.app/0x7a935D8CFF324da761E3CC225BcC65d3b6782153) as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
 
 </details>
 
