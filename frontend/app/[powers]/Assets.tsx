@@ -1,11 +1,11 @@
 `use client`
 
 import { LoadingBox } from "@/components/LoadingBox";
-import { Status } from "@/context/types";
+import { Powers, Status } from "@/context/types";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 
-export function Assets({status}: {status: Status}) {
+export function Assets({status, powers}: {status: Status, powers: Powers | undefined}) {
   const router = useRouter();
 
   return (
@@ -16,7 +16,7 @@ export function Assets({status}: {status: Status}) {
         onClick={() => 
           { 
              // here have to set deselectedRoles
-            router.push('/treasury')
+            router.push(`/${powers?.contractAddress}/treasury`)
           }
         } 
         className="w-full border-b border-slate-300 p-2"

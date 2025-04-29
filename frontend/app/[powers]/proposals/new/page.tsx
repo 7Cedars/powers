@@ -8,7 +8,7 @@ import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { ProposeBox } from "./ProposeBox";
-import { LawBox } from "../[actionId]/LawBox";
+import { LawLink } from "../[actionId]/LawLink";
 import { ChecksBox } from "./ChecksBox"; 
 import { useWallets } from "@privy-io/react-auth";
 import { useReadContract } from "wagmi";
@@ -53,7 +53,7 @@ const Page = () => {
          <div className="flex flex-col flex-wrap lg:flex-nowrap lg:max-h-full max-h-48 min-h-48 lg:w-96 lg:my-4 my-0 lg:overflow-hidden w-full flex-row gap-4 justify-center items-center overflow-x-scroll scroll-snap-x overflow-y-hidden"> 
       
         <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72">
-          { law && <LawBox law = {law} status = {status} /> }
+          { law && <LawLink law = {law} powers = {powers} status = {status} /> }
         </div>
         <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72"> 
           {  <ChecksBox proposalExists = {!proposalExists} authorised = {authorised.data as boolean} /> }  

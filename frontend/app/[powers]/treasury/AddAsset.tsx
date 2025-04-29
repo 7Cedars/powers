@@ -9,7 +9,7 @@ import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 export function AddAsset({powers}: {powers: Powers | undefined}) {
   const [newToken, setNewToken] = useState<`0x${string}`>()
-  const {status, error, tokens, native, initialise, update, fetchTokens} = useAssets(powers as Powers)
+  const {status, error, tokens, native, addErc20, resetErc20s, fetchTokens} = useAssets(powers as Powers)
 
 
   return (
@@ -37,7 +37,7 @@ export function AddAsset({powers}: {powers: Powers | undefined}) {
             role = {6}
             selected = {true}
             filled = {false} 
-            onClick={() => {update(newToken ? newToken : `0x0`)}}
+            onClick={() => {addErc20(newToken ? newToken : `0x0`)}}
             > 
             <div className = "text-slate-600">{
               status && status == 'pending' ? <TwoSeventyRingWithBg /> : "Add ERC-20 Token"  

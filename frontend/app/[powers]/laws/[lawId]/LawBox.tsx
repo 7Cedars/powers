@@ -63,7 +63,7 @@ export function LawBox({law, checks, params, status, error, simulation, selected
         const valuesParsed = parseParamValues(values) 
         console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
-          setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : [0]), upToDate: false})
+          setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : dataType == "bool" ? [false] : [0]), upToDate: false})
         } else {
           setAction({...action, paramValues: valuesParsed, upToDate: false})
         }

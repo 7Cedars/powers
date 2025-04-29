@@ -141,7 +141,7 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
         <div className = "absolute inset-x-0 z-20 w-full h-20 flex flex-row justify-between items-center min-w-[520px]">
         {
           track && track.map((law, index) => 
-            <a 
+            <button 
                 key = {index} 
                 className = {`w-full h-full flex flex-row justify-center items-center gap-1 ${adaptiveBg[bgItem]}  opacity-50 aria-selected:opacity-0`} 
                 aria-selected = {
@@ -150,8 +150,9 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
                   :
                   law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
                 }
-                href = {`/${law.powers}/laws/${law.index}`}
-                />
+                onClick = {() => router.push(`/${law.powers}/laws/${law.index}`)}
+                >
+            </button>
           )
         }
         </div>    
@@ -169,7 +170,7 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
       <div className = {`relative grow w-full h-fit flex flex-wrap gap-4 justify-stretch items-center`}>
         {
           orphans && orphans.map((law, index) => 
-            <a 
+            <button 
               key = {index} 
               className = {`min-w-32 min-h-20 max-w-full grow h-full aria-selected:opacity-100 opacity-50 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md flex flex-row justify-center items-center gap-1`}
               aria-selected = {
@@ -178,7 +179,7 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
                 :
                 law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
               }
-              href = {`/${law.powers}/laws/${law.index}`}
+              onClick = {() => router.push(`/${law.powers}/laws/${law.index}`)}
             >
               <div className = "flex flex-col w-full h-full justify-center items-center gap-1">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
@@ -190,7 +191,7 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
                   { law.conditions.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
               </div>
               </div>
-            </a> 
+            </button> 
           )
         }
         </div> 

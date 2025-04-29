@@ -13,7 +13,7 @@ import { InputType, Law, Powers } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
  
 const Page = () => {
@@ -22,12 +22,13 @@ const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const {status, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, execute, fetchSimulation} = useLaw();
   const action = useActionStore();;
+  const router = useRouter();
   
   const {checks, fetchChecks} = useChecks(powers as Powers); 
   const [error, setError] = useState<any>();
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
-  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action, ready, wallets, addressPowers})
+  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action, ready, wallets, addressPowers, simulation})
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       console.log("Handle Simulate called:", {paramValues, nonce})

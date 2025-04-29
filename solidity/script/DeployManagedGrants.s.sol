@@ -59,7 +59,7 @@ contract DeployManagedGrants is Script {
         Powers powers = new Powers(
             "Managed Grants",
             // TODO: this is still a placeholder: it is the data for Powers 101
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiebpc5ynyisal3ee426jgpib2vawejibzfgmopjxtmucranjy26py"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));

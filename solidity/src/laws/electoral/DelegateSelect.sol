@@ -88,7 +88,7 @@ contract DelegateSelect is Law {
         stateData[lawHash].maxRoleHolders = maxRoleHolders_;
         stateData[lawHash].roleId = roleId_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("bool Assign", "address Account"), description);
+        super.initializeLaw(index, conditions, config, "", description);
     }
 
     function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)

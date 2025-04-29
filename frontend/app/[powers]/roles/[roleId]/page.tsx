@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useRoleStore } from "@/context/store";
-import { useParams, useRouter } from "next/navigation";
 import { Role, Status, Powers } from "@/context/types";
 import { parseRole } from "@/utils/parsers";
 import { publicClient } from "@/context/clients";
@@ -14,6 +12,8 @@ import { useChainId } from 'wagmi'
 import { supportedChains } from "@/context/chains";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { usePowers } from "@/hooks/usePowers";
+import { useParams } from "next/navigation";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 
 const roleColour = [  
   "border-blue-600", 
@@ -26,8 +26,6 @@ const roleColour = [
 ]
 
 export default function Page() {
-  const role = useRoleStore();
-  const router = useRouter();
   const chainId = useChainId();
   const { powers: addressPowers, roleId } = useParams<{ powers: string, roleId: string }>()  
   const { powers, fetchPowers } = usePowers()
@@ -137,7 +135,18 @@ export default function Page() {
           {
             roleInfo?.map((role: Role, index: number) =>
               <tr className="text-sm text-left text-slate-800 h-16 p-2 overflow-x-scroll" key = {index}>
-                <td className="ps-6 pe-4 text-slate-500 min-w-60">{role.account}</td>
+                <td className="ps-6 pe-4 text-slate-500 min-w-60">
+                  <a href={`${supportedChain?.blockExplorerUrl}/address/${role.account}`} target="_blank" rel="noopener noreferrer">
+                  <div className="flex flex-row gap-1 items-center justify-start">
+                    <div className="text-left text-sm text-slate-500 break-all w-fit">
+                      {role.account}
+                    </div> 
+                      <ArrowUpRightIcon
+                        className="w-4 h-4 text-slate-500"
+                        />
+                    </div>
+                  </a>
+                </td>
                 <td className="pe-8 text-right text-slate-500">{role.since}</td>
               </tr> 
             )

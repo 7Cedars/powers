@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from 'next/navigation'
-import { Law, Status } from "@/context/types";
+import { Law, Status, Powers } from "@/context/types";
 import { LoadingBox } from '@/components/LoadingBox';
 import { shorterDescription } from '@/utils/parsers';
+import { useActionStore } from "@/context/store";
+import { useRouter } from "next/navigation";
 
 const roleColour = [  
   "border-blue-600", 
@@ -15,9 +16,11 @@ const roleColour = [
   "border-slate-600"
 ]
 
-export const LawBox: React.FC<{law: Law, status: Status}> = ({law, status}) => {
+export const LawLink: React.FC<{law: Law, powers: Powers | undefined, status: Status}> = ({law, powers, status}) => {
+  const action = useActionStore()
+  console.log("@LawLink, action:", {action})
   const router = useRouter();
-
+  
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -36,10 +39,7 @@ export const LawBox: React.FC<{law: Law, status: Status}> = ({law, status}) => {
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <button 
                 className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law?.conditions?.allowedRole)]} disabled:opacity-50`}
-                onClick = {() => {
-                  router.push(`/${law.powers}/laws/${law.index}`) 
-                }}
-              >
+                onClick = {() => router.push(`/${powers?.contractAddress}/laws/${law.index}`)} >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
                     {shorterDescription(law.description, "short")}
                 </div>

@@ -54,7 +54,7 @@ contract DeploySeparatedPowers is Script {
         Powers powers = new Powers(
             "Separated Powers",
             // TODO: this is still a placeholder: it is the data for Powers 101
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiebpc5ynyisal3ee426jgpib2vawejibzfgmopjxtmucranjy26py"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreie6x6i2bdhuuxqbiumu27w6ub473d7sfajkzayapihwndlggf4ohm"
         );
         vm.stopBroadcast();
 

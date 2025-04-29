@@ -11,7 +11,7 @@ import { Powers, Proposal, Law, Status } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
-import { LawBox } from "./LawBox";
+import { LawLink } from "./LawLink";
 import { useWallets } from "@privy-io/react-auth";
 import { parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
@@ -47,7 +47,7 @@ const Page = () => {
           paramValues: valuesParsed,
           nonce: proposal.nonce,
           description: proposal.description,
-          callData: proposal.calldata,
+          callData: proposal.executeCalldata,
           upToDate: true
         })
       } catch {
@@ -80,7 +80,7 @@ const Page = () => {
         <div className="flex flex-col flex-wrap lg:flex-nowrap lg:max-h-full max-h-48 min-h-48 lg:w-96 lg:my-4 my-0 lg:overflow-hidden w-full flex-row gap-4 justify-center items-center overflow-x-scroll scroll-snap-x overflow-y-hidden"> 
       
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72">
-            { law && <LawBox law = {law} status = {statusChecks}/> }
+            { law && powers && <LawLink law = {law} powers = {powers} status = {statusChecks}/> }
           </div>
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72">
             { proposal && <StatusProposal proposal = {proposal} status = {statusChecks}/> }

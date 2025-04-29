@@ -122,7 +122,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
                 {/* radio button true  */}
                   <div className = {"flex flex-row gap-1 "}>
                     <label 
-                      htmlFor={`true`} 
+                      htmlFor={`input${item}true`} 
                       className="block text-sm/6 font-medium text-slate-600 pe-2">
                         {`true`}
                     </label>
@@ -131,7 +131,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
                         name={`input${item}`} 
                         id={`input${item}true`} 
                         value={'true'} 
-                        checked = {inputArray[item] as boolean}
+                        checked = {inputArray[item] == true}
                         className="min-w-0 text-base text-slate-600 placeholder:text-gray-400" 
                         onChange={(event) => handleChange({event, item})}
                       />
@@ -148,7 +148,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
                         name={`input${item}`} 
                         id={`input${item}false`} 
                         value={'false'} 
-                        checked = {!inputArray[item] as boolean}
+                        checked = {inputArray[item] == false}
                         className="min-w-0 text-base text-slate-600 placeholder:text-gray-400" 
                         onChange={(event) => handleChange({event, item})}
                       />

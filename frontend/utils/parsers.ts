@@ -66,6 +66,19 @@ export const parseParamValues = (inputs: unknown): Array<InputType | InputType[]
   return result 
 };
 
+const parseTokens = (tokens: unknown): `0x${string}`[] => {
+  if (!isArray(tokens)) {
+    throw new Error('@parseTokens: tokens not an array.');
+  }
+
+  const result = tokens.map(token =>  {
+    if (isArray(token)) { throw new Error('@parseTokens: nested token arrays not supported.'); }
+    return token as `0x${string}` 
+  })
+
+  return result 
+}
+
 const parseDescription = (description: unknown): string => {
   if (!isString(description)) {
     throw new Error(`Incorrect description, not a string: ${description}`);
@@ -143,7 +156,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   if (dataType.indexOf('bool') > -1) {
     try {
-      return event.target.value == 'true'
+      return event.target.value == 'true' ? true : event.target.value == 'false' ? false : errorMessage
     } catch {
       return errorMessage
     }
@@ -172,6 +185,8 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
       return errorMessage
     }
   }
+
+  return errorMessage
 };
 
 export const parseRole = (role: bigint | undefined): number => {
@@ -272,13 +287,19 @@ export const parseMetadata = (metadata: unknown): Metadata => {
   if ( 
     'icon' in metadata &&   
     'banner' in metadata &&   
-    'description' in metadata &&     
+    'description' in metadata && 
+    'erc20s' in metadata &&
+    'erc721s' in metadata &&
+    'erc1155s' in metadata &&
     'attributes' in metadata 
     ) { 
         return ({
           icon: metadata.icon as string,
           banner: metadata.banner as string,
           description: parseDescription(metadata.description),
+          erc20s: parseTokens(metadata.erc20s),
+          erc721s: parseTokens(metadata.erc721s),
+          erc1155s: parseTokens(metadata.erc1155s),
           attributes: parseAttributes(metadata.attributes)
         })
        }

@@ -23,21 +23,23 @@ export const useAssets = (powers: Powers | undefined) => {
   }) 
   const supportedChain = supportedChains.find(chain => chain.id == chainId)
 
-   const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721") => {
+  console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
+
+   const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`
      let tokens: Token[] = [] 
  
      if (publicClient) {
          for await (token of tokenAddresses) {
           try {
-            // console.log("fetching token: ", token)
-           if (powers?.contractAddress) {
+            console.log("@useAssets, fetching token: ", token) 
             const name = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
               functionName: 'name' 
             })
             const nameParsed = name as string
+            console.log("@useAssets, nameParsed:", {nameParsed})
 
             const symbol = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
@@ -45,6 +47,7 @@ export const useAssets = (powers: Powers | undefined) => {
               functionName: 'symbol' 
             })
             const symbolParsed = symbol as string
+            console.log("@useAssets, symbolParsed:", {symbolParsed})
 
             const balance = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
@@ -53,6 +56,7 @@ export const useAssets = (powers: Powers | undefined) => {
               args: [powers.contractAddress] 
             })
             const balanceParsed = balance as bigint
+            console.log("@useAssets, balanceParsed:", {balanceParsed})
 
             let decimalParsed: bigint = 8n
             if ( type == "erc20") {
@@ -63,8 +67,9 @@ export const useAssets = (powers: Powers | undefined) => {
               })
               decimalParsed = decimal as bigint
             }
+          
 
-            // console.log("@useAssets:", {nameParsed, symbolParsed, balanceParsed, decimalParsed})
+            console.log("@useAssets, decimalParsed:", {decimalParsed})
 
             // NB! still need to include a conditional decimal check for ERC20s. 
 
@@ -89,12 +94,11 @@ export const useAssets = (powers: Powers | undefined) => {
               })
             }
 
-            // console.log("@useAssets:", {tokens, nameParsed, symbolParsed, balanceParsed, decimalParsed, type})
-              
-           } 
+            console.log("@useAssets, end of fetchErc20Or721:", {tokens, nameParsed, symbolParsed, balanceParsed, decimalParsed, type})
          } catch (error) {
           setStatus("error") 
           setError({error, token})
+          console.log("@useAssets, error:", {error, token})
          }
        } 
     } return tokens
@@ -193,79 +197,45 @@ export const useAssets = (powers: Powers | undefined) => {
   } 
 
   const fetchTokens = useCallback( 
-    async (erc20: `0x${string}`[], erc721: `0x${string}`[], erc1155: `0x${string}`[]) => {
+    async (powers: Powers) => {
         setError(null)
         setStatus("pending")
 
-        // console.log("@useAssets, fetchTokens called:", {erc20, erc721, erc1155})
+        console.log("@useAssets, Fetch tokens reached")
 
-        // NOTE: at the moment I only save the Erc20s. I might change this later. 
-        
-        const erc20s: Token[] | undefined = await fetchErc20Or721(erc20, "erc20")
+        const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
+        const selectedErc20s = powers?.metadatas?.erc20s ? powers?.metadatas?.erc20s : []
+        console.log("@useAssets, savedErc20s:", {savedErc20s})
+        console.log("@useAssets, selectedErc20s:", {selectedErc20s})
+        const erc20s: Token[] = await fetchErc20Or721([...selectedErc20s, ...savedErc20s], "erc20", powers)
+        console.log("@useAssets, erc20s:", {erc20s})
         // const erc721s: Token[] | undefined =  await fetchErc20Or721(erc721, "erc721")
         // const erc1155s: Token[] | undefined = await fetchErc1155(erc1155)
 
         if (erc20s) {
-          const fetchedTokens = [...erc20s]
-          // order by balance (I can order by value as a second step later) 
-          fetchedTokens.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
+          erc20s.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
 
-          // console.log("@useAssets, fetchedTokens:", {fetchedTokens})
+          console.log("@useAssets, fetchedTokens:", {erc20s})
 
-          setTokens(fetchedTokens) 
-          localStorage.setItem("powersProtocol_savedTokens", JSON.stringify(fetchedTokens, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ));
-
+          setTokens(erc20s) 
           setStatus("success") 
         }
-
-        
   }, [ ])
 
-  const initialise = () => {
-        // console.log("waypoint 1: initialise called")
-        setStatus("pending")
-        let localStore = localStorage.getItem("powersProtocol_savedTokens")
-        const saved: Token[] = localStore ? JSON.parse(localStore) : []
-        // console.log("waypoint 2: local storage queried:", {saved})
-  
-        if (saved.length == 0) { fetchTokens(
-          supportedChain?.erc20s ? supportedChain?.erc20s : [`0x0`], 
-          supportedChain?.erc721s ? supportedChain?.erc721s : [`0x0`],
-          supportedChain?.erc1155s ? supportedChain?.erc1155s : [`0x0`]
-        )} else {
-          setTokens(saved)
-          setStatus("success")
-        }
-      } 
+  const addErc20 = (erc20: `0x${string}`) => {
+    setStatus("pending")
+    const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
+    if (!savedErc20s.includes(erc20)) {
+      localStorage.setItem("powersProtocol_savedErc20s", JSON.stringify([...savedErc20s, erc20]));
+    }
+    setStatus("success")
+  }
 
-  const update = useCallback(
-        async (erc20: `0x${string}`) => {
-          setStatus("pending")
-    
-          let localStore = localStorage.getItem("powersProtocol_savedTokens")
-          const saved: Token[] = localStore ? JSON.parse(localStore) : []
-          
-          let erc20s: Token[] | undefined
-          if (!saved.map(saved => saved.address).includes(erc20)) {
-            erc20s  = await fetchErc20Or721([erc20], "erc20")
-          } else {
-            setStatus("error")
-            setError("Token already added.")
-          }
-          if (erc20s && erc20s.length > 0) {
-            const fetchedTokens = [...erc20s, ...saved]
-            // order by balance (I can order by value as a second step later)
-            fetchedTokens.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
- 
-            setTokens(fetchedTokens)
-            localStorage.setItem("powersProtocol_savedTokens", JSON.stringify(fetchedTokens, (key, value) =>
-              typeof value === "bigint" ? value.toString() : value,
-            ));
-            setStatus("success")
-          }
-      }, [])
-  
-  return {status, error, tokens, native, fetchTokens, initialise, update }
+  const resetErc20s = () => {
+    setStatus("pending")
+    localStorage.removeItem("powersProtocol_savedErc20s")
+    setStatus("success")
+  }
+
+  return {status, error, tokens, native, fetchTokens, addErc20, resetErc20s }
 }

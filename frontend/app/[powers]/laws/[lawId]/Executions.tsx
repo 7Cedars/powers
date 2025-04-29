@@ -1,9 +1,10 @@
 import { Execution, Law, Status } from "@/context/types";
-import { parseRole } from "@/utils/parsers";
+import { parseParamValues, parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 import { LoadingBox } from "@/components/LoadingBox";
 import { setAction, useActionStore } from "@/context/store";
+import { decodeAbiParameters, parseAbiParameters } from "viem";
 
 type ExecutionsProps = {
   executions: Execution[] | undefined
@@ -12,8 +13,29 @@ type ExecutionsProps = {
 };
 
 export const Executions = ({executions, law, status}: ExecutionsProps) => {
-  const action = useActionStore()
 
+  console.log("@Executions: ", {executions, law, status})
+
+  const handleExecutionSelection = (execution: Execution) => {
+    console.log("@Executions: handleExecutionSelection: ", {execution, law})
+    let dataTypes = law?.params?.map(param => param.dataType)
+    let valuesParsed = undefined
+    if (dataTypes != undefined && dataTypes.length > 0) {
+      const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), execution.log.args.lawCalldata);
+      valuesParsed = parseParamValues(values) 
+    }
+    setAction({
+      actionId: undefined,
+      lawId: law?.index,
+      caller: execution.log.args.caller,
+      dataTypes: dataTypes,
+      paramValues: valuesParsed ? valuesParsed : undefined,
+      nonce: execution.log.args.nonce,
+      description: execution.log.args.description,
+      callData: execution.log.args.lawCalldata,
+      upToDate: false
+    })
+  }
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -23,7 +45,7 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
         </div>
 
         {/* execution logs block 1 */}
-        {status == "pending" || status == "idle" ?
+        {status == "pending" ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>
@@ -35,17 +57,7 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
                   <Button
                       showBorder={true}
                       role={law?.conditions.allowedRole != undefined ? parseRole(law.conditions.allowedRole) : 0}
-                      onClick={() => setAction({
-                        actionId: undefined,
-                        lawId: law?.index,
-                        caller: execution.log.args.caller,
-                        dataTypes: law?.params?.map(param => param.dataType),
-                        paramValues: undefined,
-                        nonce: execution.log.args.nonce,
-                        description: execution.log.args.description,
-                        callData: execution.log.args.lawCalldata,
-                        upToDate: false
-                      })}
+                      onClick={() => handleExecutionSelection(execution)}
                       align={0}
                       selected={false}
                       >  

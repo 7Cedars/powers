@@ -136,10 +136,13 @@ export const useChecks = (powers: Powers) => {
 
   const checkNotCompleted = useCallback( 
     async (nonce: bigint, calldata: `0x${string}`, lawIndex: bigint) => {
+
+      console.log("@checkNotCompleted: waypoint 0", {nonce, calldata, lawIndex})
       
       const fetchedExecutions = await fetchExecutions(lawIndex)
+      console.log("@checkNotCompleted: waypoint 1", {fetchedExecutions})
       const selectedExecution = fetchedExecutions && fetchedExecutions.find(execution => execution.args?.nonce == nonce && execution.args?.lawCalldata == calldata)
-
+      console.log("@checkNotCompleted: waypoint 2", {selectedExecution})
       return selectedExecution == undefined; 
   }, [] ) 
 

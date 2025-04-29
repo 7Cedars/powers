@@ -5,7 +5,7 @@ import { Log } from "viem";
 export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
-export type InputType = number | boolean | string | `0x${string}` | undefined 
+export type InputType = number | boolean | string | `0x${string}`  
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
 export type LawSimulation = [
@@ -96,6 +96,9 @@ export type Metadata = {
   icon: string; 
   banner: string;
   description: string; 
+  erc20s: `0x${string}`[];
+  erc721s: `0x${string}`[];
+  erc1155s: `0x${string}`[];
   attributes: Attribute[]
 }
 

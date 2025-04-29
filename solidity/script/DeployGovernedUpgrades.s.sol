@@ -58,7 +58,7 @@ contract DeployGovernedUpgrades is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Governed Upgrades",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidnbbvs4kq36nre4lbgl7dh7tzm3vkjpuaneroeygkw3lqve6upoa"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihwama3z5yix2bqrulljy6vysktaaj4p3ni6wufdugx7gu2hsfhwi"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));

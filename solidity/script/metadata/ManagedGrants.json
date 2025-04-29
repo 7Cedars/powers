@@ -2,7 +2,18 @@
   "icon": "",
   "banner": "",
   "description": 
-    "A community organised around token usage. It governs a mock token (Erc20TaxedMock, MTXD) that collects tax on every transaction. Tax payers can become community members and decide on how their tax is spent. Members can elect governors that create grant councils and grant programs. Allows any member to apply and receive grants paid for by the tax received from accounts using the token. For added security, there is a security council that can pause and restart any law.",
+    "An example of grant management using the Powers protocol. The original DAO retains some control over the grant process, but the DAO can delegate the grant process to a council of governors.",
+  "erc20s": [
+      "0xC221a7e2475b1eA6ACcEE99444203853B4a9F4De",
+      "0xC8910B7c6dBa1e379CE90b6e00DA8e113774D95D"
+  ],
+  "erc721s": [
+    "0x37E0c40F82dfe66A0eB544a5aF6Bf500720930Af"
+  ],
+  "erc1155s": [{
+    "address": "0xf0C7cC2299a3465E731e0843b7FE3ab5723b19E8",
+    "tokenId": 0
+  } ],
   "attributes": [
     {
       "trait_type": "optional trait 1",
