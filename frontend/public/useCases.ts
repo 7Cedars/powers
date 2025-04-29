@@ -7,7 +7,7 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0xfA32FFEC7a1b62B342ae1a87F61a17d889c29D7e",
+    address: "0x86d56c2E4e88aa93bFD08221490023Ab686670B3",
     colourScheme: 0,
   }, 
   {
@@ -18,7 +18,7 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0xb12502a70Eaf8133D6380894c240FD069AAd32fB",
+    address: "0x42021Ffe27BE8CAACE2d3dE2336fdE3D0CA314Ee",
     colourScheme: 0,
   }, 
   {
@@ -28,7 +28,7 @@ export const useCases = [
       "Modular addoption by existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0x7a935D8CFF324da761E3CC225BcC65d3b6782153",
+    address: "0xA2F6e9cC2c3d2E10708C825BA25b2C900f0b65A3",
     colourScheme: 1,
   },
   {
