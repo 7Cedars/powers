@@ -20,7 +20,7 @@ const Page = () => {
   const {wallets, ready} = useWallets();
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   const { powers, fetchPowers, status: statusPowers } = usePowers()
-  const {status, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, execute, fetchSimulation} = useLaw();
+  const {status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, execute, fetchSimulation} = useLaw();
   const action = useActionStore();;
   const router = useRouter();
   
@@ -28,7 +28,7 @@ const Page = () => {
   const [error, setError] = useState<any>();
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
-  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, status, action, ready, wallets, addressPowers, simulation})
+  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       console.log("Handle Simulate called:", {paramValues, nonce})
@@ -146,7 +146,7 @@ const Page = () => {
               law = {law}
               checks = {checks || {}} 
               params = {law.params || []}
-              status = {statusPowers} 
+              status = {statusLaw} 
               error = {error} 
               simulation = {simulation} 
               onChange = {() => { 
@@ -166,7 +166,7 @@ const Page = () => {
           </div>
           {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<Executions executions = {executions} law = {law} status = {status}/> }
+            {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
           </div>
         </div>
         

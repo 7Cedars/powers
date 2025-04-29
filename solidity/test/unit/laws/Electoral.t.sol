@@ -1,25 +1,26 @@
-// // SPDX-License-Identifier: UNLICENSED
-// pragma solidity 0.8.26;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.26;
 
-// import "forge-std/Test.sol";
-// import "@openzeppelin/contracts/utils/ShortStrings.sol";
-// import "@openzeppelin/contracts/utils/Strings.sol";
-// import { Powers } from "../../../src/Powers.sol";
-// import { TestSetupElectoral } from "../../TestSetup.t.sol";
-// import { Law } from "../../../src/Law.sol";
-// import { LawUtilities } from "../../../src/LawUtilities.sol";
-// import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
-// import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
+import "forge-std/Test.sol";
+import "@openzeppelin/contracts/utils/ShortStrings.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import { Powers } from "../../../src/Powers.sol";
+import { TestSetupElectoral } from "../../TestSetup.t.sol";
+import { Law } from "../../../src/Law.sol";
+import { ILaw } from "../../../src/interfaces/ILaw.sol";
+import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { Erc1155Mock } from "../../mocks/Erc1155Mock.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 // import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
-// import { ElectionCall } from "../../../src/laws/electoral/ElectionCall.sol";
-// import { ElectionTally } from "../../../src/laws/electoral/ElectionTally.sol";
-// import { ILaw } from "../../../src/interfaces/ILaw.sol";
-// import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-// import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
-// import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
-// import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 
-// contract DirectSelectTest is TestSetupElectoral {
+import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
+import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
+import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
+import { DirectSelect } from "../../../src/laws/electoral/DirectSelect.sol";
+
+
+contract DirectSelectTest is TestSetupElectoral {
 //     using ShortStrings for *;
 
 //     function testAssignSucceeds() public {

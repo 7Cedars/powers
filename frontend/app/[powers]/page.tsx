@@ -86,7 +86,7 @@ export default function Page() {
     }, [addressPowers, fetchPowers, updateProposals])
 
     return (
-      <main className="w-full h-full min-h-fit flex flex-col justify-start items-center gap-3 px-2 overflow-y-scroll pt-20">
+      <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">
         {/* hero banner  */}
         <section className={`w-full min-h-64 flex flex-col justify-center items-center text-center text-slate-50 text-5xl bg-gradient-to-bl ${colourScheme[powers?.colourScheme || 0] } rounded-md`}> 
           {powers?.name}

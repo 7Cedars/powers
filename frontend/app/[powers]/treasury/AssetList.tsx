@@ -68,8 +68,8 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
         </thead>
         <tbody className="w-full text-sm text-right text-slate-500 divide-y divide-slate-200">
           {native &&
-            <tr className={`text-sm text-left text-slate-500 h-16 overflow-x-scroll`}>
-                <td className="ps-6 py-2"> {supportedChain?.nativeCurrency?.name} </td>
+            <tr className={`text-sm text-left text-slate-500 h-16 overflow-x-scroll py-2`}>
+                <td className="ps-6 px-2"> {supportedChain?.nativeCurrency?.name} </td>
                 <td className=""> {native?.symbol} </td>
                 <td className=""> - </td>
                 <td className=""> {String((Number(native?.value)/ 10 ** Number(native?.decimals)).toFixed(4))} </td>
@@ -79,12 +79,12 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
           {
             tokens?.map((token: Token, i) => 
               <tr className={`text-sm text-left text-slate-500 h-16 overflow-x-scroll`} key = {i}>
-                <td className="ps-6 py-2"> {token.name} </td>
-                <td className=""> {token.symbol} </td>
-                <td className="">
+                <td className="ps-6 pe-4"> {token.name} </td>
+                <td className="pe-4"> {token.symbol} </td>
+                <td className="pe-4">
                   <a
                     href={`${supportedChain?.blockExplorerUrl}/address/${token.address}#code`} target="_blank" rel="noopener noreferrer"
-                    className="w-full flex flex-row gap-1 items-start justify-start"
+                    className="w-full flex flex-row gap-1 py-2 items-start justify-start"
                   >
                     {token.address?.slice(0, 6)}...{token.address?.slice(-6)}
                     <ArrowUpRightIcon

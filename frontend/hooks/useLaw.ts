@@ -112,6 +112,7 @@ export const useLaw = () => {
           setError(error)
           console.log(error)
         }
+        setStatus("idle")
   }, [ ])
 
   const execute = useCallback( 

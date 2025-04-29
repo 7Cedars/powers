@@ -207,7 +207,8 @@ export function LawBox({law, checks, params, status, error, simulation, selected
             filled={false}
             selected={true}
             statusButton={
-              action.upToDate && checks.allPassed && status != "error" ? status : 'disabled' 
+              action.upToDate && checks.allPassed ? 
+              status : 'disabled' 
               }> 
             Execute
           </Button>
