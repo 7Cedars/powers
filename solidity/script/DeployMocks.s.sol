@@ -47,14 +47,14 @@ contract DeployMocks is Script {
         creationCodes[5] = type(Erc1155Mock).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
-           addresses[i] = deployLaw(creationCodes[i], names[i]);
+           addresses[i] = deployMock(creationCodes[i], names[i]);
         }
     }
 
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //
     //////////////////////////////////////////////////////////////
-    function deployLaw(bytes memory creationCode, string memory name) public returns (address) {
+    function deployMock(bytes memory creationCode, string memory name) public returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(name));
         address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.    
 

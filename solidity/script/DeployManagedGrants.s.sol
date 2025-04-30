@@ -216,7 +216,7 @@ contract DeployManagedGrants is Script {
 
         // This law enables anyone to select themselves as a community member. 
         // Any one can use this law
-        conditions.allowedRole = type(uint32).max;
+        conditions.allowedRole = type(uint256).max;
         lawInitData[8] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(

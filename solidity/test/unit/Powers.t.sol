@@ -10,6 +10,9 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
+import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
+import { Erc721Mock } from "../mocks/Erc721Mock.sol";
+
 /// @notice Unit tests for the core Separated Powers protocol.
 /// @dev tests build on the Hats protocol example. See // https.... £todo
 
@@ -561,6 +564,7 @@ contract ExecuteTest is TestSetupPowers {
 
         // prep: verify initial state
         assertEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
+        assertEq(daoMock.canCallLaw(mockAddress, lawId), true);
 
         // act: execute the action
         vm.prank(mockAddress);
@@ -724,9 +728,6 @@ contract ExecuteTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract ConstituteTest is TestSetupPowers {
     function testConstituteSetsLawsToActive() public {
-        // prep: deploy laws
-        (, address[] memory lawAddresses) = deployLaws.run();
-
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
@@ -751,8 +752,6 @@ contract ConstituteTest is TestSetupPowers {
     }
 
     function testConstituteRevertsOnSecondCall() public {
-        (, address[] memory lawAddresses) = deployLaws.run();
-
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
@@ -774,8 +773,6 @@ contract ConstituteTest is TestSetupPowers {
     }
 
     function testConstituteCannotBeCalledByNonAdmin() public {
-        (, address[] memory lawAddresses) = deployLaws.run();
-
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
@@ -1004,15 +1001,15 @@ contract ComplianceTest is TestSetupPowers {
     function testErc721Compliance() public {
         // prep
         uint256 nftToMint = 42;
-        assertEq(erc721Mock.balanceOf(address(daoMock)), 0, "Initial balance should be 0");
+        assertEq(Erc721Mock(mockAddresses[4]).balanceOf(address(daoMock)), 0, "Initial balance should be 0");
 
         // act
         vm.prank(address(daoMock));
-        erc721Mock.mintNFT(nftToMint, address(daoMock));
+        Erc721Mock(mockAddresses[4]).mintNFT(nftToMint, address(daoMock));
 
         // assert
-        assertEq(erc721Mock.balanceOf(address(daoMock)), 1, "Balance should be 1 after minting");
-        assertEq(erc721Mock.ownerOf(nftToMint), address(daoMock), "NFT should be owned by DAO");
+        assertEq(Erc721Mock(mockAddresses[4]).balanceOf(address(daoMock)), 1, "Balance should be 1 after minting");
+        assertEq(Erc721Mock(mockAddresses[4]).ownerOf(nftToMint), address(daoMock), "NFT should be owned by DAO");
     }
 
     function testOnERC721Received() public {
@@ -1033,14 +1030,14 @@ contract ComplianceTest is TestSetupPowers {
     function testErc1155Compliance() public {
         // prep
         uint256 numberOfCoinsToMint = 100;
-        assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 0, "Initial balance should be 0");
+        assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 0, "Initial balance should be 0");
 
         // act
         vm.prank(address(daoMock));
-        erc1155Mock.mintCoins(numberOfCoinsToMint);
+        Erc1155Mock(mockAddresses[5]).mintCoins(numberOfCoinsToMint);
 
         // assert
-        assertEq(erc1155Mock.balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting");
+        assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting");
     }
 
     function testOnERC1155BatchReceived() public {

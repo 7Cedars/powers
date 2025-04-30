@@ -38,6 +38,8 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+// import "forge-std/Test.sol"; // for testing
+
 contract HolderSelect is Law {
     struct StateData {
         address erc20Token;
@@ -114,7 +116,7 @@ contract HolderSelect is Law {
         uint256 tokenBalance = ERC20(stateData[lawHash].erc20Token).balanceOf(account);
 
         // step 2: check if account has the role
-        bool hasRole = Powers(payable(msg.sender)).hasRoleSince(caller, stateData[lawHash].roleIdToSet) != 0;
+        bool hasRole = Powers(payable(msg.sender)).hasRoleSince(account, stateData[lawHash].roleIdToSet) != 0;
 
         // step 3: create arrays
         if (hasRole && tokenBalance < stateData[lawHash].minimumTokens) {

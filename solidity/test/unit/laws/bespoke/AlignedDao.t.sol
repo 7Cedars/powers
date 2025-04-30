@@ -25,7 +25,7 @@
 
 //         assertTrue(Powers(daoMock).getActiveLaw(nftSelfSelect), "Law should be active after initialization");
 //         assertEq(Law(nftSelfSelect).powers(), address(daoMock), "Powers address should be set correctly");
-//         assertEq(Law(nftSelfSelect).allowedRole(), type(uint32).max, "Allowed role should be PUBLIC_ROLE");
+//         assertEq(Law(nftSelfSelect).allowedRole(), type(uint256).max, "Allowed role should be PUBLIC_ROLE");
 //         assertEq(NftSelfSelect(nftSelfSelect).roleId(), 1, "Role ID should be set correctly");
 //         assertEq(NftSelfSelect(nftSelfSelect).erc721Token(), address(erc721Mock), "ERC721 token address should be set correctly");
 //     }

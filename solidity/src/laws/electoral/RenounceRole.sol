@@ -34,7 +34,7 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract RenounceRole is Law {
-    mapping(bytes32 lawHash => uint32[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
+    mapping(bytes32 lawHash => uint256[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -51,7 +51,7 @@ contract RenounceRole is Law {
         bytes memory inputParams,
         string memory description
     ) public override {
-        uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
+        uint256[] memory allowedRoleIds_ = abi.decode(config, (uint256[]));
         allowedRoleIds[LawUtilities.hashLaw(msg.sender, index)] = allowedRoleIds_;
 
         inputParams = abi.encode("uint256 roleId");
@@ -77,7 +77,7 @@ contract RenounceRole is Law {
 
         // step2: check if the role is allowed to be renounced.
         bool allowed = false;
-        for (uint32 i = 0; i < allowedRoleIds[lawHash].length; i++) {
+        for (uint256 i = 0; i < allowedRoleIds[lawHash].length; i++) {
             if (roleId == allowedRoleIds[lawHash][i]) {
                 allowed = true;
                 break;

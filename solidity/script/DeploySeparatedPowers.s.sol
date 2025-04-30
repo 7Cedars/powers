@@ -145,7 +145,7 @@ contract DeploySeparatedPowers is Script {
 
         // Law for users to self-select based on tax payments
         // No role restrictions, anyone can use this law
-        conditions.allowedRole = type(uint32).max; // no role restriction
+        conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[4] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(13, "TaxSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 100, 1), // 100 gwei tax threshold, role 1 (user)
@@ -156,7 +156,7 @@ contract DeploySeparatedPowers is Script {
 
         // Law for holders to self-select based on token holdings
         // No role restrictions, anyone can use this law
-        conditions.allowedRole = type(uint32).max; // no role restriction
+        conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(14, "HolderSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 1e18, 2), // 1e18 token threshold, role 2 (holder)

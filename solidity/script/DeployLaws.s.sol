@@ -128,5 +128,6 @@ contract DeployLaws is Script {
             // console2.log(string.concat(name, " deployed at: "), computedAddress);
             return computedAddress;
         }
+        
     }
 }

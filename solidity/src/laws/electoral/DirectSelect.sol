@@ -33,6 +33,8 @@ import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
+// import "forge-std/Test.sol"; // for testing only. remove before deployment.
+
 contract DirectSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleId;
 
@@ -51,7 +53,8 @@ contract DirectSelect is Law {
         string memory description
     ) public override {
         (uint256 roleId_) = abi.decode(config, (uint256));
-        roleId[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        roleId[lawHash] = roleId_;
 
         inputParams = abi.encode("bool Assign", "address Account");
 

@@ -24,7 +24,6 @@ import { console2 } from "forge-std/console2.sol";
 
 // core protocol
 import { Powers} from "../src/Powers.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
@@ -111,7 +110,7 @@ contract DeployPowers101 is Script {
 
         // This law enables anyone to select themselves as a community member. 
         // Any one can use this law
-        conditions.allowedRole = type(uint32).max;
+        conditions.allowedRole = type(uint256).max;
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(

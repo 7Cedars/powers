@@ -199,7 +199,7 @@ contract DeployGovernedUpgrades is Script {
         //////////////////////////////////////////////////////
         // Law to nominate oneself for delegate role
         // No role restrictions, anyone can use this law
-        conditions.allowedRole = type(uint32).max; // no role restriction
+        conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(),
@@ -209,7 +209,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         // Law to assign delegate role through voting 
-        conditions.allowedRole = type(uint32).max; // no role restriction
+        conditions.allowedRole = type(uint256).max; // no role restriction
         conditions.votingPeriod = 60; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority

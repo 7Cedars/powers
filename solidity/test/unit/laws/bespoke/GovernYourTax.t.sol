@@ -180,7 +180,7 @@
 
 //         assertTrue(Powers(daoMock).getActiveLaw(grant), "Law should be active after initialization");
 //         assertEq(Law(grant).powers(), address(daoMock), "Powers address should be set correctly");
-//         assertEq(Law(grant).allowedRole(), type(uint32).max, "Allowed role should be Public Role");
+//         assertEq(Law(grant).allowedRole(), type(uint256).max, "Allowed role should be Public Role");
 //         assertEq(Grant(grant).tokenAddress(), address(erc20VotesMock), "Token address should be set correctly");
 //         assertEq(Grant(grant).budget(), 5000, "Budget should be set correctly");
 //         assertEq(Grant(grant).spent(), 0, "Initial spent amount should be 0");

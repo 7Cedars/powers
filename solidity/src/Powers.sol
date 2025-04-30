@@ -58,8 +58,8 @@ contract Powers is EIP712, IPowers {
     mapping(address account => Deposit) public deposits; // mapping deposits from accounts (note: this only covers chain native currency)
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint48).max.
-    uint32 public constant ADMIN_ROLE = type(uint32).min; // == 0
-    uint32 public constant PUBLIC_ROLE = type(uint32).max; // == a lot
+    uint256 public constant ADMIN_ROLE = type(uint256).min; // == 0
+    uint256 public constant PUBLIC_ROLE = type(uint256).max; // == a lot
     uint256 constant DENOMINATOR = 100; // = 100%
 
     string public name; // name of the DAO.
@@ -594,7 +594,7 @@ contract Powers is EIP712, IPowers {
             revert Powers__LawNotActive();
         }
         law = laws[lawId].targetLaw;
-        lawHash = keccak256(abi.encode(law, lawId));
+        lawHash = keccak256(abi.encode(address(this), lawId));
         conditions = Law(law).getConditions(lawId);
 
         return (law, lawHash, conditions);

@@ -58,10 +58,11 @@ contract DelegateSelect is Law {
 
     struct MemoryData {
         bytes32 lawHash;
+        bytes32 nominateMeHash;
         Conditions conditions;
         uint16 nominateMeId;
         address nominateMeAddress;
-        uint256 numberNominees;
+        address[] nominees;
         uint256 numberRevokees;
         uint256 arrayLength;
         address[] accountElects;
@@ -112,11 +113,13 @@ contract DelegateSelect is Law {
         // step 1: setting up array for revoking & assigning roles.
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
         (mem.nominateMeAddress,,) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId);
-
-        mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
+        mem.nominateMeHash = LawUtilities.hashLaw(msg.sender, mem.nominateMeId);
+        
+        // mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
+        mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
         mem.numberRevokees = stateData[mem.lawHash].electedAccounts.length;
-        mem.arrayLength = mem.numberNominees < stateData[mem.lawHash].maxRoleHolders
-            ? mem.numberRevokees + mem.numberNominees
+        mem.arrayLength = mem.nominees.length < stateData[mem.lawHash].maxRoleHolders
+            ? mem.numberRevokees + mem.nominees.length
             : mem.numberRevokees + stateData[mem.lawHash].maxRoleHolders;
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
@@ -131,10 +134,10 @@ contract DelegateSelect is Law {
         }
 
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
-        if (mem.numberNominees < stateData[mem.lawHash].maxRoleHolders) {
-            mem.accountElects = new address[](mem.numberNominees);
-            for (uint256 i; i < mem.numberNominees; i++) {
-                address accountElect = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash)[i];
+        if (mem.nominees.length < stateData[mem.lawHash].maxRoleHolders) {
+            mem.accountElects = new address[](mem.nominees.length);
+            for (uint256 i; i < mem.nominees.length; i++) {
+                address accountElect = mem.nominees[i];
                 calldatas[i + mem.numberRevokees] =
                     abi.encodeWithSelector(Powers.assignRole.selector, stateData[mem.lawHash].roleId, accountElect);
                 mem.accountElects[i] = accountElect;
@@ -144,10 +147,10 @@ contract DelegateSelect is Law {
         } else {
             // retrieve balances of delegated votes of nominees.
             mem.accountElects = new address[](stateData[mem.lawHash].maxRoleHolders);
-            uint256[] memory _votes = new uint256[](mem.numberNominees);
-            address[] memory _nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash);
+            uint256[] memory _votes = new uint256[](mem.nominees.length);
+            address[] memory _nominees = mem.nominees;
 
-            for (uint256 i; i < mem.numberNominees; i++) {
+            for (uint256 i; i < mem.nominees.length; i++) {
                 _votes[i] = ERC20Votes(stateData[mem.lawHash].erc20Token).getVotes(_nominees[i]);
             }
 
@@ -156,10 +159,10 @@ contract DelegateSelect is Law {
             // b. if the position is greater than MAX_ROLE_HOLDERS, we break. (it means there are more accounts that have more tokens than MAX_ROLE_HOLDERS)
             // c. if the position is less than MAX_ROLE_HOLDERS, we assign the roles.
             uint256 index;
-            for (uint256 i; i < mem.numberNominees; i++) {
+            for (uint256 i; i < mem.nominees.length; i++) {
                 uint256 rank;
                 // a: loop to assess ranking.
-                for (uint256 j; j < mem.numberNominees; j++) {
+                for (uint256 j; j < mem.nominees.length; j++) {
                     if (j != i && _votes[j] >= _votes[i]) {
                         rank++;
                         if (rank > stateData[mem.lawHash].maxRoleHolders) break; // b: do not need to know rank beyond MAX_ROLE_HOLDERS threshold.
