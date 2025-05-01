@@ -91,6 +91,7 @@ contract HolderSelect is Law {
     /// @return stateChange The state change data
     function handleRequest(
         address caller,
+        address powers,
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
@@ -108,7 +109,7 @@ contract HolderSelect is Law {
         )
     {
         // step 0: create actionId & decode the calldata
-        (, bytes32 lawHash,) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        (, bytes32 lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         (address account) = abi.decode(lawCalldata, (address));
 
@@ -116,12 +117,12 @@ contract HolderSelect is Law {
         uint256 tokenBalance = ERC20(stateData[lawHash].erc20Token).balanceOf(account);
 
         // step 2: check if account has the role
-        bool hasRole = Powers(payable(msg.sender)).hasRoleSince(account, stateData[lawHash].roleIdToSet) != 0;
+        bool hasRole = Powers(payable(powers)).hasRoleSince(account, stateData[lawHash].roleIdToSet) != 0;
 
         // step 3: create arrays
         if (hasRole && tokenBalance < stateData[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-            targets[0] = msg.sender;
+            targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.revokeRole.selector,
                 stateData[lawHash].roleIdToSet,
@@ -129,7 +130,7 @@ contract HolderSelect is Law {
             );
         } else if (!hasRole && tokenBalance >= stateData[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-            targets[0] = msg.sender;
+            targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector,
                 stateData[lawHash].roleIdToSet,

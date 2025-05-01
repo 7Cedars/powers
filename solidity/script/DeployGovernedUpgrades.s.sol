@@ -109,7 +109,7 @@ contract DeployGovernedUpgrades is Script {
 
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 60; // about 5 minutes
+        conditions.votingPeriod = 25; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
@@ -123,7 +123,7 @@ contract DeployGovernedUpgrades is Script {
         // Law to veto revoking a law
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 60; // about 5 minutes
+        conditions.votingPeriod = 25; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         lawInitData[2] = PowersTypes.LawInitData({
@@ -176,7 +176,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 60; // about 5 minutes
+        conditions.votingPeriod = 25; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         conditions.needNotCompleted = 5; // law 5 needs to have passed
@@ -210,7 +210,7 @@ contract DeployGovernedUpgrades is Script {
 
         // Law to assign delegate role through voting 
         conditions.allowedRole = type(uint256).max; // no role restriction
-        conditions.votingPeriod = 60; // about 5 minutes
+        conditions.votingPeriod = 25; // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         conditions.readStateFrom = 7; // reads nominees from law 7

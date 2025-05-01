@@ -63,7 +63,7 @@ contract VoteOnNominees is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -75,9 +75,9 @@ contract VoteOnNominees is Law {
             bytes memory stateChange
         )
     {
-        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         uint16 nominateMeId = conditionsLaws[lawHash].readStateFrom;
-        (address nomineesContract,,) = Powers(payable(msg.sender)).getActiveLaw(nominateMeId);
+        (address nomineesContract,,) = Powers(payable(powers)).getActiveLaw(nominateMeId);
 
         // step 0: run additional checks
         if (block.number < elections[lawHash].startVote || block.number > elections[lawHash].endVote) {

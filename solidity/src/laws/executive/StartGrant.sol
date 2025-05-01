@@ -87,6 +87,7 @@ contract StartGrant is Law {
     /// @return stateChange State changes to apply
     function handleRequest(
         address caller,
+        address powers,
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
@@ -106,14 +107,14 @@ contract StartGrant is Law {
         (uint48 duration, uint256 budget, address tokenAddress, string memory grantDescription) = 
             abi.decode(lawCalldata, (uint48, uint256, address, string));
         
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         ILaw.Conditions memory grantConditions = abi.decode(stateData[lawHash].grantConditions, (ILaw.Conditions));
         
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         
         // Set up the call to adoptLaw in Powers
-        targets[0] = msg.sender; // Powers contract
+        targets[0] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
@@ -126,18 +127,19 @@ contract StartGrant is Law {
 
         // Generate action ID
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        stateChange = lawCalldata;
+        uint16 grantsId = Powers(payable(powers)).lawCount();
+        stateChange = abi.encode(grantsId, lawCalldata);
 
         return (actionId, targets, values, calldatas, "");
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
+        (uint16 grantsId, bytes memory lawCalldata) = abi.decode(stateChange, (uint16, bytes));
         // save the Id of the law at which grant will be saved
-        uint16 grantId = Powers(payable(msg.sender)).lawCount();
-        grantIds[lawHash][keccak256(stateChange)] = grantId;
+        grantIds[lawHash][keccak256(lawCalldata)] = grantsId;
     }
 
-    function getGrantId(bytes32 lawHash, bytes memory stateChange) public view returns (uint16) {
-        return grantIds[lawHash][keccak256(stateChange)];
+    function getGrantId(bytes32 lawHash, bytes memory lawCalldata) public view returns (uint16) {
+        return grantIds[lawHash][keccak256(lawCalldata)];
     }
 }

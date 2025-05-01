@@ -145,6 +145,10 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
      throw new Error('@parseInput: Incorrect or missing data.');
   }
 
+  if (event.target.value == "") {
+    return errorMessage
+  }
+
   // Note that later on I can also check for maximum values by taking the power of uintxxx
   if (dataType.indexOf('uint') > -1) {
     try {
@@ -389,5 +393,16 @@ export const shorterDescription = (message: string | undefined, output: "short" 
     return message
   }
 };
+
+// would be great to make this more dynamic. 
+export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | undefined => {
+  if (!chainId) {
+    return undefined
+  }
+  if ( chainId != "1" && chainId != "421614" && chainId != "11155111") {
+    return undefined
+  }
+  return parseInt(chainId) as 421614 | 11155111 | undefined
+}
 
 

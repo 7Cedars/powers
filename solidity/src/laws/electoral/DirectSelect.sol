@@ -61,7 +61,7 @@ contract DirectSelect is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -74,8 +74,9 @@ contract DirectSelect is Law {
             bytes memory stateChange
         )
     {
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-
+        
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        
         // Decode the calldata. Note that validating calldata is not possible at the moment.
         // See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
         // The feature request has been open for almost five years(!) at time of writing.
@@ -88,14 +89,14 @@ contract DirectSelect is Law {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 
         // step 4: set the targets, values and calldatas.
-        targets[0] = msg.sender;
+        targets[0] = powers;
         if (!assign) {
-            if (Powers(payable(msg.sender)).hasRoleSince(account, roleId[lawHash]) == 0) {
+            if (Powers(payable(powers)).hasRoleSince(account, roleId[lawHash]) == 0) {
                 revert("Account does not have role.");
             }
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId[lawHash], account); // selector = revokeRole
         } else {
-            if (Powers(payable(msg.sender)).hasRoleSince(account, roleId[lawHash]) != 0) {
+            if (Powers(payable(powers)).hasRoleSince(account, roleId[lawHash]) != 0) {
                 revert("Account already has role.");
             }
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId[lawHash], account); // selector = assignRole

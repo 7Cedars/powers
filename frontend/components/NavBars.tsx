@@ -24,7 +24,7 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 
 const NavigationBar = () => {
   const router = useRouter();
-  const { powers: addressPowers } = useParams<{ powers: string }>()  
+  const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
   const { status: statusUpdate, fetchPowers } = usePowers()
 
@@ -37,8 +37,8 @@ const NavigationBar = () => {
   return (
     <div className="w-full h-full flex flex-row gap-1 justify-center items-center px-2 py-1 md:py-0 overflow-hidden"> 
             <button 
-              onClick={() => router.push(`/${addressPowers}`)}
-              aria-selected={path == `/${addressPowers}`} 
+              onClick={() => router.push(`/${chainId}/${addressPowers}`)}
+              aria-selected={path == `/${chainId}/${addressPowers}`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -50,8 +50,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push(`/${addressPowers}/laws`)}
-              aria-selected={path == `/${addressPowers}/laws`} 
+              onClick={() => router.push(`/${chainId}/${addressPowers}/laws`)}
+              aria-selected={path == `/${chainId}/${addressPowers}/laws`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -63,8 +63,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push(`/${addressPowers}/proposals`)}
-              aria-selected={path == `/${addressPowers}/proposals`} 
+              onClick={() => router.push(`/${chainId}/${addressPowers}/proposals`)}
+              aria-selected={path == `/${chainId}/${addressPowers}/proposals`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -76,8 +76,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push(`/${addressPowers}/roles`)}
-              aria-selected={path == `/${addressPowers}/roles`} 
+              onClick={() => router.push(`/${chainId}/${addressPowers}/roles`)}
+              aria-selected={path == `/${chainId}/${addressPowers}/roles`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 
@@ -89,8 +89,8 @@ const NavigationBar = () => {
             </button>
 
             <button 
-              onClick={() => router.push(`/${addressPowers}/treasury`)}
-              aria-selected={path == `/${addressPowers}/treasury`} 
+              onClick={() => router.push(`/${chainId}/${addressPowers}/treasury`)}
+              aria-selected={path == `/${chainId}/${addressPowers}/treasury`} 
               className={layoutButton}
               >
                 <div className={layoutIconBox}> 

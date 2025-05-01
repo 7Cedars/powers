@@ -14,6 +14,14 @@ const initialStateAction: ActionStore = {
   upToDate: false
 }
 
+type ErrorStore = {
+  error: Error | string | null
+}
+
+const initialStateError: ErrorStore = {
+  error: null
+}
+
 type RoleStore = {
   deselectedRoles: bigint[]
 }
@@ -30,7 +38,18 @@ export const setAction: typeof useActionStore.setState = (action) => {
 export const deleteAction: typeof useActionStore.setState = () => {
       useActionStore.setState(initialStateAction)
 }
-  
+ 
+
+// Error Store
+export const useErrorStore = create<ErrorStore>()(() => initialStateError);
+
+export const setError: typeof useErrorStore.setState = (error) => {
+  useErrorStore.setState(error)
+}
+export const deleteError: typeof useErrorStore.setState = () => {
+  useErrorStore.setState(initialStateError)
+}
+
 // Role store 
 export const useRoleStore = create<RoleStore>()(() => initialStateRole);
 

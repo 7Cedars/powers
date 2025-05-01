@@ -34,6 +34,16 @@ contract StopGrant is Law {
         bool checkDuration;
     }
 
+    struct Mem {
+        bytes32 lawHash;
+        uint16 needCompleted;
+        uint16 grantId;
+        address startGrantLaw;
+        address grantLaw;
+        uint256 tokensLeft;
+        uint48 durationLeft;
+    }
+
     mapping(bytes32 lawHash => StateData) public stateData;
 
     constructor(string memory name_) {
@@ -88,6 +98,7 @@ contract StopGrant is Law {
     /// @return stateChange State changes to apply
     function handleRequest(
         address caller,
+        address powers,
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
@@ -103,27 +114,35 @@ contract StopGrant is Law {
             bytes memory stateChange
         )
     {
-        uint16 needCompleted = conditionsLaws[LawUtilities.hashLaw(msg.sender, lawId)].needCompleted;
-        if (needCompleted == 0) {
+        Mem memory mem;
+
+        // load data to memory
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.needCompleted = conditionsLaws[mem.lawHash].needCompleted;
+        if (mem.needCompleted == 0) {
             revert("NeedCompleted condition not set.");
         }
-        (address startGrantLaw, , ) = Powers(payable(msg.sender)).getActiveLaw(needCompleted);
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        uint16 grantId = StartGrant(startGrantLaw).getGrantId(lawHash, lawCalldata);
-        (address GrantLaw, , ) = Powers(payable(msg.sender)).getActiveLaw(grantId);
+        (mem.startGrantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
+        mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.lawHash, lawCalldata);
+        (mem.grantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.grantId);
         
-        if (grantId == 0) {
+        // check if grant exists
+        if (mem.grantId == 0) {
             revert("Grant not found.");
         }
-        if (stateData[lawHash].maxBudgetLeft > 0) {
-            uint256 tokensLeft = Grant(GrantLaw).getTokensLeft(LawUtilities.hashLaw(msg.sender, grantId));
-            if (tokensLeft > stateData[lawHash].maxBudgetLeft) {
+
+        // check if grant has spent all tokens
+        if (stateData[mem.lawHash].maxBudgetLeft > 0) {
+            mem.tokensLeft = Grant(mem.grantLaw).getTokensLeft(LawUtilities.hashLaw(powers, mem.grantId));
+            if (mem.tokensLeft > stateData[mem.lawHash].maxBudgetLeft) {
                 revert("Grant has not spent all tokens.");
             }
         }
-        if (stateData[lawHash].checkDuration) {
-            uint48 durationLeft = Grant(GrantLaw).getDurationLeft(LawUtilities.hashLaw(msg.sender, grantId));
-            if (durationLeft > 0) {
+
+        // check if grant has expired
+        if (stateData[mem.lawHash].checkDuration) {
+            mem.durationLeft = Grant(mem.grantLaw).getDurationLeft(LawUtilities.hashLaw(powers, mem.grantId));
+            if (mem.durationLeft > 0) {
                 revert("Grant has not expired.");
             }
         }
@@ -131,11 +150,11 @@ contract StopGrant is Law {
         // if check passed create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         
-        // Set up the call to adoptLaw in Powers
-        targets[0] = msg.sender; // Powers contract
+        // Set up the call to revokeLaw in Powers
+        targets[0] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
             Powers.revokeLaw.selector,
-            grantId
+            mem.grantId
         );
 
         // Generate action ID

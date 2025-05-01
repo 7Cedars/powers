@@ -94,7 +94,7 @@ abstract contract Law is ERC165, ILaw {
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes memory stateChange
-        ) = handleRequest(caller, lawId, lawCalldata, nonce);
+        ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
         // execute the law's logic conditional on data returned by handleRequest
         if (stateChange.length > 0) {
@@ -118,7 +118,7 @@ abstract contract Law is ERC165, ILaw {
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual

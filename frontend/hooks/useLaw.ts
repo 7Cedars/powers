@@ -5,7 +5,7 @@ import { getBlock, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useChainId, useWaitForTransactionReceipt } from "wagmi";
 import { publicClient } from "@/context/clients";
-import { readContract } from "wagmi/actions";
+// import { readContract } from "";
 import { GetBlockReturnType, keccak256, Log, parseEventLogs, ParseEventLogsReturnType, toHex } from "viem";
 import { supportedChains } from "@/context/chains";
 import { sepolia } from "@wagmi/core/chains";
@@ -91,20 +91,20 @@ export const useLaw = () => {
     }
   }
 
-  const fetchSimulation = useCallback( 
+  const simulate = useCallback( 
     async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
-      console.log("@fetchSimulation: waypoint 1", {caller, lawCalldata, nonce, law})
+      console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
       setError(null)
       setStatus("pending")
       try {
-        const result = await readContract(wagmiConfig, {
+        const result = await publicClient.readContract({
           abi: lawAbi,
-          address: law.lawAddress,
+          address: law.lawAddress as `0x${string}`,
           functionName: 'handleRequest', 
-          args: [caller, law.index, lawCalldata, nonce]
+          args: [caller, law.powers, law.index, lawCalldata, nonce]
           })
-          
-          console.log("@fetchSimulation: waypoint 2", {result: result as LawSimulation})
+          console.log("@simulate: waypoint 2a", {result})
+          console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
         } catch (error) {
@@ -127,7 +127,7 @@ export const useLaw = () => {
         try {
           const result = await writeContract(wagmiConfig, {
             abi: powersAbi,
-            address: law.powers,
+            address: law.powers as `0x${string}`,
             functionName: 'request', 
             args: [law.index, lawCalldata, nonce, description]
           })
@@ -139,6 +139,6 @@ export const useLaw = () => {
       }
   }, [ ])
 
-  return {status, error, executions, simulation, resetStatus, fetchSimulation, fetchExecutions, execute}
+  return {status, error, executions, simulation, resetStatus, simulate, fetchExecutions, execute}
 }
 

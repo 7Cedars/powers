@@ -85,7 +85,7 @@ contract AdoptLaw is Law {
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -97,7 +97,7 @@ contract AdoptLaw is Law {
             bytes memory stateChange
         )
     {
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         (AdoptLawConfig memory config) = abi.decode(lawCalldata, (AdoptLawConfig));

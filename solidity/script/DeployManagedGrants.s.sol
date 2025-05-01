@@ -134,15 +134,15 @@ contract DeployManagedGrants is Script {
         grantConditions.allowedRole = 4; // allocator role
         grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
         grantConditions.quorum = 33; // 33% quorum need to ok a grant request. 
-        grantConditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        grantConditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         grantConditions.succeedAt = 51; // simple 51% majority 
 
         // NB: these are the conditions for the deploy grants law.  
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
-        conditions.delayExecution = 120; // 240 blocks, about 20 minutes
+        conditions.delayExecution = 50; // 50 blocks, about 20 minutes
         conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
         lawInitData[3] = PowersTypes.LawInitData({
@@ -156,7 +156,7 @@ contract DeployManagedGrants is Script {
 
         // This law allows delegates to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
@@ -171,7 +171,7 @@ contract DeployManagedGrants is Script {
 
         // Judges can stop a grant program at any time. 
         conditions.allowedRole = 3; // judge role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
         conditions.succeedAt = 51; // 66% majority 
         conditions.needCompleted = 2; // a delegate needs to have started a grant program. 
@@ -239,7 +239,7 @@ contract DeployManagedGrants is Script {
 
         // This law allows delegates to assign or revoke an allocator role to a nominated account. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote to assign an allocator role to a nominated account. 
         conditions.succeedAt = 66; // 66% majority  
         

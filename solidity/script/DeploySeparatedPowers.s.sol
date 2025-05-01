@@ -95,10 +95,10 @@ contract DeploySeparatedPowers is Script {
         inputParams[2] = "bytes[] Calldatas";
 
         conditions.allowedRole = 1; // user role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 120; // 120 blocks, about 10 minutes
+        conditions.delayExecution = 50; // 50 blocks, about 10 minutes
         lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the input params are the targets, values, and calldatas
@@ -111,10 +111,10 @@ contract DeploySeparatedPowers is Script {
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
         conditions.needCompleted = 1; // law 0 needs to have passed. 
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 120; // 120 blocks, about 10 minutes
+        conditions.delayExecution = 50; // 50 blocks, about 10 minutes
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
@@ -128,7 +128,7 @@ contract DeploySeparatedPowers is Script {
         conditions.allowedRole = 2; // holder role
         conditions.needCompleted = 1; // law 1 needs to have passed. 
         conditions.needNotCompleted = 2; // law 2 needs to have not passed. 
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
         lawInitData[3] = PowersTypes.LawInitData({
@@ -171,7 +171,7 @@ contract DeploySeparatedPowers is Script {
         // Law for developers to manage their own role
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 50% vote majority
         lawInitData[6] = PowersTypes.LawInitData({

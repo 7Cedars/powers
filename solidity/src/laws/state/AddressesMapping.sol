@@ -50,7 +50,7 @@ contract AddressesMapping is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -64,7 +64,7 @@ contract AddressesMapping is Law {
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
-        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
 
         if (add && addresses[lawHash][account]) {
             revert("Already true.");

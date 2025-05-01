@@ -95,6 +95,7 @@ contract Grant is Law {
     /// @return stateChange The state change data
     function handleRequest(
         address caller,
+        address powers,
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
@@ -111,7 +112,7 @@ contract Grant is Law {
         )
     {
         // step 0: create actionId & decode law calldata
-        (, bytes32 lawHash,) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        (, bytes32 lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         (address grantee, address grantAddress, uint256 quantity) = abi.decode(lawCalldata, (address, address, uint256));
 

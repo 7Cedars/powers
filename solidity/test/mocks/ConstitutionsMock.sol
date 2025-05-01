@@ -298,11 +298,12 @@ contract ConstitutionsMock is Test  {
 
         // peerSelect
         conditions.allowedRole = 1;
+        conditions.readStateFrom = 1;
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[2], // peerSelect
             config: abi.encode(
-                15, // max role holders
-                3 // roleId to be assigned
+                2, // max role holders
+                4 // roleId to be assigned
             ),
             conditions: conditions,
             description: "A law to select a role by peer votes."
@@ -310,14 +311,13 @@ contract ConstitutionsMock is Test  {
         delete conditions;
 
         // renounceRole
-        uint256[] memory roles = new uint256[](2);
-        roles[0] = 1;
-        roles[1] = 2;
+        uint256[] memory roles = new uint256[](1);
+        roles[0] = 3;
         conditions.allowedRole = 1;
         lawInitData[6] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[3], // renounceRole
             config: abi.encode(
-                roles
+                roles // roles allowed to renounced
             ),
             conditions: conditions,
             description: "A law to renounce a role."
@@ -325,11 +325,11 @@ contract ConstitutionsMock is Test  {
         delete conditions;
 
         // selfSelect
-        conditions.allowedRole = 1;
+        conditions.allowedRole = type(uint256).max;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[4], // selfSelect
             config: abi.encode(
-                3 // roleId to be assigned
+                4 // roleId to be assigned
             ),
             conditions: conditions,
             description: "A law to select a role by self."
@@ -362,6 +362,103 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
     }
+
+        
+    //////////////////////////////////////////////////////////////
+    //                  EXECUTIVE CONSTITUTION                  //
+    //////////////////////////////////////////////////////////////
+    function initiateExecutiveTestConstitution(
+        string[] memory lawNames,
+        address[] memory lawAddresses,
+        string[] memory mockNames,
+        address[] memory mockAddresses,
+        address payable daoMock
+    ) external returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
+        ILaw.Conditions memory conditions;
+        lawInitData = new PowersTypes.LawInitData[](9);
+
+        // proposalOnly
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[1] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[8], // proposalOnly
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to propose a new core value to or remove an existing from the Dao. Subject to a vote and cannot be implemented."
+        });
+        delete conditions;
+
+        // openAction
+        lawInitData[2] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[6], // openAction
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to execute an open action."
+        });
+        delete conditions;
+
+        // Bespoke Action 
+        lawInitData[3] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[5], // Bespoke Action 
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to execute a bespoke action."
+        });
+        delete conditions;
+
+        // presetAction
+        conditions.allowedRole = 1;
+        lawInitData[4] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[7], // presetAction
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to execute a preset action."
+        });
+        delete conditions;
+
+        // startGrant 
+        conditions.allowedRole = 1;
+        lawInitData[5] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[16], // startGrant
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to start a grant."
+        });
+        delete conditions;
+
+        // stopGrant
+        conditions.allowedRole = 1;
+        lawInitData[6] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[17], // stopGrant
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to stop a grant."
+        });
+        delete conditions;
+
+        // adoptLaw
+        conditions.allowedRole = 1;
+        lawInitData[7] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[18], // adoptLaw
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to adopt a law."
+        });
+        delete conditions;
+
+        // get calldata
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(daoMock, 8); // powersMock
+        conditions.allowedRole = 0;
+        lawInitData[8] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[7],
+            config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.
+            conditions: conditions,
+            description: "A law to execute a preset action."
+        });
+        delete conditions;
+    }
+
 
     //////////////////////////////////////////////////////////////
     //                  INTERNAL HELPER FUNCTION                //

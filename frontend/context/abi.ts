@@ -189,14 +189,14 @@ export const powersAbi: Abi = [
     "type": "function",
     "name": "ADMIN_ROLE",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "uint32", "internalType": "uint32" }],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "PUBLIC_ROLE",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "uint32", "internalType": "uint32" }],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "view"
   },
   {
@@ -1359,6 +1359,7 @@ export const lawAbi: Abi = [
     "name": "handleRequest",
     "inputs": [
       { "name": "caller", "type": "address", "internalType": "address" },
+      { "name": "powers", "type": "address", "internalType": "address" },
       { "name": "lawId", "type": "uint16", "internalType": "uint16" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       { "name": "nonce", "type": "uint256", "internalType": "uint256" }

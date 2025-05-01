@@ -92,7 +92,7 @@ contract DelegateSelect is Law {
         super.initializeLaw(index, conditions, config, "", description);
     }
 
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -106,14 +106,14 @@ contract DelegateSelect is Law {
         )
     {
         MemoryData memory mem;
-
-        (, mem.lawHash, mem.conditions) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        
+        (, mem.lawHash, mem.conditions) = Powers(payable(powers)).getActiveLaw(lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
-        (mem.nominateMeAddress,,) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId);
-        mem.nominateMeHash = LawUtilities.hashLaw(msg.sender, mem.nominateMeId);
+        (mem.nominateMeAddress,,) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
+        mem.nominateMeHash = LawUtilities.hashLaw(powers, mem.nominateMeId);
         
         // mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
         mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
@@ -124,7 +124,7 @@ contract DelegateSelect is Law {
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
-            targets[i] = msg.sender;
+            targets[i] = powers;
         }
         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
         for (uint256 i; i < mem.numberRevokees; i++) {

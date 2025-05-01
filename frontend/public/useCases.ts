@@ -8,6 +8,7 @@ export const useCases = [
     ],
     demo: "Powers 101",
     address: "0x86d56c2E4e88aa93bFD08221490023Ab686670B3",
+    chainId: "421614",
     colourScheme: 0,
   }, 
   {
@@ -19,6 +20,7 @@ export const useCases = [
     ],
     demo: "Separated Powers",
     address: "0x42021Ffe27BE8CAACE2d3dE2336fdE3D0CA314Ee",
+    chainId: "421614",
     colourScheme: 0,
   }, 
   {
@@ -29,6 +31,7 @@ export const useCases = [
     ],
     demo: "Governed Upgrades",
     address: "0xA2F6e9cC2c3d2E10708C825BA25b2C900f0b65A3",
+    chainId: "421614",
     colourScheme: 1,
   },
   {
@@ -40,6 +43,7 @@ export const useCases = [
     ],
     demo: "AI + Human",
     address: "0x0000000000000000000000000000000000000000",
+    chainId: "421614",
     colourScheme: 1,
   },
   {
@@ -50,6 +54,7 @@ export const useCases = [
     ],
     demo: "Hybrid DAO",
     address: "0x0000000000000000000000000000000000000000",
+    chainId: "421614",
     colourScheme: 2,
   },
   {
@@ -60,6 +65,7 @@ export const useCases = [
     ],
     demo: "Managed Grants",
     address: "0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A",
+    chainId: "421614",
     colourScheme: 4,
   },  
   {
@@ -71,6 +77,7 @@ export const useCases = [
     ],
     demo: "Attestation Rules",
     address: "0x0000000000000000000000000000000000000000",
+    chainId: "421614",
     colourScheme: 5,
   },
   {
@@ -82,6 +89,7 @@ export const useCases = [
     ],
     demo: "Powers to Hats",
     address: "0x0000000000000000000000000000000000000000",
+    chainId: "421614",
     colourScheme: 5,
   },
 ]

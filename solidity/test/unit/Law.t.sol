@@ -246,7 +246,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
     function testLawRevertsIfVoteStillActive() public {
         // prep: create a new law
         uint16 lawId = 4;
-        description = "Executing a proposal vote";
+        description = "Executing a proposal vote"; 
         lawCalldata = abi.encode(true);
 
         // prep: assign role to alice
@@ -307,6 +307,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         daoMock.request(parentLawNumber, lawCalldata, nonce, description);
 
         // Verify parent law state
+
         ActionState parentState = daoMock.state(parentActionId);
         assertEq(uint8(parentState), uint8(ActionState.Fulfilled));
 

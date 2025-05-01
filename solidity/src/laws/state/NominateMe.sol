@@ -56,7 +56,7 @@ contract NominateMe is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -71,7 +71,7 @@ contract NominateMe is Law {
     {
         // decode the calldata.
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
 
         // nominating //
         if (nominateMe && nominees[lawHash].nominations[caller] != 0) {
@@ -118,8 +118,7 @@ contract NominateMe is Law {
         return nominees[lawHash].nominations[nominee] != 0;
     }
 
-    function getNomineesCount(uint16 lawId) public view returns (uint256) {
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+    function getNomineesCount(bytes32 lawHash) public view returns (uint256) {
         return nominees[lawHash].nomineesCount;
     }
 }

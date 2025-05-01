@@ -46,7 +46,7 @@ export function SectionRunDemo() {
                 size = {0} 
                 role = {6} 
                 onClick={() => { 
-                  router.push(`/${newDemoAddress}`)
+                  router.push(`/421614/${newDemoAddress}`) // NB! This is hardcoded for now.  Have to add a option menu for chainId. 
                 }}
               > 
                 <div className = "text-slate-600">{

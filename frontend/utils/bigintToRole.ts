@@ -8,7 +8,7 @@ export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
   }
 
   const roleLabel = 
-    roleId == 4294967295n ? "Public" 
+    roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? "Public" 
     :
     roleId == 0n ? "Admin" 
     :

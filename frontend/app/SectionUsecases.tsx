@@ -36,7 +36,7 @@ export function SectionUsecases() {
                             <button className="flex flex-row justify-between items-start border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                               disabled={useCase.address === "0x0000000000000000000000000000000000000000" ? true : false}
                               onClick={() => {
-                                  router.push(`/${useCase.address}`)
+                                  router.push(`/${useCase.chainId}/${useCase.address}`)
                               }}> 
                               {useCase.demo}
                               <ArrowUpRightIcon

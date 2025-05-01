@@ -53,7 +53,7 @@ contract ProposalOnly is Law {
 
     // note that we are returning empty arrays as we are not executing any logic.
     // we DO need to return the actionId as it has to be set to 'fulfilled' in the Powers contract.
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -66,7 +66,9 @@ contract ProposalOnly is Law {
         )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1); // if we send an array of length 0, the actionId will not be set as fulfilled.
+
         return (actionId, targets, values, calldatas, "");
     }
 
