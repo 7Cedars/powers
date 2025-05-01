@@ -23,7 +23,7 @@ The Powers protocol provides a minimalist, but very powerful, proof of concept o
 ## Quick links
 
 * [The Github repository](https://github.com/7Cedars/powers)
-* [The Powers app](https://powers-protocol.vercel.app/#usecases)&#x20;
+* [The Powers app](https://powers-protocol.vercel.app/#usecases)
 
 ## The protocol
 
@@ -43,7 +43,7 @@ In addition there is a `constitute` function that allows adopting multiple laws 
 
 The governance flow is defined by the following restrictions:
 
-* All actions are executed via Powers' execute function in reference to a law. There are no exceptions.&#x20;
+* All actions are executed via Powers' execute function in reference to a law. There are no exceptions.
 * Executing, proposing and voting can only be done in reference to a role restricted law.
 * Roles and laws can only be assigned and revoked through the execute function of the protocol itself.
 
@@ -59,14 +59,14 @@ Example:
 
 > Any account that has been assigned a 'senior' role can propose to mint tokens at contract X, but the proposal will only be accepted if 20 percent of all seniors vote in favor.
 
-Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once. One law can be adopted by multiple Powers.sol instances.&#x20;
+Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once. One law can be adopted by multiple Powers.sol instances.
 
 Laws have the following functionalities:
 
 * They are role restricted by a single role.
 * They have multiple (optional) checks.
-* They have an `initializeLaw` function, that is called when the law is adopted.&#x20;
-* They have an `executeLaw` function, that is called when the law is executed.&#x20;
+* They have an `initializeLaw` function, that is called when the law is adopted.
+* They have an `executeLaw` function, that is called when the law is executed.
 * They can save a state.
 * They can return three arrays to the Powers contract: targets laws, values and function calls.
 * All functionalities are restricted along the `Powers.sol` deployment that adopted the law by calling `initializeLaw`.
@@ -75,8 +75,8 @@ Many elements of laws can be changed: the input parameters, the function call th
 
 What is not flexible, is how Powers interacts with a law. This is done through the `executeLaw` function. When this function is called, the function:
 
-1. Decodes the Powers deployment that calls the law.&#x20;
-2. Runs the checks.&#x20;
+1. Decodes the Powers deployment that calls the law.
+2. Runs the checks.
 3. Decodes input calldata.
 4. Computes return function calls and state change. This can include running additional checks.
 5. Saves any state change to the law.
@@ -90,29 +90,29 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 
 Together, Powers and Laws allow communities to build any governance structure that fit their needs. A community starts by deploying a Powers.sol instance, configuring laws, and adopting them in their Powers.sol instance.
 
-The result can be something like this:&#x20;
+The result can be something like this:
 
 <figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
 
-This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/0x86d56c2E4e88aa93bFD08221490023Ab686670B3) on Arbitrum sepolia.
+This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/421614/0x86d56c2E4e88aa93bFD08221490023Ab686670B3) on Arbitrum sepolia.
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
 
-## Use Cases&#x20;
+## Use Cases
 
 Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. The following use cases highlight the use of checks and balances between roles, guard-rails for specific (AI agentic) accounts and hybrid on- and off-chain communities.
 
 <details>
 
-<summary>Decentralize power in an on-chain organization.  </summary>
+<summary>Decentralize power in an on-chain organization.</summary>
 
 **Problem**: Many decision-making processes in on-chain organisations are highly centralized: Either token based voting is dominated by a few whales, or a multisig account controls crucial decision-making processes. This not only destroys the promise of decentralized on-chain governance but also renders governance susceptible to hostile vote capture.
 
 **Solution**: With the Powers protocol it is possible to create mechanisms that check and balance powers between roles. For example, it is possible to create a governance chain where one role is allowed to pass (but not execute) an action, another to veto an action and a third to execute a (previously passed) action. This is a well known, and effective, way of addressing the centralization of power in communities. The most famous, but more elaborate, example is the separation between legislative, judicial and executive powers.
 
-**Implementation**: Because the Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if another law has executed the same calldata and nonce. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law. When roles that control these different laws are assigned through divergent means, we can build a very secure and decentralised governance system.&#x20;
+**Implementation**: Because the Powers protocol creates an action ID by hashing calldata, nonce and law address, it can check if another law has executed the same calldata and nonce. As Law.sol instances conditionally return calldata to Powers.sol, we can make them conditional on the execution of another law. When roles that control these different laws are assigned through divergent means, we can build a very secure and decentralised governance system.
 
-**Example**: [Separated Powers](https://powers-protocol.vercel.app/0x42021Ffe27BE8CAACE2d3dE2336fdE3D0CA314Ee) is an example that balances the power to execute actions between token users, holders and developers.
+**Example**: [Separated Powers](https://powers-protocol.vercel.app/421614/0x42021Ffe27BE8CAACE2d3dE2336fdE3D0CA314Ee) is an example that balances the power to execute actions between token users, holders and developers.
 
 </details>
 
@@ -128,13 +128,13 @@ Introducing the ability to role restrict governance flows solves several common 
 
 With this setup, it is possible to start out with very few (or no) assets in the new Powers protocol and start setting up several tasks governed by Powers. As confidence in the protocol grows, the DAO can send more assets to the protocol, and add new tasks and roles. The transition is complete when all stakeholders and tasks from the previous DAO are represented in the new Powers governance system and the DAO has transferred all its assets. The existing DAO can then be removed as a role holder.
 
-**Example**: See [Governed Upgrades](https://powers-protocol.vercel.app/0xA2F6e9cC2c3d2E10708C825BA25b2C900f0b65A3) as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
+**Example**: See [Governed Upgrades](https://powers-protocol.vercel.app/421614/0xA2F6e9cC2c3d2E10708C825BA25b2C900f0b65A3) as an example of an on-chain organisation with a governed upgradable governance system and a legacy DAO as role holder.
 
 </details>
 
 <details>
 
-<summary>Manage a grant program.   </summary>
+<summary>Manage a grant program.</summary>
 
 **Problem**: The premise of a grant program is simple. A DAO allocates assets in support for a particular goal (say support protocol development) and it delegates the power to decide who actually gets this money to representatives of the organisation. As it stands, this means transferring the assets to a new, separate, protocol that manages asset allocation.
 
@@ -146,13 +146,13 @@ This brings a whole set of new challenges around accountability: how to hold DAO
 
 Note that this also means that all decisions made by the grant council are logged, increasing transparency. It is also possible to implement procedures to challenge grant council decisions, to create a representation of grant recipients in the DAO, and more.
 
-**Example**: See [Managed Grants](https://powers-protocol.vercel.app/0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A) as an example of a grant program governed by the Powers protocol.
+**Example**: See [Managed Grants](https://powers-protocol.vercel.app/421614/0x76fFD4AF28f0120C623aD47A6d5E48DE85428D7A) as an example of a grant program governed by the Powers protocol.
 
 </details>
 
 <details>
 
-<summary>Integrate off-chain context into on-chain accounts.  </summary>
+<summary>Integrate off-chain context into on-chain accounts.</summary>
 
 **Problem**: Accounts do not have context, but members of a community do. This creates several concrete challenges in on-chain organisations: how to deal with the plurality of legal regimes in which community members live? How to deal with accounts that are not human, such as institutions and AI agents? How do we attest members using off-chain data? We somehow need to bring in off-chain contextualise on-chain accounts.
 
