@@ -14,14 +14,14 @@ import { useParams } from "next/navigation";
 export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Proposal, powers: Powers | undefined, status: Status}) => {
   console.log("@Votes: waypoint 0", {proposal, powers})
 
-  const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
-    chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
-  })
-
   const { chainId } = useParams<{ chainId: string }>()
   const supportedChain = supportedChains.find(chain => chain.id === parseChainId(chainId))
   const law = proposal?.lawId ? powers?.laws?.find(law => law.index == proposal?.lawId) : undefined
-  
+
+  const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
+    chainId: supportedChain?.alternativeBlockNumbers ? supportedChain?.alternativeBlockNumbers : parseChainId(chainId),
+  })
+
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
     address: powers?.contractAddress,

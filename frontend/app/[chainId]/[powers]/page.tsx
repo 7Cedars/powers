@@ -59,7 +59,7 @@ export default function Page() {
                 if (fetchedSince) {
                 const fetchedBlockData = await getBlock(wagmiConfig, {
                   blockNumber: fetchedSince as bigint,
-                  chainId: parseChainId(chainId), // NB This needs to be made dynamic. In this case need to read of sepolia because arbitrum uses mainnet block numbers.  
+                  chainId: supportedChain?.alternativeBlockNumbers ? supportedChain?.alternativeBlockNumbers : parseChainId(chainId), // NB This needs to be made dynamic. In this case need to read of sepolia because arbitrum uses mainnet block numbers.  
                 })
                 blockData = fetchedBlockData as GetBlockReturnType
               }

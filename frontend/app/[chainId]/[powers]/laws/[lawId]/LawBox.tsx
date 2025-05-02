@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { setError, useActionStore, useErrorStore } from "../../../../../context/store";
 import { Button } from "@/components/Button";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowUpRightIcon, PlusIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { SectionText } from "@/components/StandardFonts";
 import { useChainId } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
@@ -147,7 +147,16 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
                 setAction({...action, nonce: BigInt(Number(event.target.value)), upToDate: false})
               }}
             />
-          </div>        
+          </div>
+          <button 
+              className = "h-8 w-10 grow flex flex-row items-center justify-center  rounded-md bg-white outline outline-1 outline-gray-300"
+              onClick = {(event) => {
+                event.preventDefault()
+                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 10000000000000000)), upToDate: false})
+              }}
+              > 
+              <SparklesIcon className = "h-5 w-5"/> 
+          </button>    
         </div>
 
         <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 pb-4 min-h-24">

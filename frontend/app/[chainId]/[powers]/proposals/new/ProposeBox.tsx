@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useActionStore, setAction } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useParams, useRouter } from "next/navigation";
-import { useReadContract, useTransactionConfirmations } from 'wagmi'
+import { useBlockNumber, useReadContract, useTransactionConfirmations } from 'wagmi'
 import { lawAbi, powersAbi } from "@/context/abi";
 import { useLaw } from "@/hooks/useLaw";
 import { parseRole } from "@/utils/parsers";
@@ -27,14 +27,14 @@ const roleColour = [
 ]
 
 export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law, powers: Powers, proposalExists: boolean, authorised: boolean}) {
-  const {updateProposals, status: updateStatus} = usePowers();
   const router = useRouter();
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status, error, transactionHash, propose} = useProposal();
+  const {status: statusProposals, error, transactionHash, propose, addProposals} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
+  const {data: blockNumber} = useBlockNumber();
 
-  console.log("ProposeBox", {law, powers, action})
+  console.log("ProposeBox", {law, powers, action, error, statusProposals})
 
   const confirmations = useTransactionConfirmations({
     hash: transactionHash 
@@ -43,16 +43,16 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation})
 
   useEffect(() => {
-    if (Number(confirmations.data) > 0) {
-      updateProposals(powers.contractAddress)
+    if (Number(confirmations.data) > 0 && blockNumber) {
+      addProposals(powers, blockNumber - 2n)
     }
-  }, [confirmations.data, powers.contractAddress, updateProposals])
+  }, [confirmations.data, powers, addProposals, blockNumber])
 
   useEffect(() => {
-    if (updateStatus == "success") {
+    if (statusProposals == "success") {
       router.push(`/${chainId}/${powers.contractAddress}/proposals`)
     }
-  }, [updateStatus, simulation])
+  }, [statusProposals, simulation])
 
   useEffect(() => {
     simulate(
@@ -125,7 +125,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
               )} 
               filled={false}
               selected={true}
-              statusButton={(!authorised || !proposalExists) ? 'disabled' : status }
+              statusButton={(!authorised || !proposalExists) ? 'disabled' : statusProposals }
               > 
               Propose
             </Button>

@@ -2,6 +2,7 @@ import { ConnectedWallet } from '@privy-io/react-auth';
 import { Config, GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
+export type SupportedChains = 421614 | 11155111 | undefined
 export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
@@ -38,6 +39,7 @@ export type ChainProps = {
   id: number;
   genesisBlock: bigint; // block at which the first PowersProtocol was deployed. 
   blockTimeInSeconds?: number;
+  alternativeBlockNumbers?: SupportedChains;
   rpc?: string;
   nativeCurrency?: {
     name: string;
@@ -46,10 +48,6 @@ export type ChainProps = {
   };
   blockExplorerUrl?: string;
   iconUrl?: string;
-  organisations?: `0x${string}`[]; 
-  erc20s: `0x${string}`[];
-  erc721s: `0x${string}`[];
-  erc1155s: `0x${string}`[];
 }
                       
 export type Conditions = {

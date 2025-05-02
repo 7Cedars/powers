@@ -15,6 +15,7 @@ import { LawLink } from "./LawLink";
 import { useWallets } from "@privy-io/react-auth";
 import { parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { useProposal } from "@/hooks/useProposal";
 
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
@@ -24,20 +25,14 @@ const Page = () => {
   const law = powers?.laws?.find(law => law.index == proposal?.lawId)
   const action = useActionStore(); 
   const {checkProposalExists, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
-
+  const {updateProposal} = useProposal();
   console.log("@proposals page: ", {proposal, law, action, statusChecks})
 
   useEffect(() => {
-    console.log("@proposals page: useEffect 1")
     if (proposal && law) { 
-      console.log("@proposals page: useEffect 2")
       try {
-        console.log("@proposals page: useEffect 3")
-        console.log("@proposals page: useEffect 3.1", proposal.executeCalldata as `0x${string}`)
         const values = decodeAbiParameters(parseAbiParameters(law?.params?.map(param => param.dataType).toString() || ""), proposal.executeCalldata as `0x${string}`);
-        console.log("@proposals page: useEffect 4", {values})
         const valuesParsed = parseParamValues(values)
-        console.log("@proposals page: useEffect 5", {valuesParsed})
 
         setAction({
           actionId: proposal.actionId,
@@ -53,8 +48,9 @@ const Page = () => {
       } catch {
         setAction({...action, upToDate: false })
       }
-
       fetchChecks(law, proposal.executeCalldata, proposal.nonce, wallets, powers as Powers)
+      checkProposalExists(law, proposal.executeCalldata, proposal.nonce)
+      updateProposal(proposal, powers as Powers)
     }
   }, [, proposal])
 
