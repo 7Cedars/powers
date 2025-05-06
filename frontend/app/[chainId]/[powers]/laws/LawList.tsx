@@ -77,7 +77,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
       <table className="w-full table-auto"> 
         <thead className="w-full border-b border-slate-200">
             <tr className="w-96 text-xs font-light text-left text-slate-500 ">
-                <th className="ps-4 py-2 font-light"> Law </th>
+                <th className="ps-4 py-2 font-light"> Id </th>
                 <th className="font-light"> Description </th>
                 <th className="font-light"> Address </th>
                 <th className="font-light"> Role </th>

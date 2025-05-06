@@ -339,7 +339,9 @@ export const parseProposalStatus = (state: string | undefined): string => {
     case '1': return "Cancelled";
     case '2': return "Defeated";
     case '3': return "Succeeded";
-    case '4': return "Completed"; 
+    case '4': return "Requested";
+    case '5': return "Fulfilled";
+    case '6': return "NonExistent";
 
     default:
       return "unsupported state";

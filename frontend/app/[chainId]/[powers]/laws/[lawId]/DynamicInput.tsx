@@ -39,6 +39,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
 
   const handleChange=({event, item}: {event:ChangeEvent<HTMLInputElement>, item: number}) => {
     // console.log("handleChange triggered", event.target.value, item)
+    // try {
     const currentInput = parseInput(event, dataType)
     if (currentInput == 'Incorrect input data') {
       setError({error: currentInput}) 
@@ -52,9 +53,12 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
         currentArray[0] =  currentInput
         setInputArray(currentArray)
         onChange(inputArray[0])
-      }
-      setAction({...action, upToDate: false})   
-    }    
+        }
+        setAction({...action, upToDate: false})   
+      }    
+      // } catch(error) {
+      //   setError({error: error as Error})
+      // }
   }
 
   const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, index?: number) => {

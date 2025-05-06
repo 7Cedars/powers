@@ -7,7 +7,7 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0x86d56c2E4e88aa93bFD08221490023Ab686670B3",
+    address: "0xE576d15EDE363bf56Fbb120c1a8e41738CBb381D",
     chainId: "421614",
     colourScheme: 0,
   }, 

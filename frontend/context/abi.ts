@@ -760,13 +760,13 @@ export const powersAbi: Abi = [
       {
         "name": "lawId",
         "type": "uint16",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint16"
       },
       {
         "name": "actionId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       },
       {

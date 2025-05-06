@@ -144,6 +144,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
+                event.preventDefault()
                 setAction({...action, nonce: BigInt(Number(event.target.value)), upToDate: false})
               }}
             />
@@ -171,6 +172,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
                 className="min-w-0 p-1 ps-0 w-full text-sm text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0" 
                 placeholder="Describe reason for action here."
                 onChange={(event) => {  
+                  event.preventDefault()
                   setAction({...action, description: event.target.value, upToDate: false}); 
                 }} />
             </div>
@@ -179,8 +181,11 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
       {/* Errors */}
       { error.error && 
-        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pb-4 px-6">
-          There is an error with this call. Please check the console for more details.   
+        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pb-4 px-8">
+          <div>
+            An error occurred. This is often because the law has additional checks that did not pass or there is an error in the data provided. 
+            For more details, check the console.   
+          </div>
         </div>
       }
 

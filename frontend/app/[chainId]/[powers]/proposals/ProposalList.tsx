@@ -15,10 +15,9 @@ import { LoadingBox } from "@/components/LoadingBox";
 export function ProposalList({powers, onUpdateProposals, status}: {powers: Powers | undefined, onUpdateProposals: () => void, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
-  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>(['1', '2', '3', '4'])
+  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>(['1', '2', '3', '4', '5'])
   const { chainId } = useParams<{ chainId: string }>()
-  
-  const possibleStatus: string[] = ['0', '1', '2', '3', '4']; 
+  const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
 
   console.log("@ProposalList: ", {powers})
 
@@ -146,7 +145,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                       </Button>
                   </td>
                   <td className="pe-4 text-slate-500 min-w-56">{law.description}</td>
-                  <td className="pe-4 text-slate-500 min-w-48">{proposal.action?.description}</td>
+                  <td className="pe-4 text-slate-500 min-w-48">{proposal.description}</td>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
                   <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions.allowedRole, powers)}
                   </td>

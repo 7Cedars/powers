@@ -18,13 +18,13 @@ import { LoadingBox } from "@/components/LoadingBox";
  
 const Page = () => {
   const {wallets, ready} = useWallets();
-  const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
-  const { powers, fetchPowers, status: statusPowers } = usePowers()
-  const {status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute} = useLaw();
   const action = useActionStore();;
-  
-  const {checks, fetchChecks} = useChecks(powers as Powers); 
   const error = useErrorStore()
+  const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
+  
+  const { powers, fetchPowers, status: statusPowers } = usePowers()
+  const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
+  const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
   console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
@@ -62,6 +62,8 @@ const Page = () => {
         })
 
         console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
+        fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
+        
         try {
         // simulating law. 
         simulate(
@@ -75,7 +77,7 @@ const Page = () => {
           setError({error: error as Error})
         }
 
-        fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
+        
       }
   };
 
@@ -114,6 +116,7 @@ const Page = () => {
         })
       }
       fetchExecutions(law)
+      // fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers)
       resetStatus()
     }
   }, [, law])

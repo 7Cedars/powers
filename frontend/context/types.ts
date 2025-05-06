@@ -138,7 +138,7 @@ export type Checks = {
   authorised?: boolean;
   proposalExists?: boolean;
   proposalPassed?: boolean;
-  proposalNotCompleted?: boolean;
+  actionNotCompleted?: boolean;
   lawCompleted?: boolean;
   lawNotCompleted?: boolean;
   delayPassed?: boolean;

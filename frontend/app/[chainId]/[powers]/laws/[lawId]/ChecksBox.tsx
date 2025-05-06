@@ -23,7 +23,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
   const action = useActionStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  // console.log("@fetchChecks, waypoint for, law box:", {checks} )
+  console.log("@ChecksBox, waypoint 1, law box:", {checks} )
 
   return (
     <section 
@@ -135,15 +135,15 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
         {
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 py-1 justify-between items-center">
-              { checks?.proposalNotCompleted  ? 
+              { checks?.actionNotCompleted == false  ? 
                 <>
-                  <CheckIcon className="w-4 h-4 text-green-600"/> 
-                  Action not yet executed
+                  <XMarkIcon className="w-4 h-4 text-red-600"/> 
+                  Action already completed
                 </>
                 : 
                 <>
-                  <XMarkIcon className="w-4 h-4 text-red-600"/>
-                  Action executed
+                  <CheckIcon className="w-4 h-4 text-green-600"/>
+                  Action not yet completed
                 </>
               }
             </div>

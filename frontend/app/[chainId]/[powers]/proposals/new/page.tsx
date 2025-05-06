@@ -18,10 +18,10 @@ const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()  
-  const {checkProposalExists, checkAccountAuthorised} = useChecks(powers as Powers);
+  const {checkProposalExists, checkAccountAuthorised, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
-  const proposalExists = checkProposalExists(law as Law, action.callData, action.nonce) != undefined  
+  const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law) != undefined  
   const authorised = useReadContract({
     abi: powersAbi,
     address: powers?.contractAddress as `0x${string}`,
@@ -34,6 +34,7 @@ const Page = () => {
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
+    fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
   }, [addressPowers, fetchPowers])
 
   return (
@@ -56,7 +57,7 @@ const Page = () => {
           { law && <LawLink law = {law} powers = {powers} status = {status} /> }
         </div>
         <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72"> 
-          {  <ChecksBox proposalExists = {!proposalExists} authorised = {authorised.data as boolean} /> }  
+          {  <ChecksBox powers = {powers} law = {law} checks = {checks} status = {status} /> }  
         </div>
       </div>
       </section>
