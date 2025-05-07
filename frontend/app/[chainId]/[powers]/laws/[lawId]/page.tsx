@@ -134,12 +134,12 @@ const Page = () => {
   }, [errorUseLaw])
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll">
+    <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll max-w-6xl">
       <div className = "h-fit w-full mt-2">
         <GovernanceOverview law = {law} powers = {powers} /> 
       </div>
       {/* main body  */}
-      <section className="w-full px-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
+      <section className="w-full ps-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
 
         {/* left panel: writing, fetching data is done here  */}
         {

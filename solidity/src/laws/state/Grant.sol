@@ -38,7 +38,7 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "forge-std/console.sol"; // for testing only 
+// import "forge-std/console.sol"; // for testing only 
 
 contract Grant is Law {
     struct Data {
@@ -134,8 +134,6 @@ contract Grant is Law {
         targets[0] = data[lawHash].tokenAddress;
         calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
         stateChange = abi.encode(quantity);
-        console.log("stateChange: ");
-        console.logBytes(stateChange);
 
         // step 3: return data
         return (actionId, targets, values, calldatas, stateChange);

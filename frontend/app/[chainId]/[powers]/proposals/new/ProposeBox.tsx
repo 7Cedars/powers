@@ -42,7 +42,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
     hash: transactionHash 
   })
 
-  console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation, blockNumber})
+  // console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation, blockNumber})
 
   useEffect(() => {
     if (Number(confirmations.data) > 0 && blockNumber) {

@@ -24,7 +24,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-import "forge-std/Test.sol"; // only for testing
+// import "forge-std/Test.sol"; // only for testing
 
 contract AddressesMapping is Law {
     mapping(bytes32 lawHash => mapping(address account => bool isAllowed)) public addresses;
@@ -64,21 +64,15 @@ contract AddressesMapping is Law {
         )
     {
         // retrieve the account that was revoked
-        console.log("handle request triggered");
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
-        console.log("account: ", account);
-        console.log("add: ", add);
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        console.logBytes32(lawHash);
 
         if (add && addresses[lawHash][account]) {
             revert("Already true.");
         } else if (!add && !addresses[lawHash][account]) {
             revert("Already false.");
         }
-        console.log("passed checks");
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        console.log("actionId: ", actionId);
         return (actionId, targets, values, calldatas, lawCalldata);
     }
 

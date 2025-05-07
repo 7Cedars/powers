@@ -31,7 +31,7 @@ import { Powers } from "../../Powers.sol";
 import { NominateMe } from "./NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-import "forge-std/console.sol";
+// import "forge-std/console.sol"; // remove before deploying
 
 contract VoteOnNominees is Law {
     struct Data {
@@ -79,11 +79,8 @@ contract VoteOnNominees is Law {
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         uint16 nominateMeId = conditionsLaws[lawHash].readStateFrom;
-        console.log("nominateMeId: ", nominateMeId);
         (address nomineesContract,,) = Powers(payable(powers)).getActiveLaw(nominateMeId);
-        console.log("nomineesContract: ", nomineesContract);
         bytes32 nominateMeHash = LawUtilities.hashLaw(powers, nominateMeId);
-        // console.log("nominateMeHash: ", nominateMeHash);
         // step 0: run additional checks
         if (block.number < data[lawHash].startVote || block.number > data[lawHash].endVote) {
             revert("Election not open.");
@@ -94,7 +91,6 @@ contract VoteOnNominees is Law {
 
         // step 1: decode law calldata
         (address vote) = abi.decode(lawCalldata, (address));
-        console.log("vote: ", vote);
 
         // step 2: create & data arrays
         stateChange = abi.encode(vote, caller, nomineesContract, nominateMeHash);

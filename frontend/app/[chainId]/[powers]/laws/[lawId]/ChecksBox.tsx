@@ -23,7 +23,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
   const action = useActionStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("@ChecksBox, waypoint 1, law box:", {checks, powers})
+  // console.log("@ChecksBox, waypoint 1, law box:", {checks, powers})
 
   return (
     <section 
