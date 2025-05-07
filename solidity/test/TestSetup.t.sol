@@ -376,30 +376,30 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
     }
 }
 
-// // abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
-// //     function setUpVariables() public override {
-// //         super.setUpVariables();
+abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
+    function setUpVariables() public override {
+        super.setUpVariables();
 
-// //         // initiate constitution & get founders' roles list
-// //         (address[] memory laws_) = constitutionsMock.initiateStateTestConstitution(
-// //             payable(address(daoMock)), payable(address(erc1155Mock)), payable(address(erc20VotesMock))
-// //         );
-// //         laws = laws_;
+        // initiate constitution & get founders' roles list
+        (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateStateTestConstitution(
+            lawNames,
+            lawAddresses,
+            mockNames,
+            mockAddresses,
+            payable(address(daoMock))
+        );
+        daoMock.constitute(lawInitData_);
 
-// //         // constitute daoMock.
-// //         daoMock.constitute(laws);
-
-// //         // assign Roles
-// //         vm.roll(block.number + 4000);
-// //         daoMock.request(
-// //             laws[laws.length - 1],
-// //             abi.encode(),
-// //             nonce,// empty calldata
-// //             "assigning roles"
-// //         );
-// //         daoNames.push("PowersMock");
-// //     }
-// // }
+        // assign Roles
+        vm.roll(block.number + 4000);
+        daoMock.request(
+            uint16(lawInitData_.length - 1),
+            abi.encode(),
+            nonce,// empty calldata
+            "assigning roles"
+        );
+    }
+}
 
 // // abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
 // //     function setUpVariables() public override {

@@ -38,15 +38,17 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "forge-std/console.sol"; // for testing only 
+
 contract Grant is Law {
-    struct StateData {
+    struct Data {
         uint48 expiryBlock;
         uint256 budget;
         uint256 spent;
         address tokenAddress;
     }
 
-    mapping(bytes32 lawHash => StateData) internal stateData;
+    mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -76,9 +78,9 @@ contract Grant is Law {
             abi.decode(config, (uint48, uint256, address));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].expiryBlock = duration + uint48(block.number);
-        stateData[lawHash].budget = budget;
-        stateData[lawHash].tokenAddress = tokenAddress;
+        data[lawHash].expiryBlock = duration + uint48(block.number);
+        data[lawHash].budget = budget;
+        data[lawHash].tokenAddress = tokenAddress;
 
         super.initializeLaw(index, conditions, config, abi.encode("address Grantee", "address Grant", "uint256 Quantity"), description);
     }
@@ -120,18 +122,20 @@ contract Grant is Law {
         if (grantAddress != address(this)) {
             revert("Incorrect grant address.");
         }
-        if (quantity > stateData[lawHash].budget - stateData[lawHash].spent) {
+        if (quantity > data[lawHash].budget - data[lawHash].spent) {
             revert("Request amount exceeds available funds.");
         }
-        if (block.number > stateData[lawHash].expiryBlock) {
+        if (block.number > data[lawHash].expiryBlock) {
             revert("Grant program has expired.");
         }
 
         // step 2: create arrays
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = stateData[lawHash].tokenAddress;
+        targets[0] = data[lawHash].tokenAddress;
         calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
         stateChange = abi.encode(quantity);
+        console.log("stateChange: ");
+        console.logBytes(stateChange);
 
         // step 3: return data
         return (actionId, targets, values, calldatas, stateChange);
@@ -142,17 +146,21 @@ contract Grant is Law {
     /// @param stateChange The state change data
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (uint256 quantity) = abi.decode(stateChange, (uint256));
-        stateData[lawHash].spent += quantity;
+        data[lawHash].spent += quantity;
     }
 
     function getTokensLeft(bytes32 lawHash) external view returns (uint256) {
-        return stateData[lawHash].budget - stateData[lawHash].spent;
+        return data[lawHash].budget - data[lawHash].spent;
     }
 
     function getDurationLeft(bytes32 lawHash) external view returns (uint48) {
-        if (block.number > stateData[lawHash].expiryBlock) {
+        if (block.number > data[lawHash].expiryBlock) {
             return 0;
         }
-        return stateData[lawHash].expiryBlock - uint48(block.number);
+        return data[lawHash].expiryBlock - uint48(block.number);
+    }
+
+    function getData(bytes32 lawHash) external view returns (Data memory) {
+        return data[lawHash];
     }
 }

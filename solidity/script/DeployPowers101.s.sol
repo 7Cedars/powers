@@ -112,6 +112,7 @@ contract DeployPowers101 is Script {
 
         // This law enables anyone to select themselves as a community member. 
         // Any one can use this law
+        conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
         conditions.allowedRole = type(uint256).max;
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(4, "SelfSelect"),

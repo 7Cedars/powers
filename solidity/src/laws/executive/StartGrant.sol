@@ -26,12 +26,12 @@ import { ILaw } from "../../interfaces/ILaw.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 contract StartGrant is Law {
     /// @notice Constructor for the StartGrant contract
-    struct StateData {
+    struct Data {
         address grantLaw;
         bytes grantConditions;
     }
 
-    mapping(bytes32 lawHash => StateData) public stateData;
+    mapping(bytes32 lawHash => Data) public data;
     mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) public grantIds;
 
     constructor(string memory name_) {
@@ -63,8 +63,8 @@ contract StartGrant is Law {
             abi.decode(config, (address, bytes));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].grantLaw = grantLaw;
-        stateData[lawHash].grantConditions = grantConditions;
+        data[lawHash].grantLaw = grantLaw;
+        data[lawHash].grantConditions = grantConditions;
 
         super.initializeLaw(
             index, 
@@ -108,7 +108,7 @@ contract StartGrant is Law {
             abi.decode(lawCalldata, (uint48, uint256, address, string));
         
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        ILaw.Conditions memory grantConditions = abi.decode(stateData[lawHash].grantConditions, (ILaw.Conditions));
+        ILaw.Conditions memory grantConditions = abi.decode(data[lawHash].grantConditions, (ILaw.Conditions));
         
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -118,7 +118,7 @@ contract StartGrant is Law {
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
-                targetLaw: stateData[lawHash].grantLaw,
+                targetLaw: data[lawHash].grantLaw,
                 config: abi.encode(duration, budget, tokenAddress),
                 conditions: grantConditions,
                 description: grantDescription

@@ -32,6 +32,7 @@ import { Grant } from "../../src/laws/state/Grant.sol";
 import { StartGrant } from "../../src/laws/executive/StartGrant.sol";
 import { StopGrant } from "../../src/laws/executive/StopGrant.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
+import { VoteOnNominees } from "../../src/laws/state/VoteOnNominees.sol";
 
 
 // Mocks 
@@ -53,8 +54,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](19);
-        lawAddresses = new address[](19);
+        lawNames = new string[](20);
+        lawAddresses = new address[](20);
         mockNames = new string[](6);
         mockAddresses = new address[](6);
 
@@ -78,6 +79,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[16] = address(new StartGrant("StartGrant"));
         lawAddresses[17] = address(new StopGrant("StopGrant"));
         lawAddresses[18] = address(new AdoptLaw("AdoptLaw"));
+        lawAddresses[19] = address(new VoteOnNominees("VoteOnNominees"));
 
         mockAddresses[0] = address(new PowersMock());
         mockAddresses[1] = address(new GovernorMock());
@@ -109,7 +111,7 @@ contract DeployAnvilMocks is Script {
         lawNames[16] = "StartGrant";
         lawNames[17] = "StopGrant";
         lawNames[18] = "AdoptLaw";
-
+        lawNames[19] = "VoteOnNominees";
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

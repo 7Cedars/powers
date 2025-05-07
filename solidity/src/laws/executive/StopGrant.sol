@@ -29,7 +29,7 @@ import { Grant } from "../state/Grant.sol";
 contract StopGrant is Law {
     /// @notice Constructor for the StopGrant contract
     /// @param name_ Name of the law
-    struct StateData {
+    struct Data {
         uint256 maxBudgetLeft;
         bool checkDuration;
     }
@@ -44,7 +44,7 @@ contract StopGrant is Law {
         uint48 durationLeft;
     }
 
-    mapping(bytes32 lawHash => StateData) public stateData;
+    mapping(bytes32 lawHash => Data) public data;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -72,7 +72,7 @@ contract StopGrant is Law {
         string memory description
     ) public override {
         (uint256 maxBudgetLeft, bool checkDuration) = abi.decode(config, (uint256, bool));
-        stateData[LawUtilities.hashLaw(msg.sender, index)] = StateData({
+        data[LawUtilities.hashLaw(msg.sender, index)] = Data({
             maxBudgetLeft: maxBudgetLeft,
             checkDuration: checkDuration
         });
@@ -132,15 +132,15 @@ contract StopGrant is Law {
         }
 
         // check if grant has spent all tokens
-        if (stateData[mem.lawHash].maxBudgetLeft > 0) {
+        if (data[mem.lawHash].maxBudgetLeft > 0) {
             mem.tokensLeft = Grant(mem.grantLaw).getTokensLeft(LawUtilities.hashLaw(powers, mem.grantId));
-            if (mem.tokensLeft > stateData[mem.lawHash].maxBudgetLeft) {
+            if (mem.tokensLeft > data[mem.lawHash].maxBudgetLeft) {
                 revert("Grant has not spent all tokens.");
             }
         }
 
         // check if grant has expired
-        if (stateData[mem.lawHash].checkDuration) {
+        if (data[mem.lawHash].checkDuration) {
             mem.durationLeft = Grant(mem.grantLaw).getDurationLeft(LawUtilities.hashLaw(powers, mem.grantId));
             if (mem.durationLeft > 0) {
                 revert("Grant has not expired.");

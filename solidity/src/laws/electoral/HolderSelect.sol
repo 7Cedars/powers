@@ -41,13 +41,13 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // import "forge-std/Test.sol"; // for testing
 
 contract HolderSelect is Law {
-    struct StateData {
+    struct Data {
         address erc20Token;
         uint256 minimumTokens;
         uint256 roleIdToSet;
     }
 
-    mapping(bytes32 lawHash => StateData) internal stateData;
+    mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -72,9 +72,9 @@ contract HolderSelect is Law {
         (address erc20Token_, uint256 minimumTokens_, uint256 roleIdToSet_) =
             abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].erc20Token = erc20Token_;
-        stateData[lawHash].minimumTokens = minimumTokens_;
-        stateData[lawHash].roleIdToSet = roleIdToSet_;
+        data[lawHash].erc20Token = erc20Token_;
+        data[lawHash].minimumTokens = minimumTokens_;
+        data[lawHash].roleIdToSet = roleIdToSet_;
 
         super.initializeLaw(index, conditions, config, abi.encode("address Account"), description);
     }
@@ -114,26 +114,26 @@ contract HolderSelect is Law {
         (address account) = abi.decode(lawCalldata, (address));
 
         // step 1: retrieve token balance
-        uint256 tokenBalance = ERC20(stateData[lawHash].erc20Token).balanceOf(account);
+        uint256 tokenBalance = ERC20(data[lawHash].erc20Token).balanceOf(account);
 
         // step 2: check if account has the role
-        bool hasRole = Powers(payable(powers)).hasRoleSince(account, stateData[lawHash].roleIdToSet) != 0;
+        bool hasRole = Powers(payable(powers)).hasRoleSince(account, data[lawHash].roleIdToSet) != 0;
 
         // step 3: create arrays
-        if (hasRole && tokenBalance < stateData[lawHash].minimumTokens) {
+        if (hasRole && tokenBalance < data[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.revokeRole.selector,
-                stateData[lawHash].roleIdToSet,
+                data[lawHash].roleIdToSet,
                 account
             );
-        } else if (!hasRole && tokenBalance >= stateData[lawHash].minimumTokens) {
+        } else if (!hasRole && tokenBalance >= data[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector,
-                stateData[lawHash].roleIdToSet,
+                data[lawHash].roleIdToSet,
                 account
             );
         }

@@ -31,12 +31,14 @@ import { Powers } from "../../Powers.sol";
 import { NominateMe } from "./NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
+import "forge-std/console.sol";
+
 contract VoteOnNominees is Law {
-    struct Election {
+    struct Data {
         uint48 startVote;
         uint48 endVote;
     }
-    mapping(bytes32 lawHash => Election) public elections;
+    mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 lawHash => mapping(address nominee => uint256 votes)) public votes;
     mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) public hasVoted;
 
@@ -57,7 +59,7 @@ contract VoteOnNominees is Law {
         string memory description
     ) public override {
         (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
-        elections[LawUtilities.hashLaw(msg.sender, index)] = Election({startVote: startVote_, endVote: endVote_});
+        data[LawUtilities.hashLaw(msg.sender, index)] = Data({startVote: startVote_, endVote: endVote_});
 
         inputParams = abi.encode("address VoteFor");
         super.initializeLaw(index, conditions, config, inputParams, description);
@@ -77,10 +79,13 @@ contract VoteOnNominees is Law {
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         uint16 nominateMeId = conditionsLaws[lawHash].readStateFrom;
+        console.log("nominateMeId: ", nominateMeId);
         (address nomineesContract,,) = Powers(payable(powers)).getActiveLaw(nominateMeId);
-
+        console.log("nomineesContract: ", nomineesContract);
+        bytes32 nominateMeHash = LawUtilities.hashLaw(powers, nominateMeId);
+        // console.log("nominateMeHash: ", nominateMeHash);
         // step 0: run additional checks
-        if (block.number < elections[lawHash].startVote || block.number > elections[lawHash].endVote) {
+        if (block.number < data[lawHash].startVote || block.number > data[lawHash].endVote) {
             revert("Election not open.");
         }
         if (hasVoted[lawHash][caller]) {
@@ -89,16 +94,19 @@ contract VoteOnNominees is Law {
 
         // step 1: decode law calldata
         (address vote) = abi.decode(lawCalldata, (address));
+        console.log("vote: ", vote);
+
         // step 2: create & data arrays
-        stateChange = abi.encode(vote, caller, nomineesContract);
+        stateChange = abi.encode(vote, caller, nomineesContract, nominateMeHash);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        (address nominee, address caller, address nomineesContract) =
-            abi.decode(stateChange, (address, address, address));
-        bool isNominee = NominateMe(nomineesContract).isNominee(lawHash, nominee);
+        (address vote, address caller, address nomineesContract, bytes32 nominateMeHash) =
+            abi.decode(stateChange, (address, address, address, bytes32));
+
+        bool isNominee = NominateMe(nomineesContract).isNominee(nominateMeHash, vote);
 
         // step 3: save vote
         if (!isNominee) {
@@ -106,7 +114,11 @@ contract VoteOnNominees is Law {
         }
 
         hasVoted[lawHash][caller] = true;
-        votes[lawHash][nominee]++;
+        votes[lawHash][vote]++;
         emit VoteOnNominees__VoteCast(caller);
+    }
+
+    function getData(bytes32 lawHash) external view returns (Data memory) {
+        return data[lawHash];
     }
 }

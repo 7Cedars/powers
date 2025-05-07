@@ -37,8 +37,7 @@ contract OpenAction is Law {
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
-        bytes memory configParams = abi.encode();
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(name_, "");
     }
 
     function initializeLaw(

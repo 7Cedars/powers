@@ -6,10 +6,13 @@ Please refactor the existing tests in LimitExecutionsTest in Law.t.sol according
 - Law contracts have already been initiated through TestSetup.t.sol and the function initiateLawTestConstitution in ConstitutionsMock.sol. 
 - Variables have already been initiated through the function setUpVariables() in TestSetup.t.sol
 
-## Create Unit test 
+## Create Unit test 1
 Please write a comprehensive unit test for HolderSelect.sol at contract HolderSelectTest in Electoral.t.sol. You can use DelegateSelect.sol as an example. Please keep in mind that all laws and mocks have been through DeployAnvilMocks.s.sol and that the test setup can be found in TestSetup.s.sol. Thank you!  
 
 (Do not forget to put in all the context files.... )
+## Create Unit test 1
+Using the other tests in @State.t.sol and @Executive.t.sol as examples, can you write a comprehensive unit test for @NominateMe.sol ? Please take into account the test setup at @TestSetup.t.sol and the deployment of laws in @ConstitutionsMock.sol . Thank you 
+
 
 ## Refactor Constitution. 
 Can you refactor the constitution in the function 'createConstitution' in DeployBasicDao.s.sol. Please take into account the following: 

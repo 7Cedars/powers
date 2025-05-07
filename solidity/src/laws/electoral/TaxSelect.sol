@@ -40,7 +40,7 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
 
 contract TaxSelect is Law {
-    struct StateData {
+    struct Data {
         address erc20TaxedMock;
         uint256 thresholdTaxPaid;
         uint256 roleIdToSet;
@@ -54,7 +54,7 @@ contract TaxSelect is Law {
         uint256 taxPaid;
     }
 
-    mapping(bytes32 lawHash => StateData) internal stateData;
+    mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -79,9 +79,9 @@ contract TaxSelect is Law {
         (address erc20TaxedMock_, uint256 thresholdTaxPaid_, uint256 roleIdToSet_) =
             abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].erc20TaxedMock = erc20TaxedMock_;
-        stateData[lawHash].thresholdTaxPaid = thresholdTaxPaid_;
-        stateData[lawHash].roleIdToSet = roleIdToSet_;
+        data[lawHash].erc20TaxedMock = erc20TaxedMock_;
+        data[lawHash].thresholdTaxPaid = thresholdTaxPaid_;
+        data[lawHash].roleIdToSet = roleIdToSet_;
 
         super.initializeLaw(index, conditions, config, abi.encode("address Account"), description);
     }
@@ -122,7 +122,7 @@ contract TaxSelect is Law {
         (address account) = abi.decode(lawCalldata, (address));
 
         // step 1: retrieve data 
-        mem.epochDuration = Erc20TaxedMock(stateData[mem.lawHash].erc20TaxedMock).epochDuration();
+        mem.epochDuration = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).epochDuration();
         mem.currentEpoch = uint48(block.number) / mem.epochDuration;
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");
@@ -130,26 +130,26 @@ contract TaxSelect is Law {
 
         // step 2: retrieve data on tax paid and role
         mem.hasRole = Powers(payable(powers)).canCallLaw(caller, lawId);
-        mem.taxPaid = Erc20TaxedMock(stateData[mem.lawHash].erc20TaxedMock).getTaxLogs(
+        mem.taxPaid = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).getTaxLogs(
             uint48(block.number) - mem.epochDuration,
             account
         );
 
         // step 3: create arrays
-        if (mem.hasRole && mem.taxPaid < stateData[mem.lawHash].thresholdTaxPaid) {
+        if (mem.hasRole && mem.taxPaid < data[mem.lawHash].thresholdTaxPaid) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.revokeRole.selector,
-                stateData[mem.lawHash].roleIdToSet,
+                data[mem.lawHash].roleIdToSet,
                 account
             );
-        } else if (!mem.hasRole && mem.taxPaid >= stateData[mem.lawHash].thresholdTaxPaid) {
+        } else if (!mem.hasRole && mem.taxPaid >= data[mem.lawHash].thresholdTaxPaid) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector,
-                stateData[mem.lawHash].roleIdToSet,
+                data[mem.lawHash].roleIdToSet,
                 account
             );
         }
