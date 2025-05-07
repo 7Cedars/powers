@@ -16,7 +16,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("LawList: ", {deselectedRoles, powers})
+  // console.log("LawList: ", {deselectedRoles, powers})
   
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []

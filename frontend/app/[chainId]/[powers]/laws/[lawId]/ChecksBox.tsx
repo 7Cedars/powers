@@ -16,14 +16,14 @@ const roleColour = [
   "slate-600"
 ]
 
-export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undefined, law: Law | undefined, checks: Checks | undefined, status: Status}) => {
+export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: Law | undefined, checks: Checks | undefined, status: Status}) => {
   const router = useRouter();
   const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needCompleted); 
   const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needNotCompleted); 
   const action = useActionStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("@ChecksBox, waypoint 1, law box:", {checks} )
+  console.log("@ChecksBox, waypoint 1, law box:", {checks, powers})
 
   return (
     <section 
@@ -55,7 +55,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers | undef
         </div>
 
         {/* proposal passed */}
-        {law?.conditions.quorum != 0n && 
+        {law?.conditions.quorum != 0n && powers && powers.proposals && 
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.proposalPassed ? 

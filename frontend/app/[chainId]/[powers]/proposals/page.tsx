@@ -14,7 +14,8 @@ export default function Page() {
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [addressPowers, fetchPowers])
-   
+
+
   return (
     <main className="w-full h-fit flex flex-col justify-start items-center pt-20 px-2">
       <ProposalList powers={powers} onUpdateProposals={() => updateProposals(addressPowers as `0x${string}`)} status={status} />

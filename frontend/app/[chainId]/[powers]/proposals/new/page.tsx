@@ -21,14 +21,14 @@ const Page = () => {
   const {checkProposalExists, checkAccountAuthorised, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
-  const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law) != undefined  
+  const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law, powers as Powers) != undefined  
   const authorised = useReadContract({
     abi: powersAbi,
     address: powers?.contractAddress as `0x${string}`,
     functionName: 'canCallLaw', 
     args: [wallets[0]?.address, law?.index]
   })
-  console.log("@Proposal page: ", {law, action, wallets, powers, proposalExists, authorised: authorised.data})
+  // console.log("@Proposal page: ", {law, action, wallets, powers, proposalExists, authorised: authorised.data})
 
   useEffect(() => {
     if (addressPowers) {

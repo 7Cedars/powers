@@ -6,23 +6,23 @@ import { GetBlockReturnType, Hex, Log, parseEventLogs, ParseEventLogsReturnType 
 import { publicClient } from "@/context/clients"; 
 import { getBlock, readContract } from "wagmi/actions";
 import { supportedChains } from "@/context/chains";
-import { useChainId } from 'wagmi'
 import { bytesToParams, parseMetadata } from "@/utils/parsers";
 import { sepolia } from "viem/chains";
+import { useParams } from "next/navigation";
 
 export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [powers, setPowers] = useState<Powers | undefined>() 
-  const chainId = useChainId()
-  const supportedChain = supportedChains.find(chain => chain.id == chainId)
+  const { chainId } = useParams<{ chainId: string }>()
+  const supportedChain = supportedChains.find(chain => chain.id == Number(chainId))
 
   const checkLocalStorage = async (address: `0x${string}`) => {
     let localStore = localStorage.getItem("powersProtocols")
     const saved: Powers[] = localStore ? JSON.parse(localStore) : []
     const powersExists = saved.find(item => item.contractAddress == address) 
 
-    console.log("@checkLocalStorage: waypoint 1", {powersExists})
+    // console.log("@checkLocalStorage: waypoint 1", {powersExists})
 
     if (powersExists) {
       return powersExists
@@ -91,7 +91,7 @@ export const usePowers = () => {
             })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
             let fetchedLaws: Law[] = fetchedLogsTyped.map(log => log.args as Law)
-            console.log("@fetchLawsAndRoles: waypoint 0", {fetchedLaws})
+            // console.log("@fetchLawsAndRoles: waypoint 0", {fetchedLaws})
             fetchedLaws = fetchedLogsTyped.map(log => (
               {
                 ...log.args as Law, 
@@ -113,7 +113,7 @@ export const usePowers = () => {
                   args: [law.index]
                 })
                 const active = activeLaw as boolean
-                console.log("@fetchLawsAndRoles: waypoint 1", {active})
+                // console.log("@fetchLawsAndRoles: waypoint 1", {active})
                 if (active) activeLaws.push(law)
               }
             } 
@@ -121,7 +121,7 @@ export const usePowers = () => {
             const rolesAll = activeLaws.map((law: Law) => law.conditions.allowedRole)
             const fetchedRoles = [... new Set(rolesAll)] as bigint[]
 
-            console.log("@fetchLawsAndRoles: waypoint 2", {fetchedLaws, activeLaws, fetchedRoles})
+            // console.log("@fetchLawsAndRoles: waypoint 2", {fetchedLaws, activeLaws, fetchedRoles})
           
             if (fetchedLaws && fetchedRoles) {
               return {laws: fetchedLaws, activeLaws: activeLaws, roles: fetchedRoles}
@@ -178,10 +178,10 @@ export const usePowers = () => {
           logs
         })
         const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
-        console.log("@getProposals: waypoint 1", {fetchedLogsTyped})
+        // console.log("@getProposals: waypoint 1", {fetchedLogsTyped})
         const fetchedProposals: Proposal[] = fetchedLogsTyped.map(log => log.args as Proposal)
         fetchedProposals.sort((a: Proposal, b: Proposal) => a.voteStart  > b.voteStart ? -1 : 1)
-        console.log("@getProposals: waypoint 2", {fetchedProposals})
+        // console.log("@getProposals: waypoint 2", {fetchedProposals})
         if (fetchedProposals) {
           return fetchedProposals
         }
@@ -241,7 +241,7 @@ export const usePowers = () => {
               state.push(Number(fetchedState)) // = 5 is a non-existent state
             }
         } 
-        console.log("@getProposalsState: waypoint 1", {state})
+        // console.log("@getProposalsState: waypoint 1", {state})
         return state
       } catch (error) {
         setStatus("error") 
@@ -273,7 +273,7 @@ export const usePowers = () => {
           )
         })
       }  
-      console.log("@fetchProposals: waypoint 3", {proposalsFull})
+      // console.log("@fetchProposals: waypoint 3", {proposalsFull})
       // console.log("fetchProposals called, waypoint 4: ", {proposalsFull})
       // return data - to be saved in local storage. 
       return proposalsFull
@@ -292,7 +292,7 @@ export const usePowers = () => {
         const metadatas = await fetchMetaData(address)
         const lawsAndRoles = await fetchLawsAndRoles(address)
         const proposals = await fetchProposals(address)
-        console.log("@fetchPowers: waypoint 4", {proposals})
+        // console.log("@fetchPowers: waypoint 4", {proposals})
         const roleLabels = await fetchRoleLabels(address)
 
         // console.log("waypoint 4: data fetched: ", {names, metadatas, lawsAndRoles, proposalsPerOrg, roleLabels})
@@ -343,14 +343,14 @@ export const usePowers = () => {
       const saved: Powers[] = localStore ? JSON.parse(localStore) : []
       const powersToUpdate = saved.find(item => item.contractAddress == address)
 
-      console.log("@updatePowers: waypoint 1", {powersToUpdate})
+      // console.log("@updatePowers: waypoint 1", {powersToUpdate})
       
       if (powersToUpdate) {
         const lawsAndRoles = await fetchLawsAndRoles(address)
         const roleLabels = await fetchRoleLabels(address)
         const proposals = await fetchProposals(address)
 
-        console.log("@updatePowers: waypoint 2", {lawsAndRoles, roleLabels, proposals})
+        // console.log("@updatePowers: waypoint 2", {lawsAndRoles, roleLabels, proposals})
 
         if (lawsAndRoles && proposals && roleLabels) {
           const updatedPowers = 
@@ -362,13 +362,13 @@ export const usePowers = () => {
             roleLabels: roleLabels
           }
 
-          console.log("@updatePowers: waypoint 3", {updatedPowers})
+          // console.log("@updatePowers: waypoint 3", {updatedPowers})
 
           const updatedPowersArray: Powers[] = saved.map(
             powers => powers.contractAddress == updatedPowers.contractAddress ? updatedPowers : powers
           )
 
-          console.log("@updatePowers: waypoint 4", {updatedPowersArray})
+          // console.log("@updatePowers: waypoint 4", {updatedPowersArray})
         
           localStorage.setItem("powersProtocols", JSON.stringify(updatedPowersArray, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
@@ -376,7 +376,7 @@ export const usePowers = () => {
 
           setPowers(updatedPowers)
 
-          console.log("@updatePowers: waypoint 5")
+          // console.log("@updatePowers: waypoint 5")
         }
       } else {
         setStatus("error")

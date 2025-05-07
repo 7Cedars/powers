@@ -48,7 +48,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const { chainId } = useParams<{ chainId: string }>()
   const dataTypes = params.map(param => param.dataType) 
   const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
-  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error})
+  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 
@@ -58,11 +58,11 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   }
 
   useEffect(() => {
-    console.log("useEffect triggered at LawBox")
+    // console.log("useEffect triggered at LawBox")
       try {
         const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData);
         const valuesParsed = parseParamValues(values) 
-        console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
+        // console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
           setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : dataType == "bool" ? [false] : [0]), upToDate: false})
         } else {

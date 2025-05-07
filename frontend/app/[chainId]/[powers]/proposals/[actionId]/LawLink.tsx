@@ -18,7 +18,7 @@ const roleColour = [
 
 export const LawLink: React.FC<{law: Law, powers: Powers | undefined, status: Status}> = ({law, powers, status}) => {
   const action = useActionStore()
-  console.log("@LawLink, action:", {action})
+  // console.log("@LawLink, action:", {action})
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   

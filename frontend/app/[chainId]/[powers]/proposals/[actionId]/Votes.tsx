@@ -12,7 +12,7 @@ import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 
 export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Proposal, powers: Powers | undefined, status: Status}) => {
-  console.log("@Votes: waypoint 0", {proposal, powers})
+  // console.log("@Votes: waypoint 0", {proposal, powers})
 
   const { chainId } = useParams<{ chainId: string }>()
   const supportedChain = supportedChains.find(chain => chain.id === parseChainId(chainId))

@@ -26,7 +26,7 @@ const Page = () => {
   const action = useActionStore(); 
   const {checkProposalExists, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
   const {updateProposal} = useProposal();
-  console.log("@proposals page: ", {proposal, law, action, statusChecks})
+  // console.log("@proposals page: ", {proposal, law, action, statusChecks})
 
   useEffect(() => {
     if (proposal && law) { 
@@ -49,7 +49,7 @@ const Page = () => {
         setAction({...action, upToDate: false })
       }
       fetchChecks(law, proposal.executeCalldata, proposal.nonce, wallets, powers as Powers)
-      checkProposalExists(law, proposal.executeCalldata, proposal.nonce)
+      checkProposalExists(proposal.nonce, proposal.executeCalldata, law, powers as Powers)
       updateProposal(proposal, powers as Powers)
     }
   }, [, proposal])

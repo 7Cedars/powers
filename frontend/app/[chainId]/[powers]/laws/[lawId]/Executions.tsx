@@ -14,10 +14,10 @@ type ExecutionsProps = {
 
 export const Executions = ({executions, law, status}: ExecutionsProps) => {
 
-  console.log("@Executions: ", {executions, law, status})
+  // console.log("@Executions: ", {executions, law, status})
 
   const handleExecutionSelection = (execution: Execution) => {
-    console.log("@Executions: handleExecutionSelection: ", {execution, law})
+    // console.log("@Executions: handleExecutionSelection: ", {execution, law})
     let dataTypes = law?.params?.map(param => param.dataType)
     let valuesParsed = undefined
     if (dataTypes != undefined && dataTypes.length > 0) {

@@ -39,7 +39,7 @@ export default function Page() {
     const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint; blockData: GetBlockReturnType}[]>([])
     const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
     
-    console.log("@home:", {addressPowers, powers, statusPowers})
+    // console.log("@home:", {addressPowers, powers, statusPowers})
 
     const fetchMyRoles = useCallback(
       async (account: `0x${string}`, roles: bigint[]) => {

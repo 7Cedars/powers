@@ -21,11 +21,11 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
   const [error, setError] = useState<any | null>(null)
   const [roles, setRoles ] = useState<Roles[]>([])
 
-  console.log("@RoleList: ", {powers, roles})
+  // console.log("@RoleList: ", {powers, roles})
 
   const fetchRoleHolders = useCallback(
     async (roleIds: bigint[]) => {
-      console.log("fetch role triggered", {roleIds})
+      // console.log("fetch role triggered", {roleIds})
       let roleId: bigint; 
       let rolesFetched: Roles[] = []; 
 
@@ -35,7 +35,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
       if (publicClient && powers) {
         try {
           for await (roleId of roleIds) {
-            console.log("@fetchRoleHolders: ", {roleId}) 
+            // console.log("@fetchRoleHolders: ", {roleId}) 
             if (Number(roleId) < 4294967296) { 
             const fetchedRoleHolders = await readContract(wagmiConfig, {
               abi: powersAbi,
@@ -43,7 +43,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
               functionName: 'getAmountRoleHolders', 
               args: [roleId]
               })
-              console.log("@fetchRoleHolders, waypoint 1 ", {fetchedRoleHolders})
+              // console.log("@fetchRoleHolders, waypoint 1 ", {fetchedRoleHolders})
               const laws = powers?.laws?.filter(law => law.conditions.allowedRole == BigInt(roleId))
               rolesFetched.push({roleId, holders: Number(fetchedRoleHolders), laws})
             }

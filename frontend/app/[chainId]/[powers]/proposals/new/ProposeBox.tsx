@@ -15,6 +15,7 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { useWatchContractEvent } from 'wagmi'
 import { usePowers } from "@/hooks/usePowers";
+import { supportedChains } from "@/context/chains";
 
 const roleColour = [  
   "border-blue-600", 
@@ -33,18 +34,19 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   const {status: statusProposals, error, transactionHash, propose, addProposals} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
   const {data: blockNumber} = useBlockNumber();
+  const supportedChain = supportedChains.find(chain => chain.id == Number(chainId))
 
-  console.log("ProposeBox", {law, powers, action, error, statusProposals})
+  // console.log("ProposeBox", {law, powers, action, error, statusProposals})
 
   const confirmations = useTransactionConfirmations({
     hash: transactionHash 
   })
 
-  console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation})
+  console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation, blockNumber})
 
   useEffect(() => {
     if (Number(confirmations.data) > 0 && blockNumber) {
-      addProposals(powers, blockNumber - 2n)
+      addProposals(powers, supportedChain?.genesisBlock as bigint)
     }
   }, [confirmations.data, powers, addProposals, blockNumber])
 
@@ -129,7 +131,6 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
               > 
               Propose
             </Button>
-          
         </div>
       </section>
     </main>

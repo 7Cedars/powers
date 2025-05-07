@@ -147,14 +147,15 @@ export const useProposal = () => {
       let proposalsFull: Proposal[] | undefined = [];
 
       proposals = await getProposals(powers, fromBlock)
+      const newProposals = proposals?.filter(p => !powers.proposals?.some(p2 => p2.actionId == p.actionId))
 
-      if (proposals && proposals.length > 0) {
-        states = await getProposalsState(proposals, powers.contractAddress)
-        blocks = await getBlockData(proposals, powers.contractAddress)
+      if (newProposals && newProposals.length > 0) {
+        states = await getProposalsState(newProposals, powers.contractAddress)
+        blocks = await getBlockData(newProposals, powers.contractAddress)
       } 
 
       if (states && blocks) { // + votes later.. 
-        proposalsFull = proposals?.map((proposal, index) => {
+        proposalsFull = newProposals?.map((proposal, index) => {
           return ( 
             {...proposal, state: states[index], voteStartBlockData: {...blocks[index], chainId: sepolia.id}}
           )

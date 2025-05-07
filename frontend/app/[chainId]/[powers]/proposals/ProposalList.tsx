@@ -19,7 +19,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
 
-  console.log("@ProposalList: ", {powers})
+  // console.log("@ProposalList: ", {powers})
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -99,12 +99,13 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
       </div>
 
       {/* table laws  */}
+
+      <div className="w-full overflow-scroll">
       {status == "pending" || status == "idle" ? 
-      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+      <div className="w-full h-full min-h-fit flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
       :
-      <div className="w-full overflow-scroll">
       <table className="w-full table-auto">
       <thead className="w-full border-b border-slate-200">
             <tr className="w-96 text-xs font-light text-left text-slate-500">
@@ -145,7 +146,10 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                       </Button>
                   </td>
                   <td className="pe-4 text-slate-500 min-w-56">{law.description}</td>
-                  <td className="pe-4 text-slate-500 min-w-48">{proposal.description}</td>
+                  <td className="pe-4 text-slate-500 min-w-48">{
+                    proposal.description.length > 100 ? `${proposal.description.slice(0, 100)}...` : proposal.description
+                  }
+                  </td>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
                   <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions.allowedRole, powers)}
                   </td>
@@ -157,8 +161,9 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
           )}
         </tbody>
         </table>
+}
       </div>
-      }
+      
     </div>
   );
 }

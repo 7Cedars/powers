@@ -18,7 +18,7 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
 
   useEffect(() => {
     if (supportedChain && statusPowers == "success" && powers) {
-      console.log("FetchTokens triggered:" , {supportedChain, statusPowers, powers})
+      // console.log("FetchTokens triggered:" , {supportedChain, statusPowers, powers})
       fetchTokens(powers) 
     }
   }, [powers, statusPowers, fetchTokens])

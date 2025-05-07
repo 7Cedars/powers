@@ -22,36 +22,36 @@ export const useChecks = (powers: Powers) => {
   const [error, setError] = useState<any | null>(null) 
   const [checks, setChecks ] = useState<Checks>()
 
-  console.log("@fetchChecks useChecks called: ", {checks, status, error, powers})
+  // console.log("@fetchChecks useChecks called: ", {checks, status, error, powers})
 
   const checkAccountAuthorised = useCallback(
     async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
-      // console.log("@checkAccountAuthorised: waypoint 0", {law, powers})
         try {
+          console.log("@checkAccountAuthorised: waypoint 0", {law, powers})
           const result =  await readContract(wagmiConfig, {
                   abi: powersAbi,
                   address: powers.contractAddress as `0x${string}`,
                   functionName: 'canCallLaw', 
                   args: [wallets[0].address, law.index],
                 })
-          // console.log("@checkAccountAuthorised: waypoint 1", {result})
+          console.log("@checkAccountAuthorised: waypoint 1", {result})
           return result as boolean 
         } catch (error) {
             setStatus("error") 
             setError(error)
-            return false
-        }  
+            console.log("@checkAccountAuthorised: waypoint 2", {error})
+        }
   }, [])
 
-  const checkProposalExists = (nonce: bigint, lawCalldata: `0x${string}`, law: Law) => {
-    console.log("@checkProposalExists: waypoint 0", {law, lawCalldata, nonce, proposals: powers?.proposals})
-    if (powers?.proposals) {
-      const selectedProposal = powers?.proposals?.find(proposal => 
+  const checkProposalExists = (nonce: bigint, lawCalldata: `0x${string}`, law: Law, powers: Powers) => {
+    console.log("@checkProposalExists: waypoint 0", {law, lawCalldata, nonce, powers})
+    if (powers && powers.proposals) {
+      const selectedProposal = powers.proposals.find(proposal => 
         proposal.lawId == law.index && 
         proposal.executeCalldata == lawCalldata && 
         proposal.nonce == nonce
       ) 
-      console.log("@checkProposalExists: waypoint 1", {selectedProposal, proposals: powers?.proposals})
+      console.log("@checkProposalExists: waypoint 1", {selectedProposal, proposals: powers.proposals})
 
       return selectedProposal 
     } 
@@ -59,7 +59,7 @@ export const useChecks = (powers: Powers) => {
 
   const checkProposalStatus = useCallback(
     async (law: Law, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
-      const selectedProposal = checkProposalExists(nonce, lawCalldata, law)
+      const selectedProposal = checkProposalExists(nonce, lawCalldata, law, powers)
     
       if (selectedProposal) {
         try {
@@ -74,24 +74,23 @@ export const useChecks = (powers: Powers) => {
         } catch (error) {
           setStatus("error")
           setError(error)
-          return undefined 
         }
       } else {
-        return undefined 
+        return false 
       }
   }, []) 
 
 
-  const checkDelayedExecution = (nonce: bigint, calldata: `0x${string}`, law: Law) => {
-    console.log("CheckDelayedExecution triggered")
-    const selectedProposal = checkProposalExists(nonce, calldata, law)
-    console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
+  const checkDelayedExecution = (nonce: bigint, calldata: `0x${string}`, law: Law, powers: Powers) => {
+    // console.log("CheckDelayedExecution triggered")
+    const selectedProposal = checkProposalExists(nonce, calldata, law, powers)
+    // console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
     const result = Number(selectedProposal?.voteEnd) + Number(law.conditions.delayExecution) < Number(blockNumber)
     return result as boolean
   }
 
   const fetchExecutions = async (lawId: bigint) => {
-    console.log("@fetchExecutions: waypoint 0", {lawId})
+    // console.log("@fetchExecutions: waypoint 0", {lawId})
     if (publicClient) {
       try {
           if (powers?.contractAddress) {
@@ -107,16 +106,16 @@ export const useChecks = (powers: Powers) => {
                         eventName: 'ActionRequested',
                         logs
                       })
-            console.log("@fetchExecutions: waypoint 1", {lawId, fetchedLogs})
+            // console.log("@fetchExecutions: waypoint 1", {lawId, fetchedLogs})
             const fetchedLogsTyped = fetchedLogs as unknown[] as LogExtended[]  
-            console.log("@fetchExecutions: waypoint 2", {lawId, fetchedLogsTyped})
+            // console.log("@fetchExecutions: waypoint 2", {lawId, fetchedLogsTyped})
             return (
               fetchedLogsTyped.sort((a: LogExtended, b: LogExtended) => (
                 a.blockNumber ? Number(a.blockNumber) : 0
               ) < (b.blockNumber == null ? 0 : Number(b.blockNumber)) ? 1 : -1)) as LogExtended[]
           } 
       } catch (error) {
-        console.log("@fetchExecutions: waypoint 4", {lawId, error})
+        // console.log("@fetchExecutions: waypoint 4", {lawId, error})
         setStatus("error") 
         setError(error)
       }
@@ -136,7 +135,7 @@ export const useChecks = (powers: Powers) => {
 
   const checkNotCompleted = useCallback( 
     async (nonce: bigint, calldata: `0x${string}`, lawIndex: bigint): Promise<boolean | undefined> => {
-      console.log("@checkNotCompleted: waypoint 0", {nonce, calldata, lawIndex, powers: powers?.contractAddress})
+      // console.log("@checkNotCompleted: waypoint 0", {nonce, calldata, lawIndex, powers: powers?.contractAddress})
 
       if (publicClient) {
         try {
@@ -152,28 +151,28 @@ export const useChecks = (powers: Powers) => {
                           eventName: 'ActionRequested',
                           logs
                         })
-              console.log("@checkNotCompleted: waypoint 1", {lawIndex, fetchedLogs})
+              // console.log("@checkNotCompleted: waypoint 1", {lawIndex, fetchedLogs})
               if (fetchedLogs) {
               const fetchedLogsTyped = fetchedLogs as unknown[] as LogExtended[]  
               
-              console.log("@checkNotCompleted: waypoint 2", {lawIndex, fetchedLogsTyped})
+              // console.log("@checkNotCompleted: waypoint 2", {lawIndex, fetchedLogsTyped})
               
               const executionExists = fetchedLogsTyped.some(
                 execution => execution.args?.nonce == nonce && execution.args?.lawCalldata == calldata
               )
-              console.log("@checkNotCompleted: waypoint 3", {lawIndex, executionExists})
-              console.log("@checkNotCompleted: waypoint 4", {lawIndex, returnvalue: executionExists == undefined})
+              // console.log("@checkNotCompleted: waypoint 3", {lawIndex, executionExists})
+              // console.log("@checkNotCompleted: waypoint 4", {lawIndex, returnvalue: executionExists == undefined})
               return (!executionExists)
             }
           } 
           catch (error) {
-          console.log("@checkNotCompleted: waypoint 4", {lawIndex, error})
+          // console.log("@checkNotCompleted: waypoint 4", {lawIndex, error})
           setStatus("error") 
           setError(error) 
           return undefined
         }
       } else {
-        console.log("@checkNotCompleted: waypoint 5", {lawIndex, returnvalue: undefined})
+        // console.log("@checkNotCompleted: waypoint 5", {lawIndex, returnvalue: undefined})
         return undefined
       }
   }, [ ] ) 
@@ -189,8 +188,8 @@ export const useChecks = (powers: Powers) => {
           const throttled = await checkThrottledExecution(law)
           const authorised = await checkAccountAuthorised(law, powers, wallets)
           const proposalStatus = await checkProposalStatus(law, callData, nonce, [3, 4, 5])
-          const proposalExists = checkProposalExists(nonce, callData, law) != undefined
-          const delayed = checkDelayedExecution(nonce, callData, law)
+          const proposalExists = checkProposalExists(nonce, callData, law, powers) != undefined
+          const delayed = checkDelayedExecution(nonce, callData, law, powers)
 
           const notCompleted1 = await checkNotCompleted(nonce, callData, law.index)
           const notCompleted2 = await checkNotCompleted(nonce, callData, law.conditions.needCompleted)

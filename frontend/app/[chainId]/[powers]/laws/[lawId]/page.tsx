@@ -27,29 +27,29 @@ const Page = () => {
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
-  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  // console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      console.log("Handle Simulate called:", {paramValues, nonce})
+      // console.log("Handle Simulate called:", {paramValues, nonce})
       setError({error: null})
       let lawCalldata: `0x${string}` | undefined
-      console.log("Handle Simulate waypoint 1") 
+      // console.log("Handle Simulate waypoint 1")
       if (paramValues.length > 0 && paramValues) {
         try {
-          console.log("Handle Simulate waypoint 2a") 
+          // console.log("Handle Simulate waypoint 2a")
           lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-          console.log("Handle Simulate waypoint 2b", {lawCalldata})
+          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
         } catch (error) {
-          console.log("Handle Simulate waypoint 2c") 
+          // console.log("Handle Simulate waypoint 2c")
           setError({error: error as Error})
         }
       } else {
-        console.log("Handle Simulate waypoint 2d") 
+        // console.log("Handle Simulate waypoint 2d")
         lawCalldata = '0x0'
       }
         // resetting store
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-        console.log("Handle Simulate waypoint 3a") 
+        // console.log("Handle Simulate waypoint 3a")
         setAction({
           lawId: law.index,
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
@@ -61,7 +61,7 @@ const Page = () => {
           upToDate: true
         })
 
-        console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
+        // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
         fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
         
         try {
@@ -73,7 +73,7 @@ const Page = () => {
           law
         )
         } catch (error) {
-          console.log("Handle Simulate waypoint 3c") 
+          // console.log("Handle Simulate waypoint 3c")
           setError({error: error as Error})
         }
 
@@ -95,7 +95,7 @@ const Page = () => {
     if (law) {
       // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)
       const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
-      console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
+      // console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
       
       if (dissimilarTypes.find(type => type == true)) {
         // console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
@@ -169,7 +169,7 @@ const Page = () => {
         {/* right panel: info boxes should only reads from zustand.  */}
         <div className="flex flex-col flex-wrap lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:my-2 my-0 lg:flex-col lg:overflow-hidden lg:ps-4 w-full flex-row gap-4 justify-center items-center overflow-x-scroll overflow-y-hidden scroll-snap-x">
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<ChecksBox checks = {checks} law = {law} powers = {powers} status = {statusPowers} />} 
+            {powers && <ChecksBox checks = {checks} law = {law} powers = {powers} status = {statusPowers} />} 
           </div>
           {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">

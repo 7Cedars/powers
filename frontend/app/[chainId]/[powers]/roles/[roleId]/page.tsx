@@ -34,7 +34,7 @@ export default function Page() {
   const [error, setError] = useState<any | null>(null)
   const [roleInfo, setRoleInfo ] = useState<Role[]>()
 
-  console.log("@role page: ", {powers, roleInfo})
+  // console.log("@role page: ", {powers, roleInfo})
 
   useEffect(() => {
     if (addressPowers) {
@@ -60,9 +60,9 @@ export default function Page() {
             eventName: 'RoleSet',
             logs
           })
-          console.log("@getRolesSet: ", {fetchedLogs})
+          // console.log("@getRolesSet: ", {fetchedLogs})
           const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
-          console.log("@getRolesSet: ", {fetchedLogsTyped})
+          // console.log("@getRolesSet: ", {fetchedLogsTyped})
           const rolesSet: Role[] = fetchedLogsTyped.map(log => log.args as Role)
           return rolesSet
         } catch (error) {
@@ -103,7 +103,7 @@ export default function Page() {
         const rolesSet = await getRolesSet() 
         const roles = rolesSet ? await getRoleSince(rolesSet) : []
 
-        console.log("@fetchRoleInfo: ", {roles, rolesSet})
+        // console.log("@fetchRoleInfo: ", {roles, rolesSet})
 
         setRoleInfo(roles) 
         setStatus("success")
