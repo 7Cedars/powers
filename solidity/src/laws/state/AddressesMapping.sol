@@ -24,6 +24,8 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
+// import "forge-std/Test.sol"; // only for testing
+
 contract AddressesMapping is Law {
     mapping(bytes32 lawHash => mapping(address account => bool isAllowed)) public addresses;
 
@@ -33,9 +35,8 @@ contract AddressesMapping is Law {
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
-        bytes memory configParams = abi.encode();
-
-        emit Law__Deployed(name_, configParams);
+        
+        emit Law__Deployed(name_, "");
     }
 
     function initializeLaw(
@@ -50,7 +51,7 @@ contract AddressesMapping is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -64,14 +65,13 @@ contract AddressesMapping is Law {
     {
         // retrieve the account that was revoked
         (address account, bool add) = abi.decode(lawCalldata, (address, bool));
-        bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
 
         if (add && addresses[lawHash][account]) {
             revert("Already true.");
         } else if (!add && !addresses[lawHash][account]) {
             revert("Already false.");
         }
-
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, lawCalldata);
     }

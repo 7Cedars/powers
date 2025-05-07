@@ -1,6 +1,4 @@
-import { supportedChains } from "@/context/chains";
-import { ChainProps, Law, Organisation } from "@/context/types";
-import { useChainId } from "wagmi";
+import { ChainProps } from "@/context/types";
 
 const nameMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 

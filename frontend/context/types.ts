@@ -1,19 +1,21 @@
 import { ConnectedWallet } from '@privy-io/react-auth';
-import { GetBlockReturnType } from '@wagmi/core';
+import { Config, GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
+export type SupportedChains = 421614 | 11155111 | undefined
 export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
-export type InputType = number | boolean | string | `0x${string}` | undefined 
+export type InputType = number | boolean | string | `0x${string}`  
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
 export type LawSimulation = [
+      bigint, 
       `0x${string}`[], 
       bigint[], 
       `0x${string}`[], 
       `0x${string}`
-    ]
+]
 
 export type Attribute = {  
   trait_type: string | number ;  
@@ -37,6 +39,7 @@ export type ChainProps = {
   id: number;
   genesisBlock: bigint; // block at which the first PowersProtocol was deployed. 
   blockTimeInSeconds?: number;
+  alternativeBlockNumbers?: SupportedChains;
   rpc?: string;
   nativeCurrency?: {
     name: string;
@@ -45,18 +48,14 @@ export type ChainProps = {
   };
   blockExplorerUrl?: string;
   iconUrl?: string;
-  organisations?: `0x${string}`[]; 
-  erc20s: `0x${string}`[];
-  erc721s: `0x${string}`[];
-  erc1155s: `0x${string}`[];
 }
                       
-
-export type Config = {
+export type Conditions = {
+  allowedRole: bigint; 
   delayExecution: bigint; 
-  needNotCompleted: `0x${string}`;
-  needCompleted: `0x${string}`;
-  readStateFrom: `0x${string}`;
+  needNotCompleted: bigint;
+  needCompleted: bigint;
+  readStateFrom: bigint;
   quorum: bigint; 
   succeedAt: bigint; 
   throttleExecution: bigint;
@@ -64,6 +63,7 @@ export type Config = {
 }
 
 type Args = {
+  nonce: bigint;
   description: string;
   caller: `0x${string}`;
   lawCalldata: `0x${string}`;
@@ -79,13 +79,14 @@ export type Execution = {
 }
 
 export type Law = {
-  law: `0x${string}`;
-  name?: string;
+  powers: `0x${string}`;
+  lawAddress: `0x${string}`;
+  index: bigint;
   description?: string;
-  allowedRole?: bigint;
-  powers?: `0x${string}`;
-  config: Config;
-  params?: string[];
+  conditions: Conditions;
+  config: `0x${string}`;
+  inputParams?: `0x${string}`; 
+  params ?: {varName: string, dataType: DataType}[]; 
   executions?: Execution[]; 
 }
 
@@ -93,6 +94,9 @@ export type Metadata = {
   icon: string; 
   banner: string;
   description: string; 
+  erc20s: `0x${string}`[];
+  erc721s: `0x${string}`[];
+  erc1155s: `0x${string}`[];
   attributes: Attribute[]
 }
 
@@ -101,7 +105,7 @@ export type RoleLabel = {
   label: string; 
 }
 
-export type Organisation = {
+export type Powers = {
   contractAddress: `0x${string}`;
   name?: string;
   metadatas?: Metadata; 
@@ -134,7 +138,7 @@ export type Checks = {
   authorised?: boolean;
   proposalExists?: boolean;
   proposalPassed?: boolean;
-  proposalNotCompleted?: boolean;
+  actionNotCompleted?: boolean;
   lawCompleted?: boolean;
   lawNotCompleted?: boolean;
   delayPassed?: boolean;
@@ -142,28 +146,35 @@ export type Checks = {
 }
 
 export type Action = {
+  actionId: string;
+  lawId: bigint;
+  caller: `0x${string}`;
   dataTypes: DataType[] | undefined;
   paramValues: (InputType | InputType[])[] | undefined;
+  nonce: bigint;
   description: string;
   callData: `0x${string}`;
   upToDate: boolean;
 }
 
 export type Proposal = {
-  actionId: number;
-  targetLaw: `0x${string}`;
+  actionId: string;
+  action?: Action;
+  caller: `0x${string}`;
+  lawId: bigint;
+  nonce: bigint;
   voteStart: bigint;
-  voteStartBlockData?: GetBlockReturnType; 
   voteDuration: bigint;
   voteEnd: bigint;
+  calldata: `0x${string}`;
+  executeCalldata: `0x${string}`;
+  voteStartBlockData?: GetBlockReturnType;
+  description: string;
   cancelled: boolean;
   completed: boolean;
-  caller: `0x${string}`;
   againstVotes?: bigint;
   forVotes?: bigint;
   abstainVotes?: bigint;
-  description?: string;
-  executeCalldata?: `0x${string}`;
   state?: number;
   blockNumber: bigint;
   blockHash?: `0x${string}`;

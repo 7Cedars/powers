@@ -54,10 +54,10 @@ contract SelfSelect is Law {
         uint256 roleId_ = abi.decode(config, (uint256));
         roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
+        super.initializeLaw(index, conditions, config, "", description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -70,11 +70,11 @@ contract SelfSelect is Law {
         )
     {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        targets[0] = msg.sender;
-        if (Powers(payable(msg.sender)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
+        targets[0] = powers;
+        if (Powers(payable(powers)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
             revert("Account already has role.");
         }
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { CalendarDaysIcon, QueueListIcon, UserGroupIcon } from "@heroicons/react/24/outline";
-import { Law, Organisation } from "@/context/types";
+import { Law, Powers } from "@/context/types";
 import { orgToGovernanceTracks } from "@/utils/orgToGovOverview";
-import { setLaw, useLawStore, useOrgStore } from "@/context/store";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
+import { shorterDescription } from "@/utils/parsers";
 
 const roleColour = [  
   "blue-600", 
@@ -50,28 +50,33 @@ type TrackProps = {
   bgItem: number; 
 };
 
-
-const lawToColourCode = (law: Law) => {
-  return (law.allowedRole == undefined || law.allowedRole == 4294967295n ? 6 : Number(law.allowedRole) % roleColour.length)
+interface GovernanceOverviewProps {
+  powers: Powers | undefined
+  law?: Law | undefined
 }
 
-export function GovernanceOverview({law}: {law?: Law | undefined}) {
-  const organisation = useOrgStore(); 
-  const roleIdsParsed = organisation?.deselectedRoles?.map(id => Number(id))
-  let governanceTracks = orgToGovernanceTracks(organisation) 
-  const bgItem = usePathname() == '/laws/law' || usePathname() == '/proposals/proposal'  ? 0 : 1
+const lawToColourCode = (law: Law) => {
+  return (law.conditions.allowedRole == undefined || law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole) % roleColour.length)
+}
+
+export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
+  const roleIdsParsed = powers?.deselectedRoles?.map(id => Number(id))
+  let governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
+  const bgItem = usePathname().includes(`/laws`) || usePathname().includes(`/proposals`) ? 0 : 1
 
   if (law != undefined ) {
-    governanceTracks.orphans = governanceTracks.orphans ? governanceTracks.orphans.filter(law2 => law2.law == law.law) : []
-    governanceTracks.tracks = governanceTracks.tracks ? governanceTracks.tracks.filter(track => track.find(law2 => law2.law == law.law)) : []
+    governanceTracks.orphans = governanceTracks.orphans ? governanceTracks.orphans.filter(law2 => law2.index == law.index) : []
+    governanceTracks.tracks = governanceTracks.tracks ? governanceTracks.tracks.filter(track => track.find(law2 => law2.index == law.index)) : []
   }
 
   return (
-    <section className = "w-full h-fit min-h-20 flex flex-col justify-start items-start overflow-x-scroll px-4">
-      <div className = "w-full min-h-fit flex flex-col gap-4">  
+    <section className = "w-full min-h-fit flex flex-col justify-start items-start px-4">
+      <div className = "w-full h-full min-h-fit flex flex-col gap-4">  
         {
           governanceTracks.tracks && governanceTracks.tracks.length > 0 && governanceTracks.tracks.map((track, index) => 
-            track && <GovernanceTrack track = {track} roleIds = {roleIdsParsed} lawSelected = {law} key = {index} bgItem = {bgItem} /> 
+            <div key = {index} className = "w-full h-full flex flex-col gap-4 overflow-y-scroll">
+              {track && <GovernanceTrack track = {track} roleIds = {roleIdsParsed} lawSelected = {law} key = {index} bgItem = {bgItem} /> }
+            </div>
           )
         }
         {
@@ -85,7 +90,7 @@ export function GovernanceOverview({law}: {law?: Law | undefined}) {
 
 function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
   const router = useRouter();
-
+  const { chainId } = useParams<{ chainId: string }>()
   return (
     <> 
       {/* draws the laws */}
@@ -95,13 +100,13 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
             <div key = {index} className = {`w-full h-full flex flex-row justify-between items-center gap-1 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md`}>
               { index == track.length - 1 &&  <div className = "w-8"/> }
               <div className = "flex flex-col w-full h-full ps-2 justify-center items-center gap-0">
-                <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700 max-w-40">
-                  {law.name}
+                <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
+                  {shorterDescription(law.description, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
-                  { law.config.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.config.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.config.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
               </div>
               </div>
               { index == 0 &&  <div className = "w-12"/> }
@@ -141,15 +146,13 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
                 className = {`w-full h-full flex flex-row justify-center items-center gap-1 ${adaptiveBg[bgItem]}  opacity-50 aria-selected:opacity-0`} 
                 aria-selected = {
                   lawSelected ? 
-                  law.law == lawSelected.law
+                  law.index == lawSelected.index
                   :
-                  law.allowedRole != undefined ? !roleIds?.includes(Number(law.allowedRole)) : false
+                  law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
                 }
-                onClick = {() => {
-                  setLaw(law)
-                  router.push('/laws/law') 
-                }}
-                />
+                onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
+                >
+            </button>
           )
         }
         </div>    
@@ -160,36 +163,33 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
 
 function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) {
   const router = useRouter();
-  const home = usePathname() == '/home'
+  const { chainId } = useParams<{ chainId: string }>()
  
   return (
     <>
       {/* draws the laws */}
-      <div className = {`relative grow w-full h-20 flex flex-wrap gap-6 justify-stretch items-center ${home && "min-w-[520px]"}`}>
+      <div className = {`relative grow w-full h-fit flex flex-wrap gap-4 justify-stretch items-center`}>
         {
           orphans && orphans.map((law, index) => 
             <button 
               key = {index} 
-              className = {`min-w-32 max-w-full grow h-full aria-selected:opacity-100 opacity-50 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md flex flex-row justify-center items-center gap-1`}
+              className = {`min-w-32 min-h-20 max-w-full grow h-full aria-selected:opacity-100 opacity-50 border border-${roleColour[lawToColourCode(law)]} ${roleBgColour[lawToColourCode(law)]} rounded-md flex flex-row justify-center items-center gap-1`}
               aria-selected = {
                 lawSelected ? 
-                law.law == lawSelected.law
+                law.index == lawSelected.index
                 :
-                law.allowedRole != undefined ? !roleIds?.includes(Number(law.allowedRole)) : false
+                law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
               }
-              onClick = {() => {
-                setLaw(law)
-                router.push('/laws/law')
-              }}
+              onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
             >
               <div className = "flex flex-col w-full h-full justify-center items-center gap-1">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
-                  {law.name}
+                  {shorterDescription(law.description, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
-                  { law.config.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.config.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.config.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law.conditions.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
               </div>
               </div>
             </button> 

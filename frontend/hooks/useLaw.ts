@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Status, LawSimulation, Execution, LogExtended } from "../context/types"
+import { Status, LawSimulation, Execution, LogExtended, Law } from "../context/types"
 import { getBlock, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useChainId, useWaitForTransactionReceipt } from "wagmi";
-import { useLawStore, useOrgStore } from "@/context/store";;
 import { publicClient } from "@/context/clients";
-import { readContract } from "wagmi/actions";
+// import { readContract } from "";
 import { GetBlockReturnType, keccak256, Log, parseEventLogs, ParseEventLogsReturnType, toHex } from "viem";
 import { supportedChains } from "@/context/chains";
 import { sepolia } from "@wagmi/core/chains";
 
 export const useLaw = () => {
-  const organisation = useOrgStore()
-  const law = useLawStore()
   const chainId = useChainId();
   const supportedChain = supportedChains.find(chain => chain.id == chainId)
  
@@ -21,6 +18,8 @@ export const useLaw = () => {
   const [error, setError] = useState<any | null>(null)
   const [simulation, setSimulation ] = useState<LawSimulation>()
   const [executions, setExecutions ] = useState<Execution[]>()
+
+  // console.log("@useLaw: waypoint 1", {status, error, simulation, executions})
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
@@ -40,26 +39,25 @@ export const useLaw = () => {
     setTransactionHash(undefined)
   }
  
-  const fetchExecutions = async () => {
+  const fetchExecutions = async (law: Law) => {
     let log: Log
-    let blocksData: GetBlockReturnType[] = []
     let executions2: Execution[] = []
 
     if (publicClient) {
       try {
-          if (organisation?.contractAddress) {
+          if (law?.lawAddress) {
             
             // fetching executions
             const logs = await publicClient.getContractEvents({ 
-              address: organisation.contractAddress as `0x${string}`,
+              address: law.powers as `0x${string}`,
               abi: powersAbi, 
-              eventName: 'ProposalCreated',
+              eventName: 'ActionRequested',
               fromBlock: supportedChain?.genesisBlock,
-              args: {targetLaw: law.law}
+              args: {lawId: law.index}
             })
             const fetchedLogs = parseEventLogs({
                         abi: powersAbi,
-                        eventName: 'ProposalCreated',
+                        eventName: 'ActionRequested',
                         logs
                       })
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType  
@@ -73,7 +71,6 @@ export const useLaw = () => {
                 if (log.blockNumber) {
                   const fetchedBlockData = await getBlock(wagmiConfig, {
                     blockNumber: log.blockNumber
-                    // chainId: sepolia.id
                   })
                   if (fetchedBlockData) {
                     executions2.push({
@@ -94,18 +91,20 @@ export const useLaw = () => {
     }
   }
 
-  const fetchSimulation = useCallback( 
-    async (caller: `0x${string}`, lawCalldata: `0x${string}`, description: string) => {
+  const simulate = useCallback( 
+    async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
+      // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
       setError(null)
       setStatus("pending")
-      // console.log("fetchSimulation:", {law})
       try {
-        const result = await readContract(wagmiConfig, {
+        const result = await publicClient.readContract({
           abi: lawAbi,
-          address: law.law,
-          functionName: 'simulateLaw', 
-          args: [caller, lawCalldata, keccak256(toHex((description)))] // keccak256(toHex(
-        })
+          address: law.lawAddress as `0x${string}`,
+          functionName: 'handleRequest', 
+          args: [caller, law.powers, law.index, lawCalldata, nonce]
+          })
+          // console.log("@simulate: waypoint 2a", {result})
+          // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
         } catch (error) {
@@ -113,13 +112,14 @@ export const useLaw = () => {
           setError(error)
           console.log(error)
         }
-        setStatus("idle") // immediately reset status
+        setStatus("idle")
   }, [ ])
 
   const execute = useCallback( 
     async (
-      targetLaw: `0x${string}`,
+      law: Law,
       lawCalldata: `0x${string}`,
+      nonce: bigint,
       description: string
     ) => {
         setError(null)
@@ -127,9 +127,9 @@ export const useLaw = () => {
         try {
           const result = await writeContract(wagmiConfig, {
             abi: powersAbi,
-            address: organisation.contractAddress,
-            functionName: 'execute', 
-            args: [targetLaw, lawCalldata, description]
+            address: law.powers as `0x${string}`,
+            functionName: 'request', 
+            args: [law.index, lawCalldata, nonce, description]
           })
           setTransactionHash(result)
       } catch (error) {
@@ -139,6 +139,6 @@ export const useLaw = () => {
       }
   }, [ ])
 
-  return {status, error, executions, simulation, resetStatus, fetchSimulation, fetchExecutions, execute}
+  return {status, error, executions, simulation, resetStatus, simulate, fetchExecutions, execute}
 }
 

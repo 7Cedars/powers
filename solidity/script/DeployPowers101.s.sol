@@ -24,18 +24,17 @@ import { console2 } from "forge-std/console2.sol";
 
 // core protocol
 import { Powers} from "../src/Powers.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
+import { DeployMocks } from "./DeployMocks.s.sol";
+import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
+import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 
 // config
 import { HelperConfig } from "./HelperConfig.s.sol";
 
-// mocks
-import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
-import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol"; 
 
 /// @notice core script to deploy a dao
 /// Note the {run} function for deploying the dao can be used without changes.
@@ -44,189 +43,183 @@ import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
 contract DeployPowers101 is Script {
     string[] names;
     address[] lawAddresses;
-    function run()
-        external
-        returns (
-            address payable dao,
-            address payable mock20votes_
-            )
-    {
+    string[] mockNames;
+    address[] mockAddresses;
+
+    function run() external returns (address payable powers_) {
         // Deploy the DAO and a mock erc20 votes contract.
         vm.startBroadcast();
         Powers powers = new Powers(
             "Powers 101",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiebpc5ynyisal3ee426jgpib2vawejibzfgmopjxtmucranjy26py"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibarfxaegrocorwo2c432w7saetd2vddlx4i5kmwckh3nqgtsztnm"
         );
-        Erc20VotesMock erc20VotesMock = new Erc20VotesMock();
         vm.stopBroadcast();
 
-        dao = payable(address(powers));
-        mock20votes_ = payable(address(erc20VotesMock));
+        powers_ = payable(address(powers));
 
         // Deploy the laws.
         DeployLaws deployLaws = new DeployLaws();
         (names, lawAddresses) = deployLaws.run();
+        DeployMocks deployMocks = new DeployMocks();
+        (mockNames, mockAddresses) = deployMocks.run();
 
         // Create the constitution.
-        PowersTypes.LawInitData[] memory lawInitData = createConstitution(dao, mock20votes_);
+        PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
         // constitute dao.
         vm.startBroadcast();
         powers.constitute(lawInitData);
         vm.stopBroadcast();
 
-        return (dao, mock20votes_);
+        return (powers_);
     }
 
     function createConstitution(
-        address payable dao_,
-        address payable mock20votes_
-        ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+        address payable powers_
+    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](8);
         
-        // This law allows direct selection of accounts to specific roles without voting
-        // It can be used by any role (allowedRole = type(uint32).max)
-        conditions.allowedRole = type(uint32).max;
-        lawInitData[1] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(1, "DirectSelect"),
-            config: abi.encode(1), // role that can be assigned
-            conditions: conditions,
-            description: "A law to select an account to a specific role directly."
-        });
-        delete conditions;
-
+        //////////////////////////////////////////////////////////////////
+        //                       Electoral laws                         // 
+        //////////////////////////////////////////////////////////////////
         // This law allows accounts to self-nominate for any role
-        // It can be used by any role (allowedRole = type(uint32).max)
-        conditions.allowedRole = type(uint32).max;
-        lawInitData[2] = PowersTypes.LawInitData({
+        // It can be used by community members
+        conditions.allowedRole = 1; 
+        lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
             conditions: conditions,
-            description: "A law for accounts to nominate themselves for a role."
+            description: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law."
         });
         delete conditions;
 
         // This law enables role selection through delegated voting using an ERC20 token
-        // Only role 1 can use this law
-        conditions.allowedRole = 1;
-        lawInitData[3] = PowersTypes.LawInitData({
+        // Only role 0 (admin) can use this law
+        conditions.allowedRole = 0;
+        conditions.readStateFrom = 1;
+        lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
-                mock20votes_,
+                parseMockAddress(2, "Erc20VotesMock"),
                 15, // max role holders
                 2 // roleId to be elected
             ),
             conditions: conditions,
-            description: "A law to select a role by delegated votes."
+            description: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law."
         });
         delete conditions;
 
-        // This law allows proposing changes to core values of the DAO
-        // Only role 3 can use this law
-        string[] memory inputParams = new string[](3);
-        inputParams[0] = "targets address[]";
-        inputParams[1] = "values uint256[]";
-        inputParams[2] = "calldatas bytes[]";
+        // This law enables anyone to select themselves as a community member. 
+        // Any one can use this law
+        conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[3] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(4, "SelfSelect"),
+            config: abi.encode(
+                1 // roleId to be elected
+            ),
+            conditions: conditions,
+            description: "Self select as community member: Self select as a community member. Anyone can call this law."
+        });
+        delete conditions;
 
-        conditions.allowedRole = 3;
+        //////////////////////////////////////////////////////////////////
+        //                       Executive laws                         // 
+        //////////////////////////////////////////////////////////////////
+
+        // This law allows proposing changes to core values of the DAO
+        // Only community members can use this law. It is subject to a vote. 
+        string[] memory inputParams = new string[](3);
+        inputParams[0] = "address[] Targets";
+        inputParams[1] = "uint256[] Values";
+        inputParams[2] = "bytes[] Calldatas";
+
+        conditions.allowedRole = 1;
+        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
+        conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams),
             conditions: conditions,
-            description: "A law to propose a new core value to or remove an existing from the Dao. Subject to a vote and cannot be implemented."
+            description: "Propose an action: Propose an action that can later be executed by Delegates."
+        });
+        delete conditions;
+
+        // This law allows a proposed action to be vetoed. 
+        // Only the admin can use this law // not subhject to a vote, but the proposal needs to have passed by the community members. 
+        conditions.allowedRole = 0;
+        conditions.needCompleted = 4;
+        lawInitData[5] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            config: abi.encode(inputParams),
+            conditions: conditions,
+            description: "Veto an action: Veto an action that has been proposed by the community."
         });
         delete conditions;
 
         // This law allows executing any action with voting requirements
         // Only role 2 can use this law
-        // Requires 30% quorum and 51% majority to pass
+        // Requires 20% quorum and 51% majority to pass
         conditions.allowedRole = 2;
-        conditions.quorum = 20; // = 30% quorum needed
-        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members
-        conditions.votingPeriod = 1200; // = number of blocks
-        lawInitData[5] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(6, "OpenAction"),
-            config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "A law to execute an open action."
-        });
-        delete conditions;
-
-        // This law allows executing predefined actions with voting requirements
-        // Only role 1 can use this law
-        // Requires 30% quorum, 51% majority, and 3 completed actions to pass
-        address[] memory targets = new address[](1);
-        uint256[] memory values = new uint256[](1);
-        bytes[] memory calldatas = new bytes[](1);
-        targets[0] = address(123);
-        calldatas[0] = abi.encode("mockCall");
-        // 
-        conditions.allowedRole = 1;
-        conditions.quorum = 30; // = 30% quorum needed
-        conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
-        conditions.votingPeriod = 1200; // = number of blocks
-        conditions.needCompleted = 3;
+        conditions.quorum = 50; // = 50% quorum needed
+        conditions.succeedAt = 77; // = 77% simple majority needed for executing an action
+        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.needCompleted = 4;
+        conditions.needNotCompleted = 5;
+        conditions.delayExecution = 50; // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
         lawInitData[6] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(7, "PresetAction"),
-            config: abi.encode(targets, values, calldatas),
+            targetLaw: parseLawAddress(6, "OpenAction"),
+            config: abi.encode(), // empty config, an open action takes address[], uint256[], bytes[] as input.             
             conditions: conditions,
-            description: "A law to execute a preset action."
+            description: "Execute an action: Execute an action that has been proposed by the community."
         });
         delete conditions;
 
         // PresetAction for roles
-        // This law sets up initial role assignments for the DAO
-        // Only role 0 can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getRoles(dao_, 7);
+        // This law sets up initial role assignments for the DAO & role labelling. It is a law that self destructs when executed. 
+        // Only the admin can use this law
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, mockAddresses, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "A law to execute a preset action."
+            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
         });
         delete conditions;
     }
 
-    function _getRoles(address payable dao_, uint16 lawId)
+    //////////////////////////////////////////////////////////////
+    //                  HELPER FUNCTIONS                        // 
+    //////////////////////////////////////////////////////////////
+
+    function _getActions(address payable powers_, address[] memory mocks, uint16 lawId)
         internal
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // create addresses
-        address alice = makeAddr("alice");
-        address bob = makeAddr("bob");
-        address charlotte = makeAddr("charlotte");
-        address david = makeAddr("david");
-        address eve = makeAddr("eve");
-        address frank = makeAddr("frank");
-        address gary = makeAddr("gary");
-
         // call to set initial roles
-        targets = new address[](13);
-        values = new uint256[](13);
-        calldatas = new bytes[](13);
-        for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = dao_;
-        }
+        // NB! NEW ACTIONS ADDED HERE! 
+        targets = new address[](5);
+        values = new uint256[](5);
+        calldatas = new bytes[](5);
 
-        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, alice);
-        calldatas[1] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, bob);
-        calldatas[2] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, charlotte);
-        calldatas[3] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, david);
-        calldatas[4] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, eve);
-        calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, frank);
-        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 1, gary);
-        calldatas[7] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, alice);
-        calldatas[8] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, bob);
-        calldatas[9] = abi.encodeWithSelector(IPowers.assignRole.selector, 2, charlotte);
-        calldatas[10] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, alice);
-        calldatas[11] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, bob);
-        // revoke law after use
-        if (lawId != 0) {
-            calldatas[12] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-        }
+        targets[0] = powers_;
+        targets[1] = powers_;
 
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegates");
+        
+        targets[2] =  mocks[2];
+        calldatas[2] = abi.encodeWithSelector(Erc20VotesMock.mintVotes.selector, 1000000000000000000);
+
+        targets[3] = mocks[3];
+        calldatas[3] = abi.encodeWithSelector(Erc20TaxedMock.faucet.selector);
+
+        targets[4] = powers_;
+        calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        
         return (targets, values, calldatas);
     }
     
@@ -235,5 +228,12 @@ contract DeployPowers101 is Script {
             revert("Law name does not match");
         }
         return lawAddresses[index];
+    }
+
+    function parseMockAddress(uint256 index, string memory mockName) public view returns (address mockAddress) {
+        if (keccak256(abi.encodePacked(mockName)) != keccak256(abi.encodePacked(mockNames[index]))) {
+            revert("Mock name does not match");
+        }
+        return mockAddresses[index];
     }
 } 

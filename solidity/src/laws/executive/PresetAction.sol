@@ -25,10 +25,13 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PresetAction is Law {
+    struct Data {
+        address[] targets;
+        uint256[] values;
+        bytes[] calldatas;
+    }
     /// the targets, values and calldatas to be used in the calls: set at construction.
-    mapping(bytes32 lawHash => address[] targets) public targets;
-    mapping(bytes32 lawHash => uint256[] values) public values;
-    mapping(bytes32 lawHash => bytes[] calldatas) public calldatas;
+    mapping(bytes32 lawHash => Data data) internal data;
 
     /// @notice constructor of the law
     /// @param name_ the name of the law.
@@ -54,22 +57,29 @@ contract PresetAction is Law {
             abi.decode(config, (address[], uint256[], bytes[]));
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        targets[lawHash] = targets_;
-        values[lawHash] = values_;
-        calldatas[lawHash] = calldatas_;
+        data[lawHash] = Data({
+            targets: targets_,
+            values: values_,
+            calldatas: calldatas_
+        });
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
+        super.initializeLaw(index, conditions, config,"", description);
     }
 
     /// @notice execute the law.
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (uint256 actionId, address[] memory, uint256[] memory, bytes[] memory, bytes memory)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
     {
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        return (actionId, targets[lawHash], values[lawHash], calldatas[lawHash], "");
+        
+        return (actionId, data[lawHash].targets, data[lawHash].values, data[lawHash].calldatas, "");
+    }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
     }
 }

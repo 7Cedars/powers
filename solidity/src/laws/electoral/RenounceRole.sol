@@ -34,7 +34,7 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract RenounceRole is Law {
-    mapping(bytes32 lawHash => uint32[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
+    mapping(bytes32 lawHash => uint256[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -51,14 +51,15 @@ contract RenounceRole is Law {
         bytes memory inputParams,
         string memory description
     ) public override {
-        uint32[] memory allowedRoleIds_ = abi.decode(config, (uint32[]));
+        uint256[] memory allowedRoleIds_ = abi.decode(config, (uint256[]));
         allowedRoleIds[LawUtilities.hashLaw(msg.sender, index)] = allowedRoleIds_;
+        
 
         inputParams = abi.encode("uint256 roleId");
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -73,11 +74,11 @@ contract RenounceRole is Law {
     {
         // step 1: decode the calldata.
         (uint256 roleId) = abi.decode(lawCalldata, (uint256));
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
 
         // step2: check if the role is allowed to be renounced.
         bool allowed = false;
-        for (uint32 i = 0; i < allowedRoleIds[lawHash].length; i++) {
+        for (uint256 i = 0; i < allowedRoleIds[lawHash].length; i++) {
             if (roleId == allowedRoleIds[lawHash][i]) {
                 allowed = true;
                 break;
@@ -91,12 +92,16 @@ contract RenounceRole is Law {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        targets[0] = msg.sender;
-        if (Powers(payable(msg.sender)).hasRoleSince(caller, roleId) == 0) {
+        targets[0] = powers;
+        if (Powers(payable(powers)).hasRoleSince(caller, roleId) == 0) {
             revert("Account does not have role.");
         }
         calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId, caller); // selector = revokeRole
 
         return (actionId, targets, values, calldatas, "");
+    }
+
+    function getAllowedRoleIds(bytes32 lawHash) public view returns (uint256[] memory) {
+        return allowedRoleIds[lawHash];
     }
 }

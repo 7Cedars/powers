@@ -61,10 +61,11 @@ contract DeployTest is TestSetupLaw {
         description = "Test law initialization";
 
         // act: initialize the law
+        vm.prank(address(daoMock));
         lawMock.initializeLaw(lawId, conditions, configLocal, "", description);
 
         // assert: verify conditions are set correctly
-        (conditions) = lawMock.getConditions(lawId);
+        (conditions) = lawMock.getConditions(address(daoMock), lawId);
         assertEq(conditions.allowedRole, ROLE_ONE);
         assertEq(conditions.quorum, 0);
         assertEq(conditions.succeedAt, 0);
@@ -205,7 +206,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify execution
-        uint256 balance = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balance = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balance, 123);
     }
 
@@ -246,7 +247,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
     function testLawRevertsIfVoteStillActive() public {
         // prep: create a new law
         uint16 lawId = 4;
-        description = "Executing a proposal vote";
+        description = "Executing a proposal vote"; 
         lawCalldata = abi.encode(true);
 
         // prep: assign role to alice
@@ -307,18 +308,19 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         daoMock.request(parentLawNumber, lawCalldata, nonce, description);
 
         // Verify parent law state
+
         ActionState parentState = daoMock.state(parentActionId);
         assertEq(uint8(parentState), uint8(ActionState.Fulfilled));
 
         // Record balance before executing dependent law
-        uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceBefore = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
 
         // Now execute the dependent law
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // Verify the execution succeeded by checking balance change
-        uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceAfter = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balanceBefore + 123, balanceAfter);
     }
 
@@ -467,14 +469,14 @@ contract ParentCanBlockTest is TestSetupLaw {
         assertEq(uint8(parentState), uint8(ActionState.Defeated));
 
         // prep: record balance before executing blocked law
-        uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceBefore = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
 
         // act: execute blocked law
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify the execution succeeded by checking balance change
-        uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceAfter = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balanceBefore + 123, balanceAfter);
     }
 
@@ -512,14 +514,14 @@ contract ParentCanBlockTest is TestSetupLaw {
         assertEq(uint8(parentState), uint8(ActionState.Succeeded));
 
         // prep: record balance before executing blocked law
-        uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceBefore = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
 
         // act: execute blocked law
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify the execution succeeded by checking balance change
-        uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceAfter = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balanceBefore + 123, balanceAfter);
     }
 }
@@ -550,11 +552,11 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // act: execute the proposal
-        vm.prank(alice);
+        vm.prank(bob);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify execution
-        uint256 balance = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balance = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balance, 123);
     }
 
@@ -565,7 +567,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         lawCalldata = abi.encode(true);
 
         // prep: create proposal
-        vm.prank(alice);
+        vm.prank(bob);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
@@ -659,7 +661,7 @@ contract LimitExecutionsTest is TestSetupLaw {
 
         // act: execute multiple times with sufficient delay
         uint256 numberOfExecutions = 5;
-        uint256 balanceBefore = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceBefore = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
 
         for (i = 0; i < numberOfExecutions; i++) {     
             // Advance time past voting period and delay
@@ -672,7 +674,7 @@ contract LimitExecutionsTest is TestSetupLaw {
         }
 
         // assert: verify total balance change
-        uint256 balanceAfter = erc1155Mock.balanceOf(address(daoMock), 0);
+        uint256 balanceAfter = Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0);
         assertEq(balanceAfter - balanceBefore, 123 * numberOfExecutions);
     }
 

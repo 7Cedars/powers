@@ -26,6 +26,12 @@ import { TokensArray } from "../src/laws/state/TokensArray.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
+import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
+import { HolderSelect } from "../src/laws/electoral/HolderSelect.sol";
+import { Grant } from "../src/laws/state/Grant.sol";
+import { StartGrant } from "../src/laws/executive/StartGrant.sol";
+import { StopGrant } from "../src/laws/executive/StopGrant.sol";
+import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -33,9 +39,9 @@ import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
 contract DeployLaws is Script {
     
     function run() external returns (string[] memory names, address[] memory addresses) {
-        names = new string[](13);
-        addresses = new address[](13);
-        bytes[] memory creationCodes = new bytes[](13);
+        names = new string[](19);
+        addresses = new address[](19);
+        bytes[] memory creationCodes = new bytes[](19);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -64,7 +70,6 @@ contract DeployLaws is Script {
         names[8] = "ProposalOnly";
         creationCodes[8] = type(ProposalOnly).creationCode;
 
-        // // state laws
         names[9] = "AddressesMapping";
         creationCodes[9] = type(AddressesMapping).creationCode;
 
@@ -76,6 +81,24 @@ contract DeployLaws is Script {
 
         names[12] = "TokensArray";
         creationCodes[12] = type(TokensArray).creationCode;
+
+        names[13] = "TaxSelect";
+        creationCodes[13] = type(TaxSelect).creationCode;
+
+        names[14] = "HolderSelect";
+        creationCodes[14] = type(HolderSelect).creationCode;
+
+        names[15] = "Grant";
+        creationCodes[15] = type(Grant).creationCode;
+
+        names[16] = "StartGrant";
+        creationCodes[16] = type(StartGrant).creationCode;
+
+        names[17] = "StopGrant";
+        creationCodes[17] = type(StopGrant).creationCode;
+
+        names[18] = "AdoptLaw";
+        creationCodes[18] = type(AdoptLaw).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
            addresses[i] = deployLaw(creationCodes[i], names[i]);
@@ -105,5 +128,6 @@ contract DeployLaws is Script {
             // console2.log(string.concat(name, " deployed at: "), computedAddress);
             return computedAddress;
         }
+        
     }
 }

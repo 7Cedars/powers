@@ -101,7 +101,7 @@ interface ILaw is IERC165, LawErrors {
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
     /// @return stateChange Encoded state changes to apply
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         external
         view
         returns (
@@ -147,7 +147,8 @@ interface ILaw is IERC165, LawErrors {
     ) external view;
 
     /// @notice Gets the conditions for a law
+    /// @param powers The address of the Powers protocol
     /// @param lawId The id of the law
     /// @return conditions The conditions for the law
-    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
+    function getConditions(address powers, uint16 lawId) external view returns (Conditions memory conditions);
 }

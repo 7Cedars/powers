@@ -47,21 +47,22 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 
 contract DelegateSelect is Law {
-    struct StateData {
+    struct Data {
         address erc20Token;
         uint256 maxRoleHolders;
         uint256 roleId;
         address[] electedAccounts;
     }
 
-    mapping(bytes32 lawHash => StateData) internal stateData;
+    mapping(bytes32 lawHash => Data) internal data;
 
     struct MemoryData {
         bytes32 lawHash;
+        bytes32 nominateMeHash;
         Conditions conditions;
         uint16 nominateMeId;
         address nominateMeAddress;
-        uint256 numberNominees;
+        address[] nominees;
         uint256 numberRevokees;
         uint256 arrayLength;
         address[] accountElects;
@@ -70,7 +71,7 @@ contract DelegateSelect is Law {
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
-        bytes memory configParams = abi.encode("address erc20Token", "uint256 maxRoleHolders", "uint256 roleId");
+        bytes memory configParams = abi.encode("address Erc20Token", "uint256 MaxRoleHolders", "uint256 RoleId");
         emit Law__Deployed(name_, configParams);
     }
 
@@ -84,14 +85,14 @@ contract DelegateSelect is Law {
         (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) =
             abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        stateData[lawHash].erc20Token = erc20Token_;
-        stateData[lawHash].maxRoleHolders = maxRoleHolders_;
-        stateData[lawHash].roleId = roleId_;
+        data[lawHash].erc20Token = erc20Token_;
+        data[lawHash].maxRoleHolders = maxRoleHolders_;
+        data[lawHash].roleId = roleId_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("bool Assign", "address Account"), description);
+        super.initializeLaw(index, conditions, config, "", description);
     }
 
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -105,50 +106,52 @@ contract DelegateSelect is Law {
         )
     {
         MemoryData memory mem;
-
-        (, mem.lawHash, mem.conditions) = Powers(payable(msg.sender)).getActiveLaw(lawId);
+        
+        (, mem.lawHash, mem.conditions) = Powers(payable(powers)).getActiveLaw(lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
-        (mem.nominateMeAddress,,) = Powers(payable(msg.sender)).getActiveLaw(mem.nominateMeId);
-
-        mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
-        mem.numberRevokees = stateData[mem.lawHash].electedAccounts.length;
-        mem.arrayLength = mem.numberNominees < stateData[mem.lawHash].maxRoleHolders
-            ? mem.numberRevokees + mem.numberNominees
-            : mem.numberRevokees + stateData[mem.lawHash].maxRoleHolders;
+        (mem.nominateMeAddress,,) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
+        mem.nominateMeHash = LawUtilities.hashLaw(powers, mem.nominateMeId);
+        
+        // mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
+        mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
+        mem.numberRevokees = data[mem.lawHash].electedAccounts.length;
+        mem.arrayLength = mem.nominees.length < data[mem.lawHash].maxRoleHolders
+            ? mem.numberRevokees + mem.nominees.length
+            : mem.numberRevokees + data[mem.lawHash].maxRoleHolders;
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
-            targets[i] = msg.sender;
+            targets[i] = powers;
         }
         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
         for (uint256 i; i < mem.numberRevokees; i++) {
             calldatas[i] = abi.encodeWithSelector(
-                Powers.revokeRole.selector, stateData[mem.lawHash].roleId, stateData[mem.lawHash].electedAccounts[i]
+                Powers.revokeRole.selector, data[mem.lawHash].roleId, data[mem.lawHash].electedAccounts[i]
             );
         }
 
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
-        if (mem.numberNominees < stateData[mem.lawHash].maxRoleHolders) {
-            mem.accountElects = new address[](mem.numberNominees);
-            for (uint256 i; i < mem.numberNominees; i++) {
-                address accountElect = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash)[i];
+        if (mem.nominees.length < data[mem.lawHash].maxRoleHolders) {
+            mem.accountElects = new address[](mem.nominees.length);
+            for (uint256 i; i < mem.nominees.length; i++) {
+                address accountElect = mem.nominees[i];
                 calldatas[i + mem.numberRevokees] =
-                    abi.encodeWithSelector(Powers.assignRole.selector, stateData[mem.lawHash].roleId, accountElect);
+                    abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId, accountElect);
                 mem.accountElects[i] = accountElect;
             }
 
             // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
             // retrieve balances of delegated votes of nominees.
-            mem.accountElects = new address[](stateData[mem.lawHash].maxRoleHolders);
-            uint256[] memory _votes = new uint256[](mem.numberNominees);
-            address[] memory _nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.lawHash);
+            mem.accountElects = new address[](data[mem.lawHash].maxRoleHolders);
+            uint256[] memory _votes = new uint256[](mem.nominees.length);
+            address[] memory _nominees = mem.nominees;
 
-            for (uint256 i; i < mem.numberNominees; i++) {
-                _votes[i] = ERC20Votes(stateData[mem.lawHash].erc20Token).getVotes(_nominees[i]);
+            for (uint256 i; i < mem.nominees.length; i++) {
+                _votes[i] = ERC20Votes(data[mem.lawHash].erc20Token).getVotes(_nominees[i]);
             }
 
             // note how the following mechanism works:
@@ -156,19 +159,19 @@ contract DelegateSelect is Law {
             // b. if the position is greater than MAX_ROLE_HOLDERS, we break. (it means there are more accounts that have more tokens than MAX_ROLE_HOLDERS)
             // c. if the position is less than MAX_ROLE_HOLDERS, we assign the roles.
             uint256 index;
-            for (uint256 i; i < mem.numberNominees; i++) {
+            for (uint256 i; i < mem.nominees.length; i++) {
                 uint256 rank;
                 // a: loop to assess ranking.
-                for (uint256 j; j < mem.numberNominees; j++) {
+                for (uint256 j; j < mem.nominees.length; j++) {
                     if (j != i && _votes[j] >= _votes[i]) {
                         rank++;
-                        if (rank > stateData[mem.lawHash].maxRoleHolders) break; // b: do not need to know rank beyond MAX_ROLE_HOLDERS threshold.
+                        if (rank > data[mem.lawHash].maxRoleHolders) break; // b: do not need to know rank beyond MAX_ROLE_HOLDERS threshold.
                     }
                 }
                 // c: assigning role if rank is less than MAX_ROLE_HOLDERS.
-                if (rank < stateData[mem.lawHash].maxRoleHolders && index < mem.arrayLength - mem.numberRevokees) {
+                if (rank < data[mem.lawHash].maxRoleHolders && index < mem.arrayLength - mem.numberRevokees) {
                     calldatas[index + mem.numberRevokees] =
-                        abi.encodeWithSelector(Powers.assignRole.selector, stateData[mem.lawHash].roleId, _nominees[i]);
+                        abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId, _nominees[i]);
                     mem.accountElects[index] = _nominees[i];
                     index++;
                 }
@@ -181,9 +184,9 @@ contract DelegateSelect is Law {
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (address[] memory accountElects) = abi.decode(stateChange, (address[]));
-        for (uint256 i; i < stateData[lawHash].electedAccounts.length; i++) {
-            stateData[lawHash].electedAccounts.pop();
+        for (uint256 i; i < data[lawHash].electedAccounts.length; i++) {
+            data[lawHash].electedAccounts.pop();
         }
-        stateData[lawHash].electedAccounts = accountElects;
+        data[lawHash].electedAccounts = accountElects;
     }
 }

@@ -59,7 +59,7 @@ contract TokensArray is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address, /*caller*/ uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override

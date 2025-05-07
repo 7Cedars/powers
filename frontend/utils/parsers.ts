@@ -66,6 +66,19 @@ export const parseParamValues = (inputs: unknown): Array<InputType | InputType[]
   return result 
 };
 
+const parseTokens = (tokens: unknown): `0x${string}`[] => {
+  if (!isArray(tokens)) {
+    throw new Error('@parseTokens: tokens not an array.');
+  }
+
+  const result = tokens.map(token =>  {
+    if (isArray(token)) { throw new Error('@parseTokens: nested token arrays not supported.'); }
+    return token as `0x${string}` 
+  })
+
+  return result 
+}
+
 const parseDescription = (description: unknown): string => {
   if (!isString(description)) {
     throw new Error(`Incorrect description, not a string: ${description}`);
@@ -132,6 +145,10 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
      throw new Error('@parseInput: Incorrect or missing data.');
   }
 
+  if (event.target.value == "") {
+    return errorMessage
+  }
+
   // Note that later on I can also check for maximum values by taking the power of uintxxx
   if (dataType.indexOf('uint') > -1) {
     try {
@@ -143,7 +160,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   if (dataType.indexOf('bool') > -1) {
     try {
-      return event.target.value == 'true'
+      return event.target.value == 'true' ? true : event.target.value == 'false' ? false : errorMessage
     } catch {
       return errorMessage
     }
@@ -172,6 +189,8 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
       return errorMessage
     }
   }
+
+  return errorMessage
 };
 
 export const parseRole = (role: bigint | undefined): number => {
@@ -272,13 +291,19 @@ export const parseMetadata = (metadata: unknown): Metadata => {
   if ( 
     'icon' in metadata &&   
     'banner' in metadata &&   
-    'description' in metadata &&     
+    'description' in metadata && 
+    'erc20s' in metadata &&
+    'erc721s' in metadata &&
+    'erc1155s' in metadata &&
     'attributes' in metadata 
     ) { 
         return ({
           icon: metadata.icon as string,
           banner: metadata.banner as string,
           description: parseDescription(metadata.description),
+          erc20s: parseTokens(metadata.erc20s),
+          erc721s: parseTokens(metadata.erc721s),
+          erc1155s: parseTokens(metadata.erc1155s),
           attributes: parseAttributes(metadata.attributes)
         })
        }
@@ -314,7 +339,9 @@ export const parseProposalStatus = (state: string | undefined): string => {
     case '1': return "Cancelled";
     case '2': return "Defeated";
     case '3': return "Succeeded";
-    case '4': return "Completed"; 
+    case '4': return "Requested";
+    case '5': return "Fulfilled";
+    case '6': return "NonExistent";
 
     default:
       return "unsupported state";
@@ -344,4 +371,40 @@ export const parseErrorMessage = (message: unknown): boolean | string  => {
     return false 
   }
 };
+
+export const shorterDescription = (message: string | undefined, output: "short" | "long" | "full")  => {
+  if (!message) {
+    return ""
+  }
+
+  if (!isString(message)) {
+    throw new Error(`Incorrect message, not a string: ${message}`);
+  }
+
+  const splitMessage = message.split(":")
+
+  if (output == "short") {
+    return splitMessage[0]
+  }
+
+  if (output == "long") {
+    return splitMessage[1] ? splitMessage[1] : splitMessage[0]
+  } 
+
+  if (output == "full") {
+    return message
+  }
+};
+
+// would be great to make this more dynamic. 
+export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | undefined => {
+  if (!chainId) {
+    return undefined
+  }
+  if ( chainId != "1" && chainId != "421614" && chainId != "11155111") {
+    return undefined
+  }
+  return parseInt(chainId) as 421614 | 11155111 | undefined
+}
+
 

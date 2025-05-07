@@ -58,13 +58,13 @@ contract Erc20TaxedMockTest is Test {
     Powers daoMock;
 
     function setUp() public {
-        uint256 taxRate_ = 7;
+        uint256 taxRate_ = 10;
         uint8 DENOMINATOR_ = 100; // this should work out at 7 percent tax per transaction.
-        uint48 epochDuration_ = 19;
+        uint48 epochDuration_ = 1000;
 
         daoMock = new Powers("DAO", "");
         vm.prank(address(daoMock));
-        erc20TaxedMock = new Erc20TaxedMock(taxRate_, DENOMINATOR_, epochDuration_);
+        erc20TaxedMock = new Erc20TaxedMock();
         uint256 balanceBefore = erc20TaxedMock.balanceOf(address(daoMock));
 
         vm.prank(address(daoMock));

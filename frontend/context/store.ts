@@ -1,120 +1,55 @@
 import { create } from 'zustand';
-import { Config, Proposal, Law, Organisation, Action, Role, Roles } from '../context/types'
-
-type OrgStore = Organisation; 
-const initialStateOrg: OrgStore = {
-  name: '',
-  contractAddress: `0x0`,
-  colourScheme: 0,
-  laws: [],
-  proposals: [],
-  roles: [],
-  roleLabels: [], 
-  deselectedRoles: []
-}
-
-type LawStore = Law;
-const initialStateLaw: LawStore = {
-  name: '',
-  description: '',
-  config: {
-    delayExecution: 0n, 
-    needCompleted: `0x0`,
-    needNotCompleted: `0x0`,
-    readStateFrom: `0x0`,
-    quorum: 0n, 
-    succeedAt: 0n, 
-    throttleExecution: 0n,
-    votingPeriod: 0n
-  },
-  law: `0x0`,
-  params: [],
-  allowedRole: 0n
-}
-
-type ProposalStore = Proposal;
-const initialStateProposal: ProposalStore = {
-  actionId: 0,
-  targetLaw: `0x`,
-  voteStart: 0n,
-  voteDuration: 0n,
-  voteEnd: 0n,
-  cancelled: false,
-  completed: false,
-  caller: `0x`,
-  againstVotes: 0n,
-  forVotes: 0n,
-  abstainVotes: 0n,
-  description: "",
-  executeCalldata: `0x`,
-  state: 5,
-  blockNumber: 0n,
-  blockHash: `0x`
-}
+import { Action, Roles } from '../context/types'
 
 type ActionStore = Action;
 const initialStateAction: ActionStore = {
+  actionId: "0",
+  lawId: 0n,
+  caller: `0x0`,
+  description: "",
   dataTypes: [],
   paramValues: [],
-  description: '',
+  nonce: 0n,
   callData: `0x0`, 
   upToDate: false
 }
 
-type RoleStore = Roles;
-const initialStateRole: RoleStore = {
-  roleId: 999n, 
-  holders: 0,
-  laws: [],
-  proposals: [], 
-  roles: [],
+type ErrorStore = {
+  error: Error | string | null
 }
 
-// Organisation Store
-export const useOrgStore = create<OrgStore>()(() => initialStateOrg); 
+const initialStateError: ErrorStore = {
+  error: null
+}
 
-export const assignOrg: typeof useOrgStore.setState = (organisation) => {
-      useOrgStore.setState(organisation)
-    }
-export const deleteOrg: typeof useOrgStore.setState = () => {
-      useOrgStore.setState(initialStateOrg)
-    }
-
-// Law Store 
-export const useLawStore = create<LawStore>()(() => initialStateLaw); 
-
-export const setLaw: typeof useLawStore.setState = (law) => {
-  useLawStore.setState(law)
-    }
-export const deleteLaw: typeof useLawStore.setState = () => {
-      useLawStore.setState(initialStateLaw)
-    }
-
-// Proposal Store
-export const useProposalStore = create<ProposalStore>()(() => initialStateProposal); 
-
-export const setProposal: typeof useProposalStore.setState = (proposal) => {
-    useProposalStore.setState(proposal)
-      }
-export const deleteProposal: typeof useProposalStore.setState = () => {
-    useProposalStore.setState(initialStateProposal)
-    }
+type RoleStore = {
+  deselectedRoles: bigint[]
+}
+const initialStateRole: RoleStore = {
+  deselectedRoles: []
+} 
 
 // Action Store
 export const useActionStore = create<ActionStore>()(() => initialStateAction);
 
 export const setAction: typeof useActionStore.setState = (action) => {
   useActionStore.setState(action)
-    }
+}
 export const deleteAction: typeof useActionStore.setState = () => {
       useActionStore.setState(initialStateAction)
-    }
-
-export const notUpToDate: typeof useActionStore.setState = () => {
-  useActionStore.setState({...initialStateAction, upToDate: false})
 }
-  
-  
+ 
+
+// Error Store
+export const useErrorStore = create<ErrorStore>()(() => initialStateError);
+
+export const setError: typeof useErrorStore.setState = (error) => {
+  useErrorStore.setState(error)
+}
+export const deleteError: typeof useErrorStore.setState = () => {
+  useErrorStore.setState(initialStateError)
+}
+
 // Role store 
 export const useRoleStore = create<RoleStore>()(() => initialStateRole);
 
@@ -124,4 +59,3 @@ export const setRole: typeof useRoleStore.setState = (role) => {
 export const deleteRole: typeof useRoleStore.setState = () => {
   useRoleStore.setState(initialStateRole)
     }
-

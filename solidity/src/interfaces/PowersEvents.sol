@@ -46,7 +46,7 @@ interface PowersEvents {
     /// @param targets the targets of the action
     /// @param values the values of the action
     /// @param calldatas the calldatas of the action
-    event ActionExecuted(uint16 lawId, uint256 actionId, address[] targets, uint256[] values, bytes[] calldatas);
+    event ActionExecuted(uint16 indexed lawId, uint256 indexed actionId, address[] targets, uint256[] values, bytes[] calldatas);
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal
@@ -98,4 +98,8 @@ interface PowersEvents {
     /// @notice Emitted when a law is revoked.
     /// @param lawId the id of the law
     event LawRevoked(uint16 indexed lawId);
+
+    /// @notice Emitted when a law is revived.
+    /// @param lawId the id of the law
+    event LawRevived(uint16 indexed lawId);
 }

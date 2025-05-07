@@ -13,429 +13,309 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Deploy script Managed Grants
-/// @notice Managed Grants is a simple example of a DAO. It acts as an introductory example of grant management using the Powers protocol. 
+/// @notice Managed Grants is a DAO example that implements a grant management system with multiple roles and checks and balances.
 /// 
-/// This example needs: (use AI to generate the laws)
+/// This example implements: (implementation is not fully complete.)
 /// Executive laws: 
-/// - A law to start and stop grants. 
-/// - A law that allows community members to request grants. 
-/// - A law that allows allocators to assign grants to grant requests. 
-/// - A law to challenge (and revoke) a decision by allocators.
-
+/// - A law to start grants: BespokeAction, access role = delegates. By majority vote.
+/// - A law to stop grants: BespokeAction, access role = delegates. By majority vote.
+/// - A law that allows community members to request assets from a specific grant law, access role = members.
+/// - A law that allows allocators to assign assets to a grant request. Access role = allocator.
+/// - A law to challenge a decision by allocators. Access role = members.
+/// - A law to revert a decision by allocators. Can only react to a challenge from a public account. Access role = judge.
+///
 /// Electoral laws: (possible roles: allocator, judge, community member, delegate)
 /// - a law to self select as community member. Access role: public.
-/// - a law to nominate oneself for a judge role. Access role: public.
-/// - a law to assign a judge role to a nominated account. Access role: delegate, using majority vote.
-/// - a law to remove a judge. Access role: delegate, using majority vote.
+/// - a law to assign and revoke account to judge role. Access role: Admin. 
 /// - a law to nominate oneself for a delegate role. Access role: public.
-/// - a law to assign a delegate role to a nominated account. Access role: delegate, using delegate election vote.
+/// - a law to assign a delegate role to a nominated account. Access role: public, delegate election.
 /// - a law to nominate oneself for an allocator role. Access role: public.
-/// - a law to assign  or revoke allocator role to a nominated account. Access role: delegate, using majority vote.
-/// 
+/// - a law to assign or revoke allocator role to a nominated account. Access role: delegate, using majority vote.
 
 /// @author 7Cedars
 
-/// NB: This example is not complete and needs to be completely revised. 
-
 pragma solidity 0.8.26;
 
-// import "lib/forge-std/src/Script.sol";
-// import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Script } from "forge-std/Script.sol";
+import { console2 } from "forge-std/console2.sol";
 
-// // core protocol
-// import { Powers} from "../src/Powers.sol";
-// import { Law } from "../src/Law.sol";
-// import { ILaw } from "../src/interfaces/ILaw.sol";
-// import { LawUtilities } from "../src/LawUtilities.sol";
-// import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
+// core protocol
+import { Powers } from "../src/Powers.sol";
+import { IPowers } from "../src/interfaces/IPowers.sol";
+import { ILaw } from "../src/interfaces/ILaw.sol";
+import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
+import { DeployLaws } from "./DeployLaws.s.sol";
+import { DeployMocks } from "./DeployMocks.s.sol";
 
-// // config
-// import { HelperConfig } from "./HelperConfig.s.sol";
+contract DeployManagedGrants is Script {
+    string[] names;
+    address[] lawAddresses;
+    string[] mockNames;
+    address[] mockAddresses;
 
-// // laws
-// import { NominateMe } from "../src/laws/state/NominateMe.sol";
-// import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
-// import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
-// import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
-// import { ElectionTally } from "../src/laws/electoral/ElectionTally.sol";
-// import { ElectionCall } from "../src/laws/electoral/ElectionCall.sol";
-// import { ProposalOnly } from "../src/laws/executive/ProposalOnly.sol";
-// import { BespokeAction } from "../src/laws/executive/BespokeAction.sol";
-// import { PresetAction } from "../src/laws/executive/PresetAction.sol";
-// import { Grant } from "../src/laws/bespoke/governYourTax/Grant.sol";
-// import { StartGrant } from "../src/laws/bespoke/governYourTax/StartGrant.sol";
-// import { StopGrant } from "../src/laws/bespoke/governYourTax/StopGrant.sol";
-// import { SelfDestructAction } from "../src/laws/executive/SelfDestructAction.sol";
-// import { RoleByTaxPaid } from "../src/laws/bespoke/governYourTax/RoleByTaxPaid.sol";
-// import { AssignCouncilRole } from "../src/laws/bespoke/governYourTax/AssignCouncilRole.sol";
-// // borrowing one law from another bespoke folder. Not ideal, but ok for now.
-// import { NftSelfSelect } from "../src/laws/bespoke/alignedDao/NftSelfSelect.sol";
+    function run() external returns (address payable powers_) {
+        // Deploy the DAO 
+        vm.startBroadcast();
+        Powers powers = new Powers(
+            "Managed Grants",
+            // TODO: this is still a placeholder: it is the data for Powers 101
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
+        );
+        vm.stopBroadcast();
+        powers_ = payable(address(powers));
 
-// mocks
-// import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
-// import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
-// import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
+        // Deploy laws & mocks 
+        DeployLaws deployLaws = new DeployLaws();
+        (names, lawAddresses) = deployLaws.run();
+        DeployMocks deployMocks = new DeployMocks();
+        (mockNames, mockAddresses) = deployMocks.run();
 
-// contract DeployGovernYourTax is Script {
-//     address[] laws;
+        // Create the constitution
+        PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
-//     function run()
-//         external
-//         returns (
-//             address payable dao,
-//             address[] memory constituentLaws,
-//             HelperConfig.NetworkConfig memory config,
-//             address payable mock20Taxed_
-//             )
-//     {
-//         HelperConfig helperConfig = new HelperConfig();
-//         config = helperConfig.getConfigByChainId(block.chainid);
+        // constitute dao
+        vm.startBroadcast();
+        powers.constitute(lawInitData);
+        vm.stopBroadcast();
 
-//         vm.startBroadcast();
-//         Powers powers = new Powers(
-//             "Govern Your Tax",
-//             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibcd4k5jmq3zpydwclgdmf3f2pkej24wlm5ufmq6x6t6yptdnubqm");
-//         Erc20TaxedMock erc20TaxedMock = new Erc20TaxedMock(
-//             10, // rate
-//             100, // denominator
-//             25 // 7% tax, (tax = 7, denominator = 2),  25 block epoch, about 5 minutes.
-//         );
-//         vm.stopBroadcast();
+        return (powers_);
+    }
 
-//         dao = payable(address(powers));
-//         mock20Taxed_ = payable(address(erc20TaxedMock));
-//         initiateConstitution(dao, mock20Taxed_);
+    function createConstitution(
+        address payable powers_
+    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+        ILaw.Conditions memory conditions;
+        ILaw.Conditions memory grantConditions;
+        lawInitData = new PowersTypes.LawInitData[](13);
 
-//         // // constitute dao.
-//         vm.startBroadcast();
-//         powers.constitute(laws);
-//         // // transferring ownership of erc721 and erc20Taxed token contracts..
-//         erc20TaxedMock.transferOwnership(address(powers));
-//         vm.stopBroadcast();
+        //////////////////////////////////////////////////////
+        //               Executive Laws                     // 
+        //////////////////////////////////////////////////////
+        // This law allows community members to request a grant from a Grant program. 
+        // Access role = members.
+        conditions.allowedRole = 1; // member role
+        string[] memory inputParams = new string[](3);
+        inputParams[0] = "address Grantee";
+        inputParams[1] = "address Grant";
+        inputParams[2] = "uint256 Quantity";
+         
+        lawInitData[1] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            config: abi.encode(inputParams), 
+            conditions: conditions,
+            description: "Request a grant."
+        });
+        delete conditions;
 
-//         return (dao, laws, config, mock20Taxed_);
-//     }
+        // This law allows judges to veto the deployment of a new grant program. 
+        // Access role = judges.
+        conditions.allowedRole = 3; // judge role
+        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.quorum = 66; // 66% quorum: 66% of judges need to vote for a new grant program to be deployed. 
+        conditions.succeedAt = 66; // 66% majority
+        
+        inputParams = new string[](4);
+        inputParams[0] = "uint48 Duration";
+        inputParams[1] = "uint256 Budget";
+        inputParams[2] = "address TokenAddress";
+        inputParams[3] = "string GrantDescription";
+ 
+        lawInitData[2] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            config: abi.encode(inputParams), 
+            conditions: conditions,
+            description: "Request a grant."
+        });
+        delete conditions;
 
-//     function initiateConstitution(
-//         address payable dao_,
-//         address payable mock20Taxed_
-//     ) public {
-//         Law law;
-//          LawUtilities.Conditions memory Conditions;
+        // This law allows delegates to start a grant program. 
+        // Access role = delegates.
+        // NB: these are the conditions for grant programs that will be deployed.
+        grantConditions.allowedRole = 4; // allocator role
+        grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
+        grantConditions.quorum = 33; // 33% quorum need to ok a grant request. 
+        grantConditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        grantConditions.succeedAt = 51; // simple 51% majority 
 
-//         //////////////////////////////////////////////////////////////
-//         //              CHAPTER 1: EXECUTIVE ACTIONS                //
-//         //////////////////////////////////////////////////////////////
-//         // laws[0]
-//         Conditions.quorum = 60; // = 60% quorum needed
-//         Conditions.succeedAt = 50; // = Simple majority vote needed.
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         // setting up params
-//         string[] memory inputParams = new string[](3);
-//         inputParams[0] = "address To"; // grantee
-//         inputParams[1] = "address Grant"; // grant Law address
-//         inputParams[2] = "uint256 Quantity"; // amount
-//         // initiating law.
-//         vm.startBroadcast();
-//         // Note: the grant has its token pre specified.
-//         law = new ProposalOnly(
-//             "Make a grant proposal.",
-//             "Make a grant proposal that will be voted on by community members. If successful, the 'quantity' of tokens held by the Grant will be sent to the 'to' address.",
-//             dao_,
-//             1, // access role
-//             Conditions,
-//             inputParams // input parameters
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // NB: these are the conditions for the deploy grants law.  
+        conditions.allowedRole = 2; // delegate role
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
+        conditions.succeedAt = 66; // 66% majority
+        conditions.delayExecution = 50; // 50 blocks, about 20 minutes
+        conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
-//         // laws[1]
-//         Conditions.quorum = 80; // = 80% quorum needed
-//         Conditions.succeedAt = 66; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         // initiating law
-//         vm.startBroadcast();
-//         law = new StartGrant(
-//             "Start a grant program", // max 31 chars
-//             "Subject to a vote, a grant program can be created. In this case, roleIds for the grant councils are 4, 5 or 6. The token, budget and duration need to be specified, as well as the roleId (of the grant council) that will govern the grant.",
-//             dao_, // separated powers
-//             2, // access role
-//             Conditions, // bespoke configs for this law.
-//             laws[0] // law from where proposals need to be made.
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        lawInitData[3] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(16, "StartGrant"),
+            config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)), // the same input params as the proposal law
+            conditions: conditions,
+            description: "Deploy a grant program."
+        });
+        delete conditions;
+        delete grantConditions;
 
-//         // laws[2]
-//         Conditions.needCompleted = laws[1]; // needs the exact grant to have been completed.
-//         // initiating law
-//         vm.startBroadcast();
-//         law = new StopGrant(
-//             "Stop a grant program", // max 31 chars
-//             "When a grant program's budget is spent, or the grant is expired, it can be stopped. This can only be done with the exact same data used when creating the grant.",
-//             dao_, // separated powers
-//             2, // access role
-//             Conditions // bespoke configs for this law.
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // This law allows delegates to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
+        conditions.allowedRole = 2; // delegate role
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
+        conditions.succeedAt = 66; // 66% majority
+        conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
 
-//         // laws[3]
-//         Conditions.quorum = 40; // = 40% quorum needed
-//         Conditions.succeedAt = 80; // =  80 majority needed
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         // input params
-//         inputParams = new string[](1);
-//         inputParams[0] = "address Law";
-//         // initiating law.
-//         vm.startBroadcast();
-//         law = new BespokeAction(
-//             "Stop law",
-//             "The security council can stop any active law. This means that any grant program or council can be stopped if needed.",
-//             dao_, // separated powers
-//             3, // access role
-//             Conditions, // bespoke configs for this law
-//             dao_,
-//             Powers.revokeLaw.selector,
-//             inputParams
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        lawInitData[4] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(17, "StopGrant"),
+            config: abi.encode(10, true),
+            conditions: conditions,
+            description: "Stop a grant program."
+        });
+        delete conditions;
 
-//         // laws[4]
-//         Conditions.quorum = 50; // = 50% quorum needed
-//         Conditions.succeedAt = 66; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         Conditions.needCompleted = laws[3]; // NB! first a law needs to be stopped before it can be restarted!
-//         // This does mean that the reason given needs to be the same as when the law was stopped.
-//         // initiating law.
-//         vm.startBroadcast();
-//         law = new BespokeAction(
-//             "Restart law",
-//             "The security council can restart a law. They can only restart a law that they themselves stopped.",
-//             dao_, // separated powers
-//             3, // access role
-//             Conditions, // bespoke configs for this law
-//             dao_,
-//             Powers.adoptLaw.selector,
-//             inputParams // note: same inputParams as laws [2]
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // Judges can stop a grant program at any time. 
+        conditions.allowedRole = 3; // judge role
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
+        conditions.succeedAt = 51; // 66% majority 
+        conditions.needCompleted = 2; // a delegate needs to have started a grant program. 
+        
+        lawInitData[5] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(17, "StopGrant"),
+            config: abi.encode(0, false), // Note: no checks. 
+            conditions: conditions,
+            description: "Stop a grant program."
+        });
+        delete conditions;
 
-//         // laws[5]
-//         // mint tokens
-//         Conditions.quorum = 67; // = two-thirds quorum needed
-//         Conditions.succeedAt = 67; // =  two/thirds majority needed for
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         // bespoke inputParams
-//         inputParams = new string[](1);
-//         inputParams[0] = "uint256 Quantity"; // number of tokens to mint.
-//         vm.startBroadcast();
-//         law = new BespokeAction(
-//             "Mint tokens",
-//             "Governors can decide to mint tokens.",
-//             dao_, // separated powers
-//             2, // access role
-//             Conditions, // bespoke configs for this law
-//             mock20Taxed_,
-//             Erc20TaxedMock.mint.selector,
-//             inputParams
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
+        // //////////////////////////////////////////////////////
+        // //                 Electoral Laws                   // 
+        // //////////////////////////////////////////////////////
+           // This law allows accounts to self-nominate for any role
+        // It can be used by community members
+        conditions.allowedRole = 1; 
+        lawInitData[6] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(10, "NominateMe"),
+            config: abi.encode(), // empty config
+            conditions: conditions,
+            description: "Nominate yourself for a delegate role."
+        });
+        delete conditions;
 
-//         // laws[6]
-//         // burn token
-//         vm.startBroadcast();
-//         law = new BespokeAction(
-//             "Burn tokens",
-//             "Governors can decide to burn tokens.",
-//             dao_, // separated powers
-//             2, // access role
-//             Conditions, // same Conditions as laws[5]
-//             mock20Taxed_,
-//             Erc20TaxedMock.burn.selector,
-//             inputParams // same Conditions as laws[5]
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions; // here we delete Conditions.
+        // This law enables role selection through delegated voting using an ERC20 token
+        // Only role 0 (admin) can use this law
+        conditions.allowedRole = 0;
+        conditions.readStateFrom = 1;
+        lawInitData[7] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(0, "DelegateSelect"),
+            config: abi.encode(
+                parseMockAddress(2, "Erc20VotesMock"),
+                15, // max role holders
+                2 // roleId to be elected
+            ),
+            conditions: conditions,
+            description: "Elect delegates using delegated votes."
+        });
+        delete conditions;
 
-//         //////////////////////////////////////////////////////////////
-//         //              CHAPTER 2: ELECT ROLES                      //
-//         //////////////////////////////////////////////////////////////
-//         // laws[7]
-//         vm.startBroadcast();
-//         law = new RoleByTaxPaid(
-//             "Claim community membership", // max 31 chars
-//             string.concat(
-//                 "Anyone who has paid sufficient tax (by using the Dao's ERC20 token @",
-//                 Strings.toHexString(uint256(addressToInt(mock20Taxed_)), 20),
-//                 ") can become a community member. The threshold is 100MCK tokens per 150 blocks. Tax rate is 10 percent(!) on each transaction and tokens can be minted at the contract's faucet function."
-//                 ),
-//             dao_,
-//             type(uint32).max, // access role = public access
-//             Conditions,
-//             1, // role id
-//             mock20Taxed_,
-//             100 // have to see if this is a fair amount.
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
+        // This law enables anyone to select themselves as a community member. 
+        // Any one can use this law
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[8] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(4, "SelfSelect"),
+            config: abi.encode(
+                1 // roleId to be elected
+            ),
+            conditions: conditions,
+            description: "Self select as community member."
+        });
+        delete conditions;
 
-//         // laws[8]
-//         vm.startBroadcast();
-//         law = new NominateMe(
-//             "Nominate self for Governor", // max 31 chars
-//             "Anyone can nominate themselves for a governor role.",
-//             dao_,
-//             type(uint32).max, // access role = public access
-//             Conditions
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
+        // This law allows members to nominate themselves for an allocator role. 
+        conditions.allowedRole = 1; // member role
+        lawInitData[9] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(10, "NominateMe"),
+            config: abi.encode(), // empty config
+            conditions: conditions,
+            description: "Nominate yourself for an allocator role."
+        });
+        delete conditions;
 
-//         // laws[9]
-//         Conditions.readStateFrom = laws[8]; // =  nominees law.
-//         vm.startBroadcast();
-//         law = new ElectionCall(
-//             "Call governor election", // max 31 chars
-//             "Any member of the security council can create a governor election. Calling the law creates an election contract at which people can vote on nominees between the start and end block of the election.",
-//             dao_, // separated powers protocol.
-//             3, // = role security council
-//             Conditions, //  config file.
-//             // bespoke configs for this law:
-//             1, // role id that is allowed to vote.
-//             2, // role id that is being elected
-//             3  // max role holders
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // This law allows delegates to assign or revoke an allocator role to a nominated account. 
+        conditions.allowedRole = 2; // delegate role
+        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote to assign an allocator role to a nominated account. 
+        conditions.succeedAt = 66; // 66% majority  
+        
+        lawInitData[10] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(1, "DirectSelect"),
+            config: abi.encode(4), // allocator role
+            conditions: conditions,
+            description: "Assign an allocator role to a nominated account."
+        });
+        delete conditions;
 
-//         // laws[10]
-//         Conditions.needCompleted = laws[9]; // = electionCall law.
-//         vm.startBroadcast();
-//         law = new ElectionTally(
-//             "Tally governor elections", // max 31 chars
-//             "Count votes of a governor election. Any community member can call this law and pay for tallying the votes. The nominated accounts with most votes from community members are assigned as governors",
-//             dao_, // separated powers protocol.
-//             1, // Note: any community member can tally the election. It can only be done after election duration has finished.
-//             Conditions //  config file.
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // This law allows the admin to assign or revoke a judge role to a nominated account. 
+        conditions.allowedRole = 0;
+        lawInitData[11] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(1, "DirectSelect"),
+            config: abi.encode(3), // judge role
+            conditions: conditions,
+            description: "Assign a judge role to a nominated account."
+        });
+        delete conditions;
 
-//         // laws[11]
-//         vm.startBroadcast();
-//         law = new NominateMe(
-//             "Nominate for Security Council", // max 31 chars
-//             "Nominate yourself for a position in the security council.",
-//             dao_,
-//             1, // access role = 1
-//             Conditions
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
+        // this law allowd the amdin to set role labels. If will self destruct.
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 11);
+        conditions.allowedRole = 0;
+        lawInitData[12] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(7, "PresetAction"),
+            config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
+            conditions: conditions,
+            description: "Assigns roles and labels."
+        });
+        delete conditions;
 
-//         // laws[12]: security council: peer select. - role 3
-//         Conditions.quorum = 66; // = Two thirds quorum needed to pass the proposal
-//         Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-//         Conditions.votingPeriod = 25; // = number of blocks (about half an hour)
-//         Conditions.readStateFrom = laws[11]; // nominateMe
-//         //
-//         vm.startBroadcast();
-//         law = new PeerSelect(
-//             "Assign/Revoke Sec. Councillors", // max 31 chars
-//             "Security Council members are assigned or revoked by their peers through a majority vote.",
-//             dao_, // separated powers protocol.
-//             3, // role 3 id designation.
-//             Conditions, //  config file.
-//             3, // maximum elected to role
-//             3 // role id to be assigned
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        return lawInitData;
+    }
 
-//         // laws[13]:nominate self for grant council role.
-//         vm.startBroadcast();
-//         law = new NominateMe(
-//             "Nominate for a Grant Council", // max 31 chars
-//             "Any community member can nominate themselves to become part of a grant council.",
-//             dao_, // separated powers protocol.
-//             1, // community member
-//             Conditions
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+    function _getActions(address payable powers_, uint16 lawId)
+        internal
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        // create addresses
+        address alice = makeAddr("alice");
+        address bob = makeAddr("bob");
 
-//         // laws[14]: assign members to grant councils.
-//         uint32[] memory allowedRoles = new uint32[](3);
-//         allowedRoles[0] = 4; // Grant Council A
-//         allowedRoles[1] = 5; // Grant Council B
-//         allowedRoles[2] = 6; // Grant Council C
-//         //
-//         Conditions.quorum = 51; // = Two thirds quorum needed to pass the proposal
-//         Conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
-//         Conditions.votingPeriod = 25; // = duration in number of blocks to vote, about half an hour.
-//         Conditions.readStateFrom = laws[13]; // NominateMe
-//         vm.startBroadcast();
-//         law = new AssignCouncilRole(
-//             "Assign grant council roles", // max 31 chars
-//             "Governors assign accounts to grant councils by a majority vote.",
-//             dao_, // separated powers protocol.
-//             2, // governors assign roles.
-//             Conditions, //  config file.
-//             allowedRoles
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//         delete Conditions;
+        // call to set initial roles
+        targets = new address[](5);
+        values = new uint256[](5);
+        calldatas = new bytes[](5);
+        for (uint256 i = 0; i < targets.length; i++) {
+            targets[i] = powers_;
+        }
 
-//         // laws[15]: SelfDestructAction: assign initial accounts to security council.
-//         address[] memory targets = new address[](8);
-//         uint256[] memory values = new uint256[](8);
-//         bytes[] memory calldatas = new bytes[](8);
-//         for (uint256 i = 0; i < targets.length; i++) {
-//             targets[i] = dao_;
-//         }
-//         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, 3, 0x328735d26e5Ada93610F0006c32abE2278c46211);
-//         calldatas[1] = abi.encodeWithSelector(Powers.assignRole.selector, 1, 0x328735d26e5Ada93610F0006c32abE2278c46211);
-//         calldatas[2] = abi.encodeWithSelector(Powers.labelRole.selector, 1, "Member");
-//         calldatas[3] = abi.encodeWithSelector(Powers.labelRole.selector, 2, "Governor");
-//         calldatas[4] = abi.encodeWithSelector(Powers.labelRole.selector, 3, "Security Council");
-//         calldatas[5] = abi.encodeWithSelector(Powers.labelRole.selector, 4, "Grant Council #4");
-//         calldatas[6] = abi.encodeWithSelector(Powers.labelRole.selector, 5, "Grant Council #5");
-//         calldatas[7] = abi.encodeWithSelector(Powers.labelRole.selector, 6, "Grant Council #6");
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
+        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judge");
+        calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocator");
+        // possibly add: subscribers. 
+        // revoke law after use
+        if (lawId != 0) {
+            calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        }
 
-//         vm.startBroadcast();
-//         law = new SelfDestructAction(
-//             "Set initial roles and labels", // max 31 chars
-//             "The admin selects an initial account for the security council. The Admin also assigns labels to roles. The law self destructs when executed.",
-//             dao_, // separated powers protocol.
-//             0, // admin.
-//             Conditions, //  config file.
-//             targets,
-//             values,
-//             calldatas
-//         );
-//         vm.stopBroadcast();
-//         laws.push(address(law));
-//     }
+        return (targets, values, calldatas);
+    }
 
-//     ///////////////////////////////////////////////////////
-//     //                  Helper functions                //
-//     //////////////////////////////////////////////////////
-//     function addressToInt(address a) internal pure returns (uint256) {
-//         return uint256(uint160(a));
-//     }
-// }
+    function parseLawAddress(uint256 index, string memory lawName) public view returns (address lawAddress) {
+        if (keccak256(abi.encodePacked(lawName)) != keccak256(abi.encodePacked(names[index]))) {
+            revert("Law name does not match");
+        }
+        return lawAddresses[index];
+    }
+
+    function parseMockAddress(uint256 index, string memory mockName) public view returns (address mockAddress) {
+        if (keccak256(abi.encodePacked(mockName)) != keccak256(abi.encodePacked(mockNames[index]))) {
+            revert("Mock name does not match");
+        }
+        return mockAddresses[index];
+    }
+} 
+

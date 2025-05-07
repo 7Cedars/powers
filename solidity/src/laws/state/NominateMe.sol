@@ -29,12 +29,13 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract NominateMe is Law {
-    struct Nominees {
+    struct Data {
         mapping(address nominee => uint48 nominationTime) nominations;
         address[] nomineesSorted;
         uint256 nomineesCount;
     }
-    mapping(bytes32 lawHash => Nominees nominees) public nominees;
+
+    mapping(bytes32 lawHash => Data data) internal data;
 
     event NominateMe__NominationReceived(address indexed nominee);
     event NominateMe__NominationRevoked(address indexed nominee);
@@ -56,7 +57,7 @@ contract NominateMe is Law {
         super.initializeLaw(index, conditions, config, inputParams, description);
     }
 
-    function handleRequest(address caller, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -71,14 +72,14 @@ contract NominateMe is Law {
     {
         // decode the calldata.
         (bool nominateMe) = abi.decode(lawCalldata, (bool));
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
 
         // nominating //
-        if (nominateMe && nominees[lawHash].nominations[caller] != 0) {
+        if (nominateMe && data[lawHash].nominations[caller] != 0) {
             revert("Nominee already nominated.");
         }
         // revoke nomination //
-        if (!nominateMe && nominees[lawHash].nominations[caller] == 0) {
+        if (!nominateMe && data[lawHash].nominations[caller] == 0) {
             revert("Nominee not nominated.");
         }
 
@@ -92,17 +93,17 @@ contract NominateMe is Law {
         (address caller, bool nominateMe) = abi.decode(stateChange, (address, bool));
 
         if (nominateMe) {
-            nominees[lawHash].nominations[caller] = uint48(block.number);
-            nominees[lawHash].nomineesSorted.push(caller);
-            nominees[lawHash].nomineesCount++;
+            data[lawHash].nominations[caller] = uint48(block.number);
+            data[lawHash].nomineesSorted.push(caller);
+            data[lawHash].nomineesCount++;
             emit NominateMe__NominationReceived(caller);
         } else {
-            nominees[lawHash].nominations[caller] = 0;
-            for (uint256 i; i < nominees[lawHash].nomineesSorted.length; i++) {
-                if (nominees[lawHash].nomineesSorted[i] == caller) {
-                    nominees[lawHash].nomineesSorted[i] = nominees[lawHash].nomineesSorted[nominees[lawHash].nomineesSorted.length - 1];
-                    nominees[lawHash].nomineesSorted.pop();
-                    nominees[lawHash].nomineesCount--;
+            data[lawHash].nominations[caller] = 0;
+            for (uint256 i; i < data[lawHash].nomineesSorted.length; i++) {
+                if (data[lawHash].nomineesSorted[i] == caller) {
+                    data[lawHash].nomineesSorted[i] = data[lawHash].nomineesSorted[data[lawHash].nomineesSorted.length - 1];
+                    data[lawHash].nomineesSorted.pop();
+                    data[lawHash].nomineesCount--;
                     break;
                 }
             }
@@ -111,15 +112,14 @@ contract NominateMe is Law {
     }
 
     function getNominees(bytes32 lawHash) public view returns (address[] memory) {
-        return nominees[lawHash].nomineesSorted;
+        return data[lawHash].nomineesSorted;
     }
 
     function isNominee(bytes32 lawHash, address nominee) public view returns (bool) {
-        return nominees[lawHash].nominations[nominee] != 0;
+        return data[lawHash].nominations[nominee] != 0;
     }
 
-    function getNomineesCount(uint16 lawId) public view returns (uint256) {
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        return nominees[lawHash].nomineesCount;
+    function getNomineesCount(bytes32 lawHash) public view returns (uint256) {
+        return data[lawHash].nomineesCount;
     }
 }
