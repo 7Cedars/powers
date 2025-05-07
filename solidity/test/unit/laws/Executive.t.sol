@@ -19,6 +19,8 @@ import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { BespokeAction } from "../../../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../../../src/laws/executive/PresetAction.sol";
 import { StartGrant } from "../../../src/laws/executive/StartGrant.sol";
+import { StopGrant } from "../../../src/laws/executive/StopGrant.sol";
+import { AdoptLaw } from "../../../src/laws/executive/AdoptLaw.sol";
 
 contract OpenActionTest is TestSetupExecutive {
     using ShortStrings for *;
@@ -29,8 +31,8 @@ contract OpenActionTest is TestSetupExecutive {
         (address openActionAddress, , ) = daoMock.getActiveLaw(openAction);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(openActionAddress).getConditions(openAction).allowedRole, type(uint256).max, "Allowed role should be set to public access");
-        assertEq(Law(openActionAddress).getExecutions(openAction).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(openActionAddress).getConditions(address(daoMock), openAction).allowedRole, type(uint256).max, "Allowed role should be set to public access");
+        assertEq(Law(openActionAddress).getExecutions(address(daoMock), openAction).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -52,7 +54,7 @@ contract OpenActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(openAction, lawCalldata, nonce, description);
+        daoMock.request(openAction, lawCalldata, nonce, description);
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 123);
@@ -81,7 +83,7 @@ contract OpenActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(openAction, lawCalldata, nonce, description);
+        daoMock.request(openAction, lawCalldata, nonce, description);
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 579);
@@ -132,8 +134,8 @@ contract BespokeActionTest is TestSetupExecutive {
         (address bespokeActionAddress, , ) = daoMock.getActiveLaw(bespokeAction);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(bespokeActionAddress).getConditions(bespokeAction).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(bespokeActionAddress).getExecutions(bespokeAction).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(bespokeActionAddress).getConditions(address(daoMock),bespokeAction).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(bespokeActionAddress).getExecutions(address(daoMock),bespokeAction).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -145,7 +147,7 @@ contract BespokeActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(bespokeAction, lawCalldata, nonce, description);
+        daoMock.request(bespokeAction, lawCalldata, nonce, description);
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 123, "Should have minted 123 coins");
@@ -158,13 +160,13 @@ contract BespokeActionTest is TestSetupExecutive {
         // First mint
         lawCalldata = abi.encode(123);
         vm.prank(alice);
-        Powers(daoMock).request(bespokeAction, lawCalldata, nonce, "First mint");
+        daoMock.request(bespokeAction, lawCalldata, nonce, "First mint");
         nonce++;
 
         // Second mint
         lawCalldata = abi.encode(456);
         vm.prank(alice);
-        Powers(daoMock).request(bespokeAction, lawCalldata, nonce, "Second mint");
+        daoMock.request(bespokeAction, lawCalldata, nonce, "Second mint");
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 579, "Should have minted total of 579 coins");
@@ -227,8 +229,8 @@ contract PresetActionTest is TestSetupExecutive {
         (address presetActionAddress, , ) = daoMock.getActiveLaw(presetAction);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(presetActionAddress).getConditions(presetAction).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(presetActionAddress).getExecutions(presetAction).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(presetActionAddress).getConditions(address(daoMock),presetAction).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(presetActionAddress).getExecutions(address(daoMock),presetAction).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -243,7 +245,7 @@ contract PresetActionTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(presetAction, lawCalldata, nonce, description);
+        daoMock.request(presetAction, lawCalldata, nonce, description);
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 123, "Should have minted 123 coins");
@@ -259,12 +261,12 @@ contract PresetActionTest is TestSetupExecutive {
         // First execution
         lawCalldata = abi.encode(true);
         vm.prank(alice);
-        Powers(daoMock).request(presetAction, lawCalldata, nonce, "First execution");
+        daoMock.request(presetAction, lawCalldata, nonce, "First execution");
         nonce++;
 
         // Second execution
         vm.prank(alice);
-        Powers(daoMock).request(presetAction, lawCalldata, nonce, "Second execution");
+        daoMock.request(presetAction, lawCalldata, nonce, "Second execution");
 
         // assert
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 246, "Should have minted 246 coins total");
@@ -326,7 +328,7 @@ contract PresetActionTest is TestSetupExecutive {
         // Try to execute without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(presetAction, lawCalldata, nonce, "Unauthorized execution");
+        daoMock.request(presetAction, lawCalldata, nonce, "Unauthorized execution");
     }
 }
 
@@ -339,8 +341,8 @@ contract ProposalOnlyTest is TestSetupExecutive {
         (address proposalOnlyAddress, , ) = daoMock.getActiveLaw(proposalOnly);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(proposalOnlyAddress).getConditions(proposalOnly).allowedRole, type(uint256).max, "Allowed role should be set to public access");
-        assertEq(Law(proposalOnlyAddress).getExecutions(proposalOnly).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(proposalOnlyAddress).getConditions(address(daoMock),proposalOnly).allowedRole, type(uint256).max, "Allowed role should be set to public access");
+        assertEq(Law(proposalOnlyAddress).getExecutions(address(daoMock),proposalOnly).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -360,7 +362,7 @@ contract ProposalOnlyTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(proposalOnly, lawCalldata, nonce, description);
+        daoMock.request(proposalOnly, lawCalldata, nonce, description);
 
         // assert
         // Note: ProposalOnly doesn't execute the action, it just creates a proposal
@@ -382,7 +384,7 @@ contract ProposalOnlyTest is TestSetupExecutive {
 
         lawCalldata = abi.encode(targets1, values1, calldatas1);
         vm.prank(alice);
-        Powers(daoMock).request(proposalOnly, lawCalldata, nonce, "First proposal");
+        daoMock.request(proposalOnly, lawCalldata, nonce, "First proposal");
         nonce++;
 
         // Second proposal
@@ -396,7 +398,7 @@ contract ProposalOnlyTest is TestSetupExecutive {
 
         lawCalldata = abi.encode(targets2, values2, calldatas2);
         vm.prank(alice);
-        Powers(daoMock).request(proposalOnly, lawCalldata, nonce, "Second proposal");
+        daoMock.request(proposalOnly, lawCalldata, nonce, "Second proposal");
 
         // assert
         // Note: ProposalOnly doesn't execute the actions, it just creates proposals
@@ -449,8 +451,8 @@ contract StartGrantTest is TestSetupExecutive {
         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(startGrantAddress).getConditions(startGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(startGrantAddress).getExecutions(startGrant).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(startGrantAddress).getConditions(address(daoMock),startGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(startGrantAddress).getExecutions(address(daoMock),startGrant).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -476,7 +478,7 @@ contract StartGrantTest is TestSetupExecutive {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(startGrant, lawCalldata, nonce, description);
+        daoMock.request(startGrant, lawCalldata, nonce, description);
 
         // assert
         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
@@ -502,7 +504,7 @@ contract StartGrantTest is TestSetupExecutive {
             "First grant"
         );
         vm.prank(alice);
-        Powers(daoMock).request(startGrant, lawCalldata, nonce, "First grant");
+        daoMock.request(startGrant, lawCalldata, nonce, "First grant");
         nonce++;
 
         // Second grant
@@ -513,7 +515,7 @@ contract StartGrantTest is TestSetupExecutive {
             "Second grant"
         );
         vm.prank(alice);
-        Powers(daoMock).request(startGrant, lawCalldata, nonce, "Second grant");
+        daoMock.request(startGrant, lawCalldata, nonce, "Second grant");
 
         // assert
         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
@@ -597,9 +599,384 @@ contract StartGrantTest is TestSetupExecutive {
         // Try to start grant without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(startGrant, lawCalldata, nonce, "Unauthorized grant start");
+        daoMock.request(startGrant, lawCalldata, nonce, "Unauthorized grant start");
     }
 }
+
+contract StopGrantTest is TestSetupExecutive {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the StopGrant contract from the test setup
+        uint16 stopGrant = 7;
+        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
+        
+        vm.startPrank(address(daoMock));
+        assertEq(Law(stopGrantAddress).getConditions(address(daoMock),stopGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(stopGrantAddress).getExecutions(address(daoMock), stopGrant).powers, address(daoMock), "Powers address should be set correctly");
+        vm.stopPrank();
+    }
+
+    function testStopGrantWhenTokensSpent() public {
+        // prep
+        uint16 stopGrant = 7;
+        uint16 startGrant = 6;
+        
+        // First start a grant
+        uint48 duration = 1000;
+        uint256 budget = 1 * 10 ** 18;
+        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+        string memory grantDescription = "Test grant";
+
+        lawCalldata = abi.encode(
+            duration,
+            budget,
+            tokenAddress,
+            grantDescription
+        );
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        vm.prank(alice);
+        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+        // NB: we do NOT increase the nonce. We need to keep on using the same nonce! 
+
+        // spending tokens 
+        uint16 grantId = daoMock.lawCount() - 1; 
+        (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
+        bytes memory lawCalldataSpending = abi.encode(
+            alice, 
+            grantAddress, 
+            budget
+        );
+        vm.prank(alice);
+        daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
+
+        vm.roll(block.number + duration + 1);
+
+        vm.prank(alice);
+        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant");
+
+        // assert
+        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
+        lawHash = LawUtilities.hashLaw(address(daoMock), stopGrant);
+        StopGrant.Data memory data = StopGrant(stopGrantAddress).getData(lawHash);
+        assertEq(data.maxBudgetLeft, 1000, "Max budget left should be set correctly");
+        assertTrue(data.checkDuration, "Check duration should be true");
+    }
+
+    function testCannotStopGrantWithTokensLeft() public {
+        // prep
+        uint16 stopGrant = 7;
+        uint16 startGrant = 6;
+        
+        // First start a grant
+        uint48 duration = 1000;
+        uint256 budget = 1 * 10 ** 18;
+        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+        string memory grantDescription = "Test grant";
+
+        lawCalldata = abi.encode(
+            duration,
+            budget,
+            tokenAddress,
+            grantDescription
+        );
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        vm.prank(alice);
+        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+
+        vm.prank(alice);
+        vm.expectRevert("Grant has not spent all tokens.");
+        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant with tokens left");
+    }
+
+    function testCannotStopGrantBeforeDuration() public {
+        // prep
+        uint16 stopGrant = 7;
+        uint16 startGrant = 6;
+        
+        // First start a grant
+        uint48 duration = 1000;
+        uint256 budget = 0; // Set budget to 0 to pass token check
+        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+        string memory grantDescription = "Test grant";
+
+        lawCalldata = abi.encode(
+            duration,
+            budget,
+            tokenAddress,
+            grantDescription
+        );
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        vm.prank(alice);
+        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+
+        // Now try to stop the grant before duration expires
+        lawCalldata = abi.encode(
+            duration,
+            budget,
+            tokenAddress,
+            grantDescription
+        );
+
+        vm.prank(alice);
+        vm.expectRevert("Grant has not expired.");
+        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant before duration");
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        uint16 stopGrant = 7;
+        uint16 startGrant = 6;
+        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
+        
+        // First start a grant
+        uint48 duration = 1000;
+        uint256 budget = 1 * 10 ** 18;
+        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+        string memory grantDescription = "Test grant";
+
+        lawCalldata = abi.encode(
+            duration,
+            budget,
+            tokenAddress,
+            grantDescription
+        );
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        vm.prank(alice);
+        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+
+        // spending tokens 
+        uint16 grantId = daoMock.lawCount() - 1; 
+        (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
+        bytes memory lawCalldataSpending = abi.encode(
+            alice, 
+            grantAddress, 
+            budget
+        );
+        vm.prank(alice);
+        daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
+
+        // advance time
+        vm.roll(block.number + duration + 1);
+
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (
+            actionId,
+            targets,
+            values,
+            calldatas,
+            stateChange
+        ) = Law(stopGrantAddress).handleRequest(alice, address(daoMock), stopGrant, lawCalldata, nonce);
+
+        // assert
+        assertEq(targets.length, 1, "Should have one target");
+        assertEq(values.length, 1, "Should have one value");
+        assertEq(calldatas.length, 1, "Should have one calldata");
+        assertEq(targets[0], address(daoMock), "Target should be the DAO");
+        assertEq(values[0], 0, "Value should be 0");
+        assertNotEq(calldatas[0], "", "Calldata should not be empty");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+    }
+
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 stopGrant = 7;
+        lawCalldata = abi.encode(
+            uint48(1000),
+            0,
+            mockAddresses[3],
+            "Test grant"
+        );
+
+        // Try to stop grant without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        daoMock.request(stopGrant, lawCalldata, nonce, "Unauthorized grant stop");
+    }
+}
+
+contract AdoptLawTest is TestSetupExecutive {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the AdoptLaw contract from the test setup
+        uint16 adoptLaw = 8;
+        (address adoptLawAddress, , ) = daoMock.getActiveLaw(adoptLaw);
+        
+        vm.startPrank(address(daoMock));
+        assertEq(Law(adoptLawAddress).getConditions(address(daoMock),adoptLaw).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(adoptLawAddress).getExecutions(address(daoMock),adoptLaw).powers, address(daoMock), "Powers address should be set correctly");
+        vm.stopPrank();
+    }
+
+    function testAdoptNewLaw() public {
+        // prep
+        uint16 adoptLaw = 8;
+        uint16 newLawId = daoMock.lawCount();
+        
+        // Create a new law configuration
+        AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            law: lawAddresses[6], // open Action 
+            allowedRole: ROLE_ONE,
+            votingPeriod: 1200,
+            quorum: 30,
+            succeedAt: 51,
+            needCompleted: 0,
+            needNotCompleted: 0,
+            readStateFrom: 0,
+            delayExecution: 0,
+            throttleExecution: 0,
+            config: abi.encode(),
+            description: "New open action law"
+        });
+
+        lawCalldata = abi.encode(configAdoptLaw);
+        description = "Adopting a new open action law";
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        // act
+        vm.prank(alice);
+        daoMock.request(adoptLaw, lawCalldata, nonce, description);
+
+        // assert
+        (address newLawAddress, , ) = daoMock.getActiveLaw(newLawId);
+        assertEq(newLawAddress, lawAddresses[6], "New law should be adopted with correct address");
+    }
+
+    function testAdoptLawWithConditions() public {
+        // prep
+        uint16 adoptLaw = 8;
+        uint16 newLawId = daoMock.lawCount();
+        
+        // Create a new law configuration with specific conditions
+        AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            law: lawAddresses[6], // open action 
+            allowedRole: ROLE_TWO,
+            votingPeriod: 2400,
+            quorum: 40,
+            succeedAt: 60,
+            needCompleted: 0,
+            needNotCompleted: 0,
+            readStateFrom: 0,
+            delayExecution: 1000,
+            throttleExecution: 2000,
+            config: abi.encode(),
+            description: "New open action law"
+        });
+
+        lawCalldata = abi.encode(configAdoptLaw);
+        description = "Adopting a new open action law with conditions";
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        // act
+        vm.prank(alice);
+        daoMock.request(adoptLaw, lawCalldata, nonce, description);
+
+        // assert
+        (address newLawAddress, , ) = daoMock.getActiveLaw(newLawId);
+        conditions = Law(newLawAddress).getConditions(address(daoMock),newLawId);
+        
+        assertEq(conditions.allowedRole, ROLE_TWO, "Allowed role should be set correctly");
+        assertEq(conditions.votingPeriod, 2400, "Voting period should be set correctly");
+        assertEq(conditions.quorum, 40, "Quorum should be set correctly");
+        assertEq(conditions.succeedAt, 60, "Succeed at should be set correctly");
+        assertEq(conditions.needCompleted, 0, "Need completed should be set correctly");
+        assertEq(conditions.needNotCompleted, 0, "Need not completed should be set correctly");
+        assertEq(conditions.readStateFrom, 0, "Read state from should be set correctly");
+        assertEq(conditions.delayExecution, 1000, "Delay execution should be set correctly");
+        assertEq(conditions.throttleExecution, 2000, "Throttle execution should be set correctly");
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        uint16 adoptLaw = 8;
+        uint16 newLawId = daoMock.lawCount();
+        (address adoptLawAddress, , ) = daoMock.getActiveLaw(adoptLaw);
+        
+        // Create a new law configuration
+        AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            law: lawAddresses[6], // open Action 
+            allowedRole: ROLE_ONE,
+            votingPeriod: 1200,
+            quorum: 30,
+            succeedAt: 51,
+            needCompleted: 0,
+            needNotCompleted: 0,
+            readStateFrom: 0,
+            delayExecution: 0,
+            throttleExecution: 0,
+            config: abi.encode(),
+            description: "New open action law"
+        });
+
+        lawCalldata = abi.encode(configAdoptLaw);
+
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (
+            actionId,
+            targets,
+            values,
+            calldatas,
+            stateChange
+        ) = Law(adoptLawAddress).handleRequest(alice, address(daoMock), adoptLaw, lawCalldata, nonce);
+
+        // assert
+        assertEq(targets.length, 1, "Should have one target");
+        assertEq(values.length, 1, "Should have one value");
+        assertEq(calldatas.length, 1, "Should have one calldata");
+        assertEq(targets[0], address(daoMock), "Target should be the powers protocol");
+        assertEq(values[0], 0, "Value should be 0");
+        assertNotEq(calldatas[0], "", "Calldata should not be empty");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+    }
+
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 adoptLaw = 8;
+        
+        // Create a new law configuration
+        AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            law: lawAddresses[6], // open Action 
+            allowedRole: ROLE_ONE,
+            votingPeriod: 1200,
+            quorum: 30,
+            succeedAt: 51,
+            needCompleted: 0,
+            needNotCompleted: 0,
+            readStateFrom: 0,
+            delayExecution: 0,
+            throttleExecution: 0,
+            config: abi.encode(),
+            description: "New open action law"
+        });
+
+        lawCalldata = abi.encode(configAdoptLaw);
+
+        // Try to adopt law without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        daoMock.request(adoptLaw, lawCalldata, nonce, "Unauthorized law adoption");
+    }
+}
+
 
 
 

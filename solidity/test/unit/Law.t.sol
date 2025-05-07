@@ -61,10 +61,11 @@ contract DeployTest is TestSetupLaw {
         description = "Test law initialization";
 
         // act: initialize the law
+        vm.prank(address(daoMock));
         lawMock.initializeLaw(lawId, conditions, configLocal, "", description);
 
         // assert: verify conditions are set correctly
-        (conditions) = lawMock.getConditions(lawId);
+        (conditions) = lawMock.getConditions(address(daoMock), lawId);
         assertEq(conditions.allowedRole, ROLE_ONE);
         assertEq(conditions.quorum, 0);
         assertEq(conditions.succeedAt, 0);

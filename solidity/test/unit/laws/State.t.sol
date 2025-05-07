@@ -29,8 +29,8 @@ contract AddressesMappingTest is TestSetupState {
         (address addressesMappingAddress, , ) = daoMock.getActiveLaw(addressesMapping);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(addressesMappingAddress).getConditions(addressesMapping).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(addressesMappingAddress).getExecutions(addressesMapping).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(addressesMappingAddress).getConditions(address(daoMock),addressesMapping).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(addressesMappingAddress).getExecutions(address(daoMock), addressesMapping).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -48,7 +48,7 @@ contract AddressesMappingTest is TestSetupState {
 
         // act
         vm.prank(bob);
-        Powers(daoMock).request(addressesMapping, lawCalldata, nonce, description);
+        daoMock.request(addressesMapping, lawCalldata, nonce, description);
 
         // assert
         (address addressesMappingAddress, , ) = daoMock.getActiveLaw(addressesMapping);
@@ -70,7 +70,7 @@ contract AddressesMappingTest is TestSetupState {
         daoMock.assignRole(1, bob);
 
         vm.prank(bob);
-        Powers(daoMock).request(addressesMapping, lawCalldata, nonce, "Adding initial address");
+        daoMock.request(addressesMapping, lawCalldata, nonce, "Adding initial address");
         nonce++;
 
         // Then update it
@@ -80,7 +80,7 @@ contract AddressesMappingTest is TestSetupState {
         );
 
         vm.prank(bob);
-        Powers(daoMock).request(addressesMapping, lawCalldata, nonce, "Updating address");
+        daoMock.request(addressesMapping, lawCalldata, nonce, "Updating address");
 
         // assert
         (address addressesMappingAddress, , ) = daoMock.getActiveLaw(addressesMapping); 
@@ -99,7 +99,7 @@ contract AddressesMappingTest is TestSetupState {
         // Try to add address without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(addressesMapping, lawCalldata, nonce, "Unauthorized address addition");
+        daoMock.request(addressesMapping, lawCalldata, nonce, "Unauthorized address addition");
     }
 
     function testHandleRequestOutput() public {
@@ -140,8 +140,8 @@ contract GrantTest is TestSetupState {
         (address grantAddress, , ) = daoMock.getActiveLaw(grant);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(grantAddress).getConditions(grant).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(grantAddress).getExecutions(grant).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(grantAddress).getConditions(address(daoMock), grant).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(grantAddress).getExecutions(address(daoMock), grant).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -161,7 +161,7 @@ contract GrantTest is TestSetupState {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(grant, lawCalldata, nonce, description);
+        daoMock.request(grant, lawCalldata, nonce, description);
 
         // assert
         lawHash = LawUtilities.hashLaw(address(daoMock), grant);
@@ -182,7 +182,7 @@ contract GrantTest is TestSetupState {
         // Try to create grant without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(grant, lawCalldata, nonce, "Unauthorized grant creation");
+        daoMock.request(grant, lawCalldata, nonce, "Unauthorized grant creation");
     }
 
     function testHandleRequestOutput() public {
@@ -226,9 +226,9 @@ contract VoteOnNomineesTest is TestSetupState {
         (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(voteOnNomineesAddress).getConditions(voteOnNominees).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(voteOnNomineesAddress).getConditions(voteOnNominees).readStateFrom, 2, "Read state from should be set to 2");
-        assertEq(Law(voteOnNomineesAddress).getExecutions(voteOnNominees).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(voteOnNomineesAddress).getConditions(address(daoMock), voteOnNominees).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(voteOnNomineesAddress).getConditions(address(daoMock), voteOnNominees).readStateFrom, 2, "Read state from should be set to 2");
+        assertEq(Law(voteOnNomineesAddress).getExecutions(address(daoMock), voteOnNominees).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -248,7 +248,7 @@ contract VoteOnNomineesTest is TestSetupState {
         // act
         vm.prank(bob);
         vm.roll(5001); // set block number to after startvote
-        Powers(daoMock).request(voteOnNominees, abi.encode(alice), nonce, "Voting on a nominee");
+        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "Voting on a nominee");
 
         // assert
         (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
@@ -283,13 +283,13 @@ contract VoteOnNomineesTest is TestSetupState {
         // First vote
         vm.roll(5001); // set block number to after startvote
         vm.prank(bob);
-        Powers(daoMock).request(voteOnNominees, abi.encode(alice), nonce, "First vote");
+        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "First vote");
         nonce++;
 
         // Second vote
         vm.roll(5002); // set block number to after startvote
         vm.prank(charlotte);
-        Powers(daoMock).request(voteOnNominees, abi.encode(alice), nonce, "Second vote");
+        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "Second vote");
 
         // assert
         (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
@@ -309,7 +309,7 @@ contract VoteOnNomineesTest is TestSetupState {
         vm.roll(5001); // set block number to after startvote
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(voteOnNominees, lawCalldata, nonce, "Unauthorized vote");
+        daoMock.request(voteOnNominees, lawCalldata, nonce, "Unauthorized vote");
     }
 
     function testHandleRequestOutput() public {
@@ -348,8 +348,8 @@ contract NominateMeTest is TestSetupState {
         (address nominateMeAddress, , ) = daoMock.getActiveLaw(nominateMe);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(nominateMeAddress).getConditions(nominateMe).allowedRole, type(uint256).max, "Allowed role should be set to public access");
-        assertEq(Law(nominateMeAddress).getExecutions(nominateMe).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(nominateMeAddress).getConditions(address(daoMock), nominateMe).allowedRole, type(uint256).max, "Allowed role should be set to public access");
+        assertEq(Law(nominateMeAddress).getExecutions(address(daoMock), nominateMe).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -361,7 +361,7 @@ contract NominateMeTest is TestSetupState {
 
         // act
         vm.prank(alice);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, description);
+        daoMock.request(nominateMe, lawCalldata, nonce, description);
 
         // assert
         (address nominateMeAddress, , ) = daoMock.getActiveLaw(nominateMe);
@@ -379,13 +379,13 @@ contract NominateMeTest is TestSetupState {
         // First nominate self
         lawCalldata = abi.encode(true);
         vm.prank(alice);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Nominating self");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Nominating self");
         nonce++;
 
         // Then revoke nomination
         lawCalldata = abi.encode(false);
         vm.prank(alice);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Revoking nomination");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Revoking nomination");
 
         // assert
         (address nominateMeAddress, , ) = daoMock.getActiveLaw(nominateMe);
@@ -401,12 +401,12 @@ contract NominateMeTest is TestSetupState {
         // Nominate alice
         lawCalldata = abi.encode(true);
         vm.prank(alice);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Alice nominating self");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Alice nominating self");
         nonce++;
 
         // Nominate bob
         vm.prank(bob);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Bob nominating self");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Bob nominating self");
 
         // assert
         (address nominateMeAddress, , ) = daoMock.getActiveLaw(nominateMe);
@@ -425,13 +425,13 @@ contract NominateMeTest is TestSetupState {
         // First nomination
         lawCalldata = abi.encode(true);
         vm.prank(alice);
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "First nomination");
+        daoMock.request(nominateMe, lawCalldata, nonce, "First nomination");
         nonce++;
 
         // Second nomination attempt
         vm.prank(alice);
         vm.expectRevert("Nominee already nominated.");
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Second nomination");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Second nomination");
     }
 
     function testCannotRevokeIfNotNominated() public {
@@ -442,7 +442,7 @@ contract NominateMeTest is TestSetupState {
         // Try to revoke without being nominated
         vm.prank(alice);
         vm.expectRevert("Nominee not nominated.");
-        Powers(daoMock).request(nominateMe, lawCalldata, nonce, "Revoking without nomination");
+        daoMock.request(nominateMe, lawCalldata, nonce, "Revoking without nomination");
     }
 
     function testHandleRequestOutput() public {
@@ -480,8 +480,8 @@ contract StringsArrayTest is TestSetupState {
         (address stringsArrayAddress, , ) = daoMock.getActiveLaw(stringsArray);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(stringsArrayAddress).getConditions(stringsArray).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(stringsArrayAddress).getExecutions(stringsArray).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(stringsArrayAddress).getConditions(address(daoMock), stringsArray).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(stringsArrayAddress).getExecutions(address(daoMock), stringsArray).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -499,7 +499,7 @@ contract StringsArrayTest is TestSetupState {
 
         // act
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, description);
+        daoMock.request(stringsArray, lawCalldata, nonce, description);
 
         // assert
         (address stringsArrayAddress, , ) = daoMock.getActiveLaw(stringsArray);
@@ -522,7 +522,7 @@ contract StringsArrayTest is TestSetupState {
         daoMock.assignRole(1, bob);
 
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Adding initial string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Adding initial string");
         nonce++;
 
         // Then remove it
@@ -532,7 +532,7 @@ contract StringsArrayTest is TestSetupState {
         );
 
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Removing string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Removing string");
 
         // assert
         (address stringsArrayAddress, , ) = daoMock.getActiveLaw(stringsArray);
@@ -553,7 +553,7 @@ contract StringsArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Adding first string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Adding first string");
         nonce++;
 
         // Add second string
@@ -562,7 +562,7 @@ contract StringsArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Adding second string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Adding second string");
 
         // assert
         (address stringsArrayAddress, , ) = daoMock.getActiveLaw(stringsArray);
@@ -587,7 +587,7 @@ contract StringsArrayTest is TestSetupState {
                 true
             );
             vm.prank(bob);
-            Powers(daoMock).request(stringsArray, lawCalldata, nonce, string.concat("Adding string ", testStrings[i]));
+            daoMock.request(stringsArray, lawCalldata, nonce, string.concat("Adding string ", testStrings[i]));
             nonce++;
         }
 
@@ -597,7 +597,7 @@ contract StringsArrayTest is TestSetupState {
             false
         );
         vm.prank(bob);
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Removing middle string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Removing middle string");
 
         // assert
         (address stringsArrayAddress, , ) = daoMock.getActiveLaw(stringsArray);
@@ -621,7 +621,7 @@ contract StringsArrayTest is TestSetupState {
         // Try to remove string that doesn't exist
         vm.prank(bob);
         vm.expectRevert("String not found.");
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Removing non-existent string");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Removing non-existent string");
     }
 
     function testUnauthorizedAccess() public {
@@ -635,7 +635,7 @@ contract StringsArrayTest is TestSetupState {
         // Try to add string without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Unauthorized string addition");
+        daoMock.request(stringsArray, lawCalldata, nonce, "Unauthorized string addition");
     }
 
     function testHandleRequestOutput() public {
@@ -676,8 +676,8 @@ contract TokensArrayTest is TestSetupState {
         (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(tokensArrayAddress).getConditions(tokensArray).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(tokensArrayAddress).getExecutions(tokensArray).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(tokensArrayAddress).getConditions(address(daoMock), tokensArray).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(tokensArrayAddress).getExecutions(address(daoMock), tokensArray).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -696,7 +696,7 @@ contract TokensArrayTest is TestSetupState {
 
         // act
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, description);
+        daoMock.request(tokensArray, lawCalldata, nonce, description);
 
         // assert
         (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
@@ -721,7 +721,7 @@ contract TokensArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC20 token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Adding ERC20 token");
         nonce++;
 
         // Add ERC721 token
@@ -731,7 +731,7 @@ contract TokensArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC721 token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Adding ERC721 token");
         nonce++;
 
         // Add ERC1155 token
@@ -741,7 +741,7 @@ contract TokensArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC1155 token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Adding ERC1155 token");
 
         // assert
         (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
@@ -779,7 +779,7 @@ contract TokensArrayTest is TestSetupState {
             true
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Adding token");
         nonce++;
 
         // Then remove it
@@ -789,7 +789,7 @@ contract TokensArrayTest is TestSetupState {
             false
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Removing token");
 
         // assert
         (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
@@ -815,7 +815,7 @@ contract TokensArrayTest is TestSetupState {
                 true
             );
             vm.prank(bob);
-            Powers(daoMock).request(tokensArray, lawCalldata, nonce, string.concat("Adding token ", vm.toString(i)));
+            daoMock.request(tokensArray, lawCalldata, nonce, string.concat("Adding token ", vm.toString(i)));
             nonce++;
         }
 
@@ -826,7 +826,7 @@ contract TokensArrayTest is TestSetupState {
             false
         );
         vm.prank(bob);
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing middle token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Removing middle token");
 
         // assert
         (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
@@ -860,7 +860,7 @@ contract TokensArrayTest is TestSetupState {
         // Try to remove token that doesn't exist
         vm.prank(bob);
         vm.expectRevert("Token not found.");
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing non-existent token");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Removing non-existent token");
     }
 
     function testUnauthorizedAccess() public {
@@ -875,7 +875,7 @@ contract TokensArrayTest is TestSetupState {
         // Try to add token without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Unauthorized token addition");
+        daoMock.request(tokensArray, lawCalldata, nonce, "Unauthorized token addition");
     }
 
     function testHandleRequestOutput() public {

@@ -39,6 +39,7 @@ contract StopGrant is Law {
         uint16 needCompleted;
         uint16 grantId;
         address startGrantLaw;
+        bytes32 startGrantLawHash;
         address grantLaw;
         uint256 tokensLeft;
         uint48 durationLeft;
@@ -123,13 +124,9 @@ contract StopGrant is Law {
             revert("NeedCompleted condition not set.");
         }
         (mem.startGrantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
-        mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.lawHash, lawCalldata);
+        mem.startGrantLawHash = LawUtilities.hashLaw(powers, mem.needCompleted);
+        mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.startGrantLawHash, lawCalldata);
         (mem.grantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.grantId);
-        
-        // check if grant exists
-        if (mem.grantId == 0) {
-            revert("Grant not found.");
-        }
 
         // check if grant has spent all tokens
         if (data[mem.lawHash].maxBudgetLeft > 0) {

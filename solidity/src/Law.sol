@@ -196,12 +196,12 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
-    function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
-        return conditionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
+    function getConditions(address powers, uint16 lawId) public view returns (Conditions memory conditions) {
+        return conditionsLaws[LawUtilities.hashLaw(powers, lawId)];
     }
 
-    function getExecutions(uint16 lawId) public view returns (Executions memory executions) {
-        return executionsLaws[LawUtilities.hashLaw(msg.sender, lawId)];
+    function getExecutions(address powers, uint16 lawId) public view returns (Executions memory executions) {
+        return executionsLaws[LawUtilities.hashLaw(powers, lawId)];
     }
 
     //////////////////////////////////////////////////////////////

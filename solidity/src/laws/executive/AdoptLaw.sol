@@ -25,6 +25,7 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
+import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract AdoptLaw is Law {
     /// @notice constructor of the law
@@ -114,10 +115,17 @@ contract AdoptLaw is Law {
             needNotCompleted: config.needNotCompleted
         });
 
+        PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
+            targetLaw: config.law,
+            conditions: conditions,
+            config: config.config,
+            description: config.description
+        });
+
         // send the calldata to the target function
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = config.law;
-        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, config.law, config.config, conditions, config.description);
+        targets[0] = powers;
+        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
 
         return (actionId, targets, values, calldatas, "");
     }

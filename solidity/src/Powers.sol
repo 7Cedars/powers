@@ -214,7 +214,7 @@ contract Powers is EIP712, IPowers {
     ) internal virtual returns (uint256 actionId) {
         ActiveLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
-        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(lawId);
+        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(address(this), lawId);
         actionId = _hashAction(lawId, lawCalldata, nonce);
 
         // check 1: does target law need proposedAction vote to pass?
@@ -441,7 +441,7 @@ contract Powers is EIP712, IPowers {
         // retrieve quorum and allowedRole from law.
         Action storage proposedAction = _actions[actionId];
         ActiveLaw memory law = laws[proposedAction.lawId];
-        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(proposedAction.lawId);
+        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(address(this), proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // check if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if quorum has been reached.
@@ -459,7 +459,7 @@ contract Powers is EIP712, IPowers {
         // retrieve quorum and success threshold from law.
         Action storage proposedAction = _actions[actionId];
         ActiveLaw memory law = laws[proposedAction.lawId];
-        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(proposedAction.lawId);
+        ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(address(this), proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // note if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if success threshold has been reached.
@@ -546,7 +546,7 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function canCallLaw(address caller, uint16 lawId) public view virtual returns (bool) {
-        uint256 allowedRole = Law(laws[lawId].targetLaw).getConditions(lawId).allowedRole;
+        uint256 allowedRole = Law(laws[lawId].targetLaw).getConditions(address(this), lawId).allowedRole;
         uint48 since = hasRoleSince(caller, allowedRole);
 
         return since != 0 || allowedRole == PUBLIC_ROLE;
@@ -595,7 +595,7 @@ contract Powers is EIP712, IPowers {
         }
         law = laws[lawId].targetLaw;
         lawHash = keccak256(abi.encode(address(this), lawId));
-        conditions = Law(law).getConditions(lawId);
+        conditions = Law(law).getConditions(address(this), lawId);
 
         return (law, lawHash, conditions);
     }

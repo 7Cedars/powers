@@ -463,6 +463,7 @@ contract ConstitutionsMock is Test  {
 
         // stopGrant
         conditions.allowedRole = 1;
+        conditions.needCompleted = 6;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[17], // stopGrant
             config: abi.encode(

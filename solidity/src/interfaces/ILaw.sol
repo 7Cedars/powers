@@ -147,7 +147,8 @@ interface ILaw is IERC165, LawErrors {
     ) external view;
 
     /// @notice Gets the conditions for a law
+    /// @param powers The address of the Powers protocol
     /// @param lawId The id of the law
     /// @return conditions The conditions for the law
-    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
+    function getConditions(address powers, uint16 lawId) external view returns (Conditions memory conditions);
 }

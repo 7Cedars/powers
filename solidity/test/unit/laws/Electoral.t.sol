@@ -378,10 +378,9 @@ contract RenounceRoleTest is TestSetupElectoral {
         
         // Test that the contract was initialized correctly
         vm.startPrank(address(daoMock));
-        assertEq(Law(renounceRoleAddress).getConditions(renounceRole).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(renounceRoleAddress).getConditions(address(daoMock), renounceRole).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
 
-        ILaw.Executions memory executions = Law(renounceRoleAddress).getExecutions(renounceRole);
-        assertEq(executions.powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(renounceRoleAddress).getExecutions(address(daoMock), renounceRole).powers, address(daoMock), "Powers address should be set correctly");
 
         // Test that the allowed role IDs were set correctly
         assertEq(RenounceRole(renounceRoleAddress).getAllowedRoleIds(LawUtilities.hashLaw(address(daoMock), renounceRole))[0], ROLE_THREE, "First allowed role ID should be ROLE_THREE");
@@ -473,8 +472,8 @@ contract SelfSelectTest is TestSetupElectoral {
         
         vm.startPrank(address(daoMock));
         // Test that the contract was initialized correctly
-        assertEq(Law(selfSelectAddress).getConditions(selfSelect).allowedRole, type(uint256).max, "Allowed role should be set to public access");
-        assertEq(Law(selfSelectAddress).getExecutions(selfSelect).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(selfSelectAddress).getConditions(address(daoMock), selfSelect).allowedRole, type(uint256).max, "Allowed role should be set to public access");
+        assertEq(Law(selfSelectAddress).getExecutions(address(daoMock), selfSelect).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
@@ -575,8 +574,8 @@ contract PeerSelectTest is TestSetupElectoral {
         (address peer_SelectAddress, , ) = daoMock.getActiveLaw(5);
 
         vm.startPrank(address(daoMock));
-        assertEq(Law(peer_SelectAddress).getConditions(5).allowedRole, ROLE_ONE, "Allowed role should be ROLE_ONE");
-        assertEq(Law(peer_SelectAddress).getExecutions(5).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(peer_SelectAddress).getConditions(address(daoMock), 5).allowedRole, ROLE_ONE, "Allowed role should be ROLE_ONE");
+        assertEq(Law(peer_SelectAddress).getExecutions(address(daoMock), 5).powers, address(daoMock), "Powers address should be set correctly");
 
         PeerSelect.Data memory data = PeerSelect(peer_SelectAddress).getData(LawUtilities.hashLaw(address(daoMock), 5));
         assertEq(data.roleId, ROLE_FOUR, "Role ID should be set correctly");
