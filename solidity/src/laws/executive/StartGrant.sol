@@ -24,6 +24,9 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
+
+import "forge-std/console.sol"; // for testing only 
+
 contract StartGrant is Law {
     /// @notice Constructor for the StartGrant contract
     struct Data {
@@ -31,8 +34,8 @@ contract StartGrant is Law {
         bytes grantConditions;
     }
 
-    mapping(bytes32 lawHash => Data) public data;
-    mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) public grantIds;
+    mapping(bytes32 lawHash => Data) internal data;
+    mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) internal grantIds;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -130,16 +133,26 @@ contract StartGrant is Law {
         uint16 grantsId = Powers(payable(powers)).lawCount();
         stateChange = abi.encode(grantsId, lawCalldata);
 
-        return (actionId, targets, values, calldatas, "");
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (uint16 grantsId, bytes memory lawCalldata) = abi.decode(stateChange, (uint16, bytes));
         // save the Id of the law at which grant will be saved
+        console.log("Saving grantsId TRIGGERED");
+        console.logBytes32(lawHash);
+        console.logBytes32(keccak256(lawCalldata));
+        console.log("grantsId to save:", grantsId);
         grantIds[lawHash][keccak256(lawCalldata)] = grantsId;
+        console.log("grantsId saved");
     }
 
     function getGrantId(bytes32 lawHash, bytes memory lawCalldata) public view returns (uint16) {
         return grantIds[lawHash][keccak256(lawCalldata)];
     }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
+    }   
+
 }

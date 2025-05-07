@@ -401,6 +401,7 @@ contract ConstitutionsMock is Test  {
         // Bespoke Action 
         string[] memory params = new string[](1);
         params[0] = "uint256 Quantity";
+        conditions.allowedRole = 1;
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[5], // Bespoke Action 
             config: abi.encode(
@@ -452,7 +453,7 @@ contract ConstitutionsMock is Test  {
         lawInitData[6] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[16], // startGrant
             config: abi.encode(
-                lawAddresses[5],
+                lawInitData[5].targetLaw,
                 abi.encode(conditions)
             ),
             conditions: conditions,

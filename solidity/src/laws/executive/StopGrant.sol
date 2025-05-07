@@ -162,4 +162,8 @@ contract StopGrant is Law {
 
         return (actionId, targets, values, calldatas, "");
     }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
+    }
 }

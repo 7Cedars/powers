@@ -17,8 +17,8 @@ import {
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
 
-const layoutIconBox: string = 'flex flex-row md:gap-2 gap-0 align-middle items-center'
-const layoutIcons: string = 'h-5 w-5'
+const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
+const layoutIcons: string = 'h-6 w-6'
 const layoutText: string = 'lg:opacity-100 lg:text-sm text-[0px] lg:w-fit w-0 opacity-0'
 const layoutButton: string = `w-full h-full flex flex-row justify-center items-center rounded-md border aria-selected:bg-slate-200 md:hover:border-slate-600 text-sm aria-selected:text-slate-700 text-slate-500 border-transparent`
 
@@ -35,7 +35,7 @@ const NavigationBar = () => {
   }, [addressPowers, fetchPowers])
 
   return (
-    <div className="w-full h-full flex flex-row gap-1 justify-center items-center px-2 py-1 md:py-0 overflow-hidden"> 
+    <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 
             <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}`)}
               aria-selected={path == `/${chainId}/${addressPowers}`} 
@@ -149,7 +149,7 @@ const Header = () => {
 
 const Footer = () => {  
   return (
-     <div className="absolute bottom-0 z-20 bg-slate-50 flex justify-between border-t border-slate-300 h-14 items-center md:collapse w-full text-sm px-4 overflow-hidden">
+     <div className="absolute bottom-0 z-20 pt-1 bg-slate-100 flex justify-between border-t border-slate-300 h-12 items-center md:collapse w-full text-sm overflow-hidden">
         {NavigationBar()}  
     </div>
   )

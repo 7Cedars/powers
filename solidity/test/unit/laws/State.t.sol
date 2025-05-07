@@ -18,6 +18,7 @@ import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
 import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
+import { TokensArray } from "../../../src/laws/state/TokensArray.sol";
 
 contract AddressesMappingTest is TestSetupState {
     using ShortStrings for *;
@@ -580,7 +581,7 @@ contract StringsArrayTest is TestSetupState {
 
         // Add three strings
         string[3] memory testStrings = ["first", "second", "third"];
-        for(uint i = 0; i < 3; i++) {
+        for(i = 0; i < 3; i++) {
             lawCalldata = abi.encode(
                 testStrings[i],
                 true
@@ -623,6 +624,20 @@ contract StringsArrayTest is TestSetupState {
         Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Removing non-existent string");
     }
 
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 stringsArray = 3;
+        lawCalldata = abi.encode(
+            "test string",
+            true
+        );
+
+        // Try to add string without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        Powers(daoMock).request(stringsArray, lawCalldata, nonce, "Unauthorized string addition");
+    }
+
     function testHandleRequestOutput() public {
         // prep
         uint16 stringsArray = 3;
@@ -651,3 +666,248 @@ contract StringsArrayTest is TestSetupState {
         assertNotEq(actionId, 0, "Action ID should not be 0");
     }
 }
+
+contract TokensArrayTest is TestSetupState {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the TokensArray contract from the test setup
+        uint16 tokensArray = 4;
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        
+        vm.startPrank(address(daoMock));
+        assertEq(Law(tokensArrayAddress).getConditions(tokensArray).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(tokensArrayAddress).getExecutions(tokensArray).powers, address(daoMock), "Powers address should be set correctly");
+        vm.stopPrank();
+    }
+
+    function testAddErc20Token() public {
+        // prep
+        uint16 tokensArray = 4;
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock address
+            uint256(0), // TokenType.Erc20
+            true // add
+        );
+        description = "Adding an ERC20 token to the array";
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, bob);
+
+        // act
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, description);
+
+        // assert
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        lawHash = LawUtilities.hashLaw(address(daoMock), tokensArray);
+        (address tokenAddress, TokensArray.TokenType tokenType) = TokensArray(tokensArrayAddress).tokens(lawHash, 0);
+        assertEq(tokenAddress, mockAddresses[2], "Token address should be added correctly");
+        assertEq(uint256(tokenType), 0, "Token type should be ERC20");
+        assertEq(TokensArray(tokensArrayAddress).numberOfTokens(lawHash), 1, "Number of tokens should be 1");
+    }
+
+    function testAddMultipleTokenTypes() public {
+        // prep
+        uint16 tokensArray = 4;
+        
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, bob);
+
+        // Add ERC20 token
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock
+            uint256(0), // TokenType.Erc20
+            true
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC20 token");
+        nonce++;
+
+        // Add ERC721 token
+        lawCalldata = abi.encode(
+            mockAddresses[4], // erc721Mock
+            uint256(1), // TokenType.Erc721
+            true
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC721 token");
+        nonce++;
+
+        // Add ERC1155 token
+        lawCalldata = abi.encode(
+            mockAddresses[5], // erc1155Mock
+            uint256(2), // TokenType.Erc1155
+            true
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding ERC1155 token");
+
+        // assert
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        lawHash = LawUtilities.hashLaw(address(daoMock), tokensArray);
+        
+        // Check first token (ERC20)
+        (address token0Address, TokensArray.TokenType token0Type) = TokensArray(tokensArrayAddress).tokens(lawHash, 0);
+        assertEq(token0Address, mockAddresses[2], "First token address should be ERC20");
+        assertEq(uint256(token0Type), 0, "First token type should be ERC20");
+        
+        // Check second token (ERC721)
+        (address token1Address, TokensArray.TokenType token1Type) = TokensArray(tokensArrayAddress).tokens(lawHash, 1);
+        assertEq(token1Address, mockAddresses[4], "Second token address should be ERC721");
+        assertEq(uint256(token1Type), 1, "Second token type should be ERC721");
+        
+        // Check third token (ERC1155)
+        (address token2Address, TokensArray.TokenType token2Type) = TokensArray(tokensArrayAddress).tokens(lawHash, 2);
+        assertEq(token2Address, mockAddresses[5], "Third token address should be ERC1155");
+        assertEq(uint256(token2Type), 2, "Third token type should be ERC1155");
+        
+        assertEq(TokensArray(tokensArrayAddress).numberOfTokens(lawHash), 3, "Number of tokens should be 3");
+    }
+
+    function testRemoveToken() public {
+        // prep
+        uint16 tokensArray = 4;
+        
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, bob);
+
+        // First add a token
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock
+            uint256(0), // TokenType.Erc20
+            true
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Adding token");
+        nonce++;
+
+        // Then remove it
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock
+            uint256(0), // TokenType.Erc20
+            false
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing token");
+
+        // assert
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        lawHash = LawUtilities.hashLaw(address(daoMock), tokensArray);
+        assertEq(TokensArray(tokensArrayAddress).numberOfTokens(lawHash), 0, "Number of tokens should be 0");
+    }
+
+    function testRemoveMiddleToken() public {
+        // prep
+        uint16 tokensArray = 4;
+        
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, bob);
+
+        // Add three tokens
+        address[3] memory tokenAddresses = [mockAddresses[2], mockAddresses[4], mockAddresses[5]];
+        uint256[3] memory tokenTypes = [uint256(0), uint256(1), uint256(2)];
+        
+        for(i = 0; i < 3; i++) {
+            lawCalldata = abi.encode(
+                tokenAddresses[i],
+                tokenTypes[i],
+                true
+            );
+            vm.prank(bob);
+            Powers(daoMock).request(tokensArray, lawCalldata, nonce, string.concat("Adding token ", vm.toString(i)));
+            nonce++;
+        }
+
+        // Remove middle token (ERC721)
+        lawCalldata = abi.encode(
+            mockAddresses[4], // erc721Mock
+            uint256(1), // TokenType.Erc721
+            false
+        );
+        vm.prank(bob);
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing middle token");
+
+        // assert
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        lawHash = LawUtilities.hashLaw(address(daoMock), tokensArray);
+        
+        // Check first token remains (ERC20)
+        (address token0Address, TokensArray.TokenType token0Type) = TokensArray(tokensArrayAddress).tokens(lawHash, 0);
+        assertEq(token0Address, mockAddresses[2], "First token should remain ERC20");
+        assertEq(uint256(token0Type), 0, "First token type should remain ERC20");
+        
+        // Check second token is now ERC1155 (was moved from end)
+        (address token1Address, TokensArray.TokenType token1Type) = TokensArray(tokensArrayAddress).tokens(lawHash, 1);
+        assertEq(token1Address, mockAddresses[5], "Second token should now be ERC1155");
+        assertEq(uint256(token1Type), 2, "Second token type should now be ERC1155");
+        
+        assertEq(TokensArray(tokensArrayAddress).numberOfTokens(lawHash), 2, "Number of tokens should be 2");
+    }
+
+    function testCannotRemoveNonExistentToken() public {
+        // prep
+        uint16 tokensArray = 4;
+        lawCalldata = abi.encode(
+            mockAddresses[2], // non-existent token
+            uint256(0), // TokenType.Erc20
+            false
+        );
+
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, bob);
+
+        // Try to remove token that doesn't exist
+        vm.prank(bob);
+        vm.expectRevert("Token not found.");
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Removing non-existent token");
+    }
+
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 tokensArray = 4;
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock
+            uint256(0), // TokenType.Erc20
+            true
+        );
+
+        // Try to add token without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        Powers(daoMock).request(tokensArray, lawCalldata, nonce, "Unauthorized token addition");
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        uint16 tokensArray = 4;
+        (address tokensArrayAddress, , ) = daoMock.getActiveLaw(tokensArray);
+        
+        lawCalldata = abi.encode(
+            mockAddresses[2], // erc20VotesMock
+            uint256(0), // TokenType.Erc20
+            true
+        );
+
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (
+            actionId,
+            targets,
+            values,
+            calldatas,
+            stateChange
+        ) = Law(tokensArrayAddress).handleRequest(bob, address(daoMock), tokensArray, lawCalldata, nonce);
+
+        // assert
+        assertEq(targets.length, 0, "Should have no targets");
+        assertEq(values.length, 0, "Should have no values");
+        assertEq(calldatas.length, 0, "Should have no calldatas");
+        assertEq(stateChange, lawCalldata, "State change should match input calldata");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+    }
+}
+
+
+
+

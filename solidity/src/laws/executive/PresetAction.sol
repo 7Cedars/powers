@@ -25,10 +25,13 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PresetAction is Law {
+    struct Data {
+        address[] targets;
+        uint256[] values;
+        bytes[] calldatas;
+    }
     /// the targets, values and calldatas to be used in the calls: set at construction.
-    mapping(bytes32 lawHash => address[]) public targetsStore;
-    mapping(bytes32 lawHash => uint256[]) public valuesStore;
-    mapping(bytes32 lawHash => bytes[]) public calldatasStore;
+    mapping(bytes32 lawHash => Data data) internal data;
 
     /// @notice constructor of the law
     /// @param name_ the name of the law.
@@ -54,9 +57,11 @@ contract PresetAction is Law {
             abi.decode(config, (address[], uint256[], bytes[]));
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        targetsStore[lawHash] = targets_;
-        valuesStore[lawHash] = values_;
-        calldatasStore[lawHash] = calldatas_;
+        data[lawHash] = Data({
+            targets: targets_,
+            values: values_,
+            calldatas: calldatas_
+        });
 
         super.initializeLaw(index, conditions, config,"", description);
     }
@@ -71,6 +76,10 @@ contract PresetAction is Law {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         
-        return (actionId, targetsStore[lawHash], valuesStore[lawHash], calldatasStore[lawHash], "");
+        return (actionId, data[lawHash].targets, data[lawHash].values, data[lawHash].calldatas, "");
+    }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
     }
 }
