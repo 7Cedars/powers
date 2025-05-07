@@ -150,10 +150,10 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             />
           </div>
           <button 
-              className = "h-8 w-10 grow flex flex-row items-center justify-center  rounded-md bg-white outline outline-1 outline-gray-300"
+              className = "h-8 w-8 py-2 grow flex flex-row items-center justify-center  rounded-md bg-white outline outline-1 outline-gray-300"
               onClick = {(event) => {
                 event.preventDefault()
-                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 10000000000000000)), upToDate: false})
+                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 10000000000000000000000000000000000000)), upToDate: false})
               }}
               > 
               <SparklesIcon className = "h-5 w-5"/> 

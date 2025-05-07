@@ -15,7 +15,7 @@ import { LoadingBox } from "@/components/LoadingBox";
 export function ProposalList({powers, onUpdateProposals, status}: {powers: Powers | undefined, onUpdateProposals: () => void, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
-  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>(['1', '2', '3', '4', '5'])
+  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
 
@@ -45,9 +45,9 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
   };
 
   return (
-    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 rounded-md overflow-hidden">
+    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 mb-20 rounded-md overflow-y-scroll">
       {/* table banner:roles  */}
-      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-6 overflow-y-scroll">
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-6 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
           Proposals
         </div>
@@ -81,7 +81,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
       </div>
 
       {/* table banner:status  */}
-      <div className="w-full flex flex-row gap-3 justify-between items-between py-2 overflow-y-scroll border-b border-slate-200 px-6">
+      <div className="w-full flex flex-row gap-6 justify-between items-between py-2 overflow-y-scroll border-b border-slate-200 px-6">
       {
         possibleStatus.map((option, i) => {
           return (
@@ -129,9 +129,9 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                 ? 
                 <tr
                   key={i}
-                  className={`text-sm text-left text-slate-800 h-full p-2 overflow-x-scroll`}
+                  className={`text-sm text-left text-slate-800 h-full w-full p-2 overflow-x-scroll`}
                 >
-                  <td className="h-full w-full flex flex-col text-center justify-center items-center text-left py-3 px-4">
+                  <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center text-left py-3 px-4">
                       <Button
                         showBorder={true}
                         role={parseRole(law.conditions.allowedRole)}
