@@ -52,12 +52,12 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
-    mapping(uint256 actionId => Action) private _actions; // mapping actionId to Action struct
-    mapping(uint16 lawId => ActiveLaw) public laws; // mapping law address to Law struct
-    mapping(uint256 roleId => Role) public roles; // mapping roleId to Role struct
-    mapping(address account => Deposit) public deposits; // mapping deposits from accounts (note: this only covers chain native currency)
+    mapping(uint256 actionId => Action) internal _actions; // mapping actionId to Action struct
+    mapping(uint16 lawId => ActiveLaw) internal laws; // mapping law address to Law struct
+    mapping(uint256 roleId => Role) internal roles; // mapping roleId to Role struct
+    mapping(address account => Deposit[]) internal deposits; // mapping deposits from accounts (note: this only covers chain native currency)
 
-    // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint48).max.
+    // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint256).max.
     uint256 public constant ADMIN_ROLE = type(uint256).min; // == 0
     uint256 public constant PUBLIC_ROLE = type(uint256).max; // == a lot
     uint256 constant DENOMINATOR = 100; // = 100%
@@ -106,8 +106,7 @@ contract Powers is EIP712, IPowers {
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
     /// @dev No access control on this function: anyone can send funds in native currency into the contract.
     receive() external payable virtual {
-        deposits[msg.sender].amount += msg.value;
-        deposits[msg.sender].atBlock.push(uint48(block.number));
+        deposits[msg.sender].push(Deposit(msg.value, uint48(block.number)));
         emit FundsReceived(msg.value);
     }
 
@@ -598,6 +597,10 @@ contract Powers is EIP712, IPowers {
         conditions = Law(law).getConditions(address(this), lawId);
 
         return (law, lawHash, conditions);
+    }
+
+    function getDeposits(address account) public view returns (Deposit[] memory accountDeposits) {
+        return deposits[account];
     }
 
     function isActiveLaw(uint16 lawId) public view returns (bool) {

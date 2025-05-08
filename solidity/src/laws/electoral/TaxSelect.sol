@@ -39,6 +39,8 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
 
+// import "forge-std/Test.sol"; // only for testing
+
 contract TaxSelect is Law {
     struct Data {
         address erc20TaxedMock;
@@ -124,6 +126,7 @@ contract TaxSelect is Law {
         // step 1: retrieve data 
         mem.epochDuration = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).epochDuration();
         mem.currentEpoch = uint48(block.number) / mem.epochDuration;
+
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");
         }
@@ -156,5 +159,9 @@ contract TaxSelect is Law {
 
         // step 4: return data
         return (actionId, targets, values, calldatas, "");
+    }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
     }
 }

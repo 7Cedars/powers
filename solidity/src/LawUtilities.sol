@@ -18,6 +18,11 @@
 /// @notice A library of helper functions used across Law contracts
 /// @dev Provides common functionality for law implementation and validation
 /// @author 7Cedars
+
+// Regarding decoding calldata. 
+// Note that validating calldata is not possible at the moment.
+// See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
+// The feature request has been open for almost five years(!) at time of writing.
 pragma solidity 0.8.26;
 
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
@@ -25,7 +30,7 @@ import { Powers } from "./Powers.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { PowersTypes } from "./interfaces/PowersTypes.sol";
 
-// import { console2 } from "forge-std/console2.sol"; // @audit-info: console2 is used for logging // remove before deployment
+// import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library LawUtilities {
     //////////////////////////////////////////////////////////////
@@ -52,7 +57,7 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    function checkStringLength(string memory name_) internal pure {
+    function checkStringLength(string memory name_) external pure {
         if (bytes(name_).length < 1) {
             revert LawUtilities__EmptyNameNotAllowed();
         }
@@ -109,16 +114,9 @@ library LawUtilities {
         uint16 lawId
     ) external view {
         // Check execution throttling
-        if (conditions.throttleExecution != 0) {
-            uint256 numberOfExecutions = executions.length - 1;
-            // console2.log("numberOfExecutions", numberOfExecutions);
-            // console2.log("block.number", block.number);
-            // console2.log("executions[numberOfExecutions]", executions[numberOfExecutions]);
-            // console2.log("conditions.throttleExecution", conditions.throttleExecution);
-            
+        if (conditions.throttleExecution != 0) { 
             if (
-                executions[numberOfExecutions] != 0
-                    && block.number - executions[numberOfExecutions] < conditions.throttleExecution
+                executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
             ) {
                 revert LawUtilities__ExecutionGapTooSmall();
             }

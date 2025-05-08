@@ -89,6 +89,6 @@ interface PowersTypes {
     /// @notice struct keeping track of a deposit.
     struct Deposit {
         uint256 amount;
-        uint48[] atBlock;
+        uint48 atBlock;
     }
 }

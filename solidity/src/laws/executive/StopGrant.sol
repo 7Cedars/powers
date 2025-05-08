@@ -12,9 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title AdoptLaw - Law for Adopting New Laws in the Powers Protocol
-/// @notice This law allows the adoption of new laws into the Powers protocol
-/// @dev Handles the dynamic configuration and adoption of new laws
+/// @title StopGrant - Law for Stopping Grants in the Powers Protocol
+/// @notice This law allows the stopping of grants in the Powers protocol
+/// @dev Handles the dynamic configuration and stopping of grants
 /// @author 7Cedars
 
 pragma solidity 0.8.26;

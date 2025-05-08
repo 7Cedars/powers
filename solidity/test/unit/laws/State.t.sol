@@ -14,7 +14,7 @@ import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { Erc20VotesMock } from "../../mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../../mocks/Erc20TaxedMock.sol";
 import { Grant } from "../../../src/laws/state/Grant.sol";
-import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
+import { VoteOnAccounts } from "../../../src/laws/state/VoteOnAccounts.sol";
 import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
@@ -217,24 +217,24 @@ contract GrantTest is TestSetupState {
     }
 }
 
-contract VoteOnNomineesTest is TestSetupState {
+contract VoteOnAccountsTest is TestSetupState {
     using ShortStrings for *;
 
     function testConstructorInitialization() public {
-        // Get the VoteOnNominees contract from the test setup
-        uint16 voteOnNominees = 5;
-        (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
+        // Get the VoteOnAccounts contract from the test setup
+        uint16 voteOnAccounts = 5;
+        (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(voteOnNomineesAddress).getConditions(address(daoMock), voteOnNominees).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(voteOnNomineesAddress).getConditions(address(daoMock), voteOnNominees).readStateFrom, 2, "Read state from should be set to 2");
-        assertEq(Law(voteOnNomineesAddress).getExecutions(address(daoMock), voteOnNominees).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(VoteOnAccountsAddress).getConditions(address(daoMock), voteOnAccounts).allowedRole, 1, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(VoteOnAccountsAddress).getConditions(address(daoMock), voteOnAccounts).readStateFrom, 2, "Read state from should be set to 2");
+        assertEq(Law(VoteOnAccountsAddress).getExecutions(address(daoMock), voteOnAccounts).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
     function testVoteOnNominee() public {
         // prep
-        uint16 voteOnNominees = 5;
+        uint16 voteOnAccounts = 5;
         uint16 nominateMe = 2;
 
         // nominate alice
@@ -248,19 +248,19 @@ contract VoteOnNomineesTest is TestSetupState {
         // act
         vm.prank(bob);
         vm.roll(5001); // set block number to after startvote
-        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "Voting on a nominee");
+        daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "Voting on a nominee");
 
         // assert
-        (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
-        lawHash = LawUtilities.hashLaw(address(daoMock), voteOnNominees);
-        VoteOnNominees.Data memory data = VoteOnNominees(voteOnNomineesAddress).getData(lawHash);
-        uint256 votes = VoteOnNominees(voteOnNomineesAddress).votes(lawHash, alice);
+        (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);
+        lawHash = LawUtilities.hashLaw(address(daoMock), voteOnAccounts);
+        VoteOnAccounts.Data memory data = VoteOnAccounts(VoteOnAccountsAddress).getData(lawHash);
+        uint256 votes = VoteOnAccounts(VoteOnAccountsAddress).getVotes(lawHash, alice);
         assertEq(votes, 1, "Nominee should have one vote");
     }
 
     function testMultipleVotes() public {
         // prep
-        uint16 voteOnNominees = 5;
+        uint16 voteOnAccounts = 5;
         uint16 nominateMe = 2;
 
         // nominate alice
@@ -283,23 +283,23 @@ contract VoteOnNomineesTest is TestSetupState {
         // First vote
         vm.roll(5001); // set block number to after startvote
         vm.prank(bob);
-        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "First vote");
+        daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "First vote");
         nonce++;
 
         // Second vote
         vm.roll(5002); // set block number to after startvote
         vm.prank(charlotte);
-        daoMock.request(voteOnNominees, abi.encode(alice), nonce, "Second vote");
+        daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "Second vote");
 
         // assert
-        (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
-        uint256 votes = VoteOnNominees(voteOnNomineesAddress).votes(LawUtilities.hashLaw(address(daoMock), voteOnNominees), alice);
+        (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);
+        uint256 votes = VoteOnAccounts(VoteOnAccountsAddress).getVotes(LawUtilities.hashLaw(address(daoMock), voteOnAccounts), alice);
         assertEq(votes, 2, "Nominee should have two votes");
     }
 
     function testUnauthorizedAccess() public {
         // prep
-        uint16 voteOnNominees = 5;
+        uint16 voteOnAccounts = 5;
         lawCalldata = abi.encode(
             alice,
             true
@@ -309,13 +309,13 @@ contract VoteOnNomineesTest is TestSetupState {
         vm.roll(5001); // set block number to after startvote
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        daoMock.request(voteOnNominees, lawCalldata, nonce, "Unauthorized vote");
+        daoMock.request(voteOnAccounts, lawCalldata, nonce, "Unauthorized vote");
     }
 
     function testHandleRequestOutput() public {
         // prep
-        uint16 voteOnNominees = 5;
-        (address voteOnNomineesAddress, , ) = daoMock.getActiveLaw(voteOnNominees);
+        uint16 voteOnAccounts = 5;
+        (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);
         
         lawCalldata = abi.encode(alice);
 
@@ -328,7 +328,7 @@ contract VoteOnNomineesTest is TestSetupState {
             values,
             calldatas,
             stateChange
-        ) = Law(voteOnNomineesAddress).handleRequest(bob, address(daoMock), voteOnNominees, lawCalldata, nonce);
+        ) = Law(VoteOnAccountsAddress).handleRequest(bob, address(daoMock), voteOnAccounts, lawCalldata, nonce);
 
         // assert
         assertEq(targets.length, 0, "Should have no target");

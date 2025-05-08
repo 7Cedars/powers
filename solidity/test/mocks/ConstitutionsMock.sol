@@ -17,7 +17,7 @@ import { DeployLaws } from "../../script/DeployLaws.s.sol";
 contract ConstitutionsMock is Test  {
  
     //////////////////////////////////////////////////////////////
-    //                  FIRST CONSTITUTION                      //
+    //                 POWERS CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
     function initiatePowersConstitution( 
         string[] memory lawNames,
@@ -130,7 +130,7 @@ contract ConstitutionsMock is Test  {
     }
 
     //////////////////////////////////////////////////////////////
-    //                  THIRD CONSTITUTION                     //
+    //                  LAW CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
     function initiateLawTestConstitution(
         string[] memory lawNames,   
@@ -241,7 +241,7 @@ contract ConstitutionsMock is Test  {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData)
     {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](10);
+        lawInitData = new PowersTypes.LawInitData[](14);
 
         // CONTINUE HERE. 
         // NB: NEED TO ADD  NOMINATE ME LAW.
@@ -275,7 +275,7 @@ contract ConstitutionsMock is Test  {
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[1], // directSelect
             config: abi.encode(
-                3 // role to be assigned. 
+                4 // role to be assigned. 
             ),
             conditions: conditions,
             description: "A law to select a role by direct votes."
@@ -350,11 +350,64 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
+        // DirectDeselect
+        conditions.allowedRole = 1;
+        lawInitData[9] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[20], // directDeselect
+            config: abi.encode(
+                4 // roleId to be revoked
+            ),
+            conditions: conditions,
+            description: "A law to revoke a role."
+        });
+        delete conditions;
+
+        // Subscription
+        conditions.allowedRole = 1;
+        lawInitData[10] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[21], // subscription
+            config: abi.encode(
+                120, // epoch duration
+                1000, // subscription amount
+                4 // roleId to be assigned or revoked
+            ),
+            conditions: conditions,
+            description: "A law to subscribe to a role."
+        });
+        delete conditions;
+
+        // startElection
+        conditions.allowedRole = 0;
+        ILaw.Conditions memory electionConditions;
+        electionConditions.allowedRole = 1;
+        lawInitData[11] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[22], // startElection
+            config: abi.encode(
+                lawAddresses[19], // VoteOnAccounts
+                abi.encode(electionConditions)
+            ),
+            conditions: conditions,
+            description: "A law to start an election."
+        });
+        delete conditions;
+
+        // stopElection
+        conditions.allowedRole = 0;
+        conditions.needCompleted = 11; 
+        conditions.readStateFrom = 1;
+        lawInitData[12] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[23], // stopElection
+            config: abi.encode(),
+            conditions: conditions,
+            description: "A law to stop an election."
+        });
+        delete conditions;
+
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getActions(daoMock, 9); // powersMock
+            _getActions(daoMock, 13); // powersMock
         conditions.allowedRole = 0;
-        lawInitData[9] = PowersTypes.LawInitData({
+        lawInitData[13] = PowersTypes.LawInitData({
             targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.
             conditions: conditions,
@@ -556,11 +609,11 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
-        // VoteOnNominees
+        // VoteOnAccounts
         conditions.allowedRole = 1;
         conditions.readStateFrom = 2;
         lawInitData[5] = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[19], // VoteOnNominees
+            targetLaw: lawAddresses[19], // VoteOnAccounts
             config: abi.encode(
                 5000, // startvote 
                 6000 // endvote

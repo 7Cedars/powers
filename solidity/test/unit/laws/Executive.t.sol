@@ -14,7 +14,7 @@ import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { Erc20VotesMock } from "../../mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../../mocks/Erc20TaxedMock.sol";
 import { Grant } from "../../../src/laws/state/Grant.sol";
-import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
+import { VoteOnAccounts } from "../../../src/laws/state/VoteOnAccounts.sol";
 import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { BespokeAction } from "../../../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../../../src/laws/executive/PresetAction.sol";

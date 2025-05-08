@@ -11,7 +11,7 @@ Please write a comprehensive unit test for HolderSelect.sol at contract HolderSe
 
 (Do not forget to put in all the context files.... )
 ## Create Unit test 1
-Using the other tests in @State.t.sol and @Executive.t.sol as examples, can you write a comprehensive unit test for @NominateMe.sol ? Please take into account the test setup at @TestSetup.t.sol and the deployment of laws in @ConstitutionsMock.sol . Thank you 
+Using the other tests in @State.t.sol and @Executive.t.sol as examples, can you write a comprehensive unit test for @TaxSelect.sol ? Please take into account the test setup at @TestSetup.t.sol and the deployment of laws in @ConstitutionsMock.sol . Thank you 
 
 
 ## Refactor Constitution. 

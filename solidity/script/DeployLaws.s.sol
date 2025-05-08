@@ -32,6 +32,11 @@ import { Grant } from "../src/laws/state/Grant.sol";
 import { StartGrant } from "../src/laws/executive/StartGrant.sol";
 import { StopGrant } from "../src/laws/executive/StopGrant.sol";
 import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
+import { DirectDeselect } from "../src/laws/electoral/DirectDeselect.sol";
+import { Subscription } from "../src/laws/electoral/Subscription.sol";
+import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
+import { StartElection } from "../src/laws/electoral/StartElection.sol";
+import { StopElection } from "../src/laws/electoral/StopElection.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -39,9 +44,9 @@ import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 contract DeployLaws is Script {
     
     function run() external returns (string[] memory names, address[] memory addresses) {
-        names = new string[](19);
-        addresses = new address[](19);
-        bytes[] memory creationCodes = new bytes[](19);
+        names = new string[](24);
+        addresses = new address[](24);
+        bytes[] memory creationCodes = new bytes[](24);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -99,6 +104,21 @@ contract DeployLaws is Script {
 
         names[18] = "AdoptLaw";
         creationCodes[18] = type(AdoptLaw).creationCode;
+
+        names[19] = "VoteOnAccounts";
+        creationCodes[19] = type(VoteOnAccounts).creationCode;
+
+        names[20] = "DirectDeselect";
+        creationCodes[20] = type(DirectDeselect).creationCode;
+
+        names[21] = "Subscription";
+        creationCodes[21] = type(Subscription).creationCode;
+
+        names[22] = "StartElection";
+        creationCodes[22] = type(StartElection).creationCode;
+
+        names[23] = "StopElection";
+        creationCodes[23] = type(StopElection).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
            addresses[i] = deployLaw(creationCodes[i], names[i]);
