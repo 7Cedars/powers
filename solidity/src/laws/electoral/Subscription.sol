@@ -24,7 +24,7 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-import "forge-std/Test.sol"; // only for testing
+// import "forge-std/Test.sol"; // only for testing
 
 contract Subscription is Law {
     struct Data {
@@ -47,7 +47,7 @@ contract Subscription is Law {
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
-        bytes memory configParams = abi.encode("uint48 epochDuration", "uint256 subscriptionAmount", "uint256 roleIdToSet");
+        bytes memory configParams = abi.encode("uint48 EpochDuration", "uint256 SubscriptionAmount", "uint256 RoleId");
         emit Law__Deployed(name_, configParams);
     }   
 
@@ -122,24 +122,16 @@ contract Subscription is Law {
         mem.deposits = Powers(payable(powers)).getDeposits(account);
         mem.amountPaidLastEpoch = 0;
 
-        console.log("mem.epochDuration", mem.epochDuration);
-        console.log("mem.currentEpoch", mem.currentEpoch);
-
         for (uint256 i = 0; i < mem.deposits.length; i++) {
             if (mem.deposits[i].atBlock + mem.epochDuration > mem.currentEpoch * mem.epochDuration) {
                 mem.amountPaidLastEpoch += mem.deposits[i].amount;
             }
         }
 
-        console.log("amountPaidLastEpoch", mem.amountPaidLastEpoch);
-        console.log("subscriptionAmount", data[mem.lawHash].subscriptionAmount);
-        console.log("mem.hasRole", mem.hasRole);
-        
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         // step 3: create arrays
         
         if (mem.hasRole && mem.amountPaidLastEpoch < data[mem.lawHash].subscriptionAmount) {
-            console.log("revoking role");
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.revokeRole.selector,
@@ -147,7 +139,6 @@ contract Subscription is Law {
                 account
             );
         } else if (!mem.hasRole && mem.amountPaidLastEpoch >= data[mem.lawHash].subscriptionAmount) {
-            console.log("assigning role");
             targets[0] = powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector,
@@ -155,10 +146,6 @@ contract Subscription is Law {
                 account
             );
         }
-
-        console.logAddress(targets[0]);
-        console.logUint(values[0]);
-        console.logBytes(calldatas[0]);
 
         // step 4: return data
         return (actionId, targets, values, calldatas, "");

@@ -84,7 +84,7 @@ contract DeployGovernedUpgrades is Script {
         address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](10);
+        lawInitData = new PowersTypes.LawInitData[](12);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
@@ -240,7 +240,7 @@ contract DeployGovernedUpgrades is Script {
         // open to everyone. 
         conditions.allowedRole = type(uint256).max;
         lawInitData[10] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(10, "SelfSelect"),
+            targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(
                 2 // roleId to be assigned
             ),

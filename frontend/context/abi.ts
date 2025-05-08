@@ -401,17 +401,6 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "deposits",
-    "inputs": [
-      { "name": "account", "type": "address", "internalType": "address" }
-    ],
-    "outputs": [
-      { "name": "amount", "type": "uint256", "internalType": "uint256" }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "eip712Domain",
     "inputs": [],
     "outputs": [
@@ -519,6 +508,25 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
+    "name": "getDeposits",
+    "inputs": [
+      { "name": "account", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      {
+        "name": "accountDeposits",
+        "type": "tuple[]",
+        "internalType": "struct PowersTypes.Deposit[]",
+        "components": [
+          { "name": "amount", "type": "uint256", "internalType": "uint256" },
+          { "name": "atBlock", "type": "uint48", "internalType": "uint48" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getProposedActionDeadline",
     "inputs": [
       { "name": "actionId", "type": "uint256", "internalType": "uint256" }
@@ -589,18 +597,6 @@ export const powersAbi: Abi = [
     "name": "lawCount",
     "inputs": [],
     "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "laws",
-    "inputs": [
-      { "name": "lawId", "type": "uint16", "internalType": "uint16" }
-    ],
-    "outputs": [
-      { "name": "targetLaw", "type": "address", "internalType": "address" },
-      { "name": "active", "type": "bool", "internalType": "bool" }
-    ],
     "stateMutability": "view"
   },
   {
@@ -699,21 +695,6 @@ export const powersAbi: Abi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "roles",
-    "inputs": [
-      { "name": "roleId", "type": "uint256", "internalType": "uint256" }
-    ],
-    "outputs": [
-      {
-        "name": "amountMembers",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1280,6 +1261,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "getConditions",
     "inputs": [
+      { "name": "powers", "type": "address", "internalType": "address" },
       { "name": "lawId", "type": "uint16", "internalType": "uint16" }
     ],
     "outputs": [
@@ -1334,6 +1316,7 @@ export const lawAbi: Abi = [
     "type": "function",
     "name": "getExecutions",
     "inputs": [
+      { "name": "powers", "type": "address", "internalType": "address" },
       { "name": "lawId", "type": "uint16", "internalType": "uint16" }
     ],
     "outputs": [

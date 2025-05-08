@@ -80,7 +80,7 @@ contract DeploySeparatedPowers is Script {
         address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](8);
+        lawInitData = new PowersTypes.LawInitData[](10);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 

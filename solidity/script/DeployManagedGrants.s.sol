@@ -14,23 +14,6 @@
 
 /// @title Deploy script Managed Grants
 /// @notice Managed Grants is a DAO example that implements a grant management system with multiple roles and checks and balances.
-/// 
-/// This example implements: (implementation is not fully complete.)
-/// Executive laws: 
-/// - A law to start grants: BespokeAction, access role = delegates. By majority vote.
-/// - A law to stop grants: BespokeAction, access role = delegates. By majority vote.
-/// - A law that allows community members to request assets from a specific grant law, access role = members.
-/// - A law that allows allocators to assign assets to a grant request. Access role = allocator.
-/// - A law to challenge a decision by allocators. Access role = members.
-/// - A law to revert a decision by allocators. Can only react to a challenge from a public account. Access role = judge.
-///
-/// Electoral laws: (possible roles: allocator, judge, community member, delegate)
-/// - a law to self select as community member. Access role: public.
-/// - a law to assign and revoke account to judge role. Access role: Admin. 
-/// - a law to nominate oneself for a delegate role. Access role: public.
-/// - a law to assign a delegate role to a nominated account. Access role: public, delegate election.
-/// - a law to nominate oneself for an allocator role. Access role: public.
-/// - a law to assign or revoke allocator role to a nominated account. Access role: delegate, using majority vote.
 
 /// @author 7Cedars
 
@@ -58,7 +41,6 @@ contract DeployManagedGrants is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Managed Grants",
-            // TODO: this is still a placeholder: it is the data for Powers 101
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
         );
         vm.stopBroadcast();
@@ -103,7 +85,7 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
             conditions: conditions,
-            description: "Request a grant."
+            description: "Request a grant: Community members can request a grant from a grant program."
         });
         delete conditions;
 
@@ -124,12 +106,12 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
             conditions: conditions,
-            description: "Request a grant."
+            description: "Veto a grant program: Judges can veto the deployment of a new grant program."
         });
         delete conditions;
 
-        // This law allows delegates to start a grant program. 
-        // Access role = delegates.
+        // This law allows allocators to start a grant program. 
+        // Access role = allocators.
         // NB: these are the conditions for grant programs that will be deployed.
         grantConditions.allowedRole = 4; // allocator role
         grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
@@ -147,9 +129,9 @@ contract DeployManagedGrants is Script {
 
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(16, "StartGrant"),
-            config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)), // the same input params as the proposal law
+            config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)),
             conditions: conditions,
-            description: "Deploy a grant program."
+            description: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges."
         });
         delete conditions;
         delete grantConditions;
@@ -163,9 +145,12 @@ contract DeployManagedGrants is Script {
 
         lawInitData[4] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(17, "StopGrant"),
-            config: abi.encode(10, true),
+            config: abi.encode(
+                10, // the maximum amount of tokens left in the grant before it can be stopped. 
+                true // if true, the grant can only be stopped after it deadline has passed.  
+                ),
             conditions: conditions,
-            description: "Stop a grant program."
+            description: "Stop grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired."
         });
         delete conditions;
 
@@ -174,27 +159,28 @@ contract DeployManagedGrants is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
         conditions.succeedAt = 51; // 66% majority 
-        conditions.needCompleted = 2; // a delegate needs to have started a grant program. 
-        
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(17, "StopGrant"),
-            config: abi.encode(0, false), // Note: no checks. 
+            config: abi.encode(
+                0, // no checks. 
+                false // no deadline. 
+            ), 
             conditions: conditions,
-            description: "Stop a grant program."
+            description: "Stop grant program: Judges can stop a grant program at any time."
         });
         delete conditions;
 
         // //////////////////////////////////////////////////////
         // //                 Electoral Laws                   // 
         // //////////////////////////////////////////////////////
-           // This law allows accounts to self-nominate for any role
-        // It can be used by community members
+        // This law allows accounts to self-nominate for any role
+        // It can be used by community members to self select for a delegate role. 
         conditions.allowedRole = 1; 
         lawInitData[6] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
             conditions: conditions,
-            description: "Nominate yourself for a delegate role."
+            description: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role."
         });
         delete conditions;
 
@@ -210,7 +196,7 @@ contract DeployManagedGrants is Script {
                 2 // roleId to be elected
             ),
             conditions: conditions,
-            description: "Elect delegates using delegated votes."
+            description: "Elect delegates: Only the DAO admin can use this law to elect delegates."
         });
         delete conditions;
 
@@ -223,7 +209,7 @@ contract DeployManagedGrants is Script {
                 1 // roleId to be elected
             ),
             conditions: conditions,
-            description: "Self select as community member."
+            description: "Self select as community member: Anyone can self select for a member role."
         });
         delete conditions;
 
@@ -233,7 +219,7 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
             conditions: conditions,
-            description: "Nominate yourself for an allocator role."
+            description: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role."
         });
         delete conditions;
 
@@ -247,7 +233,7 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(4), // allocator role
             conditions: conditions,
-            description: "Assign an allocator role to a nominated account."
+            description: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account."
         });
         delete conditions;
 
@@ -257,7 +243,7 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(3), // judge role
             conditions: conditions,
-            description: "Assign a judge role to a nominated account."
+            description: "Assign judge role: The DAO admin can assign or revoke a judge role to any account."
         });
         delete conditions;
 
@@ -268,7 +254,7 @@ contract DeployManagedGrants is Script {
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assigns roles and labels."
+            description: "Assigns role labels: The DAO admin assigns labels to roles. This law can only be used once."
         });
         delete conditions;
 

@@ -28,8 +28,6 @@
 ///    - If fewer than N accounts are nominated, all will be assigne roleId R.
 ///    - If more than N accounts are nominated, the accounts that hold most ERC20 T will be assigned roleId R.
 ///
-///
-///
 /// @dev The contract is an example of a law that
 /// - has does not need a proposal to be voted through. It can be called directly.
 /// - has two internal mechanisms: nominate or elect. Which one is run depends on calldata input.
