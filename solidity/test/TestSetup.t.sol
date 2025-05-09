@@ -27,9 +27,7 @@ import { ConstitutionsMock } from "./mocks/ConstitutionsMock.sol";
 
 // deploy scripts
 import { DeployAnvilMocks } from "./mocks/DeployAnvilMocks.s.sol";
-// import { DeployBasicDao } from "../script/DeployBasicDao.s.sol";
-// import { DeployAlignedDao } from "../script/DeployAlignedDao.s.sol";
-// import { DeployGovernYourTax } from "../script/DeployGovernYourTax.s.sol";
+import { DeploySeparatedPowers } from "../script/DeploySeparatedPowers.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawErrors {
     // protocol and mocks
@@ -401,64 +399,18 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
     }
 }
 
-// // abstract contract TestSetupAlignedDao is BaseSetup, ConstitutionsMock {
-// //     function setUpVariables() public override {
-// //         super.setUpVariables();
+abstract contract TestSetupSeparatedPowers is BaseSetup {
+    Powers separatedPowers;
 
-// //         // initiate constitution & get founders' roles list
-// //         (address[] memory laws_) = constitutionsMock.initiateAlignedDaoTestConstitution(
-// //             payable(address(daoMock)),
-// //             payable(address(erc20VotesMock)),
-// //             payable(address(erc20TaxedMock)),
-// //             payable(address(erc721Mock))
-// //         );
-// //         laws = laws_;
+    function setUpVariables() public override {
+        super.setUpVariables();
 
-// //         // constitute daoMock.
-// //         daoMock.constitute(laws);
-// //         daoNames.push("AlignedDao");
-// //     }
-// // }
-
-// // abstract contract TestSetupGovernYourTax is BaseSetup, ConstitutionsMock {
-// //     function setUpVariables() public override {
-// //         super.setUpVariables();
-
-// //         // initiate constitution & get founders' roles list
-// //         (address[] memory laws_) = constitutionsMock.initiateGovernYourTaxTestConstitution(
-// //             payable(address(daoMock)),
-// //             payable(address(erc20VotesMock)),
-// //             payable(address(erc20TaxedMock)),
-// //             payable(address(erc1155Mock))
-// //         );
-// //         laws = laws_;
-
-// //         // constitute daoMock.
-// //         daoMock.constitute(laws);
-// //         daoNames.push("DiversifiedGrants");
-// //     }
-// // }
-
-// // abstract contract TestSetupBasicDao_fuzzIntegration is BaseSetup {
-// //     Powers basicDao;
-
-// //     function setUpVariables() public override {
-// //         super.setUpVariables();
-
-// //         DeployBasicDao deployBasicDao = new DeployBasicDao();
-// //         (
-// //             address payable basicDaoAddress,
-// //             address[] memory laws_,
-// //             HelperConfig.NetworkConfig memory config_,
-// //             address mock20_
-// //             ) = deployBasicDao.run();
-// //         laws = laws_;
-// //         config = config_;
-
-// //         erc20VotesMock = Erc20VotesMock(mock20_);
-// //         basicDao = Powers(basicDaoAddress);
-// //     }
-// // }
+        DeploySeparatedPowers deploySeparatedPowers = new DeploySeparatedPowers();
+        ( address payable separatedPowersAddress) = deploySeparatedPowers.run();
+        
+        separatedPowers = Powers(separatedPowersAddress);
+    }
+}
 
 // // abstract contract TestSetupAlignedDao_fuzzIntegration is BaseSetup {
 // //     Powers alignedDao;
