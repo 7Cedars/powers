@@ -221,8 +221,6 @@ contract DeploySeparatedPowers is Script {
             description: "Assign initial roles and labels: This law can only be used once. It self-destructs after use."
         });
         delete conditions;
-
-        return lawInitData;
     }
 
     //////////////////////////////////////////////////////////////

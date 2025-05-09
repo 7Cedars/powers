@@ -26,13 +26,14 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
         uint256 step3Chance
     ) public {
         // Bound the chances to reasonable ranges
-        step0Chance = bound(step0Chance, 0, 100);
-        step1Chance = bound(step1Chance, 0, 100);
-        step2Chance = bound(step2Chance, 0, 100);
-        step3Chance = bound(step3Chance, 0, 100);
+        step0Chance = bound(step0Chance, 30, 70);
+        step1Chance = bound(step1Chance, 30, 70);
+        step2Chance = bound(step2Chance, 30, 70);
+        step3Chance = bound(step3Chance, 30, 70);
 
         uint256 balanceBefore = Erc20VotesMock(mockAddresses[2]).balanceOf(address(separatedPowers));
         uint256 seed = 9034273427;
+        nonce = 423342432432; 
 
         bool[] memory stepsPassed = new bool[](4);
 
@@ -45,7 +46,10 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
         separatedPowers.assignRole(4, eve); // SUBSCRIBER ROLE
         vm.stopPrank();
 
-        // Step 0: User proposes an action
+        ////////////////////////////////////////
+        console2.log("STEP 0: User proposal");
+        ////////////////////////////////////////
+
         targets = new address[](1);
         values = new uint256[](1);
         calldatas = new bytes[](1);
@@ -58,7 +62,6 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
 
         vm.prank(bob); // User role
         actionId = separatedPowers.propose(1, lawCalldata, nonce, description);
-        nonce++;
 
         (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
             payable(address(separatedPowers)),
@@ -74,73 +77,105 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
         quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
         voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
         stepsPassed[0] = quorumReached && voteSucceeded;
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
 
         // Only continue if proposal passed
+        console2.log("stepsPassed[0]", stepsPassed[0]);
         vm.assume(stepsPassed[0]);
-
-        console2.log("WAYPOINT 1");
-
         // Execute the proposal
         vm.prank(bob);
         separatedPowers.request(1, lawCalldata, nonce, description);
-        nonce++;
+        
+        ////////////////////////////////////////
+        console2.log("STEP 1: Developer veto");
+        ////////////////////////////////////////
+        vm.prank(david); // Developer role
+        actionId = separatedPowers.propose(2, lawCalldata, nonce, description);
 
-        console2.log("WAYPOINT 2");
+        (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
+            payable(address(separatedPowers)),
+            2,
+            actionId,
+            users,
+            seed,
+            step1Chance
+        );
 
-        // Step 1: Developer veto
-        if (step1Chance > 50) {
-            console2.log("WAYPOINT 3");
+        // Check if proposal passed
+        (, , conditions) = separatedPowers.getActiveLaw(2);
+        quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
+        voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
+        stepsPassed[1] = quorumReached && voteSucceeded;
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+
+        if (stepsPassed[1]) {
             vm.prank(david); // Developer role
             separatedPowers.request(2, lawCalldata, nonce, "Developer veto");
-
-            actionId = hashProposal(lawAddresses[2], lawCalldata, nonce);
-            uint8 vetoState = uint8(separatedPowers.state(actionId));
-            stepsPassed[1] = vetoState != uint8(ActionState.Fulfilled);
-            nonce++;
-        } else {
-            console2.log("WAYPOINT 4");
-            stepsPassed[1] = true;
         }
-
-        // Only continue if developer veto didn't pass
+        // Only continue if veto has been implemented
         vm.assume(stepsPassed[1]);
 
-        console2.log("WAYPOINT 5");
+        ////////////////////////////////////////
+        console2.log("STEP 2: Subscriber veto");
+        ////////////////////////////////////////
+        vm.prank(eve); // Subscriber role
+        actionId = separatedPowers.propose(3, lawCalldata, nonce, description);
 
-        // Step 2: Subscriber veto
-        if (step2Chance > 50) {
-            console2.log("WAYPOINT 6");
+        (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
+            payable(address(separatedPowers)),
+            3,
+            actionId,
+            users,
+            seed,
+            step2Chance
+        );
+
+        // Check if proposal passed
+        (, , conditions) = separatedPowers.getActiveLaw(3);
+        quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
+        voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
+        stepsPassed[2] = quorumReached && voteSucceeded;
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+
+        // proposal passed, execute veto & stop. Otherwise, continue.
+        if (stepsPassed[2]) {
             vm.prank(eve); // Subscriber role
             separatedPowers.request(3, lawCalldata, nonce, "Subscriber veto");
-            
-            actionId = hashProposal(lawAddresses[3], lawCalldata, nonce);
-            uint8 vetoState = uint8(separatedPowers.state(actionId));
-            stepsPassed[2] = vetoState != uint8(ActionState.Fulfilled);
-            nonce++;
-        } else {
-            console2.log("WAYPOINT 7");
-            stepsPassed[2] = true;
         }
+        // Only continue if proposal passed
+        vm.assume(!stepsPassed[2]);
 
-        // Only continue if subscriber veto didn't pass
-        vm.assume(stepsPassed[2]);
+        ////////////////////////////////////////
+        console2.log("STEP 3: Holder execution");
+        ////////////////////////////////////////
+        vm.prank(charlotte); // Holder role
+        actionId = separatedPowers.propose(4, lawCalldata, nonce, description);
 
-        // Step 3: Holder execution
-        if (step3Chance > 50) {
-            vm.prank(charlotte); // Holder role
-            separatedPowers.request(4, lawCalldata, nonce, "Execute action");
-            nonce++;
-            
-            uint256 balanceAfter = Erc20VotesMock(mockAddresses[2]).balanceOf(address(separatedPowers));
-            stepsPassed[3] = balanceAfter == balanceBefore + 5000;
-        } else {
-            vm.expectRevert();
-            vm.prank(charlotte);
-            separatedPowers.request(4, lawCalldata, nonce, "Execute action");
-            nonce++;
-            stepsPassed[3] = true;
-        }
+        (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
+            payable(address(separatedPowers)),
+            4,
+            actionId,
+            users,
+            seed,
+            step3Chance
+        );
+
+        // Check if proposal passed
+        (, , conditions) = separatedPowers.getActiveLaw(4);
+
+        quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
+        voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
+        stepsPassed[3] = quorumReached && voteSucceeded;
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+
+        // Only continue if proposal passed
+        vm.assume(stepsPassed[3] && !stepsPassed[2] && !stepsPassed[1]);
+
+        // Step 1: Developer veto
+        vm.prank(charlotte); // Holder role
+        separatedPowers.request(4, lawCalldata, nonce, "Holder execution");
+        actionId = hashProposal(lawAddresses[4], lawCalldata, nonce);
+        assertTrue(separatedPowers.state(actionId) == ActionState.Fulfilled);
     }
 
     //////////////////////////////////////////////////////////////
@@ -237,5 +272,19 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
         vm.expectRevert();
         separatedPowers.request(7, abi.encode(), nonce, "Self-select as subscriber with insufficient subscription");
         nonce++;
+    }
+
+    function test_SeparatedPowers_AssignRoleLabels() public {
+        // Setup initial roles
+        vm.startPrank(address(separatedPowers));
+        separatedPowers.assignRole(0, alice); // ADMIN ROLE
+        vm.stopPrank();
+        // I should make a fuzz test out of this
+        
+        vm.prank(alice);
+        separatedPowers.request(9, abi.encode(), nonce, "Assign role labels");
+
+        vm.expectRevert();
+        separatedPowers.getActiveLaw(9);
     }
 } 

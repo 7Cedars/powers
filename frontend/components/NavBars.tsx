@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
+import { useChainId, useSwitchChain } from 'wagmi'
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -24,13 +25,24 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 
 const NavigationBar = () => {
   const router = useRouter();
+  const currentChain = useChainId()
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
   const { status: statusUpdate, fetchPowers } = usePowers()
+  const { chains, switchChain, error } = useSwitchChain()
+
+  console.log("@navigationBar: ", {chains})
+  console.log("@navigationBar: ", {error})
+
+  useEffect(() => {
+    if (currentChain != Number(chainId)) {
+      switchChain({ chainId: Number(chainId) })
+    }
+  }, [currentChain, chainId, switchChain])
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
+      fetchPowers() 
     }
   }, [addressPowers, fetchPowers])
 
