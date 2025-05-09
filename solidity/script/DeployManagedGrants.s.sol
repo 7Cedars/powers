@@ -248,27 +248,21 @@ contract DeployManagedGrants is Script {
         delete conditions;
 
         // this law allowd the amdin to set role labels. If will self destruct.
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 11);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
         conditions.allowedRole = 0;
         lawInitData[12] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assigns role labels: The DAO admin assigns labels to roles. This law can only be used once."
+            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
         });
         delete conditions;
-
-        return lawInitData;
     }
 
     function _getActions(address payable powers_, uint16 lawId)
         internal
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // create addresses
-        address alice = makeAddr("alice");
-        address bob = makeAddr("bob");
-
         // call to set initial roles
         targets = new address[](5);
         values = new uint256[](5);
@@ -281,11 +275,7 @@ contract DeployManagedGrants is Script {
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judge");
         calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocator");
-        // possibly add: subscribers. 
-        // revoke law after use
-        if (lawId != 0) {
-            calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-        }
+        calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
 
         return (targets, values, calldatas);
     }

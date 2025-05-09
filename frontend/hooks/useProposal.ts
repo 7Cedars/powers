@@ -4,20 +4,24 @@ import { Powers, Proposal, Status } from "../context/types";
 import { GetBlockReturnType, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { readContract } from "wagmi/actions";
-import { publicClient } from "@/context/clients";
 import { parseEventLogs, ParseEventLogsReturnType } from "viem";
-import { useChainId } from 'wagmi'
 import { supportedChains } from "@/context/chains";
 import { getBlock } from '@wagmi/core'
-import { mainnet, sepolia } from "@wagmi/core/chains";
+import { sepolia } from "@wagmi/core/chains";
+import { getPublicClient } from "wagmi/actions";
+import { parseChainId } from "@/utils/parsers";
+import { useParams } from "next/navigation";
 
 export const useProposal = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()
   const [error, setError] = useState<any | null>(null)
-  const chainId = useChainId();
-  const supportedChain = supportedChains.find(chain => chain.id == chainId)
+  const { chainId } = useParams<{ chainId: string }>()
+  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId)
+  })
   
   // Status //
   // I think it should be possible to only update proposals that have not been saved yet.. 

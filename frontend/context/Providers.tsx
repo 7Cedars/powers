@@ -1,7 +1,7 @@
 'use client';
 
 import { PrivyClientConfig, PrivyProvider } from '@privy-io/react-auth';
-import { arbitrumSepolia} from 'viem/chains';
+import { arbitrumSepolia, sepolia } from 'viem/chains';
 import { wagmiConfig } from './wagmiConfig'  
 import {WagmiProvider} from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -10,7 +10,7 @@ const queryClient = new QueryClient()
 
 const privyConfig: PrivyClientConfig = {
   defaultChain: arbitrumSepolia,
-  supportedChains: [arbitrumSepolia],
+  supportedChains: [arbitrumSepolia, sepolia],
   // loginMethods: ['wallet'],
   appearance: {
       theme: 'light',

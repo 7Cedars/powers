@@ -56,7 +56,7 @@ const Page = () => {
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
+      fetchPowers() // addressPowers as `0x${string}`
     }
   }, [addressPowers, fetchPowers])
 

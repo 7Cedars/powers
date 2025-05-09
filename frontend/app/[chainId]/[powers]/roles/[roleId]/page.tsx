@@ -3,9 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Role, Status, Powers } from "@/context/types";
 import { parseChainId, parseRole } from "@/utils/parsers";
-import { publicClient } from "@/context/clients";
 import { powersAbi } from "@/context/abi";
-import { readContract } from "wagmi/actions";
+import { getPublicClient, readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { parseEventLogs, ParseEventLogsReturnType } from "viem"
 import { supportedChains } from "@/context/chains";
@@ -29,6 +28,9 @@ export default function Page() {
   const { powers: addressPowers, roleId } = useParams<{ powers: string, roleId: string }>()  
   const { powers, fetchPowers } = usePowers()
   const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId)
+  })
 
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
@@ -38,7 +40,7 @@ export default function Page() {
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
+      fetchPowers() // addressPowers as `0x${string}`
     }
   }, [addressPowers, fetchPowers])
 
@@ -76,7 +78,8 @@ export default function Page() {
         let role: Role; 
         let rolesWithSince: Role[] = []; 
   
-        if (publicClient) {
+        // if (publicClientArbitrumSepolia || publicClientSepolia) {
+          // const publicClient = publicClientArbitrumSepolia || publicClientSepolia
           try {
             for await (role of roles) {
               const fetchedSince = await readContract(wagmiConfig, {
@@ -92,7 +95,7 @@ export default function Page() {
               setStatus("error") 
               setError(error)
             }
-        }
+        // }
     } 
 
     const fetchRoleInfo = useCallback(

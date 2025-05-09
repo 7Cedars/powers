@@ -32,7 +32,7 @@ const Page = () => {
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
+      fetchPowers() // addressPowers as `0x${string}`
     }
     fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
   }, [addressPowers, fetchPowers])

@@ -2,7 +2,7 @@
 
 import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
 import { supportedChains } from "@/context/chains"
-import { publicClient } from "@/context/clients"
+// import { publicClient } from "@/context/clients"
 import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
 import { useBalance, useBlockNumber, useChainId } from "wagmi"
@@ -10,26 +10,26 @@ import { Abi, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { parse1155Metadata, parseMetadata } from "@/utils/parsers"
+import { useParams } from "next/navigation";
+import { parseChainId } from "@/utils/parsers";
 
-// NB! ALSO retrieve balance in native currency! 
 
 export const useAssets = (powers: Powers | undefined) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
-  const chainId = useChainId()
+  const { chainId } = useParams<{ chainId: string }>()
+  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
   const {data: native, status: statusBalance}  = useBalance({
     address: powers?.contractAddress
   }) 
-  const supportedChain = supportedChains.find(chain => chain.id == chainId)
-
   console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`
      let tokens: Token[] = [] 
  
-     if (publicClient) {
+    //  if (publicClient) {
          for await (token of tokenAddresses) {
           try {
             console.log("@useAssets, fetching token: ", token) 
@@ -101,7 +101,8 @@ export const useAssets = (powers: Powers | undefined) => {
           console.log("@useAssets, error:", {error, token})
          }
        } 
-    } return tokens
+    // } 
+    return tokens
   }
 
 
@@ -112,7 +113,7 @@ export const useAssets = (powers: Powers | undefined) => {
     const IdsToCheck: bigint[] = new Array(Ids).fill(null).map((_, i) => BigInt(i + 1));
     
 
-    if (publicClient) {
+    // if (publicClient) {
         for await (token of erc1155Addresses) {
           try {
            const AccountsToCheck: `0x${string}`[] = new Array(Ids).fill(token);
@@ -142,7 +143,7 @@ export const useAssets = (powers: Powers | undefined) => {
           setError({token, error})
         }
         return erc1155s
-      } 
+      // } 
     }
   }
 
@@ -150,7 +151,7 @@ export const useAssets = (powers: Powers | undefined) => {
     let token: Token
     let erc1155sMetadata: Token[] = []
 
-    if (publicClient) {
+    // if (publicClient) {
       try {
         for await (token of erc1155s) {
           if (powers?.contractAddress && token.address) {
@@ -177,7 +178,7 @@ export const useAssets = (powers: Powers | undefined) => {
           } catch (error) {
           setStatus("error") 
           setError(error)
-        }
+        // }
       }
   }
 

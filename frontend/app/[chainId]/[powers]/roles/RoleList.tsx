@@ -5,14 +5,14 @@ import { Button } from "@/components/Button";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useRouter, useParams } from "next/navigation";
 import { Roles, Status, Powers } from "@/context/types";
-import { parseRole } from "@/utils/parsers";
-import { publicClient } from "@/context/clients";
+import { parseChainId, parseRole } from "@/utils/parsers";
 import { powersAbi } from "@/context/abi";
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { setRole } from "@/context/store"
 import { bigintToRole } from "@/utils/bigintToRole";
 import { LoadingBox } from "@/components/LoadingBox";
+import { getPublicClient } from "wagmi/actions";
 
 export function RoleList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
   const router = useRouter();
@@ -20,6 +20,9 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
   const [roles, setRoles ] = useState<Roles[]>([])
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId)
+  })
 
   // console.log("@RoleList: ", {powers, roles})
 
@@ -32,7 +35,8 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
       setError(null)
       setStatus("pending")
 
-      if (publicClient && powers) {
+      // if (publicClientArbitrumSepolia || publicClientSepolia && powers) {
+      if (powers) {
         try {
           for await (roleId of roleIds) {
             // console.log("@fetchRoleHolders: ", {roleId}) 

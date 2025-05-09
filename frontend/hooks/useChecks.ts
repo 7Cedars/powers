@@ -2,21 +2,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
 import { CompletedProposal, Law, ProtocolEvent, Checks, Status, LawSimulation, Execution, LogExtended, Powers } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { useChainId, useWaitForTransactionReceipt } from "wagmi";
 import { ConnectedWallet, useWallets, Wallet } from "@privy-io/react-auth";
-import { publicClient } from "@/context/clients";
-import { readContract } from "wagmi/actions";
+import { getPublicClient, readContract } from "wagmi/actions";
 import { useBlockNumber } from 'wagmi'
 import { Log, parseEventLogs, ParseEventLogsReturnType } from "viem";
 import { supportedChains } from "@/context/chains";
 import { sepolia } from "@wagmi/core/chains";
+import { useParams } from "next/navigation";
+import { parseChainId } from "@/utils/parsers";
 
 export const useChecks = (powers: Powers) => {
   const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({ // this needs to be dynamic, for use in different chains! £todo
     chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
   })
-  const chainId = useChainId();
-  const supportedChain = supportedChains.find(chain => chain.id == chainId)
+  const { chainId } = useParams<{ chainId: string }>()
+  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId)
+  })
 
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
