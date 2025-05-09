@@ -1,22 +1,22 @@
 'use client';
 
 import { PrivyClientConfig, PrivyProvider } from '@privy-io/react-auth';
-import { arbitrumSepolia, sepolia } from 'viem/chains';
+import { arbitrumSepolia, baseSepolia, foundry, optimismSepolia, sepolia } from 'viem/chains';
 import { wagmiConfig } from './wagmiConfig'  
-import {WagmiProvider} from '@privy-io/wagmi';
+import { WagmiProvider } from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 
 const privyConfig: PrivyClientConfig = {
-  defaultChain: arbitrumSepolia,
-  supportedChains: [arbitrumSepolia, sepolia],
-  // loginMethods: ['wallet'],
+  defaultChain: sepolia,
+  supportedChains: [ sepolia, arbitrumSepolia, optimismSepolia, baseSepolia, foundry ],
+  loginMethods: ['wallet'],
   appearance: {
       theme: 'light',
       accentColor: '#676FFF',
       logo: '/logo.png', 
-      walletList: ["metamask", "coinbase_wallet", "rainbow", "phantom", "zerion", "detected_wallets", "wallet_connect" ]
+      walletList: ["metamask", "coinbase_wallet", "rainbow", "phantom", "zerion", "detected_wallets", "wallet_connect"]
   }
 };
 
