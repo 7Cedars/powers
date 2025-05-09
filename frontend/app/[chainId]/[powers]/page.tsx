@@ -4,30 +4,18 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { MyProposals } from "./MyProposals";
 import { Status } from "@/context/types";
-import { publicClient } from "@/context/clients";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getBlock, GetBlockReturnType, readContract } from "@wagmi/core";
 import { powersAbi } from "@/context/abi";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { MyRoles } from "./MyRoles";
 import { Assets } from "./Assets";
-import { useChainId } from "wagmi";
 import { supportedChains } from "@/context/chains";
 import { Overview } from "./Overview";
-import {  sepolia } from "@wagmi/core/chains";
 import { useParams } from 'next/navigation'
 import { usePowers } from "@/hooks/usePowers";
 import { LoadingBox } from "@/components/LoadingBox";
 import { parseChainId } from "@/utils/parsers";
-
-const colourScheme = [
-  "from-indigo-500 to-emerald-500", 
-  "from-blue-500 to-red-500", 
-  "from-indigo-300 to-emerald-900",
-  "from-emerald-400 to-indigo-700 ",
-  "from-red-200 to-blue-400",
-  "from-red-800 to-blue-400"
-]
 
 export default function Page() {
     const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
@@ -47,7 +35,7 @@ export default function Page() {
         let fetchedHasRole: {role: bigint; since: bigint; blockData: GetBlockReturnType}[] = []; 
         let blockData: GetBlockReturnType = {} as GetBlockReturnType;
 
-        if (publicClient) {
+        // if (publicClientArbitrumSepolia || publicClientSepolia) {
           try {
             for await (role of roles) {
               const fetchedSince = await readContract(wagmiConfig, {
@@ -70,7 +58,7 @@ export default function Page() {
             setStatus("error") 
             setError(error)
           }
-        }
+        // }
     }, [])
 
     useEffect(() => {
@@ -81,14 +69,14 @@ export default function Page() {
 
     useEffect(() => {
       if (addressPowers) {
-        fetchPowers(addressPowers as `0x${string}`)
+        fetchPowers() // addressPowers as `0x${string}`
       }
     }, [addressPowers, fetchPowers, updateProposals])
 
     return (
       <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">
         {/* hero banner  */}
-        <section className={`w-full min-h-64 flex flex-col justify-center items-center text-center text-slate-50 text-5xl bg-gradient-to-bl ${colourScheme[powers?.colourScheme || 0] } rounded-md`}> 
+        <section className={`w-full min-h-64 flex flex-col justify-center items-center text-center text-slate-50 text-5xl bg-gradient-to-bl from-indigo-600 to-emerald-300 rounded-md`}> 
           {powers?.name}
         </section>
         

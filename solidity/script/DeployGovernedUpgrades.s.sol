@@ -257,10 +257,10 @@ contract DeployGovernedUpgrades is Script {
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assign previous roles: Assign previous DAO role, delegates and members."
+            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
         });
+        delete conditions;
 
-        return lawInitData;
     }
 
     //////////////////////////////////////////////////////////////
@@ -271,24 +271,19 @@ contract DeployGovernedUpgrades is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](6);
-        values = new uint256[](6);
-        calldatas = new bytes[](6);
+        targets = new address[](4);
+        values = new uint256[](4);
+        calldatas = new bytes[](4);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
 
-        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
-        calldatas[1] = abi.encodeWithSelector(IPowers.revokeRole.selector, 0, msg.sender); // revoke admin role of address that created the protocol. 
-        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 0, "DAO admin");
-        calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
-        calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Members");
-
-        // revoke law after use
-        if (lawId != 0) {
-            calldatas[5] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-        }
-
+        // calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 0, "DAO admin");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
+        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Members");
+        calldatas[3] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        
         return (targets, values, calldatas);
     }
 

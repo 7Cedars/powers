@@ -3,10 +3,9 @@ import { wagmiConfig } from '../context/wagmiConfig'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "@/context/abi";
 import { GetBlockReturnType, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
-import { publicClient } from "@/context/clients"; 
-import { getBlock, readContract } from "wagmi/actions";
+import { getBlock, getPublicClient, readContract } from "wagmi/actions";
 import { supportedChains } from "@/context/chains";
-import { bytesToParams, parseMetadata } from "@/utils/parsers";
+import { bytesToParams, parseChainId, parseMetadata } from "@/utils/parsers";
 import { sepolia } from "viem/chains";
 import { useParams } from "next/navigation";
 
@@ -14,15 +13,21 @@ export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [powers, setPowers] = useState<Powers | undefined>() 
-  const { chainId } = useParams<{ chainId: string }>()
+  const { chainId, powers: address } = useParams<{ chainId: string, powers: `0x${string}` }>()
+  console.log("@usePowers, waypoint 0", {chainId, address})
   const supportedChain = supportedChains.find(chain => chain.id == Number(chainId))
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId), 
+  })
+
+  console.log("@usePowers, waypoint 0", {chainId, error, powers, publicClient})
 
   const checkLocalStorage = async (address: `0x${string}`) => {
     let localStore = localStorage.getItem("powersProtocols")
     const saved: Powers[] = localStore ? JSON.parse(localStore) : []
     const powersExists = saved.find(item => item.contractAddress == address) 
 
-    // console.log("@checkLocalStorage: waypoint 1", {powersExists})
+    console.log("@checkLocalStorage: waypoint 1", {powersExists})
 
     if (powersExists) {
       return powersExists
@@ -33,29 +38,32 @@ export const usePowers = () => {
 
   const fetchName = async (address: `0x${string}`) => {
     if (publicClient) {
+    console.log("@fetchName, waypoint 0", {address})
       try {
-        const name = await readContract(wagmiConfig, {
+        const name = await publicClient.readContract({
           abi: powersAbi,
           address: address,
           functionName: 'name'
         })
+        console.log("@fetchName, waypoint 1", {name})
         return name as string
         } catch (error) {
           setStatus("error") 
           setError(error)
         }
-      }
+    }
   }
 
   const fetchMetaData = async (address: `0x${string}`) => {
     if (publicClient) {
+    console.log("@fetchMetaData, waypoint 0", {address})
       try {
-        const uri = await readContract(wagmiConfig, {
+        const uri = await publicClient.readContract({
           abi: powersAbi,
           address: address,
           functionName: 'uri'
           })
-
+        console.log("@fetchMetaData, waypoint 1", {uri})
         if (uri) {
           const fetchedMetadata: unknown = await(
             await fetch(uri as string)
@@ -72,23 +80,28 @@ export const usePowers = () => {
   const fetchLawsAndRoles = async (address: `0x${string}`) => {
     let law: Law
 
+    console.log("@fetchLawsAndRoles, waypoint 0", {address, publicClient})
+
     if (publicClient) {
       try {
         // fetching all laws ever initiated by the org
         if (address) {
+          console.log("@fetchLawsAndRoles, waypoint 1", {address})
           const logs = await publicClient.getContractEvents({ 
             abi: lawAbi, 
             eventName: 'Law__Initialized',
             fromBlock: supportedChain?.genesisBlock,
             args: {
-              powers: address as `0x${string}`
+              powers: address
               }
             })
+            console.log("@fetchLawsAndRoles, waypoint 2", {logs})
             const fetchedLogs = parseEventLogs({
               abi: lawAbi,
               eventName: 'Law__Initialized',
               logs
             })
+            console.log("@fetchLawsAndRoles, waypoint 3", {fetchedLogs})
             const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
             let fetchedLaws: Law[] = fetchedLogsTyped.map(log => log.args as Law)
             // console.log("@fetchLawsAndRoles: waypoint 0", {fetchedLaws})
@@ -97,16 +110,22 @@ export const usePowers = () => {
                 ...log.args as Law, 
                 lawAddress: log.address, 
               }))
+            console.log("@fetchLawsAndRoles, waypoint 4", {fetchedLaws})
             fetchedLaws.forEach(law => {
               law.params = bytesToParams(law.inputParams as `0x${string}`)
             })
+            console.log("@fetchLawsAndRoles, waypoint 5", {fetchedLaws})
             fetchedLaws.sort((a: Law, b: Law) => Number(a.index) > Number(b.index) ? 1 : -1)
+            console.log("@fetchLawsAndRoles, waypoint 6", {fetchedLaws})
+
+            
 
             // fetching active laws
             let activeLaws: Law[] = []
             if (fetchedLaws) {
               for await (law of fetchedLaws) {
-                const activeLaw = await readContract(wagmiConfig, {
+                console.log("@fetchLawsAndRoles, waypoint 1", {fetchedLaws, powersAbi, address, indexLaw: law.index})
+                const activeLaw = await publicClient.readContract({
                   abi: powersAbi,
                   address: address,
                   functionName: 'isActiveLaw', 
@@ -165,6 +184,7 @@ export const usePowers = () => {
 
   const getProposals = async (address: `0x${string}`) => {
     if (publicClient) {
+      console.log("@getProposals, waypoint 1", {publicClient})
       try {
         const logs = await publicClient.getContractEvents({ 
           address: address as `0x${string}`,
@@ -228,6 +248,8 @@ export const usePowers = () => {
     let proposal: Proposal
     let state: number[] = []
 
+    console.log("@getProposalsState, waypoint 0", {proposals, address})
+
     if (publicClient) {
       try {
         for await (proposal of proposals) {
@@ -281,22 +303,28 @@ export const usePowers = () => {
 
 
   const fetchPowers = useCallback(
-    async (address: `0x${string}`) => {
+    async () => {
+      console.log("@fetchPowers, waypoint 1", {address})
       setStatus("pending")
       const powersToFetch = await checkLocalStorage(address)
-      if (powersToFetch) {
+      console.log("@fetchPowers, waypoint 2", {powersToFetch})
+      if (powersToFetch != undefined) {
         setPowers(powersToFetch)
       } else {
-
+        console.log("@fetchPowers, waypoint 3", {address})
         const names = await fetchName(address)
+        console.log("@fetchPowers, waypoint 4: ", {names})
         const metadatas = await fetchMetaData(address)
+        console.log("@fetchPowers, waypoint 5: ", {metadatas})
         const lawsAndRoles = await fetchLawsAndRoles(address)
-        const proposals = await fetchProposals(address)
-        // console.log("@fetchPowers: waypoint 4", {proposals})
+        console.log("@fetchPowers, waypoint 6: ", {lawsAndRoles})
+        // const proposals = await fetchProposals(address)
+        // console.log("@fetchPowers, waypoint 7: ", {proposals})
         const roleLabels = await fetchRoleLabels(address)
+        console.log("@fetchPowers, waypoint 8: ", {roleLabels})
 
         // console.log("waypoint 4: data fetched: ", {names, metadatas, lawsAndRoles, proposalsPerOrg, roleLabels})
-        if (names && metadatas && lawsAndRoles && proposals && roleLabels) {
+        if (names && metadatas && lawsAndRoles && roleLabels) { //  proposals &&
             const powersFetched = {
               contractAddress: address,
               name: names, 
@@ -304,31 +332,35 @@ export const usePowers = () => {
               colourScheme: 0, // TODO: make dynamic. 
               laws: lawsAndRoles.laws, 
               activeLaws: lawsAndRoles.activeLaws, 
-              proposals: proposals, 
+              proposals: [], // proposals, 
               roles: lawsAndRoles.roles, 
               roleLabels: roleLabels
             }
-
+            console.log("@fetchPowers, waypoint 9: ", {powersFetched})
             // when multiple components are calling this function at the same time, we need to make sure they do not create separate instances of the same Powers. 
             let localStore = localStorage.getItem("powersProtocols")
             const saved: Powers[] = localStore ? JSON.parse(localStore) : []
             const powersToUpdate = saved.find(item => item.contractAddress == address)
+            console.log("@fetchPowers, waypoint 10: ", {powersToUpdate})
             if (powersToUpdate) {
               const allPowers = saved.map(powers => powers.contractAddress == address ? powersFetched : powers)
               localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
                 typeof value === "bigint" ? value.toString() : value,
               ));
+              console.log("@fetchPowers, waypoint 11: ", {allPowers})
             } else {
               const allPowers = [...saved, powersFetched]
               localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
                 typeof value === "bigint" ? value.toString() : value,
               ));
+              console.log("@fetchPowers, waypoint 12: ", {powersFetched})
             }
             setPowers(powersFetched)
-          }  
+            console.log("@fetchPowers, waypoint 13: ", {powersFetched})
+          }     
       }
 
-      // console.log("waypoint 8")
+      console.log("@fetchPowers, waypoint 14")
       setStatus("success")
     }, []
   )

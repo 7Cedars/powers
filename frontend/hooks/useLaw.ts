@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
 import { Status, LawSimulation, Execution, LogExtended, Law } from "../context/types"
-import { getBlock, writeContract } from "@wagmi/core";
+import { getBlock, readContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { useChainId, useWaitForTransactionReceipt } from "wagmi";
-import { publicClient } from "@/context/clients";
+import { useWaitForTransactionReceipt } from "wagmi";
+import { getPublicClient } from "wagmi/actions";
 // import { readContract } from "";
 import { GetBlockReturnType, keccak256, Log, parseEventLogs, ParseEventLogsReturnType, toHex } from "viem";
 import { supportedChains } from "@/context/chains";
 import { sepolia } from "@wagmi/core/chains";
+import { useParams } from "next/navigation";
+import { parseChainId } from "@/utils/parsers";
 
 export const useLaw = () => {
-  const chainId = useChainId();
-  const supportedChain = supportedChains.find(chain => chain.id == chainId)
+  const { chainId } = useParams<{ chainId: string }>()
+  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId)
+  })
  
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
@@ -97,7 +102,7 @@ export const useLaw = () => {
       setError(null)
       setStatus("pending")
       try {
-        const result = await publicClient.readContract({
+        const result = await readContract(wagmiConfig, {
           abi: lawAbi,
           address: law.lawAddress as `0x${string}`,
           functionName: 'handleRequest', 
@@ -122,8 +127,11 @@ export const useLaw = () => {
       nonce: bigint,
       description: string
     ) => {
+
+        console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
         setError(null)
         setStatus("pending")
+        
         try {
           const result = await writeContract(wagmiConfig, {
             abi: powersAbi,

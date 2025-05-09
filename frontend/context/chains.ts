@@ -24,7 +24,7 @@ export const supportedChains: ChainProps[] = [
     name: "Ethereum Sepolia",
     network: "sepolia",
     blockExplorerUrl: "https://sepolia.etherscan.io/",
-    genesisBlock: 111800000n,
+    genesisBlock: 8089896n,
     blockTimeInSeconds: 12,
     nativeCurrency: {
       name: "Ether", 

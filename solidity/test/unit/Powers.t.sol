@@ -21,7 +21,8 @@ import { Erc721Mock } from "../mocks/Erc721Mock.sol";
 //////////////////////////////////////////////////////////////
 contract DeployTest is TestSetupPowers {
     function testDeployPowersMock() public {
-        assertEq(daoMock.name(), "PowersMock");
+        assertEq(daoMock.name(), "This is a test DAO");
+        assertEq(daoMock.uri(), "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq");
         assertEq(daoMock.version(), "0.3");
         assertNotEq(daoMock.lawCount(), 0);
 

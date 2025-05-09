@@ -30,7 +30,7 @@ const NavigationBar = () => {
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
+      fetchPowers() // addressPowers as `0x${string}`
     }
   }, [addressPowers, fetchPowers])
 
@@ -111,12 +111,6 @@ const Header = () => {
   const path = usePathname()
   const { status: statusUpdate, fetchPowers, powers } = usePowers()
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [addressPowers, fetchPowers])
- 
   return (
     <div className="absolute top-0 z-20 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
