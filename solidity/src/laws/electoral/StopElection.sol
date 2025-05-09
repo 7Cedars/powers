@@ -12,88 +12,105 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
-///
+/// @title StopElection - Law for Stopping Elections in the Powers Protocol
+/// @notice This law allows the stopping of elections in the Powers protocol
+/// @dev Handles the dynamic configuration and stopping of elections
 /// @author 7Cedars
-
-/// @notice This contract assigns accounts to roles by the tokens that have been delegated to them.
-/// - At construction time, the following is set:
-///    - the maximum amount of accounts that can be assigned the role
-///    - the roleId to be assigned
-///    - the ERC20 token address to be assessed.
-///    - the address from which to retrieve nominees.
-///
-/// - The logic:
-///    - The calldata holds the accounts that need to be _revoked_ from the role prior to the election.
-///    - If fewer than N accounts are nominated, all will be assigne roleId R.
-///    - If more than N accounts are nominated, the accounts that hold most ERC20 T will be assigned roleId R.
-///
-/// @dev The contract is an example of a law that
-/// - has does not need a proposal to be voted through. It can be called directly.
-/// - has two internal mechanisms: nominate or elect. Which one is run depends on calldata input.
-/// - doess not have to role restricted.
-/// - translates a simple token based voting system to separated powers.
-/// - Note this logic can also be applied with a delegation logic added. Not only taking simple token holdings into account, but also delegated tokens.
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers } from "../../Powers.sol";
-import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import { NominateMe } from "../state/NominateMe.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
-import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
+import { Powers } from "../../Powers.sol";
+import { ILaw } from "../../interfaces/ILaw.sol";
+import { StartElection } from "./StartElection.sol";
+import { VoteOnAccounts } from "../state/VoteOnAccounts.sol";
+import { NominateMe } from "../state/NominateMe.sol";
 
-contract DelegateSelect is Law {
+contract StopElection is Law {
+    /// @notice Constructor for the StopElection contract
+    /// @param name_ Name of the law
     struct Data {
-        address erc20Token;
         uint256 maxRoleHolders;
         uint256 roleId;
         address[] electedAccounts;
     }
-
     mapping(bytes32 lawHash => Data) internal data;
 
-    struct MemoryData {
+
+    struct Mem {
         bytes32 lawHash;
-        bytes32 nominateMeHash;
-        Conditions conditions;
+        uint16 needCompleted;
+        uint48 startElection;
+        uint48 endElection;
+        string electionDescription;
+        uint16 startElectionId;
+        address startElectionLaw;
+        bytes32 startElectionLawHash;
         uint16 nominateMeId;
-        address nominateMeAddress;
+        address nominateMeLaw;
+        bytes32 nominateMeHash;
+        uint16 VoteOnAccountsId;
+        address VoteOnAccountsLaw;
+        bytes32 VoteOnAccountsHash;
         address[] nominees;
         uint256 numberRevokees;
         uint256 arrayLength;
         address[] accountElects;
+        uint48 startVoteLeft;
+        uint48 endVoteLeft;
     }
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
-        name = name_;
-        bytes memory configParams = abi.encode("address Erc20Token", "uint256 MaxRoleHolders", "uint256 RoleId");
+        name = name_; 
+
+        bytes memory configParams = abi.encode("uint256 MaxRoleHolders", "uint256 RoleId");
+
         emit Law__Deployed(name_, configParams);
     }
 
+    /// @notice Initializes the law with its configuration
+    /// @param index Index of the law
+    /// @param conditions Conditions for the law. NOTE: in this case the 'NeedCompleted' condition needs to be the 'StartElection' law.
+    /// @param config Configuration data
+    /// @param inputParams Additional input parameters
+    /// @param description Description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config,
         bytes memory inputParams,
         string memory description
     ) public override {
-        (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) =
-            abi.decode(config, (address, uint256, uint256));
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash].erc20Token = erc20Token_;
-        data[lawHash].maxRoleHolders = maxRoleHolders_;
-        data[lawHash].roleId = roleId_;
 
-        super.initializeLaw(index, conditions, config, "", description);
+        super.initializeLaw(
+            index, 
+            conditions, 
+            config, 
+            abi.encode("uint48 startVote", "uint48 endVote", "string ElectionDescription"), // inputParams, 
+            description);
     }
 
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Handles the request to adopt a new law
+    /// @param caller Address initiating the request
+    /// @param lawId ID of this law
+    /// @param lawCalldata Encoded data containing the law to adopt and its configuration
+    /// @param nonce Nonce for the action
+    /// @return actionId ID of the created action
+    /// @return targets Array of target addresses
+    /// @return values Array of values to send
+    /// @return calldatas Array of calldata for the calls
+    /// @return stateChange State changes to apply
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
-        virtual
         override
         returns (
             uint256 actionId,
@@ -103,27 +120,53 @@ contract DelegateSelect is Law {
             bytes memory stateChange
         )
     {
-        MemoryData memory mem;
-        
-        (, mem.lawHash, mem.conditions) = Powers(payable(powers)).getActiveLaw(lawId);
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        Mem memory mem;
 
-        // step 1: setting up array for revoking & assigning roles.
-        mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
-        (mem.nominateMeAddress,,) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
+        // load data to memory & do checks 
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.startElectionId = conditionsLaws[mem.lawHash].needCompleted; // needCompleted is the startElection law.
+        mem.nominateMeId = conditionsLaws[mem.lawHash].readStateFrom; // readStateFrom is the nominateMe law.
+        if (mem.startElectionId == 0) {
+            revert("NeedCompleted condition not set.");
+        }
+        if (mem.nominateMeId == 0) {
+            revert("readStateFrom condition not set.");
+        }
+
+        (mem.startElection, mem.endElection, mem.electionDescription) = abi.decode(lawCalldata, (uint48, uint48, string));
+        // check if election has started
+        if (block.number < mem.startElection) {
+            revert("Election not open.");
+        }
+        // check if election has ended
+        if (block.number < mem.endElection) {
+            revert("Election has not ended.");
+        }
+
+        // Retrieving & calculating law id, addresses and hashes.  
+        (mem.startElectionLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.startElectionId);
+        (mem.nominateMeLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
+
+        mem.startElectionLawHash = LawUtilities.hashLaw(powers, mem.startElectionId);
         mem.nominateMeHash = LawUtilities.hashLaw(powers, mem.nominateMeId);
-        
-        // mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
-        mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
+
+        mem.VoteOnAccountsId = StartElection(mem.startElectionLaw).getElectionId(mem.startElectionLawHash, lawCalldata);
+        (mem.VoteOnAccountsLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.VoteOnAccountsId);
+        mem.VoteOnAccountsHash = LawUtilities.hashLaw(powers, mem.VoteOnAccountsId);
+
+        // Executing electoral Tally: calculating number of calls to make. 
+        mem.nominees = NominateMe(mem.nominateMeLaw).getNominees(mem.nominateMeHash);
         mem.numberRevokees = data[mem.lawHash].electedAccounts.length;
         mem.arrayLength = mem.nominees.length < data[mem.lawHash].maxRoleHolders
-            ? mem.numberRevokees + mem.nominees.length
-            : mem.numberRevokees + data[mem.lawHash].maxRoleHolders;
+            ? mem.numberRevokees + mem.nominees.length + 1
+            : mem.numberRevokees + data[mem.lawHash].maxRoleHolders + 1;
 
+        // Setting up the empty arrays to be filled out for call back to powers. 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
             targets[i] = powers;
         }
+
         // step 2: calls to revoke roles of previously elected accounts & delete array that stores elected accounts.
         for (uint256 i; i < mem.numberRevokees; i++) {
             calldatas[i] = abi.encodeWithSelector(
@@ -131,7 +174,7 @@ contract DelegateSelect is Law {
             );
         }
 
-        // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
+        // step 3: calls to add nominees if fewer than MAX_ROLE_HOLDERS
         if (mem.nominees.length < data[mem.lawHash].maxRoleHolders) {
             mem.accountElects = new address[](mem.nominees.length);
             for (uint256 i; i < mem.nominees.length; i++) {
@@ -140,16 +183,14 @@ contract DelegateSelect is Law {
                     abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId, accountElect);
                 mem.accountElects[i] = accountElect;
             }
-
-            // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
-            // retrieve balances of delegated votes of nominees.
+            // retrieve votes from VoteOnAccounts
             mem.accountElects = new address[](data[mem.lawHash].maxRoleHolders);
             uint256[] memory _votes = new uint256[](mem.nominees.length);
             address[] memory _nominees = mem.nominees;
 
             for (uint256 i; i < mem.nominees.length; i++) {
-                _votes[i] = ERC20Votes(data[mem.lawHash].erc20Token).getVotes(_nominees[i]);
+                _votes[i] = VoteOnAccounts(mem.VoteOnAccountsLaw).getVotes(mem.VoteOnAccountsHash, _nominees[i]);
             }
 
             // note how the following mechanism works:
@@ -175,7 +216,17 @@ contract DelegateSelect is Law {
                 }
             }
         }
+
+        // Set the state change to the accountElects array
         stateChange = abi.encode(mem.accountElects);
+
+        // Set up the call to revoke the election law in Powers contract
+        calldatas[mem.arrayLength - 1] = abi.encodeWithSelector(
+            Powers.revokeLaw.selector,
+            mem.VoteOnAccountsId
+        );
+
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas, stateChange);
     }

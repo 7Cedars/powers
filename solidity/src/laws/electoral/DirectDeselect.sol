@@ -35,7 +35,7 @@ import { LawUtilities } from "../../LawUtilities.sol";
 
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
-contract DirectSelect is Law {
+contract DirectDeselect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleId;
 
     constructor(string memory name_) {
@@ -82,7 +82,7 @@ contract DirectSelect is Law {
         // step 2 :check if addresses already have the role. If not, they will not be added to targets. 
         uint256 target = 0;
         for (uint256 i = 0; i < accounts.length; i++) {
-            if (Powers(payable(powers)).hasRoleSince(accounts[i], roleId[lawHash]) == 0) {
+            if (Powers(payable(powers)).hasRoleSince(accounts[i], roleId[lawHash]) != 0) {
                 target++;
             }
         }
@@ -93,10 +93,10 @@ contract DirectSelect is Law {
         target = 0;
         for (uint256 i = 0; i < accounts.length; i++) {
             address account = accounts[i];
-            if (Powers(payable(powers)).hasRoleSince(account, roleId[lawHash]) == 0) {
+            if (Powers(payable(powers)).hasRoleSince(account, roleId[lawHash]) != 0) {
                 targets[target] = powers;
                 values[target] = 0;
-                calldatas[target] = abi.encodeWithSelector(Powers.assignRole.selector, roleId[lawHash], account); 
+                calldatas[target] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId[lawHash], account); 
                 target++;
             } 
         }

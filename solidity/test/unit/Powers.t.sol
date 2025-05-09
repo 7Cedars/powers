@@ -559,29 +559,31 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteCanChangeState() public {
         // prep: create proposal data
         uint16 lawId = 1;
-        address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress);
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // prep: verify initial state
-        assertEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
-        assertEq(daoMock.canCallLaw(mockAddress, lawId), true);
+        assertEq(daoMock.hasRoleSince(addresses[0], ROLE_ONE), 0);
+        assertEq(daoMock.canCallLaw(addresses[0], lawId), true);
 
         // act: execute the action
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify state change
-        assertNotEq(daoMock.hasRoleSince(mockAddress, ROLE_ONE), 0);
+        assertNotEq(daoMock.hasRoleSince(addresses[0], ROLE_ONE), 0);
     }
 
     function testExecuteSuccessSetsStateToFulfilled() public {
         // prep: create proposal data
         uint16 lawId = 1;
-        address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress);
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // act: execute the action
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // assert: verify state
@@ -593,8 +595,9 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteEmitsEvent() public {
         // prep: create proposal data
         uint16 lawId = 1;
-        address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress);
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // prep: build expected event data
         address[] memory tar = new address[](1);
@@ -602,52 +605,55 @@ contract ExecuteTest is TestSetupPowers {
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
-        cal[0] = abi.encodeWithSelector(daoMock.assignRole.selector, ROLE_ONE, mockAddress);
+        cal[0] = abi.encodeWithSelector(daoMock.assignRole.selector, ROLE_ONE, addresses[0]);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // act: execute and verify event
         vm.expectEmit(true, false, false, false);
         emit ActionExecuted(lawId, actionId, tar, val, cal);
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfNotAuthorised() public {
         // prep: create proposal data
         uint16 lawId = 3;
-        lawCalldata = abi.encode(false, true);
-        address mockAddress = makeAddr("mock");
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // prep: verify unauthorized state
-        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+        assertFalse(daoMock.canCallLaw(addresses[0], lawId));
 
         // act: try to execute without authorization
         vm.expectRevert(Powers__AccessDenied.selector);
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfActionAlreadyExecuted() public {
         // prep: create proposal data
         uint16 lawId = 1;
-        address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress);
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // prep: execute action once
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
         // act: try to execute again
         vm.expectRevert(Powers__ActionAlreadyInitiated.selector);
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfLawNotActive() public {
         // prep: create proposal data
         uint16 lawId = 1;
-        address mockAddress = makeAddr("mock");
-        lawCalldata = abi.encode(true, mockAddress);
+        address[] memory addresses = new address[](1); 
+        addresses[0] = makeAddr("mock");
+        lawCalldata = abi.encode(addresses);
 
         // prep: revoke the law
         vm.prank(address(daoMock));
@@ -655,7 +661,7 @@ contract ExecuteTest is TestSetupPowers {
 
         // act: try to execute with inactive law
         vm.expectRevert(Powers__LawNotActive.selector);
-        vm.prank(mockAddress);
+        vm.prank(addresses[0]);
         daoMock.request(lawId, lawCalldata, nonce, description);
     }
 

@@ -33,16 +33,16 @@ import { LawUtilities } from "../../LawUtilities.sol";
 
 // import "forge-std/console.sol"; // remove before deploying
 
-contract VoteOnNominees is Law {
+contract VoteOnAccounts is Law {
     struct Data {
         uint48 startVote;
         uint48 endVote;
     }
     mapping(bytes32 lawHash => Data) internal data;
-    mapping(bytes32 lawHash => mapping(address nominee => uint256 votes)) public votes;
-    mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) public hasVoted;
+    mapping(bytes32 lawHash => mapping(address nominee => uint256 votes)) internal votes;
+    mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) internal hasVoted;
 
-    event VoteOnNominees__VoteCast(address voter);
+    event VoteOnAccounts__VoteCast(address voter);
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
@@ -111,10 +111,18 @@ contract VoteOnNominees is Law {
 
         hasVoted[lawHash][caller] = true;
         votes[lawHash][vote]++;
-        emit VoteOnNominees__VoteCast(caller);
+        emit VoteOnAccounts__VoteCast(caller);
     }
 
     function getData(bytes32 lawHash) external view returns (Data memory) {
         return data[lawHash];
+    }
+
+    function getVotes(bytes32 lawHash, address nominee) external view returns (uint256) {   
+        return votes[lawHash][nominee];
+    }
+
+    function getHasVoted(bytes32 lawHash, address caller) external view returns (bool) {
+        return hasVoted[lawHash][caller];
     }
 }

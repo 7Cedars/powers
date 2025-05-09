@@ -12,9 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title StartGrant - Law for Starting Grants in the Powers Protocol
-/// @notice This law allows the starting of grants in the Powers protocol
-/// @dev Handles the dynamic configuration and starting of grants
+/// @title CallElection - Law for calling an election
+/// @notice This law allows the calling of an election
+/// @dev Handles the dynamic configuration and adoption of new laws
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
@@ -27,23 +27,23 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 // import "forge-std/console.sol"; // for testing only 
 
-contract StartGrant is Law {
-    /// @notice Constructor for the StartGrant contract
+contract StartElection is Law {
+    /// @notice Constructor for the CallElection contract
     struct Data {
-        address grantLaw;
-        bytes grantConditions;
+        address electionLaw; 
+        bytes electionConditions;
     }
 
     mapping(bytes32 lawHash => Data) internal data;
-    mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) internal grantIds;
+    mapping(bytes32 lawHash => mapping(bytes32 electionHash => uint16)) internal lawIds;
 
     constructor(string memory name_) {
         LawUtilities.checkStringLength(name_);
         name = name_;
 
         bytes memory configParams = abi.encode(
-            "address grantLaw", // Address of grant law
-            "bytes grantConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the start grant law is adopted.  
+            "address ElectionLaw", // Address of VoteOnAccounts law
+            "bytes ElectionConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent elections are set when the call election law is adopted.  
         );
 
         emit Law__Deployed(name_, configParams);
@@ -62,18 +62,18 @@ contract StartGrant is Law {
         bytes memory inputParams,
         string memory description
     ) public override {
-        (address grantLaw, bytes memory grantConditions) =
+        (address electionLaw, bytes memory electionConditions) =
             abi.decode(config, (address, bytes));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash].grantLaw = grantLaw;
-        data[lawHash].grantConditions = grantConditions;
+        data[lawHash].electionLaw = electionLaw;
+        data[lawHash].electionConditions = electionConditions;
 
         super.initializeLaw(
             index, 
             conditions, 
             config, 
-            abi.encode("uint48 Duration", "uint256 Budget", "address TokenAddress", "string GrantDescription"), // inputParams
+            abi.encode("uint48 startVote", "uint48 endVote", "string ElectionDescription"), // inputParams
             description
         );
     }
@@ -81,7 +81,7 @@ contract StartGrant is Law {
     /// @notice Handles the request to adopt a new law
     /// @param caller Address initiating the request
     /// @param lawId ID of this law
-    /// @param lawCalldata Encoded data containing the law to adopt and its configuration
+    /// @param lawCalldata Encoded data containing the law to call and its configuration
     /// @param nonce Nonce for the action
     /// @return actionId ID of the created action
     /// @return targets Array of target addresses
@@ -106,12 +106,12 @@ contract StartGrant is Law {
             bytes memory stateChange
         )
     {
-        // Decode the law adoption data
-        (uint48 duration, uint256 budget, address tokenAddress, string memory grantDescription) = 
-            abi.decode(lawCalldata, (uint48, uint256, address, string));
+        // Decode the law call data
+        (uint48 startVote, uint48 endVote, string memory electionDescription) = 
+            abi.decode(lawCalldata, (uint48, uint48, string));
         
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        ILaw.Conditions memory grantConditions = abi.decode(data[lawHash].grantConditions, (ILaw.Conditions));
+        ILaw.Conditions memory electionConditions = abi.decode(data[lawHash].electionConditions, (ILaw.Conditions));
         
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -121,28 +121,28 @@ contract StartGrant is Law {
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
-                targetLaw: data[lawHash].grantLaw,
-                config: abi.encode(duration, budget, tokenAddress),
-                conditions: grantConditions,
-                description: grantDescription
+                targetLaw: data[lawHash].electionLaw,
+                config: abi.encode(startVote, endVote, electionDescription),
+                conditions: electionConditions,
+                description: electionDescription
             })
         );
 
         // Generate action ID
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        uint16 grantsId = Powers(payable(powers)).lawCount();
-        stateChange = abi.encode(grantsId, lawCalldata);
+        uint16 electionsId = Powers(payable(powers)).lawCount();
+        stateChange = abi.encode(electionsId, lawCalldata);
 
         return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        (uint16 grantsId, bytes memory lawCalldata) = abi.decode(stateChange, (uint16, bytes));
-        grantIds[lawHash][keccak256(lawCalldata)] = grantsId;
+        (uint16 electionsId, bytes memory lawCalldata) = abi.decode(stateChange, (uint16, bytes));
+        lawIds[lawHash][keccak256(lawCalldata)] = electionsId;
     }
 
-    function getGrantId(bytes32 lawHash, bytes memory lawCalldata) public view returns (uint16) {
-        return grantIds[lawHash][keccak256(lawCalldata)];
+    function getElectionId(bytes32 lawHash, bytes memory lawCalldata) public view returns (uint16) {
+        return lawIds[lawHash][keccak256(lawCalldata)];
     }
 
     function getData(bytes32 lawHash) public view returns (Data memory) {

@@ -32,8 +32,11 @@ import { Grant } from "../../src/laws/state/Grant.sol";
 import { StartGrant } from "../../src/laws/executive/StartGrant.sol";
 import { StopGrant } from "../../src/laws/executive/StopGrant.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
-import { VoteOnNominees } from "../../src/laws/state/VoteOnNominees.sol";
-
+import { VoteOnAccounts } from "../../src/laws/state/VoteOnAccounts.sol";
+import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
+import { Subscription } from "../../src/laws/electoral/Subscription.sol";
+import { StartElection } from "../../src/laws/electoral/StartElection.sol";
+import { StopElection } from "../../src/laws/electoral/StopElection.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -54,8 +57,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](20);
-        lawAddresses = new address[](20);
+        lawNames = new string[](24);
+        lawAddresses = new address[](24);
         mockNames = new string[](6);
         mockAddresses = new address[](6);
 
@@ -79,7 +82,11 @@ contract DeployAnvilMocks is Script {
         lawAddresses[16] = address(new StartGrant("StartGrant"));
         lawAddresses[17] = address(new StopGrant("StopGrant"));
         lawAddresses[18] = address(new AdoptLaw("AdoptLaw"));
-        lawAddresses[19] = address(new VoteOnNominees("VoteOnNominees"));
+        lawAddresses[19] = address(new VoteOnAccounts("VoteOnAccounts"));
+        lawAddresses[20] = address(new DirectDeselect("DirectDeselect"));
+        lawAddresses[21] = address(new Subscription("Subscription"));
+        lawAddresses[22] = address(new StartElection("StartElection"));
+        lawAddresses[23] = address(new StopElection("StopElection"));
 
         mockAddresses[0] = address(new PowersMock());
         mockAddresses[1] = address(new GovernorMock());
@@ -111,7 +118,12 @@ contract DeployAnvilMocks is Script {
         lawNames[16] = "StartGrant";
         lawNames[17] = "StopGrant";
         lawNames[18] = "AdoptLaw";
-        lawNames[19] = "VoteOnNominees";
+        lawNames[19] = "VoteOnAccounts";
+        lawNames[20] = "DirectDeselect";
+        lawNames[21] = "Subscription";
+        lawNames[22] = "StartElection";
+        lawNames[23] = "StopElection";
+
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

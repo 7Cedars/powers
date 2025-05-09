@@ -15,7 +15,7 @@ pragma solidity 0.8.26;
 // import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
 // import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 // import { Grant } from "../../../src/laws/bespoke/governYourTax/Grant.sol";
-// import { VoteOnNominees } from "../../../src/laws/state/VoteOnNominees.sol";
+// import { VoteOnAccounts } from "../../../src/laws/state/VoteOnAccounts.sol";
 // import { NominateMe } from "../../../src/laws/state/NominateMe.sol";
 // import { ElectionCall } from "../../../src/laws/electoral/ElectionCall.sol";
 
@@ -568,7 +568,7 @@ pragma solidity 0.8.26;
 //         vm.prank(alice); // = security
 //         governYourTax.execute(laws[9], lawCalldata, description);
 
-//         address electionVotesAddress = ElectionCall(laws[9]).getVoteOnNomineesAddress(
+//         address electionVotesAddress = ElectionCall(laws[9]).getVoteOnAccountsAddress(
 //             1, // voter role id
 //             laws[8], // nominees
 //             uint48(block.number + 1), // start vote
@@ -600,8 +600,8 @@ pragma solidity 0.8.26;
 //                 governYourTax.canCallLaw(votingUser, electionVotesAddress) &&
 //                 !hasVoted[votingUser] &&
 //                 NominateMe(laws[8]).nominees(userReceivingVote) != 0 &&
-//                 block.number > VoteOnNominees(electionVotesAddress).startVote() &&
-//                 block.number < VoteOnNominees(electionVotesAddress).endVote()
+//                 block.number > VoteOnAccounts(electionVotesAddress).startVote() &&
+//                 block.number < VoteOnAccounts(electionVotesAddress).endVote()
 //             ) {
 //                 console.log("action: user is voting.");
 //                 vm.expectEmit(true, false, false, false);
@@ -635,7 +635,7 @@ pragma solidity 0.8.26;
 //         description = "Alice calls an election.";
 //         vm.roll((seed1 + seed2) % 200); // should succeed in about 50% of runs.
 //         console.log("block number: ", block.number);
-//         if ( block.number >= VoteOnNominees(electionVotesAddress).endVote() ) {
+//         if ( block.number >= VoteOnAccounts(electionVotesAddress).endVote() ) {
 //             vm.expectEmit(true, false, false, false);
 //             emit PowersEvents.ActionRequested(
 //                 alice, // has role 1
@@ -660,7 +660,7 @@ pragma solidity 0.8.26;
 //             }
 
 //         // only continue if tally law was called.
-//         vm.assume( block.number > VoteOnNominees(electionVotesAddress).endVote() );
+//         vm.assume( block.number > VoteOnAccounts(electionVotesAddress).endVote() );
 
 //         uint256 numNominees = NominateMe(laws[8]).nomineesCount();
 //         for (uint256 i = 0; i < numNominees; i++) {

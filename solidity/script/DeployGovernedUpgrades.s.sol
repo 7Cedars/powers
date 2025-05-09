@@ -63,7 +63,6 @@ contract DeployGovernedUpgrades is Script {
         vm.stopBroadcast();
         powers_ = payable(address(powers));
 
-
         // Deploy the laws
         DeployLaws deployLaws = new DeployLaws();
         (names, lawAddresses) = deployLaws.run();
@@ -85,7 +84,7 @@ contract DeployGovernedUpgrades is Script {
         address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](10);
+        lawInitData = new PowersTypes.LawInitData[](12);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
@@ -110,8 +109,8 @@ contract DeployGovernedUpgrades is Script {
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
         conditions.votingPeriod = 25; // about 5 minutes
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
+        conditions.quorum = 50; // 30% quorum
+        conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsAdopt),
@@ -124,8 +123,8 @@ contract DeployGovernedUpgrades is Script {
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 1; // delegate role
         conditions.votingPeriod = 25; // about 5 minutes
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
+        conditions.quorum = 15; // 15% quorum
+        conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode("uint16 LawId"),
@@ -204,37 +203,61 @@ contract DeployGovernedUpgrades is Script {
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(),
             conditions: conditions,
-            description: "Nominate oneself for a delegate role."
+            description: "Delegate nomination: Nominate oneself for a delegate role."
         });
         delete conditions;
 
-        // Law to assign delegate role through voting 
-        conditions.allowedRole = type(uint256).max; // no role restriction
-        conditions.votingPeriod = 25; // about 5 minutes
-        conditions.quorum = 30; // 30% quorum
-        conditions.succeedAt = 51; // 51% majority
-        conditions.readStateFrom = 7; // reads nominees from law 7
+        // startElection
+        // DAO admin has the right to start an election.  
+        conditions.allowedRole = 0;
+        ILaw.Conditions memory electionConditions;
+        electionConditions.allowedRole = 1;
         lawInitData[8] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(0, "DelegateSelect"),
+            targetLaw: parseLawAddress(22, "StartElection"), // startElection
             config: abi.encode(
-                parseMockAddress(2, "Erc20VotesMock"),
-                10, // max delegate holders
-                2 // delegate role ID
+                lawAddresses[19], // VoteOnAccounts
+                abi.encode(electionConditions)
             ),
             conditions: conditions,
-            description: "Call delegate election (and pay for it)."
+            description: "Start election: The DAO admin can start an election that allows members to vote for a delegate."
+        });
+        delete conditions;
+
+        // stopElection
+        // DAO admin has the right to stop an election and count votes. 
+        conditions.allowedRole = 0;
+        conditions.needCompleted = 8; 
+        conditions.readStateFrom = 7;
+        lawInitData[9] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(23, "StopElection"), // stopElection
+            config: abi.encode(),
+            conditions: conditions,
+            description: "Stop election: The DAO admin can stop an election and have votes counted."
+        });
+        delete conditions;
+
+        // self select for member role. 
+        // open to everyone. 
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[10] = PowersTypes.LawInitData({
+            targetLaw: parseLawAddress(4, "SelfSelect"),
+            config: abi.encode(
+                2 // roleId to be assigned
+            ),
+            conditions: conditions,
+            description: "Self select for member role: This law is open to everyone."
         });
         delete conditions;
 
         // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 11);
         conditions.allowedRole = 0; // admin role
-        lawInitData[9] = PowersTypes.LawInitData({
+        lawInitData[11] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
-            description: "Assign previous DAO role."
+            description: "Assign previous roles: Assign previous DAO role, delegates and members."
         });
 
         return lawInitData;
@@ -248,9 +271,9 @@ contract DeployGovernedUpgrades is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](5);
-        values = new uint256[](5);
-        calldatas = new bytes[](5);
+        targets = new address[](6);
+        values = new uint256[](6);
+        calldatas = new bytes[](6);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
@@ -259,10 +282,11 @@ contract DeployGovernedUpgrades is Script {
         calldatas[1] = abi.encodeWithSelector(IPowers.revokeRole.selector, 0, msg.sender); // revoke admin role of address that created the protocol. 
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 0, "DAO admin");
         calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
+        calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Members");
 
         // revoke law after use
         if (lawId != 0) {
-            calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+            calldatas[5] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         }
 
         return (targets, values, calldatas);
