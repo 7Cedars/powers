@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title StopElection - Law for Stopping Elections in the Powers Protocol
+/// @title EndElection - Law for Stopping Elections in the Powers Protocol
 /// @notice This law allows the stopping of elections in the Powers protocol
 /// @dev Handles the dynamic configuration and stopping of elections
 /// @author 7Cedars
@@ -27,8 +27,8 @@ import { StartElection } from "./StartElection.sol";
 import { VoteOnAccounts } from "../state/VoteOnAccounts.sol";
 import { NominateMe } from "../state/NominateMe.sol";
 
-contract StopElection is Law {
-    /// @notice Constructor for the StopElection contract
+contract EndElection is Law {
+    /// @notice Constructor for the EndElection contract
     /// @param name_ Name of the law
     struct Data {
         uint256 maxRoleHolders;
@@ -88,7 +88,7 @@ contract StopElection is Law {
             index, 
             conditions, 
             config, 
-            abi.encode("uint48 startVote", "uint48 endVote", "string ElectionDescription"), // inputParams, 
+            abi.encode("uint48 startVote", "uint48 endVote", "string Description"), // inputParams, 
             description);
     }
 

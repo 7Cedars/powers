@@ -30,13 +30,13 @@ import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../src/laws/state/Grant.sol";
 import { StartGrant } from "../src/laws/executive/StartGrant.sol";
-import { StopGrant } from "../src/laws/executive/StopGrant.sol";
+import { EndGrant } from "../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 import { DirectDeselect } from "../src/laws/electoral/DirectDeselect.sol";
 import { Subscription } from "../src/laws/electoral/Subscription.sol";
 import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
 import { StartElection } from "../src/laws/electoral/StartElection.sol";
-import { StopElection } from "../src/laws/electoral/StopElection.sol";
+import { EndElection } from "../src/laws/electoral/EndElection.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -99,8 +99,8 @@ contract DeployLaws is Script {
         names[16] = "StartGrant";
         creationCodes[16] = type(StartGrant).creationCode;
 
-        names[17] = "StopGrant";
-        creationCodes[17] = type(StopGrant).creationCode;
+        names[17] = "EndGrant";
+        creationCodes[17] = type(EndGrant).creationCode;
 
         names[18] = "AdoptLaw";
         creationCodes[18] = type(AdoptLaw).creationCode;
@@ -117,8 +117,8 @@ contract DeployLaws is Script {
         names[22] = "StartElection";
         creationCodes[22] = type(StartElection).creationCode;
 
-        names[23] = "StopElection";
-        creationCodes[23] = type(StopElection).creationCode;
+        names[23] = "EndElection";
+        creationCodes[23] = type(EndElection).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
            addresses[i] = deployLaw(creationCodes[i], names[i]);

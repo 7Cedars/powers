@@ -19,8 +19,9 @@ import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { BespokeAction } from "../../../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../../../src/laws/executive/PresetAction.sol";
 import { StartGrant } from "../../../src/laws/executive/StartGrant.sol";
-import { StopGrant } from "../../../src/laws/executive/StopGrant.sol";
+import { EndGrant } from "../../../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../../../src/laws/executive/AdoptLaw.sol";
+
 
 contract OpenActionTest is TestSetupExecutive {
     using ShortStrings for *;
@@ -603,23 +604,23 @@ contract StartGrantTest is TestSetupExecutive {
     }
 }
 
-contract StopGrantTest is TestSetupExecutive {
+contract EndGrantTest is TestSetupExecutive {
     using ShortStrings for *;
 
     function testConstructorInitialization() public {
-        // Get the StopGrant contract from the test setup
-        uint16 stopGrant = 7;
-        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
+        // Get the EndGrant contract from the test setup
+        uint16 endGrant = 7;
+        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(stopGrantAddress).getConditions(address(daoMock),stopGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(stopGrantAddress).getExecutions(address(daoMock), stopGrant).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(endGrantAddress).getConditions(address(daoMock),endGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+        assertEq(Law(endGrantAddress).getExecutions(address(daoMock), endGrant).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
-    function testStopGrantWhenTokensSpent() public {
+    function testEndGrantWhenTokensSpent() public {
         // prep
-        uint16 stopGrant = 7;
+        uint16 endGrant = 7;
         uint16 startGrant = 6;
         
         // First start a grant
@@ -656,19 +657,19 @@ contract StopGrantTest is TestSetupExecutive {
         vm.roll(block.number + duration + 1);
 
         vm.prank(alice);
-        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant");
+        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant");
 
         // assert
-        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
-        lawHash = LawUtilities.hashLaw(address(daoMock), stopGrant);
-        StopGrant.Data memory data = StopGrant(stopGrantAddress).getData(lawHash);
+        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
+        lawHash = LawUtilities.hashLaw(address(daoMock), endGrant);
+        EndGrant.Data memory data = EndGrant(endGrantAddress).getData(lawHash);
         assertEq(data.maxBudgetLeft, 1000, "Max budget left should be set correctly");
         assertTrue(data.checkDuration, "Check duration should be true");
     }
 
-    function testCannotStopGrantWithTokensLeft() public {
+    function testCannotEndGrantWithTokensLeft() public {
         // prep
-        uint16 stopGrant = 7;
+        uint16 endGrant = 7;
         uint16 startGrant = 6;
         
         // First start a grant
@@ -692,12 +693,12 @@ contract StopGrantTest is TestSetupExecutive {
 
         vm.prank(alice);
         vm.expectRevert("Grant has not spent all tokens.");
-        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant with tokens left");
+        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant with tokens left");
     }
 
-    function testCannotStopGrantBeforeDuration() public {
+    function testCannotEndGrantBeforeDuration() public {
         // prep
-        uint16 stopGrant = 7;
+        uint16 endGrant = 7;
         uint16 startGrant = 6;
         
         // First start a grant
@@ -729,14 +730,14 @@ contract StopGrantTest is TestSetupExecutive {
 
         vm.prank(alice);
         vm.expectRevert("Grant has not expired.");
-        daoMock.request(stopGrant, lawCalldata, nonce, "Stopping grant before duration");
+        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant before duration");
     }
 
     function testHandleRequestOutput() public {
         // prep
-        uint16 stopGrant = 7;
+        uint16 endGrant = 7;
         uint16 startGrant = 6;
-        (address stopGrantAddress, , ) = daoMock.getActiveLaw(stopGrant);
+        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
         // First start a grant
         uint48 duration = 1000;
@@ -779,7 +780,7 @@ contract StopGrantTest is TestSetupExecutive {
             values,
             calldatas,
             stateChange
-        ) = Law(stopGrantAddress).handleRequest(alice, address(daoMock), stopGrant, lawCalldata, nonce);
+        ) = Law(endGrantAddress).handleRequest(alice, address(daoMock), endGrant, lawCalldata, nonce);
 
         // assert
         assertEq(targets.length, 1, "Should have one target");
@@ -793,7 +794,7 @@ contract StopGrantTest is TestSetupExecutive {
 
     function testUnauthorizedAccess() public {
         // prep
-        uint16 stopGrant = 7;
+        uint16 endGrant = 7;
         lawCalldata = abi.encode(
             uint48(1000),
             0,
@@ -804,7 +805,7 @@ contract StopGrantTest is TestSetupExecutive {
         // Try to stop grant without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        daoMock.request(stopGrant, lawCalldata, nonce, "Unauthorized grant stop");
+        daoMock.request(endGrant, lawCalldata, nonce, "Unauthorized grant stop");
     }
 }
 

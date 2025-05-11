@@ -115,7 +115,7 @@ contract DeployGovernedUpgrades is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsAdopt),
             conditions: conditions,
-            description: "Veto adoption of law: Veto the adoption of a new law."
+            description: "Veto new law: Veto the adoption of a new law."
         });
         delete conditions;
 
@@ -129,13 +129,13 @@ contract DeployGovernedUpgrades is Script {
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode("uint16 LawId"),
             conditions: conditions,
-            description: "Veto revocation of law: Veto the revocation of an existing law."
+            description: "Veto restarting law: Veto the revocation of an existing, stopped, law."
         });
         delete conditions;
 
         // Law to adopt a law
         // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = 0; // previous DAO role
+        conditions.allowedRole = 3; // previous DAO role
         conditions.needNotCompleted = 1; // law 1 should NOT have passed
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(18, "AdoptLaw"),
@@ -149,7 +149,7 @@ contract DeployGovernedUpgrades is Script {
         string[] memory inputParamsRevoke = new string[](1);
         inputParamsRevoke[0] = "uint16 LawId";
         // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = 0; // previous DAO role
+        conditions.allowedRole = 3; // previous DAO role
         conditions.needNotCompleted = 2; // law 2 should NOT have passed
         lawInitData[4] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(5, "BespokeAction"),
@@ -159,13 +159,13 @@ contract DeployGovernedUpgrades is Script {
                 inputParamsRevoke
             ),
             conditions: conditions,
-            description: "Revoke a law: Revoke a law in Powers."
+            description: "Stop a law: Revoke a law in Powers."
         });
         delete conditions;
 
         // Preset law for token exchange
         // Only delegates (role 2) can use this law
-        conditions.allowedRole = 0; // previous DAO role
+        conditions.allowedRole = 3; // previous DAO role
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode("uint256 Quantity"),
@@ -209,7 +209,7 @@ contract DeployGovernedUpgrades is Script {
 
         // startElection
         // DAO admin has the right to start an election.  
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 3;
         ILaw.Conditions memory electionConditions;
         electionConditions.allowedRole = 1;
         lawInitData[8] = PowersTypes.LawInitData({
@@ -223,16 +223,16 @@ contract DeployGovernedUpgrades is Script {
         });
         delete conditions;
 
-        // stopElection
+        // EndElection
         // DAO admin has the right to stop an election and count votes. 
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 3;
         conditions.needCompleted = 8; 
         conditions.readStateFrom = 7;
         lawInitData[9] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(23, "StopElection"), // stopElection
+            targetLaw: parseLawAddress(23, "EndElection"), // EndElection
             config: abi.encode(),
             conditions: conditions,
-            description: "Stop election: The DAO admin can stop an election and have votes counted."
+            description: "End election: The DAO admin can stop an election and have votes counted."
         });
         delete conditions;
 
@@ -279,7 +279,7 @@ contract DeployGovernedUpgrades is Script {
         }
 
         // calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 0, "DAO admin");
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "DAO admin");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Members");
         calldatas[3] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);

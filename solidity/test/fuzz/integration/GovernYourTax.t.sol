@@ -27,7 +27,7 @@ pragma solidity 0.8.26;
 //     //              CHAPTER 1: EXECUTIVE ACTIONS                //
 //     //////////////////////////////////////////////////////////////
 
-//     function testFuzz_GovernYourTax_CreateUseAndStopGrants(
+//     function testFuzz_GovernYourTax_CreateUseAndEndGrants(
 //         uint256 seed,
 //         uint256 step0Chance,
 //         uint256 step1Chance

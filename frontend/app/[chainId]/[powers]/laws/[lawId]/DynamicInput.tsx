@@ -38,8 +38,8 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
     dataType.indexOf('[]') > -1 ? true : false
 
   const handleChange=({event, item}: {event:ChangeEvent<HTMLInputElement>, item: number}) => {
-    // console.log("handleChange triggered", event.target.value, item)
-    // try {
+    console.log("@handleChange triggered", event.target.value, item)
+
     const currentInput = parseInput(event, dataType)
     if (currentInput == 'Incorrect input data') {
       setError({error: currentInput}) 
@@ -56,9 +56,6 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
         }
         setAction({...action, upToDate: false})   
       }    
-      // } catch(error) {
-      //   setError({error: error as Error})
-      // }
   }
 
   const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, index?: number) => {
@@ -92,7 +89,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
       {itemsArray.map((item, i) =>  
           <section className="w-full mt-4 flex flex-row justify-center items-center gap-4 px-6" key = {i}>
             <div className="text-sm block min-w-20 font-medium text-slate-600">
-              {varName}
+              {`${varName.length > 10 ? varName.slice(0, 10) + ".." : varName}`}
             </div>
 
             {

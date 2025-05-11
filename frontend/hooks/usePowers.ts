@@ -124,7 +124,7 @@ export const usePowers = () => {
             let activeLaws: Law[] = []
             if (fetchedLaws) {
               for await (law of fetchedLaws) {
-                console.log("@fetchLawsAndRoles, waypoint 1", {fetchedLaws, powersAbi, address, indexLaw: law.index})
+                console.log("@fetchLawsAndRoles, activeLaw waypoint 1", {fetchedLaws, powersAbi, address, indexLaw: law.index})
                 const activeLaw = await publicClient.readContract({
                   abi: powersAbi,
                   address: address,
@@ -132,7 +132,7 @@ export const usePowers = () => {
                   args: [law.index]
                 })
                 const active = activeLaw as boolean
-                // console.log("@fetchLawsAndRoles: waypoint 1", {active})
+                console.log("@fetchLawsAndRoles, activeLaw waypoint 2", {activeLaw, active})
                 if (active) activeLaws.push(law)
               }
             } 
@@ -140,7 +140,7 @@ export const usePowers = () => {
             const rolesAll = activeLaws.map((law: Law) => law.conditions.allowedRole)
             const fetchedRoles = [... new Set(rolesAll)] as bigint[]
 
-            // console.log("@fetchLawsAndRoles: waypoint 2", {fetchedLaws, activeLaws, fetchedRoles})
+            console.log("@fetchLawsAndRoles: waypoint 2", {fetchedLaws, activeLaws, fetchedRoles})
           
             if (fetchedLaws && fetchedRoles) {
               return {laws: fetchedLaws, activeLaws: activeLaws, roles: fetchedRoles}
@@ -318,13 +318,13 @@ export const usePowers = () => {
         console.log("@fetchPowers, waypoint 5: ", {metadatas})
         const lawsAndRoles = await fetchLawsAndRoles(address)
         console.log("@fetchPowers, waypoint 6: ", {lawsAndRoles})
-        // const proposals = await fetchProposals(address)
-        // console.log("@fetchPowers, waypoint 7: ", {proposals})
+        const proposals = await fetchProposals(address)
+        console.log("@fetchPowers, waypoint 7: ", {proposals})
         const roleLabels = await fetchRoleLabels(address)
         console.log("@fetchPowers, waypoint 8: ", {roleLabels})
 
         // console.log("waypoint 4: data fetched: ", {names, metadatas, lawsAndRoles, proposalsPerOrg, roleLabels})
-        if (names && metadatas && lawsAndRoles && roleLabels) { //  proposals &&
+        if (names && metadatas && lawsAndRoles && roleLabels && proposals) { 
             const powersFetched = {
               contractAddress: address,
               name: names, 
@@ -332,7 +332,7 @@ export const usePowers = () => {
               colourScheme: 0, // TODO: make dynamic. 
               laws: lawsAndRoles.laws, 
               activeLaws: lawsAndRoles.activeLaws, 
-              proposals: [], // proposals, 
+              proposals: proposals, 
               roles: lawsAndRoles.roles, 
               roleLabels: roleLabels
             }
@@ -369,20 +369,23 @@ export const usePowers = () => {
     // updates laws, roles and proposal info of an existing Powers or fetches a new Powers - and stores it in local storage.  
     async (address: `0x${string}`) => {
       setStatus("pending")
-      // console.log("@updateOrg: TRIGGERED")
+      console.log("@updatePowers: TRIGGERED")
 
       let localStore = localStorage.getItem("powersProtocols")
       const saved: Powers[] = localStore ? JSON.parse(localStore) : []
       const powersToUpdate = saved.find(item => item.contractAddress == address)
 
-      // console.log("@updatePowers: waypoint 1", {powersToUpdate})
+      console.log("@updatePowers: waypoint 1", {powersToUpdate})
       
       if (powersToUpdate) {
         const lawsAndRoles = await fetchLawsAndRoles(address)
+        console.log("@updatePowers: waypoint 1.1", {lawsAndRoles})
         const roleLabels = await fetchRoleLabels(address)
+        console.log("@updatePowers: waypoint 1.2", {roleLabels})
         const proposals = await fetchProposals(address)
+        console.log("@updatePowers: waypoint 1.3", {proposals})
 
-        // console.log("@updatePowers: waypoint 2", {lawsAndRoles, roleLabels, proposals})
+        console.log("@updatePowers: waypoint 2", {lawsAndRoles, roleLabels, proposals})
 
         if (lawsAndRoles && proposals && roleLabels) {
           const updatedPowers = 
@@ -394,13 +397,13 @@ export const usePowers = () => {
             roleLabels: roleLabels
           }
 
-          // console.log("@updatePowers: waypoint 3", {updatedPowers})
+          console.log("@updatePowers: waypoint 3", {updatedPowers})
 
           const updatedPowersArray: Powers[] = saved.map(
             powers => powers.contractAddress == updatedPowers.contractAddress ? updatedPowers : powers
           )
 
-          // console.log("@updatePowers: waypoint 4", {updatedPowersArray})
+          console.log("@updatePowers: waypoint 4", {updatedPowersArray})
         
           localStorage.setItem("powersProtocols", JSON.stringify(updatedPowersArray, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
@@ -408,7 +411,7 @@ export const usePowers = () => {
 
           setPowers(updatedPowers)
 
-          // console.log("@updatePowers: waypoint 5")
+          console.log("@updatePowers: waypoint 5")
         }
       } else {
         setStatus("error")

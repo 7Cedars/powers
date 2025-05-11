@@ -73,7 +73,7 @@ contract StartElection is Law {
             index, 
             conditions, 
             config, 
-            abi.encode("uint48 startVote", "uint48 endVote", "string ElectionDescription"), // inputParams
+            abi.encode("uint48 startVote", "uint48 endVote", "string Description"), // inputParams
             description
         );
     }

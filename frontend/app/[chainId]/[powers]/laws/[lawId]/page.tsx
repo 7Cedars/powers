@@ -139,7 +139,7 @@ const Page = () => {
         <GovernanceOverview law = {law} powers = {powers} /> 
       </div>
       {/* main body  */}
-      <section className="w-full ps-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
+      <section className="w-full px-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
 
         {/* left panel: writing, fetching data is done here  */}
         {
@@ -171,7 +171,7 @@ const Page = () => {
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
             {powers && <ChecksBox checks = {checks} law = {law} powers = {powers} status = {statusPowers} />} 
           </div>
-          {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
+            {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
             {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
           </div>
