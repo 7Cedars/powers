@@ -16,7 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
-import { useChainId, useSwitchChain } from 'wagmi'
+import { useAccount, useSwitchChain } from 'wagmi'
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -25,20 +25,19 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 
 const NavigationBar = () => {
   const router = useRouter();
-  const currentChain = useChainId()
+  const { chain } = useAccount()
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
-  const { status: statusUpdate, fetchPowers } = usePowers()
-  const { chains, switchChain, error } = useSwitchChain()
+  const { status: statusUpdate, fetchPowers } = usePowers()  
+  const { switchChain } = useSwitchChain()
 
-  console.log("@navigationBar: ", {chains})
-  console.log("@navigationBar: ", {error})
 
   useEffect(() => {
-    if (currentChain != Number(chainId)) {
+    console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
+    if (chain?.id != Number(chainId) || chain == undefined) {
       switchChain({ chainId: Number(chainId) })
     }
-  }, [currentChain, chainId, switchChain])
+  }, [chainId, switchChain, chain])
 
   useEffect(() => {
     if (addressPowers) {
@@ -124,7 +123,7 @@ const Header = () => {
   const { status: statusUpdate, fetchPowers, powers } = usePowers()
 
   return (
-    <div className="absolute top-0 z-20 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
+    <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
       <div className="flex flex-row gap-1 min-w-16"> 
         <a href="/"  

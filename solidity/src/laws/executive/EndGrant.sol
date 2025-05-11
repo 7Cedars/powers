@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title StopGrant - Law for Stopping Grants in the Powers Protocol
+/// @title EndGrant - Law for Stopping Grants in the Powers Protocol
 /// @notice This law allows the stopping of grants in the Powers protocol
 /// @dev Handles the dynamic configuration and stopping of grants
 /// @author 7Cedars
@@ -26,8 +26,8 @@ import { ILaw } from "../../interfaces/ILaw.sol";
 import { StartGrant } from "./StartGrant.sol";
 import { Grant } from "../state/Grant.sol";
 
-contract StopGrant is Law {
-    /// @notice Constructor for the StopGrant contract
+contract EndGrant is Law {
+    /// @notice Constructor for the EndGrant contract
     /// @param name_ Name of the law
     struct Data {
         uint256 maxBudgetLeft;
@@ -81,8 +81,8 @@ contract StopGrant is Law {
         inputParams = abi.encode(
             "uint48 Duration",
             "uint256 Budget",
-            "address TokenAddress", 
-            "string GrantDescription"
+            "address Address", 
+            "string Description"
         );
         super.initializeLaw(index, conditions, config, inputParams, description);
     }

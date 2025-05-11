@@ -23,7 +23,7 @@ import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
 import { DirectDeselect } from "../../../src/laws/electoral/DirectDeselect.sol";
 import { Subscription } from "../../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../../src/laws/electoral/StartElection.sol";
-import { StopElection } from "../../../src/laws/electoral/StopElection.sol";
+import { EndElection } from "../../../src/laws/electoral/EndElection.sol";
 
 contract DelegateSelectTest is TestSetupElectoral {
     using ShortStrings for *;
@@ -1501,29 +1501,29 @@ contract StartElectionTest is TestSetupElectoral {
     }
 } 
 
-contract StopElectionTest is TestSetupElectoral {
+contract EndElectionTest is TestSetupElectoral {
     using ShortStrings for *;
 
     function testConstructorInitialization() public {
-        // Get the StopElection contract from the test setup
-        uint16 stopElection = 12;
-        (address stopElectionAddress, , ) = daoMock.getActiveLaw(stopElection);
+        // Get the EndElection contract from the test setup
+        uint16 EndElection = 12;
+        (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         vm.startPrank(address(daoMock));
-        assertEq(Law(stopElectionAddress).getConditions(address(daoMock), stopElection).allowedRole, 0, "Allowed role should be set to ADMIN_ROLE");
-        assertEq(Law(stopElectionAddress).getConditions(address(daoMock), stopElection).needCompleted, 11, "NeedCompleted should be set to StartElection law ID");
-        assertEq(Law(stopElectionAddress).getConditions(address(daoMock), stopElection).readStateFrom, 1, "ReadStateFrom should be set to NominateMe law ID");
-        assertEq(Law(stopElectionAddress).getExecutions(address(daoMock), stopElection).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).allowedRole, 0, "Allowed role should be set to ADMIN_ROLE");
+        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).needCompleted, 11, "NeedCompleted should be set to StartElection law ID");
+        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).readStateFrom, 1, "ReadStateFrom should be set to NominateMe law ID");
+        assertEq(Law(EndElectionAddress).getExecutions(address(daoMock), EndElection).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
     }
 
-    function testStopElectionCheck() public {
+    function testEndElectionCheck() public {
         // prep
         uint16 nominateMe = 1;
         uint16 startElection = 11;
-        uint16 stopElection = 12;
+        uint16 EndElection = 12;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
-        (address stopElectionAddress, , ) = daoMock.getActiveLaw(stopElection);
+        (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1558,7 +1558,7 @@ contract StopElectionTest is TestSetupElectoral {
         // Now stop the election
         // Note: same calldata as startElection. 
         vm.startPrank(address(daoMock));
-        daoMock.request(stopElection, lawCalldata, nonce, electionDescription);
+        daoMock.request(EndElection, lawCalldata, nonce, electionDescription);
         vm.stopPrank();
 
         // Verify the election law was revoked
@@ -1566,11 +1566,11 @@ contract StopElectionTest is TestSetupElectoral {
         (address revokedLaw, , ) = daoMock.getActiveLaw(electionId); 
     }
 
-    function testStopElectionBeforeStart() public {
+    function testEndElectionBeforeStart() public {
         // prep
         uint16 nominateMe = 1;
         uint16 startElection = 11;
-        uint16 stopElection = 12;
+        uint16 EndElection = 12;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1592,15 +1592,15 @@ contract StopElectionTest is TestSetupElectoral {
         // Try to stop election before it starts. Note: same calldat as start election
         vm.startPrank(address(daoMock));
         vm.expectRevert("Election not open.");
-        daoMock.request(stopElection, lawCalldata, nonce, "Stopping election too early");
+        daoMock.request(EndElection, lawCalldata, nonce, "Stopping election too early");
         vm.stopPrank();
     }
 
-    function testStopElectionAfterEnd() public {
+    function testEndElectionAfterEnd() public {
         // prep
         uint16 nominateMe = 1;
         uint16 startElection = 11;
-        uint16 stopElection = 12;
+        uint16 EndElection = 12;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1625,7 +1625,7 @@ contract StopElectionTest is TestSetupElectoral {
         // Try to stop election after it ends. Note same calldata as start election! 
         vm.startPrank(address(daoMock));
         vm.expectRevert("Election has not ended.");
-        daoMock.request(stopElection, lawCalldata, nonce, "Stopping election too late");
+        daoMock.request(EndElection, lawCalldata, nonce, "Stopping election too late");
         vm.stopPrank();
     }
 
@@ -1633,9 +1633,9 @@ contract StopElectionTest is TestSetupElectoral {
         // prep
         uint16 nominateMe = 1;
         uint16 startElection = 11;
-        uint16 stopElection = 12;
+        uint16 EndElection = 12;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
-        (address stopElectionAddress, , ) = daoMock.getActiveLaw(stopElection);
+        (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1666,7 +1666,7 @@ contract StopElectionTest is TestSetupElectoral {
             values,
             calldatas,
             stateChange
-        ) = Law(stopElectionAddress).handleRequest(address(daoMock), address(daoMock), stopElection, lawCalldata, nonce);
+        ) = Law(EndElectionAddress).handleRequest(address(daoMock), address(daoMock), EndElection, lawCalldata, nonce);
         vm.stopPrank();
 
         // assert
@@ -1679,11 +1679,11 @@ contract StopElectionTest is TestSetupElectoral {
         assertNotEq(actionId, 0, "Action ID should not be 0");
     }
 
-    function testStopElectionWithoutNominees() public {
+    function testEndElectionWithoutNominees() public {
         // prep
         uint16 startElection = 11;
-        uint16 stopElection = 12;
-        (address stopElectionAddress, , ) = daoMock.getActiveLaw(stopElection);
+        uint16 EndElection = 12;
+        (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // Start an election without any nominees
         uint48 startVote = uint48(block.number + 100);
@@ -1707,7 +1707,7 @@ contract StopElectionTest is TestSetupElectoral {
             values,
             calldatas,
             stateChange
-        ) = Law(stopElectionAddress).handleRequest(address(daoMock), address(daoMock), stopElection, lawCalldata, nonce);
+        ) = Law(EndElectionAddress).handleRequest(address(daoMock), address(daoMock), EndElection, lawCalldata, nonce);
         vm.stopPrank();
 
         assertEq(targets.length, 1, "Should have one target");

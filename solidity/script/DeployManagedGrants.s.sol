@@ -99,14 +99,14 @@ contract DeployManagedGrants is Script {
         inputParams = new string[](4);
         inputParams[0] = "uint48 Duration";
         inputParams[1] = "uint256 Budget";
-        inputParams[2] = "address TokenAddress";
-        inputParams[3] = "string GrantDescription";
+        inputParams[2] = "address Address";
+        inputParams[3] = "string Description";
  
         lawInitData[2] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
             conditions: conditions,
-            description: "Veto a grant program: Judges can veto the deployment of a new grant program."
+            description: "Veto grant program: Judges can veto the deployment of a new grant program."
         });
         delete conditions;
 
@@ -144,13 +144,13 @@ contract DeployManagedGrants is Script {
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
 
         lawInitData[4] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(17, "StopGrant"),
+            targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 10, // the maximum amount of tokens left in the grant before it can be stopped. 
                 true // if true, the grant can only be stopped after it deadline has passed.  
                 ),
             conditions: conditions,
-            description: "Stop grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired."
+            description: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired."
         });
         delete conditions;
 
@@ -158,15 +158,16 @@ contract DeployManagedGrants is Script {
         conditions.allowedRole = 3; // judge role
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
+        conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
         conditions.succeedAt = 51; // 66% majority 
         lawInitData[5] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(17, "StopGrant"),
+            targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 0, // no checks. 
                 false // no deadline. 
             ), 
             conditions: conditions,
-            description: "Stop grant program: Judges can stop a grant program at any time."
+            description: "End grant program: Judges can stop a grant program at any time."
         });
         delete conditions;
 
@@ -187,7 +188,7 @@ contract DeployManagedGrants is Script {
         // This law enables role selection through delegated voting using an ERC20 token
         // Only role 0 (admin) can use this law
         conditions.allowedRole = 0;
-        conditions.readStateFrom = 1;
+        conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(

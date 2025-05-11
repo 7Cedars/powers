@@ -30,13 +30,13 @@ import { TaxSelect } from "../../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../../src/laws/state/Grant.sol";
 import { StartGrant } from "../../src/laws/executive/StartGrant.sol";
-import { StopGrant } from "../../src/laws/executive/StopGrant.sol";
+import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
 import { VoteOnAccounts } from "../../src/laws/state/VoteOnAccounts.sol";
 import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
 import { Subscription } from "../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../src/laws/electoral/StartElection.sol";
-import { StopElection } from "../../src/laws/electoral/StopElection.sol";
+import { EndElection } from "../../src/laws/electoral/EndElection.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -80,13 +80,13 @@ contract DeployAnvilMocks is Script {
         lawAddresses[14] = address(new HolderSelect("HolderSelect"));
         lawAddresses[15] = address(new Grant("Grant"));
         lawAddresses[16] = address(new StartGrant("StartGrant"));
-        lawAddresses[17] = address(new StopGrant("StopGrant"));
+        lawAddresses[17] = address(new EndGrant("EndGrant"));
         lawAddresses[18] = address(new AdoptLaw("AdoptLaw"));
         lawAddresses[19] = address(new VoteOnAccounts("VoteOnAccounts"));
         lawAddresses[20] = address(new DirectDeselect("DirectDeselect"));
         lawAddresses[21] = address(new Subscription("Subscription"));
         lawAddresses[22] = address(new StartElection("StartElection"));
-        lawAddresses[23] = address(new StopElection("StopElection"));
+        lawAddresses[23] = address(new EndElection("EndElection"));
 
         mockAddresses[0] = address(new PowersMock());
         mockAddresses[1] = address(new GovernorMock());
@@ -116,13 +116,13 @@ contract DeployAnvilMocks is Script {
         lawNames[14] = "HolderSelect";
         lawNames[15] = "Grant";
         lawNames[16] = "StartGrant";
-        lawNames[17] = "StopGrant";
+        lawNames[17] = "EndGrant";
         lawNames[18] = "AdoptLaw";
         lawNames[19] = "VoteOnAccounts";
         lawNames[20] = "DirectDeselect";
         lawNames[21] = "Subscription";
         lawNames[22] = "StartElection";
-        lawNames[23] = "StopElection";
+        lawNames[23] = "EndElection";
 
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";

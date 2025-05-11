@@ -36,7 +36,7 @@ import { console2 } from "forge-std/console2.sol";
 
 // core protocol
 import { Powers } from "../src/Powers.sol";
-import { IPowers } from "../src/interfaces/IPowers.sol";
+import { IPowers } from "../src/interfaces/IPowers.sol"; 
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
@@ -166,7 +166,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(13, "TaxSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 100, 1), // 100 gwei tax threshold, role 1 (user)
             conditions: conditions,
-            description: "Self-select as a user: Self select is conditional on tax payments. You need to have paid at least 100 gwei in tax during the last 1000 blocks."
+            description: "Assign user role: Assign an account to the user role. The account will need to pay at least 100 gwei in tax during the last 1000 blocks."
         });
         delete conditions;
 
@@ -177,7 +177,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(14, "HolderSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 1e18, 2), // 1e18 token threshold, role 2 (holder)
             conditions: conditions,
-            description: "Self-select as a holder: Self select is conditional on token holdings. You need to hold at least 1e18 tokens."
+            description: "Assign holder role: Assign an account to the holder role. The account will need to hold at least 1e18 tokens."
         });
         delete conditions;
 
@@ -188,7 +188,7 @@ contract DeploySeparatedPowers is Script {
             targetLaw: parseLawAddress(21, "Subscription"),
             config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour 
             conditions: conditions,
-            description: "Self-select as a subscriber: Self select is conditional on subscription payments. You need to have paid at least 1000 gwei in tax during the last 300 blocks."
+            description: "Assign subscriber role: Assign an account to the subscriber role. The account will need to pay 1000 gwei in Eth subscription fees to the Protocol contract."
         });
         delete conditions;
 

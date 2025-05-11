@@ -391,12 +391,12 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
-        // stopElection
+        // EndElection
         conditions.allowedRole = 0;
         conditions.needCompleted = 11; 
         conditions.readStateFrom = 1;
         lawInitData[12] = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[23], // stopElection
+            targetLaw: lawAddresses[23], // EndElection
             config: abi.encode(),
             conditions: conditions,
             description: "A law to stop an election."
@@ -514,11 +514,11 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
-        // stopGrant
+        // EndGrant
         conditions.allowedRole = 1;
         conditions.needCompleted = 6;
         lawInitData[7] = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[17], // stopGrant
+            targetLaw: lawAddresses[17], // EndGrant
             config: abi.encode(
                 1000,
                 true

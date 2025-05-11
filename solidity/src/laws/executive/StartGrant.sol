@@ -73,7 +73,7 @@ contract StartGrant is Law {
             index, 
             conditions, 
             config, 
-            abi.encode("uint48 Duration", "uint256 Budget", "address TokenAddress", "string GrantDescription"), // inputParams
+            abi.encode("uint48 Duration", "uint256 Budget", "address Token", "string Description"), // inputParams
             description
         );
     }
