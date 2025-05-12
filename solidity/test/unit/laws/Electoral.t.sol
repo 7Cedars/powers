@@ -201,7 +201,7 @@ contract HolderSelectTest is TestSetupElectoral {
         );
 
         // assert
-        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_THREE), 0, "Charlotte should have ROLE_THREE after holding enough tokens");
+        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_FOUR), 0, "Charlotte should have ROLE_FOUR after holding enough tokens");
     }
 
     function testRevokeRoleWhenNotHoldingEnoughTokens() public {
@@ -238,7 +238,7 @@ contract HolderSelectTest is TestSetupElectoral {
         );
 
         // assert
-        assertEq(daoMock.hasRoleSince(charlotte, ROLE_THREE), 0, "Charlotte should not have ROLE_THREE after falling below token threshold");
+        assertEq(daoMock.hasRoleSince(charlotte, ROLE_FOUR), 0, "Charlotte should not have ROLE_FOUR after falling below token threshold");
     }
 
     function testNoRoleChangeWhenHoldingEnoughTokens() public {
@@ -271,7 +271,7 @@ contract HolderSelectTest is TestSetupElectoral {
         );
 
         // assert
-        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_THREE), 0, "Charlotte should still have ROLE_THREE while holding enough tokens");
+        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_FOUR), 0, "Charlotte should still have ROLE_FOUR while holding enough tokens");
     }
 
     function testRevertsWhenCallerHasNoAccess() public {
@@ -776,7 +776,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 25);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -800,11 +800,11 @@ contract TaxSelectTest is TestSetupElectoral {
         // Setup: Make alice pay enough tax to meet threshold
         vm.startPrank(alice);
         Erc20TaxedMock(mockAddresses[3]).faucet(); // Get some tokens
-        Erc20TaxedMock(mockAddresses[3]).transfer(bob, 1000); // Transfer to generate tax
+        Erc20TaxedMock(mockAddresses[3]).transfer(bob, 10000); // Transfer to generate tax
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 25);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -819,7 +819,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 25);
 
         // Request role revocation
         lawCalldata = abi.encode(alice);
@@ -865,7 +865,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 25);
 
         // Request role assignment for alice
         lawCalldata = abi.encode(alice);
@@ -891,13 +891,12 @@ contract TaxSelectTest is TestSetupElectoral {
         // Setup: Make alice pay enough tax to meet threshold
         vm.startPrank(alice);
         Erc20TaxedMock(mockAddresses[3]).faucet();
-        Erc20TaxedMock(mockAddresses[3]).transfer(bob, 1000);
+        Erc20TaxedMock(mockAddresses[3]).transfer(bob, 100000);
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 1000);
-
-        lawCalldata = abi.encode(alice);
+        vm.roll(block.number + 26);
+        assertTrue(daoMock.hasRoleSince(alice, ROLE_FOUR) == 0, "Alice should have NOT have role four.");
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
@@ -907,7 +906,7 @@ contract TaxSelectTest is TestSetupElectoral {
             values,
             calldatas,
             stateChange
-        ) = Law(taxSelectAddress).handleRequest(alice, address(daoMock), taxSelect, lawCalldata, nonce);
+        ) = Law(taxSelectAddress).handleRequest(alice, address(daoMock), taxSelect, abi.encode(alice), nonce);
 
         // assert
         assertEq(targets.length, 1, "Should have one target");

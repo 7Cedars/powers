@@ -4,14 +4,13 @@
   "description": 
     "An example implementation of the Powers protocol that balances the power to execute actions between token users, holders and developers.",
   "erc20s": [
-      "0xC221a7e2475b1eA6ACcEE99444203853B4a9F4De",
-      "0xC8910B7c6dBa1e379CE90b6e00DA8e113774D95D"
+    "0x868a458887F98729F154532512F5bE4CB26c6B88",
+    "0x5339396d94C7c91BBED440463CCF04d6f040F765"
   ],
   "erc721s": [
-    "0x37E0c40F82dfe66A0eB544a5aF6Bf500720930Af"
-  ],
+    "0x6fd1C89339F2B6B4bDdEbED7271064e30c74C50D"],
   "erc1155s": [{
-    "address": "0xf0C7cC2299a3465E731e0843b7FE3ab5723b19E8",
+    "address": "0x02ee16f7E54F286015e450A6b2BEd762Ff624aa5",
     "tokenId": 0
   } ],
   "attributes": [

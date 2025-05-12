@@ -41,7 +41,7 @@ contract DeployManagedGrants is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Managed Grants",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicruah7malk6w5xsvehcla6d6gs63toajqp4epyzzggljlyafb46e"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));

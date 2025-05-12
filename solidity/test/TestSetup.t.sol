@@ -406,8 +406,7 @@ abstract contract TestSetupSeparatedPowers is BaseSetup {
         super.setUpVariables();
 
         DeploySeparatedPowers deploySeparatedPowers = new DeploySeparatedPowers();
-        ( address payable separatedPowersAddress) = deploySeparatedPowers.run();
-        
+        address payable separatedPowersAddress = deploySeparatedPowers.run();
         separatedPowers = Powers(separatedPowersAddress);
     }
 }

@@ -102,12 +102,12 @@ export const useLaw = () => {
       setError(null)
       setStatus("pending")
       try {
-        const result = await readContract(wagmiConfig, {
-          abi: lawAbi,
-          address: law.lawAddress as `0x${string}`,
-          functionName: 'handleRequest', 
-          args: [caller, law.powers, law.index, lawCalldata, nonce]
-          })
+          const result = await readContract(wagmiConfig, {
+            abi: lawAbi,
+            address: law.lawAddress as `0x${string}`,
+            functionName: 'handleRequest', 
+            args: [caller, law.powers, law.index, lawCalldata, nonce]
+            })
           // console.log("@simulate: waypoint 2a", {result})
           // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
@@ -131,16 +131,15 @@ export const useLaw = () => {
         setError(null)
         setStatus("pending")
         try {
-          console.log("@execute: waypoint 0")
           const { request } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
             address: law.powers as `0x${string}`,
             functionName: 'request',
-            args: [law.index, lawCalldata, nonce, description]
+            args: [law.index, lawCalldata, nonce, "simulation"]
           })
 
-          console.log("@execute: waypoint 2", {request})
-
+          console.log("@execute: waypoint 1", {request})
+          
           if (request) {
             const result = await writeContract(wagmiConfig, {
               abi: powersAbi,
@@ -151,7 +150,6 @@ export const useLaw = () => {
             setTransactionHash(result)
             console.log("@execute: waypoint 3", {result})
           }
-      
         } catch (error) {
           setStatus("error") 
           setError(error)

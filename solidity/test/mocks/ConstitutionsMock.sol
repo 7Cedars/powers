@@ -289,7 +289,7 @@ contract ConstitutionsMock is Test  {
             config: abi.encode(
                 mockAddresses[3], // erc20TaxedMock
                 1000, //minimum tokens
-                3 // roleId to be assigned
+                4 // roleId to be assigned
             ),
             conditions: conditions,
             description: "A law to select a role by token holdings."
@@ -343,7 +343,7 @@ contract ConstitutionsMock is Test  {
             config: abi.encode(
                 mockAddresses[3], // erc20TaxedMock
                 1000, //threshold of tax paid tokens
-                3 // roleId to be assigned
+                4 // roleId to be assigned
             ),
             conditions: conditions,
             description: "A law to select a role by tax."

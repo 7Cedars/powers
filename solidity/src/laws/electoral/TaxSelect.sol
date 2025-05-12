@@ -132,24 +132,27 @@ contract TaxSelect is Law {
         }
 
         // step 2: retrieve data on tax paid and role
-        mem.hasRole = Powers(payable(powers)).canCallLaw(caller, lawId);
+        mem.hasRole = Powers(payable(powers)).hasRoleSince(caller, data[mem.lawHash].roleIdToSet) > 0;
+        // console.log("mem.hasRole", mem.hasRole);
         mem.taxPaid = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).getTaxLogs(
             uint48(block.number) - mem.epochDuration,
             account
         );
+        // console.log("mem.taxPaid", mem.taxPaid);
+
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        targets[0] = powers;
 
         // step 3: create arrays
         if (mem.hasRole && mem.taxPaid < data[mem.lawHash].thresholdTaxPaid) {
-            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-            targets[0] = powers;
+            // console.log("revoking role");
             calldatas[0] = abi.encodeWithSelector(
                 Powers.revokeRole.selector,
                 data[mem.lawHash].roleIdToSet,
                 account
             );
         } else if (!mem.hasRole && mem.taxPaid >= data[mem.lawHash].thresholdTaxPaid) {
-            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-            targets[0] = powers;
+            // console.log("assigning role");
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector,
                 data[mem.lawHash].roleIdToSet,

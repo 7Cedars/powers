@@ -22,20 +22,27 @@ const Page = () => {
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
   const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law, powers as Powers) != undefined  
+  
   const authorised = useReadContract({
     abi: powersAbi,
     address: powers?.contractAddress as `0x${string}`,
     functionName: 'canCallLaw', 
     args: [wallets[0]?.address, law?.index]
   })
-  // console.log("@Proposal page: ", {law, action, wallets, powers, proposalExists, authorised: authorised.data})
+  
+  console.log("@New Proposal page: ", {law, action, wallets, powers, checks, proposalExists, authorised: authorised.data})
 
   useEffect(() => {
     if (addressPowers) {
       fetchPowers() // addressPowers as `0x${string}`
     }
-    fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
   }, [addressPowers, fetchPowers])
+
+  useEffect(() => {
+    if (statusChecks == "success" && powers) {
+      fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
+    }
+  }, [statusChecks, powers])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll">
@@ -57,7 +64,7 @@ const Page = () => {
           { law && <LawLink law = {law} powers = {powers} status = {status} /> }
         </div>
         <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72"> 
-          {  <ChecksBox powers = {powers} law = {law} checks = {checks} status = {status} /> }  
+          { checks && <ChecksBox powers = {powers} law = {law} checks = {checks} status = {status} /> }  
         </div>
       </div>
       </section>

@@ -20,7 +20,10 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
   const { chainId } = useParams<{ chainId: string }>()
   const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needCompleted); 
   const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needNotCompleted); 
-  
+
+  console.log("ChecksBox: ", {checks})
+  console.log("ChecksBox: ", {law})
+
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -30,7 +33,7 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
         </div>
 
         {/* authorised block */}
-        {status == "pending" || status == "idle" ?
+        {status == "pending" || status == "idle" || !checks ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>

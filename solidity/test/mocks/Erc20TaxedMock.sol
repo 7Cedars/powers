@@ -27,7 +27,7 @@ contract Erc20TaxedMock is ERC20, Ownable {
         // Note: hard coded values for testing.
         taxRate = 10;
         DENOMINATOR = 100;
-        epochDuration = 1000;
+        epochDuration = 25; // 25 blocks, about 5 minutes
         _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens.
     }
 

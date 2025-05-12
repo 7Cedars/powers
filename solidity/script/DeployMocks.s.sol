@@ -19,59 +19,65 @@ import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 import { Erc721Mock } from "../test/mocks/Erc721Mock.sol";
 import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
+
 // @dev this script is used to deploy the mocks to the chain.
-// Note: we do not return addresses of the deployed mocks.
+// Note: we do not return addresses of the deployed mocks. -- I am thinking about scrapping it. It is more trouble than its worth
 // addresses should be computed on basis of deployment data using create2.
 contract DeployMocks is Script {
     function run() external returns (string[] memory names, address[] memory addresses) {
         names = new string[](6);
         addresses = new address[](6);
+        bytes[] memory deployConfigs = new bytes[](6);
         bytes[] memory creationCodes = new bytes[](6);
 
         names[0] = "PowersMock";
         creationCodes[0] = type(PowersMock).creationCode;
+        deployConfigs[0] = abi.encode("PowersMock");
     
         names[1] = "GovernorMock";
         creationCodes[1] = type(GovernorMock).creationCode;
-    
+        deployConfigs[1] = abi.encode();
+
         names[2] = "Erc20VotesMock";
         creationCodes[2] = type(Erc20VotesMock).creationCode;
+        deployConfigs[2] = abi.encode("Erc20VotesMock");
 
         names[3] = "Erc20TaxedMock";
         creationCodes[3] = type(Erc20TaxedMock).creationCode;
+        deployConfigs[3] = abi.encode("Erc20TaxedMock");
 
         names[4] = "Erc721Mock";
         creationCodes[4] = type(Erc721Mock).creationCode;
+        deployConfigs[4] = abi.encode("Erc721Mock");
 
         names[5] = "Erc1155Mock";
         creationCodes[5] = type(Erc1155Mock).creationCode;
+        deployConfigs[5] = abi.encode("Erc1155Mock");
 
-        for (uint256 i = 0; i < names.length; i++) {
-           addresses[i] = deployMock(creationCodes[i], names[i]);
+        for (uint256 i = 0; i < deployConfigs.length; i++) {
+           addresses[i] = deployMock(creationCodes[i], deployConfigs[i]);
         }
     }
 
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //
     //////////////////////////////////////////////////////////////
-    function deployMock(bytes memory creationCode, string memory name) public returns (address) {
-        bytes32 salt = bytes32(abi.encodePacked(name));
+    function deployMock(bytes memory creationCode, bytes memory deployConfig) public returns (address) {
+        bytes32 salt = bytes32(abi.encodePacked(deployConfig));
         address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.    
 
         address computedAddress = Create2.computeAddress(
             salt,
-            keccak256(abi.encodePacked(creationCode, abi.encode(name))),
+            keccak256(abi.encodePacked(creationCode, deployConfig)),
             create2Factory // create2 factory address. NEED TO INCLUDE THIS!
         );
 
         if (computedAddress.code.length == 0) {
             vm.startBroadcast();
-            address lawAddress = Create2.deploy(0, salt, abi.encodePacked(creationCode, abi.encode(name)));
+            address mockAddress = Create2.deploy(0, salt, abi.encodePacked(creationCode, deployConfig));
             vm.stopBroadcast();
-            // console2.log(string.concat(name, " deployed at (new deployment): "), lawAddress);
-            return lawAddress;
+            return mockAddress;
         } else {
-            // console2.log(string.concat(name, " deployed at: "), computedAddress);
             return computedAddress;
         }
     }

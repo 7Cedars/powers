@@ -58,7 +58,7 @@ contract DeployGovernedUpgrades is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Governed Upgrades",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihwama3z5yix2bqrulljy6vysktaaj4p3ni6wufdugx7gu2hsfhwi"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicrfqg67e6apvfd7pf4n7ltur7bsrkrunwls6umbmgvigolrrimpy"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -236,24 +236,11 @@ contract DeployGovernedUpgrades is Script {
         });
         delete conditions;
 
-        // self select for member role. 
-        // open to everyone. 
-        conditions.allowedRole = type(uint256).max;
-        lawInitData[10] = PowersTypes.LawInitData({
-            targetLaw: parseLawAddress(4, "SelfSelect"),
-            config: abi.encode(
-                2 // roleId to be assigned
-            ),
-            conditions: conditions,
-            description: "Self select for member role: This law is open to everyone."
-        });
-        delete conditions;
-
         // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 11);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 10);
         conditions.allowedRole = 0; // admin role
-        lawInitData[11] = PowersTypes.LawInitData({
+        lawInitData[10] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions,
@@ -271,9 +258,9 @@ contract DeployGovernedUpgrades is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](4);
-        values = new uint256[](4);
-        calldatas = new bytes[](4);
+        targets = new address[](3);
+        values = new uint256[](3);
+        calldatas = new bytes[](3);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
@@ -281,8 +268,7 @@ contract DeployGovernedUpgrades is Script {
         // calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "DAO admin");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
-        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Members");
-        calldatas[3] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         
         return (targets, values, calldatas);
     }

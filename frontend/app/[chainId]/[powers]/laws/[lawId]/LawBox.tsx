@@ -180,7 +180,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
       
 
       {/* Errors */}
-      { error.error && 
+      { error.error && action.upToDate &&
         <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pb-4 px-8">
           <div>
             An error occurred. This is often because the law has additional checks that did not pass or there is an error in the data provided. 

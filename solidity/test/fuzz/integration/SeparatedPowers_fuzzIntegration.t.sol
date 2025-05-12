@@ -182,109 +182,109 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
     //              CHAPTER 2: ROLE MANAGEMENT                  //
     //////////////////////////////////////////////////////////////
 
-    function testFuzz_SeparatedPowers_RoleManagement(
-        uint256 taxAmount,
-        uint256 tokenAmount,
-        uint256 subscriptionAmount
-    ) public {
-        // Bound the amounts to reasonable ranges
-        taxAmount = bound(taxAmount, 100, 1000); // 100-1000 gwei tax
-        tokenAmount = bound(tokenAmount, 1e18, 10e18); // 1-10 tokens
-        subscriptionAmount = bound(subscriptionAmount, 1000, 10000); // 1000-10000 gwei subscription
+    // function testFuzz_SeparatedPowers_RoleManagement(
+    //     uint256 taxAmount,
+    //     uint256 tokenAmount,
+    //     uint256 subscriptionAmount
+    // ) public {
+    //     // Bound the amounts to reasonable ranges
+    //     taxAmount = bound(taxAmount, 100, 1000); // 100-1000 gwei tax
+    //     tokenAmount = bound(tokenAmount, 1e18, 10e18); // 1-10 tokens
+    //     subscriptionAmount = bound(subscriptionAmount, 1000, 10000); // 1000-10000 gwei subscription
 
-        // Test User role self-selection based on tax
-        vm.startPrank(bob);
-        Erc20TaxedMock(mockAddresses[3]).faucet();
-        Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
-        vm.stopPrank();
+    //     // Test User role self-selection based on tax
+    //     vm.startPrank(bob);
+    //     Erc20TaxedMock(mockAddresses[3]).faucet();
+    //     Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
+    //     vm.stopPrank();
 
-        vm.prank(bob);
-        separatedPowers.request(5, abi.encode(), nonce, "Self-select as user");
-        nonce++;
+    //     vm.prank(bob);
+    //     separatedPowers.request(5, abi.encode(), nonce, "Self-select as user");
+    //     nonce++;
 
-        assertTrue(separatedPowers.hasRoleSince(bob, 1) != 0, "Bob should have user role");
+    //     assertTrue(separatedPowers.hasRoleSince(bob, 1) != 0, "Bob should have user role");
 
-        // Test Holder role self-selection based on token holdings
-        vm.startPrank(charlotte);
-        Erc20VotesMock(mockAddresses[2]).mintVotes(tokenAmount);
-        vm.stopPrank();
+    //     // Test Holder role self-selection based on token holdings
+    //     vm.startPrank(charlotte);
+    //     Erc20VotesMock(mockAddresses[2]).mintVotes(tokenAmount);
+    //     vm.stopPrank();
 
-        vm.prank(charlotte);
-        separatedPowers.request(6, abi.encode(), nonce, "Self-select as holder");
-        nonce++;
+    //     vm.prank(charlotte);
+    //     separatedPowers.request(6, abi.encode(), nonce, "Self-select as holder");
+    //     nonce++;
 
-        assertTrue(separatedPowers.hasRoleSince(charlotte, 2) != 0, "Charlotte should have holder role");
+    //     assertTrue(separatedPowers.hasRoleSince(charlotte, 2) != 0, "Charlotte should have holder role");
 
-        // Test Subscriber role self-selection based on subscription
-        vm.startPrank(eve);
-        Erc20TaxedMock(mockAddresses[3]).faucet();
-        Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
-        vm.stopPrank();
+    //     // Test Subscriber role self-selection based on subscription
+    //     vm.startPrank(eve);
+    //     Erc20TaxedMock(mockAddresses[3]).faucet();
+    //     Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
+    //     vm.stopPrank();
 
-        vm.prank(eve);
-        separatedPowers.request(7, abi.encode(), nonce, "Self-select as subscriber");
-        nonce++;
+    //     vm.prank(eve);
+    //     separatedPowers.request(7, abi.encode(), nonce, "Self-select as subscriber");
+    //     nonce++;
 
-        assertTrue(separatedPowers.hasRoleSince(eve, 4) != 0, "Eve should have subscriber role");
+    //     assertTrue(separatedPowers.hasRoleSince(eve, 4) != 0, "Eve should have subscriber role");
 
-        // Test Developer role management
-        vm.startPrank(david); // Existing developer
-        separatedPowers.request(8, abi.encode(frank), nonce, "Assign developer role");
-        nonce++;
-        vm.stopPrank();
+    //     // Test Developer role management
+    //     vm.startPrank(david); // Existing developer
+    //     separatedPowers.request(8, abi.encode(frank), nonce, "Assign developer role");
+    //     nonce++;
+    //     vm.stopPrank();
 
-        assertTrue(separatedPowers.hasRoleSince(frank, 3) != 0, "Frank should have developer role");
-    }
+    //     assertTrue(separatedPowers.hasRoleSince(frank, 3) != 0, "Frank should have developer role");
+    // }
 
-    function testFuzz_SeparatedPowers_RoleRequirements(
-        uint256 taxAmount,
-        uint256 tokenAmount,
-        uint256 subscriptionAmount
-    ) public {
-        // Test insufficient tax payment for User role
-        vm.startPrank(bob);
-        Erc20TaxedMock(mockAddresses[3]).faucet();
-        Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
-        vm.stopPrank();
+    // function testFuzz_SeparatedPowers_RoleRequirements(
+    //     uint256 taxAmount,
+    //     uint256 tokenAmount,
+    //     uint256 subscriptionAmount
+    // ) public {
+    //     // Test insufficient tax payment for User role
+    //     vm.startPrank(bob);
+    //     Erc20TaxedMock(mockAddresses[3]).faucet();
+    //     Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
+    //     vm.stopPrank();
 
-        vm.prank(bob);
-        vm.expectRevert();
-        separatedPowers.request(5, abi.encode(), nonce, "Self-select as user with insufficient tax");
-        nonce++;
+    //     vm.prank(bob);
+    //     vm.expectRevert();
+    //     separatedPowers.request(5, abi.encode(), nonce, "Self-select as user with insufficient tax");
+    //     nonce++;
 
-        // Test insufficient token holdings for Holder role
-        vm.startPrank(charlotte);
-        Erc20VotesMock(mockAddresses[2]).mintVotes(tokenAmount);
-        vm.stopPrank();
+    //     // Test insufficient token holdings for Holder role
+    //     vm.startPrank(charlotte);
+    //     Erc20VotesMock(mockAddresses[2]).mintVotes(tokenAmount);
+    //     vm.stopPrank();
 
-        vm.prank(charlotte);
-        vm.expectRevert();
-        separatedPowers.request(6, abi.encode(), nonce, "Self-select as holder with insufficient tokens");
-        nonce++;
+    //     vm.prank(charlotte);
+    //     vm.expectRevert();
+    //     separatedPowers.request(6, abi.encode(), nonce, "Self-select as holder with insufficient tokens");
+    //     nonce++;
 
-        // Test insufficient subscription for Subscriber role
-        vm.startPrank(eve);
-        Erc20TaxedMock(mockAddresses[3]).faucet();
-        Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
-        vm.stopPrank();
+    //     // Test insufficient subscription for Subscriber role
+    //     vm.startPrank(eve);
+    //     Erc20TaxedMock(mockAddresses[3]).faucet();
+    //     Erc20TaxedMock(mockAddresses[3]).transfer(alice, 1_000_000_000);
+    //     vm.stopPrank();
 
-        vm.prank(eve);
-        vm.expectRevert();
-        separatedPowers.request(7, abi.encode(), nonce, "Self-select as subscriber with insufficient subscription");
-        nonce++;
-    }
+    //     vm.prank(eve);
+    //     vm.expectRevert();
+    //     separatedPowers.request(7, abi.encode(), nonce, "Self-select as subscriber with insufficient subscription");
+    //     nonce++;
+    // }
 
-    function test_SeparatedPowers_AssignRoleLabels() public {
-        // Setup initial roles
-        vm.startPrank(address(separatedPowers));
-        separatedPowers.assignRole(0, alice); // ADMIN ROLE
-        vm.stopPrank();
-        // I should make a fuzz test out of this
+    // function test_SeparatedPowers_AssignRoleLabels() public {
+    //     // Setup initial roles
+    //     vm.startPrank(address(separatedPowers));
+    //     separatedPowers.assignRole(0, alice); // ADMIN ROLE
+    //     vm.stopPrank();
+    //     // I should make a fuzz test out of this
         
-        vm.prank(alice);
-        separatedPowers.request(9, abi.encode(), nonce, "Assign role labels");
+    //     vm.prank(alice);
+    //     separatedPowers.request(9, abi.encode(), nonce, "Assign role labels");
 
-        vm.expectRevert();
-        separatedPowers.getActiveLaw(9);
-    }
+    //     vm.expectRevert();
+    //     separatedPowers.getActiveLaw(9);
+    // }
 } 

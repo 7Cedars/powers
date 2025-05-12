@@ -89,7 +89,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[23] = address(new EndElection("EndElection"));
 
         mockAddresses[0] = address(new PowersMock());
-        mockAddresses[1] = address(new GovernorMock());
+        
         vm.stopBroadcast();
 
         vm.startBroadcast(daoMock);
@@ -97,6 +97,7 @@ contract DeployAnvilMocks is Script {
         mockAddresses[3] = address(new Erc20TaxedMock());
         mockAddresses[4] = address(new Erc721Mock());
         mockAddresses[5] = address(new Erc1155Mock());
+        mockAddresses[1] = address(new GovernorMock(mockAddresses[2]));
         vm.stopBroadcast();
         
         lawNames[0] = "DelegateSelect";

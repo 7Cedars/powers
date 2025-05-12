@@ -460,7 +460,7 @@ contract StartGrantTest is TestSetupExecutive {
     function testStartGrant() public {
         // prep
         uint16 startGrant = 6;
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -499,7 +499,7 @@ contract StartGrantTest is TestSetupExecutive {
 
         // First grant
         lawCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "First grant"
@@ -510,7 +510,7 @@ contract StartGrantTest is TestSetupExecutive {
 
         // Second grant
         lawCalldata = abi.encode(
-            uint48(2000),
+            uint48(25),
             2 * 10 ** 18,
             mockAddresses[3],
             "Second grant"
@@ -524,13 +524,13 @@ contract StartGrantTest is TestSetupExecutive {
         
         // Get grant IDs for both grants
         bytes memory firstGrantCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "First grant"
         );
         bytes memory secondGrantCalldata = abi.encode(
-            uint48(2000),
+            uint48(25),
             2 * 10 ** 18,
             mockAddresses[3],
             "Second grant"
@@ -549,7 +549,7 @@ contract StartGrantTest is TestSetupExecutive {
         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
         
         lawCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "Test grant"
@@ -624,7 +624,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -673,7 +673,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -702,7 +702,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 0; // Set budget to 0 to pass token check
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -740,7 +740,7 @@ contract EndGrantTest is TestSetupExecutive {
         (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";

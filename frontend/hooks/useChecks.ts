@@ -63,7 +63,7 @@ export const useChecks = (powers: Powers) => {
   const checkProposalStatus = useCallback(
     async (law: Law, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
       const selectedProposal = checkProposalExists(nonce, lawCalldata, law, powers)
-    
+
       if (selectedProposal) {
         try {
           const state =  await readContract(wagmiConfig, {

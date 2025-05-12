@@ -53,7 +53,7 @@ contract DeploySeparatedPowers is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Separated Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreie6x6i2bdhuuxqbiumu27w6ub473d7sfajkzayapihwndlggf4ohm"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihabw2ijvbeoa57yrsx3q63xlnltejg4gtojlwut7wvhwah3p6p3y"
         );
         vm.stopBroadcast();
 
@@ -129,7 +129,7 @@ contract DeploySeparatedPowers is Script {
         conditions.needCompleted = 2; // law 2 needs to have passed. 
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 20; // 20% quorum
-        conditions.succeedAt = 66; // 66% majority
+        conditions.succeedAt = 66; // 66% majority 
         conditions.delayExecution = 75; // 75 blocks, about 15 minutes
         lawInitData[3] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(8, "ProposalOnly"),
@@ -164,9 +164,9 @@ contract DeploySeparatedPowers is Script {
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[5] = PowersTypes.LawInitData({
             targetLaw: parseLawAddress(13, "TaxSelect"),
-            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 100, 1), // 100 gwei tax threshold, role 1 (user)
+            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 100 gwei tax threshold, role 1 (user)
             conditions: conditions,
-            description: "Assign user role: Assign an account to the user role. The account will need to pay at least 100 gwei in tax during the last 1000 blocks."
+            description: "Assign user role: Assign an account to the user role. The account will need to pay at least 100 gwei in tax during the previous epoch of 25 blocks. (5 minutes)"
         });
         delete conditions;
 

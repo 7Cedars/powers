@@ -5,6 +5,7 @@ libs = ["lib"]
 evm_version = "cancun"
 always_use_create_2_factory = true
 memory_limit = 1342177280
+optimizer_runs = 400
 
 [fmt]
 bracket_spacing = true
