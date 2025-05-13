@@ -51,7 +51,7 @@ contract Grant is Law {
     mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode(
             "uint48 Duration",
@@ -78,7 +78,7 @@ contract Grant is Law {
             abi.decode(config, (uint48, uint256, address));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash].expiryBlock = duration + uint48(block.number);
+        data[lawHash].expiryBlock = duration + uint48(block.timestamp);
         data[lawHash].budget = budget;
         data[lawHash].tokenAddress = tokenAddress;
 
@@ -125,7 +125,7 @@ contract Grant is Law {
         if (quantity > data[lawHash].budget - data[lawHash].spent) {
             revert("Request amount exceeds available funds.");
         }
-        if (block.number > data[lawHash].expiryBlock) {
+        if (block.timestamp > data[lawHash].expiryBlock) {
             revert("Grant program has expired.");
         }
 
@@ -152,10 +152,10 @@ contract Grant is Law {
     }
 
     function getDurationLeft(bytes32 lawHash) external view returns (uint48) {
-        if (block.number > data[lawHash].expiryBlock) {
+        if (block.timestamp > data[lawHash].expiryBlock) {
             return 0;
         }
-        return data[lawHash].expiryBlock - uint48(block.number);
+        return data[lawHash].expiryBlock - uint48(block.timestamp);
     }
 
     function getData(bytes32 lawHash) external view returns (Data memory) {

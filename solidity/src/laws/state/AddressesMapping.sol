@@ -33,7 +33,7 @@ contract AddressesMapping is Law {
     event AddressesMapping__Removed(address account);
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         
         emit Law__Deployed(name_, "");

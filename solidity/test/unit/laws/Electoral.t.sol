@@ -150,7 +150,7 @@ contract DelegateSelectTest is TestSetupElectoral {
         }
 
         // Move forward in time
-        vm.roll(block.number + 100);
+        vm.warp(block.timestamp + 100);
 
         // Second election setup
         // First election setup
@@ -776,7 +776,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.warp(block.timestamp + 25);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -804,7 +804,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.warp(block.timestamp + 25);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -819,7 +819,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.warp(block.timestamp + 25);
 
         // Request role revocation
         lawCalldata = abi.encode(alice);
@@ -836,7 +836,7 @@ contract TaxSelectTest is TestSetupElectoral {
         
         // Try to request role assignment in first epoch
 
-        vm.roll(1); // set blocknumber to 1. 
+        vm.warp(1); // set blocknumber to 1. 
         lawCalldata = abi.encode(alice);
         vm.prank(alice);
         vm.expectRevert("No finished epoch yet.");
@@ -865,7 +865,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.warp(block.timestamp + 25);
 
         // Request role assignment for alice
         lawCalldata = abi.encode(alice);
@@ -895,7 +895,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 26);
+        vm.warp(block.timestamp + 26);
         assertTrue(daoMock.hasRoleSince(alice, ROLE_FOUR) == 0, "Alice should have NOT have role four.");
 
         // act: call handleRequest directly to check its output
@@ -928,7 +928,7 @@ contract TaxSelectTest is TestSetupElectoral {
         TaxSelect.Data memory data = TaxSelect(taxSelectAddress).getData(lawHash);
         assertEq(data.erc20TaxedMock, mockAddresses[3], "ERC20 taxed mock address should be set correctly");
         assertEq(data.thresholdTaxPaid, 1000, "Threshold tax paid should be set correctly");
-        assertEq(data.roleIdToSet, 3, "Role ID to set should be set correctly");
+        assertEq(data.roleIdToSet, 4, "Role ID to set should be set correctly");
     }
 }
 
@@ -1222,7 +1222,7 @@ contract SubscriptionTest is TestSetupElectoral {
         address(daoMock).call{value: subscriptionAmount}(""); 
 
         // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+        vm.warp(block.timestamp + data.epochDuration);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -1249,7 +1249,7 @@ contract SubscriptionTest is TestSetupElectoral {
         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
         // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+        vm.warp(block.timestamp + data.epochDuration);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -1258,7 +1258,7 @@ contract SubscriptionTest is TestSetupElectoral {
         nonce++;
 
         // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+        vm.warp(block.timestamp + data.epochDuration);
 
         // Setup: Make alice pay not enough tax to meet subscription amount
         vm.prank(alice);
@@ -1278,7 +1278,7 @@ contract SubscriptionTest is TestSetupElectoral {
         uint16 subscription = 10;
         
         // Try to request role assignment in first epoch
-        vm.roll(1); // set blocknumber to 1
+        vm.warp(1); // set blocknumber to 1
         lawCalldata = abi.encode(alice);
         vm.prank(alice);
         vm.expectRevert("No finished epoch yet.");
@@ -1306,7 +1306,7 @@ contract SubscriptionTest is TestSetupElectoral {
         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
         // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+        vm.warp(block.timestamp + data.epochDuration);
 
         // Request role assignment for alice
         lawCalldata = abi.encode(alice);
@@ -1340,7 +1340,7 @@ contract SubscriptionTest is TestSetupElectoral {
         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
         // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+        vm.warp(block.timestamp + data.epochDuration);
 
         lawCalldata = abi.encode(alice);
 
@@ -1402,8 +1402,8 @@ contract StartElectionTest is TestSetupElectoral {
         StartElection.Data memory data = StartElection(startElectionAddress).getData(lawHash);
         
         // Setup election parameters
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1429,8 +1429,8 @@ contract StartElectionTest is TestSetupElectoral {
         uint16 startElection = 11;
         
         // Setup election parameters with invalid timing (end before start)
-        uint48 startVote = uint48(block.number + 200);
-        uint48 endVote = uint48(block.number + 100);
+        uint48 startVote = uint48(block.timestamp + 200);
+        uint48 endVote = uint48(block.timestamp + 100);
         string memory electionDescription = "Invalid Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1445,8 +1445,8 @@ contract StartElectionTest is TestSetupElectoral {
         uint16 startElection = 11;
         
         // Setup election parameters with empty description
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1462,8 +1462,8 @@ contract StartElectionTest is TestSetupElectoral {
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         
         // Setup election parameters
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1536,8 +1536,8 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Start an election
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1547,12 +1547,12 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Get the election ID]
-        vm.roll(block.number + 125); 
+        vm.warp(block.timestamp + 125); 
         bytes32 startElectionLawHash = LawUtilities.hashLaw(address(daoMock), startElection);
         uint16 electionId = StartElection(startElectionAddress).getElectionId(startElectionLawHash, lawCalldata);
         
         // Move forward in time to when election is not active anymore
-        vm.roll(block.number + 125);
+        vm.warp(block.timestamp + 125);
 
         // Now stop the election
         // Note: same calldata as startElection. 
@@ -1561,8 +1561,8 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Verify the election law was revoked
-        vm.expectRevert(abi.encodeWithSelector(Powers__LawNotActive.selector));
-        (address revokedLaw, , ) = daoMock.getActiveLaw(electionId); 
+        (, , active ) = daoMock.getActiveLaw(electionId); 
+        assertTrue(!active, "Election law should be revoked");
     }
 
     function testEndElectionBeforeStart() public {
@@ -1578,8 +1578,8 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Start an election
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1608,8 +1608,8 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Start an election
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1619,7 +1619,7 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Move forward to while the election is still active
-        vm.roll(block.number + 150);
+        vm.warp(block.timestamp + 150);
 
         // Try to stop election after it ends. Note same calldata as start election! 
         vm.startPrank(address(daoMock));
@@ -1643,8 +1643,8 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Start an election
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1654,7 +1654,7 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Move forward in time to when election is not active anymore. 
-        vm.roll(block.number + 250);
+        vm.warp(block.timestamp + 250);
 
         // act: call handleRequest directly to check its output
         // note: same calldata as at start Election. 
@@ -1685,8 +1685,8 @@ contract EndElectionTest is TestSetupElectoral {
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // Start an election without any nominees
-        uint48 startVote = uint48(block.number + 100);
-        uint48 endVote = uint48(block.number + 200);
+        uint48 startVote = uint48(block.timestamp + 100);
+        uint48 endVote = uint48(block.timestamp + 200);
         string memory electionDescription = "Test Election";
         lawCalldata = abi.encode(startVote, endVote, electionDescription);
 
@@ -1696,7 +1696,7 @@ contract EndElectionTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Move forward in time to when election is not active anymore
-        vm.roll(block.number + 250);
+        vm.warp(block.timestamp + 250);
 
         // Try to stop election
         vm.startPrank(address(daoMock));

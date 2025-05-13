@@ -33,7 +33,7 @@ contract ProposalOnly is Law {
     /// @notice Constructor function for Open contract.
     /// @param name_ name of the law
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("string[] InputParams");
         emit Law__Deployed(name_, configParams);

@@ -48,7 +48,7 @@ contract EndGrant is Law {
     mapping(bytes32 lawHash => Data) public data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_; 
 
         bytes memory configParams = abi.encode(
@@ -119,7 +119,7 @@ contract EndGrant is Law {
 
         // load data to memory
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        mem.needCompleted = conditionsLaws[mem.lawHash].needCompleted;
+        mem.needCompleted = laws[mem.lawHash].conditions.needCompleted;
         if (mem.needCompleted == 0) {
             revert("NeedCompleted condition not set.");
         }

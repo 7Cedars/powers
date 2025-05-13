@@ -32,9 +32,9 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @dev This is the entry point for all actions in the protocol, whether they require voting or not
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
-    /// @param description A human-readable description of the action
+    /// @param uriDescription A human-readable description of the action
     /// @param nonce The nonce for the action
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
         payable;
 
@@ -58,9 +58,9 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action
-    /// @param description A human-readable description of the proposal
+    /// @param uriDescription A human-readable description of the proposal
     /// @return The unique identifier of the created proposal
-    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
         returns (uint256);
 
@@ -168,15 +168,20 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return amountMembers the number of role holders
     function getAmountRoleHolders(uint256 roleId) external view returns (uint256 amountMembers);
 
+    /// @notice Gets the label of a role
+    /// @param roleId The identifier of the role
+    /// @return label The label of the role
+    function getRoleLabel(uint256 roleId) external view returns (string memory label);
+
     /// @notice Checks if a law is currently active
     /// @param lawId The id of the law
     /// @return law The address of the law
     /// @return lawHash The hash of the law
-    /// @return conditions The conditions set to the law
+    /// @return active The active status of the law
     function getActiveLaw(uint16 lawId)
         external
         view
-        returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions);
+        returns (address law, bytes32 lawHash, bool active);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

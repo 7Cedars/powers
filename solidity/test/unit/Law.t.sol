@@ -27,7 +27,7 @@ contract DeployTest is TestSetupLaw {
 
     function testDeployRevertsWithEmptyName() public {
         // act & assert: verify deployment reverts with empty name
-        vm.expectRevert(LawUtilities.LawUtilities__EmptyNameNotAllowed.selector);
+        vm.expectRevert(LawUtilities.LawUtilities__StringTooShort.selector);
         new OpenAction("");
     }
 
@@ -185,10 +185,10 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 
         // prep: create proposal
         vm.prank(alice);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -199,7 +199,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // act: execute the proposal
         vm.prank(alice);
@@ -223,9 +223,8 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         // prep: create proposal
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-
-        // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -236,7 +235,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // act & assert: verify execution reverts
         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
@@ -259,7 +258,8 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -270,7 +270,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod - 1);
+        vm.warp(block.timestamp + conditions.votingPeriod - 1);
  
         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
         vm.prank(alice);
@@ -292,7 +292,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -301,7 +302,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
                 daoMock.castVote(parentActionId, FOR);
             }
         }
-        vm.roll(block.number + 4000); // forward in time
+        vm.warp(block.timestamp + 4000); // forward in time
 
         // Execute parent law
         vm.prank(alice);
@@ -336,7 +337,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -345,7 +347,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
                 daoMock.castVote(parentActionId, AGAINST);
             }
         }
-        vm.roll(block.number + 4000); // forward in time
+        vm.warp(block.timestamp + 4000); // forward in time
 
         // Verify parent proposal was defeated
         ActionState parentState = daoMock.state(parentActionId);
@@ -369,7 +371,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -378,7 +381,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
                 daoMock.castVote(parentActionId, FOR);
             }
         }
-        vm.roll(block.number + 4000); // forward in time
+        vm.warp(block.timestamp + 4000); // forward in time
 
         // Verify parent proposal succeeded but not executed
         ActionState parentState = daoMock.state(parentActionId);
@@ -408,7 +411,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote for the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -419,7 +423,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // act: execute parent law
         vm.prank(alice);
@@ -451,7 +455,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote against the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -462,7 +467,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert: verify parent proposal was defeated
         ActionState parentState = daoMock.state(parentActionId);
@@ -496,7 +501,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote for the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -507,7 +513,7 @@ contract ParentCanBlockTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert: verify parent proposal succeeded but wasn't executed
         ActionState parentState = daoMock.state(parentActionId);
@@ -538,7 +544,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -549,7 +556,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period and delay
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // act: execute the proposal
         vm.prank(bob);
@@ -571,9 +578,10 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
-        // prep: vote for the proposal
+        // prep: vote for the proposal  
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -582,7 +590,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period but not past delay
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // act & assert: verify execution reverts before delay
         vm.expectRevert(LawUtilities.LawUtilities__DeadlineNotPassed.selector);
@@ -601,7 +609,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -612,7 +621,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         }
 
         // prep: advance time past voting period and delay
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // act & assert: verify execution reverts if vote didn't succeed
         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
@@ -631,7 +640,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -642,7 +652,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         }
 
         // prep: advance time but not past voting period
-        vm.roll(block.number + conditions.votingPeriod - 1);
+        vm.warp(block.timestamp + conditions.votingPeriod - 1);
 
         // act & assert: verify execution reverts if vote still active
         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
@@ -657,7 +667,8 @@ contract LimitExecutionsTest is TestSetupLaw {
         uint16 lawId = 5; // Using lawId 5 as it's the one with throttle execution
         description = "Executing a throttled proposal";
         lawCalldata = abi.encode(true);
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: execute multiple times with sufficient delay
         uint256 numberOfExecutions = 5;
@@ -665,7 +676,7 @@ contract LimitExecutionsTest is TestSetupLaw {
 
         for (i = 0; i < numberOfExecutions; i++) {     
             // Advance time past voting period and delay
-            vm.roll(block.number + conditions.throttleExecution + 1);
+            vm.warp(block.timestamp + conditions.throttleExecution + 1);
 
             // Execute the proposal
             vm.prank(alice);
@@ -684,16 +695,17 @@ contract LimitExecutionsTest is TestSetupLaw {
         description = "Executing a throttled proposal";
         lawCalldata = abi.encode(true);
 
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: execute first proposal
-        vm.roll(block.number + conditions.throttleExecution + 1);
+        vm.warp(block.timestamp + conditions.throttleExecution + 1);
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, "first execute");
         nonce++;
 
         // prep: advance time past voting period but not enough delay
-        vm.roll(block.number + 5);
+        vm.warp(block.timestamp + 5);
 
         // act & assert: verify execution reverts if gap too small
         vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);

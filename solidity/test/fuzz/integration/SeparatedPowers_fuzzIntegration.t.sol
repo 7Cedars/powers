@@ -77,7 +77,7 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
     //     quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
     //     voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
     //     stepsPassed[0] = quorumReached && voteSucceeded;
-    //     vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+    //     vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution +  1);
 
     //     // Only continue if proposal passed
     //     console2.log("stepsPassed[0]", stepsPassed[0]);
@@ -106,7 +106,7 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
     //     quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
     //     voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
     //     stepsPassed[1] = quorumReached && voteSucceeded;
-    //     vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+    //     vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution +  1);
 
     //     if (stepsPassed[1]) {
     //         vm.prank(david); // Developer role
@@ -135,7 +135,7 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
     //     quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
     //     voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
     //     stepsPassed[2] = quorumReached && voteSucceeded;
-    //     vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+    //     vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution +  1);
 
     //     // proposal passed, execute veto & stop. Otherwise, continue.
     //     if (stepsPassed[2]) {
@@ -166,7 +166,7 @@ contract SeparatedPowers_fuzzIntegrationTest is TestSetupSeparatedPowers {
     //     quorumReached = (forVote + abstainVote) * 100 / roleCount > conditions.quorum;
     //     voteSucceeded = forVote * 100 / roleCount > conditions.succeedAt;
     //     stepsPassed[3] = quorumReached && voteSucceeded;
-    //     vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution +  1);
+    //     vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution +  1);
 
     //     // Only continue if proposal passed
     //     vm.assume(stepsPassed[3] && !stepsPassed[2] && !stepsPassed[1]);

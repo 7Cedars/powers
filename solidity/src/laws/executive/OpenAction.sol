@@ -35,7 +35,7 @@ contract OpenAction is Law {
     /// @notice Constructor function for OpenAction contract.
     /// @param name_ name of the law
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         emit Law__Deployed(name_, "");
     }

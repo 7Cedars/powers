@@ -45,7 +45,7 @@ contract Subscription is Law {
     mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("uint48 EpochDuration", "uint256 SubscriptionAmount", "uint256 RoleId");
         emit Law__Deployed(name_, configParams);
@@ -111,7 +111,7 @@ contract Subscription is Law {
 
         // step 1: retrieve data 
         mem.epochDuration = data[mem.lawHash].epochDuration;
-        mem.currentEpoch = uint48(block.number) / mem.epochDuration;
+        mem.currentEpoch = uint48(block.timestamp) / mem.epochDuration;
 
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");

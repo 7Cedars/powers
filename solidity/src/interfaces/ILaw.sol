@@ -28,6 +28,7 @@ interface ILaw is IERC165, LawErrors {
     struct Executions {
         address powers;
         bytes config;
+        uint256[] actionsIds;
         uint48[] executions;
     }
 

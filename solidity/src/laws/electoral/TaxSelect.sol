@@ -59,7 +59,7 @@ contract TaxSelect is Law {
     mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("address erc20TaxedMock", "uint256 thresholdTaxPaid", "uint256 roleIdToSet");
         emit Law__Deployed(name_, configParams);
@@ -125,7 +125,7 @@ contract TaxSelect is Law {
 
         // step 1: retrieve data 
         mem.epochDuration = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).epochDuration();
-        mem.currentEpoch = uint48(block.number) / mem.epochDuration;
+        mem.currentEpoch = uint48(block.timestamp) / mem.epochDuration;
 
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");
@@ -135,7 +135,7 @@ contract TaxSelect is Law {
         mem.hasRole = Powers(payable(powers)).hasRoleSince(caller, data[mem.lawHash].roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
         mem.taxPaid = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).getTaxLogs(
-            uint48(block.number) - mem.epochDuration,
+            uint48(block.timestamp) - mem.epochDuration,
             account
         );
         // console.log("mem.taxPaid", mem.taxPaid);

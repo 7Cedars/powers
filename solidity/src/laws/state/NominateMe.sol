@@ -41,7 +41,7 @@ contract NominateMe is Law {
     event NominateMe__NominationRevoked(address indexed nominee);
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         emit Law__Deployed(name_, "");
     }
@@ -93,7 +93,7 @@ contract NominateMe is Law {
         (address caller, bool nominateMe) = abi.decode(stateChange, (address, bool));
 
         if (nominateMe) {
-            data[lawHash].nominations[caller] = uint48(block.number);
+            data[lawHash].nominations[caller] = uint48(block.timestamp);
             data[lawHash].nomineesSorted.push(caller);
             data[lawHash].nomineesCount++;
             emit NominateMe__NominationReceived(caller);

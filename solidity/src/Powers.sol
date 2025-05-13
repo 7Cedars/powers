@@ -106,7 +106,7 @@ contract Powers is EIP712, IPowers {
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
     /// @dev No access control on this function: anyone can send funds in native currency into the contract.
     receive() external payable virtual {
-        deposits[msg.sender].push(Deposit(msg.value, uint48(block.number)));
+        deposits[msg.sender].push(Deposit(msg.value, uint48(block.timestamp)));
         emit FundsReceived(msg.value);
     }
 
@@ -115,7 +115,7 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
     /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         payable
         virtual
@@ -137,13 +137,15 @@ contract Powers is EIP712, IPowers {
         // If checks passed, set action as requested.
         _actions[actionId].caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
         _actions[actionId].requested = true;
-
+        _actions[actionId].lawCalldata = lawCalldata;
+        _actions[actionId].uri = uriAction;
+        
         // execute law.
         (bool success) = ILaw(law.targetLaw).executeLaw(msg.sender, lawId, lawCalldata, nonce);
         if (!success) revert Powers__LawDidNotPassChecks();
 
         // emit event.
-        emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, description);
+        emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, uriAction);
     }
 
     /// @inheritdoc IPowers
@@ -181,7 +183,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         virtual
         onlyActiveLaw(lawId)
@@ -196,7 +198,7 @@ contract Powers is EIP712, IPowers {
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
 
         // if checks pass: propose.
-        return _propose(msg.sender, lawId, lawCalldata, nonce, description);
+        return _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
     }
 
     /// @notice Internal propose mechanism. Can be overridden to add more logic on proposedAction creation.
@@ -209,7 +211,7 @@ contract Powers is EIP712, IPowers {
         uint16 lawId,
         bytes calldata lawCalldata,
         uint256 nonce,
-        string memory description
+        string memory uriAction
     ) internal virtual returns (uint256 actionId) {
         ActiveLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
@@ -227,21 +229,23 @@ contract Powers is EIP712, IPowers {
 
         // if checks pass: create proposedAction
         Action storage proposedAction = _actions[actionId];
+        proposedAction.lawCalldata = lawCalldata;
         proposedAction.lawId = lawId;
-        proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
+        proposedAction.voteStart = uint48(block.timestamp); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
         proposedAction.voteDuration = conditions.votingPeriod;
         proposedAction.caller = caller;
-
+        proposedAction.uri = uriAction;
+        
         emit ProposedActionCreated(
             actionId,
             caller,
             lawId,
             "",
             lawCalldata,
-            block.number,
-            block.number + conditions.votingPeriod,
+            block.timestamp,
+            block.timestamp + conditions.votingPeriod,
             nonce,
-            description
+            uriAction
         );
     }
 
@@ -391,6 +395,7 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function labelRole(uint256 roleId, string memory label) public virtual onlyPowers {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) revert Powers__LockedRole();
+        roles[roleId].label = label;
         emit RoleLabel(roleId, label);
     }
 
@@ -407,7 +412,7 @@ contract Powers is EIP712, IPowers {
         if (account == address(0)) revert Powers__CannotAddZeroAddress();
 
         if (access) {
-            roles[roleId].members[account] = uint48(block.number); // 'since' is set at current block.number
+            roles[roleId].members[account] = uint48(block.timestamp); // 'since' is set at current block.timestamp
             if (newMember) {
                 roles[roleId].amountMembers++;
             }
@@ -529,7 +534,7 @@ contract Powers is EIP712, IPowers {
 
         uint256 deadline = getProposedActionDeadline(actionId);
 
-        if (deadline >= block.number) {
+        if (deadline >= block.timestamp) {
             return ActionState.Active;
         } else if (!_quorumReached(actionId) || !_voteSucceeded(actionId)) {
             return ActionState.Defeated;
@@ -577,6 +582,10 @@ contract Powers is EIP712, IPowers {
         return roles[roleId].amountMembers;
     }
 
+    function getRoleLabel(uint256 roleId) public view returns (string memory label) {
+        return roles[roleId].label;
+    }
+
     /// @inheritdoc IPowers
     function getProposedActionDeadline(uint256 actionId) public view virtual returns (uint256) {
         // uint48 + uint32 => uint256. £test if this works properly.
@@ -587,24 +596,17 @@ contract Powers is EIP712, IPowers {
     function getActiveLaw(uint16 lawId)
         external
         view
-        returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions)
+        returns (address law, bytes32 lawHash, bool active)
     {
-        if (!laws[lawId].active) {
-            revert Powers__LawNotActive();
-        }
         law = laws[lawId].targetLaw;
+        active = laws[lawId].active;
         lawHash = keccak256(abi.encode(address(this), lawId));
-        conditions = Law(law).getConditions(address(this), lawId);
 
-        return (law, lawHash, conditions);
+        return (law, lawHash, active);
     }
 
     function getDeposits(address account) public view returns (Deposit[] memory accountDeposits) {
         return deposits[account];
-    }
-
-    function isActiveLaw(uint16 lawId) public view returns (bool) {
-        return laws[lawId].active;
     }
 
     //////////////////////////////////////////////////////////////

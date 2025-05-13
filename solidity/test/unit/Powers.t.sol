@@ -139,7 +139,8 @@ contract ProposeTest is TestSetupPowers {
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         vm.expectEmit(true, false, false, false);
         emit ProposedActionCreated(
@@ -148,8 +149,8 @@ contract ProposeTest is TestSetupPowers {
             lawId,
             "",
             lawCalldata,
-            block.number,
-            block.number + conditions.votingPeriod,
+            block.timestamp,
+            block.timestamp + conditions.votingPeriod,
             nonce,
             description
         );
@@ -179,9 +180,10 @@ contract ProposeTest is TestSetupPowers {
 
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
-        assertEq(daoMock.getProposedActionDeadline(actionId), block.number + conditions.votingPeriod);
+        assertEq(daoMock.getProposedActionDeadline(actionId), block.timestamp + conditions.votingPeriod);
     }
 }
 
@@ -259,7 +261,8 @@ contract CancelTest is TestSetupPowers {
         lawCalldata = abi.encode(targets, values, calldatas);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: execute the proposal
         for (i = 0; i < users.length; i++) {
@@ -268,7 +271,7 @@ contract CancelTest is TestSetupPowers {
                 daoMock.castVote(actionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
@@ -322,10 +325,11 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: go forward in time without votes
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -340,10 +344,11 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: defeat proposal by going beyond voting period
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // act: try to vote
         vm.expectRevert(Powers__ProposedActionNotActive.selector);
@@ -359,7 +364,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote with authorized users
         for (i = 0; i < users.length; i++) {
@@ -370,7 +376,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -385,7 +391,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote with reasons
         for (i = 0; i < users.length; i++) {
@@ -396,7 +403,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -411,7 +418,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote against
         for (i = 0; i < users.length; i++) {
@@ -422,7 +430,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -455,7 +463,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote against
         for (i = 0; i < users.length; i++) {
@@ -480,7 +489,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote for
         for (i = 0; i < users.length; i++) {
@@ -505,7 +515,8 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: abstain
         for (i = 0; i < users.length; i++) {
@@ -685,7 +696,8 @@ contract ExecuteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against proposal
         for (i = 0; i < users.length; i++) {
@@ -696,7 +708,7 @@ contract ExecuteTest is TestSetupPowers {
         }
 
         // prep: advance time past voting period
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.warp(block.timestamp + conditions.votingPeriod + 1);
 
         // prep: verify proposal is defeated
         ActionState actionState = daoMock.state(actionId);

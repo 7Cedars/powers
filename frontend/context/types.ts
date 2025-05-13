@@ -17,6 +17,14 @@ export type LawSimulation = [
       `0x${string}`
 ]
 
+export type LawExecutions = [
+  config: `0x${string}`, 
+  executions: bigint[], 
+  actionsIds: bigint[], 
+  powers: `0x${string}` 
+]
+
+
 export type Attribute = {  
   trait_type: string | number ;  
   value: string;
@@ -109,7 +117,6 @@ export type Powers = {
   contractAddress: `0x${string}`;
   name?: string;
   metadatas?: Metadata; 
-  colourScheme: number;
   laws?: Law[];
   activeLaws?: Law[];
   proposals?: Proposal[];

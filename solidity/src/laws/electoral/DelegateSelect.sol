@@ -67,7 +67,7 @@ contract DelegateSelect is Law {
     }
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("address Erc20Token", "uint256 MaxRoleHolders", "uint256 RoleId");
         emit Law__Deployed(name_, configParams);
@@ -104,8 +104,9 @@ contract DelegateSelect is Law {
         )
     {
         MemoryData memory mem;
-        
-        (, mem.lawHash, mem.conditions) = Powers(payable(powers)).getActiveLaw(lawId);
+
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.conditions = laws[mem.lawHash].conditions;        
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.

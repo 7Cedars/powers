@@ -45,7 +45,7 @@ contract VoteOnAccounts is Law {
     event VoteOnAccounts__VoteCast(address voter);
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("uint48 startVote", "uint48 endVote");
         emit Law__Deployed(name_, configParams);
@@ -78,11 +78,11 @@ contract VoteOnAccounts is Law {
         )
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        uint16 nominateMeId = conditionsLaws[lawHash].readStateFrom;
+        uint16 nominateMeId = laws[lawHash].conditions.readStateFrom;
         (address nomineesContract,,) = Powers(payable(powers)).getActiveLaw(nominateMeId);
         bytes32 nominateMeHash = LawUtilities.hashLaw(powers, nominateMeId);
         // step 0: run additional checks
-        if (block.number < data[lawHash].startVote || block.number > data[lawHash].endVote) {
+        if (block.timestamp < data[lawHash].startVote || block.timestamp > data[lawHash].endVote) {
             revert("Election not open.");
         }
         if (hasVoted[lawHash][caller]) {

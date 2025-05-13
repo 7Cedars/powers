@@ -41,7 +41,7 @@ library LawUtilities {
     error LawUtilities__ExecutionGapTooSmall();
     error LawUtilities__ProposalNotSucceeded();
     error LawUtilities__DeadlineNotPassed();
-    error LawUtilities__EmptyNameNotAllowed();
+    error LawUtilities__StringTooShort();
     error LawUtilities__StringTooLong();
 
     //////////////////////////////////////////////////////////////
@@ -57,11 +57,11 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    function checkStringLength(string memory name_) external pure {
-        if (bytes(name_).length < 1) {
-            revert LawUtilities__EmptyNameNotAllowed();
+    function checkStringLength(string memory name_, uint256 minLength, uint256 maxLength) external pure {
+        if (bytes(name_).length < minLength) {
+            revert LawUtilities__StringTooShort();
         }
-        if (bytes(name_).length > 31) {
+        if (bytes(name_).length > maxLength) {
             revert LawUtilities__StringTooLong();
         }
     }
@@ -116,7 +116,7 @@ library LawUtilities {
         // Check execution throttling
         if (conditions.throttleExecution != 0) { 
             if (
-                executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
+                executions.length > 0 && block.timestamp - executions[executions.length - 1] < conditions.throttleExecution
             ) {
                 revert LawUtilities__ExecutionGapTooSmall();
             }
@@ -134,7 +134,7 @@ library LawUtilities {
         if (conditions.delayExecution != 0) {
             uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
             uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
-            if (deadline + conditions.delayExecution > block.number) {
+            if (deadline + conditions.delayExecution > block.timestamp) {
                 revert LawUtilities__DeadlineNotPassed();
             }
         }
@@ -228,7 +228,7 @@ library LawUtilities {
             return true;
         }
         uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
-        if (uint48(block.number) - lastTransaction < delay) {
+        if (uint48(block.timestamp) - lastTransaction < delay) {
             revert("Delay not passed");
         }
         return true;

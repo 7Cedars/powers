@@ -50,7 +50,7 @@ contract PeerSelect is Law {
     mapping(bytes32 lawHash => Data) public data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("uint256 maxRoleHolders", "uint256 roleId");
         emit Law__Deployed(name_, configParams);
@@ -93,7 +93,7 @@ contract PeerSelect is Law {
         // step 0: create actionId & decode the calldata
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         
-        mem.nomineesId = conditionsLaws[mem.lawHash].readStateFrom;
+        mem.nomineesId = laws[mem.lawHash].conditions.readStateFrom;
         (mem.nomineesAddress, mem.nomineesHash ,) = Powers(payable(powers)).getActiveLaw(mem.nomineesId);
         mem.nominees = NominateMe(mem.nomineesAddress).getNominees(mem.nomineesHash);
         (mem.index, mem.assign) = abi.decode(lawCalldata, (uint256, bool));

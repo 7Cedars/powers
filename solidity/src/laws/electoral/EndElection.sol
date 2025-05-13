@@ -62,7 +62,7 @@ contract EndElection is Law {
     }
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_; 
 
         bytes memory configParams = abi.encode("uint256 MaxRoleHolders", "uint256 RoleId");
@@ -124,8 +124,8 @@ contract EndElection is Law {
 
         // load data to memory & do checks 
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        mem.startElectionId = conditionsLaws[mem.lawHash].needCompleted; // needCompleted is the startElection law.
-        mem.nominateMeId = conditionsLaws[mem.lawHash].readStateFrom; // readStateFrom is the nominateMe law.
+        mem.startElectionId = laws[mem.lawHash].conditions.needCompleted; // needCompleted is the startElection law.
+        mem.nominateMeId = laws[mem.lawHash].conditions.readStateFrom; // readStateFrom is the nominateMe law.
         if (mem.startElectionId == 0) {
             revert("NeedCompleted condition not set.");
         }
@@ -135,11 +135,11 @@ contract EndElection is Law {
 
         (mem.startElection, mem.endElection, mem.electionDescription) = abi.decode(lawCalldata, (uint48, uint48, string));
         // check if election has started
-        if (block.number < mem.startElection) {
+        if (block.timestamp < mem.startElection) {
             revert("Election not open.");
         }
         // check if election has ended
-        if (block.number < mem.endElection) {
+        if (block.timestamp < mem.endElection) {
             revert("Election has not ended.");
         }
 

@@ -37,7 +37,7 @@ contract RenounceRole is Law {
     mapping(bytes32 lawHash => uint256[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("uint256[] allowedRoleIds");
 

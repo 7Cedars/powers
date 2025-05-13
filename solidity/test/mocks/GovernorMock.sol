@@ -10,10 +10,10 @@ import {GovernorVotesQuorumFraction} from "@openzeppelin/contracts/governance/ex
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 contract GovernorMock is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
-    constructor()
-        Governor("MyGovernor")
-        GovernorSettings(7200 /* 1 day */, 50400 /* 1 week */, 0)
-        GovernorVotes(IVotes(0x868a458887F98729F154532512F5bE4CB26c6B88)) // Erc20votesMock
+    constructor(address votingToken_)
+        Governor("GovernorMock")
+        GovernorSettings(25 /* 5 minutes */, 50 /* 10 minutes */, 0)
+        GovernorVotes(IVotes(votingToken_))
         GovernorVotesQuorumFraction(4)
     {}
 

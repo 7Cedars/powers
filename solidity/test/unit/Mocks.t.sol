@@ -157,7 +157,7 @@ contract Erc20TaxedMockTest is Test {
         vm.assertEq(erc20TaxedMock.balanceOf(address(daoMock)), balanceDaoStep1 + taxAmount);
 
         // assert state logs.
-        uint256 loggedTaxPaid = erc20TaxedMock.getTaxLogs(uint48(block.number), alice);
+        uint256 loggedTaxPaid = erc20TaxedMock.getTaxLogs(uint48(block.timestamp), alice);
         vm.assertEq(loggedTaxPaid, taxAmount);
     }
 

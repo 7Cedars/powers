@@ -69,7 +69,7 @@
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[0] = quorumReached && voteSucceeded;
 //         // // role forward in time.
-//         vm.roll(block.number + votingPeriod + 1);
+//         vm.warp(block.timestamp + votingPeriod + 1);
 //         if (stepsPassed[0]) {
 //             console.log("step 0 action: Bob EXECUTES and thus formally proposes new value!");
 //             vm.expectEmit(true, false, false, false);
@@ -98,7 +98,7 @@
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[1] = quorumReached && voteSucceeded;
-//         vm.roll(block.number + votingPeriod + delayExecution + 1);
+//         vm.warp(block.timestamp + votingPeriod + delayExecution + 1);
 //         console.log("step 1 result: quorum reached and vote succeeded?");
 //         console.log(quorumReached, voteSucceeded);
 
@@ -176,7 +176,7 @@
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         stepsPassed[0] = quorumReached && voteSucceeded;
-//         vm.roll(block.number + votingPeriod + delayExecution + 1);
+//         vm.warp(block.timestamp + votingPeriod + delayExecution + 1);
 //         console.log("step 0 result: quorum reached and vote succeeded?");
 //         console.log(quorumReached, voteSucceeded);
 //         if (stepsPassed[0]) {
@@ -224,7 +224,7 @@
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[1] = quorumReached && voteSucceeded;
-//         vm.roll(block.number + votingPeriod + delayExecution + 1);
+//         vm.warp(block.timestamp + votingPeriod + delayExecution + 1);
 //         console.log("step 1 result: quorum reached and vote succeeded?");
 //         console.log(quorumReached, voteSucceeded);
 //         if (stepsPassed[1]) {
@@ -263,7 +263,7 @@
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[2] = quorumReached && voteSucceeded;
-//         vm.roll(block.number + votingPeriod + delayExecution + 1);
+//         vm.warp(block.timestamp + votingPeriod + delayExecution + 1);
 //         console.log("step 2 result: quorum reached and vote succeeded?");
 //         console.log(quorumReached, voteSucceeded);
 //         if (stepsPassed[2]) {
@@ -279,7 +279,7 @@
 //         }
 
 //         if (stepsPassed[0] && stepsPassed[1] && stepsPassed[2] ) {
-//             assertEq(Powers(alignedDao).hasRoleSince(users[index], 1), block.number);
+//             assertEq(Powers(alignedDao).hasRoleSince(users[index], 1), block.timestamp);
 //         }
 //     }
 
@@ -315,9 +315,9 @@
 //         uint256 numberRequests;
 //         bool canCallLaw = Powers(alignedDao).canCallLaw(users[selectUser], laws[5]);
 //         for (uint256 i = 0; i < numberSteps; i++) {
-//            vm.roll(block.number + duration);
-//            string memory description = string.concat("request payment at block: ", Strings.toString(block.number));
-//            if (canCallLaw && block.number >= lastValidRequestAt + 300) { // 2000 is duration as set in law.
+//            vm.warp(block.timestamp + duration);
+//            string memory description = string.concat("request payment at block: ", Strings.toString(block.timestamp));
+//            if (canCallLaw && block.timestamp >= lastValidRequestAt + 300) { // 2000 is duration as set in law.
 //                 vm.expectEmit(true, false, false, false);
 //                 emit PowersEvents.ActionRequested(
 //                     users[selectUser],
@@ -327,7 +327,7 @@
 //                 );
 //                 vm.prank(users[selectUser]);
 //                 alignedDao.execute(laws[5], abi.encode(), description);
-//                 lastValidRequestAt = block.number;
+//                 lastValidRequestAt = block.timestamp;
 //                 numberRequests++;
 //            } else {
 //                 vm.expectRevert();
@@ -401,7 +401,7 @@
 //             99 // chance of passing vote.
 //         );
 //         // executing: setting oracle.
-//         vm.roll(block.number + 200);
+//         vm.warp(block.timestamp + 200);
 //         vm.prank(bob);
 //         alignedDao.execute(laws[12], abi.encode(false, oracle), "Let's set an oracle.");
 
@@ -484,7 +484,7 @@
 //         bool quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         bool succeeded = forVote * 100 / roleCount > succeedAt;
 
-//         vm.roll(block.number + votingPeriod + 1);
+//         vm.warp(block.timestamp + votingPeriod + 1);
 //         console.log(uint8(alignedDao.state(actionId)));
 //         if (quorumReached && succeeded) {
 //             vm.expectEmit(true, false, false, false);

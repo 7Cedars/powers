@@ -38,7 +38,7 @@ contract StartGrant is Law {
     mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) internal grantIds;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
 
         bytes memory configParams = abi.encode(

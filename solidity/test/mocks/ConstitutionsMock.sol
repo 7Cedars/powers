@@ -646,6 +646,50 @@ contract ConstitutionsMock is Test  {
         delete conditions;
     }
 
+        //////////////////////////////////////////////////////////////
+    //                  STATE LAW CONSTITUTION                  //
+    //////////////////////////////////////////////////////////////
+    function initiateIntegrationsTestConstitution(
+        string[] memory lawNames,
+        address[] memory lawAddresses,
+        string[] memory mockNames,
+        address[] memory mockAddresses,
+        address payable daoMock
+    ) external returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
+        ILaw.Conditions memory conditions;
+        lawInitData = new PowersTypes.LawInitData[](3);
+
+        string[] memory inputParams = new string[](1);
+        inputParams[0] = "uint256 Quantity"; // we're going to mint tokens as an example.
+        // GovernorCreateProposal
+        conditions.allowedRole = 1;
+        lawInitData[1] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[24], // GovernorCreateProposal
+            config: abi.encode(
+                mockAddresses[1], // GovernorMock
+                inputParams
+            ),
+            conditions: conditions,
+            description: "Create Tally.xyz proposal: A law to create a proposal on Tally.xyz that includes a quantity (of tokens to mint)."
+        });
+        delete conditions;
+
+        // GovernorCheckVote
+        conditions.allowedRole = type(uint256).max;
+        conditions.needCompleted = 1; 
+        lawInitData[2] = PowersTypes.LawInitData({
+            targetLaw: lawAddresses[25], // GovernorCheckVote
+            config: abi.encode(
+                mockAddresses[1], // GovernorMock
+                inputParams
+            ),
+            conditions: conditions,
+            description: "Check Tally.xyz proposal: A law to check the status of a Tally.xyz proposal."
+        });
+        delete conditions;
+    }
+
     //////////////////////////////////////////////////////////////
     //                  INTERNAL HELPER FUNCTION                //
     //////////////////////////////////////////////////////////////

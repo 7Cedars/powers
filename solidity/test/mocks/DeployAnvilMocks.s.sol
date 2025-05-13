@@ -37,6 +37,8 @@ import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
 import { Subscription } from "../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../src/laws/electoral/EndElection.sol";
+import { GovernorCreateProposal } from "../../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorCheckVote } from "../../src/laws/integrations/GovernorCheckVote.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -57,8 +59,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](24);
-        lawAddresses = new address[](24);
+        lawNames = new string[](26);
+        lawAddresses = new address[](26);
         mockNames = new string[](6);
         mockAddresses = new address[](6);
 
@@ -87,6 +89,8 @@ contract DeployAnvilMocks is Script {
         lawAddresses[21] = address(new Subscription("Subscription"));
         lawAddresses[22] = address(new StartElection("StartElection"));
         lawAddresses[23] = address(new EndElection("EndElection"));
+        lawAddresses[24] = address(new GovernorCreateProposal("GovernorCreateProposal"));
+        lawAddresses[25] = address(new GovernorCheckVote("GovernorCheckVote"));
 
         mockAddresses[0] = address(new PowersMock());
         
@@ -124,6 +128,8 @@ contract DeployAnvilMocks is Script {
         lawNames[21] = "Subscription";
         lawNames[22] = "StartElection";
         lawNames[23] = "EndElection";
+        lawNames[24] = "GovernorCreateProposal";
+        lawNames[25] = "GovernorCheckVote";
 
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";

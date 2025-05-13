@@ -39,7 +39,7 @@ contract PresetAction is Law {
         // inherited from Law
         string memory name_
     ) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
 

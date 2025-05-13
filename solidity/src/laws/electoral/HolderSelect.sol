@@ -50,7 +50,7 @@ contract HolderSelect is Law {
     mapping(bytes32 lawHash => Data) internal data;
 
     constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
+        LawUtilities.checkStringLength(name_, 1, 31);
         name = name_;
         bytes memory configParams = abi.encode("address erc20Token", "uint256 minimumTokens", "uint256 roleIdToSet");
         emit Law__Deployed(name_, configParams);

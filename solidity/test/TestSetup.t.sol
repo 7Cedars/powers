@@ -58,6 +58,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes lawCalldataElect;
     string description;
     uint256 nonce;
+    bool active;
     uint256 actionId;
     bytes32 lawHash;
 
@@ -66,7 +67,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     uint256 againstVote;
     uint256 forVote;
     uint256 abstainVote;
-
+    
+    address lawAddress;
     uint8 quorum;
     uint8 succeedAt;
     uint32 votingPeriod;
@@ -204,7 +206,7 @@ abstract contract TestHelpers is Test, TestVariables {
 
 abstract contract BaseSetup is TestVariables, TestHelpers {
     function setUp() public virtual {
-        vm.roll(block.number + 10);
+        vm.warp(block.timestamp + 10);
         setUpVariables();
         // run laws deploy script here.
     }
@@ -287,7 +289,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.roll(block.number + 4000);
+        vm.warp(block.timestamp + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1), // should be last selected law. As laws start counting at 1, this should be the last law.
             abi.encode(),
@@ -314,7 +316,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.roll(block.number + 4000);
+        vm.warp(block.timestamp + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -339,7 +341,7 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // // assign Roles
-        vm.roll(block.number + 4000);
+        vm.warp(block.timestamp + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -364,7 +366,7 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // // assign Roles
-        vm.roll(block.number + 4000);
+        vm.warp(block.timestamp + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -373,6 +375,32 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
         );
     }
 }
+
+abstract contract TestSetupIntegrations is BaseSetup, ConstitutionsMock {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate constitution & get founders' roles list
+        (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateIntegrationsTestConstitution(
+            lawNames,
+            lawAddresses,
+            mockNames,
+            mockAddresses,
+            payable(address(daoMock))
+        );
+        daoMock.constitute(lawInitData_);
+
+        // assign Roles
+        // vm.warp(block.timestamp + 4000);
+        // daoMock.request(
+        //     uint16(lawInitData_.length - 1),
+        //     abi.encode(),
+        //     nonce,// empty calldata
+        //     "assigning roles"
+        // );
+    }
+}
+
 
 abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
@@ -389,7 +417,7 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.roll(block.number + 4000);
+        vm.warp(block.timestamp + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
