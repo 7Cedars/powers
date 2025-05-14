@@ -42,7 +42,7 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
     <>
     {/* table banner  */}
     <div className="w-full min-h-fit flex flex-row gap-3 justify-between items-center py-2 px-4 border-b border-slate-300 overflow-y-scroll">
-      {powers?.roles.map((role: bigint, i: number) => 
+      {powers?.roles?.map((role: bigint, i: number) => 
           <div className="flex flex-row w-full min-w-fit h-8" key={i}>
           <Button
             size={0}

@@ -1,6 +1,8 @@
 import { Powers } from "@/context/types";
 
 export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
+  console.log("@bigintToRole: waypoint 0", {roleId, powers})
+
   let roleIds: bigint[] = [] 
   
   if (powers?.roleLabels != undefined && powers.roleLabels.length > 0) {
@@ -12,7 +14,7 @@ export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
     :
     roleId == 0n ? "Admin" 
     :
-    roleIds.includes(roleId) ? powers.roleLabels.find(roleLabel => roleLabel.roleId == roleId)?.label : `Role ${Number(roleId)}`
+    roleIds.includes(roleId) ? powers.roleLabels?.find(roleLabel => roleLabel.roleId == roleId)?.label : `Role ${Number(roleId)}`
     
-  return roleLabel ? String(roleLabel).charAt(0).toUpperCase() + String(roleLabel).slice(1) : "Error" 
+  return roleLabel ? String(roleLabel).charAt(0).toUpperCase() + String(roleLabel).slice(1) : `Role ${Number(roleId)}`
 }

@@ -4,6 +4,7 @@ import { foundry, sepolia, polygonMumbai, baseSepolia, optimismSepolia, arbitrum
 // [ = preferred ]
 export const wagmiConfig = createConfig({
   chains: [sepolia, arbitrumSepolia, optimismSepolia, baseSepolia, foundry], //  foundry,  arbitrumSepolia, sepolia,  baseSepolia, [ optimismSepolia ], polygonMumbai
+  // batch: { multicall: true }, 
   transports: {
     [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_HTTPS), 
     [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_ARB_SEPOLIA_HTTPS), 

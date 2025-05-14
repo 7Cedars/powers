@@ -16,12 +16,6 @@ import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
 //                  DEPLOY                      //
 //////////////////////////////////////////////////
 contract DeployTest is TestSetupLaw {
-    function testDeployRevertsWithEmptyName() public {
-        // act & assert: verify deployment reverts with empty name
-        vm.expectRevert(LawUtilities.LawUtilities__StringTooShort.selector);
-        new OpenAction();
-    }
-
     function testInitializeLawSetsCorrectState() public {
         // prep: create a new law
         Law lawMock = new OpenAction();

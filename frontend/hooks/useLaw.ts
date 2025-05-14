@@ -115,5 +115,5 @@ export const useLaw = () => {
       }
   }, [ ])
 
-  return {status, error, executions, simulation, resetStatus, simulate, fetchExecutions, execute}
+  return {status, error, executions, simulation, resetStatus, simulate, execute, fetchExecutions}
 }

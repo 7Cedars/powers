@@ -868,15 +868,15 @@ contract AdoptLawTest is TestSetupExecutive {
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
             nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
-            allowedRole: ROLE_ONE,
-            votingPeriod: 1200,
-            quorum: 30,
-            succeedAt: 51, 
+            allowedRole: ROLE_TWO,
+            votingPeriod: 2400,
+            quorum: 40,
+            succeedAt: 60, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
-            delayExecution: 0,
-            throttleExecution: 0,
+            delayExecution: 1000,
+            throttleExecution: 2000,
             config: abi.encode()
         });
 

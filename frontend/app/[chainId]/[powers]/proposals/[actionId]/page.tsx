@@ -54,11 +54,11 @@ const Page = () => {
     }
   }, [, proposal])
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() // addressPowers as `0x${string}`
+  //   }
+  // }, [addressPowers, fetchPowers])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll max-w-6xl">

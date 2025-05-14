@@ -9,11 +9,11 @@ export default function Page() {
   const { powers: addressPowers} = useParams<{ powers: string }>()  
   const { powers, fetchPowers, status } = usePowers()
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() // addressPowers as `0x${string}`
+  //   }
+  // }, [addressPowers, fetchPowers])
   
     return (
       <main className="w-full h-fit flex flex-col justify-center items-center pt-20 px-2">

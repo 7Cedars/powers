@@ -7,11 +7,11 @@ import { powersAbi } from "@/context/abi";
 import { getPublicClient, readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { parseEventLogs, ParseEventLogsReturnType } from "viem"
-import { supportedChains } from "@/context/chains";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { useChains } from "wagmi";
 
 const roleColour = [  
   "border-blue-600", 
@@ -27,7 +27,8 @@ export default function Page() {
   const { chainId } = useParams<{ chainId: string }>()
   const { powers: addressPowers, roleId } = useParams<{ powers: string, roleId: string }>()  
   const { powers, fetchPowers } = usePowers()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
   })
@@ -38,11 +39,11 @@ export default function Page() {
 
   // console.log("@role page: ", {powers, roleInfo})
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() // addressPowers as `0x${string}`
+  //   }
+  // }, [addressPowers, fetchPowers])
 
   const getRolesSet = async () => {
       if (publicClient && roleId) {
@@ -51,7 +52,7 @@ export default function Page() {
             address: addressPowers as `0x${string}`,
             abi: powersAbi, 
             eventName: 'RoleSet',
-            fromBlock: supportedChain?.genesisBlock,
+            fromBlock: 0n, // supportedChain?.genesisBlock,
             args: {
               roleId: BigInt(roleId),
               access: true
@@ -138,7 +139,7 @@ export default function Page() {
             roleInfo?.map((role: Role, index: number) =>
               <tr className="text-sm text-left text-slate-800 h-16 p-2 overflow-x-scroll" key = {index}>
                 <td className="ps-6 pe-4 text-slate-500 min-w-60">
-                  <a href={`${supportedChain?.blockExplorerUrl}/address/${role.account}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${supportedChain?.blockExplorers?.default.url}/address/${role.account}`} target="_blank" rel="noopener noreferrer">
                   <div className="flex flex-row gap-1 items-center justify-start">
                     <div className="text-left text-sm text-slate-500 break-all w-fit">
                       {role.account}

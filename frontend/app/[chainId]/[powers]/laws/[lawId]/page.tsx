@@ -121,11 +121,11 @@ const Page = () => {
     }
   }, [, law])
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() // addressPowers as `0x${string}`
+  //   }
+  // }, [addressPowers, fetchPowers])
 
   useEffect(() => {
     if (errorUseLaw) {
@@ -173,7 +173,7 @@ const Page = () => {
           </div>
             {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
+            {/* {<Executions executions = {executions} law = {law} status = {statusLaw}/> } */}
           </div>
         </div>
         

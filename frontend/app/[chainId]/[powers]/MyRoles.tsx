@@ -10,7 +10,7 @@ import { Powers, Status } from "@/context/types";
 import { LoadingBox } from "@/components/LoadingBox";
 
 type MyRolesProps = {
-  hasRoles: {role: bigint, since: bigint, blockData: GetBlockReturnType}[]; 
+  hasRoles: {role: bigint, since: bigint}[]; 
   authenticated: boolean; 
   powers: Powers | undefined;
   status: Status;
@@ -51,7 +51,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
             </div>
           </div>
         {
-        powers && myRoles?.map((role: {role: bigint, since: bigint, blockData: GetBlockReturnType}, i) => 
+        powers && myRoles?.map((role: {role: bigint, since: bigint}, i) => 
             <div className ={`w-full flex flex-row text-sm text-slate-600 justify-center items-center rounded-md ps-4 py-3 p-1`} key = {i}>
               <div className = "w-full flex flex-row justify-start items-center text-left">
                 {/* need to get the timestamp.. */}
@@ -60,7 +60,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
                 }
               </div>
               <div className = "grow w-full min-w-40 flex flex-row justify-end items-center text-right pe-4">
-                Since: {toFullDateFormat(Number(role.blockData.timestamp))} 
+                Since: {toFullDateFormat(Number(role.since))} 
               </div>
               </div>
             )

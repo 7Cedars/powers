@@ -163,7 +163,7 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[5] = PowersTypes.LawInitData({
-            nameDescription: "Assign user role: Assign an account to the user role. The account will need to pay at least 100 gwei in tax during the previous epoch of 25 blocks. (5 minutes)",
+            nameDescription: "Assign user role: Assign user role. The account will need to pay at least 100 gwei in tax during the previous epoch.",
             targetLaw: parseLawAddress(13, "TaxSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 100 gwei tax threshold, role 1 (user)
             conditions: conditions
@@ -185,7 +185,7 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[7] = PowersTypes.LawInitData({
-            nameDescription: "Assign subscriber role: Assign an account to the subscriber role. The account will need to pay 1000 gwei in Eth subscription fees to the Protocol contract.",
+            nameDescription: "Assign subscriber role: Assign an account as subscriber. The account will need to pay 1000 gwei in Eth to the Protocol.",
             targetLaw: parseLawAddress(21, "Subscription"),
             config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour 
             conditions: conditions

@@ -39,11 +39,11 @@ const NavigationBar = () => {
     }
   }, [chainId, switchChain, chain])
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() 
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() 
+  //   }
+  // }, [addressPowers, fetchPowers])
 
   return (
     <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 

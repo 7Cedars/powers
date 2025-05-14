@@ -32,11 +32,11 @@ const Page = () => {
   
   console.log("@New Proposal page: ", {law, action, wallets, powers, checks, proposalExists, authorised: authorised.data})
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
+  // useEffect(() => {
+  //   if (addressPowers) {
+  //     fetchPowers() // addressPowers as `0x${string}`
+  //   }
+  // }, [addressPowers, fetchPowers])
 
   useEffect(() => {
     if (statusChecks == "success" && powers) {

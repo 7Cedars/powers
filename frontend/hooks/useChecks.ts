@@ -1,21 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { CompletedProposal, Law, ProtocolEvent, Checks, Status, LawSimulation, Execution, LogExtended, Powers } from "../context/types"
+import { CompletedProposal, Law, ProtocolEvent, Checks, Status, LawSimulation, Execution, LogExtended, Powers, LawExecutions } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet, useWallets, Wallet } from "@privy-io/react-auth";
 import { getPublicClient, readContract } from "wagmi/actions";
-import { useBlockNumber } from 'wagmi'
-import { Log, parseEventLogs, ParseEventLogsReturnType } from "viem";
-import { supportedChains } from "@/context/chains";
+import { useBlockNumber, useChains } from 'wagmi'
+import { Log, parseEventLogs, ParseEventLogsReturnType, encodeAbiParameters, keccak256, toBytes } from "viem";
 import { sepolia } from "@wagmi/core/chains";
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 
 export const useChecks = (powers: Powers) => {
-  const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({ // this needs to be dynamic, for use in different chains! £todo
-    chainId: sepolia.id, // NB: reading blocks from sepolia, because arbitrum One & sepolia reference these block numbers, not their own. 
-  })
+  const timestamp = Math.floor(Date.now() / 1000)
   const { chainId } = useParams<{ chainId: string }>()
+  const supportedChains = useChains()
   const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
@@ -26,6 +24,29 @@ export const useChecks = (powers: Powers) => {
   const [checks, setChecks ] = useState<Checks>()
 
   // console.log("@fetchChecks useChecks called: ", {checks, status, error, powers})
+
+  /**
+   * Hashes an action using the same algorithm as in the Solidity contract
+   * Replicates: uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
+   * Create by AI - let's see if it works.. 
+   */
+  const hashAction = useCallback((lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint): bigint => {
+    // Encode the parameters in the same order as abi.encode in Solidity
+    const encoded = encodeAbiParameters(
+      [
+        { name: 'lawId', type: 'uint16' },
+        { name: 'lawCalldata', type: 'bytes' },
+        { name: 'nonce', type: 'uint256' }
+      ],
+      [Number(lawId), lawCalldata, nonce]
+    );
+    
+    // Hash the encoded data
+    const hash = keccak256(encoded);
+    
+    // Convert the hash to a bigint (equivalent to uint256 in Solidity)
+    return BigInt(hash);
+  }, []);
 
   const checkAccountAuthorised = useCallback(
     async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
@@ -88,35 +109,21 @@ export const useChecks = (powers: Powers) => {
     // console.log("CheckDelayedExecution triggered")
     const selectedProposal = checkProposalExists(nonce, calldata, law, powers)
     // console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
-    const result = Number(selectedProposal?.voteEnd) + Number(law.conditions.delayExecution) < Number(blockNumber)
+    const result = Number(selectedProposal?.voteEnd) + Number(law.conditions?.delayExecution) < Number(timestamp)
     return result as boolean
   }
 
-  const fetchExecutions = async (lawId: bigint) => {
+  const fetchExecutions = async (law: Law) => {
     // console.log("@fetchExecutions: waypoint 0", {lawId})
     if (publicClient) {
       try {
-          if (powers?.contractAddress) {
-            const logs = await publicClient.getContractEvents({ 
-              address: powers.contractAddress as `0x${string}`,
-              abi: powersAbi, 
-              eventName: 'ActionRequested',
-              fromBlock: supportedChain?.genesisBlock,
-              args: {lawId: lawId}
-            })
-            const fetchedLogs = parseEventLogs({
-                        abi: powersAbi,
-                        eventName: 'ActionRequested',
-                        logs
-                      })
-            // console.log("@fetchExecutions: waypoint 1", {lawId, fetchedLogs})
-            const fetchedLogsTyped = fetchedLogs as unknown[] as LogExtended[]  
-            // console.log("@fetchExecutions: waypoint 2", {lawId, fetchedLogsTyped})
-            return (
-              fetchedLogsTyped.sort((a: LogExtended, b: LogExtended) => (
-                a.blockNumber ? Number(a.blockNumber) : 0
-              ) < (b.blockNumber == null ? 0 : Number(b.blockNumber)) ? 1 : -1)) as LogExtended[]
-          } 
+          const lawExecutions = await readContract(wagmiConfig, {
+            abi: lawAbi, 
+            address: law.lawAddress,
+            functionName: 'getExecutions',
+            args: [law.powers, law.index]
+          })
+          return lawExecutions as unknown as LawExecutions
       } catch (error) {
         // console.log("@fetchExecutions: waypoint 4", {lawId, error})
         setStatus("error") 
@@ -126,10 +133,10 @@ export const useChecks = (powers: Powers) => {
   }
 
   const checkThrottledExecution = useCallback( async (law: Law) => {
-    const fetchedExecutions = await fetchExecutions(law.index)
+    const fetchedExecutions = await fetchExecutions(law)
 
-    if (fetchedExecutions && fetchedExecutions.length > 0) {
-      const result = Number(fetchedExecutions[0].blockNumber) + Number(law.conditions.throttleExecution) < Number(blockNumber)
+    if (fetchedExecutions && fetchedExecutions.executions?.length > 0) {
+      const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(timestamp)
       return result as boolean
     } else {
       return true
@@ -137,48 +144,33 @@ export const useChecks = (powers: Powers) => {
   }, [])
 
   const checkNotCompleted = useCallback( 
-    async (nonce: bigint, calldata: `0x${string}`, lawIndex: bigint): Promise<boolean | undefined> => {
-      // console.log("@checkNotCompleted: waypoint 0", {nonce, calldata, lawIndex, powers: powers?.contractAddress})
+    async (nonce: bigint, calldata: `0x${string}`, lawId: bigint): Promise<boolean | undefined> => {
+      const law: Law = powers?.laws?.find(law => law.index == lawId) as Law
 
-      if (publicClient) {
-        try {
-              const logs = await publicClient.getContractEvents({ 
-                address: powers?.contractAddress as `0x${string}`,
-                abi: powersAbi, 
-                eventName: 'ActionRequested',
-                fromBlock: supportedChain?.genesisBlock,
-                args: {lawId: lawIndex}
-              })
-              const fetchedLogs = parseEventLogs({
-                          abi: powersAbi,
-                          eventName: 'ActionRequested',
-                          logs
-                        })
-              // console.log("@checkNotCompleted: waypoint 1", {lawIndex, fetchedLogs})
-              if (fetchedLogs) {
-              const fetchedLogsTyped = fetchedLogs as unknown[] as LogExtended[]  
-              
-              // console.log("@checkNotCompleted: waypoint 2", {lawIndex, fetchedLogsTyped})
-              
-              const executionExists = fetchedLogsTyped.some(
-                execution => execution.args?.nonce == nonce && execution.args?.lawCalldata == calldata
-              )
-              // console.log("@checkNotCompleted: waypoint 3", {lawIndex, executionExists})
-              // console.log("@checkNotCompleted: waypoint 4", {lawIndex, returnvalue: executionExists == undefined})
-              return (!executionExists)
-            }
-          } 
-          catch (error) {
-          // console.log("@checkNotCompleted: waypoint 4", {lawIndex, error})
-          setStatus("error") 
-          setError(error) 
-          return undefined
+      // Calculate actionId using the same algorithm as in the contract
+      const actionId = hashAction(lawId, calldata, nonce);
+      
+      try {
+        // Check if the action has already been completed
+        const stateAction = await readContract(wagmiConfig, {
+          abi: lawAbi,
+          address: law.lawAddress,
+          functionName: 'state',
+          args: [actionId]
+        });
+        
+        // If action exists and is completed, return false
+        if (Number(stateAction) == 5) {
+          return false;
         }
-      } else {
-        // console.log("@checkNotCompleted: waypoint 5", {lawIndex, returnvalue: undefined})
-        return undefined
+        return true; // Default to true if we couldn't determine otherwise
+      } 
+      catch (error) {
+        setStatus("error");
+        setError(error);
+        return undefined;
       }
-  }, [ ] ) 
+  }, [hashAction, publicClient, supportedChain]);
 
   const fetchChecks = useCallback( 
     async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
@@ -186,7 +178,7 @@ export const useChecks = (powers: Powers) => {
         setError(null)
         setStatus("pending")
 
-        if (wallets[0] && powers?.contractAddress && powers?.proposals) {
+        if (wallets[0] && powers?.contractAddress && powers?.proposals && law.conditions) {
           
           const throttled = await checkThrottledExecution(law)
           const authorised = await checkAccountAuthorised(law, powers, wallets)
@@ -229,7 +221,7 @@ export const useChecks = (powers: Powers) => {
             setStatus("success") //NB note: after checking status, sets the status back to idle! 
           }
         }       
-  }, [ ])
+  }, [checkAccountAuthorised, checkNotCompleted, checkProposalStatus, checkThrottledExecution])
 
-  return {status, error, checks, fetchChecks, checkProposalExists, checkAccountAuthorised}
+  return {status, error, checks, fetchChecks, checkProposalExists, checkAccountAuthorised, hashAction}
 }

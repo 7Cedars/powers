@@ -20,7 +20,7 @@ const roleColour = [
 ]
 
 type MyProposalProps = {
-  hasRoles: {role: bigint, since: bigint, blockData: GetBlockReturnType}[]
+  hasRoles: {role: bigint, since: bigint}[]
   authenticated: boolean;
   proposals: Proposal[] | undefined; 
   powers: Powers | undefined;
@@ -40,7 +40,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   // bit convoluted, can be optimised. // £todo
   const active = proposals?.map((proposal: Proposal) => {
     const law = powers?.laws?.find(law => law.index == proposal.lawId)
-    if (law && law.conditions.allowedRole != undefined && myRoles.includes(law.conditions.allowedRole) && proposal.state == 0) {
+    if (law && law.conditions && law.conditions.allowedRole != undefined && myRoles.includes(law.conditions.allowedRole) && proposal.state == 0) {
       return {
         proposal: proposal, 
         law: law
@@ -84,7 +84,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
             activeProposals?.map((item: ProposalAndLaw, i) => 
                 <div className = "w-full px-2" key={i}>
                   <button 
-                    className = {`w-full h-full disabled:opacity-50 rounded-md border ${roleColour[parseRole(item.law.conditions.allowedRole)]} text-sm p-1 px-2`} 
+                    className = {`w-full h-full disabled:opacity-50 rounded-md border ${roleColour[parseRole(item.law.conditions?.allowedRole || 0n)]} text-sm p-1 px-2`} 
                     onClick={
                       () => {
                         setAction({
@@ -107,7 +107,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
 
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Law: </p> 
-                          <p> {item.law.description?.length && item.law.description?.length > 24 ? item.law.description?.substring(0, 24) + "..." : item.law.description}  </p>
+                          <p> {item.law.nameDescription?.length && item.law.nameDescription?.length > 24 ? item.law.nameDescription?.substring(0, 24) + "..." : item.law.nameDescription}  </p>
                         </div>
                       </div>
                   </button>

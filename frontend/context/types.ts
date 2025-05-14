@@ -17,12 +17,12 @@ export type LawSimulation = [
       `0x${string}`
 ]
 
-export type LawExecutions = [
+export type LawExecutions = {
+  powers: `0x${string}`, 
   config: `0x${string}`, 
-  executions: bigint[], 
   actionsIds: bigint[], 
-  powers: `0x${string}` 
-]
+  executions: bigint[] 
+}
 
 
 export type Attribute = {  
@@ -89,13 +89,15 @@ export type Execution = {
 export type Law = {
   powers: `0x${string}`;
   lawAddress: `0x${string}`;
+  lawHash: `0x${string}`;
   index: bigint;
-  description?: string;
-  conditions: Conditions;
-  config: `0x${string}`;
+  nameDescription?: string;
+  conditions?: Conditions;
+  config?: `0x${string}`;
   inputParams?: `0x${string}`; 
   params ?: {varName: string, dataType: DataType}[]; 
-  executions?: Execution[]; 
+  executions?: LawExecutions; 
+  active: boolean;
 }
 
 export type Metadata = { 
@@ -113,16 +115,25 @@ export type RoleLabel = {
   label: string; 
 }
 
+export type BlockRange = {
+  from: bigint;
+  to: bigint;
+}
+
 export type Powers = {
   contractAddress: `0x${string}`;
   name?: string;
+  uri?: string;
   metadatas?: Metadata; 
+  lawCount?: bigint;
   laws?: Law[];
   activeLaws?: Law[];
   proposals?: Proposal[];
-  roles: bigint[];
-  roleLabels: RoleLabel[];
+  proposalsFetched?: BlockRange[];
+  roles?: bigint[];
+  roleLabels?: RoleLabel[];
   deselectedRoles?: bigint[];
+
 }
 
 export type Role = {
