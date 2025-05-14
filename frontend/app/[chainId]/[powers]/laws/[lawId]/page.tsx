@@ -144,7 +144,7 @@ const Page = () => {
         {/* left panel: writing, fetching data is done here  */}
         {
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-          {statusPowers == "pending" || statusPowers == "idle" ?
+          {statusPowers == "pending" ?
           <div className = "w-full flex flex-col justify-center items-center p-4 border border-slate-300 bg-slate-50 rounded-md"> 
             <LoadingBox />
           </div>
@@ -173,7 +173,7 @@ const Page = () => {
           </div>
             {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {/* {<Executions executions = {executions} law = {law} status = {statusLaw}/> } */}
+            {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
           </div>
         </div>
         

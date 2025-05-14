@@ -27,7 +27,7 @@ const roleBgColour = [
   "bg-slate-100",
 ]
 
-const roleColourRightBorder = [  
+const roleColourRightBorder = [   
   "border-r-blue-600",
   "border-r-red-600", 
   "border-r-yellow-600", 
@@ -56,12 +56,13 @@ interface GovernanceOverviewProps {
 }
 
 const lawToColourCode = (law: Law) => {
-  return (law.conditions.allowedRole == undefined || law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole) % roleColour.length)
+  return (law?.conditions?.allowedRole == undefined || law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole) % roleColour.length)
 }
 
 export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
   const roleIdsParsed = powers?.deselectedRoles?.map(id => Number(id))
   let governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
+  console.log("@GovernanceOverview: ", {governanceTracks})
   const bgItem = usePathname().includes(`/laws`) || usePathname().includes(`/proposals`) ? 0 : 1
 
   if (law != undefined ) {
@@ -82,13 +83,14 @@ export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
         {
           governanceTracks.orphans && governanceTracks.orphans.length > 0 && <GovernanceOrphans orphans = {governanceTracks.orphans} lawSelected = {law} roleIds = {roleIdsParsed} bgItem = {bgItem} /> 
         }
-        
       </div> 
     </section>
   )
 }
 
 function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
+  console.log("@Rendering GovernanceTrack: ", {track, roleIds, lawSelected, bgItem})
+
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   return (
@@ -101,12 +103,12 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
               { index == track.length - 1 &&  <div className = "w-8"/> }
               <div className = "flex flex-col w-full h-full ps-2 justify-center items-center gap-0">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
-                  {shorterDescription(law.description, "short")}
+                  {shorterDescription(law?.nameDescription, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
-                  { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.conditions.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.conditions.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
               </div>
               </div>
               { index == 0 &&  <div className = "w-12"/> }
@@ -148,7 +150,7 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
                   lawSelected ? 
                   law.index == lawSelected.index
                   :
-                  law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
+                  law?.conditions?.allowedRole != undefined ? !roleIds?.includes(Number(law?.conditions?.allowedRole)) : false
                 }
                 onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
                 >
@@ -178,18 +180,18 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
                 lawSelected ? 
                 law.index == lawSelected.index
                 :
-                law.conditions.allowedRole != undefined ? !roleIds?.includes(Number(law.conditions.allowedRole)) : false
+                law?.conditions?.allowedRole != undefined ? !roleIds?.includes(Number(law?.conditions?.allowedRole)) : false
               }
               onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
             >
               <div className = "flex flex-col w-full h-full justify-center items-center gap-1">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">
-                  {shorterDescription(law.description, "short")}
+                  {shorterDescription(law?.nameDescription, "short")}
                 </div>
                 <div className = "flex flex-row gap-1"> 
-                  { law.conditions.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.conditions.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
-                  { law.conditions.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.delayExecution != 0n && <CalendarDaysIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.throttleExecution != 0n && <QueueListIcon className = "h-6 w-6 text-slate-700"/> }
+                  { law?.conditions?.quorum != 0n && <UserGroupIcon className = "h-6 w-6 text-slate-700"/> }
               </div>
               </div>
             </button> 

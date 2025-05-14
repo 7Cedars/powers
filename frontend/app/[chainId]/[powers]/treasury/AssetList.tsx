@@ -2,8 +2,7 @@
 
 import React, { useEffect } from "react";
 import { ArrowPathIcon, ArrowUpRightIcon, GiftIcon } from "@heroicons/react/24/outline";
-import { supportedChains } from "@/context/chains";
-import { useReadContracts } from "wagmi";
+import { useChains, useReadContracts } from "wagmi";
 import { erc1155Abi, erc20Abi } from "@/context/abi";
 import { useAssets } from "@/hooks/useAssets";
 import { Token, Powers, Status } from "@/context/types";
@@ -13,7 +12,8 @@ import { parseChainId } from "@/utils/parsers";
 
 export function AssetList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
   const { chainId } = useParams<{ chainId: string }>()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const {status, error, tokens, native, fetchTokens} = useAssets(powers)
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
                 <td className="pe-4"> {token.symbol} </td>
                 <td className="pe-4">
                   <a
-                    href={`${supportedChain?.blockExplorerUrl}/address/${token.address}#code`} target="_blank" rel="noopener noreferrer"
+                    href={`${supportedChain?.blockExplorers?.default.url}/address/${token.address}#code`} target="_blank" rel="noopener noreferrer"
                     className="w-full flex flex-row gap-1 py-2 items-start justify-start"
                   >
                     {token.address?.slice(0, 6)}...{token.address?.slice(-6)}

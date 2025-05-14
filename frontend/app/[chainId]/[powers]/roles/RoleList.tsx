@@ -48,7 +48,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
               args: [roleId]
               })
               // console.log("@fetchRoleHolders, waypoint 1 ", {fetchedRoleHolders})
-              const laws = powers?.laws?.filter(law => law.conditions.allowedRole == BigInt(roleId))
+              const laws = powers?.laws?.filter(law => law.conditions?.allowedRole == BigInt(roleId))
               rolesFetched.push({roleId, holders: Number(fetchedRoleHolders), laws})
             }
           }
@@ -88,7 +88,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
         }
       </div>
       {/* table laws  */}
-      {statusPowers == "pending" || statusPowers == "idle" ? 
+      {statusPowers == "pending" ? 
       <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>

@@ -45,6 +45,7 @@ export default function Page() {
   //   }
   // }, [addressPowers, fetchPowers])
 
+  // ANd this one does not work anymore... 
   const getRolesSet = async () => {
       if (publicClient && roleId) {
         try {

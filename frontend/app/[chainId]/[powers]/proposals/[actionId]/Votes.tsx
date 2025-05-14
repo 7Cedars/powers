@@ -4,10 +4,8 @@ import { powersAbi } from "@/context/abi";
 import { parseChainId, parseVoteData } from "@/utils/parsers";
 import { Powers, Proposal, Status } from "@/context/types";
 import { CheckIcon, XMarkIcon} from "@heroicons/react/24/outline";
-import { useBlockNumber, useChainId, useReadContracts } from "wagmi";
-import { sepolia } from "@wagmi/core/chains";
+import { useBlockNumber, useChains, useReadContracts } from "wagmi";
 import { blocksToHoursAndMinutes } from "@/utils/toDates";
-import { supportedChains } from "@/context/chains";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 
@@ -15,12 +13,9 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   // console.log("@Votes: waypoint 0", {proposal, powers})
 
   const { chainId } = useParams<{ chainId: string }>()
-  const supportedChain = supportedChains.find(chain => chain.id === parseChainId(chainId))
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id === parseChainId(chainId))
   const law = proposal?.lawId ? powers?.laws?.find(law => law.index == proposal?.lawId) : undefined
-
-  const {data: blockNumber, error: errorBlockNumber} = useBlockNumber({
-    chainId: supportedChain?.alternativeBlockNumbers ? supportedChain?.alternativeBlockNumbers : parseChainId(chainId),
-  })
 
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
@@ -49,9 +44,10 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
   const init = 0
   const allVotes = votes.reduce((acc, current) => acc + current, init)
-  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions.quorum)) / 100) : 0
-  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions.succeedAt)) / 100) : 0
+  const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.quorum)) / 100) : 0
+  const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
+  const timeStamp = Math.floor(Date.now() / 1000)
 
   return (
       <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-72">
@@ -62,7 +58,7 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
           </div> 
         </div>
 
-        {statusPowers == "pending" || statusPowers == "idle" ?
+        {statusPowers == "pending" ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>  
@@ -117,15 +113,15 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
         {/* Vote still active block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
-            { Number(blockNumber) <= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
+            { timeStamp <= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
             <div>
-            { Number(blockNumber) >= deadline ? "Vote has closed" : "Vote still active"}
+            { timeStamp >= deadline ? "Vote has closed" : "Vote still active"}
             </div>
           </div>
-          {Number(blockNumber) < deadline &&  
+          {timeStamp < deadline &&  
             <div className = "w-full flex flex-row justify-between items-center">
               Vote will end in 
-              {  blocksToHoursAndMinutes(deadline - Number(blockNumber), supportedChain) }
+              {  blocksToHoursAndMinutes(deadline - timeStamp) }
             </div>
           }
         </div>

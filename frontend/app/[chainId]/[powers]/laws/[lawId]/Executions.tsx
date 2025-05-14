@@ -1,4 +1,4 @@
-import { Execution, Law, Status } from "@/context/types";
+import { Execution, Law, Status, LawExecutions } from "@/context/types";
 import { parseParamValues, parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
@@ -7,7 +7,7 @@ import { setAction, useActionStore } from "@/context/store";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
 
 type ExecutionsProps = {
-  executions: Execution[] | undefined
+  executions: LawExecutions | undefined
   law: Law | undefined;
   status: Status;
 };
@@ -15,7 +15,7 @@ type ExecutionsProps = {
 export const Executions = ({executions, law, status}: ExecutionsProps) => {
 
   // console.log("@Executions: ", {executions, law, status})
-
+// THIS HAS TO BE REFACTORED. Use read contract, _actions . This needs a getter function! 
   const handleExecutionSelection = (execution: Execution) => {
     // console.log("@Executions: handleExecutionSelection: ", {execution, law})
     let dataTypes = law?.params?.map(param => param.dataType)
@@ -50,13 +50,13 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           <LoadingBox />
         </div>
         :
-        executions && executions?.length != 0 ?  
+        executions?.executions && executions.executions?.length != 0 ?  
         <div className = "w-full flex flex-col max-h-36 lg:max-h-56 overflow-y-scroll divide-y divide-slate-300">
-            {executions.map((execution: Execution, index: number) => 
+            {executions.executions.map((execution, index: number) => 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
                       showBorder={true}
-                      role={law?.conditions.allowedRole != undefined ? parseRole(law.conditions.allowedRole) : 0}
+                      role={law?.conditions?.allowedRole != undefined ? parseRole(law.conditions?.allowedRole) : 0}
                       onClick={() => handleExecutionSelection(execution)}
                       align={0}
                       selected={false}

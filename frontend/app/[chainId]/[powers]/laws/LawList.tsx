@@ -16,7 +16,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  // console.log("LawList: ", {deselectedRoles, powers})
+  console.log("@LawList: ", {deselectedRoles, powers, status})
   
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -67,7 +67,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
         }
       </div>
       {/* table laws  */}
-      {status == "pending" || status == "idle" ?  
+      {status == "pending" ?  
       <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
@@ -85,7 +85,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
         </thead>
         <tbody className="w-full h-full text-sm text-right text-slate-500 divide-y divide-slate-200">
           {
-            powers?.activeLaws?.filter(law => law.conditions.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions.allowedRole}`)))?.map((law: Law, i) => 
+            powers?.activeLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
               <tr
                 key={i}
                 className={`text-sm text-left text-slate-800 h-16 p-2`}
@@ -95,17 +95,17 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                   <Button
                     showBorder={true}
                     role={
-                      law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
+                      law.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
                         ? 6
-                        : law.conditions.allowedRole == 0n
+                        : law.conditions?.allowedRole == 0n
                         ? 0
-                        : Number(law.conditions.allowedRole)
+                        : Number(law.conditions?.allowedRole)
                     }
                     onClick={() => { router.push(`/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
                     align={0}
                     selected={true}
                   >
-                    {shorterDescription(law.description, "short")}
+                    {shorterDescription(law.nameDescription, "short")}
                   </Button>
                 </td>
                 <td className="pe-4 text-slate-500 h-full min-w-fit">
@@ -120,7 +120,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                     </div>
                   }
                 </td>
-                <td className="pe-4 min-w-20 text-slate-500"> {law.conditions.allowedRole != undefined ? bigintToRole(law.conditions.allowedRole, powers) : "-"}
+                <td className="pe-4 min-w-20 text-slate-500"> {law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-"}
                 </td>
               </tr>
             )

@@ -51,7 +51,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
         <div className="text-slate-900 text-center font-bold text-lg">
           Proposals
         </div>
-        {powers?.roles.map((role, i) => 
+        {powers?.roles?.map((role, i) => 
             <div className="flex flex-row w-full min-w-fit h-8" key={i}>
             <Button
               size={0}
@@ -101,7 +101,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
       {/* table laws  */}
 
       <div className="w-full overflow-scroll">
-      {status == "pending" || status == "idle" ? 
+      {status == "pending" ? 
       <div className="w-full h-full min-h-fit flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
@@ -123,8 +123,8 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
               // console.log("timeStamp: ", proposal.voteStartBlockData?.timestamp)
               return (
                 law && 
-                law.conditions.allowedRole != undefined && 
-                !deselectedRoles?.includes(BigInt(`${law.conditions.allowedRole}`)) && 
+                law.conditions?.allowedRole != undefined && 
+                !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)) && 
                 !deselectedStatus.includes(String(proposal.state) ? String(proposal.state) : '9') 
                 ? 
                 <tr
@@ -134,7 +134,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                   <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center text-left py-3 px-4">
                       <Button
                         showBorder={true}
-                        role={parseRole(law.conditions.allowedRole)}
+                        role={parseRole(law.conditions?.allowedRole)}
                         onClick={() => {
                           router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`);
                         }}
@@ -145,13 +145,13 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                         </div>
                       </Button>
                   </td>
-                  <td className="pe-4 text-slate-500 min-w-56">{law.description}</td>
+                  <td className="pe-4 text-slate-500 min-w-56">{law.nameDescription}</td>
                   <td className="pe-4 text-slate-500 min-w-48">{
                     proposal.description.length > 100 ? `${proposal.description.slice(0, 100)}...` : proposal.description
                   }
                   </td>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
-                  <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions.allowedRole, powers)}
+                  <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions?.allowedRole, powers)}
                   </td>
                 </tr>
                 : 

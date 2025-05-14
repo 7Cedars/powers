@@ -15,7 +15,7 @@ export const StatusProposal = ({proposal, status: statusPowers}: {proposal?: Pro
         </div>
 
         {/* authorised block */}
-        {statusPowers == "pending" || statusPowers == "idle" ?
+        {statusPowers == "pending" ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>

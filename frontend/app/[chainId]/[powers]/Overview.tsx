@@ -5,7 +5,6 @@ import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { Powers } from "@/context/types";
 import { setRole, useRoleStore } from "@/context/store";
-import { usePowers } from "@/hooks/usePowers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 
@@ -58,9 +57,7 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
       {powers && 
           <button 
             className="w-fit min-h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => {
-              onUpdatePowers()
-            }}
+            onClick = {() => {  onUpdatePowers() }}
             disabled={status == 'pending'}
             >
               <ArrowPathIcon

@@ -30,7 +30,7 @@ export const LawLink: React.FC<{law: Law, powers: Powers | undefined, status: St
           </div> 
         </div>
 
-        {status == "pending" || status == "idle" ?
+        {status == "pending" ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>
@@ -42,7 +42,7 @@ export const LawLink: React.FC<{law: Law, powers: Powers | undefined, status: St
                 className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law?.conditions?.allowedRole)]} disabled:opacity-50`}
                 onClick = {() => router.push(`/${chainId}/${powers?.contractAddress}/laws/${law.index}`)} >
                 <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                    {shorterDescription(law.description, "short")}
+                    {shorterDescription(law?.nameDescription, "short")}
                 </div>
             </button>
         </div>

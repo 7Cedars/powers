@@ -5,16 +5,14 @@ import { setError, useActionStore, useErrorStore } from "../../../../../context/
 import { Button } from "@/components/Button";
 import { ArrowUpRightIcon, PlusIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { SectionText } from "@/components/StandardFonts";
-import { useChainId } from 'wagmi'
+import { useChainId, useChains } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { parseChainId, parseLawError, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation } from "@/context/types";
 import { DynamicInput } from "@/app/[chainId]/[powers]/laws/[lawId]/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
-import { supportedChains } from "@/context/chains";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
-import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 
 type LawBoxProps = {
@@ -47,8 +45,9 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const error = useErrorStore()
   const { chainId } = useParams<{ chainId: string }>()
   const dataTypes = params.map(param => param.dataType) 
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
-  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error})
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 
@@ -76,16 +75,16 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
   return (
     <main className="w-full h-full">
-      <section className={`w-full h-full bg-slate-50 border ${roleColour[parseRole(law.conditions.allowedRole) % roleColour.length]} rounded-md overflow-hidden`} >
+      <section className={`w-full h-full bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} rounded-md overflow-hidden`} >
       {/* title  */}
       <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={shorterDescription(law?.description, "short")}
-          subtext={shorterDescription(law?.description, "long")}
+          text={shorterDescription(law?.nameDescription, "short")}
+          subtext={shorterDescription(law?.nameDescription, "long")}
           size = {0}
         /> 
          <a
-            href={`${supportedChain?.blockExplorerUrl}/address/${law.lawAddress}#code`} target="_blank" rel="noopener noreferrer"
+            href={`${supportedChain?.blockExplorers?.default.url}/address/${law.lawAddress}#code`} target="_blank" rel="noopener noreferrer"
             className="w-full"
           >
           <div className="flex flex-row gap-1 items-center justify-start">
@@ -99,7 +98,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           </a>
           {selectedExecution && 
             <a
-            href={`${supportedChain?.blockExplorerUrl}/tx/${selectedExecution.log.transactionHash}`} target="_blank" rel="noopener noreferrer"
+            href={`${supportedChain?.blockExplorers?.default.url}/tx/${selectedExecution.log.transactionHash}`} target="_blank" rel="noopener noreferrer"
               className="w-full"
             >
             <div className="flex flex-row gap-1 items-center justify-start">
@@ -193,7 +192,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           <Button 
             size={1} 
             showBorder={true} 
-            role={law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole)}
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             filled={false}
             selected={true}
             onClick={() => {
@@ -215,7 +214,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         <div className="w-full h-fit p-6">
           <Button 
             size={1} 
-            role={law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole)}
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
               onExecute(action.description, action.nonce)
             }} 

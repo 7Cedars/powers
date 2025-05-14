@@ -74,7 +74,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
       {status == "pending" || status == "idle" ?
       <div className = "w-full flex flex-col justify-center items-center p-2"> 
         <LoadingBox />
@@ -84,8 +84,8 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={`Proposal: ${law?.description}`}
-          subtext={law?.description}
+          text={`Proposal: ${law?.nameDescription}`}
+          subtext={law?.nameDescription}
           size = {0}
         /> 
       </div>

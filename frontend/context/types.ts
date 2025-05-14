@@ -24,7 +24,6 @@ export type LawExecutions = {
   executions: bigint[] 
 }
 
-
 export type Attribute = {  
   trait_type: string | number ;  
   value: string;

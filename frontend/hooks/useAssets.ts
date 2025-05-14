@@ -1,25 +1,23 @@
 // ok, what does this need to do? 
 
 import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
-import { supportedChains } from "@/context/chains"
 // import { publicClient } from "@/context/clients"
 import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
-import { useBalance, useBlockNumber, useChainId } from "wagmi"
-import { Abi, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
+import { useBalance, useChains } from "wagmi"
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
-import { parse1155Metadata, parseMetadata } from "@/utils/parsers"
+import { parse1155Metadata } from "@/utils/parsers"
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
-
 
 export const useAssets = (powers: Powers | undefined) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
   const { chainId } = useParams<{ chainId: string }>()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const {data: native, status: statusBalance}  = useBalance({
     address: powers?.contractAddress
   }) 

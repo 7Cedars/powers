@@ -18,8 +18,8 @@ const roleColour = [
 export function ChecksBox ({powers, law, checks, status}: {powers: Powers | undefined, law: Law | undefined, checks: Checks | undefined, status: Status}) {
   const router = useRouter(); 
   const { chainId } = useParams<{ chainId: string }>()
-  const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needCompleted); 
-  const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions.needNotCompleted); 
+  const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions?.needCompleted); 
+  const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions?.needNotCompleted); 
 
   console.log("ChecksBox: ", {checks})
   console.log("ChecksBox: ", {law})
@@ -33,7 +33,7 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
         </div>
 
         {/* authorised block */}
-        {status == "pending" || status == "idle" || !checks ?
+        {status == "pending" || !checks ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>
@@ -59,7 +59,7 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
         </div>
 
           {/* Executed */}
-          {law && law.conditions.needCompleted != 0n  ?  
+          {law && law.conditions?.needCompleted != 0n  ?  
             <div className = "w-full flex flex-col justify-center items-center p-2"> 
               <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.lawCompleted ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -67,13 +67,13 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
               </div>
               <div className = "w-full flex flex-row px-2 py-1">
                 <button 
-                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(needCompletedLaw?.conditions.allowedRole)]} disabled:opacity-50`}
+                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(needCompletedLaw?.conditions?.allowedRole)]} disabled:opacity-50`}
                   onClick = {() => {
                     router.push(`/${chainId}/${powers?.contractAddress}/laws/${needCompletedLaw?.index}`)
                   }}
                   >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                  {shorterDescription(needCompletedLaw?.description, "short")}
+                  {shorterDescription(needCompletedLaw?.nameDescription, "short")}
                   </div>
                 </button>
               </div>
@@ -83,7 +83,7 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
           }
   
           {/* Not executed */}
-          {law && law.conditions.needNotCompleted != 0n ? 
+          {law && law.conditions?.needNotCompleted != 0n ? 
             <div className = "w-full flex flex-col justify-center items-center p-2"> 
               <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.lawNotCompleted ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
@@ -91,13 +91,13 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
               </div>
               <div className = "w-full flex flex-row px-2 py-1">
                 <button 
-                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(needNotCompletedLaw?.conditions.allowedRole)]} disabled:opacity-50`}
+                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(needNotCompletedLaw?.conditions?.allowedRole)]} disabled:opacity-50`}
                   onClick = {() => {
                     router.push(`/${chainId}/${powers?.contractAddress}/laws/${needNotCompletedLaw?.index}`)
                   }}
                   >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                    {shorterDescription(needNotCompletedLaw?.description, "short")}
+                    {shorterDescription(needNotCompletedLaw?.nameDescription, "short")}
                   </div>
                 </button>
               </div>
