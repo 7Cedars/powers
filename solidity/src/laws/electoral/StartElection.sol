@@ -37,30 +37,25 @@ contract StartElection is Law {
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 lawHash => mapping(bytes32 electionHash => uint16)) internal lawIds;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
-
+    constructor() {
         bytes memory configParams = abi.encode(
             "address ElectionLaw", // Address of VoteOnAccounts law
             "bytes ElectionConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent elections are set when the call election law is adopted.  
         );
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
     /// @param conditions Conditions for the law
     /// @param config Configuration data
-    /// @param inputParams Additional input parameters
-    /// @param description Description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address electionLaw, bytes memory electionConditions) =
             abi.decode(config, (address, bytes));
@@ -68,13 +63,14 @@ contract StartElection is Law {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash].electionLaw = electionLaw;
         data[lawHash].electionConditions = electionConditions;
+        inputParams = abi.encode("uint48 startVote", "uint48 endVote", "string Description");
 
         super.initializeLaw(
             index, 
+            nameDescription,
+            inputParams,
             conditions, 
-            config, 
-            abi.encode("uint48 startVote", "uint48 endVote", "string Description"), // inputParams
-            description
+            config
         );
     }
 
@@ -121,10 +117,10 @@ contract StartElection is Law {
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
+                nameDescription: electionDescription,
                 targetLaw: data[lawHash].electionLaw,
                 config: abi.encode(startVote, endVote, electionDescription),
-                conditions: electionConditions,
-                description: electionDescription
+                conditions: electionConditions
             })
         );
 

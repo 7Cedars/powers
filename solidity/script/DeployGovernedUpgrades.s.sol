@@ -112,10 +112,10 @@ contract DeployGovernedUpgrades is Script {
         conditions.quorum = 50; // 30% quorum
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Veto new law: Veto the adoption of a new law.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParamsAdopt),
-            conditions: conditions,
-            description: "Veto new law: Veto the adoption of a new law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -126,10 +126,10 @@ contract DeployGovernedUpgrades is Script {
         conditions.quorum = 15; // 15% quorum
         conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Veto revoking law: Veto the revocation of an existing, stopped, law.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode("uint16 LawId"),
-            conditions: conditions,
-            description: "Veto restarting law: Veto the revocation of an existing, stopped, law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -138,10 +138,10 @@ contract DeployGovernedUpgrades is Script {
         conditions.allowedRole = 3; // previous DAO role
         conditions.needNotCompleted = 1; // law 1 should NOT have passed
         lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Adopt a new law: Adopt a new law into Powers.",
             targetLaw: parseLawAddress(18, "AdoptLaw"),
             config: abi.encode(),
-            conditions: conditions,
-            description: "Adopt a new law: Adopt a new law into Powers."
+            conditions: conditions
         });
         delete conditions;
 
@@ -152,14 +152,14 @@ contract DeployGovernedUpgrades is Script {
         conditions.allowedRole = 3; // previous DAO role
         conditions.needNotCompleted = 2; // law 2 should NOT have passed
         lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "Stop a law: Revoke a law in Powers.",
             targetLaw: parseLawAddress(5, "BespokeAction"),
             config: abi.encode(
                 powers_, 
                 IPowers.revokeLaw.selector, 
                 inputParamsRevoke
             ),
-            conditions: conditions,
-            description: "Stop a law: Revoke a law in Powers."
+            conditions: conditions
         });
         delete conditions;
 
@@ -167,10 +167,10 @@ contract DeployGovernedUpgrades is Script {
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 3; // previous DAO role
         lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "Veto token mint: Veto minting of tokens to a delegate.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode("uint256 Quantity"),
-            conditions: conditions,
-            description: "Veto token mint: veto minting of tokens to a delegate."
+            conditions: conditions
         });
         delete conditions;
 
@@ -182,14 +182,14 @@ contract DeployGovernedUpgrades is Script {
         string[] memory inputParamsMint = new string[](1);
         inputParamsMint[0] = "uint256 Quantity";
         lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Mint tokens: Mint tokens to a delegate address.",
             targetLaw: parseLawAddress(5, "BespokeAction"),
             config: abi.encode(
                 parseMockAddress(2, "Erc20VotesMock"), 
                 Erc20VotesMock.mintVotes.selector, 
                 inputParamsMint
             ),
-            conditions: conditions,
-            description: "Mint Tokens: Mint tokens to a delegate address. Note that the address is the executioner of the law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -200,10 +200,10 @@ contract DeployGovernedUpgrades is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Delegate nomination: Nominate oneself for a delegate role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(),
-            conditions: conditions,
-            description: "Delegate nomination: Nominate oneself for a delegate role."
+            conditions: conditions
         });
         delete conditions;
 
@@ -213,13 +213,13 @@ contract DeployGovernedUpgrades is Script {
         ILaw.Conditions memory electionConditions;
         electionConditions.allowedRole = 1;
         lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "Start election: Start an election that allows members to vote for a delegate.",
             targetLaw: parseLawAddress(22, "StartElection"), // startElection
             config: abi.encode(
                 lawAddresses[19], // VoteOnAccounts
                 abi.encode(electionConditions)
             ),
-            conditions: conditions,
-            description: "Start election: The DAO admin can start an election that allows members to vote for a delegate."
+            conditions: conditions
         });
         delete conditions;
 
@@ -229,10 +229,10 @@ contract DeployGovernedUpgrades is Script {
         conditions.needCompleted = 8; 
         conditions.readStateFrom = 7;
         lawInitData[9] = PowersTypes.LawInitData({
+            nameDescription: "End election: The DAO admin can stop an election and have votes counted.",
             targetLaw: parseLawAddress(23, "EndElection"), // EndElection
             config: abi.encode(),
-            conditions: conditions,
-            description: "End election: The DAO admin can stop an election and have votes counted."
+            conditions: conditions
         });
         delete conditions;
 
@@ -241,10 +241,10 @@ contract DeployGovernedUpgrades is Script {
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 10);
         conditions.allowedRole = 0; // admin role
         lawInitData[10] = PowersTypes.LawInitData({
+            nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions,
-            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
+            conditions: conditions
         });
         delete conditions;
 

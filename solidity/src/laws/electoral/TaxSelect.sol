@@ -58,25 +58,22 @@ contract TaxSelect is Law {
 
     mapping(bytes32 lawHash => Data) internal data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("address erc20TaxedMock", "uint256 thresholdTaxPaid", "uint256 roleIdToSet");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration parameters
     /// @param index The index of the law in the DAO
+    /// @param nameDescription The description of the law
     /// @param conditions The conditions for the law
     /// @param config The configuration parameters (erc20TaxedMock, thresholdTaxPaid, roleIdToSet)
-    /// @param inputParams The input parameters for the law
-    /// @param description The description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions, 
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address erc20TaxedMock_, uint256 thresholdTaxPaid_, uint256 roleIdToSet_) =
             abi.decode(config, (address, uint256, uint256));
@@ -85,7 +82,9 @@ contract TaxSelect is Law {
         data[lawHash].thresholdTaxPaid = thresholdTaxPaid_;
         data[lawHash].roleIdToSet = roleIdToSet_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("address Account"), description);
+        inputParams = abi.encode("address Account");
+
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to assign or revoke a role based on tax payments

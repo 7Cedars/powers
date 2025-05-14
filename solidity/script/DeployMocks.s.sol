@@ -32,31 +32,27 @@ contract DeployMocks is Script {
 
         names[0] = "PowersMock";
         creationCodes[0] = type(PowersMock).creationCode;
+        addresses[0] = deployMock(creationCodes[0], names[0]);
     
         names[2] = "Erc20VotesMock";
         creationCodes[2] = type(Erc20VotesMock).creationCode;
-
+        addresses[2] = deployMock(creationCodes[2], names[2]);
+        
         names[3] = "Erc20TaxedMock";
         creationCodes[3] = type(Erc20TaxedMock).creationCode;
+        addresses[3] = deployMock(creationCodes[3], names[3]);
 
         names[4] = "Erc721Mock";
         creationCodes[4] = type(Erc721Mock).creationCode;
+        addresses[4] = deployMock(creationCodes[4], names[4]);
 
         names[5] = "Erc1155Mock";
         creationCodes[5] = type(Erc1155Mock).creationCode;
+        addresses[5] = deployMock(creationCodes[5], names[5]);
 
         names[1] = "GovernorMock";
-        creationCodes[1] = abi.encodePacked(type(GovernorMock).creationCode, abi.encode(
-            Create2.computeAddress(
-                bytes32(abi.encodePacked(names[2])),
-                keccak256(abi.encodePacked(creationCodes[2])),
-                create2Factory 
-            )
-        ));
-
-        for (uint256 i = 0; i < names.length; i++) {
-           addresses[i] = deployMock(creationCodes[i], names[i]);
-        }
+        creationCodes[1] = abi.encodePacked(type(GovernorMock).creationCode, abi.encode(addresses[2]));
+        addresses[1] = deployMock(creationCodes[1], names[1]);
     }
 
     //////////////////////////////////////////////////////////////

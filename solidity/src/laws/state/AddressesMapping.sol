@@ -32,24 +32,18 @@ contract AddressesMapping is Law {
     event AddressesMapping__Added(address account);
     event AddressesMapping__Removed(address account);
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
-        
-        emit Law__Deployed(name_, "");
-    }
+    constructor() { emit Law__Deployed(""); }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         inputParams = abi.encode("address Account", "bool Add");
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public

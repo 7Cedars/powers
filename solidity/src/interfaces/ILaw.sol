@@ -51,17 +51,17 @@ interface ILaw is IERC165, LawErrors {
     //////////////////////////////////////////////////////////////
 
     /// @notice Emitted when a law is deployed
-    /// @param name Name of the law
-    event Law__Deployed(string name, bytes configParams);
+    /// @param configParams Configuration parameters for the law
+    event Law__Deployed(bytes configParams);
 
     /// @notice Emitted when a law is initialized
     /// @param powers Address of the Powers protocol
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
     /// @param conditions Conditions for the law
     /// @param inputParams Input parameters for the law
-    /// @param description Description of the law
     event Law__Initialized(
-        address indexed powers, uint16 indexed index, Conditions conditions, bytes inputParams, string description
+        address indexed powers, uint16 indexed index, string nameDescription, bytes inputParams, Conditions conditions, bytes config
     );
 
     //////////////////////////////////////////////////////////////
@@ -69,15 +69,16 @@ interface ILaw is IERC165, LawErrors {
     //////////////////////////////////////////////////////////////
     /// @notice Initializes the law
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
+    /// @param inputParams Input parameters for the law
     /// @param conditions Conditions for the law
     /// @param config Configuration parameters for the law
-    /// @param inputParams Input parameters for the law
     function initializeLaw(
         uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams, 
         Conditions memory conditions,
-        bytes memory config,
-        bytes memory inputParams,
-        string memory description
+        bytes memory config
     ) external;
 
     /// @notice Executes the law's logic after validation

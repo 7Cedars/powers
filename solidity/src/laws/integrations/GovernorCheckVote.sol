@@ -33,24 +33,17 @@ contract GovernorCheckVote is Law {
     mapping(bytes32 lawHash => address governorContract) public governorContracts;
 
     /// @notice constructor of the law
-    /// @param name_ the name of the law.
-    constructor(
-        // standard parameters
-        string memory name_
-    ) { 
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
+    constructor() { 
         bytes memory configParams = abi.encode("address GovernorContract", "string[] InputParams");
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address governorContract_, bytes memory inputParams_) =
             abi.decode(config, (address, bytes));
@@ -59,8 +52,7 @@ contract GovernorCheckVote is Law {
         governorContracts[lawHash] = governorContract_;
         inputParams = inputParams_;
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.

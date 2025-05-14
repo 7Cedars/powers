@@ -44,26 +44,23 @@ contract VoteOnAccounts is Law {
 
     event VoteOnAccounts__VoteCast(address voter);
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("uint48 startVote", "uint48 endVote");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
         data[LawUtilities.hashLaw(msg.sender, index)] = Data({startVote: startVote_, endVote: endVote_});
 
         inputParams = abi.encode("address VoteFor");
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public

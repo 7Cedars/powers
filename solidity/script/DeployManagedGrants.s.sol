@@ -82,10 +82,10 @@ contract DeployManagedGrants is Script {
         inputParams[2] = "uint256 Quantity";
          
         lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Request a grant: Community members can request a grant from a grant program.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
-            conditions: conditions,
-            description: "Request a grant: Community members can request a grant from a grant program."
+            conditions: conditions
         });
         delete conditions;
 
@@ -103,10 +103,10 @@ contract DeployManagedGrants is Script {
         inputParams[3] = "string Description";
  
         lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Veto grant program: Judges can veto the deployment of a new grant program.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
-            conditions: conditions,
-            description: "Veto grant program: Judges can veto the deployment of a new grant program."
+            conditions: conditions
         });
         delete conditions;
 
@@ -128,10 +128,10 @@ contract DeployManagedGrants is Script {
         conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
         lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges.",
             targetLaw: parseLawAddress(16, "StartGrant"),
             config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)),
-            conditions: conditions,
-            description: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges."
+            conditions: conditions
         });
         delete conditions;
         delete grantConditions;
@@ -144,13 +144,13 @@ contract DeployManagedGrants is Script {
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
 
         lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 10, // the maximum amount of tokens left in the grant before it can be stopped. 
                 true // if true, the grant can only be stopped after it deadline has passed.  
                 ),
-            conditions: conditions,
-            description: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired."
+            conditions: conditions
         });
         delete conditions;
 
@@ -161,13 +161,13 @@ contract DeployManagedGrants is Script {
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
         conditions.succeedAt = 51; // 66% majority 
         lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "End grant program: Judges can stop a grant program at any time.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 0, // no checks. 
                 false // no deadline. 
             ), 
-            conditions: conditions,
-            description: "End grant program: Judges can stop a grant program at any time."
+            conditions: conditions
         });
         delete conditions;
 
@@ -178,10 +178,10 @@ contract DeployManagedGrants is Script {
         // It can be used by community members to self select for a delegate role. 
         conditions.allowedRole = 1; 
         lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role."
+            conditions: conditions
         });
         delete conditions;
 
@@ -190,14 +190,14 @@ contract DeployManagedGrants is Script {
         conditions.allowedRole = 0;
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Elect delegates: Only the DAO admin can use this law to elect delegates.",
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
                 parseMockAddress(2, "Erc20VotesMock"),
                 15, // max role holders
                 2 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Elect delegates: Only the DAO admin can use this law to elect delegates."
+            conditions: conditions
         });
         delete conditions;
 
@@ -205,22 +205,22 @@ contract DeployManagedGrants is Script {
         // Any one can use this law
         conditions.allowedRole = type(uint256).max;
         lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "Self select: Anyone can self select for a member role.",
             targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(
                 1 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Self select as community member: Anyone can self select for a member role."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows members to nominate themselves for an allocator role. 
         conditions.allowedRole = 1; // member role
         lawInitData[9] = PowersTypes.LawInitData({
+            nameDescription: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role."
+            conditions: conditions
         });
         delete conditions;
 
@@ -231,20 +231,20 @@ contract DeployManagedGrants is Script {
         conditions.succeedAt = 66; // 66% majority  
         
         lawInitData[10] = PowersTypes.LawInitData({
+            nameDescription: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(4), // allocator role
-            conditions: conditions,
-            description: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows the admin to assign or revoke a judge role to a nominated account. 
         conditions.allowedRole = 0;
         lawInitData[11] = PowersTypes.LawInitData({
+            nameDescription: "Assign judge role: The DAO admin can assign or revoke a judge role to any account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(3), // judge role
-            conditions: conditions,
-            description: "Assign judge role: The DAO admin can assign or revoke a judge role to any account."
+            conditions: conditions
         });
         delete conditions;
 
@@ -252,10 +252,10 @@ contract DeployManagedGrants is Script {
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
         conditions.allowedRole = 0;
         lawInitData[12] = PowersTypes.LawInitData({
+            nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions,
-            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
+            conditions: conditions
         });
         delete conditions;
     }

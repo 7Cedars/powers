@@ -27,10 +27,10 @@ interface PowersTypes {
     }
 
     struct LawInitData {
+        string nameDescription; // 32 bytes
         address targetLaw; // 20 bytes
         bytes config; // 32 bytes
         ILaw.Conditions conditions; // 104 bytes
-        string description; // 32 bytes
     }
 
     /// @notice struct to keep track of a proposal.

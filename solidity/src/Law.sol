@@ -42,13 +42,11 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
-    /// @notice Name of the law
-    string public name;
     struct LawData {
+        string nameDescription;
+        bytes inputParams;
         Conditions conditions;
         Executions executions;
-        bytes inputParams;
-        string description;
     }
     mapping(bytes32 lawHash => LawData) public laws;
 
@@ -58,27 +56,27 @@ abstract contract Law is ERC165, ILaw {
     // note this is an unrestricted function. Anyone can initialize a law. 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions,
+        bytes memory config
     ) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        LawUtilities.checkStringLength(description, 1, 127);
+        LawUtilities.checkStringLength(nameDescription, 1, 127);
 
         laws[lawHash] = LawData({ 
-            conditions: conditions, 
+            nameDescription: nameDescription,
+            inputParams: inputParams,
+            conditions: conditions,     
             executions: Executions({ 
                 powers: msg.sender, 
                 config: config, 
                 actionsIds: new uint256[](1), 
                 executions: new uint48[](1) 
-            }), 
-            inputParams: inputParams,
-            description: description 
+            })
         });
 
-        emit Law__Initialized(msg.sender, index, conditions, inputParams, description);
+        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
@@ -215,6 +213,7 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
+    // Place these in lawUtilities library? 
     function getConditions(address powers, uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[LawUtilities.hashLaw(powers, lawId)].conditions;
     }
@@ -227,8 +226,8 @@ abstract contract Law is ERC165, ILaw {
         return laws[LawUtilities.hashLaw(powers, lawId)].inputParams;
     }
 
-    function getDescription(address powers, uint16 lawId) public view returns (string memory description) {
-        return laws[LawUtilities.hashLaw(powers, lawId)].description;
+    function getNameDescription(address powers, uint16 lawId) public view returns (string memory nameDescription) {
+        return laws[LawUtilities.hashLaw(powers, lawId)].nameDescription;
     }
 
 

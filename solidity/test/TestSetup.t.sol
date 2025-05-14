@@ -56,11 +56,16 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes lawCalldata;
     bytes lawCalldataNominate;
     bytes lawCalldataElect;
+    string nameDescription;
     string description;
+    bytes inputParams;
     uint256 nonce;
     bool active;
     uint256 actionId;
     bytes32 lawHash;
+    address newLaw;
+    uint16 lawId;
+    uint16 lawCount; 
 
     address[] nominees;
     uint256 roleCount;

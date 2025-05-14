@@ -42,7 +42,7 @@ pragma solidity 0.8.26;
 //         name = name_;
 //         bytes memory configParams = abi.encode("string Space", "string[] InputParams");
 
-//         emit Law__Deployed(name_, configParams);
+//         emit Law__Deployed(configParams);
 //     }
 
 //     function initializeLaw(
@@ -59,8 +59,7 @@ pragma solidity 0.8.26;
 //         governorContracts[lawHash] = governorContract_;
 //         inputParams = inputParams_;
 
-//         super.initializeLaw(index, conditions, config, inputParams, description);
-//     }
+//         super.initializeLaw(index, nameDescription, inputParams, conditions, config);//     }
 
 //     /// @notice execute the law.
 //     /// @param lawCalldata the calldata _without function signature_ to send to the function.

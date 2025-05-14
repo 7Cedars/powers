@@ -49,25 +49,22 @@ contract HolderSelect is Law {
 
     mapping(bytes32 lawHash => Data) internal data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("address erc20Token", "uint256 minimumTokens", "uint256 roleIdToSet");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration parameters
     /// @param index The index of the law in the DAO
+    /// @param nameDescription The description of the law
     /// @param conditions The conditions for the law
     /// @param config The configuration parameters (erc20Token, minimumTokens, roleIdToSet)
-    /// @param inputParams The input parameters for the law
-    /// @param description The description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions, 
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address erc20Token_, uint256 minimumTokens_, uint256 roleIdToSet_) =
             abi.decode(config, (address, uint256, uint256));
@@ -76,7 +73,7 @@ contract HolderSelect is Law {
         data[lawHash].minimumTokens = minimumTokens_;
         data[lawHash].roleIdToSet = roleIdToSet_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("address Account"), description);
+        super.initializeLaw(index, nameDescription, abi.encode("address Account"), conditions, config);
     }
 
     /// @notice Handles the request to assign or revoke a role based on token holdings

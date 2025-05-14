@@ -830,18 +830,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -866,18 +866,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration with specific conditions
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
-            law: lawAddresses[6], // open action 
-            allowedRole: ROLE_TWO,
-            votingPeriod: 2400,
-            quorum: 40,
-            succeedAt: 60,
+            nameDescription: "new law: new law description",
+            law: lawAddresses[6], // open Action 
+            allowedRole: ROLE_ONE,
+            votingPeriod: 1200,
+            quorum: 30,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
-            delayExecution: 1000,
-            throttleExecution: 2000,
-            config: abi.encode(),
-            description: "New open action law"
+            delayExecution: 0,
+            throttleExecution: 0,
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -913,18 +913,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -955,18 +955,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);

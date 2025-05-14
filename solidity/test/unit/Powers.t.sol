@@ -75,7 +75,7 @@ contract DeployTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract ProposeTest is TestSetupPowers {
     function testProposeRevertsWhenAccountLacksCredentials() public {
-        uint16 lawId = 4;
+        lawId = 4;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
         // check if mockAddress does not have correct role
@@ -89,7 +89,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposeRevertsIfLawNotActive() public {
-        uint16 lawId = 4;
+        lawId = 4;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
         // check if charlotte has correct role
@@ -104,7 +104,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposeRevertsIfLawDoesNotNeedVote() public {
-        uint16 lawId = 2; // does not need vote.
+        lawId = 2; // does not need vote.
         description = "Creating a proposal";
         lawCalldata = abi.encode("this is dummy Data");
         // check if david has correct role
@@ -116,7 +116,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposePassesWithCorrectCredentials() public {
-        uint16 lawId = 5;
+        lawId = 5;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
         // check if charlotte has correct role
@@ -130,7 +130,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposeEmitsEvents() public {
-        uint16 lawId = 5;
+        lawId = 5;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
         // check if charlotte has correct role
@@ -159,7 +159,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposeRevertsIfAlreadyExist() public {
-        uint16 lawId = 5;
+        lawId = 5;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
         // check if alice has correct role
@@ -174,7 +174,7 @@ contract ProposeTest is TestSetupPowers {
     }
 
     function testProposeSetsCorrectVoteStartAndDuration() public {
-        uint16 lawId = 5;
+        lawId = 5;
         description = "Creating a proposal";
         lawCalldata = abi.encode(true);
 
@@ -190,7 +190,7 @@ contract ProposeTest is TestSetupPowers {
 contract CancelTest is TestSetupPowers {
     function testCancellingProposalsEmitsCorrectEvent() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -204,7 +204,7 @@ contract CancelTest is TestSetupPowers {
 
     function testCancellingProposalsSetsStateToCancelled() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -220,7 +220,7 @@ contract CancelTest is TestSetupPowers {
 
     function testCancelRevertsWhenAccountDidNotCreateProposal() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -233,7 +233,7 @@ contract CancelTest is TestSetupPowers {
 
     function testCancelledProposalsCannotBeCancelledAgain() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -250,7 +250,7 @@ contract CancelTest is TestSetupPowers {
 
     function testCancelRevertsIfProposalAlreadyExecuted() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         targets = new address[](1);
         targets[0] = address(123);
         values = new uint256[](1);
@@ -283,7 +283,7 @@ contract CancelTest is TestSetupPowers {
 
     function testCancelRevertsIfLawNotActive() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -302,7 +302,7 @@ contract CancelTest is TestSetupPowers {
 contract VoteTest is TestSetupPowers {
     function testVotingRevertsIfAccountNotAuthorised() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -319,7 +319,7 @@ contract VoteTest is TestSetupPowers {
 
     function testProposalDefeatedIfQuorumNotReachedInTime() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -338,7 +338,7 @@ contract VoteTest is TestSetupPowers {
 
     function testVotingIsNotPossibleForDefeatedProposals() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -358,7 +358,7 @@ contract VoteTest is TestSetupPowers {
 
     function testProposalSucceededIfQuorumReachedInTime() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -385,7 +385,7 @@ contract VoteTest is TestSetupPowers {
 
     function testVotesWithReasonsWorks() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -412,7 +412,7 @@ contract VoteTest is TestSetupPowers {
 
     function testProposalDefeatedIfQuorumReachedButNotEnoughForVotes() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -439,7 +439,7 @@ contract VoteTest is TestSetupPowers {
 
     function testAccountCannotVoteTwice() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -457,7 +457,7 @@ contract VoteTest is TestSetupPowers {
     function testAgainstVoteIsCorrectlyCounted() public {
         // prep: create a proposal
         uint256 numberAgainstVotes;
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -483,7 +483,7 @@ contract VoteTest is TestSetupPowers {
     function testForVoteIsCorrectlyCounted() public {
         // prep: create a proposal
         uint256 numberForVotes;
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -509,7 +509,7 @@ contract VoteTest is TestSetupPowers {
     function testAbstainVoteIsCorrectlyCounted() public {
         // prep: create a proposal
         uint256 numberAbstainVotes;
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -534,7 +534,7 @@ contract VoteTest is TestSetupPowers {
 
     function testVoteRevertsWithInvalidVote() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -553,7 +553,7 @@ contract VoteTest is TestSetupPowers {
 
     function testHasVotedReturnCorrectData() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -570,7 +570,7 @@ contract VoteTest is TestSetupPowers {
 contract ExecuteTest is TestSetupPowers {
     function testExecuteCanChangeState() public {
         // prep: create proposal data
-        uint16 lawId = 1;
+        lawId = 1;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -589,7 +589,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteSuccessSetsStateToFulfilled() public {
         // prep: create proposal data
-        uint16 lawId = 1;
+        lawId = 1;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -606,7 +606,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteEmitsEvent() public {
         // prep: create proposal data
-        uint16 lawId = 1;
+        lawId = 1;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -629,7 +629,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfNotAuthorised() public {
         // prep: create proposal data
-        uint16 lawId = 3;
+        lawId = 3;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -645,7 +645,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfActionAlreadyExecuted() public {
         // prep: create proposal data
-        uint16 lawId = 1;
+        lawId = 1;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -662,7 +662,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfLawNotActive() public {
         // prep: create proposal data
-        uint16 lawId = 1;
+        lawId = 1;
         address[] memory addresses = new address[](1); 
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
@@ -679,7 +679,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfProposalNeeded() public {
         // prep: create proposal data
-        uint16 lawId = 6;
+        lawId = 6;
         lawCalldata = abi.encode(true);
 
         // act: try to execute without proposal
@@ -690,7 +690,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfProposalDefeated() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -722,7 +722,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfProposalCancelled() public {
         // prep: create a proposal
-        uint16 lawId = 5;
+        lawId = 5;
         lawCalldata = abi.encode(true);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
@@ -755,11 +755,11 @@ contract ConstituteTest is TestSetupPowers {
 
         // prep: create new law
         lawInitData[0] = LawInitData({
+            nameDescription: "Test law: Test law description",
             // = directSelect
             targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
-            conditions: conditions, // empty conditions
-            description: "Dummy law."
+            conditions: conditions
         });
 
         vm.prank(alice);
@@ -776,11 +776,11 @@ contract ConstituteTest is TestSetupPowers {
 
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
+            nameDescription: "Test law: Test law description",
             // = directSelect
             targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
-            conditions: conditions, // empty conditions
-            description: "Dummy law."
+            conditions: conditions
         });
 
         vm.prank(alice);
@@ -797,11 +797,11 @@ contract ConstituteTest is TestSetupPowers {
 
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
+            nameDescription: "Test law: Test law description",
             // = directSelect
             targetLaw: lawAddresses[6],
             config: abi.encode(1), // role that can be assigned.
-            conditions: conditions, // empty conditions
-            description: "Dummy law."
+            conditions: conditions
         });
 
         vm.expectRevert(Powers__AccessDenied.selector);
@@ -813,15 +813,15 @@ contract ConstituteTest is TestSetupPowers {
 contract SetLawTest is TestSetupPowers {
     function testSetLawSetsNewLaw() public {
         // prep: create new law
-        uint16 lawCount = daoMock.lawCount();
-        address newLaw = address(new OpenAction("test law"));
+        lawCount = daoMock.lawCount();
+        newLaw = address(new OpenAction());
 
         // prep: create LawInitData
         LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law: Test law description",
             targetLaw: newLaw,
             config: abi.encode(),
-            conditions: conditions,
-            description: "Test law for adoption"
+            conditions: conditions
         });
 
         // act: adopt the law
@@ -835,15 +835,15 @@ contract SetLawTest is TestSetupPowers {
 
     function testSetLawEmitsEvent() public {
         // prep: create new law
-        uint256 lawCount = daoMock.lawCount();
-        address newLaw = address(new OpenAction("test law"));
+        lawCount = daoMock.lawCount();
+        newLaw = address(new OpenAction());
 
         // prep: create LawInitData
         LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law: Test law description",
             targetLaw: newLaw,
             config: abi.encode(),
-            conditions: conditions,
-            description: "Test law for adoption"
+            conditions: conditions
         });
 
         // act: adopt the law and verify event
@@ -855,14 +855,14 @@ contract SetLawTest is TestSetupPowers {
 
     function testSetLawRevertsIfNotCalledFromPowers() public {
         // prep: create new law
-        address newLaw = address(new OpenAction("test law"));
+        newLaw = address(new OpenAction());
 
         // prep: create LawInitData
         LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law: Test law description",
             targetLaw: newLaw,
             config: abi.encode(),
-            conditions: conditions,
-            description: "Test law for adoption"
+            conditions: conditions
         });
 
         // act: try to adopt law from outside
@@ -873,14 +873,14 @@ contract SetLawTest is TestSetupPowers {
 
     function testSetLawRevertsIfAddressNotALaw() public {
         // prep: create invalid law address
-        address newNotALaw = address(3333);
+        newLaw = address(3333);
 
         // prep: create LawInitData with invalid law
         LawInitData memory lawInitData = LawInitData({
-            targetLaw: newNotALaw,
+            nameDescription: "Test law: Test law description",
+            targetLaw: newLaw,
             config: abi.encode(),
-            conditions: conditions,
-            description: "Invalid law"
+            conditions: conditions
         });
 
         // act: try to adopt invalid law
@@ -891,17 +891,17 @@ contract SetLawTest is TestSetupPowers {
 
     function testAdoptintSameLawTwice() public {
         // prep: create new law
-        address newLaw = address(new OpenAction("test law"));
+        newLaw = address(new OpenAction());
 
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
         // prep: create LawInitData
         LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law: Test law description",
             targetLaw: newLaw,
             config: abi.encode(),
-            conditions: conditions,
-            description: "Test law for adoption"
+            conditions: conditions
         });
 
         // prep: adopt law once
@@ -920,7 +920,7 @@ contract SetLawTest is TestSetupPowers {
 
     function testRevokeLawRevertsIfAddressNotActive() public {
         // prep: create new law
-        address newLaw = address(new OpenAction("test law"));
+        newLaw = address(new OpenAction());
 
         // prep: revoke law
         vm.prank(address(daoMock));

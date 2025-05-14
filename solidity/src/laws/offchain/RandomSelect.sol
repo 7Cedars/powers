@@ -65,7 +65,7 @@
 //         uint16 _requestConfirmations
 //     ) Law(name_, powers_, allowedRole_, config_) ConfirmedOwner(powers_) VRFV2PlusWrapperConsumerBase(_wrapperAddress) {
 //         ROLE_ID = roleId_;
-//          bytes memory inputParams = abi.encode(
+//          inputParams = abi.encode(
 //             "uint256 NumberToElect" //  Number of accounts to elect.
 //         );
 

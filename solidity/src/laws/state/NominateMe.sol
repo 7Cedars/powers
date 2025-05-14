@@ -40,21 +40,24 @@ contract NominateMe is Law {
     event NominateMe__NominationReceived(address indexed nominee);
     event NominateMe__NominationRevoked(address indexed nominee);
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_;
-        emit Law__Deployed(name_, "");
+    constructor() {
+        emit Law__Deployed("");
     }
 
+    /// @notice Initializes the law with its configuration
+    /// @param index Index of the law
+    /// @param nameDescription Name of the law
+    /// @param conditions Conditions for the law
+    /// @param config Configuration data
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         inputParams = abi.encode("bool NominateMe");
-        super.initializeLaw(index, conditions, config, inputParams, description);
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

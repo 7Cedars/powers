@@ -61,35 +61,32 @@ contract EndElection is Law {
         uint48 endVoteLeft;
     }
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_; 
-
+    constructor() {
         bytes memory configParams = abi.encode("uint256 MaxRoleHolders", "uint256 RoleId");
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
     /// @param conditions Conditions for the law. NOTE: in this case the 'NeedCompleted' condition needs to be the 'StartElection' law.
     /// @param config Configuration data
-    /// @param inputParams Additional input parameters
-    /// @param description Description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
+        inputParams = abi.encode("uint48 startVote", "uint48 endVote", "string Description");
 
         super.initializeLaw(
             index, 
-            conditions, 
-            config, 
-            abi.encode("uint48 startVote", "uint48 endVote", "string Description"), // inputParams, 
-            description);
+            nameDescription,
+            inputParams,
+            conditions,
+            config
+        );
     }
 
     /// @notice Handles the request to adopt a new law

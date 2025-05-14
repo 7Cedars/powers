@@ -47,30 +47,25 @@ contract EndGrant is Law {
 
     mapping(bytes32 lawHash => Data) public data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_, 1, 31);
-        name = name_; 
-
+    constructor() {
         bytes memory configParams = abi.encode(
             "uint256 maxBudgetLeft",
             "bool checkDuration"
         );
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
     /// @param conditions Conditions for the law. NOTE: in this case the 'NeedCompleted' condition needs to be the 'StartGrant' law.
     /// @param config Configuration data
-    /// @param inputParams Additional input parameters
-    /// @param description Description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint256 maxBudgetLeft, bool checkDuration) = abi.decode(config, (uint256, bool));
         data[LawUtilities.hashLaw(msg.sender, index)] = Data({
@@ -81,11 +76,10 @@ contract EndGrant is Law {
         inputParams = abi.encode(
             "uint48 Duration",
             "uint256 Budget",
-            "address Address", 
-            "string Description"
+            "address Token", 
+            "string NameDescription"
         );
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     /// @notice Handles the request to adopt a new law
     /// @param caller Address initiating the request
