@@ -27,8 +27,9 @@ export const usePowers = () => {
     chainId: parseChainId(chainId), 
   })
 
-  console.log("@usePowers, MAIN", {chainId, error, powers, publicClient})
+  // console.log("@usePowers, MAIN", {chainId, error, powers, publicClient})
 
+  // loading powers from local storage
   useEffect(() => {
     console.log("@usePowers, check local store TRIGGERED")
     let localStore = localStorage.getItem("powersProtocols")
@@ -39,7 +40,21 @@ export const usePowers = () => {
     }
   }, [, address])
 
-  // should combine these three functions... 
+  // function to save powers to local storage
+  const savePowers = (powers: Powers) => {
+    let localStore = localStorage.getItem("powersProtocols")
+    const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+    const existing = saved.find(item => item.contractAddress == address)
+    if (existing) {
+      saved.splice(saved.indexOf(existing), 1)
+    }
+    saved.push(powers)
+    localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value,
+    ));
+  }
+
+  // Everytime powers is fetched these functions are called. 
   const fetchPowersData = async(powers: Powers): Promise<Powers | undefined> => {
     let powersPopulated: Powers | undefined = powers
     try {
@@ -61,15 +76,11 @@ export const usePowers = () => {
         functionName: 'lawCount',
       })
 
-      const dataFetched: PowersData = {
-        name: nameContract as string,
-        uri: uriContract as string,
-        lawCount: lawCountContract as bigint
+      if (nameContract && uriContract && lawCountContract) {
+        powersPopulated.lawCount = lawCountContract as bigint
+        powersPopulated.name = nameContract as string
+        powersPopulated.uri = uriContract as string
       }
-
-      powersPopulated.lawCount = dataFetched.lawCount as bigint
-      powersPopulated.name = dataFetched.name as string
-      powersPopulated.uri = dataFetched.uri as string
       return powersPopulated
 
     } catch (error) {
@@ -79,8 +90,8 @@ export const usePowers = () => {
   }
 
   const fetchMetaData = async (powers: Powers): Promise<Metadata | undefined> => {
-    let updatedMetaData: Metadata | undefined = undefined
-    if (publicClient && powers && powers.uri && !powers.metadatas) {
+    let updatedMetaData: Metadata | undefined = powers.metadatas
+    if (publicClient && powers && powers.uri && !updatedMetaData) {
       try {
         if (powers.uri) {
           const fetchedMetadata: unknown = await(
@@ -96,42 +107,65 @@ export const usePowers = () => {
     }
   }
 
-  const checkLaws = async (address: `0x${string}`, lawCount: bigint) => {
-    let law: bigint
-    let laws: Law[] = []
-    const lawIds: bigint[] = Array.from({length: Number(lawCount)}, (_, i) => BigInt(i+1))
+  const checkLaws = async (powers: Powers) => {
+    let lawId: bigint
+    let fetchedLaws: Law[] = []
+    let laws: Law[] = powers.laws || []
+    console.log("@checkLaws, waypoint 0", {laws})
+    const lawIds: bigint[] = Array.from({length: Number(powers.lawCount) - 1}, (_, i) => BigInt(i+1))
+    console.log("@checkLaws, waypoint 0.1", {lawIds})
 
-    if (publicClient && lawIds.length > 0) {
+    if (publicClient && lawIds.length > 0 && address) {
         // fetching all laws ever initiated by the org
-        for (law of lawIds) {
-          try {
-          if (address) {
-            console.log("@checkLaws, waypoint 1", {address, lawCount, law})
-            const lawFetched = await readContract(wagmiConfig, { 
+        for (lawId of lawIds) {
+          try { 
+            console.log("@checkLaws, waypoint 1", {address, lawcount: powers.lawCount, lawId})
+            const lawFetched = await publicClient.readContract({ 
               abi: powersAbi,
               address: address as `0x${string}`,
               functionName: 'getActiveLaw',
-              args: [BigInt(law)]
+              args: [BigInt(lawId)]
             })
+            console.log("@checkLaws, waypoint 2", {lawFetched})
             const lawFetchedTyped = lawFetched as [`0x${string}`, `0x${string}`, boolean]
+            fetchedLaws.push({
+              powers: address,
+              lawAddress: lawFetchedTyped[0] as unknown as `0x${string}`,
+              lawHash: lawFetchedTyped[1] as unknown as `0x${string}`,
+              index: lawId,
+              active: lawFetchedTyped[2] as unknown as boolean
+            })
+          } catch (error) {
+            console.log("@checkLaws, waypoint 3", {error})
+          }
+        }
 
-            if (lawFetchedTyped) {
-              laws.push({
-                powers: address,
-                lawAddress: lawFetchedTyped[0] as unknown as `0x${string}`,
-                lawHash: lawFetchedTyped[1] as unknown as `0x${string}`,
-                index: BigInt(law),
-                nameDescription: undefined, 
-                active: lawFetchedTyped[2] as unknown as boolean,
-              })
+        laws = fetchedLaws.map((law: Law) => {
+          let lawTemp: Law | undefined = laws.find((l: Law) => l.index == law.index)
+          console.log("@checkLaws, waypoint 2.1", {lawTemp})
+          if (lawTemp) {
+            console.log("@checkLaws, waypoint 2.2 (law exists)", {lawTemp})
+            return {
+              ...lawTemp,
+              powers: address,
+              lawAddress: law.lawAddress,
+              lawHash: law.lawHash,
+              index: law.index,
+              active: law.active
+            }
+          } else {
+            console.log("@checkLaws, waypoint 2.3 (law does not exist)", {lawId})
+            return {
+              powers: address,
+              lawAddress: law.lawAddress,
+              lawHash: law.lawHash,
+              index: law.index,
+              active: law.active
             }
           }
-        } catch (error) {
-          setStatus("error") 
-          setError(error)
-        }
-      } 
-    } 
+        })
+    }
+    console.log("@checkLaws, waypoint 4", {laws})
     return laws
   }
 
@@ -143,38 +177,42 @@ export const usePowers = () => {
 
     try {
       for (law of laws) {
+        console.log("@populateLaws, waypoint 0.0", {law})
         if (!law.conditions && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const lawConditions = await readContract(wagmiConfig, {
+          const lawConditions = await publicClient.readContract({
             abi: lawAbi, 
-            address: law.lawAddress,
+            address: law.lawAddress as `0x${string}`,
             functionName: 'getConditions',
             args: [law.powers, law.index]
           })
+          console.log("@populateLaws, waypoint 0.1", {lawConditions, law})
           law.conditions = lawConditions as Conditions
         }
 
         if (!law.inputParams && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const lawInputParams = await readContract(wagmiConfig, {
+          const lawInputParams = await publicClient.readContract({
             abi: lawAbi, 
-            address: law.lawAddress,
+            address: law.lawAddress as `0x${string}`,
             functionName: 'getInputParams',
             args: [law.powers, law.index]
           })
+          console.log("@populateLaws, waypoint 0.2", {lawInputParams, law})
           law.inputParams = lawInputParams as `0x${string}`
           law.params = bytesToParams(law.inputParams)
         }
 
         if (!law.nameDescription && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const nameDescription = await readContract(wagmiConfig, {
+          const nameDescription = await publicClient.readContract({
             abi: lawAbi, 
-            address: law.lawAddress,
+            address: law.lawAddress as `0x${string}`,
             functionName: 'getNameDescription',
             args: [law.powers, law.index]
           })
+          console.log("@populateLaws, waypoint 0.3", {nameDescription, law})
           law.nameDescription = nameDescription as string
         }
         populatedLaws.push(law)
-        console.log("@populateLaws, waypoint 1", {law})
+        console.log("@populateLaws, waypoint 1", {populatedLaws})
       }
       return populatedLaws
     } catch (error) {
@@ -226,7 +264,7 @@ export const usePowers = () => {
     let powersUpdated: Powers | undefined = undefined
 
     try {
-      laws = await checkLaws(address, powers.lawCount ? powers.lawCount : BigInt(0))
+      laws = await checkLaws(powers)
       if (laws) { roles = calculateRoles(laws) } 
       if (roles) { roleLabels = await updateRoleLabels(roles, powers) }  
     } catch (error) {
@@ -242,9 +280,7 @@ export const usePowers = () => {
       }
       console.log("@usePowers, waypoint 7", {powersUpdated})
       setPowers(powersUpdated)
-      localStorage.setItem("powersProtocols", JSON.stringify(powersUpdated, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value,
-      ));
+      powersUpdated && savePowers(powersUpdated)
       console.log("@fetchPowers, waypoint 8")
       setStatus("success")
     }
@@ -303,9 +339,7 @@ export const usePowers = () => {
               proposalsFetched: blocksFetched
             }
             setPowers(powersUpdated)
-            localStorage.setItem("powersProtocols", JSON.stringify(powersUpdated, (key, value) =>
-              typeof value === "bigint" ? value.toString() : value,
-            ));
+            powersUpdated && savePowers(powersUpdated)
             setStatus("success")
             return { proposals: proposalsFetched, blocks: blocksFetched }
           }
@@ -354,6 +388,9 @@ export const usePowers = () => {
     }
   };
 
+  // Need fetchRoleHolders function here. Same logic as fetchProposals.
+  // TODO 
+
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
       let powersToBeUpdated: Powers | undefined = undefined
@@ -374,8 +411,9 @@ export const usePowers = () => {
       }
 
       updatedData = await fetchPowersData(powersToBeUpdated)
+      console.log("@usePowers, waypoint 1.1", {updatedData})
       if (updatedData) {
-        checkedLaws = await checkLaws(address, updatedData.lawCount ? updatedData.lawCount : BigInt(0))
+        checkedLaws = await checkLaws(updatedData)
         console.log("@usePowers, waypoint 2", {checkedLaws})
       }
       if (checkedLaws) { 
@@ -391,7 +429,7 @@ export const usePowers = () => {
         updatedRoleLabels = await updateRoleLabels(updatedRoles, powersToBeUpdated)
         console.log("@usePowers, waypoint 5", {updatedRoleLabels})
       }
-      if (updatedRoleLabels && updatedLaws && updatedLaws.length == Number(powersToBeUpdated.lawCount)) {
+      if (updatedRoleLabels && updatedLaws && updatedLaws.length == Number(powersToBeUpdated.lawCount) - 1) {
         console.log("@usePowers, waypoint 6", {updatedRoleLabels})
         powersUpdated = { ...powersToBeUpdated, 
           metadatas: updatedMetaData, 
@@ -403,19 +441,7 @@ export const usePowers = () => {
         console.log("@usePowers, waypoint 7", {powersUpdated})
       }
       setPowers(powersUpdated)
-      let localStore = localStorage.getItem("powersProtocols")
-      const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
-      if (powersUpdated) {
-        const existing = saved.find(item => item.contractAddress == address)
-        if (existing) {
-          saved.splice(saved.indexOf(existing), 1)
-        }
-        saved.push(powersUpdated)
-        localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value,
-        ));
-      }
-      console.log("@fetchPowers, waypoint 8")
+      powersUpdated && savePowers(powersUpdated)
       setStatus("success")
     }, []
   )

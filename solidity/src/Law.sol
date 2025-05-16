@@ -71,8 +71,8 @@ abstract contract Law is ERC165, ILaw {
             executions: Executions({ 
                 powers: msg.sender, 
                 config: config, 
-                actionsIds: new uint256[](1), 
-                executions: new uint48[](1) 
+                actionsIds: new uint256[](0), 
+                executions: new uint48[](0) 
             })
         });
 

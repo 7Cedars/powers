@@ -1,10 +1,14 @@
 import { Execution, Law, Status, LawExecutions } from "@/context/types";
-import { parseParamValues, parseRole } from "@/utils/parsers";
+import { parseChainId, parseParamValues, parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 import { LoadingBox } from "@/components/LoadingBox";
-import { setAction, useActionStore } from "@/context/store";
+import { setAction, setError, useActionStore } from "@/context/store";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { getPublicClient, readContract } from "wagmi/actions";
+import { lawAbi, powersAbi } from "@/context/abi";
+import { wagmiConfig } from "@/context/wagmiConfig";
+import { useParams } from "next/navigation";
 
 type ExecutionsProps = {
   executions: LawExecutions | undefined
@@ -13,29 +17,64 @@ type ExecutionsProps = {
 };
 
 export const Executions = ({executions, law, status}: ExecutionsProps) => {
+  const { chainId } = useParams<{ chainId: string }>()
+  
+  const publicClient = getPublicClient(wagmiConfig, {
+    chainId: parseChainId(chainId), 
+  })
+
+  console.log("@Executions: ", {executions, law, status})
 
   // console.log("@Executions: ", {executions, law, status})
 // THIS HAS TO BE REFACTORED. Use read contract, _actions . This needs a getter function! 
-  const handleExecutionSelection = (execution: Execution) => {
-    // console.log("@Executions: handleExecutionSelection: ", {execution, law})
-    let dataTypes = law?.params?.map(param => param.dataType)
-    let valuesParsed = undefined
-    if (dataTypes != undefined && dataTypes.length > 0) {
-      const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), execution.log.args.lawCalldata);
-      valuesParsed = parseParamValues(values) 
+  const handleExecutionSelection = async (index: number) => {
+    // console.log("@Executions: handleExecutionSelection: ", {execution, law
+      try {
+        const lawCalldata = await publicClient.readContract({
+          abi: powersAbi,
+          address: law?.lawAddress as `0x${string}`,
+          functionName: 'getActionCalldata',
+          args: [executions?.actionsIds[index]]
+        })  
+  
+        const actionUri = await publicClient.readContract({
+          abi: powersAbi,
+          address: law?.lawAddress as `0x${string}`,
+          functionName: 'getActionUri',
+          args: [executions?.actionsIds[index]]
+        })
+  
+        const actionNonce = await publicClient.readContract({
+          abi: powersAbi,
+          address: law?.lawAddress as `0x${string}`,
+          functionName: 'getActionNonce',
+          args: [executions?.actionsIds[index]]
+        })
+
+        if (lawCalldata && actionUri && actionNonce) {
+          let dataTypes = law?.params?.map(param => param.dataType)
+          let valuesParsed = undefined
+          if (dataTypes != undefined && dataTypes.length > 0) {
+            const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), lawCalldata as `0x${string}`);
+            valuesParsed = parseParamValues(values) 
+          }
+          setAction({
+            actionId: String(executions?.actionsIds[index]),
+            lawId: law?.index,
+            caller: undefined,
+            dataTypes: dataTypes,
+            paramValues: valuesParsed,
+            nonce: actionNonce as bigint,
+            description: actionUri as string,
+            callData: lawCalldata as `0x${string}`,
+            upToDate: false
+          })
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
-    setAction({
-      actionId: undefined,
-      lawId: law?.index,
-      caller: execution.log.args.caller,
-      dataTypes: dataTypes,
-      paramValues: valuesParsed ? valuesParsed : undefined,
-      nonce: execution.log.args.nonce,
-      description: execution.log.args.description,
-      callData: execution.log.args.lawCalldata,
-      upToDate: false
-    })
-  }
+
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
@@ -57,14 +96,14 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
                   <Button
                       showBorder={true}
                       role={law?.conditions?.allowedRole != undefined ? parseRole(law.conditions?.allowedRole) : 0}
-                      onClick={() => handleExecutionSelection(execution)}
+                      onClick={() => handleExecutionSelection(index)}
                       align={0}
                       selected={false}
                       >  
                       <div className = "flex flex-col w-full"> 
                         <div className = "w-full flex flex-row gap-1 justify-between items-center px-1">
-                            <div> {toFullDateFormat(Number(execution.blocksData?.timestamp))}</div>
-                            <div> {toEurTimeFormat(Number(execution.blocksData?.timestamp))}</div>
+                            <div> {toFullDateFormat(Number(execution))}</div>
+                            <div> {toEurTimeFormat(Number(execution))}</div>
                         </div>
                       </div>
                     </Button>

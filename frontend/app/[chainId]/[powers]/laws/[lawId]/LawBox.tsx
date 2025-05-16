@@ -28,7 +28,7 @@ type LawBoxProps = {
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
-  onExecute: (description: string, nonce: bigint) => void;
+  onExecute: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
 const roleColour = [  
@@ -216,7 +216,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             size={1} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
-              onExecute(action.description, action.nonce)
+              onExecute(action.paramValues ? action.paramValues : [], action.nonce, action.description)
             }} 
             filled={false}
             selected={true}

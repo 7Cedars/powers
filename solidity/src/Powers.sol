@@ -139,6 +139,7 @@ contract Powers is EIP712, IPowers {
         _actions[actionId].requested = true;
         _actions[actionId].lawCalldata = lawCalldata;
         _actions[actionId].uri = uriAction;
+        _actions[actionId].nonce = nonce;
         
         // execute law.
         (bool success) = ILaw(law.targetLaw).executeLaw(msg.sender, lawId, lawCalldata, nonce);
@@ -235,6 +236,7 @@ contract Powers is EIP712, IPowers {
         proposedAction.voteDuration = conditions.votingPeriod;
         proposedAction.caller = caller;
         proposedAction.uri = uriAction;
+        proposedAction.nonce = nonce;
         
         emit ProposedActionCreated(
             actionId,
@@ -581,6 +583,32 @@ contract Powers is EIP712, IPowers {
         return (proposedAction.againstVotes, proposedAction.forVotes, proposedAction.abstainVotes);
     }
 
+    function getActionCalldata(uint256 actionId)
+        public
+        view
+        virtual
+        returns (bytes memory callData)
+    {
+        return _actions[actionId].lawCalldata;
+    }
+
+    function getActionUri(uint256 actionId)
+        public
+        view
+        virtual
+        returns (string memory uri)
+    {
+        return _actions[actionId].uri;
+    }
+
+    function getActionNonce(uint256 actionId)
+        public
+        view
+        virtual
+        returns (uint256 nonce)
+    {
+        return _actions[actionId].nonce;
+    }
     /// @inheritdoc IPowers
     function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].amountMembers;

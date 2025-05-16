@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 const queryClient = new QueryClient()
 
 const privyConfig: PrivyClientConfig = {
-  defaultChain: sepolia,
+  defaultChain: arbitrumSepolia,
   supportedChains: [ sepolia, arbitrumSepolia, optimismSepolia, baseSepolia, foundry ],
   loginMethods: ['wallet'],
   appearance: {

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Status, LawSimulation, Execution, LogExtended, Law, LawExecutions } from "../context/types"
+import { Status, LawSimulation, Law, LawExecutions } from "../context/types"
 import { readContract, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
-import { useParams } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 
 export const useLaw = () => {
   const [status, setStatus ] = useState<Status>("idle")
@@ -17,6 +17,13 @@ export const useLaw = () => {
     confirmations: 2, 
     hash: transactionHash,
   })
+
+  const {user} = usePrivy()
+
+  useEffect(() => {
+    console.log("@useLaw: user", {user})
+  }, [user])
+
  
   useEffect(() => {
     if (statusReceipt === "success") setStatus("success")
@@ -59,6 +66,7 @@ export const useLaw = () => {
       // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
       setError(null)
       setStatus("pending")
+
       try {
           const result = await readContract(wagmiConfig, {
             abi: lawAbi,
@@ -66,8 +74,8 @@ export const useLaw = () => {
             functionName: 'handleRequest', 
             args: [caller, law.powers, law.index, lawCalldata, nonce]
             })
-          // console.log("@simulate: waypoint 2a", {result})
-          // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
+          console.log("@simulate: waypoint 2a", {result})
+          console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
         } catch (error) {

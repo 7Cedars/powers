@@ -27,10 +27,10 @@ const Page = () => {
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
 
-  // console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      // console.log("Handle Simulate called:", {paramValues, nonce})
+      console.log("Handle Simulate called:", {paramValues, nonce})
       setError({error: null})
       let lawCalldata: `0x${string}` | undefined
       // console.log("Handle Simulate waypoint 1")
@@ -66,12 +66,12 @@ const Page = () => {
         
         try {
         // simulating law. 
-        simulate(
-          wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
-          action.callData as `0x${string}`,
-          action.nonce,
-          law
-        )
+          simulate(
+            wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
+            action.callData as `0x${string}`,
+            action.nonce,
+            law
+          )
         } catch (error) {
           // console.log("Handle Simulate waypoint 3c")
           setError({error: error as Error})
@@ -81,12 +81,30 @@ const Page = () => {
       }
   };
 
-  const handleExecute = async (law: Law) => {
+  const handleExecute = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+      console.log("Handle Execute called:", {paramValues, nonce})
+      setError({error: null})
+      let lawCalldata: `0x${string}` | undefined
+      // console.log("Handle Simulate waypoint 1")
+      if (paramValues.length > 0 && paramValues) {
+        try {
+          // console.log("Handle Simulate waypoint 2a")
+          lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
+        } catch (error) {
+          // console.log("Handle Simulate waypoint 2c")
+          setError({error: error as Error})
+        }
+      } else {
+        // console.log("Handle Simulate waypoint 2d")
+        lawCalldata = '0x0'
+      }
+
       execute(
         law, 
-        action.callData as `0x${string}`,
-        action.nonce,
-        action.description
+        lawCalldata as `0x${string}`,
+        nonce,
+        description
       )
   };
 
@@ -121,11 +139,6 @@ const Page = () => {
     }
   }, [, law])
 
-  // useEffect(() => {
-  //   if (addressPowers) {
-  //     fetchPowers() // addressPowers as `0x${string}`
-  //   }
-  // }, [addressPowers, fetchPowers])
 
   useEffect(() => {
     if (errorUseLaw) {
@@ -161,7 +174,7 @@ const Page = () => {
                 }
               }
               onSimulate = {(paramValues, nonce, description) => handleSimulate(law, paramValues, nonce, description)} 
-              onExecute = {() => handleExecute(law)}/> 
+              onExecute = {(paramValues, nonce, description) => handleExecute(law, paramValues, nonce, description)}/> 
               }
         </div>
         }

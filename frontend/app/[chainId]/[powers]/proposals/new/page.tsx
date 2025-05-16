@@ -18,25 +18,13 @@ const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()  
-  const {checkProposalExists, checkAccountAuthorised, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
+  const {checks, fetchChecks, checkActionStatus, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
-  const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law, powers as Powers) != undefined  
-  
-  const authorised = useReadContract({
-    abi: powersAbi,
-    address: powers?.contractAddress as `0x${string}`,
-    functionName: 'canCallLaw', 
-    args: [wallets[0]?.address, law?.index]
-  })
-  
-  console.log("@New Proposal page: ", {law, action, wallets, powers, checks, proposalExists, authorised: authorised.data})
 
-  // useEffect(() => {
-  //   if (addressPowers) {
-  //     fetchPowers() // addressPowers as `0x${string}`
-  //   }
-  // }, [addressPowers, fetchPowers])
+  
+  console.log("@New Proposal page: ", {law, action, wallets, powers, checks})
+
 
   useEffect(() => {
     if (statusChecks == "success" && powers) {
@@ -54,7 +42,7 @@ const Page = () => {
 
         {/* left panel  */}
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-        { powers && <ProposeBox law = {law} powers = {powers as Powers} proposalExists = {!proposalExists} authorised = {authorised.data as boolean} /> }
+        { powers && <ProposeBox law = {law} powers = {powers as Powers} proposalExists = {checks?.proposalExists || false} authorised = {checks?.authorised || false} /> }
         </div>
 
          {/* right panel  */}

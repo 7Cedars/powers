@@ -157,6 +157,11 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return deadline the block number at which voting ends
     function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
+    /// @notice Gets the lawCalldata of a proposal
+    /// @param actionId The unique identifier of the proposal
+    /// @return lawCalldata The lawCalldata of the proposal
+    function getActionCalldata(uint256 actionId) external view returns (bytes memory lawCalldata);
+
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
     /// @param roleId The identifier of the role
