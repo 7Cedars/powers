@@ -20,11 +20,13 @@ const Page = () => {
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
 
+  console.log("Proposals/new: ", {powers, law, checks})
+
   useEffect(() => {
-    if (statusChecks == "success" && powers) {
+    if (statusChecks == "idle" && powers) {
       fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
     }
-  }, [statusChecks, powers])
+  }, [, statusChecks, powers])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll">
@@ -36,7 +38,13 @@ const Page = () => {
 
         {/* left panel  */}
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-        { powers && <ProposeBox law = {law} powers = {powers as Powers} proposalExists = {checks?.proposalExists || false} authorised = {checks?.authorised || false} /> }
+        { powers && <ProposeBox 
+            law = {law} 
+            powers = {powers as Powers} 
+            proposalExists = {checks?.proposalExists || false} 
+            authorised = {checks?.authorised || false}  
+            /> 
+          }
         </div>
 
          {/* right panel  */}

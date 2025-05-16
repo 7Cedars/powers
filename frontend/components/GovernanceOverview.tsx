@@ -6,6 +6,7 @@ import { Law, Powers } from "@/context/types";
 import { orgToGovernanceTracks } from "@/utils/orgToGovOverview";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import { shorterDescription } from "@/utils/parsers";
+import { useRoleStore } from "@/context/store";
 
 const roleColour = [  
   "blue-600", 
@@ -60,7 +61,8 @@ const lawToColourCode = (law: Law) => {
 }
 
 export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
-  const roleIdsParsed = powers?.deselectedRoles?.map(id => Number(id))
+  const { deselectedRoles } = useRoleStore()
+  const roleIdsParsed = deselectedRoles?.map(id => Number(id))
   let governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
   const bgItem = usePathname().includes(`/laws`) || usePathname().includes(`/proposals`) ? 0 : 1
 

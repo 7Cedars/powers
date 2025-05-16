@@ -378,6 +378,7 @@ export const usePowers = () => {
           }
         }
       }
+      setStatus("success")
     }
   };
 

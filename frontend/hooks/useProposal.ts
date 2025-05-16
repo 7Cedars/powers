@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { powersAbi } from "../context/abi";
 import { Powers, Proposal, Status } from "../context/types";
-import { writeContract } from "@wagmi/core";
+import { simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { readContract } from "wagmi/actions";
 import { getPublicClient } from "wagmi/actions";
@@ -21,6 +21,8 @@ export const useProposal = () => {
     actionId: string,
     state: number
   }[]>([])
+
+  console.log("@useProposal: ", {proposalsState, status})
   
   // Status //
   const getProposalsState = async (proposals: Proposal[], address: `0x${string}`) => {
@@ -51,7 +53,7 @@ export const useProposal = () => {
     }
   }
 
-  // Actions // 
+  // Actions //  
   const propose = useCallback( 
     async (
       lawId: bigint,
@@ -62,13 +64,17 @@ export const useProposal = () => {
     ) => {
         setStatus("pending")
         try {
-            const result = await writeContract(wagmiConfig, {
-              abi: powersAbi,
-              address: powers.contractAddress,
-              functionName: 'propose', 
-              args: [lawId, lawCalldata, nonce, description]
-            })
+          const { request } = await simulateContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'propose',
+            args: [lawId, lawCalldata, nonce, description]
+          })
+          if (request) {
+            const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
+            setStatus("success")
+          }
         } catch (error) {
             setStatus("error") 
             setError(error)

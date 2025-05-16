@@ -54,7 +54,7 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
           </Button>
           </div>
       )}
-      {powers && 
+      {/* {powers && 
           <button 
             className="w-fit min-h-fit p-1 rounded-md border-slate-500"
             onClick = {() => {  onUpdatePowers() }}
@@ -65,7 +65,7 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
                 aria-selected={status == 'pending'}
                 />
           </button>
-        }
+        } */}
     </div>
 
     {/* Overview here  */}

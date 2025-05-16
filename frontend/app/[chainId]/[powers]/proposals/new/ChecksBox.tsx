@@ -21,8 +21,7 @@ export function ChecksBox ({powers, law, checks, status}: {powers: Powers | unde
   const needCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions?.needCompleted); 
   const needNotCompletedLaw = powers?.laws?.find(l => l.index == law?.conditions?.needNotCompleted); 
 
-  console.log("ChecksBox: ", {checks})
-  console.log("ChecksBox: ", {law})
+  console.log("ChecksBox @ proposals/new: ", {checks, law})
 
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 

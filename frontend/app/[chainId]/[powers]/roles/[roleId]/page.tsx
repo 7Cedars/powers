@@ -11,7 +11,8 @@ import { bigintToRole } from "@/utils/bigintToRole";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
-import { useChains } from "wagmi";
+import { useChains, useBlockNumber } from "wagmi";
+import { Button } from "@/components/Button";
 
 const roleColour = [  
   "border-blue-600", 
@@ -36,6 +37,7 @@ export default function Page() {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
   const [roleInfo, setRoleInfo ] = useState<Role[]>()
+  const { data:blockNumber } = useBlockNumber()
 
   // console.log("@role page: ", {powers, roleInfo})
 
@@ -119,7 +121,7 @@ export default function Page() {
     }, [])
 
   return (
-    <main className={`w-full overflow-hidden pt-20 px-2`}>
+    <main className={`w-full flex flex-col justify-start items-center overflow-hidden pt-20 px-2`}>
       {/* table banner  */}
       <div className={`w-full flex flex-row gap-3 justify-between items-center bg-slate-50 slate-300 mt-2 py-4 px-6 border rounded-t-md ${roleColour[parseRole(BigInt(roleId))]} border-b-slate-300`}>
         <div className="text-slate-900 text-center font-bold text-lg">
@@ -158,6 +160,39 @@ export default function Page() {
         </tbody>
       </table>
       </div>
+
+      <div className="py-2 pt-6 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic text-center"> 
+        {powers && powers.proposalsFetched ?  
+          <>
+            <p>
+              Blocks between {Number(powers?.proposalsFetched[0].from)} and {Number(powers?.proposalsFetched[powers?.proposalsFetched.length - 1].to)} have been fetched.
+            </p>
+            <p>
+              The current block is {Number(blockNumber)}.
+            </p>
+          </>
+         : 
+          <div className="py-2 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic"> 
+            <p>
+              No proposals have been fetched yet.
+            </p>
+          </div>
+        }
+      </div>
+
+      <div className="py-2 w-full max-w-xl h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic"> 
+        <Button
+          size={1}
+          showBorder={true}
+          filled={true}
+          onClick={() => { }} // TBI 
+          statusButton={status}
+        >
+          Fetch Proposals
+        </Button>
+      </div>
+
+
     </main>
   );
 }

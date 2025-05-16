@@ -19,7 +19,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
 
-  // console.log("@ProposalList: ", {powers})
+  console.log("@ProposalList: ", {powers})
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -45,7 +45,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
   };
 
   return (
-    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 mb-20 rounded-md overflow-y-scroll">
+    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 rounded-md overflow-y-scroll">
       {/* table banner:roles  */}
       <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-6 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
@@ -64,20 +64,6 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
             </Button>
             </div>
         )}
-        { powers && 
-          <button 
-            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => {
-              onUpdateProposals()
-            }}
-            disabled={status == 'pending'}
-            >
-              <ArrowPathIcon
-                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
-                aria-selected={status == 'pending'}
-                />
-          </button>
-        }
       </div>
 
       {/* table banner:status  */}
@@ -109,7 +95,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
       <table className="w-full table-auto">
       <thead className="w-full border-b border-slate-200">
             <tr className="w-96 text-xs font-light text-left text-slate-500">
-                <th className="ps-6 py-2 font-light rounded-tl-md"> Date & time </th>
+                <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
                 <th className="font-light"> Law </th>
                 <th className="font-light"> Reason </th>
                 <th className="font-light"> Status </th>
@@ -141,7 +127,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                         align={0}
                         selected={true}
                       > <div className = "flex flex-row gap-3 w-full min-w-48">
-                        {`${toFullDateFormat(Number(proposal.voteStartBlockData?.timestamp))}: ${toEurTimeFormat(Number(proposal.voteStartBlockData?.timestamp))}`}
+                        {`${toFullDateFormat(Number(proposal.voteEnd))}: ${toEurTimeFormat(Number(proposal.voteEnd))}`}
                         </div>
                       </Button>
                   </td>
@@ -161,9 +147,8 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
           )}
         </tbody>
         </table>
-}
+      }
       </div>
-      
     </div>
   );
 }

@@ -28,7 +28,7 @@ export default function Page() {
     const chains = useChains()
     const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
     
-    // console.log("@home:", {addressPowers, powers, statusPowers})
+    console.log("@home:", {chains, supportedChain})
 
     const fetchMyRoles = useCallback(
       async (account: `0x${string}`, roles: bigint[]) => {
@@ -67,8 +67,13 @@ export default function Page() {
     return (
       <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">
         {/* hero banner  */}
-        <section className={`w-full min-h-64 flex flex-col justify-center items-center text-center text-slate-50 text-5xl bg-gradient-to-bl from-indigo-600 to-emerald-300 rounded-md`}> 
-          {powers?.name}
+        <section className={`w-full min-h-64 flex flex-col justify-between items-end text-slate-50 text-5xl bg-gradient-to-br to-indigo-600 from-emerald-300 rounded-md`}>
+          <div className="w-full max-w-fit h-full max-h-fit text-lg p-6">
+            {supportedChain && supportedChain.name }
+          </div>
+          <div className="w-full max-w-fit h-full max-h-fit text-6xl p-6">
+            {powers?.name}
+          </div>
         </section>
         
         {/* Description + link to powers protocol deployment */}  

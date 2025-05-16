@@ -51,7 +51,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
               </Button>
             </div>
         )}
-        { powers && 
+        {/* { powers && 
           <button 
             className="w-fit min-h-fit p-1 rounded-md border-slate-500"
             onClick = {() => {
@@ -64,7 +64,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                 aria-selected={status == 'pending'}
                 />
           </button>
-        }
+        } */}
       </div>
       {/* table laws  */}
       {status == "pending" ?  
