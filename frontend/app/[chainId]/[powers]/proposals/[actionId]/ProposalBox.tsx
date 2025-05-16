@@ -4,16 +4,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useActionStore, setAction } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
-import { decodeAbiParameters,  keccak256, parseAbiParameters, toHex } from "viem";
-import { bytesToParams, parseParamValues, parseRole } from "@/utils/parsers";
-import { Checks, InputType, Law, Powers, Proposal, Status } from "@/context/types";
+import { parseRole } from "@/utils/parsers";
+import { Checks, Law, Powers, Proposal, Status } from "@/context/types";
 import { StaticInput } from "../../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { LoadingBox } from "@/components/LoadingBox";
-// import { useChecks } from "@/hooks/useChecks";
 
 const roleColour = [  
   "border-blue-600", 
@@ -125,7 +123,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 id="reason" 
                 rows={5} 
                 cols ={25} 
-                value={action.description}
+                value={action.uri}
                 className="block min-w-0 grow py-1.5 pl-1 pr-3 bg-slate-100 pl-3 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Describe reason for action here."
                 disabled={true} 

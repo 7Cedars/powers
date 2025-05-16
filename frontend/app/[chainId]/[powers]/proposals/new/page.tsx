@@ -11,8 +11,6 @@ import { ProposeBox } from "./ProposeBox";
 import { LawLink } from "../[actionId]/LawLink";
 import { ChecksBox } from "./ChecksBox"; 
 import { useWallets } from "@privy-io/react-auth";
-import { useReadContract } from "wagmi";
-import { powersAbi } from "@/context/abi";
 
 const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
@@ -21,10 +19,6 @@ const Page = () => {
   const {checks, fetchChecks, checkActionStatus, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
-
-  
-  console.log("@New Proposal page: ", {law, action, wallets, powers, checks})
-
 
   useEffect(() => {
     if (statusChecks == "success" && powers) {

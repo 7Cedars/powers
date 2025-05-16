@@ -169,7 +169,7 @@ export type Action = {
   dataTypes: DataType[] | undefined;
   paramValues: (InputType | InputType[])[] | undefined;
   nonce: bigint;
-  description: string;
+  uri: string;
   callData: `0x${string}`;
   upToDate: boolean;
 }

@@ -159,20 +159,19 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           </button>    
         </div>
 
-        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 pb-4 min-h-24">
-          <label htmlFor="reason" className="text-sm text-slate-600 pb-1 pe-12 ps-3">Reason</label>
-          <div className="w-full h-fit flex items-center text-md justify-start rounded-md bg-white pl-3 outline outline-1 outline-slate-300">
-              <textarea 
-                name="reason" 
-                id="reason" 
-                rows={5} 
-                cols ={60} 
-                value={action.description}
-                className="min-w-0 p-1 ps-0 w-full text-sm text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0" 
-                placeholder="Describe reason for action here."
+        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3">
+        <label htmlFor="uri" className="text-sm text-slate-600 ps-3 pt-1 pe-4 ">Description</label>
+          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-3 outline outline-1 outline-slate-300">
+              <input 
+                type="text"
+                name="uri" 
+                id="uri" 
+                value={action.uri}
+                className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
+                placeholder="Enter URI to file with notes on the action here."
                 onChange={(event) => {  
                   event.preventDefault()
-                  setAction({...action, description: event.target.value, upToDate: false}); 
+                  setAction({...action, uri: event.target.value, upToDate: false}); 
                 }} />
             </div>
         </div>
@@ -180,7 +179,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
       {/* Errors */}
       { error.error && action.upToDate &&
-        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pb-4 px-8">
+        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pt-8 pb-4 px-8">
           <div>
             An error occurred. This is often because the law has additional checks that did not pass or there is an error in the data provided. 
             For more details, check the console.   
@@ -188,7 +187,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         </div>
       }
 
-        <div className="w-full flex flex-row justify-center items-center pt-2 px-6">
+        <div className="w-full flex flex-row justify-center items-center pt-6 px-6">
           <Button 
             size={1} 
             showBorder={true} 
@@ -196,10 +195,10 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             filled={false}
             selected={true}
             onClick={() => {
-              onSimulate(action.paramValues ? action.paramValues : [], action.nonce, action.description)
+              onSimulate(action.paramValues ? action.paramValues : [], action.nonce, action.uri)
             }} 
             statusButton={
-               !action.upToDate && action.description.length > 0 ? 'idle' : 'disabled'
+               !action.upToDate && action.uri && action.uri.length > 0 ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>
@@ -216,7 +215,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             size={1} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
-              onExecute(action.paramValues ? action.paramValues : [], action.nonce, action.description)
+              onExecute(action.paramValues ? action.paramValues : [], action.nonce, action.uri)
             }} 
             filled={false}
             selected={true}

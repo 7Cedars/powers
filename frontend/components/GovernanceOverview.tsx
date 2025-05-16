@@ -61,9 +61,7 @@ const lawToColourCode = (law: Law) => {
 
 export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
   const roleIdsParsed = powers?.deselectedRoles?.map(id => Number(id))
-  console.log("@GovernanceOverview: ", {roleIdsParsed})
   let governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
-  console.log("@GovernanceOverview: ", {governanceTracks})
   const bgItem = usePathname().includes(`/laws`) || usePathname().includes(`/proposals`) ? 0 : 1
 
   if (law != undefined ) {

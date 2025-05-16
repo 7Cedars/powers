@@ -9,6 +9,7 @@ import { getPublicClient, readContract } from "wagmi/actions";
 import { lawAbi, powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
 
 type ExecutionsProps = {
   executions: LawExecutions | undefined
@@ -27,31 +28,37 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
 
   // console.log("@Executions: ", {executions, law, status})
 // THIS HAS TO BE REFACTORED. Use read contract, _actions . This needs a getter function! 
-  const handleExecutionSelection = async (index: number) => {
-    // console.log("@Executions: handleExecutionSelection: ", {execution, law
+  const handleExecutionSelection = useCallback(
+    async (index: number) => {
+    console.log("@Executions: handleExecutionSelection: ", {executions, law, index})
+    if (executions) {
       try {
-        const lawCalldata = await publicClient.readContract({
+        const lawCalldata = await readContract(wagmiConfig, {
           abi: powersAbi,
-          address: law?.lawAddress as `0x${string}`,
+          address: law?.powers as `0x${string}`,
           functionName: 'getActionCalldata',
-          args: [executions?.actionsIds[index]]
+          args: [executions.actionsIds[index]]
         })  
-  
-        const actionUri = await publicClient.readContract({
+        console.log("@Executions: lawCalldata: ", {lawCalldata})
+
+        const actionUri = await readContract(wagmiConfig, {
           abi: powersAbi,
-          address: law?.lawAddress as `0x${string}`,
+          address: law?.powers as `0x${string}`,
           functionName: 'getActionUri',
-          args: [executions?.actionsIds[index]]
+          args: [executions.actionsIds[index]]
         })
-  
-        const actionNonce = await publicClient.readContract({
+        console.log("@Executions: actionUri: ", {actionUri})
+        
+        const actionNonce = await readContract(wagmiConfig, {
           abi: powersAbi,
-          address: law?.lawAddress as `0x${string}`,
+          address: law?.powers as `0x${string}`,
           functionName: 'getActionNonce',
-          args: [executions?.actionsIds[index]]
+          args: [executions.actionsIds[index]]
         })
+        console.log("@Executions: actionNonce: ", {actionNonce})
 
         if (lawCalldata && actionUri && actionNonce) {
+          console.log("@Executions: checks passed")
           let dataTypes = law?.params?.map(param => param.dataType)
           let valuesParsed = undefined
           if (dataTypes != undefined && dataTypes.length > 0) {
@@ -59,21 +66,22 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
             valuesParsed = parseParamValues(values) 
           }
           setAction({
-            actionId: String(executions?.actionsIds[index]),
+            actionId: String(executions.actionsIds[index]),
             lawId: law?.index,
             caller: undefined,
             dataTypes: dataTypes,
             paramValues: valuesParsed,
             nonce: actionNonce as bigint,
-            description: actionUri as string,
+            uri: actionUri as string,
             callData: lawCalldata as `0x${string}`,
             upToDate: false
           })
         }
       } catch (error) {
-        console.log(error)
+        console.log("@Executions: ", error)
       }
     }
+  }, [ ])
 
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 

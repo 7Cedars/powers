@@ -5,15 +5,8 @@ import { lawAbi, powersAbi } from "@/context/abi";
 import { GetBlockReturnType, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
 import { getBlock, getPublicClient, readContract, readContracts } from "wagmi/actions";
 import { bytesToParams, parseChainId, parseMetadata } from "@/utils/parsers";
-import { sepolia } from "viem/chains";
 import { useParams } from "next/navigation";
 import { useBlockNumber } from "wagmi";
-
-type PowersData = {
-  name: string
-  uri: string
-  lawCount: bigint
-}
 
 export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
@@ -27,7 +20,7 @@ export const usePowers = () => {
     chainId: parseChainId(chainId), 
   })
 
-  // console.log("@usePowers, MAIN", {chainId, error, powers, publicClient})
+  console.log("@usePowers, MAIN", {chainId, error, powers, publicClient})
 
   // loading powers from local storage
   useEffect(() => {
@@ -58,28 +51,28 @@ export const usePowers = () => {
   const fetchPowersData = async(powers: Powers): Promise<Powers | undefined> => {
     let powersPopulated: Powers | undefined = powers
     try {
-      const nameContract = await publicClient.readContract({
+      const namePowers = await publicClient.readContract({
         address: powers.contractAddress as `0x${string}`,
         abi: powersAbi,
         functionName: 'name'
       })  
 
-      const uriContract = await publicClient.readContract({
+      const uriPowers = await publicClient.readContract({
         address: powers.contractAddress as `0x${string}`,
         abi: powersAbi,
         functionName: 'uri',
       })
 
-      const lawCountContract = await publicClient.readContract({
+      const lawCountPowers = await publicClient.readContract({
         address: powers.contractAddress as `0x${string}`,
         abi: powersAbi,
         functionName: 'lawCount',
       })
 
-      if (nameContract && uriContract && lawCountContract) {
-        powersPopulated.lawCount = lawCountContract as bigint
-        powersPopulated.name = nameContract as string
-        powersPopulated.uri = uriContract as string
+      if (namePowers && uriPowers && lawCountPowers) {
+        powersPopulated.lawCount = lawCountPowers as bigint
+        powersPopulated.name = namePowers as string
+        powersPopulated.uri = uriPowers as string
       }
       return powersPopulated
 

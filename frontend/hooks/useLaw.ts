@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
 import { Status, LawSimulation, Law, LawExecutions } from "../context/types"
-import { readContract, simulateContract, writeContract } from "@wagmi/core";
+import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
@@ -101,25 +101,23 @@ export const useLaw = () => {
             abi: powersAbi,
             address: law.powers as `0x${string}`,
             functionName: 'request',
-            args: [law.index, lawCalldata, nonce, "simulation"]
+            args: [law.index, lawCalldata, nonce, description]
           })
 
           console.log("@execute: waypoint 1", {request})
+          const client = await getConnectorClient(wagmiConfig)
+          console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            const result = await writeContract(wagmiConfig, {
-              abi: powersAbi,
-              address: law.powers as `0x${string}`,
-              functionName: 'request', 
-              args: [law.index, lawCalldata, nonce, description]
-            })
+            console.log("@execute: waypoint 3", {request})
+            const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
-            console.log("@execute: waypoint 3", {result})
+            console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log("@execute: waypoint 4", {error}) 
+          console.log("@execute: waypoint 5", {error}) 
       }
   }, [ ])
 

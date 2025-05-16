@@ -23,7 +23,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
   const action = useActionStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  // console.log("@ChecksBox, waypoint 1, law box:", {checks, powers})
+  console.log("@ChecksBox, waypoint 1, law box:", {law, checks, powers})
 
   return (
     <section 
@@ -55,7 +55,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
         </div>
 
         {/* proposal passed */}
-        {law?.conditions?.quorum != 0n && powers && powers.proposals && 
+        {law?.conditions?.quorum != 0n && 
           <div className = "w-full flex flex-col justify-center items-center p-2"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.proposalPassed ? 

@@ -15,7 +15,6 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { useWatchContractEvent } from 'wagmi'
 import { usePowers } from "@/hooks/usePowers";
-import { supportedChains } from "@/context/chains";
 
 const roleColour = [  
   "border-blue-600", 
@@ -31,24 +30,9 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   const router = useRouter();
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposals, error, transactionHash, propose, addProposals} = useProposal();
+  const {status: statusProposals, error, transactionHash, propose} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
-  const {data: blockNumber} = useBlockNumber();
-  const supportedChain = supportedChains.find(chain => chain.id == Number(chainId))
 
-  // console.log("ProposeBox", {law, powers, action, error, statusProposals})
-
-  const confirmations = useTransactionConfirmations({
-    hash: transactionHash 
-  })
-
-  // console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation, blockNumber})
-
-  useEffect(() => {
-    if (Number(confirmations.data) > 0 && blockNumber) {
-      addProposals(powers, supportedChain?.genesisBlock as bigint)
-    }
-  }, [confirmations.data, powers, addProposals, blockNumber])
 
   useEffect(() => {
     if (statusProposals == "success") {
@@ -67,11 +51,11 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole ?? 0n) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={`Proposal: ${law?.description}`}
+          text={`Proposal: ${law?.nameDescription}`}
           size = {0}
         /> 
       </div>
@@ -103,7 +87,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
                 id="reason" 
                 rows={5} 
                 cols ={25} 
-                value={action.description}
+                value={action.uri}
                 className="block min-w-0 grow py-1.5 pl-1 pr-3 bg-slate-100 pl-3 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Describe reason for action here."
                 disabled={true} 
@@ -122,7 +106,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
                 law?.index as bigint, 
                 action.callData, 
                 action.nonce,
-                action.description,
+                action.uri,
                 powers as Powers
               )} 
               filled={false}
