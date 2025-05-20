@@ -19,16 +19,48 @@ import { parseChainId } from "@/utils/parsers";import { useChains } from "wagmi"
 
 export default function Page() {
     const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-    const { fetchPowers, checkLaws, status: statusPowers, powers } = usePowers()
+    const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles } = usePowers()
     const { wallets } = useWallets()
     const { authenticated } = usePrivy(); 
     const [status, setStatus] = useState<Status>()
     const [error, setError] = useState<any | null>(null)
     const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
+    const [isValidBanner, setIsValidBanner] = useState(false)
+    const [isImageLoaded, setIsImageLoaded] = useState(false)
     const chains = useChains()
     const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
     
     // console.log("@home:", {chains, supportedChain, powers})
+
+    const validateBannerImage = useCallback(async (url: string | undefined) => {
+        if (!url) {
+            setIsValidBanner(false)
+            setIsImageLoaded(false)
+            return
+        }
+
+        try {
+            const response = await fetch(url)
+            const contentType = response.headers.get('content-type')
+            if (contentType?.includes('image/png')) {
+                setIsValidBanner(true)
+                // Preload the image
+                const img = new Image()
+                img.onload = () => setIsImageLoaded(true)
+                img.src = url
+            } else {
+                setIsValidBanner(false)
+                setIsImageLoaded(false)
+            }
+        } catch (error) {
+            setIsValidBanner(false)
+            setIsImageLoaded(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        validateBannerImage(powers?.metadatas?.banner)
+    }, [powers?.metadatas?.banner, validateBannerImage])
 
     const fetchMyRoles = useCallback(
       async (account: `0x${string}`, roles: bigint[]) => {
@@ -67,18 +99,27 @@ export default function Page() {
     return (
       <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">
         {/* hero banner  */}
-        <section className={`w-full min-h-64 flex flex-col justify-between items-end text-slate-50 text-5xl bg-gradient-to-br to-indigo-600 from-emerald-300 rounded-md`}>
-          <div className="w-full max-w-fit h-full max-h-fit text-lg p-6">
+        <section 
+          className={`w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md ${
+            isValidBanner 
+              ? 'bg-cover bg-center bg-no-repeat opacity-100 transition-opacity duration-500' 
+              : 'bg-gradient-to-br to-indigo-600 from-emerald-300 opacity-0 transition-opacity duration-500'
+          }`}
+          style={isValidBanner ? { 
+            backgroundImage: `url(${powers?.metadatas?.banner})`,
+            opacity: isImageLoaded ? 1 : 0
+          } : undefined}
+        >
+          <div className="w-full max-w-fit h-full max-h-fit text-lg p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
             {supportedChain && supportedChain.name }
           </div>
-          <div className="w-full max-w-fit h-full max-h-fit text-6xl p-6">
+          <div className="w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
             {powers?.name}
           </div>
         </section>
         
         {/* Description + link to powers protocol deployment */}  
-        <section className="w-full h-fit flex flex-col gap-2 justify-left items-center border border-slate-200 rounded-md bg-slate-50 lg:max-w-full max-w-3xl p-4">
-          {statusPowers == "pending" || statusPowers == "idle" ? <LoadingBox /> : 
+        <section className="w-full h-fit flex flex-col gap-2 justify-left items-center border border-slate-300 rounded-md bg-slate-50 lg:max-w-full max-w-3xl p-4">
           <>
           <div className="w-full text-slate-800 text-left text-pretty">
              {powers?.metadatas?.description} 
@@ -97,14 +138,14 @@ export default function Page() {
             </div>
           </a>
           </>
-          }
+          {/* } */}
         </section>
         
         {/* main body  */}
         <section className="w-full lg:max-w-full h-full flex max-w-3xl lg:flex-row flex-col-reverse justify-end items-start">
           {/* left / bottom panel  */}
           <div className = {"w-full min-h-fit pb-16"}>  
-            <Overview powers = {powers} status = {statusPowers} /> 
+            <Overview powers = {powers} status = {statusPowers} onUpdatePowers = {() => fetchLawsAndRoles(powers as Powers)} /> 
           </div>
           {/* right / top panel  */} 
           <div className = {"w-full pb-2 flex flex-wrap flex-col lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:flex-col lg:overflow-hidden lg:ps-2 gap-3 overflow-y-hidden overflow-x-scroll scroll-snap-x"}> 

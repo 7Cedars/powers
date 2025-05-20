@@ -52,11 +52,11 @@ const NavigationBar = () => {
     }
   }, [chainId, switchChain, chain])
 
-  useEffect(() => {
-      if (addressPowers) {
-        fetchPowers(addressPowers as `0x${string}`)
-      }
-    }, [addressPowers, fetchPowers]) // updateProposals 
+  // useEffect(() => {
+  //     if (addressPowers) {
+  //       fetchPowers(addressPowers as `0x${string}`)
+  //     }
+  //   }, [addressPowers, fetchPowers]) // updateProposals 
 
   return (
     <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 

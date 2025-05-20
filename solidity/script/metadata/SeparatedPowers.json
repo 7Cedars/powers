@@ -1,6 +1,6 @@
 {
   "icon": "",
-  "banner": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeickdiqcdmjjwx6ah6ckuveufjw6n2g6qdvatuhxcsbmkub3pvshnm",
   "description": 
     "An example implementation of the Powers protocol that balances the power to execute actions between token users, holders and developers.",
   "erc20s": [

@@ -56,7 +56,7 @@ contract DeploySeparatedPowers is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Separated Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihabw2ijvbeoa57yrsx3q63xlnltejg4gtojlwut7wvhwah3p6p3y"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibzoymt2bzj7bziu6sg3tyojn6wqq4s5apzpt7hyk77t2fz6si3aq"
         );
         vm.stopBroadcast();
 

@@ -39,21 +39,21 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionCalldata',
-          args: [executions.actionsIds[index]]
+          args: [BigInt(executions.actionsIds[index])]
         })  
 
         const actionUri = await readContract(wagmiConfig, {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionUri',
-          args: [executions.actionsIds[index]]
+          args: [BigInt(executions.actionsIds[index])]
         })
         
         const actionNonce = await readContract(wagmiConfig, {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionNonce',
-          args: [executions.actionsIds[index]]
+          args: [BigInt(executions.actionsIds[index])]
         })
 
         // console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})

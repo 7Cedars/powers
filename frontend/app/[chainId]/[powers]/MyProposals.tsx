@@ -54,7 +54,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   // console.log("@myProposals: ",  {activeProposals})
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-80"> 
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80"> 
       <button
         onClick={() => 
           { 
@@ -74,11 +74,11 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
         </div>
       </button>
        {
-        status == "pending" || status == "idle" ? 
-        <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-          <LoadingBox /> 
-        </div>
-        :  
+        // status == "pending" || status == "idle" ? 
+        // <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+        //   <LoadingBox /> 
+        // </div>
+        // :  
         authenticated ?
         activeProposals && activeProposals.length > 0 ? 
           <div className = "w-full h-fit lg:max-h-48 max-h-32 flex flex-col gap-2 justify-start items-center overflow-x-scroll p-2 px-1">

@@ -26,7 +26,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   console.log("@MyRoles, blocks: ", blocks)
 
   return (
-    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-80">
+    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
       <div className="w-full h-full flex flex-col gap-0 justify-start items-center"> 
         <button
           onClick={() => router.push(`/${chainId}/${powers?.contractAddress}/roles`) } 
@@ -71,11 +71,11 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
         }
       </div>
   : 
-  status == "pending" || status == "idle" ? 
-    <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-      <LoadingBox /> 
-    </div>
-  :
+  // status == "pending" || status == "idle" ? 
+  //   <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
+  //     <LoadingBox /> 
+  //   </div>
+  // :
   <div className="w-full h-full flex flex-col justify-center text-sm text-slate-500 items-center p-3">
     Connect your wallet to see your roles. 
   </div>
