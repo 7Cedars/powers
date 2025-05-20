@@ -90,7 +90,7 @@ export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
 }
 
 function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
-  console.log("@Rendering GovernanceTrack: ", {track, roleIds, lawSelected, bgItem})
+  // console.log("@Rendering GovernanceTrack: ", {track, roleIds, lawSelected, bgItem})
 
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()

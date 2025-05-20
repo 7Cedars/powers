@@ -17,6 +17,9 @@ import {
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
 import { useAccount, useSwitchChain } from 'wagmi'
+import { watchContractEvent } from '@wagmi/core';
+import { powersAbi } from '@/context/abi';
+import { wagmiConfig } from '@/context/wagmiConfig';
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -28,9 +31,19 @@ const NavigationBar = () => {
   const { chain } = useAccount()
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
-  const { status: statusUpdate, fetchPowers } = usePowers()  
+  const { status: statusUpdate, fetchPowers, fetchLawsAndRoles, powers } = usePowers()  
   const { switchChain } = useSwitchChain()
-
+  const unwatch = watchContractEvent(wagmiConfig, {
+    address: addressPowers as `0x${string}`,
+    abi: powersAbi,
+    eventName: 'LawAdopted',
+    onLogs(logs) {
+      if (powers) {
+        fetchLawsAndRoles(powers)
+      }
+      console.log('New logs!', logs)
+    },
+  })
 
   useEffect(() => {
     console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
@@ -39,11 +52,11 @@ const NavigationBar = () => {
     }
   }, [chainId, switchChain, chain])
 
-  // useEffect(() => {
-  //   if (addressPowers) {
-  //     fetchPowers() 
-  //   }
-  // }, [addressPowers, fetchPowers])
+  useEffect(() => {
+      if (addressPowers) {
+        fetchPowers(addressPowers as `0x${string}`)
+      }
+    }, [addressPowers, fetchPowers]) // updateProposals 
 
   return (
     <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 

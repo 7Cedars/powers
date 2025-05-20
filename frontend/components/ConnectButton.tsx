@@ -7,12 +7,12 @@ import {
 } from '@heroicons/react/24/outline';
 import BlockiesSvg from 'blockies-react-svg'
 import { useSetActiveWallet } from "@privy-io/wagmi";
+import { useAccount } from "wagmi";
 
 export const ConnectButton = () => {
   const {ready: walletsReady, wallets} = useWallets();
   const {ready, user, authenticated, login, logout, connectWallet, linkWallet} = usePrivy();
- 
-  // console.log({walletsReady, wallets, authenticated, user, ready})
+  const { address, isConnected } = useAccount()
 
   //NB see: 
   // https://github.com/privy-io/wagmi-demo/blob/main/app/page.tsx

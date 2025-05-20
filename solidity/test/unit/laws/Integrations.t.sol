@@ -109,14 +109,14 @@
 //         votingToken.mintVotes(1000);
 
 //         // Fast forward past voting delay
-//         vm.warp(block.timestamp + VOTING_DELAY + 1);
+//         vm.roll(block.number + VOTING_DELAY + 1);
 
 //         // Cast vote
 //         vm.prank(alice);
 //         governor.castVote(proposalId, 1); // 1 = For
 
 //         // Fast forward past voting period
-//         vm.warp(block.timestamp + VOTING_PERIOD + 1);
+//         vm.roll(block.number + VOTING_PERIOD + 1);
 
 //         // Check vote results
 //         (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes) = governor.proposalVotes(proposalId);

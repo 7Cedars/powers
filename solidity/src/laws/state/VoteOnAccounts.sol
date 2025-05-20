@@ -79,7 +79,7 @@ contract VoteOnAccounts is Law {
         (address nomineesContract,,) = Powers(payable(powers)).getActiveLaw(nominateMeId);
         bytes32 nominateMeHash = LawUtilities.hashLaw(powers, nominateMeId);
         // step 0: run additional checks
-        if (block.timestamp < data[lawHash].startVote || block.timestamp > data[lawHash].endVote) {
+        if (block.number < data[lawHash].startVote || block.number > data[lawHash].endVote) {
             revert("Election not open.");
         }
         if (hasVoted[lawHash][caller]) {

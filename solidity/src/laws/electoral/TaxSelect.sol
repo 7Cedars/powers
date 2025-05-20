@@ -124,7 +124,7 @@ contract TaxSelect is Law {
 
         // step 1: retrieve data 
         mem.epochDuration = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).epochDuration();
-        mem.currentEpoch = uint48(block.timestamp) / mem.epochDuration;
+        mem.currentEpoch = uint48(block.number) / mem.epochDuration;
 
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");
@@ -134,7 +134,7 @@ contract TaxSelect is Law {
         mem.hasRole = Powers(payable(powers)).hasRoleSince(caller, data[mem.lawHash].roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
         mem.taxPaid = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).getTaxLogs(
-            uint48(block.timestamp) - mem.epochDuration,
+            uint48(block.number) - mem.epochDuration,
             account
         );
         // console.log("mem.taxPaid", mem.taxPaid);

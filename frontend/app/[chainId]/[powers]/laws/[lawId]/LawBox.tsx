@@ -139,12 +139,12 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               type="number"   
               name={`nonce`} 
               id={`nonce`}
-              value = {action.nonce == 0n ? "" : String(action.nonce)}
+              value = {action.nonce}
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
                 event.preventDefault()
-                setAction({...action, nonce: BigInt(Number(event.target.value)), upToDate: false})
+                setAction({...action, nonce: event.target.value, upToDate: false})
               }}
             />
           </div>
@@ -152,7 +152,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               className = "h-8 min-w-8 py-2 grow flex flex-row items-center justify-center  rounded-md bg-white outline outline-1 outline-gray-300"
               onClick = {(event) => {
                 event.preventDefault()
-                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 10000000000000000000000000000000000000)), upToDate: false})
+                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 1000000000000000000000000)).toString(), upToDate: false})
               }}
               > 
               <SparklesIcon className = "h-5 w-5"/> 
@@ -195,7 +195,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             filled={false}
             selected={true}
             onClick={() => {
-              onSimulate(action.paramValues ? action.paramValues : [], action.nonce, action.uri)
+              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
             }} 
             statusButton={
                !action.upToDate && action.uri && action.uri.length > 0 ? 'idle' : 'disabled'
@@ -215,7 +215,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             size={1} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
-              onExecute(action.paramValues ? action.paramValues : [], action.nonce, action.uri)
+              onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
             }} 
             filled={false}
             selected={true}

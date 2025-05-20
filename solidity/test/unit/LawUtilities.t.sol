@@ -63,7 +63,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Execute parent proposal
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
         vm.prank(alice);
         daoMock.request(1, lawCalldata, nonce, "Execute parent");
 
@@ -99,7 +99,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(5);
         ILaw.Conditions memory conditionsFive = Law(lawAddress).getConditions(address(daoMock), 5);
 
-        vm.warp(block.timestamp + conditionsFive.throttleExecution + 1);
+        vm.roll(block.number + conditionsFive.throttleExecution + 1);
         vm.prank(alice);
         daoMock.request(5, lawCalldata, nonce, "Execute parent");
 
@@ -125,7 +125,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.throttleExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.timestamp - 200); // Last execution was 200 blocks ago
+        executions[0] = uint48(block.number - 200); // Last execution was 200 blocks ago
         
         // Should not revert when throttle period has passed
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
@@ -136,7 +136,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.throttleExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.timestamp - 50); // Last execution was only 50 blocks ago
+        executions[0] = uint48(block.number - 50); // Last execution was only 50 blocks ago
         
         // Should revert when throttle period hasn't passed
         vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);
@@ -164,7 +164,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Advance time past voting period
-        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // Should not revert when proposal has succeeded
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 4);
@@ -191,7 +191,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Advance time past voting period
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // Should revert when proposal has failed
         vm.expectRevert(LawUtilities.LawUtilities__ProposalNotSucceeded.selector);
@@ -219,7 +219,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Advance time past voting period and delay
-        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // Should not revert when delay has passed
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 4);
@@ -246,7 +246,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Advance time past voting period but not past delay
-        vm.warp(block.timestamp + conditions.votingPeriod + 50);
+        vm.roll(block.number + conditions.votingPeriod + 50);
 
         // Should revert when delay hasn't passed
         vm.expectRevert(LawUtilities.LawUtilities__DeadlineNotPassed.selector);
@@ -260,16 +260,16 @@ contract LawUtilitiesTest is TestSetupLaw {
         uint48[] memory executions = new uint48[](3);
         
         // Set up execution history
-        executions[0] = uint48(block.timestamp - 300); // First execution
-        executions[1] = uint48(block.timestamp - 200); // Second execution
-        executions[2] = uint48(block.timestamp - 50);  // Third execution (too recent)
+        executions[0] = uint48(block.number - 300); // First execution
+        executions[1] = uint48(block.number - 200); // Second execution
+        executions[2] = uint48(block.number - 50);  // Third execution (too recent)
         
         // Should revert when last execution is too recent
         vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
         
         // Advance time past throttle period
-        vm.warp(block.timestamp + 100);
+        vm.roll(block.number + 100);
         
         // Should not revert when throttle period has passed
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
@@ -280,7 +280,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.throttleExecution = 0;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.timestamp - 1); // Very recent execution
+        executions[0] = uint48(block.number - 1); // Very recent execution
         
         // Should not revert when throttle is zero
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
@@ -302,7 +302,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.quorum = 1;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.timestamp - 200); // Last execution was 200 blocks ago
+        executions[0] = uint48(block.number - 200); // Last execution was 200 blocks ago
 
         // Setup: Create and vote for proposal
         vm.prank(alice);
@@ -319,7 +319,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         }
 
         // Advance time past voting period and delay
-        vm.warp(block.timestamp + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
 
         // Should not revert when both throttle and proposal requirements are met
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 4);
@@ -357,7 +357,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     //////////////////////////////////////////////////////////////
     function testLogTransaction() public {
         address account = alice;
-        uint48 blockNumber = uint48(block.timestamp);
+        uint48 blockNumber = uint48(block.number);
 
         bool success = transactions.logTransaction(account, blockNumber);
         assertTrue(success);
@@ -372,20 +372,20 @@ contract LawUtilitiesTest is TestSetupLaw {
         assertTrue(transactions.checkThrottle(account, delay));
 
         // Log a transaction
-        transactions.logTransaction(account, uint48(block.timestamp));
+        transactions.logTransaction(account, uint48(block.number));
 
         // Should fail when delay hasn't passed
         vm.expectRevert("Delay not passed");
         transactions.checkThrottle(account, delay);
 
         // Should pass when delay has passed
-        vm.warp(block.timestamp + delay + 1);
+        vm.roll(block.number + delay + 1);
         assertTrue(transactions.checkThrottle(account, delay));
     }
 
     function testCheckNumberOfTransactions() public {
         address account = alice;
-        uint48 start = uint48(block.timestamp);
+        uint48 start = uint48(block.number);
         
         // Log some transactions
         transactions.logTransaction(account, start);

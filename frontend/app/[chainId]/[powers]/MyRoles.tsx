@@ -8,6 +8,7 @@ import { GetBlockReturnType } from "@wagmi/core";
 import { toFullDateFormat } from "@/utils/toDates";
 import { Powers, Status } from "@/context/types";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useBlocks } from "@/hooks/useBlocks";
 
 type MyRolesProps = {
   hasRoles: {role: bigint, since: bigint}[]; 
@@ -20,6 +21,9 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.since != 0n)
   const { chainId } = useParams<{ chainId: string }>()
+  const { data: blocks } = useBlocks(hasRoles.map(role => role.since), chainId)
+  
+  console.log("@MyRoles, blocks: ", blocks)
 
   return (
     <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-80">
@@ -60,7 +64,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
                 }
               </div>
               <div className = "grow w-full min-w-40 flex flex-row justify-end items-center text-right pe-4">
-                Since: {toFullDateFormat(Number(role.since))} 
+                Since: {toFullDateFormat(Number(blocks?.[i]?.timestamp || role.since))} 
               </div>
               </div>
             )

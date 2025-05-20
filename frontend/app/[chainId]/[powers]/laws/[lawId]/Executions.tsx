@@ -10,6 +10,7 @@ import { lawAbi, powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
+import { useBlocks } from "@/hooks/useBlocks";
 
 type ExecutionsProps = {
   executions: LawExecutions | undefined
@@ -19,18 +20,18 @@ type ExecutionsProps = {
 
 export const Executions = ({executions, law, status}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
-  
+  const action = useActionStore()
+  const { data: blocks } = useBlocks(executions?.executions, chainId)
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId), 
   })
 
-  console.log("@Executions: waypoint 0", {executions, law, status})
+  console.log("@Executions: waypoint 0", {executions, law, status, action, blocks})
 
   // console.log("@Executions: ", {executions, law, status})
-// THIS HAS TO BE REFACTORED. Use read contract, _actions . This needs a getter function! 
   const handleExecutionSelection = useCallback(
     async (executions: LawExecutions, index: number) => {
-    console.log("@Executions: waypoint 1", {executions, law, status})
+    // console.log("@Executions: waypoint 1", {executions, law, status, action, executionAtIndex: executions.actionsIds[index]})
     
     if (executions) {
       try {
@@ -55,10 +56,10 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           args: [executions.actionsIds[index]]
         })
 
-        console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})
+        // console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})
 
         if (lawCalldata && actionUri && actionNonce) {
-          console.log("@Executions: waypoint 3")
+          // console.log("@Executions: waypoint 3")
 
           let dataTypes = law?.params?.map(param => param.dataType)
           let valuesParsed = undefined
@@ -67,7 +68,7 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
             valuesParsed = parseParamValues(values) 
           }
 
-          console.log("@Executions: waypoint 4")
+          // console.log("@Executions: waypoint 4")
 
           setAction({
             actionId: String(executions.actionsIds[index]),
@@ -75,13 +76,13 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
             caller: undefined,
             dataTypes: dataTypes,
             paramValues: valuesParsed,
-            nonce: actionNonce as bigint,
+            nonce: actionNonce.toString(),
             uri: actionUri as string,
             callData: lawCalldata as `0x${string}`,
             upToDate: false
           })
 
-          console.log("@Executions: waypoint 5")
+          // console.log("@Executions: waypoint 5")
         }
       } catch (error) {
         console.log("@Executions: ", error)
@@ -116,8 +117,8 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
                       >  
                       <div className = "flex flex-col w-full"> 
                         <div className = "w-full flex flex-row gap-1 justify-between items-center px-1">
-                            <div> {toFullDateFormat(Number(execution))}</div>
-                            <div> {toEurTimeFormat(Number(execution))}</div>
+                            <div> {toFullDateFormat(Number(blocks?.[index]?.timestamp || 0))}</div>
+                            <div> {toEurTimeFormat(Number(blocks?.[index]?.timestamp || 0))}</div>
                         </div>
                       </div>
                     </Button>

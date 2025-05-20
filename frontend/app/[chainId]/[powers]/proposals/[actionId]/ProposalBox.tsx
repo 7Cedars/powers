@@ -12,6 +12,7 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useBlockNumber } from "wagmi";
 
 const roleColour = [  
   "border-blue-600", 
@@ -27,9 +28,11 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
+  const [voteReceived, setVoteReceived] = useState<boolean>(false);
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
+  const {data: blockNumber} = useBlockNumber();
   // console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted, proposal})
 
   const handleCastVote = async (proposal: Proposal, support: bigint) => { 
@@ -48,7 +51,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
       simulate(
         action.caller,
         action.callData,
-        action.nonce,
+        BigInt(action.nonce),
         law as Law
         )
 
@@ -67,6 +70,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
         wallets[0].address as `0x${string}`,
         powers as Powers
       )
+      setVoteReceived(true)
     }
   }, [statusProposal])
 
@@ -108,7 +112,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
               name="nonce"
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"  
               id="nonce" 
-              value={action.nonce as unknown as string}
+              value={action.nonce.toString()}
               disabled={true}
               />
           </div>
@@ -141,9 +145,14 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 Vote has closed  
               </div>
               :
-              hasVoted ? 
+              hasVoted || voteReceived ? 
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Account has voted  
+              </div>
+              :
+              blockNumber && proposal && proposal.voteEnd < BigInt(blockNumber) ?
+              <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
+                Vote has closed  
               </div>
               :
               proposal && 

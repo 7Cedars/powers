@@ -71,7 +71,7 @@
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[0] = quorumReached && voteSucceeded;
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (stepsPassed[0]) {
 //             console.log("step 1 action: GARY EXECUTES!");
 //             vm.expectEmit(true, false, false, false);
@@ -122,7 +122,7 @@
 //         quorumReached = (forVote + abstainVote) * 100 / roleCount > quorum;
 //         voteSucceeded = forVote * 100 / roleCount > succeedAt;
 //         stepsPassed[2] = quorumReached && voteSucceeded;
-//         vm.warp(block.timestamp + votingPeriod + delayExecution + 1);
+//         vm.roll(block.number + votingPeriod + delayExecution + 1);
 //         console.log("step 3 result: quorum reached and vote succeeded?");
 //         console.log(quorumReached, voteSucceeded);
 

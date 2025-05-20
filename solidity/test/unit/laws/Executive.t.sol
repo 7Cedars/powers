@@ -654,7 +654,7 @@ contract EndGrantTest is TestSetupExecutive {
         vm.prank(alice);
         daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
 
-        vm.warp(block.timestamp + duration + 1);
+        vm.roll(block.number + duration + 1);
 
         vm.prank(alice);
         daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant");
@@ -770,7 +770,7 @@ contract EndGrantTest is TestSetupExecutive {
         daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
 
         // advance time
-        vm.warp(block.timestamp + duration + 1);
+        vm.roll(block.number + duration + 1);
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));

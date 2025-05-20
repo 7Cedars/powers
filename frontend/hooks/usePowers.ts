@@ -97,18 +97,70 @@ export const usePowers = () => {
     }
   }
 
+  const checkSingleLaw = async (powers: Powers, lawId: bigint) => {
+    // console.log("@checkSingleLaw, waypoint 0", {lawId})
+    let fetchedLaw: Law | undefined = undefined
+    let laws: Law[] = powers.laws || []
+    setStatus("pending")
+
+    if (publicClient && lawId && address) {
+      try {
+        const lawFetched = await publicClient.readContract({ 
+          abi: powersAbi,
+          address: address as `0x${string}`,
+          functionName: 'getActiveLaw',
+          args: [BigInt(lawId)]
+        })
+        // console.log("@checkSingleLaw, waypoint 1", {lawFetched})
+        const lawFetchedTyped = lawFetched as [`0x${string}`, `0x${string}`, boolean]
+
+        fetchedLaw = {
+          powers: address,
+          lawAddress: lawFetchedTyped[0] as unknown as `0x${string}`,
+          lawHash: lawFetchedTyped[1] as unknown as `0x${string}`,
+          index: lawId,
+          active: lawFetchedTyped[2] as unknown as boolean
+        }
+        // console.log("@checkSingleLaw, waypoint 2", {fetchedLaw})
+      } catch (error) {
+        setStatus("error")
+        setError(error)
+      }
+      laws = laws.map((law: Law) => {        
+        if (fetchedLaw?.index == law.index) {
+          return {
+            ...law,
+            lawAddress: fetchedLaw.lawAddress,
+            lawHash: fetchedLaw.lawHash,
+            index: fetchedLaw.index,
+            active: fetchedLaw.active
+          }
+        } else {
+          return law
+        }
+      })
+      // console.log("@checkSingleLaw, waypoint 3", {laws})
+      const powersUpdated = { ...powers, 
+        laws: laws,
+        activeLaws: laws.filter((law: Law) => law.active)
+      }
+      setPowers(powersUpdated)
+      powersUpdated && savePowers(powersUpdated)
+      setStatus("success")
+      }
+  }
+
   const checkLaws = async (powers: Powers, lawIds: bigint[]) => {
-    console.log("@checkLaws, waypoint 0", {lawIds})
+    // console.log("@checkLaws, waypoint 0", {lawIds})
     let lawId: bigint
     let fetchedLaws: Law[] = []
-    let laws: Law[] = powers.laws || []
 
     setStatus("pending")
 
     if (publicClient && lawIds.length > 0 && address) {
         // fetching all laws ever initiated by the org
         for (lawId of lawIds) {
-          console.log("@checkLaws, waypoint 1", {lawId})
+          // console.log("@checkLaws, waypoint 1", {lawId})
           try { 
             const lawFetched = await publicClient.readContract({ 
               abi: powersAbi,
@@ -116,7 +168,7 @@ export const usePowers = () => {
               functionName: 'getActiveLaw',
               args: [BigInt(lawId)]
             })
-            console.log("@checkLaws, waypoint 2", {lawFetched})
+                // console.log("@checkLaws, waypoint 2", {lawFetched})
             const lawFetchedTyped = lawFetched as [`0x${string}`, `0x${string}`, boolean]
             fetchedLaws.push({
               powers: address,
@@ -125,38 +177,14 @@ export const usePowers = () => {
               index: lawId,
               active: lawFetchedTyped[2] as unknown as boolean
             })
-            console.log("@checkLaws, waypoint 3", {fetchedLaws})
+            // console.log("@checkLaws, waypoint 3", {fetchedLaws})  
           } catch (error) {
             console.log("@checkLaws, waypoint 3", {error})
+            setStatus("error")
+            setError(error)
           }
         }
-        console.log("@checkLaws, waypoint 4", {fetchedLaws})
-        laws = laws.map((law: Law) => {
-          let lawTemp: Law | undefined = fetchedLaws.find((l: Law) => l.index == law.index)
-          
-          if (lawTemp) {
-            console.log("@checkLaws, waypoint 5", {lawTemp})
-            return {
-              ...law,
-              lawAddress: lawTemp.lawAddress,
-              lawHash: lawTemp.lawHash,
-              index: lawTemp.index,
-              active: lawTemp.active
-            }
-          } else {
-            console.log("@checkLaws, waypoint 6", {law})
-            return law
-          }
-        })
-        console.log("@checkLaws, waypoint 7", {laws})
-        const powersUpdated = { ...powers, 
-          laws: laws,
-          activeLaws: laws.filter((law: Law) => law.active)
-        }
-        setPowers(powersUpdated)
-        powersUpdated && savePowers(powersUpdated)
-        setStatus("success")
-        return laws
+        return fetchedLaws
     }
   }
 
@@ -352,129 +380,102 @@ export const usePowers = () => {
           setStatus("success")
       }
   }
-
-  // const allProposals = [...(powers.proposals || []), ...fetchedProposals];
-
-  // setStatus("success")
-
-
-  // Need fetchRoleHolders function here. Same logic as fetchProposals.
   
   const fetchRoleHolders = async (powers: Powers, maxRuns: bigint, chunkSize: bigint) => {
-    // let powersUpdated: Powers | undefined = powers
-    // setStatus("pending")
+    let powersUpdated: Powers | undefined;
+    setStatus("pending")
 
-    // if (!publicClient || !currentBlock) {
-    //   setStatus("error")
-    //   setError("No public client or current block")
-    // } else {
-    //   // Initialize arrays to collect results
-    //   const roleHoldersFetched: Role[] = [];
-    //   const blocksFetched: BlockRange[] = [];
+    if (!publicClient || !currentBlock) {
+      setStatus("error")
+      setError("No public client or current block")
+    } else {
+      // Initialize arrays to collect results
+      let roleHoldersFetched: Role[] = powers?.roleHolders ? powers.roleHolders : [];
+      let distance: bigint = 0n
+      let blockFrom: bigint = 0n
+      let blockTo: bigint = 0n
+
+     
+      if (currentBlock == powers?.roleHoldersBlocksFetched?.to) { // are we up to date ? if so:  
+        distance = BigInt(Number(chunkSize) * Number(maxRuns))  // we go as far back as possible. 
+        blockFrom = powers?.roleHoldersBlocksFetched?.from - distance // we start at the last block we have fetched. 
+        blockTo = powers?.roleHoldersBlocksFetched?.from // we end at the last block we have fetched. 
+      } else if (powers?.roleHoldersBlocksFetched?.to) { // are we not up to date? if so:  
+        distance = BigInt(Number(currentBlock) - Number(powers?.roleHoldersBlocksFetched?.to)) // we go as far forward until we reach the current block. 
+        if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) { // but if this distance is greater than the max runs, we limit it to the max runs. 
+          distance = BigInt(Number(chunkSize) * Number(maxRuns))
+        }
+        blockFrom = powers?.roleHoldersBlocksFetched?.to // we start at the last block we have fetched. 
+        blockTo = powers?.roleHoldersBlocksFetched?.to + distance // we end at the last block we have fetched + the distance. 
+      } else { // if we are not up to date, we start at the current block - the max runs. 
+        blockTo = currentBlock
+        blockFrom = BigInt(Number(blockTo) - (Number(chunkSize) * Number(maxRuns)))
+      }
+
+      // Fetch blocks in chunks with pagination
+      let chunkFrom: bigint = 0n
+      let chunkTo: bigint = 0n
+  
+      // check if we reached the end of the distance or max runs
+      // if so, save here everything to disc.  
+      let i = 0
+      while (distance > i) {
+        console.log("fetchRoleHolders, waypoint 1", {chunkTo, chunkFrom, i, distance})
       
-    //   // Get previously fetched blocks from powers
-    //   const fetched: BlockRange[] = [...(powers.roleHoldersBlocksFetched || [])];
-
-    //   // Add current block to make sure we have a complete range
-    //   if (fetched.length === 0 || fetched[fetched.length - 1].to < currentBlock) {
-    //     fetched.push({ from: currentBlock, to: currentBlock });
-    //   }
-
-    //   // Sort fetched blocks by 'to' in descending order for proper gap analysis
-    //   fetched.sort((a, b) => Number(b.to) - Number(a.to));
-
-    //   // Find gaps in fetched blocks
-    //   const gaps: BlockRange[] = [];
-    //   console.log("@fetchRoleHolders, waypoint 0.5", {gaps})
-
-    //   if (fetched.length > 1) {
-    //     for (let i = 0; i < fetched.length - 1; i++) {
-    //       if (Number(fetched[i].from) - Number(fetched[i+1].to) > 1) {
-    //         gaps.push({ from: BigInt(fetched[i+1].to) + 1n, to: BigInt(fetched[i].from) - 1n });
-    //         console.log("@fetchRoleHolders, waypoint 0.6", {gaps})
-    //       }
-    //     }
-    //   } else {
-    //     // If we only have the current block, fetch a range of past blocks
-    //     gaps.push({ from: currentBlock > Number(chunkSize) ? currentBlock - chunkSize : 0n, to: currentBlock });
-    //     console.log("@fetchRoleHolders, waypoint 0.7", {gaps})
-    //   }
-      
-    //   // Fetch blocks in chunks with pagination
-    //   let runs = 0;
-      
-    //   for (const gap of gaps) {
-    //     console.log("@fetchRoleHolders, waypoint 0.8", {gap})
-    //     // Split large gaps into smaller chunks of max 500 blocks
-    //     const blockRange = Number(gap.to) - Number(gap.from) + 1;
-    //     const requiredChunks = Math.ceil(blockRange / Number(chunkSize));
-    //     console.log("@fetchRoleHolders, waypoint 0.9", {blockRange, requiredChunks})
+        // calculate chunk boundaries
+        chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
+        chunkTo = chunkFrom + chunkSize
         
-    //     for (let i = 0; i < requiredChunks; i++) {
-    //       console.log("@fetchRoleHolders, waypoint 0.10", {i})
-    //       // Check if we've reached the maximum number of runs
-    //       if (runs >= maxRuns) {
-    //         powersUpdated = { ...powers, 
-    //           roleHolders: roleHoldersFetched, 
-    //           roleHoldersBlocksFetched: blocksFetched
-    //         }
-    //         setPowers(powersUpdated)
-    //         powersUpdated && savePowers(powersUpdated)
-    //         setStatus("success")
-    //         console.log("@fetchRoleHolders, waypoint 0.11", { roleHolders: roleHoldersFetched, blocks: blocksFetched })
-    //         return { roleHolders: roleHoldersFetched, blocks: blocksFetched }
-    //       }
+        try { 
+          // Fetch events for the current chunk
+          const logs = await publicClient.getContractEvents({ 
+            address: powers.contractAddress as `0x${string}`,
+            abi: powersAbi, 
+            eventName: 'RoleSet',
+            fromBlock: chunkFrom,
+            toBlock: chunkTo
+          })
           
-    //       // Calculate chunk boundaries
-    //       const chunkFrom = gap.from + BigInt(i * Number(chunkSize));
-    //       const chunkTo = i === requiredChunks - 1 
-    //         ? gap.to 
-    //         : gap.from + BigInt((i + 1) * Number(chunkSize) - 1); 
-    //       console.log("@fetchRoleHolders, waypoint 0.12", {chunkFrom, chunkTo})
+          const fetchedLogs = parseEventLogs({
+            abi: powersAbi,
+            eventName: 'RoleSet',
+            logs
+          });
 
-    //       try {
-    //         console.log("@fetchRoleHolders, waypoint 0.13", {chunkFrom, chunkTo})
-    //         // Fetch events for the current chunk
-    //         const logs = await publicClient.getContractEvents({ 
-    //           address: powers.contractAddress as `0x${string}`,
-    //           abi: powersAbi, 
-    //           eventName: 'RoleSet',
-    //           fromBlock: chunkFrom,
-    //           toBlock: chunkTo
-    //         });
-            
-    //         // Record fetched block range
-    //         blocksFetched.push({ from: chunkFrom, to: chunkTo });
-    //         console.log("@fetchRoleHolders, waypoint 0.14", {blocksFetched})
-            
-    //         // Parse logs and extract role holders
-    //         const fetchedLogs = parseEventLogs({
-    //           abi: powersAbi,
-    //           eventName: 'RoleSet',
-    //           logs
-    //         });
-    //         console.log("@fetchRoleHolders, waypoint 0.15", {fetchedLogs})
-            
-    //         const fetchedRoleHolders: Role[] = (fetchedLogs as ParseEventLogsReturnType)
-    //           .map(log => log.args as Role);
-    //         console.log("@fetchRoleHolders, waypoint 0.16", {fetchedRoleHolders})
+          let newRoleHolders: Role[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Role);
+          console.log("fetchRoleHolders, waypoint 2", {newRoleHolders})
 
-    //         // Sort role holders and add to our result array
-    //         fetchedRoleHolders.sort((a: Role, b: Role) => a.roleId > b.roleId ? -1 : 1);
-    //         console.log("@fetchRoleHolders, waypoint 0.17", {fetchedRoleHolders})
-    //         roleHoldersFetched.push(...fetchedRoleHolders);
-    //         console.log("@fetchRoleHolders, waypoint 0.18", {roleHoldersFetched})
-            
-    //         runs++;
-    //         console.log("@fetchRoleHolders, waypoint 0.19", {runs})
-    //       } catch (error) {
-    //         console.error("Error fetching role holders in block range", { chunkFrom, chunkTo, error });
-    //         // Continue to next chunk despite error
-    //       }
-    //     }
-    //   }
-    //   setStatus("success")
-    // }
+          // add fetched role holders to the array
+          roleHoldersFetched = [...roleHoldersFetched, ...newRoleHolders]
+          } catch (error) {
+            setStatus("error")
+            setError(error)
+          }
+          i = i + Number(chunkSize)
+        }
+
+        // I am sure we can make this les convoluted. But this will  have to do for now. 
+        if (powers.roleHoldersBlocksFetched && powers.roleHoldersBlocksFetched.to < blockTo) {
+          powersUpdated = { ...powers, 
+            roleHolders: roleHoldersFetched, 
+            roleHoldersBlocksFetched: { 
+              from: powers.roleHoldersBlocksFetched.from > blockFrom ? blockFrom : powers.roleHoldersBlocksFetched.from,  
+              to: powers.roleHoldersBlocksFetched.to < blockTo ? blockTo : powers.roleHoldersBlocksFetched.to
+            }
+          }
+        } else {
+          powersUpdated = { ...powers, 
+            roleHolders: roleHoldersFetched, 
+            roleHoldersBlocksFetched: { 
+              from: blockFrom, 
+              to: blockTo
+            }
+          }
+        }
+        setPowers(powersUpdated)
+        savePowers(powersUpdated)
+        setStatus("success")
+      }
   };
 
   const fetchPowers = useCallback(
@@ -488,28 +489,35 @@ export const usePowers = () => {
       let updatedData: Powers | undefined = undefined
       let updatedMetaData: Powers | undefined = undefined
       let localStore = localStorage.getItem("powersProtocols")
+      console.log("@fetchPowers, waypoint 0", {localStore})
       
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
       const existing = saved.find(item => item.contractAddress == address)
-    
+      console.log("@fetchPowers, waypoint 1", {existing})
+
       if (existing) { 
         powersToBeUpdated = existing 
       } else {
         powersToBeUpdated = { contractAddress: address }
       }
+      console.log("@fetchPowers, waypoint 2", {powersToBeUpdated})
+      
       updatedData = await fetchPowersData(powersToBeUpdated)
+      console.log("@fetchPowers, waypoint 3", {updatedData})
       if ( updatedData && (updatedData?.metadatas == undefined || updatedData?.metadatas != powersToBeUpdated?.metadatas) ) { 
         updatedMetaData = await fetchMetaData(updatedData) 
       } else {
         updatedMetaData = updatedData
       }
-      if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws) ) { 
+      console.log("@fetchPowers, waypoint 4", {updatedMetaData})
+      if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws)) { 
         fetchLawsAndRoles(updatedMetaData) 
       }
+      console.log("@fetchPowers, waypoint 5", {updatedMetaData})
       setPowers(updatedMetaData)
       setStatus("success")
     }, []
   )
 
-  return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, checkLaws, fetchRoleHolders}  
+  return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, checkLaws, checkSingleLaw, fetchRoleHolders}  
 }

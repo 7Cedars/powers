@@ -247,7 +247,7 @@ contract VoteOnAccountsTest is TestSetupState {
 
         // act
         vm.prank(bob);
-        vm.warp(5001); // set block number to after startvote
+        vm.roll(5001); // set block number to after startvote
         daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "Voting on a nominee");
 
         // assert
@@ -268,7 +268,7 @@ contract VoteOnAccountsTest is TestSetupState {
         daoMock.request(nominateMe, abi.encode(true), nonce, "Nominating alice");
         nonce++;
 
-        vm.warp(block.timestamp + 10);
+        vm.roll(block.number + 10);
         // check if alice is nominated
         (address nominateMeAddress, , ) = daoMock.getActiveLaw(nominateMe);
         lawHash = LawUtilities.hashLaw(address(daoMock), nominateMe);
@@ -281,13 +281,13 @@ contract VoteOnAccountsTest is TestSetupState {
         vm.stopPrank();
 
         // First vote
-        vm.warp(5001); // set block number to after startvote
+        vm.roll(5001); // set block number to after startvote
         vm.prank(bob);
         daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "First vote");
         nonce++;
 
         // Second vote
-        vm.warp(5002); // set block number to after startvote
+        vm.roll(5002); // set block number to after startvote
         vm.prank(charlotte);
         daoMock.request(voteOnAccounts, abi.encode(alice), nonce, "Second vote");
 
@@ -306,13 +306,13 @@ contract VoteOnAccountsTest is TestSetupState {
         );
 
         // Try to vote without proper role
-        vm.warp(5001); // set block number to after startvote
+        vm.roll(5001); // set block number to after startvote
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
         daoMock.request(voteOnAccounts, lawCalldata, nonce, "Unauthorized vote");
     }
 
-    function testHandleRequestOutput() public {
+    function testHandleRequestOutputVoteOnAccounts() public {
         // prep
         uint16 voteOnAccounts = 5;
         (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);
@@ -320,7 +320,7 @@ contract VoteOnAccountsTest is TestSetupState {
         lawCalldata = abi.encode(alice);
 
         // act: call handleRequest directly to check its output
-        vm.warp(5001); // set block number to after startvote
+        vm.roll(5001); // set block number to after startvote
         vm.prank(address(daoMock));
         (
             actionId,

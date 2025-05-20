@@ -4,7 +4,7 @@ import { Law, Checks, Status, LawExecutions, Powers } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
 import { getPublicClient, readContract } from "wagmi/actions";
-import { useChains, useBlockNumber } from 'wagmi'
+import { useChains, useBlockNumber, useAccount } from 'wagmi'
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
@@ -96,6 +96,8 @@ export const useChecks = (powers: Powers) => {
   const checkThrottledExecution = useCallback( async (law: Law) => {
     const fetchedExecutions = await fetchExecutions(law)
 
+    console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law})
+
     if (fetchedExecutions && fetchedExecutions.executions?.length > 0) {
       const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
       return result as boolean
@@ -118,9 +120,11 @@ export const useChecks = (powers: Powers) => {
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
           const delayed = checkDelayedExecution(nonce, callData, law, powers)
 
-          const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5]) == false || undefined
-          const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5]) == true
-          const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5]) == false || undefined
+          const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
+          const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
+          const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
+
+          console.log({notCompleted1: !notCompleted1})
           
           // console.log("fetchChecks triggered, waypoint 1", {delayed, throttled, authorised, proposalStatus, proposalExists, notCompleted1, notCompleted2, notCompleted3})
 
@@ -130,9 +134,9 @@ export const useChecks = (powers: Powers) => {
               authorised: authorised,
               proposalExists: law.conditions.quorum == 0n ? true : proposalExists == false,
               proposalPassed: law.conditions.quorum == 0n ? true : proposalStatus,
-              actionNotCompleted: notCompleted1 || notCompleted1 == undefined,
-              lawCompleted: law.conditions.needCompleted == 0n ? true : !notCompleted2, 
-              lawNotCompleted: law.conditions.needNotCompleted == 0n ? true : notCompleted3 
+              actionNotCompleted: !notCompleted1,
+              lawCompleted: law.conditions.needCompleted == 0n ? true : notCompleted2, 
+              lawNotCompleted: law.conditions.needNotCompleted == 0n ? true : !notCompleted3 
             } 
             newChecks.allPassed =  
               newChecks.delayPassed && 

@@ -112,7 +112,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
                     filled={true}
                     role={parseRole(BigInt(role.roleId))}
                     onClick={() => {
-                      router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`);
+                      // router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`); // disabled for now
                     }}
                     align={0}
                   >

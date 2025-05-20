@@ -106,7 +106,7 @@ contract Subscription is Law {
 
         // step 1: retrieve data 
         mem.epochDuration = data[mem.lawHash].epochDuration;
-        mem.currentEpoch = uint48(block.timestamp) / mem.epochDuration;
+        mem.currentEpoch = uint48(block.number) / mem.epochDuration;
 
         if (mem.currentEpoch == 0) {
             revert("No finished epoch yet.");

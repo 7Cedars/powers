@@ -15,15 +15,15 @@ import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams, useRouter } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useBlocks } from "@/hooks/useBlocks";
  
 const Page = () => {
   const {wallets, ready} = useWallets();
   const action = useActionStore();;
-  const error = useErrorStore()
-  const router = useRouter()
+
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   
-  const { powers, fetchPowers, checkLaws, status: statusPowers } = usePowers()
+  const { powers, fetchPowers, checkSingleLaw, status: statusPowers } = usePowers()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
@@ -32,17 +32,18 @@ const Page = () => {
   
   useEffect(() => {
     if (!powers) {
+      console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [powers])
 
   // check if law is active and if not, redirect to laws page if not active
-  useEffect(() => {
-    console.log("useEffect, checkLaws triggered at Law page:", {law})
-    if (law) {
-      checkLaws(powers as Powers, [law.index])
-    }
-  }, [law])
+  // useEffect(() => {
+  //   console.log("useEffect, checkSingleLaw triggered at Law page:", {law})
+  //   if (law) {
+  //     checkSingleLaw(powers as Powers, law.index)
+  //   }
+  // }, [law])
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       console.log("Handle Simulate called:", {paramValues, nonce})
@@ -70,21 +71,21 @@ const Page = () => {
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: paramValues,
-          nonce: nonce,
+          nonce: nonce.toString(),
           uri: description,
           callData: lawCalldata,
           upToDate: true
         })
 
         // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
-        fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
+        fetchChecks(law, action.callData as `0x${string}`, BigInt(action.nonce), wallets, powers as Powers) 
         
         try {
         // simulating law. 
           simulate(
             wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
             action.callData as `0x${string}`,
-            action.nonce,
+            BigInt(action.nonce),
             law
           )
         } catch (error) {
@@ -136,7 +137,7 @@ const Page = () => {
           lawId: law.index,
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: [],
-          nonce: 0n,
+          nonce: '0',
           callData: '0x0',
           upToDate: false
         })

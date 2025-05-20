@@ -96,7 +96,7 @@ contract NominateMe is Law {
         (address caller, bool nominateMe) = abi.decode(stateChange, (address, bool));
 
         if (nominateMe) {
-            data[lawHash].nominations[caller] = uint48(block.timestamp);
+            data[lawHash].nominations[caller] = uint48(block.number);
             data[lawHash].nomineesSorted.push(caller);
             data[lawHash].nomineesCount++;
             emit NominateMe__NominationReceived(caller);

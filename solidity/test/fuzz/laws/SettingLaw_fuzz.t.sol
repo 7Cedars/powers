@@ -61,7 +61,7 @@ pragma solidity 0.8.26;
 //   ///                   Setup                 ///
 //   ///////////////////////////////////////////////
 //   function setUp() public {
-//     vm.warp(block.timestamp + 10);
+//     vm.roll(block.number + 10);
 //     vm.startBroadcast(alice);
 //       agDao = new AgDao();
 //       agCoins = new AgCoins(address(agDao));
@@ -123,7 +123,7 @@ pragma solidity 0.8.26;
 //     vm.prank(eve);
 //     agDao.castVote(actionIdOne, 1); // = for
 
-//     vm.warp(block.timestamp + 4_000);
+//     vm.roll(block.number + 4_000);
 
 //     // executing...
 //     vm.prank(account0);
@@ -135,7 +135,7 @@ pragma solidity 0.8.26;
 
 //     /* PROPOSAL LINK 2: a seniors accept the proposed law. */
 //     // proposing...
-//     vm.warp(block.timestamp + 5_000);
+//     vm.roll(block.number + 5_000);
 //     vm.prank(account1); // = a senior
 //     if (account1 != alice && account1 != bob && account1 != charlotte){ vm.expectRevert(); }
 //     uint256 actionIdTwo = agDao.propose(
@@ -153,7 +153,7 @@ pragma solidity 0.8.26;
 //     vm.prank(charlotte);
 //     agDao.castVote(actionIdTwo, 1); // = for
 
-//     vm.warp(block.timestamp + 9_000);
+//     vm.roll(block.number + 9_000);
 
 //     // executing...
 //     vm.prank(account1);
@@ -164,7 +164,7 @@ pragma solidity 0.8.26;
 //     assert(uint8(ActionStateTwo) == 4); // == ActionState.Completed
 
 //     /* PROPOSAL LINK 3: the admin can execute a activation of the law. */
-//     vm.warp(block.timestamp + 10_000);
+//     vm.roll(block.number + 10_000);
 //     vm.prank(account2); // = admin role
 //     if (account2 != alice){ vm.expectRevert(); }
 //     agDao.execute(constituentLaws[6], lawCalldata, nonce);

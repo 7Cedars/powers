@@ -21,8 +21,10 @@ const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
+  // NB: proposal might not have been loaded!  
   const proposal = powers?.proposals?.find(proposal => proposal.actionId == actionId)
   const law = powers?.laws?.find(law => law.index == proposal?.lawId)
+  // 
   const action = useActionStore(); 
   const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
 
@@ -40,7 +42,7 @@ const Page = () => {
           caller: proposal.caller,
           dataTypes: law?.params?.map(param => param.dataType),
           paramValues: valuesParsed,
-          nonce: BigInt(proposal.nonce),
+          nonce: proposal.nonce,
           uri: proposal.description,
           callData: proposal.executeCalldata,
           upToDate: true

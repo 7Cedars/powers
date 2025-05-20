@@ -8,6 +8,7 @@ import { toFullDateFormat } from "@/utils/toDates";
 import { GetBlockReturnType } from "@wagmi/core";
 import { parseRole } from "@/utils/parsers";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useBlocks } from "@/hooks/useBlocks";
 
 const roleColour = [  
   "border-blue-600", 
@@ -36,6 +37,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.role > 0).map(hasRole => hasRole.role)
   const { chainId } = useParams<{ chainId: string }>()
+  const { data: blocks } = useBlocks(proposals?.map(proposal => BigInt(proposal.voteEnd)), chainId)
 
   // bit convoluted, can be optimised. // £todo
   const active = proposals?.map((proposal: Proposal) => {
@@ -78,7 +80,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
         </div>
         :  
         authenticated ?
-        proposals && proposals.length > 0 ? 
+        activeProposals && activeProposals.length > 0 ? 
           <div className = "w-full h-fit lg:max-h-48 max-h-32 flex flex-col gap-2 justify-start items-center overflow-x-scroll p-2 px-1">
           {
             activeProposals?.map((item: ProposalAndLaw, i) => 
@@ -88,7 +90,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                     onClick={
                       () => {
                         setAction({
-                          description: item.proposal.description,
+                          uri: item.proposal.description,
                           callData: item.proposal.calldata,
                           nonce: item.proposal.nonce,
                           lawId: item.proposal.lawId,
@@ -102,7 +104,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                       <div className ="w-full flex flex-col gap-1 text-sm text-slate-600 justify-center items-center">
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Date: </p> 
-                          <p> {toFullDateFormat(Number(item.proposal.voteStartBlockData?.timestamp))}  </p>
+                          <p> {toFullDateFormat(Number(blocks?.[i]?.timestamp || item.proposal.voteEnd))}  </p>
                         </div>
 
                         <div className = "w-full flex flex-row justify-between items-center text-left">
@@ -115,10 +117,9 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
             )
           }
         </div>
-
       :
       <div className = "w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
-        No proposals found
+        No active proposals found
       </div>
       :   
       <div className="w-full h-full flex flex-col justify-center text-sm text-slate-500 items-center p-3">

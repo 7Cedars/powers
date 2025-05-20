@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { MyProposals } from "./MyProposals";
-import { Status } from "@/context/types";
+import { Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getBlock, GetBlockReturnType, readContract } from "@wagmi/core";
 import { powersAbi } from "@/context/abi";
@@ -19,7 +19,7 @@ import { parseChainId } from "@/utils/parsers";import { useChains } from "wagmi"
 
 export default function Page() {
     const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-    const { fetchPowers, status: statusPowers, powers } = usePowers()
+    const { fetchPowers, checkLaws, status: statusPowers, powers } = usePowers()
     const { wallets } = useWallets()
     const { authenticated } = usePrivy(); 
     const [status, setStatus] = useState<Status>()
@@ -62,7 +62,7 @@ export default function Page() {
       if (addressPowers) {
         fetchPowers(addressPowers as `0x${string}`)
       }
-    }, [addressPowers, fetchPowers]) // updateProposals
+    }, [addressPowers, fetchPowers]) // updateProposals 
 
     return (
       <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">

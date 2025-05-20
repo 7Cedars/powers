@@ -1,11 +1,17 @@
 "use client";
 
 import { CalendarDaysIcon, CheckIcon, QueueListIcon, UserGroupIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { parseRole, shorterDescription } from "@/utils/parsers";
+import { parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
 import { useParams, useRouter } from "next/navigation";
-import { Checks, Law, Powers, Status } from "@/context/types";
-import { useActionStore } from "@/context/store";
+import { Action, Checks, Law, LawExecutions, Powers, Proposal, Status } from "@/context/types";
+import { setAction, useActionStore } from "@/context/store";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useCallback } from "react";
+import { powersAbi } from "@/context/abi";
+import { readContract } from "@wagmi/core";
+import { wagmiConfig } from "@/context/wagmiConfig";
+import { decodeAbiParameters, parseAbiParameters } from "viem";
+
 const roleColour = [  
   "blue-600", 
   "red-600", 
@@ -23,7 +29,7 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
   const action = useActionStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  // console.log("@ChecksBox, waypoint 1, law box:", {law, checks, powers})
+  console.log("@ChecksBox: waypoint 0", {checks, law, status, action})
 
   return (
     <section 
@@ -56,13 +62,15 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
 
         {/* proposal passed */}
         {law?.conditions?.quorum != 0n && 
-          <div className = "w-full flex flex-col justify-center items-center p-2"> 
+          <div className = "w-full flex flex-col justify-center items-center p-2 py-3"> 
             <div className = "w-full flex flex-row px-2 justify-between items-center">
               { checks?.proposalPassed ? 
                 <>
                   <CheckIcon className="w-4 h-4 text-green-600"/> 
-                  <UserGroupIcon className="w-4 h-4 text-slate-700"/>
-                  Proposal passed
+                  <div className = "flex flex-row gap-2">
+                    <UserGroupIcon className="w-5 h-5 text-slate-700"/>
+                    Proposal passed
+                  </div>
                 </>
                 : 
                 checks?.proposalExists ?
@@ -81,17 +89,22 @@ export const ChecksBox = ({powers, law, checks, status}: {powers: Powers, law: L
               }
               
             </div>
-            <div className = "w-full flex flex-row px-2 py-1">
-              <button 
-                className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(law?.conditions?.allowedRole)]} disabled:opacity-50`}
-                onClick = {() => router.push(`/${chainId}/${powers?.contractAddress}/proposals/${checks?.proposalExists ? action?.actionId : `new`}`)}
-                disabled = { checks?.proposalExists && checks?.authorised == false && checks?.lawCompleted == false && checks?.lawNotCompleted == false }
-                >
-                <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1  px-2 py-1`}>
-                {shorterDescription(law?.nameDescription, "short")}
-                </div>
-              </button>
+            {!checks?.proposalExists && 
+            <div className = "w-full flex flex-row p-2">
+              
+                <button 
+                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border border-${roleColour[parseRole(law?.conditions?.allowedRole)]} disabled:opacity-50`}
+                  onClick = {
+                    () => router.push(`/${chainId}/${powers?.contractAddress}/proposals/new`)
+                  }
+                  disabled = { checks?.proposalExists && checks?.authorised == false && checks?.lawCompleted == false && checks?.lawNotCompleted == false }
+                  >
+                  <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1  px-2 py-1`}>
+                  {shorterDescription(law?.nameDescription, "short")}
+                  </div>
+                </button>
             </div>
+            }
           </div> 
         }
 

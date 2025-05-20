@@ -211,7 +211,7 @@ abstract contract TestHelpers is Test, TestVariables {
 
 abstract contract BaseSetup is TestVariables, TestHelpers {
     function setUp() public virtual {
-        vm.warp(block.timestamp + 10);
+        vm.roll(block.number + 10);
         setUpVariables();
         // run laws deploy script here.
     }
@@ -294,7 +294,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.warp(block.timestamp + 4000);
+        vm.roll(block.number + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1), // should be last selected law. As laws start counting at 1, this should be the last law.
             abi.encode(),
@@ -321,7 +321,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.warp(block.timestamp + 4000);
+        vm.roll(block.number + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -346,7 +346,7 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // // assign Roles
-        vm.warp(block.timestamp + 4000);
+        vm.roll(block.number + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -371,7 +371,7 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // // assign Roles
-        vm.warp(block.timestamp + 4000);
+        vm.roll(block.number + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
@@ -396,7 +396,7 @@ abstract contract TestSetupIntegrations is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        // vm.warp(block.timestamp + 4000);
+        // vm.roll(block.number + 4000);
         // daoMock.request(
         //     uint16(lawInitData_.length - 1),
         //     abi.encode(),
@@ -422,7 +422,7 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
         daoMock.constitute(lawInitData_);
 
         // assign Roles
-        vm.warp(block.timestamp + 4000);
+        vm.roll(block.number + 4000);
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),

@@ -13,6 +13,8 @@ import { useParams } from "next/navigation";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains, useBlockNumber } from "wagmi";
 import { Button } from "@/components/Button";
+import { useBlocks } from "@/hooks/useBlocks";
+import { toFullDateFormat } from "@/utils/toDates";
 
 const roleColour = [  
   "border-blue-600", 
@@ -33,13 +35,11 @@ export default function Page() {
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
   })
-
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
   const [roleInfo, setRoleInfo ] = useState<Role[]>()
-  const { data:blockNumber } = useBlockNumber()
+  const { data: blocks, fetchBlocks } = useBlocks()
 
-  // console.log("@role page: ", {powers, roleInfo})
   useEffect(() => {
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
@@ -47,77 +47,34 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
 
   // ANd this one does not work anymore... 
-  const getRolesSet = async () => {
-      if (publicClient && roleId) {
-        try {
-          const logs = await publicClient.getContractEvents({ 
-            address: addressPowers as `0x${string}`,
-            abi: powersAbi, 
-            eventName: 'RoleSet',
-            fromBlock: 0n, // supportedChain?.genesisBlock,
-            args: {
-              roleId: BigInt(roleId),
-              access: true
-            },
-          })
-          const fetchedLogs = parseEventLogs({
+  const getRoleSince = async (roles: Role[]) => {
+      let role: Role; 
+      let rolesWithSince: Role[] = []; 
+
+      try {
+        for await (role of roles) {
+          const fetchedSince = await readContract(wagmiConfig, {
             abi: powersAbi,
-            eventName: 'RoleSet',
-            logs
+            address: addressPowers as `0x${string}`,
+            functionName: 'hasRoleSince', 
+            args: [role.account, role.roleId]
           })
-          // console.log("@getRolesSet: ", {fetchedLogs})
-          const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
-          // console.log("@getRolesSet: ", {fetchedLogsTyped})
-          const rolesSet: Role[] = fetchedLogsTyped.map(log => log.args as Role)
-          return rolesSet
+          rolesWithSince.push({...role, since: fetchedSince as number})
+          }
+          return rolesWithSince
         } catch (error) {
-            setStatus("error") 
-            setError(error)
-        } 
-      }
-    }
+          setStatus("error") 
+          setError(error)
+        }
+  } 
 
-    const getRoleSince = async (roles: Role[]) => {
-        let role: Role; 
-        let rolesWithSince: Role[] = []; 
-  
-        // if (publicClientArbitrumSepolia || publicClientSepolia) {
-          // const publicClient = publicClientArbitrumSepolia || publicClientSepolia
-          try {
-            for await (role of roles) {
-              const fetchedSince = await readContract(wagmiConfig, {
-                abi: powersAbi,
-                address: addressPowers as `0x${string}`,
-                functionName: 'hasRoleSince', 
-                args: [role.account, role.roleId]
-              })
-              rolesWithSince.push({...role, since: fetchedSince as number})
-              }
-              return rolesWithSince
-            } catch (error) {
-              setStatus("error") 
-              setError(error)
-            }
-        // }
-    } 
+  // useEffect(() => {
+  //   if (powers?.roleHoldersBlocksFetched?.from && powers?.roleHoldersBlocksFetched?.to) {
+  //     fetchBlocks([BigInt(powers?.roleHoldersBlocksFetched?.from), BigInt(powers?.roleHoldersBlocksFetched?.to)])
+  //   }
+  // }, [ ])
 
-    const fetchRoleInfo = useCallback(
-      async () => {
-        setError(null)
-        setStatus("pending")
-
-        const rolesSet = await getRolesSet() 
-        const roles = rolesSet ? await getRoleSince(rolesSet) : []
-
-        // console.log("@fetchRoleInfo: ", {roles, rolesSet})
-
-        setRoleInfo(roles) 
-        setStatus("success")
-      }, [])
-  
-    useEffect(() => {
-      fetchRoleInfo()
-    }, [])
+  console.log("@role page: ", {powers, blocks} )
 
   return (
     <main className={`w-full flex flex-col justify-start items-center overflow-hidden pt-20 px-2`}>
@@ -161,19 +118,16 @@ export default function Page() {
       </div>
 
       <div className="py-2 pt-6 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic text-center"> 
-        {powers && powers.proposalsFetched ?  
+        {powers && powers.roleHoldersBlocksFetched && blocks ?  
           <>
             <p>
-              Blocks between {Number(powers?.proposalsFetched[0].from)} and {Number(powers?.proposalsFetched[powers?.proposalsFetched.length - 1].to)} have been fetched.
-            </p>
-            <p>
-              The current block is {Number(blockNumber)}.
+              Blocks between {toFullDateFormat(Number(blocks?.[0]?.timestamp))} and {toFullDateFormat(Number(blocks?.[1]?.timestamp))} have been fetched.
             </p>
           </>
          : 
           <div className="py-2 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic"> 
             <p>
-              No proposals have been fetched yet.
+              No role holders have been fetched yet.
             </p>
           </div>
         }

@@ -132,11 +132,11 @@ contract EndElection is Law {
 
         (mem.startElection, mem.endElection, mem.electionDescription) = abi.decode(lawCalldata, (uint48, uint48, string));
         // check if election has started
-        if (block.timestamp < mem.startElection) {
+        if (block.number < mem.startElection) {
             revert("Election not open.");
         }
         // check if election has ended
-        if (block.timestamp < mem.endElection) {
+        if (block.number < mem.endElection) {
             revert("Election has not ended.");
         }
 

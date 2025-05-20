@@ -149,8 +149,8 @@ contract ProposeTest is TestSetupPowers {
             lawId,
             "",
             lawCalldata,
-            block.timestamp,
-            block.timestamp + conditions.votingPeriod,
+            block.number,
+            block.number + conditions.votingPeriod,
             nonce,
             description
         );
@@ -183,7 +183,7 @@ contract ProposeTest is TestSetupPowers {
                 (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
-        assertEq(daoMock.getProposedActionDeadline(actionId), block.timestamp + conditions.votingPeriod);
+        assertEq(daoMock.getProposedActionDeadline(actionId), block.number + conditions.votingPeriod);
     }
 }
 
@@ -271,7 +271,7 @@ contract CancelTest is TestSetupPowers {
                 daoMock.castVote(actionId, FOR);
             }
         }
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
@@ -329,7 +329,7 @@ contract VoteTest is TestSetupPowers {
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: go forward in time without votes
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -348,7 +348,7 @@ contract VoteTest is TestSetupPowers {
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: defeat proposal by going beyond voting period
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // act: try to vote
         vm.expectRevert(Powers__ProposedActionNotActive.selector);
@@ -376,7 +376,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -403,7 +403,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -430,7 +430,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // act: go forward in time
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // assert
         ActionState actionState = daoMock.state(actionId);
@@ -708,7 +708,7 @@ contract ExecuteTest is TestSetupPowers {
         }
 
         // prep: advance time past voting period
-        vm.warp(block.timestamp + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + 1);
 
         // prep: verify proposal is defeated
         ActionState actionState = daoMock.state(actionId);

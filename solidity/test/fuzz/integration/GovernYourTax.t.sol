@@ -98,7 +98,7 @@ pragma solidity 0.8.26;
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         // role forward in time.
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (quorumReached && voteSucceeded) {
 //             console.log("step 0 action: eve EXECUTES and creates new grant. Budget: ", seed);
 //             vm.expectEmit(true, false, false, false);
@@ -148,7 +148,7 @@ pragma solidity 0.8.26;
 //             voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //             console.log("step 1 results: ", quorumReached, voteSucceeded);
 //             // // role forward in time.
-//             vm.warp(block.timestamp + votingPeriod + 1);
+//             vm.roll(block.number + votingPeriod + 1);
 //             if (quorumReached && voteSucceeded) { // at the fourth step budget will be exhausted.
 //                 console.log("step 1 action: bob EXECUTES and thus formally proposes request to the grant");
 //                 vm.expectEmit(true, false, false, false);
@@ -191,7 +191,7 @@ pragma solidity 0.8.26;
 //             voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //             console.log("step 2 results: ", quorumReached, voteSucceeded, (seed % 350) * (i + 1));
 //             // // role forward in time.
-//             vm.warp(block.timestamp + votingPeriod + 1);
+//             vm.roll(block.number + votingPeriod + 1);
 //             if (
 //                 quorumReached &&
 //                 voteSucceeded &&
@@ -214,7 +214,7 @@ pragma solidity 0.8.26;
 
 //             // step 3: stopping grant
 //             if (
-//                 Grant(grantAddress).expiryBlock() < block.timestamp ||
+//                 Grant(grantAddress).expiryBlock() < block.number ||
 //                 Grant(grantAddress).budget() == Grant(grantAddress).spent()
 //             ) {
 //                 vm.expectEmit(true, false, false, false);
@@ -284,7 +284,7 @@ pragma solidity 0.8.26;
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         // role forward in time.
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (quorumReached && voteSucceeded) {
 //             console.log("step 0 action: alice EXECUTES and stops law.");
 //             vm.expectEmit(true, false, false, false);
@@ -303,7 +303,7 @@ pragma solidity 0.8.26;
 //         vm.assume(quorumReached && voteSucceeded);
 
 //         // making proposal
-//         vm.warp(block.timestamp +  10);
+//         vm.roll(block.number +  10);
 //         vm.prank(charlotte); // has role 3
 //         actionId = governYourTax.propose(
 //             laws[4],
@@ -325,7 +325,7 @@ pragma solidity 0.8.26;
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         // role forward in time.
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (quorumReached && voteSucceeded) {
 //             console.log("step 1 action: bob EXECUTES and restarts law.");
 //             vm.expectEmit(true, false, false, false);
@@ -388,7 +388,7 @@ pragma solidity 0.8.26;
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         // role forward in time.
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (quorumReached && voteSucceeded) {
 //             console.log("step 0 action: alice EXECUTES and mints tokens.");
 //             vm.expectEmit(true, false, false, false);
@@ -428,7 +428,7 @@ pragma solidity 0.8.26;
 //         quorumReached = roleCount * quorum <= (forVote + abstainVote) * 100;
 //         voteSucceeded = roleCount * succeedAt <= forVote * 100;
 //         // role forward in time.
-//         vm.warp(block.timestamp + votingPeriod + 1);
+//         vm.roll(block.number + votingPeriod + 1);
 //         if (
 //             quorumReached &&
 //             voteSucceeded &&
@@ -498,7 +498,7 @@ pragma solidity 0.8.26;
 
 //         // let users claim - outcome conditional.
 //         i = 0;
-//         vm.warp(block.timestamp + 25 + 1); // 25 is 1 epoch
+//         vm.roll(block.number + 25 + 1); // 25 is 1 epoch
 //         for (i; i < users.length; i++) {
 //             description = "claiming role!";
 //             lawCalldata = abi.encode(false, users[i]);
@@ -562,8 +562,8 @@ pragma solidity 0.8.26;
 //         description = "Alice calls an election.";
 //         lawCalldata = abi.encode(
 //             "This is a test election.", // description of the actual election.
-//             uint48(block.timestamp + 1), // start vote
-//             uint48(block.timestamp + 100) // end vote.
+//             uint48(block.number + 1), // start vote
+//             uint48(block.number + 100) // end vote.
 //         );
 //         vm.prank(alice); // = security
 //         governYourTax.execute(laws[9], lawCalldata, description);
@@ -571,8 +571,8 @@ pragma solidity 0.8.26;
 //         address electionVotesAddress = ElectionCall(laws[9]).getVoteOnAccountsAddress(
 //             1, // voter role id
 //             laws[8], // nominees
-//             uint48(block.timestamp + 1), // start vote
-//             uint48(block.timestamp + 100), // end vote
+//             uint48(block.number + 1), // start vote
+//             uint48(block.number + 100), // end vote
 //             "This is a test election."
 //         );
 
@@ -600,8 +600,8 @@ pragma solidity 0.8.26;
 //                 governYourTax.canCallLaw(votingUser, electionVotesAddress) &&
 //                 !hasVoted[votingUser] &&
 //                 NominateMe(laws[8]).nominees(userReceivingVote) != 0 &&
-//                 block.timestamp > VoteOnAccounts(electionVotesAddress).startVote() &&
-//                 block.timestamp < VoteOnAccounts(electionVotesAddress).endVote()
+//                 block.number > VoteOnAccounts(electionVotesAddress).startVote() &&
+//                 block.number < VoteOnAccounts(electionVotesAddress).endVote()
 //             ) {
 //                 console.log("action: user is voting.");
 //                 vm.expectEmit(true, false, false, false);
@@ -634,8 +634,8 @@ pragma solidity 0.8.26;
 //         // step 2: tally election - see if correct people have been assigned.
 //         description = "Alice calls an election.";
 //         vm.warp((seed1 + seed2) % 200); // should succeed in about 50% of runs.
-//         console.log("block number: ", block.timestamp);
-//         if ( block.timestamp >= VoteOnAccounts(electionVotesAddress).endVote() ) {
+//         console.log("block number: ", block.number);
+//         if ( block.number >= VoteOnAccounts(electionVotesAddress).endVote() ) {
 //             vm.expectEmit(true, false, false, false);
 //             emit PowersEvents.ActionRequested(
 //                 alice, // has role 1
@@ -660,7 +660,7 @@ pragma solidity 0.8.26;
 //             }
 
 //         // only continue if tally law was called.
-//         vm.assume( block.timestamp > VoteOnAccounts(electionVotesAddress).endVote() );
+//         vm.assume( block.number > VoteOnAccounts(electionVotesAddress).endVote() );
 
 //         uint256 numNominees = NominateMe(laws[8]).nomineesCount();
 //         for (uint256 i = 0; i < numNominees; i++) {

@@ -118,7 +118,7 @@ abstract contract Law is ERC165, ILaw {
             _replyPowers(lawId, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right?
         }
         // save execution data
-        laws[lawHash].executions.executions.push(uint48(block.timestamp)); // NB: timestamp, not block.number. It is far from ideal, but the only thing that is usable with Arbitrum. 
+        laws[lawHash].executions.executions.push(uint48(block.number)); //  
         laws[lawHash].executions.actionsIds.push(actionId);
 
         return true;

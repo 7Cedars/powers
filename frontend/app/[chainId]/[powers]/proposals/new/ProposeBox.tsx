@@ -33,19 +33,13 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   const {status: statusProposals, error, transactionHash, propose} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("@ProposeBox, waypoint 1", {law, powers, proposalExists, authorised})
-
-  useEffect(() => {
-    if (statusProposals == "success") {
-      router.push(`/${chainId}/${powers.contractAddress}/proposals`)
-    }
-  }, [statusProposals, simulation])
+  console.log("@ProposeBox, waypoint 1", {law, powers, proposalExists, authorised, action})
 
   useEffect(() => {
     simulate(
       action.caller,
       action.callData,
-      action.nonce,
+      BigInt(action.nonce),
       law as Law
     )
   }, [law, action])
@@ -74,9 +68,16 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
         }
         {/* nonce */}
         <div className="w-full mt-4 flex flex-row justify-center items-start px-6 pb-4">
-          <label htmlFor="nonce" className="block min-w-20 text-sm/6 font-medium text-slate-600 pb-1">Nonce</label>
+          <label htmlFor="nonce" className="min-w-20 w-fit text-sm/6 font-medium text-slate-600 pb-1">Nonce</label>
           <div className="w-full h-8 flex items-center pe-2 pl-3 text-slate-600 placeholder:text-gray-400 bg-slate-100 rounded-md outline outline-1 outline-gray-300 sm:text-sm">
-            <input type="text" name="nonce" id="nonce" value={action.nonce.toString()} disabled={true} />
+          <input 
+              type="text" 
+              name="nonce"
+              className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"  
+              id="nonce" 
+              value={action.nonce.toString()}
+              disabled={true}
+              />
           </div>
         </div>
         {/* reason */}
@@ -106,7 +107,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
               onClick={() => propose(
                 law?.index as bigint, 
                 action.callData, 
-                action.nonce,
+                BigInt(action.nonce),
                 action.uri,
                 powers as Powers
               )} 

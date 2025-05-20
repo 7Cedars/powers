@@ -1,37 +1,50 @@
 // ok, what does this need to do? 
 
 import { Status } from "@/context/types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { GetBlockReturnType } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { getBlock } from "wagmi/actions";
+import { parseChainId } from "@/utils/parsers";
 
-export const useBlocks = (blockNumbers: bigint[]) => {
+export const useBlocks = (blockNumbers: bigint[] | undefined, chainId: string | undefined) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [data, setData] = useState<GetBlockReturnType[]>()
-  
-   const fetchBlocks = async (blockNumbers: bigint[]) => {
+
+  console.log("@useBlocks, data: ", data, blockNumbers, chainId)
+
+  const fetchBlocks = async (blockNumbers: bigint[], chainId: string) => {
     setStatus("pending")
+    console.log("@useBlocks, fetching blocks: ", blockNumbers, chainId)
 
     let blockNumber: bigint
     let blocks: GetBlockReturnType[] = [] 
 
     for await (blockNumber of blockNumbers) {
         try {
-            // console.log("@useAssets, fetching token: ", token) 
+            console.log("@useBlocks, fetching block: ", blockNumber, chainId) 
             const block = await getBlock(wagmiConfig, {
-                blockNumber: blockNumber
+                blockNumber: BigInt(blockNumber),
+                chainId: parseChainId(chainId)
             })
+            console.log("@useBlocks, fetched block: ", block)
             blocks.push(block as GetBlockReturnType)
         } catch (error) {
+            console.log("@useBlocks, error: ", error)
             setStatus("error") 
             setError({error})
         }
     } 
     setData(blocks)
     setStatus("success")
-  }
+    }
+
+    useEffect(() => {
+      if (blockNumbers && chainId && status === "idle") {
+        fetchBlocks(blockNumbers, chainId)
+      }
+    }, [blockNumbers, chainId, status])
 
   return {status, error, data, fetchBlocks }
 }

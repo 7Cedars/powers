@@ -21,18 +21,13 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
-  const {data: blocks, fetchBlocks} = useBlocks([])
+  const { data: blocks } = useBlocks(powers?.proposals?.map(proposal => BigInt(proposal.voteEnd)), chainId)
+
+  console.log("powers: ", powers)
 
   useEffect(() => {
     if (powers) {
       getProposalsState(powers)
-    }
-  }, [powers])
-
-  useEffect(() => {
-    if (powers) {
-      const proposalBlocks = powers.proposals?.map(proposal => proposal.voteEnd)
-      proposalBlocks ? fetchBlocks(proposalBlocks) : fetchBlocks([])
     }
   }, [powers])
 
@@ -112,7 +107,7 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
             <tr className="w-96 text-xs font-light text-left text-slate-500">
                 <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
                 <th className="font-light"> Law </th>
-                <th className="font-light"> Uri </th>
+                <th className="font-light min-w-44"> Uri Description </th>
                 <th className="font-light"> Status </th>
                 <th className="font-light"> Role </th>
             </tr>
@@ -132,7 +127,7 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                   key={i}
                   className={`text-sm text-left text-slate-800 h-full w-full p-2 overflow-x-scroll`}
                 >
-                  <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center text-left py-3 px-4">
+                  <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center py-3 px-4">
                       <Button
                         showBorder={true}
                         role={parseRole(law.conditions?.allowedRole)}
@@ -141,8 +136,8 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                         }}
                         align={0}
                         selected={true}
-                      > <div className = "flex flex-row gap-3 w-full min-w-48">
-                        {`${toFullDateFormat(Number(blocks?.[i].timestamp))}: ${toEurTimeFormat(Number(blocks?.[i].timestamp))}`}
+                      > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center">
+                          {`${toFullDateFormat(Number(blocks?.reverse()[i]?.timestamp || proposal.voteEnd))}: ${toEurTimeFormat(Number(blocks?.reverse()[i]?.timestamp || proposal.voteEnd))}`} 
                         </div>
                       </Button>
                   </td>
