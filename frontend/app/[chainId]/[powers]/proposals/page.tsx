@@ -9,56 +9,57 @@ import { Button } from "@/components/Button";
 import { Powers } from "@/context/types";
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
-  const { powers, fetchProposals, status } = usePowers()
-
-  console.log("@status: ", status)
-  
+  const { powers, fetchPowers, fetchProposals, status } = usePowers()
   const { data:blockNumber } = useBlockNumber()
-  // useEffect(() => {
-  //   if (addressPowers) {
-  //     fetchPowers() // addressPowers as `0x${string}`
-  //   }
-  // }, [addressPowers, fetchPowers])
 
-  powers && powers.proposalsFetched && console.log("@proposals: waypoint 1", powers?.proposalsFetched[0].from, powers?.proposalsFetched[powers?.proposalsFetched.length - 1].to)
+  console.log("@status: ", status, blockNumber)
+
+  useEffect(() => {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [addressPowers, fetchPowers])
+
+  powers && powers.proposalsBlocksFetched && console.log("@proposals: waypoint 1", powers?.proposalsBlocksFetched.from, powers?.proposalsBlocksFetched.to)
 
   return (
     <main className="w-full h-fit flex flex-col justify-start items-center py-20 px-2">
-      <ProposalList powers={powers} onUpdateProposals={() => {}} status={status} />
+      <ProposalList powers={powers} status={status} />
       {/* block number */}
-   
       
       <div className="py-2 pt-6 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic text-center"> 
-        {powers && powers.proposalsFetched ?  
+        {powers && powers.proposalsBlocksFetched && Number(powers?.proposalsBlocksFetched?.to) < Number(blockNumber) ?  
           <>
             <p>
-              Blocks between {Number(powers?.proposalsFetched[0].from)} and {Number(powers?.proposalsFetched[powers?.proposalsFetched.length - 1].to)} have been fetched.
-            </p>
-            <p>
-              The current block is {Number(blockNumber)}.
+              {Number(blockNumber) - Number(powers?.proposalsBlocksFetched.to)} blocks have not been fetched yet.
             </p>
           </>
          : 
           <div className="py-2 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic"> 
             <p>
-              No proposals have been fetched yet.
+              Proposals are up to date.
             </p>
           </div>
         }
       </div>
 
       <div className="py-2 w-full max-w-xl h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic"> 
-        <Button
-          size={1}
-          showBorder={true}
-          filled={true}
-          onClick={() => {
-            fetchProposals(powers as Powers, 10)
-          }}
-          statusButton={status}
+        {
+          !powers?.proposalsBlocksFetched?.to || Number(powers?.proposalsBlocksFetched?.to) < Number(blockNumber) ? 
+          <Button
+            size={1}
+            showBorder={true}
+            filled={true}
+            onClick={() => {
+              fetchProposals(powers as Powers, 10n, 9000n)
+            }}
+          statusButton={status == "success" ? "idle" : status}
         >
           Fetch Proposals
         </Button>
+        :
+        null 
+      }
       </div>
 
     </main>

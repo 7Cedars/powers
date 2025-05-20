@@ -106,7 +106,7 @@ contract Powers is EIP712, IPowers {
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
     /// @dev No access control on this function: anyone can send funds in native currency into the contract.
     receive() external payable virtual {
-        deposits[msg.sender].push(Deposit(msg.value, uint48(block.timestamp)));
+        deposits[msg.sender].push(Deposit(msg.value, uint48(block.number)));
         emit FundsReceived(msg.value);
     }
 
@@ -232,7 +232,7 @@ contract Powers is EIP712, IPowers {
         Action storage proposedAction = _actions[actionId];
         proposedAction.lawCalldata = lawCalldata;
         proposedAction.lawId = lawId;
-        proposedAction.voteStart = uint48(block.timestamp); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
+        proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
         proposedAction.voteDuration = conditions.votingPeriod;
         proposedAction.caller = caller;
         proposedAction.uri = uriAction;
@@ -244,8 +244,8 @@ contract Powers is EIP712, IPowers {
             lawId,
             "",
             lawCalldata,
-            block.timestamp,
-            block.timestamp + conditions.votingPeriod,
+            block.number,
+            block.number + conditions.votingPeriod,
             nonce,
             uriAction
         );
@@ -352,15 +352,6 @@ contract Powers is EIP712, IPowers {
         emit LawRevoked(lawId);
     }
 
-    /// @inheritdoc IPowers
-    function reviveLaw(uint16 lawId) public onlyPowers {
-        if (laws[lawId].active == true) revert Powers__LawAlreadyActive();
-        if (lawCount <= lawId) revert Powers__LawDoesNotExist();
-
-        laws[lawId].active = true;
-        emit LawRevived(lawId);
-    }
-
     /// @notice internal function to set a law or revoke it.
     ///
     /// @param lawInitData data of the law.
@@ -418,7 +409,7 @@ contract Powers is EIP712, IPowers {
         if (account == address(0)) revert Powers__CannotAddZeroAddress();
 
         if (access) {
-            roles[roleId].members[account] = uint48(block.timestamp); // 'since' is set at current block.timestamp
+            roles[roleId].members[account] = uint48(block.number); // 'since' is set at current block.number
             if (newMember) {
                 roles[roleId].amountMembers++;
             }
@@ -540,7 +531,7 @@ contract Powers is EIP712, IPowers {
 
         uint256 deadline = getProposedActionDeadline(actionId);
 
-        if (deadline >= block.timestamp) {
+        if (deadline >= block.number) {
             return ActionState.Active;
         } else if (!_quorumReached(actionId) || !_voteSucceeded(actionId)) {
             return ActionState.Defeated;

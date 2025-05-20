@@ -24,13 +24,14 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
     chainId: parseChainId(chainId), 
   })
 
-  console.log("@Executions: ", {executions, law, status})
+  console.log("@Executions: waypoint 0", {executions, law, status})
 
   // console.log("@Executions: ", {executions, law, status})
 // THIS HAS TO BE REFACTORED. Use read contract, _actions . This needs a getter function! 
   const handleExecutionSelection = useCallback(
-    async (index: number) => {
-    console.log("@Executions: handleExecutionSelection: ", {executions, law, index})
+    async (executions: LawExecutions, index: number) => {
+    console.log("@Executions: waypoint 1", {executions, law, status})
+    
     if (executions) {
       try {
         const lawCalldata = await readContract(wagmiConfig, {
@@ -39,7 +40,6 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           functionName: 'getActionCalldata',
           args: [executions.actionsIds[index]]
         })  
-        console.log("@Executions: lawCalldata: ", {lawCalldata})
 
         const actionUri = await readContract(wagmiConfig, {
           abi: powersAbi,
@@ -47,7 +47,6 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           functionName: 'getActionUri',
           args: [executions.actionsIds[index]]
         })
-        console.log("@Executions: actionUri: ", {actionUri})
         
         const actionNonce = await readContract(wagmiConfig, {
           abi: powersAbi,
@@ -55,16 +54,21 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           functionName: 'getActionNonce',
           args: [executions.actionsIds[index]]
         })
-        console.log("@Executions: actionNonce: ", {actionNonce})
+
+        console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})
 
         if (lawCalldata && actionUri && actionNonce) {
-          console.log("@Executions: checks passed")
+          console.log("@Executions: waypoint 3")
+
           let dataTypes = law?.params?.map(param => param.dataType)
           let valuesParsed = undefined
           if (dataTypes != undefined && dataTypes.length > 0) {
             const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), lawCalldata as `0x${string}`);
             valuesParsed = parseParamValues(values) 
           }
+
+          console.log("@Executions: waypoint 4")
+
           setAction({
             actionId: String(executions.actionsIds[index]),
             lawId: law?.index,
@@ -76,6 +80,8 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
             callData: lawCalldata as `0x${string}`,
             upToDate: false
           })
+
+          console.log("@Executions: waypoint 5")
         }
       } catch (error) {
         console.log("@Executions: ", error)
@@ -104,7 +110,7 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
                   <Button
                       showBorder={true}
                       role={law?.conditions?.allowedRole != undefined ? parseRole(law.conditions?.allowedRole) : 0}
-                      onClick={() => handleExecutionSelection(index)}
+                      onClick={() => handleExecutionSelection(executions, index)}
                       align={0}
                       selected={false}
                       >  

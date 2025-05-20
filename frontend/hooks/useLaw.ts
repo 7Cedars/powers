@@ -49,13 +49,13 @@ export const useLaw = () => {
             functionName: 'getExecutions', 
             args: [law.powers, law.index]
             })
-          console.log("@fetchExecutions: waypoint 2a", {result})
+          // console.log("@fetchExecutions: waypoint 2a", {result})
           setExecutions(result as unknown as LawExecutions)
           setStatus("success")
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log(error)
+          // console.log(error)
         }
         setStatus("idle")
   }, [ ])
@@ -74,14 +74,14 @@ export const useLaw = () => {
             functionName: 'handleRequest', 
             args: [caller, law.powers, law.index, lawCalldata, nonce]
             })
-          console.log("@simulate: waypoint 2a", {result})
-          console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
+          // console.log("@simulate: waypoint 2a", {result})
+          // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log(error)
+          // console.log(error)
         }
         setStatus("idle")
   }, [ ])
@@ -93,7 +93,7 @@ export const useLaw = () => {
       nonce: bigint,
       description: string
     ) => {
-        console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
+        // console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
         setError(null)
         setStatus("pending")
         try {
@@ -104,20 +104,20 @@ export const useLaw = () => {
             args: [law.index, lawCalldata, nonce, description]
           })
 
-          console.log("@execute: waypoint 1", {request})
+          // console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          console.log("@execute: waypoint 2", {client})
+          // console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            console.log("@execute: waypoint 3", {request})
+            // console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
-            console.log("@execute: waypoint 4", {result})
+            // console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log("@execute: waypoint 5", {error}) 
+          // console.log("@execute: waypoint 5", {error}) 
       }
   }, [ ])
 

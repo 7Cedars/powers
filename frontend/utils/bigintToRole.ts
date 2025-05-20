@@ -1,7 +1,7 @@
 import { Powers } from "@/context/types";
 
 export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
-  console.log("@bigintToRole: waypoint 0", {roleId, powers})
+  // console.log("@bigintToRole: waypoint 0", {roleId, powers})
 
   let roleIds: bigint[] = [] 
   

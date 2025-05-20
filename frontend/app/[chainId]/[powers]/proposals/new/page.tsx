@@ -16,17 +16,23 @@ const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()  
-  const {checks, fetchChecks, checkActionStatus, status: statusChecks} = useChecks(powers as Powers);
+  const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
 
-  console.log("Proposals/new: ", {powers, law, checks})
+  console.log("Proposals/new: ", {powers, law, checks, action})
 
   useEffect(() => {
-    if (statusChecks == "idle" && powers) {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`) 
+    }
+  }, [addressPowers, fetchPowers])
+
+  useEffect(() => {
+    if (law && action) {
       fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
     }
-  }, [, statusChecks, powers])
+  }, [ law, action])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll">
@@ -38,7 +44,7 @@ const Page = () => {
 
         {/* left panel  */}
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-        { powers && <ProposeBox 
+        { powers && law && <ProposeBox 
             law = {law} 
             powers = {powers as Powers} 
             proposalExists = {checks?.proposalExists || false} 

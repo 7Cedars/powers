@@ -13,7 +13,7 @@ export const useProposal = () => {
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()
   const [error, setError] = useState<any | null>(null)
-  const { chainId } = useParams<{ chainId: string }>()
+  const { chainId, powers: address } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
   })
@@ -23,28 +23,49 @@ export const useProposal = () => {
   }[]>([])
 
   console.log("@useProposal: ", {proposalsState, status})
+
+    // function to save powers to local storage
+  const savePowers = (powers: Powers) => {
+    let localStore = localStorage.getItem("powersProtocols")
+    const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+    const existing = saved.find(item => item.contractAddress == address)
+    if (existing) {
+      saved.splice(saved.indexOf(existing), 1)
+    }
+    saved.push(powers)
+    localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value,
+    ));
+  }
   
   // Status //
-  const getProposalsState = async (proposals: Proposal[], address: `0x${string}`) => {
+  const getProposalsState = async (powers: Powers) => {
     let proposal: Proposal
+    let oldProposals: Proposal[] = powers.proposals || []
+    let newProposals: Proposal[] = []
     let state: {
       actionId: string,
       state: number
     }[] = []
 
-    if (publicClient) {
+    if (publicClient && powers.proposals) {
       try {
-        for await (proposal of proposals) {
+        for await (proposal of oldProposals) {
           if (proposal?.actionId) {
-              const fetchedState = await readContract(wagmiConfig, {
+            let fetchedState: any
+            if (proposal.state != 5) { // proposal.state != 2 && 
+              fetchedState = await readContract(wagmiConfig, {
                 abi: powersAbi,
-                address: address,
+                address: powers.contractAddress as `0x${string}`,
                 functionName: 'state', 
                 args: [proposal.actionId]
               })
-              state.push({actionId: proposal.actionId.toString(), state: Number(fetchedState)}) // = 5 is a non-existent state
+              proposal.state = Number(fetchedState)
             }
+          }
+          newProposals.push(proposal)
         } 
+        savePowers({...powers, proposals: newProposals})
         setProposalsState(state)
       } catch (error) {
         setStatus("error") 

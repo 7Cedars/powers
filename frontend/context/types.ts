@@ -128,7 +128,9 @@ export type Powers = {
   laws?: Law[];
   activeLaws?: Law[];
   proposals?: Proposal[];
-  proposalsFetched?: BlockRange[];
+  proposalsBlocksFetched?: BlockRange;
+  roleHolders?: Role[];
+  roleHoldersBlocksFetched?: BlockRange;
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   deselectedRoles?: bigint[];
@@ -179,7 +181,7 @@ export type Proposal = {
   action?: Action;
   caller: `0x${string}`;
   lawId: bigint;
-  nonce: bigint;
+  nonce: string;
   voteStart: bigint;
   voteDuration: bigint;
   voteEnd: bigint;

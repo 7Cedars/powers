@@ -28,7 +28,7 @@ export default function Page() {
     const chains = useChains()
     const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
     
-    console.log("@home:", {chains, supportedChain})
+    // console.log("@home:", {chains, supportedChain, powers})
 
     const fetchMyRoles = useCallback(
       async (account: `0x${string}`, roles: bigint[]) => {
@@ -103,8 +103,8 @@ export default function Page() {
         {/* main body  */}
         <section className="w-full lg:max-w-full h-full flex max-w-3xl lg:flex-row flex-col-reverse justify-end items-start">
           {/* left / bottom panel  */}
-          <div className = {"w-full min-h-fit pb-16"}>
-            <Overview powers = {powers} onUpdatePowers = {() => {fetchPowers(addressPowers as `0x${string}`)}} status = {statusPowers} /> 
+          <div className = {"w-full min-h-fit pb-16"}>  
+            <Overview powers = {powers} status = {statusPowers} /> 
           </div>
           {/* right / top panel  */} 
           <div className = {"w-full pb-2 flex flex-wrap flex-col lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:flex-col lg:overflow-hidden lg:ps-2 gap-3 overflow-y-hidden overflow-x-scroll scroll-snap-x"}> 

@@ -10,16 +10,31 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useProposal } from "@/hooks/useProposal";
+import { useBlocks } from "@/hooks/useBlocks";
 
 // NB: need to delete action from store? Just in case? 
-export function ProposalList({powers, onUpdateProposals, status}: {powers: Powers | undefined, onUpdateProposals: () => void, status: string}) {
+export function ProposalList({powers, status}: {powers: Powers | undefined, status: string}) {
   const router = useRouter();
+  const {getProposalsState} = useProposal()
   const {deselectedRoles} = useRoleStore()
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
+  const {data: blocks, fetchBlocks} = useBlocks([])
 
-  console.log("@ProposalList: ", {powers})
+  useEffect(() => {
+    if (powers) {
+      getProposalsState(powers)
+    }
+  }, [powers])
+
+  useEffect(() => {
+    if (powers) {
+      const proposalBlocks = powers.proposals?.map(proposal => proposal.voteEnd)
+      proposalBlocks ? fetchBlocks(proposalBlocks) : fetchBlocks([])
+    }
+  }, [powers])
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -97,7 +112,7 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
             <tr className="w-96 text-xs font-light text-left text-slate-500">
                 <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
                 <th className="font-light"> Law </th>
-                <th className="font-light"> Reason </th>
+                <th className="font-light"> Uri </th>
                 <th className="font-light"> Status </th>
                 <th className="font-light"> Role </th>
             </tr>
@@ -127,15 +142,19 @@ export function ProposalList({powers, onUpdateProposals, status}: {powers: Power
                         align={0}
                         selected={true}
                       > <div className = "flex flex-row gap-3 w-full min-w-48">
-                        {`${toFullDateFormat(Number(proposal.voteEnd))}: ${toEurTimeFormat(Number(proposal.voteEnd))}`}
+                        {`${toFullDateFormat(Number(blocks?.[i].timestamp))}: ${toEurTimeFormat(Number(blocks?.[i].timestamp))}`}
                         </div>
                       </Button>
                   </td>
                   <td className="pe-4 text-slate-500 min-w-56">{law.nameDescription}</td>
-                  <td className="pe-4 text-slate-500 min-w-48">{
-                    proposal.description.length > 100 ? `${proposal.description.slice(0, 100)}...` : proposal.description
+                  <a 
+                    href={proposal.description}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pe-4 text-slate-500 min-w-48">{
+                    proposal.description.length > 30 ? `${proposal.description.slice(0, 30)}...` : proposal.description
                   }
-                  </td>
+                  </a>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
                   <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions?.allowedRole, powers)}
                   </td>

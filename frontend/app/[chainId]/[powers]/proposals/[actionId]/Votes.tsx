@@ -8,14 +8,17 @@ import { useBlockNumber, useChains, useReadContracts } from "wagmi";
 import { blocksToHoursAndMinutes } from "@/utils/toDates";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
+import { getConstants } from "@/context/constants";
 
 export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Proposal, powers: Powers | undefined, status: Status}) => {
   // console.log("@Votes: waypoint 0", {proposal, powers})
 
   const { chainId } = useParams<{ chainId: string }>()
+  const { data: blockNumber } = useBlockNumber()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === parseChainId(chainId))
   const law = proposal?.lawId ? powers?.laws?.find(law => law.index == proposal?.lawId) : undefined
+  const constants = getConstants(parseChainId(chainId) as number)
 
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
@@ -47,7 +50,8 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.quorum)) / 100) : 0
   const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
-  const timeStamp = Math.floor(Date.now() / 1000)
+
+  console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline})
 
   return (
       <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-72">
@@ -113,16 +117,15 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
         {/* Vote still active block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
-            { timeStamp <= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
+            { blockNumber && blockNumber <= deadline ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
             <div>
-            { timeStamp >= deadline ? "Vote has closed" : "Vote still active"}
+            { blockNumber && blockNumber >= deadline ? "Vote has closed" : "Vote still active"}
             </div>
           </div>
-          {timeStamp < deadline &&  
+          {blockNumber && blockNumber < deadline &&  
             <div className = "w-full flex flex-row justify-between items-center">
-              Vote will end in 
-              {  blocksToHoursAndMinutes(deadline - timeStamp) }
-            </div>
+              {`Vote will end in ${Math.floor((deadline - Number(blockNumber)) * 60 / constants.BLOCKS_PER_HOUR)} minutes`}
+            </div>  
           }
         </div>
         </div> 

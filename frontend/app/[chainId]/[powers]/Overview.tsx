@@ -10,11 +10,10 @@ import { LoadingBox } from "@/components/LoadingBox";
 
 interface OverviewProps {
   powers: Powers | undefined
-  onUpdatePowers: () => void
   status: string
 }
 
-export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
+export function Overview({powers, status}: OverviewProps) {
   const {deselectedRoles} = useRoleStore()
 
   const handleRoleSelection = (role: bigint) => {
@@ -54,18 +53,6 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
           </Button>
           </div>
       )}
-      {/* {powers && 
-          <button 
-            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => {  onUpdatePowers() }}
-            disabled={status == 'pending'}
-            >
-              <ArrowPathIcon
-                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
-                aria-selected={status == 'pending'}
-                />
-          </button>
-        } */}
     </div>
 
     {/* Overview here  */}

@@ -31,8 +31,6 @@ import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
-
-// config
 import { HelperConfig } from "./HelperConfig.s.sol";
 
 
@@ -45,8 +43,12 @@ contract DeployPowers101 is Script {
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
+    uint256 blocksPerHour;
 
     function run() external returns (address payable powers_) {
+        HelperConfig helperConfig = new HelperConfig();
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
+
         // Deploy the DAO and a mock erc20 votes contract.
         vm.startBroadcast();
         Powers powers = new Powers(
@@ -136,7 +138,7 @@ contract DeployPowers101 is Script {
         inputParams[2] = "bytes[] Calldatas";
 
         conditions.allowedRole = 1;
-        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
         conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
         conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
@@ -165,10 +167,10 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 2;
         conditions.quorum = 50; // = 50% quorum needed
         conditions.succeedAt = 77; // = 77% simple majority needed for executing an action
-        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
         conditions.needCompleted = 4;
         conditions.needNotCompleted = 5;
-        conditions.delayExecution = 50; // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
+        conditions.delayExecution = minutesToBlocks(10); // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
             targetLaw: parseLawAddress(6, "OpenAction"),
@@ -235,5 +237,9 @@ contract DeployPowers101 is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 } 

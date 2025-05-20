@@ -13,21 +13,36 @@ import { InputType, Law, Powers } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
  
 const Page = () => {
   const {wallets, ready} = useWallets();
   const action = useActionStore();;
   const error = useErrorStore()
+  const router = useRouter()
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   
-  const { powers, fetchPowers, status: statusPowers } = usePowers()
+  const { powers, fetchPowers, checkLaws, status: statusPowers } = usePowers()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
-
+  
   console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  
+  useEffect(() => {
+    if (!powers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [powers])
+
+  // check if law is active and if not, redirect to laws page if not active
+  useEffect(() => {
+    console.log("useEffect, checkLaws triggered at Law page:", {law})
+    if (law) {
+      checkLaws(powers as Powers, [law.index])
+    }
+  }, [law])
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       console.log("Handle Simulate called:", {paramValues, nonce})
@@ -56,7 +71,7 @@ const Page = () => {
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: paramValues,
           nonce: nonce,
-          description: description,
+          uri: description,
           callData: lawCalldata,
           upToDate: true
         })
@@ -82,7 +97,7 @@ const Page = () => {
   };
 
   const handleExecute = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      console.log("Handle Execute called:", {paramValues, nonce})
+      // console.log("Handle Execute called:", {paramValues, nonce})
       setError({error: null})
       let lawCalldata: `0x${string}` | undefined
       // console.log("Handle Simulate waypoint 1")
@@ -186,7 +201,7 @@ const Page = () => {
           </div>
             {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
+            <Executions executions = {executions} law = {law} status = {statusLaw}/>
           </div>
         </div>
         

@@ -11,12 +11,12 @@ import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 import { shorterDescription } from "@/utils/parsers";
 
-export function LawList({powers, onUpdatePowers, status}: {powers: Powers | undefined, onUpdatePowers: () => void, status: string}) {
+export function LawList({powers, status}: {powers: Powers | undefined, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("@LawList: ", {deselectedRoles, powers, status})
+  // console.log("@LawList: ", {deselectedRoles, powers, status})
   
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -90,7 +90,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                 key={i}
                 className={`text-sm text-left text-slate-800 h-16 p-2`}
               >
-                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {law.index} </td>
+                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {Number(law.index)} </td>
                 <td className="max-h-12 text-left px-2 min-w-44 max-w-52 overflow-x-scroll">
                   <Button
                     showBorder={true}

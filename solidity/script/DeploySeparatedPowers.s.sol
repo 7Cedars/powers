@@ -41,14 +41,17 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
+import { HelperConfig } from "./HelperConfig.s.sol";
 
 contract DeploySeparatedPowers is Script {
+    HelperConfig helperConfig = new HelperConfig();
     string[] names;
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
-
+    uint256 blocksPerHour;
     function run() external returns (address payable powers_) {
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
         // Deploy the DAO and the taxed ERC20 token
         vm.startBroadcast();
         Powers powers = new Powers(
@@ -97,8 +100,8 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 25; // 25 blocks, about 5 minutes
-        conditions.throttleExecution = 20; // can only be executed once every twenty blocks 
+        conditions.delayExecution = minutesToBlocks(5); // 25 blocks, about 5 minutes
+        conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks 
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Propose new actions: Propose a new action to the DAO that can later be executed by holders.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
@@ -114,7 +117,7 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 50; // 50 blocks, about 10 minutes
+        conditions.delayExecution = minutesToBlocks(10); // 50 blocks, about 10 minutes
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
@@ -130,7 +133,7 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 20; // 20% quorum
         conditions.succeedAt = 66; // 66% majority 
-        conditions.delayExecution = 75; // 75 blocks, about 15 minutes
+        conditions.delayExecution = minutesToBlocks(15); // 75 blocks, about 15 minutes
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that was proposed by subscribers.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
@@ -270,6 +273,10 @@ contract DeploySeparatedPowers is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 }
 

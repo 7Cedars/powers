@@ -27,7 +27,7 @@ const roleColour = [
 export default function Page() {
   const { chainId } = useParams<{ chainId: string }>()
   const { powers: addressPowers, roleId } = useParams<{ powers: string, roleId: string }>()  
-  const { powers, fetchPowers } = usePowers()
+  const { powers, fetchPowers, fetchRoleHolders } = usePowers()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const publicClient = getPublicClient(wagmiConfig, {
@@ -40,12 +40,11 @@ export default function Page() {
   const { data:blockNumber } = useBlockNumber()
 
   // console.log("@role page: ", {powers, roleInfo})
-
-  // useEffect(() => {
-  //   if (addressPowers) {
-  //     fetchPowers() // addressPowers as `0x${string}`
-  //   }
-  // }, [addressPowers, fetchPowers])
+  useEffect(() => {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [addressPowers, fetchPowers])
 
   // ANd this one does not work anymore... 
   const getRolesSet = async () => {
@@ -185,10 +184,10 @@ export default function Page() {
           size={1}
           showBorder={true}
           filled={true}
-          onClick={() => { }} // TBI 
-          statusButton={status}
+          onClick={() => {fetchRoleHolders(powers as Powers, 10n, 9000n  )}} // TBI 
+          statusButton={status == "success" ? "idle" : status}
         >
-          Fetch Proposals
+          Fetch Role Holders
         </Button>
       </div>
 

@@ -26,7 +26,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
 
   // console.log("@RoleList: ", {powers, roles})
 
-  const fetchRoleHolders = useCallback(
+  const fetchAmountRoleHolders = useCallback(
     async (roleIds: bigint[]) => {
       // console.log("fetch role triggered", {roleIds})
       let roleId: bigint; 
@@ -40,7 +40,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
         try {
           for await (roleId of roleIds) {
             // console.log("@fetchRoleHolders: ", {roleId}) 
-            if (Number(roleId) < 4294967296) { 
+            if (Number(roleId) < 429496729600000) { 
             const fetchedRoleHolders = await readContract(wagmiConfig, {
               abi: powersAbi,
               address: powers?.contractAddress as `0x${string}`,
@@ -64,9 +64,9 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
 
   useEffect(() => {
     if (powers) {
-      fetchRoleHolders(powers.roles || [])
+      fetchAmountRoleHolders(powers.roles || [])
     }
-  }, [powers, fetchRoleHolders])
+  }, [powers, fetchAmountRoleHolders])
 
   return (
     <div className="w-full flex flex-col justify-start items-center">
