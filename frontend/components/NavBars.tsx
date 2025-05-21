@@ -143,7 +143,7 @@ const Header = () => {
         <a href="/"  
             className="flex flex-row justify-center items-center border border-slate-400 rounded-md p-1 px-3"
             >  
-          <PowerIcon className="h-7 w-7 text-slate-70 font-extrabold" />
+          <PowerIcon className="h-6 w-6 text-slate-70 font-extrabold" />
           {/* <Image 
             src='/logo5.png' 
             width={30}

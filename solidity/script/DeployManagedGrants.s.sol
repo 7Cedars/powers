@@ -255,7 +255,7 @@ contract DeployManagedGrants is Script {
 
         // this law allowd the amdin to set role labels. If will self destruct.
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
-        conditions.allowedRole = 5;
+        conditions.allowedRole = 0;
         lawInitData[12] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
@@ -278,10 +278,10 @@ contract DeployManagedGrants is Script {
         }
 
         address DEV2_ADDRESS = vm.envAddress("DEV2_ADDRESS");
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
-        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
-        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judge");
-        calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocator");
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Governors");
+        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judges");
+        calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocators");
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Legacy DAO");
         calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
         calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign delegate role
