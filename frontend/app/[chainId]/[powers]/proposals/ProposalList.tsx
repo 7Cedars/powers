@@ -21,15 +21,21 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
-  const { data: blocks } = useBlocks(powers?.proposals?.map(proposal => BigInt(proposal.voteEnd)), chainId)
+  const { data: blocks, fetchBlocks } = useBlocks()
 
-  console.log("powers: ", powers)
+  // console.log("powers: ", powers)
 
   useEffect(() => {
     if (powers) {
       getProposalsState(powers)
     }
   }, [powers])
+
+  useEffect(() => {
+    if (powers?.proposals && powers?.proposals.length > 0) {
+      fetchBlocks(powers?.proposals.map(proposal => BigInt(proposal.voteEnd)), chainId)
+    }
+  }, [powers?.proposals, chainId, fetchBlocks])
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []

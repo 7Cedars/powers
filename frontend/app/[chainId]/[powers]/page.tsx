@@ -2,6 +2,7 @@
  
 import React, { useCallback, useEffect, useState } from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import { MyProposals } from "./MyProposals";
 import { Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
@@ -35,7 +36,6 @@ export default function Page() {
     const validateBannerImage = useCallback(async (url: string | undefined) => {
         if (!url) {
             setIsValidBanner(false)
-            setIsImageLoaded(false)
             return
         }
 
@@ -44,17 +44,11 @@ export default function Page() {
             const contentType = response.headers.get('content-type')
             if (contentType?.includes('image/png')) {
                 setIsValidBanner(true)
-                // Preload the image
-                const img = new Image()
-                img.onload = () => setIsImageLoaded(true)
-                img.src = url
             } else {
                 setIsValidBanner(false)
-                setIsImageLoaded(false)
             }
         } catch (error) {
             setIsValidBanner(false)
-            setIsImageLoaded(false)
         }
     }, [])
 
@@ -99,21 +93,30 @@ export default function Page() {
     return (
       <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20">
         {/* hero banner  */}
-        <section 
-          className={`w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md ${
-            isValidBanner 
-              ? 'bg-cover bg-center bg-no-repeat opacity-100 transition-opacity duration-500' 
-              : 'bg-gradient-to-br to-indigo-600 from-emerald-300 opacity-0 transition-opacity duration-500'
-          }`}
-          style={isValidBanner ? { 
-            backgroundImage: `url(${powers?.metadatas?.banner})`,
-            opacity: isImageLoaded ? 1 : 0
-          } : undefined}
-        >
-          <div className="w-full max-w-fit h-full max-h-fit text-lg p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-            {supportedChain && supportedChain.name }
+        <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
+          {/* Gradient background (always present) */}
+          <div className="absolute inset-0 bg-gradient-to-br to-indigo-600 from-emerald-300" />
+          
+          {/* Banner image (if valid) */}
+          {isValidBanner && powers?.metadatas?.banner && (
+            <div className={`absolute inset-0 transition-opacity duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+              <Image
+                src={powers.metadatas.banner}
+                alt={`${powers.name} banner`}
+                fill
+                className="object-cover"
+                priority
+                quality={100}
+                onLoadingComplete={() => setIsImageLoaded(true)}
+              />
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="relative w-full max-w-fit h-full max-h-fit text-lg p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            {supportedChain && supportedChain.name}
           </div>
-          <div className="w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+          <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
             {powers?.name}
           </div>
         </section>

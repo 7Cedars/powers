@@ -38,7 +38,7 @@ export default function Page() {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
   const [roleInfo, setRoleInfo ] = useState<Role[]>()
-  const { data: blocks, fetchBlocks } = useBlocks()
+  // const { data: blocks, fetchBlocks } = useBlocks([BigInt(powers?.roleHoldersBlocksFetched?.from), BigInt(powers?.roleHoldersBlocksFetched?.to)], chainId)
 
   useEffect(() => {
     if (addressPowers) {
@@ -74,7 +74,7 @@ export default function Page() {
   //   }
   // }, [ ])
 
-  console.log("@role page: ", {powers, blocks} )
+  // console.log("@role page: ", {powers, blocks} )
 
   return (
     <main className={`w-full flex flex-col justify-start items-center overflow-hidden pt-20 px-2`}>
@@ -118,10 +118,10 @@ export default function Page() {
       </div>
 
       <div className="py-2 pt-6 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic text-center"> 
-        {powers && powers.roleHoldersBlocksFetched && blocks ?  
+        {powers && powers.roleHoldersBlocksFetched ?  
           <>
             <p>
-              Blocks between {toFullDateFormat(Number(blocks?.[0]?.timestamp))} and {toFullDateFormat(Number(blocks?.[1]?.timestamp))} have been fetched.
+              {/* Blocks between {toFullDateFormat(Number(blocks?.[0]?.timestamp))} and {toFullDateFormat(Number(blocks?.[1]?.timestamp))} have been fetched. */}
             </p>
           </>
          : 

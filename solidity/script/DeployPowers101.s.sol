@@ -53,7 +53,7 @@ contract DeployPowers101 is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Powers 101",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiez4pt6bfnp2bpjo46ptktape64mxhnpha6fuewsodobgt5tqotkm"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicwiqgcvzqub6xv7ha37ohgkc3vprvh6ihqtgs7bk235apaadnqha"
         );
         vm.stopBroadcast();
 

@@ -2,15 +2,15 @@
   "icon": "",
   "banner": "",
   "description": 
-    "An example implementation of the Powers protocol that allows for governed upgrades and has a legacy DAO as role holder.",
+    "An example implementation of a Powers implementation that allows for governed upgrades and has a legacy DAO as role holder.",
   "erc20s": [
-    "0x868a458887F98729F154532512F5bE4CB26c6B88",
-    "0x5339396d94C7c91BBED440463CCF04d6f040F765"
+    "0x2f5628002C31B9476aD20a1Ba4ECB817adFc5416",
+    "0xAb751e30cF43cf9bcDbC10947e4755401CDAE8cB"
   ],
   "erc721s": [
-    "0x6fd1C89339F2B6B4bDdEbED7271064e30c74C50D"],
+    "0xF2b1d9b13de278747EF247e6Dbf9B2B889F94132"],
   "erc1155s": [{
-    "address": "0x02ee16f7E54F286015e450A6b2BEd762Ff624aa5",
+    "address": "0xd80c78AF3F6b5D3AAD9390F220055b5d6d8Ec471",
     "tokenId": 0
   } ],
   "attributes": [

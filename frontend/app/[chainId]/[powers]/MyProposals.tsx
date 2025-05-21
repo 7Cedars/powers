@@ -9,6 +9,7 @@ import { GetBlockReturnType } from "@wagmi/core";
 import { parseRole } from "@/utils/parsers";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
+import { useEffect } from "react";
 
 const roleColour = [  
   "border-blue-600", 
@@ -37,7 +38,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.role > 0).map(hasRole => hasRole.role)
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blocks } = useBlocks(proposals?.map(proposal => BigInt(proposal.voteEnd)), chainId)
+  const { data: blocks, fetchBlocks } = useBlocks()
 
   // bit convoluted, can be optimised. // £todo
   const active = proposals?.map((proposal: Proposal) => {
@@ -50,6 +51,12 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
+
+  useEffect(() => {
+    if (activeProposals && activeProposals.length > 0) {
+      fetchBlocks(activeProposals.map(item => BigInt(item.proposal.voteEnd)), chainId)
+    }
+  }, [activeProposals, chainId, fetchBlocks])
 
   // console.log("@myProposals: ",  {activeProposals})
 

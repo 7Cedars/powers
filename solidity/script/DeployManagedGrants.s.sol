@@ -29,19 +29,24 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
+import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
+import { HelperConfig } from "./HelperConfig.s.sol";
 
 contract DeployManagedGrants is Script {
+    HelperConfig helperConfig = new HelperConfig();
     string[] names;
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
+    uint256 blocksPerHour;
 
     function run() external returns (address payable powers_) {
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
         // Deploy the DAO 
         vm.startBroadcast();
         Powers powers = new Powers(
             "Managed Grants",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicruah7malk6w5xsvehcla6d6gs63toajqp4epyzzggljlyafb46e"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiayjgczauocpbrqch46wdpfstpa3pakdlpnwpw6w7uiosyjfkvyqy"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -92,7 +97,7 @@ contract DeployManagedGrants is Script {
         // This law allows judges to veto the deployment of a new grant program. 
         // Access role = judges.
         conditions.allowedRole = 3; // judge role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of judges need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
         
@@ -116,15 +121,15 @@ contract DeployManagedGrants is Script {
         grantConditions.allowedRole = 4; // allocator role
         grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
         grantConditions.quorum = 33; // 33% quorum need to ok a grant request. 
-        grantConditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        grantConditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         grantConditions.succeedAt = 51; // simple 51% majority 
 
         // NB: these are the conditions for the deploy grants law.  
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
-        conditions.delayExecution = 50; // 50 blocks, about 20 minutes
+        conditions.delayExecution = minutesToBlocks(10); // 10 minutes
         conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
         lawInitData[3] = PowersTypes.LawInitData({
@@ -138,7 +143,7 @@ contract DeployManagedGrants is Script {
 
         // This law allows delegates to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
@@ -156,7 +161,7 @@ contract DeployManagedGrants is Script {
 
         // Judges can stop a grant program at any time. 
         conditions.allowedRole = 3; // judge role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
         conditions.succeedAt = 51; // 66% majority 
@@ -187,7 +192,7 @@ contract DeployManagedGrants is Script {
 
         // This law enables role selection through delegated voting using an ERC20 token
         // Only role 0 (admin) can use this law
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "Elect delegates: Only the DAO admin can use this law to elect delegates.",
@@ -226,7 +231,7 @@ contract DeployManagedGrants is Script {
 
         // This law allows delegates to assign or revoke an allocator role to a nominated account. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote to assign an allocator role to a nominated account. 
         conditions.succeedAt = 66; // 66% majority  
         
@@ -239,7 +244,7 @@ contract DeployManagedGrants is Script {
         delete conditions;
 
         // This law allows the admin to assign or revoke a judge role to a nominated account. 
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         lawInitData[11] = PowersTypes.LawInitData({
             nameDescription: "Assign judge role: The DAO admin can assign or revoke a judge role to any account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
@@ -250,7 +255,7 @@ contract DeployManagedGrants is Script {
 
         // this law allowd the amdin to set role labels. If will self destruct.
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         lawInitData[12] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
@@ -265,18 +270,24 @@ contract DeployManagedGrants is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](5);
-        values = new uint256[](5);
-        calldatas = new bytes[](5);
+        targets = new address[](9);
+        values = new uint256[](9);
+        calldatas = new bytes[](9);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
 
+        address DEV2_ADDRESS = vm.envAddress("DEV2_ADDRESS");
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judge");
         calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocator");
-        calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Legacy DAO");
+        calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
+        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign delegate role
+        targets[7] = parseMockAddress(3, "Erc20TaxedMock");
+        calldatas[7] = abi.encodeWithSelector(Erc20TaxedMock.faucet.selector);
+        calldatas[8] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
 
         return (targets, values, calldatas);
     }
@@ -293,6 +304,10 @@ contract DeployManagedGrants is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 } 
 

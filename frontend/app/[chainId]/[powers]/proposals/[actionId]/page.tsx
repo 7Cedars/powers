@@ -28,7 +28,7 @@ const Page = () => {
   const action = useActionStore(); 
   const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
 
-  console.log("@proposal, waypoint 1", {proposal, actionId, powers, action})
+  // console.log("@proposal, waypoint 1", {proposal, actionId, powers, action})
 
   useEffect(() => {
     if (proposal && law) { 

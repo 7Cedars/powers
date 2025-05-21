@@ -17,13 +17,6 @@ export const useLaw = () => {
     confirmations: 2, 
     hash: transactionHash,
   })
-
-  const {user} = usePrivy()
-
-  useEffect(() => {
-    console.log("@useLaw: user", {user})
-  }, [user])
-
  
   useEffect(() => {
     if (statusReceipt === "success") setStatus("success")

@@ -51,7 +51,7 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
 
-  console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline})
+  // console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline})
 
   return (
       <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-72">

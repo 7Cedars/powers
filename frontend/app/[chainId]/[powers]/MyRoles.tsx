@@ -9,6 +9,7 @@ import { toFullDateFormat } from "@/utils/toDates";
 import { Powers, Status } from "@/context/types";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
+import { useEffect } from "react";
 
 type MyRolesProps = {
   hasRoles: {role: bigint, since: bigint}[]; 
@@ -21,9 +22,15 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.since != 0n)
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blocks } = useBlocks(hasRoles.map(role => role.since), chainId)
+  const hasRolesSince = myRoles.map(role => BigInt(role.since))
+  const { data: blocks, fetchBlocks, status: blocksStatus } = useBlocks()
   
-  console.log("@MyRoles, blocks: ", blocks)
+  
+  useEffect(() => {
+    if (hasRolesSince && hasRolesSince.length > 0 && blocksStatus === "idle") {
+      fetchBlocks(hasRolesSince, chainId)
+    }
+  }, [hasRolesSince, chainId, blocksStatus])
 
   return (
     <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">

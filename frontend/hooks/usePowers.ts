@@ -323,7 +323,7 @@ export const usePowers = () => {
       // if so, save here everything to disc.  
       let i = 0
       while (distance > i) {
-        console.log("@fetchProposals, waypoint 1", {chunkTo, i, distance})
+        // console.log("@fetchProposals, waypoint 1", {chunkTo, i, distance})
       
         // calculate chunk boundaries
         chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
@@ -364,7 +364,7 @@ export const usePowers = () => {
         }
         
         const sortedProposals = proposalsFetched.sort((a: Proposal, b: Proposal) => a.voteStart > b.voteStart ? -1 : 1);
-        console.log("@fetchProposals, waypoint 2", {sortedProposals})
+        // console.log("@fetchProposals, waypoint 2", {sortedProposals})
         
           powersUpdated = { ...powers, 
             proposals: sortedProposals, 
@@ -420,7 +420,7 @@ export const usePowers = () => {
       // if so, save here everything to disc.  
       let i = 0
       while (distance > i) {
-        console.log("fetchRoleHolders, waypoint 1", {chunkTo, chunkFrom, i, distance})
+        // console.log("fetchRoleHolders, waypoint 1", {chunkTo, chunkFrom, i, distance})
       
         // calculate chunk boundaries
         chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
@@ -443,7 +443,7 @@ export const usePowers = () => {
           });
 
           let newRoleHolders: Role[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Role);
-          console.log("fetchRoleHolders, waypoint 2", {newRoleHolders})
+          // console.log("fetchRoleHolders, waypoint 2", {newRoleHolders})
 
           // add fetched role holders to the array
           roleHoldersFetched = [...roleHoldersFetched, ...newRoleHolders]
@@ -489,31 +489,31 @@ export const usePowers = () => {
       let updatedData: Powers | undefined = undefined
       let updatedMetaData: Powers | undefined = undefined
       let localStore = localStorage.getItem("powersProtocols")
-      console.log("@fetchPowers, waypoint 0", {localStore})
+      // console.log("@fetchPowers, waypoint 0", {localStore})
       
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
       const existing = saved.find(item => item.contractAddress == address)
-      console.log("@fetchPowers, waypoint 1", {existing})
+      // console.log("@fetchPowers, waypoint 1", {existing})
 
       if (existing) { 
         powersToBeUpdated = existing 
       } else {
         powersToBeUpdated = { contractAddress: address }
       }
-      console.log("@fetchPowers, waypoint 2", {powersToBeUpdated})
+      // console.log("@fetchPowers, waypoint 2", {powersToBeUpdated})
       
       updatedData = await fetchPowersData(powersToBeUpdated)
-      console.log("@fetchPowers, waypoint 3", {updatedData})
+      // console.log("@fetchPowers, waypoint 3", {updatedData})
       if ( updatedData && (updatedData?.metadatas == undefined || updatedData?.metadatas != powersToBeUpdated?.metadatas) ) { 
         updatedMetaData = await fetchMetaData(updatedData) 
       } else {
         updatedMetaData = updatedData
       }
-      console.log("@fetchPowers, waypoint 4", {updatedMetaData})
+      // console.log("@fetchPowers, waypoint 4", {updatedMetaData})
       if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws)) { 
         fetchLawsAndRoles(updatedMetaData) 
       }
-      console.log("@fetchPowers, waypoint 5", {updatedMetaData})
+      // console.log("@fetchPowers, waypoint 5", {updatedMetaData})
       setPowers(updatedMetaData)
       setStatus("success")
     }, []

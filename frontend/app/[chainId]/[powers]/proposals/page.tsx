@@ -12,7 +12,7 @@ export default function Page() {
   const { powers, fetchPowers, fetchProposals, status } = usePowers()
   const { data:blockNumber } = useBlockNumber()
 
-  console.log("@status: ", status, blockNumber)
+  // console.log("@status: ", status, blockNumber)
 
   useEffect(() => {
     if (addressPowers) {
@@ -20,7 +20,7 @@ export default function Page() {
     }
   }, [addressPowers, fetchPowers])
 
-  powers && powers.proposalsBlocksFetched && console.log("@proposals: waypoint 1", powers?.proposalsBlocksFetched.from, powers?.proposalsBlocksFetched.to)
+  // powers && powers.proposalsBlocksFetched && console.log("@proposals: waypoint 1", powers?.proposalsBlocksFetched.from, powers?.proposalsBlocksFetched.to)
 
   return (
     <main className="w-full h-fit flex flex-col justify-start items-center py-20 px-2">

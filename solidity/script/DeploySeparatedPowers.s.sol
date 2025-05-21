@@ -56,7 +56,7 @@ contract DeploySeparatedPowers is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Separated Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibzoymt2bzj7bziu6sg3tyojn6wqq4s5apzpt7hyk77t2fz6si3aq"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreif7ucxhedofbo7wbqwdsta26b3qja6xu2md2huq3xtxwkjjnzuf4e"
         );
         vm.stopBroadcast();
 
@@ -168,7 +168,7 @@ contract DeploySeparatedPowers is Script {
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Assign user role: Assign user role. The account will need to pay at least 100 gwei in tax during the previous epoch.",
             targetLaw: parseLawAddress(13, "TaxSelect"),
-            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 100 gwei tax threshold, role 1 (user)
+            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 25 gwei tax threshold, role 1 (user)
             conditions: conditions
         });
         delete conditions;

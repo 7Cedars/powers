@@ -96,7 +96,7 @@ export const useChecks = (powers: Powers) => {
   const checkThrottledExecution = useCallback( async (law: Law) => {
     const fetchedExecutions = await fetchExecutions(law)
 
-    console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law})
+    // console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law})
 
     if (fetchedExecutions && fetchedExecutions.executions?.length > 0) {
       const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
@@ -124,7 +124,7 @@ export const useChecks = (powers: Powers) => {
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
           const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
 
-          console.log({notCompleted1: !notCompleted1})
+          // console.log({notCompleted1: !notCompleted1})
           
           // console.log("fetchChecks triggered, waypoint 1", {delayed, throttled, authorised, proposalStatus, proposalExists, notCompleted1, notCompleted2, notCompleted3})
 

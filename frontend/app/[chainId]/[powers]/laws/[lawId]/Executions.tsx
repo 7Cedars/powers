@@ -9,51 +9,53 @@ import { getPublicClient, readContract } from "wagmi/actions";
 import { lawAbi, powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 
 type ExecutionsProps = {
-  executions: LawExecutions | undefined
+  lawExecutions: LawExecutions | undefined
   law: Law | undefined;
   status: Status;
 };
 
-export const Executions = ({executions, law, status}: ExecutionsProps) => {
+export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const action = useActionStore()
-  const { data: blocks } = useBlocks(executions?.executions, chainId)
-  const publicClient = getPublicClient(wagmiConfig, {
-    chainId: parseChainId(chainId), 
-  })
+  const { data: blocks, fetchBlocks } = useBlocks()
 
-  console.log("@Executions: waypoint 0", {executions, law, status, action, blocks})
+  useEffect(() => {
+    if (lawExecutions && lawExecutions.executions && lawExecutions.executions.length > 0) {
+      fetchBlocks(lawExecutions.executions.map(execution => execution), chainId)
+    }
+  }, [lawExecutions, chainId, fetchBlocks])
 
   // console.log("@Executions: ", {executions, law, status})
   const handleExecutionSelection = useCallback(
-    async (executions: LawExecutions, index: number) => {
-    // console.log("@Executions: waypoint 1", {executions, law, status, action, executionAtIndex: executions.actionsIds[index]})
+    async (index: number, law: Law | undefined, lawExecutions: LawExecutions | undefined) => {
+    // console.log("@Executions: waypoint 1", {index, lawExecutions, law, status, action})
     
-    if (executions) {
+    if (lawExecutions && index != undefined && law) {
+      // console.log("@Executions: waypoint 2", {index, law, status, action, executionAtIndex: lawExecutions.actionsIds[Number(index)]})
       try {
         const lawCalldata = await readContract(wagmiConfig, {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionCalldata',
-          args: [BigInt(executions.actionsIds[index])]
+          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
         })  
 
         const actionUri = await readContract(wagmiConfig, {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionUri',
-          args: [BigInt(executions.actionsIds[index])]
+          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
         })
         
         const actionNonce = await readContract(wagmiConfig, {
           abi: powersAbi,
           address: law?.powers as `0x${string}`,
           functionName: 'getActionNonce',
-          args: [BigInt(executions.actionsIds[index])]
+          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
         })
 
         // console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})
@@ -71,7 +73,7 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           // console.log("@Executions: waypoint 4")
 
           setAction({
-            actionId: String(executions.actionsIds[index]),
+            actionId: String(lawExecutions.actionsIds[Number(index)]),
             lawId: law?.index,
             caller: undefined,
             dataTypes: dataTypes,
@@ -104,14 +106,14 @@ export const Executions = ({executions, law, status}: ExecutionsProps) => {
           <LoadingBox />
         </div>
         :
-        executions?.executions && executions.executions?.length != 0 ?  
+        lawExecutions?.executions && lawExecutions.executions?.length != 0 ?  
         <div className = "w-full flex flex-col max-h-36 lg:max-h-56 overflow-y-scroll divide-y divide-slate-300">
-            {executions.executions.map((execution, index: number) => 
+            {lawExecutions.executions.map((execution, index: number) => 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
                       showBorder={true}
                       role={law?.conditions?.allowedRole != undefined ? parseRole(law.conditions?.allowedRole) : 0}
-                      onClick={() => handleExecutionSelection(executions, index)}
+                      onClick={() => handleExecutionSelection(index, law, lawExecutions)}
                       align={0}
                       selected={false}
                       >  

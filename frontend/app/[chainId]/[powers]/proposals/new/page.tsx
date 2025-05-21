@@ -20,7 +20,7 @@ const Page = () => {
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
 
-  console.log("Proposals/new: ", {powers, law, checks, action})
+  // console.log("Proposals/new: ", {powers, law, checks, action})
 
   useEffect(() => {
     if (addressPowers) {
@@ -30,7 +30,7 @@ const Page = () => {
 
   useEffect(() => {
     if (law && action) {
-      fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
+      fetchChecks(law as Law, action.callData, BigInt(action.nonce), wallets, powers as Powers)
     }
   }, [ law, action])
 

@@ -33,7 +33,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   const {status: statusProposals, error, transactionHash, propose} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
 
-  console.log("@ProposeBox, waypoint 1", {law, powers, proposalExists, authorised, action})
+  // console.log("@ProposeBox, waypoint 1", {law, powers, proposalExists, authorised, action})
 
   useEffect(() => {
     simulate(

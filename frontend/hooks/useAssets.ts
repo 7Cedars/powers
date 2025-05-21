@@ -21,7 +21,7 @@ export const useAssets = (powers: Powers | undefined) => {
   const {data: native, status: statusBalance}  = useBalance({
     address: powers?.contractAddress
   }) 
-  console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
+  // console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`

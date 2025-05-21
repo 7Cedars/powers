@@ -43,6 +43,7 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
+import { HelperConfig } from "./HelperConfig.s.sol";
 
 // mocks
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
@@ -54,11 +55,15 @@ contract DeployGovernedUpgrades is Script {
     address[] mockAddresses;
     string[] inputParamsAdopt;
 
+    HelperConfig helperConfig = new HelperConfig();
+    uint256 blocksPerHour;
+
     function run() external returns (address payable powers_) {
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
         vm.startBroadcast();
         Powers powers = new Powers(
             "Governed Upgrades",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicrfqg67e6apvfd7pf4n7ltur7bsrkrunwls6umbmgvigolrrimpy"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibb4fcsnon2xzjcq63notbdhgxzy6v2khgkvd5fwz5j3cb3vhbp6m"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -108,7 +113,7 @@ contract DeployGovernedUpgrades is Script {
 
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 25; // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
         conditions.quorum = 50; // 30% quorum
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
@@ -122,7 +127,7 @@ contract DeployGovernedUpgrades is Script {
         // Law to veto revoking a law
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 25; // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
         conditions.quorum = 15; // 15% quorum
         conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
@@ -175,7 +180,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = 25; // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         conditions.needNotCompleted = 5; // law 5 needs to have passed
@@ -258,17 +263,19 @@ contract DeployGovernedUpgrades is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](3);
-        values = new uint256[](3);
-        calldatas = new bytes[](3);
+        targets = new address[](5);
+        values = new uint256[](5);
+        calldatas = new bytes[](5);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
 
-        // calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 0, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "DAO admin");
-        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
-        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        address DEV2_ADDRESS = vm.envAddress("DEV2_ADDRESS");
+        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
+        calldatas[1] = abi.encodeWithSelector(IPowers.assignRole.selector, 3, DEV2_ADDRESS); // assign delegate role
+        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "DAO admin");
+        calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
+        calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         
         return (targets, values, calldatas);
     }
@@ -285,6 +292,10 @@ contract DeployGovernedUpgrades is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 }
 

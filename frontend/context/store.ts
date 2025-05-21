@@ -9,7 +9,7 @@ const initialStateAction: ActionStore = {
   uri: "",
   dataTypes: [],
   paramValues: [],
-  nonce: 0n,
+  nonce: "0",
   callData: `0x0`, 
   upToDate: false
 }
