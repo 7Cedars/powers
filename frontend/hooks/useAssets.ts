@@ -1,29 +1,27 @@
 // ok, what does this need to do? 
 
 import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
-import { supportedChains } from "@/context/chains"
 // import { publicClient } from "@/context/clients"
 import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
-import { useBalance, useBlockNumber, useChainId } from "wagmi"
-import { Abi, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
+import { useBalance, useChains } from "wagmi"
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
-import { parse1155Metadata, parseMetadata } from "@/utils/parsers"
+import { parse1155Metadata } from "@/utils/parsers"
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
-
 
 export const useAssets = (powers: Powers | undefined) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
   const { chainId } = useParams<{ chainId: string }>()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const {data: native, status: statusBalance}  = useBalance({
     address: powers?.contractAddress
   }) 
-  console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
+  // console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`
@@ -32,14 +30,14 @@ export const useAssets = (powers: Powers | undefined) => {
     //  if (publicClient) {
          for await (token of tokenAddresses) {
           try {
-            console.log("@useAssets, fetching token: ", token) 
+            // console.log("@useAssets, fetching token: ", token) 
             const name = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
               functionName: 'name' 
             })
             const nameParsed = name as string
-            console.log("@useAssets, nameParsed:", {nameParsed})
+            // console.log("@useAssets, nameParsed:", {nameParsed})
 
             const symbol = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
@@ -47,7 +45,7 @@ export const useAssets = (powers: Powers | undefined) => {
               functionName: 'symbol' 
             })
             const symbolParsed = symbol as string
-            console.log("@useAssets, symbolParsed:", {symbolParsed})
+            // console.log("@useAssets, symbolParsed:", {symbolParsed})
 
             const balance = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
@@ -56,7 +54,7 @@ export const useAssets = (powers: Powers | undefined) => {
               args: [powers.contractAddress] 
             })
             const balanceParsed = balance as bigint
-            console.log("@useAssets, balanceParsed:", {balanceParsed})
+            // console.log("@useAssets, balanceParsed:", {balanceParsed})
 
             let decimalParsed: bigint = 8n
             if ( type == "erc20") {
@@ -69,7 +67,7 @@ export const useAssets = (powers: Powers | undefined) => {
             }
           
 
-            console.log("@useAssets, decimalParsed:", {decimalParsed})
+            // console.log("@useAssets, decimalParsed:", {decimalParsed})
 
             // NB! still need to include a conditional decimal check for ERC20s. 
 
@@ -94,11 +92,11 @@ export const useAssets = (powers: Powers | undefined) => {
               })
             }
 
-            console.log("@useAssets, end of fetchErc20Or721:", {tokens, nameParsed, symbolParsed, balanceParsed, decimalParsed, type})
+            // console.log("@useAssets, end of fetchErc20Or721:", {tokens, nameParsed, symbolParsed, balanceParsed, decimalParsed, type})
          } catch (error) {
           setStatus("error") 
           setError({error, token})
-          console.log("@useAssets, error:", {error, token})
+          // console.log("@useAssets, error:", {error, token})
          }
        } 
     // } 
@@ -202,21 +200,21 @@ export const useAssets = (powers: Powers | undefined) => {
         setError(null)
         setStatus("pending")
 
-        console.log("@useAssets, Fetch tokens reached")
+        // console.log("@useAssets, Fetch tokens reached")
 
         const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
         const selectedErc20s = powers?.metadatas?.erc20s ? powers?.metadatas?.erc20s : []
-        console.log("@useAssets, savedErc20s:", {savedErc20s})
-        console.log("@useAssets, selectedErc20s:", {selectedErc20s})
+        // console.log("@useAssets, savedErc20s:", {savedErc20s})
+        // console.log("@useAssets, selectedErc20s:", {selectedErc20s})
         const erc20s: Token[] = await fetchErc20Or721([...selectedErc20s, ...savedErc20s], "erc20", powers)
-        console.log("@useAssets, erc20s:", {erc20s})
+        // console.log("@useAssets, erc20s:", {erc20s})
         // const erc721s: Token[] | undefined =  await fetchErc20Or721(erc721, "erc721")
         // const erc1155s: Token[] | undefined = await fetchErc1155(erc1155)
 
         if (erc20s) {
           erc20s.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
 
-          console.log("@useAssets, fetchedTokens:", {erc20s})
+          // console.log("@useAssets, fetchedTokens:", {erc20s})
 
           setTokens(erc20s) 
           setStatus("success") 

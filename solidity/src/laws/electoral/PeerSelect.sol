@@ -49,19 +49,17 @@ contract PeerSelect is Law {
 
     mapping(bytes32 lawHash => Data) public data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("uint256 maxRoleHolders", "uint256 roleId");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (uint256, uint256));
 
@@ -72,7 +70,7 @@ contract PeerSelect is Law {
             electedSorted: new address[](0)
         });
 
-        super.initializeLaw(index, conditions, config, abi.encode("uint256 NomineeIndex", "bool Assign"), description);
+        super.initializeLaw(index, nameDescription, abi.encode("uint256 NomineeIndex", "bool Assign"), conditions, config);
     }
 
     function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
@@ -93,7 +91,7 @@ contract PeerSelect is Law {
         // step 0: create actionId & decode the calldata
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         
-        mem.nomineesId = conditionsLaws[mem.lawHash].readStateFrom;
+        mem.nomineesId = laws[mem.lawHash].conditions.readStateFrom;
         (mem.nomineesAddress, mem.nomineesHash ,) = Powers(payable(powers)).getActiveLaw(mem.nomineesId);
         mem.nominees = NominateMe(mem.nomineesAddress).getNominees(mem.nomineesHash);
         (mem.index, mem.assign) = abi.decode(lawCalldata, (uint256, bool));

@@ -11,31 +11,28 @@ import { ProposeBox } from "./ProposeBox";
 import { LawLink } from "../[actionId]/LawLink";
 import { ChecksBox } from "./ChecksBox"; 
 import { useWallets } from "@privy-io/react-auth";
-import { useReadContract } from "wagmi";
-import { powersAbi } from "@/context/abi";
 
 const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()  
-  const {checkProposalExists, checkAccountAuthorised, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
+  const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
   const action = useActionStore(); 
   const law = powers?.laws?.find(law => law.index == action.lawId)
-  const proposalExists = checkProposalExists(action.nonce, action.callData, law as Law, powers as Powers) != undefined  
-  const authorised = useReadContract({
-    abi: powersAbi,
-    address: powers?.contractAddress as `0x${string}`,
-    functionName: 'canCallLaw', 
-    args: [wallets[0]?.address, law?.index]
-  })
-  // console.log("@Proposal page: ", {law, action, wallets, powers, proposalExists, authorised: authorised.data})
+
+  // console.log("Proposals/new: ", {powers, law, checks, action})
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
+      fetchPowers(addressPowers as `0x${string}`) 
     }
-    fetchChecks(law as Law, action.callData, action.nonce, wallets, powers as Powers)
   }, [addressPowers, fetchPowers])
+
+  useEffect(() => {
+    if (law && action) {
+      fetchChecks(law as Law, action.callData, BigInt(action.nonce), wallets, powers as Powers)
+    }
+  }, [ law, action])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll">
@@ -47,7 +44,13 @@ const Page = () => {
 
         {/* left panel  */}
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-        { powers && <ProposeBox law = {law} powers = {powers as Powers} proposalExists = {!proposalExists} authorised = {authorised.data as boolean} /> }
+        { powers && law && <ProposeBox 
+            law = {law} 
+            powers = {powers as Powers} 
+            proposalExists = {checks?.proposalExists || false} 
+            authorised = {checks?.authorised || false}  
+            /> 
+          }
         </div>
 
          {/* right panel  */}
@@ -57,7 +60,7 @@ const Page = () => {
           { law && <LawLink law = {law} powers = {powers} status = {status} /> }
         </div>
         <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-72"> 
-          {  <ChecksBox powers = {powers} law = {law} checks = {checks} status = {status} /> }  
+          { checks && <ChecksBox powers = {powers} law = {law} checks = {checks} status = {status} /> }  
         </div>
       </div>
       </section>

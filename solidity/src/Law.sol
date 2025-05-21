@@ -42,10 +42,13 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
-    /// @notice Name of the law
-    string public name;
-    mapping(bytes32 lawHash => Conditions) public conditionsLaws;
-    mapping(bytes32 lawHash => Executions) public executionsLaws;
+    struct LawData {
+        string nameDescription;
+        bytes inputParams;
+        Conditions conditions;
+        Executions executions;
+    }
+    mapping(bytes32 lawHash => LawData) public laws;
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
@@ -53,17 +56,27 @@ abstract contract Law is ERC165, ILaw {
     // note this is an unrestricted function. Anyone can initialize a law. 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions,
+        bytes memory config
     ) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        conditionsLaws[lawHash] = conditions;
-        executionsLaws[lawHash] = Executions({ powers: msg.sender, config: config, executions: new uint48[](1) });
-        executionsLaws[lawHash].executions[0] = uint48(block.number); // we save initiation block number as first execution. 
+        LawUtilities.checkStringLength(nameDescription, 1, 127);
 
-        emit Law__Initialized(msg.sender, index, conditions, inputParams, description);
+        laws[lawHash] = LawData({ 
+            nameDescription: nameDescription,
+            inputParams: inputParams,
+            conditions: conditions,     
+            executions: Executions({ 
+                powers: msg.sender, 
+                config: config, 
+                actionsIds: new uint256[](0), 
+                executions: new uint48[](0) 
+            })
+        });
+
+        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
@@ -77,14 +90,15 @@ abstract contract Law is ERC165, ILaw {
         returns (bool success)
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        if (executionsLaws[lawHash].powers != msg.sender) {
+        if (laws[lawHash].executions.powers != msg.sender) {
             revert Law__OnlyPowers();
         }
 
         // Run all validation checks
-        checksAtPropose(caller, conditionsLaws[lawHash], lawCalldata, nonce, msg.sender);
+        checksAtPropose(
+            caller, laws[lawHash].conditions, lawCalldata, nonce, msg.sender);
         checksAtExecute(
-            caller, conditionsLaws[lawHash], lawCalldata, nonce, executionsLaws[lawHash].executions, msg.sender, lawId
+            caller, laws[lawHash].conditions, lawCalldata, nonce, laws[lawHash].executions.executions, msg.sender, lawId
         );
 
         // Simulate and execute the law's logic
@@ -103,7 +117,10 @@ abstract contract Law is ERC165, ILaw {
         if (targets.length > 0) {
             _replyPowers(lawId, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right?
         }
-        executionsLaws[lawHash].executions.push(uint48(block.number));
+        // save execution data
+        laws[lawHash].executions.executions.push(uint48(block.number)); //  
+        laws[lawHash].executions.actionsIds.push(actionId);
+
         return true;
     }
 
@@ -157,7 +174,7 @@ abstract contract Law is ERC165, ILaw {
         // Base implementation: send data back to Powers protocol
         // note that it cannot be overridden by implementing contracts. The exact data returned by handleRequest is returned to Powers.
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
-        IPowers(payable(executionsLaws[lawHash].powers)).fulfill(lawId, actionId, targets, values, calldatas);
+        IPowers(payable(laws[lawHash].executions.powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -196,13 +213,24 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
+    // Place these in lawUtilities library? 
     function getConditions(address powers, uint16 lawId) public view returns (Conditions memory conditions) {
-        return conditionsLaws[LawUtilities.hashLaw(powers, lawId)];
+        return laws[LawUtilities.hashLaw(powers, lawId)].conditions;
     }
 
     function getExecutions(address powers, uint16 lawId) public view returns (Executions memory executions) {
-        return executionsLaws[LawUtilities.hashLaw(powers, lawId)];
+        return laws[LawUtilities.hashLaw(powers, lawId)].executions;
     }
+
+    function getInputParams(address powers, uint16 lawId) public view returns (bytes memory inputParams) {
+        return laws[LawUtilities.hashLaw(powers, lawId)].inputParams;
+    }
+
+    function getNameDescription(address powers, uint16 lawId) public view returns (string memory nameDescription) {
+        return laws[LawUtilities.hashLaw(powers, lawId)].nameDescription;
+    }
+
+
 
     //////////////////////////////////////////////////////////////
     //                      UTILITIES                           //

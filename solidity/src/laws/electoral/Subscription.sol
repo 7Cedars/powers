@@ -44,25 +44,18 @@ contract Subscription is Law {
 
     mapping(bytes32 lawHash => Data) internal data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("uint48 EpochDuration", "uint256 SubscriptionAmount", "uint256 RoleId");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }   
 
-    /// @notice Initializes the law with its configuration parameters
-    /// @param index The index of the law in the DAO
-    /// @param conditions The conditions for the law
-    /// @param config The configuration parameters (erc20TaxedMock, thresholdTaxPaid, roleIdToSet)
-    /// @param inputParams The input parameters for the law
-    /// @param description The description of the law
+
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions, 
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint48 epochDuration_, uint256 subscriptionAmount_, uint256 roleIdToSet_) =
             abi.decode(config, (uint48, uint256, uint256));
@@ -71,7 +64,9 @@ contract Subscription is Law {
         data[lawHash].subscriptionAmount = subscriptionAmount_;
         data[lawHash].roleIdToSet = roleIdToSet_;
 
-        super.initializeLaw(index, conditions, config, abi.encode("address Account"), description);
+        inputParams = abi.encode("address Account");
+
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to assign or revoke a role based on tax payments

@@ -460,7 +460,7 @@ contract StartGrantTest is TestSetupExecutive {
     function testStartGrant() public {
         // prep
         uint16 startGrant = 6;
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -499,7 +499,7 @@ contract StartGrantTest is TestSetupExecutive {
 
         // First grant
         lawCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "First grant"
@@ -510,7 +510,7 @@ contract StartGrantTest is TestSetupExecutive {
 
         // Second grant
         lawCalldata = abi.encode(
-            uint48(2000),
+            uint48(25),
             2 * 10 ** 18,
             mockAddresses[3],
             "Second grant"
@@ -524,13 +524,13 @@ contract StartGrantTest is TestSetupExecutive {
         
         // Get grant IDs for both grants
         bytes memory firstGrantCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "First grant"
         );
         bytes memory secondGrantCalldata = abi.encode(
-            uint48(2000),
+            uint48(25),
             2 * 10 ** 18,
             mockAddresses[3],
             "Second grant"
@@ -549,7 +549,7 @@ contract StartGrantTest is TestSetupExecutive {
         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
         
         lawCalldata = abi.encode(
-            uint48(1000),
+            uint48(25),
             1 * 10 ** 18,
             mockAddresses[3],
             "Test grant"
@@ -624,7 +624,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -673,7 +673,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -702,7 +702,7 @@ contract EndGrantTest is TestSetupExecutive {
         uint16 startGrant = 6;
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 0; // Set budget to 0 to pass token check
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -740,7 +740,7 @@ contract EndGrantTest is TestSetupExecutive {
         (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
         // First start a grant
-        uint48 duration = 1000;
+        uint48 duration = 25;
         uint256 budget = 1 * 10 ** 18;
         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
         string memory grantDescription = "Test grant";
@@ -830,18 +830,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -866,18 +866,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration with specific conditions
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
-            law: lawAddresses[6], // open action 
+            nameDescription: "new law: new law description",
+            law: lawAddresses[6], // open Action 
             allowedRole: ROLE_TWO,
             votingPeriod: 2400,
             quorum: 40,
-            succeedAt: 60,
+            succeedAt: 60, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 1000,
             throttleExecution: 2000,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -913,18 +913,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);
@@ -955,18 +955,18 @@ contract AdoptLawTest is TestSetupExecutive {
         
         // Create a new law configuration
         AdoptLaw.AdoptLawConfig memory configAdoptLaw = AdoptLaw.AdoptLawConfig({
+            nameDescription: "new law: new law description",
             law: lawAddresses[6], // open Action 
             allowedRole: ROLE_ONE,
             votingPeriod: 1200,
             quorum: 30,
-            succeedAt: 51,
+            succeedAt: 51, 
             needCompleted: 0,
             needNotCompleted: 0,
             readStateFrom: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            config: abi.encode(),
-            description: "New open action law"
+            config: abi.encode()
         });
 
         lawCalldata = abi.encode(configAdoptLaw);

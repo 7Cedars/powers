@@ -594,7 +594,7 @@ pragma solidity 0.8.26;
 //             address votingUser = users[currentSeed1 % users.length];
 //             address userReceivingVote = users[currentSeed2 % users.length];
 //             description = string.concat("Voting on user. Round ", Strings.toString(i));
-//             vm.roll(currentSeed1 & 250);
+//             vm.warp(currentSeed1 & 250);
 
 //             if (
 //                 governYourTax.canCallLaw(votingUser, electionVotesAddress) &&
@@ -633,7 +633,7 @@ pragma solidity 0.8.26;
 
 //         // step 2: tally election - see if correct people have been assigned.
 //         description = "Alice calls an election.";
-//         vm.roll((seed1 + seed2) % 200); // should succeed in about 50% of runs.
+//         vm.warp((seed1 + seed2) % 200); // should succeed in about 50% of runs.
 //         console.log("block number: ", block.number);
 //         if ( block.number >= VoteOnAccounts(electionVotesAddress).endVote() ) {
 //             vm.expectEmit(true, false, false, false);

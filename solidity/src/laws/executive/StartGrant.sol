@@ -37,30 +37,25 @@ contract StartGrant is Law {
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) internal grantIds;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
-
+    constructor() {
         bytes memory configParams = abi.encode(
             "address grantLaw", // Address of grant law
             "bytes grantConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the start grant law is adopted.  
         );
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration
     /// @param index Index of the law
+    /// @param nameDescription Name of the law
     /// @param conditions Conditions for the law
     /// @param config Configuration data
-    /// @param inputParams Additional input parameters
-    /// @param description Description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address grantLaw, bytes memory grantConditions) =
             abi.decode(config, (address, bytes));
@@ -69,12 +64,19 @@ contract StartGrant is Law {
         data[lawHash].grantLaw = grantLaw;
         data[lawHash].grantConditions = grantConditions;
 
+        inputParams = abi.encode(
+            "uint48 Duration", 
+            "uint256 Budget", 
+            "address Token", 
+            "string NameDescription"
+        );
+
         super.initializeLaw(
             index, 
+            nameDescription,
+            inputParams,
             conditions, 
-            config, 
-            abi.encode("uint48 Duration", "uint256 Budget", "address Token", "string Description"), // inputParams
-            description
+            config
         );
     }
 
@@ -107,7 +109,7 @@ contract StartGrant is Law {
         )
     {
         // Decode the law adoption data
-        (uint48 duration, uint256 budget, address tokenAddress, string memory grantDescription) = 
+        (uint48 duration, uint256 budget, address tokenAddress, string memory grantNameDescription) = 
             abi.decode(lawCalldata, (uint48, uint256, address, string));
         
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
@@ -121,10 +123,10 @@ contract StartGrant is Law {
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
+                nameDescription: grantNameDescription,
                 targetLaw: data[lawHash].grantLaw,
                 config: abi.encode(duration, budget, tokenAddress),
-                conditions: grantConditions,
-                description: grantDescription
+                conditions: grantConditions
             })
         );
 

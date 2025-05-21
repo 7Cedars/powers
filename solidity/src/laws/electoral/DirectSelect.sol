@@ -38,19 +38,17 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract DirectSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleId;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("uint256 roleId");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint256 roleId_) = abi.decode(config, (uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
@@ -58,8 +56,7 @@ contract DirectSelect is Law {
 
         inputParams = abi.encode("address[] Accounts");
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public

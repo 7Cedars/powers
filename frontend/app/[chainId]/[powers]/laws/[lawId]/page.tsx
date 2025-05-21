@@ -13,22 +13,30 @@ import { InputType, Law, Powers } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { usePowers } from "@/hooks/usePowers";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
  
 const Page = () => {
   const {wallets, ready} = useWallets();
   const action = useActionStore();;
-  const error = useErrorStore()
+
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   
-  const { powers, fetchPowers, status: statusPowers } = usePowers()
+  const { powers, fetchPowers, checkSingleLaw, status: statusPowers } = usePowers()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
-
+  
   // console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  
+  useEffect(() => {
+    if (!powers) {
+      // console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [powers])
 
+ 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       // console.log("Handle Simulate called:", {paramValues, nonce})
       setError({error: null})
@@ -55,23 +63,23 @@ const Page = () => {
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: paramValues,
-          nonce: nonce,
-          description: description,
+          nonce: nonce.toString(),
+          uri: description,
           callData: lawCalldata,
           upToDate: true
         })
 
         // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
-        fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers) 
+        fetchChecks(law, action.callData as `0x${string}`, BigInt(action.nonce), wallets, powers as Powers) 
         
         try {
         // simulating law. 
-        simulate(
-          wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
-          action.callData as `0x${string}`,
-          action.nonce,
-          law
-        )
+          simulate(
+            wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
+            action.callData as `0x${string}`,
+            BigInt(action.nonce),
+            law
+          )
         } catch (error) {
           // console.log("Handle Simulate waypoint 3c")
           setError({error: error as Error})
@@ -81,12 +89,30 @@ const Page = () => {
       }
   };
 
-  const handleExecute = async (law: Law) => {
+  const handleExecute = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+      // console.log("Handle Execute called:", {paramValues, nonce})
+      setError({error: null})
+      let lawCalldata: `0x${string}` | undefined
+      // console.log("Handle Simulate waypoint 1")
+      if (paramValues.length > 0 && paramValues) {
+        try {
+          // console.log("Handle Simulate waypoint 2a")
+          lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
+        } catch (error) {
+          // console.log("Handle Simulate waypoint 2c")
+          setError({error: error as Error})
+        }
+      } else {
+        // console.log("Handle Simulate waypoint 2d")
+        lawCalldata = '0x0'
+      }
+
       execute(
         law, 
-        action.callData as `0x${string}`,
-        action.nonce,
-        action.description
+        lawCalldata as `0x${string}`,
+        nonce,
+        description
       )
   };
 
@@ -103,7 +129,7 @@ const Page = () => {
           lawId: law.index,
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: [],
-          nonce: 0n,
+          nonce: '0',
           callData: '0x0',
           upToDate: false
         })
@@ -121,11 +147,6 @@ const Page = () => {
     }
   }, [, law])
 
-  useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
-    }
-  }, [addressPowers, fetchPowers])
 
   useEffect(() => {
     if (errorUseLaw) {
@@ -144,7 +165,7 @@ const Page = () => {
         {/* left panel: writing, fetching data is done here  */}
         {
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-          {statusPowers == "pending" || statusPowers == "idle" ?
+          {statusPowers == "pending" ?
           <div className = "w-full flex flex-col justify-center items-center p-4 border border-slate-300 bg-slate-50 rounded-md"> 
             <LoadingBox />
           </div>
@@ -161,7 +182,7 @@ const Page = () => {
                 }
               }
               onSimulate = {(paramValues, nonce, description) => handleSimulate(law, paramValues, nonce, description)} 
-              onExecute = {() => handleExecute(law)}/> 
+              onExecute = {(paramValues, nonce, description) => handleExecute(law, paramValues, nonce, description)}/> 
               }
         </div>
         }
@@ -173,7 +194,7 @@ const Page = () => {
           </div>
             {<Children law = {law} powers = {powers} status = {statusPowers}/>} 
           <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
-            {<Executions executions = {executions} law = {law} status = {statusLaw}/> }
+            <Executions lawExecutions = {executions} law = {law} status = {statusLaw}/>
           </div>
         </div>
         

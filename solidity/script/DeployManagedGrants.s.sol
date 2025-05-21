@@ -29,19 +29,24 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
+import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
+import { HelperConfig } from "./HelperConfig.s.sol";
 
 contract DeployManagedGrants is Script {
+    HelperConfig helperConfig = new HelperConfig();
     string[] names;
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
+    uint256 blocksPerHour;
 
     function run() external returns (address payable powers_) {
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
         // Deploy the DAO 
         vm.startBroadcast();
         Powers powers = new Powers(
             "Managed Grants",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiayjgczauocpbrqch46wdpfstpa3pakdlpnwpw6w7uiosyjfkvyqy"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -82,17 +87,17 @@ contract DeployManagedGrants is Script {
         inputParams[2] = "uint256 Quantity";
          
         lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Request a grant: Community members can request a grant from a grant program.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
-            conditions: conditions,
-            description: "Request a grant: Community members can request a grant from a grant program."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows judges to veto the deployment of a new grant program. 
         // Access role = judges.
         conditions.allowedRole = 3; // judge role
-        conditions.votingPeriod = 60; // 60 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of judges need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
         
@@ -103,10 +108,10 @@ contract DeployManagedGrants is Script {
         inputParams[3] = "string Description";
  
         lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Veto grant program: Judges can veto the deployment of a new grant program.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), 
-            conditions: conditions,
-            description: "Veto grant program: Judges can veto the deployment of a new grant program."
+            conditions: conditions
         });
         delete conditions;
 
@@ -116,58 +121,58 @@ contract DeployManagedGrants is Script {
         grantConditions.allowedRole = 4; // allocator role
         grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
         grantConditions.quorum = 33; // 33% quorum need to ok a grant request. 
-        grantConditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        grantConditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         grantConditions.succeedAt = 51; // simple 51% majority 
 
         // NB: these are the conditions for the deploy grants law.  
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
-        conditions.delayExecution = 50; // 50 blocks, about 20 minutes
+        conditions.delayExecution = minutesToBlocks(10); // 10 minutes
         conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
         lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges.",
             targetLaw: parseLawAddress(16, "StartGrant"),
             config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)),
-            conditions: conditions,
-            description: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges."
+            conditions: conditions
         });
         delete conditions;
         delete grantConditions;
 
         // This law allows delegates to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
 
         lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 10, // the maximum amount of tokens left in the grant before it can be stopped. 
                 true // if true, the grant can only be stopped after it deadline has passed.  
                 ),
-            conditions: conditions,
-            description: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired."
+            conditions: conditions
         });
         delete conditions;
 
         // Judges can stop a grant program at any time. 
         conditions.allowedRole = 3; // judge role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
         conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
         conditions.succeedAt = 51; // 66% majority 
         lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "End grant program: Judges can stop a grant program at any time.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 0, // no checks. 
                 false // no deadline. 
             ), 
-            conditions: conditions,
-            description: "End grant program: Judges can stop a grant program at any time."
+            conditions: conditions
         });
         delete conditions;
 
@@ -178,26 +183,26 @@ contract DeployManagedGrants is Script {
         // It can be used by community members to self select for a delegate role. 
         conditions.allowedRole = 1; 
         lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role."
+            conditions: conditions
         });
         delete conditions;
 
         // This law enables role selection through delegated voting using an ERC20 token
         // Only role 0 (admin) can use this law
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Elect delegates: Only the DAO admin can use this law to elect delegates.",
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
                 parseMockAddress(2, "Erc20VotesMock"),
                 15, // max role holders
                 2 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Elect delegates: Only the DAO admin can use this law to elect delegates."
+            conditions: conditions
         });
         delete conditions;
 
@@ -205,57 +210,57 @@ contract DeployManagedGrants is Script {
         // Any one can use this law
         conditions.allowedRole = type(uint256).max;
         lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "Self select: Anyone can self select for a member role.",
             targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(
                 1 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Self select as community member: Anyone can self select for a member role."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows members to nominate themselves for an allocator role. 
         conditions.allowedRole = 1; // member role
         lawInitData[9] = PowersTypes.LawInitData({
+            nameDescription: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows delegates to assign or revoke an allocator role to a nominated account. 
         conditions.allowedRole = 2; // delegate role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote to assign an allocator role to a nominated account. 
         conditions.succeedAt = 66; // 66% majority  
         
         lawInitData[10] = PowersTypes.LawInitData({
+            nameDescription: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(4), // allocator role
-            conditions: conditions,
-            description: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account."
+            conditions: conditions
         });
         delete conditions;
 
         // This law allows the admin to assign or revoke a judge role to a nominated account. 
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         lawInitData[11] = PowersTypes.LawInitData({
+            nameDescription: "Assign judge role: The DAO admin can assign or revoke a judge role to any account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(3), // judge role
-            conditions: conditions,
-            description: "Assign judge role: The DAO admin can assign or revoke a judge role to any account."
+            conditions: conditions
         });
         delete conditions;
 
         // this law allowd the amdin to set role labels. If will self destruct.
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
-        conditions.allowedRole = 0;
+        conditions.allowedRole = 5;
         lawInitData[12] = PowersTypes.LawInitData({
+            nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions,
-            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
+            conditions: conditions
         });
         delete conditions;
     }
@@ -265,18 +270,24 @@ contract DeployManagedGrants is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](5);
-        values = new uint256[](5);
-        calldatas = new bytes[](5);
+        targets = new address[](9);
+        values = new uint256[](9);
+        calldatas = new bytes[](9);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
 
+        address DEV2_ADDRESS = vm.envAddress("DEV2_ADDRESS");
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judge");
         calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocator");
-        calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Legacy DAO");
+        calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
+        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign delegate role
+        targets[7] = parseMockAddress(3, "Erc20TaxedMock");
+        calldatas[7] = abi.encodeWithSelector(Erc20TaxedMock.faucet.selector);
+        calldatas[8] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
 
         return (targets, values, calldatas);
     }
@@ -293,6 +304,10 @@ contract DeployManagedGrants is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 } 
 

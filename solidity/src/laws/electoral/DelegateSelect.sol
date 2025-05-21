@@ -66,19 +66,17 @@ contract DelegateSelect is Law {
         address[] accountElects;
     }
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("address Erc20Token", "uint256 MaxRoleHolders", "uint256 RoleId");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions, 
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) =
             abi.decode(config, (address, uint256, uint256));
@@ -86,8 +84,8 @@ contract DelegateSelect is Law {
         data[lawHash].erc20Token = erc20Token_;
         data[lawHash].maxRoleHolders = maxRoleHolders_;
         data[lawHash].roleId = roleId_;
-
-        super.initializeLaw(index, conditions, config, "", description);
+        inputParams = abi.encode();
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
@@ -104,8 +102,9 @@ contract DelegateSelect is Law {
         )
     {
         MemoryData memory mem;
-        
-        (, mem.lawHash, mem.conditions) = Powers(payable(powers)).getActiveLaw(lawId);
+
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.conditions = laws[mem.lawHash].conditions;        
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.

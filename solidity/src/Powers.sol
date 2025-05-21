@@ -115,7 +115,7 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
     /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         payable
         virtual
@@ -137,13 +137,16 @@ contract Powers is EIP712, IPowers {
         // If checks passed, set action as requested.
         _actions[actionId].caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
         _actions[actionId].requested = true;
-
+        _actions[actionId].lawCalldata = lawCalldata;
+        _actions[actionId].uri = uriAction;
+        _actions[actionId].nonce = nonce;
+        
         // execute law.
         (bool success) = ILaw(law.targetLaw).executeLaw(msg.sender, lawId, lawCalldata, nonce);
         if (!success) revert Powers__LawDidNotPassChecks();
 
         // emit event.
-        emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, description);
+        emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, uriAction);
     }
 
     /// @inheritdoc IPowers
@@ -181,7 +184,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory description)
+    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         virtual
         onlyActiveLaw(lawId)
@@ -196,7 +199,7 @@ contract Powers is EIP712, IPowers {
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
 
         // if checks pass: propose.
-        return _propose(msg.sender, lawId, lawCalldata, nonce, description);
+        return _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
     }
 
     /// @notice Internal propose mechanism. Can be overridden to add more logic on proposedAction creation.
@@ -209,7 +212,7 @@ contract Powers is EIP712, IPowers {
         uint16 lawId,
         bytes calldata lawCalldata,
         uint256 nonce,
-        string memory description
+        string memory uriAction
     ) internal virtual returns (uint256 actionId) {
         ActiveLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
@@ -227,11 +230,14 @@ contract Powers is EIP712, IPowers {
 
         // if checks pass: create proposedAction
         Action storage proposedAction = _actions[actionId];
+        proposedAction.lawCalldata = lawCalldata;
         proposedAction.lawId = lawId;
         proposedAction.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
         proposedAction.voteDuration = conditions.votingPeriod;
         proposedAction.caller = caller;
-
+        proposedAction.uri = uriAction;
+        proposedAction.nonce = nonce;
+        
         emit ProposedActionCreated(
             actionId,
             caller,
@@ -241,7 +247,7 @@ contract Powers is EIP712, IPowers {
             block.number,
             block.number + conditions.votingPeriod,
             nonce,
-            description
+            uriAction
         );
     }
 
@@ -346,15 +352,6 @@ contract Powers is EIP712, IPowers {
         emit LawRevoked(lawId);
     }
 
-    /// @inheritdoc IPowers
-    function reviveLaw(uint16 lawId) public onlyPowers {
-        if (laws[lawId].active == true) revert Powers__LawAlreadyActive();
-        if (lawCount <= lawId) revert Powers__LawDoesNotExist();
-
-        laws[lawId].active = true;
-        emit LawRevived(lawId);
-    }
-
     /// @notice internal function to set a law or revoke it.
     ///
     /// @param lawInitData data of the law.
@@ -371,7 +368,11 @@ contract Powers is EIP712, IPowers {
         lawCount++;
 
         Law(lawInitData.targetLaw).initializeLaw(
-            lawCount - 1, lawInitData.conditions, lawInitData.config, "", lawInitData.description
+            lawCount - 1, 
+            lawInitData.nameDescription,
+            "", 
+            lawInitData.conditions, 
+            lawInitData.config
         );
 
         // emit event.
@@ -391,6 +392,7 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function labelRole(uint256 roleId, string memory label) public virtual onlyPowers {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) revert Powers__LockedRole();
+        roles[roleId].label = label;
         emit RoleLabel(roleId, label);
     }
 
@@ -572,9 +574,39 @@ contract Powers is EIP712, IPowers {
         return (proposedAction.againstVotes, proposedAction.forVotes, proposedAction.abstainVotes);
     }
 
+    function getActionCalldata(uint256 actionId)
+        public
+        view
+        virtual
+        returns (bytes memory callData)
+    {
+        return _actions[actionId].lawCalldata;
+    }
+
+    function getActionUri(uint256 actionId)
+        public
+        view
+        virtual
+        returns (string memory uri)
+    {
+        return _actions[actionId].uri;
+    }
+
+    function getActionNonce(uint256 actionId)
+        public
+        view
+        virtual
+        returns (uint256 nonce)
+    {
+        return _actions[actionId].nonce;
+    }
     /// @inheritdoc IPowers
     function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].amountMembers;
+    }
+
+    function getRoleLabel(uint256 roleId) public view returns (string memory label) {
+        return roles[roleId].label;
     }
 
     /// @inheritdoc IPowers
@@ -587,24 +619,17 @@ contract Powers is EIP712, IPowers {
     function getActiveLaw(uint16 lawId)
         external
         view
-        returns (address law, bytes32 lawHash, ILaw.Conditions memory conditions)
+        returns (address law, bytes32 lawHash, bool active)
     {
-        if (!laws[lawId].active) {
-            revert Powers__LawNotActive();
-        }
         law = laws[lawId].targetLaw;
+        active = laws[lawId].active;
         lawHash = keccak256(abi.encode(address(this), lawId));
-        conditions = Law(law).getConditions(address(this), lawId);
 
-        return (law, lawHash, conditions);
+        return (law, lawHash, active);
     }
 
     function getDeposits(address account) public view returns (Deposit[] memory accountDeposits) {
         return deposits[account];
-    }
-
-    function isActiveLaw(uint16 lawId) public view returns (bool) {
-        return laws[lawId].active;
     }
 
     //////////////////////////////////////////////////////////////

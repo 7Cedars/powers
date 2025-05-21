@@ -41,7 +41,7 @@ library LawUtilities {
     error LawUtilities__ExecutionGapTooSmall();
     error LawUtilities__ProposalNotSucceeded();
     error LawUtilities__DeadlineNotPassed();
-    error LawUtilities__EmptyNameNotAllowed();
+    error LawUtilities__StringTooShort();
     error LawUtilities__StringTooLong();
 
     //////////////////////////////////////////////////////////////
@@ -57,11 +57,11 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    function checkStringLength(string memory name_) external pure {
-        if (bytes(name_).length < 1) {
-            revert LawUtilities__EmptyNameNotAllowed();
+    function checkStringLength(string memory name_, uint256 minLength, uint256 maxLength) external pure {
+        if (bytes(name_).length < minLength) {
+            revert LawUtilities__StringTooShort();
         }
-        if (bytes(name_).length > 31) {
+        if (bytes(name_).length > maxLength) {
             revert LawUtilities__StringTooLong();
         }
     }

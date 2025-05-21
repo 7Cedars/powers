@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { powersAbi } from "../context/abi";
 import { Powers, Proposal, Status } from "../context/types";
-import { GetBlockReturnType, writeContract } from "@wagmi/core";
+import { simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { readContract } from "wagmi/actions";
-import { parseEventLogs, ParseEventLogsReturnType } from "viem";
-import { supportedChains } from "@/context/chains";
-import { getBlock } from '@wagmi/core'
-import { sepolia } from "@wagmi/core/chains";
 import { getPublicClient } from "wagmi/actions";
 import { parseChainId } from "@/utils/parsers";
 import { useParams } from "next/navigation";
@@ -17,164 +13,68 @@ export const useProposal = () => {
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()
   const [error, setError] = useState<any | null>(null)
-  const { chainId } = useParams<{ chainId: string }>()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
+  const { chainId, powers: address } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
   })
+  const [proposalsState, setProposalsState] = useState<{
+    actionId: string,
+    state: number
+  }[]>([])
+
+  console.log("@useProposal: ", {proposalsState, status})
+
+    // function to save powers to local storage
+  const savePowers = (powers: Powers) => {
+    let localStore = localStorage.getItem("powersProtocols")
+    const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+    const existing = saved.find(item => item.contractAddress == address)
+    if (existing) {
+      saved.splice(saved.indexOf(existing), 1)
+    }
+    saved.push(powers)
+    localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value,
+    ));
+  }
   
   // Status //
-  // I think it should be possible to only update proposals that have not been saved yet.. 
-  const getProposals = async (powers: Powers, fromBlock: bigint) => {
-      if (publicClient) {
-        try {
-            if (powers?.contractAddress) {
-              const logs = await publicClient.getContractEvents({ 
+  const getProposalsState = async (powers: Powers) => {
+    let proposal: Proposal
+    let oldProposals: Proposal[] = powers.proposals || []
+    let newProposals: Proposal[] = []
+    let state: {
+      actionId: string,
+      state: number
+    }[] = []
+
+    if (publicClient && powers.proposals) {
+      try {
+        for await (proposal of oldProposals) {
+          if (proposal?.actionId) {
+            let fetchedState: any
+            if (proposal.state != 5) { // proposal.state != 2 && 
+              fetchedState = await readContract(wagmiConfig, {
+                abi: powersAbi,
                 address: powers.contractAddress as `0x${string}`,
-                abi: powersAbi, 
-                eventName: 'ProposedActionCreated',
-                fromBlock: fromBlock // 
+                functionName: 'state', 
+                args: [proposal.actionId]
               })
-              const fetchedLogs = parseEventLogs({
-                          abi: powersAbi,
-                          eventName: 'ProposedActionCreated',
-                          logs
-                        })
-              const fetchedLogsTyped = fetchedLogs as ParseEventLogsReturnType
-              const fetchedProposals: Proposal[] = fetchedLogsTyped.map(log => log.args as Proposal)
-              return fetchedProposals
+              proposal.state = Number(fetchedState)
             }
-        } catch (error) {
-          setStatus("error") 
-          setError(error)
-        }
-      }
-    }
-  
-    const getProposalsState = async (proposals: Proposal[], address: `0x${string}`) => {
-      let proposal: Proposal
-      let state: number[] = []
-  
-      if (publicClient) {
-        try {
-          for await (proposal of proposals) {
-            if (proposal?.actionId) {
-                const fetchedState = await readContract(wagmiConfig, {
-                  abi: powersAbi,
-                  address: address,
-                  functionName: 'state', 
-                  args: [proposal.actionId]
-                })
-                state.push(Number(fetchedState)) // = 5 is a non-existent state
-              }
-          } 
-          console.log("@getProposalsState: waypoint 1", {state})
-          return state
-        } catch (error) {
-          setStatus("error") 
-          setError(error)
-        }
-      }
-    }
-
-    const getBlockData = async (proposals: Proposal[], address: `0x${string}`) => {
-      let proposal: Proposal
-      let blocksData: GetBlockReturnType[] = []
-
-      let localStore = localStorage.getItem("powersProtocols")
-      const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-      const powers = saved.find(item => item.contractAddress == address)
-  
-      if (publicClient) {
-        try {
-          for await (proposal of proposals) {
-            const existingProposal = powers?.proposals?.find(p => p.actionId == proposal.actionId)
-            if (!existingProposal || !existingProposal.voteStartBlockData?.chainId) {
-              // console.log("@getBlockData, waypoint 1: ", {proposal})
-              const fetchedBlockData = await getBlock(wagmiConfig, {
-                blockNumber: proposal.voteStart,
-                chainId: sepolia.id, // NB This needs to be made dynamic. In this case need to read of sepolia because arbitrum uses mainnet block numbers.  
-              })
-              const blockDataParsed = fetchedBlockData as GetBlockReturnType
-              // console.log("@getBlockData, waypoint 2: ", {blockDataParsed})
-              blocksData.push(blockDataParsed)
-            } else {
-              blocksData.push(existingProposal.voteStartBlockData ? existingProposal.voteStartBlockData : {} as GetBlockReturnType)
-            }
-          } 
-          return blocksData
-        } catch (error) {
-          setStatus("error") 
-          setError(error)
-        }
-      }
-    }
-
-  const updateProposal = useCallback(
-    async (proposal: Proposal, powers: Powers) => {
-      setError(null)
-      setStatus("pending")
-
-      let localStore = localStorage.getItem("powersProtocols")
-      const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-      const powersToUpdate = saved.find(item => item.contractAddress == powers.contractAddress)
-
-      if (powersToUpdate) {
-        const states = await getProposalsState([proposal], powersToUpdate.contractAddress)
-        const blocks = await getBlockData([proposal], powersToUpdate.contractAddress)
-
-        if (states && blocks) {
-          const updatedProposal = {...proposal, state: states[0], voteStartBlockData: blocks[0]}
-          const updatedProposals = powersToUpdate.proposals?.map(p => p.actionId == updatedProposal.actionId ? updatedProposal : p) 
-          
-          const allPowers = saved.map(power => power.contractAddress == powers.contractAddress ? {...power, proposals: updatedProposals} : power)
-          localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ));
+          }
+          newProposals.push(proposal)
         } 
+        savePowers({...powers, proposals: newProposals})
+        setProposalsState(state)
+      } catch (error) {
+        setStatus("error") 
+        setError(error)
       }
-      setStatus("success") 
-  }, [ ]) 
+    }
+  }
 
-  const addProposals = useCallback(
-    async (powers: Powers, fromBlock: bigint) => {
-      setError(null)
-      setStatus("pending")
-
-      let localStore = localStorage.getItem("powersProtocols")
-      const saved: Powers[] = localStore ? JSON.parse(localStore) : []
-      const powersToUpdate = saved.find(item => item.contractAddress == powers.contractAddress)
-
-      let proposals: Proposal[] | undefined = [];
-      let states: number[] | undefined = []; 
-      let blocks: GetBlockReturnType[] | undefined = [];
-      let proposalsFull: Proposal[] | undefined = [];
-
-      proposals = await getProposals(powers, fromBlock)
-      const newProposals = proposals?.filter(p => !powers.proposals?.some(p2 => p2.actionId == p.actionId))
-
-      if (newProposals && newProposals.length > 0) {
-        states = await getProposalsState(newProposals, powers.contractAddress)
-        blocks = await getBlockData(newProposals, powers.contractAddress)
-      } 
-
-      if (states && blocks) { // + votes later.. 
-        proposalsFull = newProposals?.map((proposal, index) => {
-          return ( 
-            {...proposal, state: states[index], voteStartBlockData: {...blocks[index], chainId: sepolia.id}}
-          )
-        })
-        const updatedActionIds = proposalsFull ? proposalsFull.map(p => p.actionId) : [] 
-        const updatedProposals = powersToUpdate && powersToUpdate.proposals?.map((p, index) => updatedActionIds.includes(p.actionId) ? {...p, state: states[index], voteStartBlockData: {...blocks[index], chainId: sepolia.id}} : p) 
-        const allPowers = saved.map(power => power.contractAddress == powers.contractAddress ? {...power, proposals: updatedProposals} : power)
-        localStorage.setItem("powersProtocols", JSON.stringify(allPowers, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value,
-        ));
-      } 
-      setStatus("success") 
-  }, [ ]) 
-
-  // Actions // 
+  // Actions //  
   const propose = useCallback( 
     async (
       lawId: bigint,
@@ -185,13 +85,17 @@ export const useProposal = () => {
     ) => {
         setStatus("pending")
         try {
-            const result = await writeContract(wagmiConfig, {
-              abi: powersAbi,
-              address: powers.contractAddress,
-              functionName: 'propose', 
-              args: [lawId, lawCalldata, nonce, description]
-            })
+          const { request } = await simulateContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'propose',
+            args: [lawId, lawCalldata, nonce, description]
+          })
+          if (request) {
+            const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
+            setStatus("success")
+          }
         } catch (error) {
             setStatus("error") 
             setError(error)
@@ -268,5 +172,5 @@ export const useProposal = () => {
       }
   }, [ ])
 
-  return {status, error, hasVoted, transactionHash, updateProposal, addProposals, propose, cancel, castVote, checkHasVoted}
+  return {status, error, hasVoted, transactionHash, proposalsState, propose, cancel, castVote, checkHasVoted, getProposalsState}
 }

@@ -4,10 +4,8 @@ pragma solidity 0.8.26;
 import "forge-std/Test.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
-import { Powers } from "../../src/Powers.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
-import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import { Law } from "../../src/Law.sol";
 
 contract LawUtilitiesTest is TestSetupLaw {
     using LawUtilities for LawUtilities.TransactionsByAccount;
@@ -19,19 +17,19 @@ contract LawUtilitiesTest is TestSetupLaw {
     //////////////////////////////////////////////////////////////
     function testCheckStringLengthAcceptsValidName() public {
         // Should not revert with valid name
-        LawUtilities.checkStringLength("Valid Law Name");
+        LawUtilities.checkStringLength("Valid Law Name", 1, 31);
     }
 
     function testCheckStringLengthRevertsWithEmptyName() public {
         // Should revert with empty name
-        vm.expectRevert(LawUtilities.LawUtilities__EmptyNameNotAllowed.selector);
-        LawUtilities.checkStringLength("");
+        vm.expectRevert(LawUtilities.LawUtilities__StringTooShort.selector);
+        LawUtilities.checkStringLength("", 1, 31);
     }
 
     function testCheckStringLengthRevertsWithTooLongName() public {
         // Should revert with name longer than 31 characters
         vm.expectRevert(LawUtilities.LawUtilities__StringTooLong.selector);
-        LawUtilities.checkStringLength("ThisNameIsWaaaaaayTooLongForALawName");
+        LawUtilities.checkStringLength("ThisNameIsWaaaaaayTooLongForALawName", 1, 31);
     }
 
     //////////////////////////////////////////////////////////////
@@ -55,7 +53,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(1, lawCalldata, nonce, "Parent proposal");
         
         // Vote for parent proposal
-        (,, conditions) = daoMock.getActiveLaw(1);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(1);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 1);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -97,7 +96,9 @@ contract LawUtilitiesTest is TestSetupLaw {
         lawCalldata = abi.encode(true);
 
         // Execute parent proposal
-        (,, ILaw.Conditions memory conditionsFive ) = daoMock.getActiveLaw(5);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(5);
+        ILaw.Conditions memory conditionsFive = Law(lawAddress).getConditions(address(daoMock), 5);
+
         vm.roll(block.number + conditionsFive.throttleExecution + 1);
         vm.prank(alice);
         daoMock.request(5, lawCalldata, nonce, "Execute parent");
@@ -153,7 +154,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
         
         // Vote for proposal
-        (,, conditions) = daoMock.getActiveLaw(4);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 4);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -179,7 +181,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
         
         // Vote against proposal
-        (,, conditions) = daoMock.getActiveLaw(4);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 4);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -206,7 +209,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
         
         // Vote for proposal
-        (,, conditions) = daoMock.getActiveLaw(4);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 4);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -232,7 +236,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
         
         // Vote for proposal
-        (,, conditions) = daoMock.getActiveLaw(4);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 4);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -304,7 +309,8 @@ contract LawUtilitiesTest is TestSetupLaw {
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
         
         // Vote for proposal
-        (,, conditions) = daoMock.getActiveLaw(4);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
+        conditions = Law(lawAddress).getConditions(address(daoMock), 4);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);

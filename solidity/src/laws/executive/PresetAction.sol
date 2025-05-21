@@ -34,24 +34,17 @@ contract PresetAction is Law {
     mapping(bytes32 lawHash => Data data) internal data;
 
     /// @notice constructor of the law
-    /// @param name_ the name of the law.
-    constructor(
-        // inherited from Law
-        string memory name_
-    ) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
-
-        emit Law__Deployed(name_, configParams); // empty params
+        emit Law__Deployed(configParams); // empty params
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
             abi.decode(config, (address[], uint256[], bytes[]));
@@ -63,7 +56,7 @@ contract PresetAction is Law {
             calldatas: calldatas_
         });
 
-        super.initializeLaw(index, conditions, config,"", description);
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice execute the law.

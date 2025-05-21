@@ -1,20 +1,19 @@
 {
   "icon": "",
-  "banner": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibbtfbr5t7ndfwrh2gp5xwleahnezkugqiwcfj5oktvt5heijoswq",
   "description": 
     "A base implementation of the Powers protocol. \n It consists of an executive governance track in which Members, Admins and Delegates check each others powers. \n It also includes tracks to assign delegates and members.",
-    "erc20s": [
-      "0xC221a7e2475b1eA6ACcEE99444203853B4a9F4De",
-      "0xC8910B7c6dBa1e379CE90b6e00DA8e113774D95D"
+  "erc20s": [
+    "0x2f5628002C31B9476aD20a1Ba4ECB817adFc5416",
+    "0xAb751e30cF43cf9bcDbC10947e4755401CDAE8cB"
   ],
   "erc721s": [
-    "0x37E0c40F82dfe66A0eB544a5aF6Bf500720930Af"
-  ],
+    "0xF2b1d9b13de278747EF247e6Dbf9B2B889F94132"],
   "erc1155s": [{
-    "address": "0xf0C7cC2299a3465E731e0843b7FE3ab5723b19E8",
+    "address": "0xd80c78AF3F6b5D3AAD9390F220055b5d6d8Ec471",
     "tokenId": 0
   } ],
-    "attributes": [
+  "attributes": [
     {
       "trait_type": "optional trait 1",
       "value": "none"

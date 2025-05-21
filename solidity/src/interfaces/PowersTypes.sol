@@ -27,10 +27,10 @@ interface PowersTypes {
     }
 
     struct LawInitData {
+        string nameDescription; // 32 bytes
         address targetLaw; // 20 bytes
         bytes config; // 32 bytes
         ILaw.Conditions conditions; // 104 bytes
-        string description; // 32 bytes
     }
 
     /// @notice struct to keep track of a proposal.
@@ -55,6 +55,10 @@ interface PowersTypes {
         uint32 abstainVotes; // 4
         // slots 3.. £check: have to check this out.
         mapping(address voter => bool) hasVoted; // 20 ?
+        // note: We save lawCalldata ONCHAIN when executed. -- this will be mroe expensive, but it decreases dependence on external services. 
+        bytes lawCalldata; // 32 ... and more. 
+        string uri; // 32 bytes ... and more. uri to metadata (description, etc) of action. Markdown file supported by frontend, but in theory can be anything. 
+        uint256 nonce; // 32 bytes
     }
 
     /// @notice enum for the state of a proposal.
@@ -84,6 +88,7 @@ interface PowersTypes {
     struct Role {
         mapping(address account => uint48 since) members;
         uint256 amountMembers;
+        string label;
     }
 
     /// @notice struct keeping track of a deposit.

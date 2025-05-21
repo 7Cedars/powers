@@ -56,17 +56,24 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes lawCalldata;
     bytes lawCalldataNominate;
     bytes lawCalldataElect;
+    string nameDescription;
     string description;
+    bytes inputParams;
     uint256 nonce;
+    bool active;
     uint256 actionId;
     bytes32 lawHash;
+    address newLaw;
+    uint16 lawId;
+    uint16 lawCount; 
 
     address[] nominees;
     uint256 roleCount;
     uint256 againstVote;
     uint256 forVote;
     uint256 abstainVote;
-
+    
+    address lawAddress;
     uint8 quorum;
     uint8 succeedAt;
     uint32 votingPeriod;
@@ -374,6 +381,32 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
     }
 }
 
+abstract contract TestSetupIntegrations is BaseSetup, ConstitutionsMock {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate constitution & get founders' roles list
+        (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateIntegrationsTestConstitution(
+            lawNames,
+            lawAddresses,
+            mockNames,
+            mockAddresses,
+            payable(address(daoMock))
+        );
+        daoMock.constitute(lawInitData_);
+
+        // assign Roles
+        // vm.roll(block.number + 4000);
+        // daoMock.request(
+        //     uint16(lawInitData_.length - 1),
+        //     abi.encode(),
+        //     nonce,// empty calldata
+        //     "assigning roles"
+        // );
+    }
+}
+
+
 abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
@@ -406,8 +439,7 @@ abstract contract TestSetupSeparatedPowers is BaseSetup {
         super.setUpVariables();
 
         DeploySeparatedPowers deploySeparatedPowers = new DeploySeparatedPowers();
-        ( address payable separatedPowersAddress) = deploySeparatedPowers.run();
-        
+        address payable separatedPowersAddress = deploySeparatedPowers.run();
         separatedPowers = Powers(separatedPowersAddress);
     }
 }

@@ -21,7 +21,7 @@ export function Children({law, powers, status}: {law: Law | undefined, powers: P
   const { chainId } = useParams<{ chainId: string }>()
 
   const childLaws: Law[] | undefined = powers?.laws?.filter(law => 
-    law.conditions.needCompleted == law.index || law.conditions.needNotCompleted == law.index
+    law.conditions?.needCompleted == law.index || law.conditions?.needNotCompleted == law.index
   ) 
 
   return (
@@ -34,7 +34,7 @@ export function Children({law, powers, status}: {law: Law | undefined, powers: P
         </div>
       </div>
       <div className = "flex flex-col items-center justify-center"> 
-        {status == "pending" || status == "idle" ?
+        {status == "pending" ?
         <div className = "w-full flex flex-col justify-center items-center p-2"> 
           <LoadingBox />
         </div>
@@ -42,11 +42,11 @@ export function Children({law, powers, status}: {law: Law | undefined, powers: P
         childLaws?.map(law =>
               <div key={law.index} className = "w-full flex flex-row p-2 px-3">
                 <button 
-                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law.conditions.allowedRole) % roleColour.length]} disabled:opacity-50`}
+                  className={`w-full h-full flex flex-row items-center justify-center rounded-md border ${roleColour[Number(law.conditions?.allowedRole) % roleColour.length]} disabled:opacity-50`}
                   onClick = {() => {router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}}
                 >
                   <div className={`w-full h-full flex flex-row items-center justify-center text-slate-600 gap-1 px-2 py-1`}>
-                      {shorterDescription(law.description, "short")}
+                      {shorterDescription(law.nameDescription, "short")}
                   </div>
                 </button>
               </div>

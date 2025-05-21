@@ -5,16 +5,14 @@ import { setError, useActionStore, useErrorStore } from "../../../../../context/
 import { Button } from "@/components/Button";
 import { ArrowUpRightIcon, PlusIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { SectionText } from "@/components/StandardFonts";
-import { useChainId } from 'wagmi'
+import { useChainId, useChains } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { parseChainId, parseLawError, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation } from "@/context/types";
 import { DynamicInput } from "@/app/[chainId]/[powers]/laws/[lawId]/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
-import { supportedChains } from "@/context/chains";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
-import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 
 type LawBoxProps = {
@@ -30,7 +28,7 @@ type LawBoxProps = {
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
-  onExecute: (description: string, nonce: bigint) => void;
+  onExecute: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
 const roleColour = [  
@@ -47,8 +45,9 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const error = useErrorStore()
   const { chainId } = useParams<{ chainId: string }>()
   const dataTypes = params.map(param => param.dataType) 
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
-  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error})
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 
@@ -76,16 +75,16 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
   return (
     <main className="w-full h-full">
-      <section className={`w-full h-full bg-slate-50 border ${roleColour[parseRole(law.conditions.allowedRole) % roleColour.length]} rounded-md overflow-hidden`} >
+      <section className={`w-full h-full bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} rounded-md overflow-hidden`} >
       {/* title  */}
       <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={shorterDescription(law?.description, "short")}
-          subtext={shorterDescription(law?.description, "long")}
+          text={shorterDescription(law?.nameDescription, "short")}
+          subtext={shorterDescription(law?.nameDescription, "long")}
           size = {0}
         /> 
          <a
-            href={`${supportedChain?.blockExplorerUrl}/address/${law.lawAddress}#code`} target="_blank" rel="noopener noreferrer"
+            href={`${supportedChain?.blockExplorers?.default.url}/address/${law.lawAddress}#code`} target="_blank" rel="noopener noreferrer"
             className="w-full"
           >
           <div className="flex flex-row gap-1 items-center justify-start">
@@ -99,7 +98,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           </a>
           {selectedExecution && 
             <a
-            href={`${supportedChain?.blockExplorerUrl}/tx/${selectedExecution.log.transactionHash}`} target="_blank" rel="noopener noreferrer"
+            href={`${supportedChain?.blockExplorers?.default.url}/tx/${selectedExecution.log.transactionHash}`} target="_blank" rel="noopener noreferrer"
               className="w-full"
             >
             <div className="flex flex-row gap-1 items-center justify-start">
@@ -140,12 +139,12 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               type="number"   
               name={`nonce`} 
               id={`nonce`}
-              value = {action.nonce == 0n ? "" : String(action.nonce)}
+              value = {action.nonce}
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
                 event.preventDefault()
-                setAction({...action, nonce: BigInt(Number(event.target.value)), upToDate: false})
+                setAction({...action, nonce: event.target.value, upToDate: false})
               }}
             />
           </div>
@@ -153,35 +152,34 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               className = "h-8 min-w-8 py-2 grow flex flex-row items-center justify-center  rounded-md bg-white outline outline-1 outline-gray-300"
               onClick = {(event) => {
                 event.preventDefault()
-                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 10000000000000000000000000000000000000)), upToDate: false})
+                setAction({...action, nonce: BigInt(Math.floor(Math.random() * 1000000000000000000000000)).toString(), upToDate: false})
               }}
               > 
               <SparklesIcon className = "h-5 w-5"/> 
           </button>    
         </div>
 
-        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 pb-4 min-h-24">
-          <label htmlFor="reason" className="text-sm text-slate-600 pb-1 pe-12 ps-3">Reason</label>
-          <div className="w-full h-fit flex items-center text-md justify-start rounded-md bg-white pl-3 outline outline-1 outline-slate-300">
-              <textarea 
-                name="reason" 
-                id="reason" 
-                rows={5} 
-                cols ={60} 
-                value={action.description}
-                className="min-w-0 p-1 ps-0 w-full text-sm text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0" 
-                placeholder="Describe reason for action here."
+        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3">
+        <label htmlFor="uri" className="text-sm text-slate-600 ps-3 pt-1 pe-4 ">Description</label>
+          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-3 outline outline-1 outline-slate-300">
+              <input 
+                type="text"
+                name="uri" 
+                id="uri" 
+                value={action.uri}
+                className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
+                placeholder="Enter URI to file with notes on the action here."
                 onChange={(event) => {  
                   event.preventDefault()
-                  setAction({...action, description: event.target.value, upToDate: false}); 
+                  setAction({...action, uri: event.target.value, upToDate: false}); 
                 }} />
             </div>
         </div>
       
 
       {/* Errors */}
-      { error.error && 
-        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pb-4 px-8">
+      { error.error && action.upToDate &&
+        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pt-8 pb-4 px-8">
           <div>
             An error occurred. This is often because the law has additional checks that did not pass or there is an error in the data provided. 
             For more details, check the console.   
@@ -189,18 +187,18 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         </div>
       }
 
-        <div className="w-full flex flex-row justify-center items-center pt-2 px-6">
+        <div className="w-full flex flex-row justify-center items-center pt-6 px-6">
           <Button 
             size={1} 
             showBorder={true} 
-            role={law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole)}
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             filled={false}
             selected={true}
             onClick={() => {
-              onSimulate(action.paramValues ? action.paramValues : [], action.nonce, action.description)
+              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
             }} 
             statusButton={
-               !action.upToDate && action.description.length > 0 ? 'idle' : 'disabled'
+               !action.upToDate && action.uri && action.uri.length > 0 ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>
@@ -215,9 +213,9 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         <div className="w-full h-fit p-6">
           <Button 
             size={1} 
-            role={law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law.conditions.allowedRole)}
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
-              onExecute(action.description, action.nonce)
+              onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
             }} 
             filled={false}
             selected={true}

@@ -31,24 +31,21 @@ import { LawUtilities } from "../../LawUtilities.sol";
 
 contract ProposalOnly is Law {
     /// @notice Constructor function for Open contract.
-    /// @param name_ name of the law
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("string[] InputParams");
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         inputParams = config;
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    
     }
 
     // note that we are returning empty arrays as we are not executing any logic.

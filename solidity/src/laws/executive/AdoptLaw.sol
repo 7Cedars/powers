@@ -22,7 +22,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../LawUtilities.sol"; 
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
@@ -32,6 +32,7 @@ contract AdoptLaw is Law {
     /// @param name_ the name of the law.
 
     struct AdoptLawConfig {
+        string nameDescription;
         address law;
         uint256 allowedRole;
 
@@ -46,27 +47,22 @@ contract AdoptLaw is Law {
         uint48 throttleExecution;
         
         bytes config;
-        string description;
+       
     }
 
-    constructor(
-        // standard parameters
-        string memory name_
-    ) { 
-        LawUtilities.checkStringLength(name_);
-        name = name_;
-
-        emit Law__Deployed(name_, "");
+    constructor() { 
+        emit Law__Deployed("");
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         inputParams = abi.encode(
+            "string NameDescription", 
             "address Law", 
             "uint256 AllowedRole", 
             "uint32 VotingPeriod", 
@@ -77,12 +73,10 @@ contract AdoptLaw is Law {
             "uint16 StateFrom", 
             "uint48 DelayExec", 
             "uint48 ThrottleExec", 
-            "bytes Config", 
-            "string Description"
+            "bytes Config"
             );
 
-        super.initializeLaw(index, conditions, config, inputParams, description);
-    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
@@ -116,10 +110,10 @@ contract AdoptLaw is Law {
         });
 
         PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
+            nameDescription: config.nameDescription,
             targetLaw: config.law,
             conditions: conditions,
-            config: config.config,
-            description: config.description
+            config: config.config
         });
 
         // send the calldata to the target function

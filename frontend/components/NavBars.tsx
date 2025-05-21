@@ -17,6 +17,10 @@ import {
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
 import { useAccount, useSwitchChain } from 'wagmi'
+import { watchContractEvent } from '@wagmi/core';
+import { powersAbi } from '@/context/abi';
+import { wagmiConfig } from '@/context/wagmiConfig';
+import { PowerIcon } from '@heroicons/react/24/outline';
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -28,22 +32,32 @@ const NavigationBar = () => {
   const { chain } = useAccount()
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
-  const { status: statusUpdate, fetchPowers } = usePowers()  
+  const { status: statusUpdate, fetchPowers, fetchLawsAndRoles, powers } = usePowers()  
   const { switchChain } = useSwitchChain()
-
+  // const unwatch = watchContractEvent(wagmiConfig, {
+  //   address: addressPowers as `0x${string}`,
+  //   abi: powersAbi,
+  //   eventName: 'LawAdopted',
+  //   onLogs(logs) {
+  //     if (powers) {
+  //       fetchLawsAndRoles(powers)
+  //     }
+  //     console.log('New logs!', logs)
+  //   },
+  // })
 
   useEffect(() => {
-    console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
+    // console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
     if (chain?.id != Number(chainId) || chain == undefined) {
       switchChain({ chainId: Number(chainId) })
     }
   }, [chainId, switchChain, chain])
 
   useEffect(() => {
-    if (addressPowers) {
-      fetchPowers() 
-    }
-  }, [addressPowers, fetchPowers])
+      if (addressPowers) {
+        fetchPowers(addressPowers as `0x${string}`)
+      }
+    }, [addressPowers, fetchPowers]) // updateProposals 
 
   return (
     <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 
@@ -127,15 +141,16 @@ const Header = () => {
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
       <div className="flex flex-row gap-1 min-w-16"> 
         <a href="/"  
-            className="flex flex-row min-w-12 p-1 justify-center items-center border border-slate-300 bg-slate-50 rounded-md"
+            className="flex flex-row justify-center items-center border border-slate-400 rounded-md p-1 px-3"
             >  
-          <Image 
-            src='/logo.png' 
-            width={28}
-            height={28}
+          <PowerIcon className="h-7 w-7 text-slate-70 font-extrabold" />
+          {/* <Image 
+            src='/logo5.png' 
+            width={30}
+            height={30}
             alt="Logo Separated Powers"
             >
-          </Image>
+          </Image> */}
         </a> 
         <div className="">
       

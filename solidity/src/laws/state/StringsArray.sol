@@ -31,21 +31,17 @@ contract StringsArray is Law {
     event StringsArray__StringAdded(string str);
     event StringsArray__StringRemoved(string str);
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
-        emit Law__Deployed(name_, "");
-    }
+    constructor() { emit Law__Deployed(""); }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         inputParams = abi.encode("string String", "bool Add");
-        super.initializeLaw(index, conditions, config, inputParams, description);
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    
     }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

@@ -172,9 +172,9 @@ export const ownableAbi: Abi = [
   },
 ]
 
-// //////////////////////////////////////////////////////////
-// //                    Powers ABI                        //
-// ////////////////////////////////////////////////////////// 
+// // //////////////////////////////////////////////////////////
+// // //                    Powers ABI                        //
+// // ////////////////////////////////////////////////////////// 
 export const powersAbi: Abi = [
   {
     "type": "constructor",
@@ -208,6 +208,11 @@ export const powersAbi: Abi = [
         "type": "tuple",
         "internalType": "struct PowersTypes.LawInitData",
         "components": [
+          {
+            "name": "nameDescription",
+            "type": "string",
+            "internalType": "string"
+          },
           {
             "name": "targetLaw",
             "type": "address",
@@ -261,11 +266,6 @@ export const powersAbi: Abi = [
                 "internalType": "uint16"
               }
             ]
-          },
-          {
-            "name": "description",
-            "type": "string",
-            "internalType": "string"
           }
         ]
       }
@@ -335,6 +335,11 @@ export const powersAbi: Abi = [
         "internalType": "struct PowersTypes.LawInitData[]",
         "components": [
           {
+            "name": "nameDescription",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
             "name": "targetLaw",
             "type": "address",
             "internalType": "address"
@@ -387,11 +392,6 @@ export const powersAbi: Abi = [
                 "internalType": "uint16"
               }
             ]
-          },
-          {
-            "name": "description",
-            "type": "string",
-            "internalType": "string"
           }
         ]
       }
@@ -437,6 +437,39 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
+    "name": "getActionCalldata",
+    "inputs": [
+      { "name": "actionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "callData", "type": "bytes", "internalType": "bytes" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getActionNonce",
+    "inputs": [
+      { "name": "actionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "nonce", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getActionUri",
+    "inputs": [
+      { "name": "actionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "uri", "type": "string", "internalType": "string" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getActiveLaw",
     "inputs": [
       { "name": "lawId", "type": "uint16", "internalType": "uint16" }
@@ -444,50 +477,7 @@ export const powersAbi: Abi = [
     "outputs": [
       { "name": "law", "type": "address", "internalType": "address" },
       { "name": "lawHash", "type": "bytes32", "internalType": "bytes32" },
-      {
-        "name": "conditions",
-        "type": "tuple",
-        "internalType": "struct ILaw.Conditions",
-        "components": [
-          {
-            "name": "allowedRole",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "needCompleted",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "delayExecution",
-            "type": "uint48",
-            "internalType": "uint48"
-          },
-          {
-            "name": "throttleExecution",
-            "type": "uint48",
-            "internalType": "uint48"
-          },
-          {
-            "name": "readStateFrom",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "votingPeriod",
-            "type": "uint32",
-            "internalType": "uint32"
-          },
-          { "name": "quorum", "type": "uint8", "internalType": "uint8" },
-          { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
-          {
-            "name": "needNotCompleted",
-            "type": "uint16",
-            "internalType": "uint16"
-          }
-        ]
-      }
+      { "name": "active", "type": "bool", "internalType": "bool" }
     ],
     "stateMutability": "view"
   },
@@ -553,6 +543,17 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
+    "name": "getRoleLabel",
+    "inputs": [
+      { "name": "roleId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "label", "type": "string", "internalType": "string" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "hasRoleSince",
     "inputs": [
       { "name": "account", "type": "address", "internalType": "address" },
@@ -569,15 +570,6 @@ export const powersAbi: Abi = [
     "inputs": [
       { "name": "actionId", "type": "uint256", "internalType": "uint256" },
       { "name": "account", "type": "address", "internalType": "address" }
-    ],
-    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "isActiveLaw",
-    "inputs": [
-      { "name": "lawId", "type": "uint16", "internalType": "uint16" }
     ],
     "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
     "stateMutability": "view"
@@ -651,7 +643,7 @@ export const powersAbi: Abi = [
       { "name": "lawId", "type": "uint16", "internalType": "uint16" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       { "name": "nonce", "type": "uint256", "internalType": "uint256" },
-      { "name": "description", "type": "string", "internalType": "string" }
+      { "name": "uriAction", "type": "string", "internalType": "string" }
     ],
     "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "nonpayable"
@@ -663,19 +655,10 @@ export const powersAbi: Abi = [
       { "name": "lawId", "type": "uint16", "internalType": "uint16" },
       { "name": "lawCalldata", "type": "bytes", "internalType": "bytes" },
       { "name": "nonce", "type": "uint256", "internalType": "uint256" },
-      { "name": "description", "type": "string", "internalType": "string" }
+      { "name": "uriAction", "type": "string", "internalType": "string" }
     ],
     "outputs": [],
     "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "reviveLaw",
-    "inputs": [
-      { "name": "lawId", "type": "uint16", "internalType": "uint16" }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -1078,9 +1061,6 @@ export const powersAbi: Abi = [
   }
 ]
 
-// //////////////////////////////////////////////////////////
-// //                      Law ABI                         //
-// ////////////////////////////////////////////////////////// 
 export const lawAbi: Abi = [
   {
     "type": "function",
@@ -1202,37 +1182,6 @@ export const lawAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "conditionsLaws",
-    "inputs": [
-      { "name": "lawHash", "type": "bytes32", "internalType": "bytes32" }
-    ],
-    "outputs": [
-      { "name": "allowedRole", "type": "uint256", "internalType": "uint256" },
-      { "name": "needCompleted", "type": "uint16", "internalType": "uint16" },
-      {
-        "name": "delayExecution",
-        "type": "uint48",
-        "internalType": "uint48"
-      },
-      {
-        "name": "throttleExecution",
-        "type": "uint48",
-        "internalType": "uint48"
-      },
-      { "name": "readStateFrom", "type": "uint16", "internalType": "uint16" },
-      { "name": "votingPeriod", "type": "uint32", "internalType": "uint32" },
-      { "name": "quorum", "type": "uint8", "internalType": "uint8" },
-      { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
-      {
-        "name": "needNotCompleted",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "executeLaw",
     "inputs": [
       { "name": "caller", "type": "address", "internalType": "address" },
@@ -1244,18 +1193,6 @@ export const lawAbi: Abi = [
       { "name": "success", "type": "bool", "internalType": "bool" }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "executionsLaws",
-    "inputs": [
-      { "name": "lawHash", "type": "bytes32", "internalType": "bytes32" }
-    ],
-    "outputs": [
-      { "name": "powers", "type": "address", "internalType": "address" },
-      { "name": "config", "type": "bytes", "internalType": "bytes" }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1328,11 +1265,44 @@ export const lawAbi: Abi = [
           { "name": "powers", "type": "address", "internalType": "address" },
           { "name": "config", "type": "bytes", "internalType": "bytes" },
           {
+            "name": "actionsIds",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          {
             "name": "executions",
             "type": "uint48[]",
             "internalType": "uint48[]"
           }
         ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getInputParams",
+    "inputs": [
+      { "name": "powers", "type": "address", "internalType": "address" },
+      { "name": "lawId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      { "name": "inputParams", "type": "bytes", "internalType": "bytes" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getNameDescription",
+    "inputs": [
+      { "name": "powers", "type": "address", "internalType": "address" },
+      { "name": "lawId", "type": "uint16", "internalType": "uint16" }
+    ],
+    "outputs": [
+      {
+        "name": "nameDescription",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "stateMutability": "view"
@@ -1362,6 +1332,12 @@ export const lawAbi: Abi = [
     "inputs": [
       { "name": "index", "type": "uint16", "internalType": "uint16" },
       {
+        "name": "nameDescription",
+        "type": "string",
+        "internalType": "string"
+      },
+      { "name": "inputParams", "type": "bytes", "internalType": "bytes" },
+      {
         "name": "conditions",
         "type": "tuple",
         "internalType": "struct ILaw.Conditions",
@@ -1405,18 +1381,88 @@ export const lawAbi: Abi = [
           }
         ]
       },
-      { "name": "config", "type": "bytes", "internalType": "bytes" },
-      { "name": "inputParams", "type": "bytes", "internalType": "bytes" },
-      { "name": "description", "type": "string", "internalType": "string" }
+      { "name": "config", "type": "bytes", "internalType": "bytes" }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
   {
     "type": "function",
-    "name": "name",
-    "inputs": [],
-    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "name": "laws",
+    "inputs": [
+      { "name": "lawHash", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [
+      {
+        "name": "nameDescription",
+        "type": "string",
+        "internalType": "string"
+      },
+      { "name": "inputParams", "type": "bytes", "internalType": "bytes" },
+      {
+        "name": "conditions",
+        "type": "tuple",
+        "internalType": "struct ILaw.Conditions",
+        "components": [
+          {
+            "name": "allowedRole",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "needCompleted",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "delayExecution",
+            "type": "uint48",
+            "internalType": "uint48"
+          },
+          {
+            "name": "throttleExecution",
+            "type": "uint48",
+            "internalType": "uint48"
+          },
+          {
+            "name": "readStateFrom",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "votingPeriod",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          { "name": "quorum", "type": "uint8", "internalType": "uint8" },
+          { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
+          {
+            "name": "needNotCompleted",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      },
+      {
+        "name": "executions",
+        "type": "tuple",
+        "internalType": "struct ILaw.Executions",
+        "components": [
+          { "name": "powers", "type": "address", "internalType": "address" },
+          { "name": "config", "type": "bytes", "internalType": "bytes" },
+          {
+            "name": "actionsIds",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          {
+            "name": "executions",
+            "type": "uint48[]",
+            "internalType": "uint48[]"
+          }
+        ]
+      }
+    ],
     "stateMutability": "view"
   },
   {
@@ -1432,12 +1478,6 @@ export const lawAbi: Abi = [
     "type": "event",
     "name": "Law__Deployed",
     "inputs": [
-      {
-        "name": "name",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
       {
         "name": "configParams",
         "type": "bytes",
@@ -1464,6 +1504,18 @@ export const lawAbi: Abi = [
         "internalType": "uint16"
       },
       {
+        "name": "nameDescription",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "inputParams",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      },
+      {
         "name": "conditions",
         "type": "tuple",
         "indexed": false,
@@ -1509,16 +1561,10 @@ export const lawAbi: Abi = [
         ]
       },
       {
-        "name": "inputParams",
+        "name": "config",
         "type": "bytes",
         "indexed": false,
         "internalType": "bytes"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
       }
     ],
     "anonymous": false

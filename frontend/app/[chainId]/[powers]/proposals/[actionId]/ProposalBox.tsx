@@ -4,16 +4,15 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useActionStore, setAction } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
-import { decodeAbiParameters,  keccak256, parseAbiParameters, toHex } from "viem";
-import { bytesToParams, parseParamValues, parseRole } from "@/utils/parsers";
-import { Checks, InputType, Law, Powers, Proposal, Status } from "@/context/types";
+import { parseRole } from "@/utils/parsers";
+import { Checks, Law, Powers, Proposal, Status } from "@/context/types";
 import { StaticInput } from "../../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { LoadingBox } from "@/components/LoadingBox";
-// import { useChecks } from "@/hooks/useChecks";
+import { useBlockNumber } from "wagmi";
 
 const roleColour = [  
   "border-blue-600", 
@@ -29,9 +28,11 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
+  const [voteReceived, setVoteReceived] = useState<boolean>(false);
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
+  const {data: blockNumber} = useBlockNumber();
   // console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted, proposal})
 
   const handleCastVote = async (proposal: Proposal, support: bigint) => { 
@@ -50,7 +51,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
       simulate(
         action.caller,
         action.callData,
-        action.nonce,
+        BigInt(action.nonce),
         law as Law
         )
 
@@ -69,12 +70,13 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
         wallets[0].address as `0x${string}`,
         powers as Powers
       )
+      setVoteReceived(true)
     }
   }, [statusProposal])
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
       {status == "pending" || status == "idle" ?
       <div className = "w-full flex flex-col justify-center items-center p-2"> 
         <LoadingBox />
@@ -84,8 +86,8 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={`Proposal: ${law?.description}`}
-          subtext={law?.description}
+          text={`Proposal: ${law?.nameDescription}`}
+          subtext={law?.nameDescription}
           size = {0}
         /> 
       </div>
@@ -110,7 +112,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
               name="nonce"
               className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"  
               id="nonce" 
-              value={action.nonce as unknown as string}
+              value={action.nonce.toString()}
               disabled={true}
               />
           </div>
@@ -125,7 +127,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 id="reason" 
                 rows={5} 
                 cols ={25} 
-                value={action.description}
+                value={action.uri}
                 className="block min-w-0 grow py-1.5 pl-1 pr-3 bg-slate-100 pl-3 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Describe reason for action here."
                 disabled={true} 
@@ -143,9 +145,14 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 Vote has closed  
               </div>
               :
-              hasVoted ? 
+              hasVoted || voteReceived ? 
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Account has voted  
+              </div>
+              :
+              blockNumber && proposal && proposal.voteEnd < BigInt(blockNumber) ?
+              <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
+                Vote has closed  
               </div>
               :
               proposal && 

@@ -15,7 +15,6 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { SectionText } from "@/components/StandardFonts";
 import { useWatchContractEvent } from 'wagmi'
 import { usePowers } from "@/hooks/usePowers";
-import { supportedChains } from "@/context/chains";
 
 const roleColour = [  
   "border-blue-600", 
@@ -31,47 +30,27 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
   const router = useRouter();
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposals, error, transactionHash, propose, addProposals} = useProposal();
+  const {status: statusProposals, error, transactionHash, propose} = useProposal();
   const { chainId } = useParams<{ chainId: string }>()
-  const {data: blockNumber} = useBlockNumber();
-  const supportedChain = supportedChains.find(chain => chain.id == Number(chainId))
 
-  // console.log("ProposeBox", {law, powers, action, error, statusProposals})
-
-  const confirmations = useTransactionConfirmations({
-    hash: transactionHash 
-  })
-
-  // console.log("@ProposeBox: confirmations", {confirmations: confirmations.data, simulation, blockNumber})
-
-  useEffect(() => {
-    if (Number(confirmations.data) > 0 && blockNumber) {
-      addProposals(powers, supportedChain?.genesisBlock as bigint)
-    }
-  }, [confirmations.data, powers, addProposals, blockNumber])
-
-  useEffect(() => {
-    if (statusProposals == "success") {
-      router.push(`/${chainId}/${powers.contractAddress}/proposals`)
-    }
-  }, [statusProposals, simulation])
+  // console.log("@ProposeBox, waypoint 1", {law, powers, proposalExists, authorised, action})
 
   useEffect(() => {
     simulate(
       action.caller,
       action.callData,
-      action.nonce,
+      BigInt(action.nonce),
       law as Law
     )
   }, [law, action])
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole ?? 0n) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
         <SectionText
-          text={`Proposal: ${law?.description}`}
+          text={`Proposal: ${law?.nameDescription}`}
           size = {0}
         /> 
       </div>
@@ -89,9 +68,16 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
         }
         {/* nonce */}
         <div className="w-full mt-4 flex flex-row justify-center items-start px-6 pb-4">
-          <label htmlFor="nonce" className="block min-w-20 text-sm/6 font-medium text-slate-600 pb-1">Nonce</label>
+          <label htmlFor="nonce" className="min-w-20 w-fit text-sm/6 font-medium text-slate-600 pb-1">Nonce</label>
           <div className="w-full h-8 flex items-center pe-2 pl-3 text-slate-600 placeholder:text-gray-400 bg-slate-100 rounded-md outline outline-1 outline-gray-300 sm:text-sm">
-            <input type="text" name="nonce" id="nonce" value={action.nonce.toString()} disabled={true} />
+          <input 
+              type="text" 
+              name="nonce"
+              className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6"  
+              id="nonce" 
+              value={action.nonce.toString()}
+              disabled={true}
+              />
           </div>
         </div>
         {/* reason */}
@@ -103,7 +89,7 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
                 id="reason" 
                 rows={5} 
                 cols ={25} 
-                value={action.description}
+                value={action.uri}
                 className="block min-w-0 grow py-1.5 pl-1 pr-3 bg-slate-100 pl-3 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Describe reason for action here."
                 disabled={true} 
@@ -121,13 +107,13 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
               onClick={() => propose(
                 law?.index as bigint, 
                 action.callData, 
-                action.nonce,
-                action.description,
+                BigInt(action.nonce),
+                action.uri,
                 powers as Powers
               )} 
               filled={false}
               selected={true}
-              statusButton={(!authorised || !proposalExists) ? 'disabled' : statusProposals }
+              statusButton={(!authorised || proposalExists) ? 'disabled' : statusProposals }
               > 
               Propose
             </Button>

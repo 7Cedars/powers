@@ -5,7 +5,6 @@ import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { Powers } from "@/context/types";
 import { setRole, useRoleStore } from "@/context/store";
-import { usePowers } from "@/hooks/usePowers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 
@@ -15,7 +14,7 @@ interface OverviewProps {
   status: string
 }
 
-export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
+export function Overview({powers, status, onUpdatePowers}: OverviewProps) {
   const {deselectedRoles} = useRoleStore()
 
   const handleRoleSelection = (role: bigint) => {
@@ -33,16 +32,16 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
   
   return (
     <div className="w-full min-h-fit flex flex-col gap-0 justify-start items-center bg-slate-50 border border-slate-300 rounded-md">
-    {
+    {/* {
     status == "pending" || status == "idle" ? 
     <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
       <LoadingBox /> 
     </div>
-    : 
+    :  */}
     <>
     {/* table banner  */}
     <div className="w-full min-h-fit flex flex-row gap-3 justify-between items-center py-2 px-4 border-b border-slate-300 overflow-y-scroll">
-      {powers?.roles.map((role: bigint, i: number) => 
+      {powers?.roles?.map((role: bigint, i: number) => 
           <div className="flex flex-row w-full min-w-fit h-8" key={i}>
           <Button
             size={0}
@@ -55,13 +54,10 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
           </Button>
           </div>
       )}
-      {powers && 
+      {onUpdatePowers && 
           <button 
-            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => {
-              onUpdatePowers()
-            }}
-            disabled={status == 'pending'}
+            className="w-fit h-fit p-1 rounded-md border-slate-500"
+            onClick = {() => onUpdatePowers()}
             >
               <ArrowPathIcon
                 className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
@@ -76,7 +72,7 @@ export function Overview({powers, onUpdatePowers, status}: OverviewProps) {
       <GovernanceOverview powers = {powers} />
     </div> 
     </>
-    }
+    {/* } */}
   </div>
   )
 }

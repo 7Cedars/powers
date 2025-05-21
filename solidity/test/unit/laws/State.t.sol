@@ -312,7 +312,7 @@ contract VoteOnAccountsTest is TestSetupState {
         daoMock.request(voteOnAccounts, lawCalldata, nonce, "Unauthorized vote");
     }
 
-    function testHandleRequestOutput() public {
+    function testHandleRequestOutputVoteOnAccounts() public {
         // prep
         uint16 voteOnAccounts = 5;
         (address VoteOnAccountsAddress, , ) = daoMock.getActiveLaw(voteOnAccounts);

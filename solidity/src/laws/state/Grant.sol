@@ -50,29 +50,26 @@ contract Grant is Law {
 
     mapping(bytes32 lawHash => Data) internal data;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode(
             "uint48 Duration",
             "uint256 Budget",
             "address TokenAddress"
         );
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration parameters
     /// @param index The index of the law in the DAO
     /// @param conditions The conditions for the law
     /// @param config The configuration parameters (duration, budget, tokenAddress, proposals)
-    /// @param inputParams The input parameters for the law
-    /// @param description The description of the law
+    /// @param nameDescription The description of the law
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         (uint48 duration, uint256 budget, address tokenAddress) =
             abi.decode(config, (uint48, uint256, address));
@@ -82,7 +79,9 @@ contract Grant is Law {
         data[lawHash].budget = budget;
         data[lawHash].tokenAddress = tokenAddress;
 
-        super.initializeLaw(index, conditions, config, abi.encode("address Grantee", "address Grant", "uint256 Quantity"), description);
+        inputParams = abi.encode("address Grantee", "address Grant", "uint256 Quantity");
+
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to transfer grant funds

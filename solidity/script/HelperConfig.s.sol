@@ -41,31 +41,31 @@ contract HelperConfig is Script {
     }
 
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300;
+        networkConfig.blocksPerHour = 300; // new block every 12 seconds
 
         return networkConfig;
     }
 
     function getEthSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300;
+        networkConfig.blocksPerHour = 300; // new block every 12 seconds
 
         return networkConfig;
     }
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300;
+        networkConfig.blocksPerHour = 1800; // new block every 2 seconds
 
         return networkConfig;
     }
 
     function getBaseSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300;
+        networkConfig.blocksPerHour = 1800; // new block every 2 seconds
 
         return networkConfig;
     }
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 3600;
+        networkConfig.blocksPerHour = 3600; // new block per 1 second
 
         return networkConfig;
     }

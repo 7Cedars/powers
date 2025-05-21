@@ -21,12 +21,14 @@ const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
+  // NB: proposal might not have been loaded!  
   const proposal = powers?.proposals?.find(proposal => proposal.actionId == actionId)
   const law = powers?.laws?.find(law => law.index == proposal?.lawId)
+  // 
   const action = useActionStore(); 
-  const {checkProposalExists, checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
-  const {updateProposal} = useProposal();
-  // console.log("@proposals page: ", {proposal, law, action, statusChecks})
+  const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
+
+  // console.log("@proposal, waypoint 1", {proposal, actionId, powers, action})
 
   useEffect(() => {
     if (proposal && law) { 
@@ -41,22 +43,21 @@ const Page = () => {
           dataTypes: law?.params?.map(param => param.dataType),
           paramValues: valuesParsed,
           nonce: proposal.nonce,
-          description: proposal.description,
+          uri: proposal.description,
           callData: proposal.executeCalldata,
           upToDate: true
         })
       } catch {
         setAction({...action, upToDate: false })
       }
-      fetchChecks(law, proposal.executeCalldata, proposal.nonce, wallets, powers as Powers)
-      checkProposalExists(proposal.nonce, proposal.executeCalldata, law, powers as Powers)
-      updateProposal(proposal, powers as Powers)
+      fetchChecks(law, proposal.executeCalldata, BigInt(proposal.nonce), wallets, powers as Powers) 
+      // fetchProposal(proposal, powers as Powers)
     }
-  }, [, proposal])
+  }, [proposal])
 
   useEffect(() => {
     if (addressPowers) {
-      fetchPowers() // addressPowers as `0x${string}`
+      fetchPowers(addressPowers as `0x${string}`)
     }
   }, [addressPowers, fetchPowers])
 

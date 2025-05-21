@@ -36,25 +36,23 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract SelfSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
-    constructor(string memory name_) {
-        LawUtilities.checkStringLength(name_);
-        name = name_;
+    constructor() {
         bytes memory configParams = abi.encode("uint256 RoleId");
-
-        emit Law__Deployed(name_, configParams);
+        emit Law__Deployed(configParams);
     }
 
     function initializeLaw(
         uint16 index,
-        Conditions memory conditions,
-        bytes memory config,
+        string memory nameDescription,
         bytes memory inputParams,
-        string memory description
+        Conditions memory conditions, 
+        bytes memory config
     ) public override {
         uint256 roleId_ = abi.decode(config, (uint256));
         roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
-        super.initializeLaw(index, conditions, config, "", description);
+        inputParams = abi.encode();
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)

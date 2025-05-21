@@ -41,19 +41,22 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
+import { HelperConfig } from "./HelperConfig.s.sol";
 
 contract DeploySeparatedPowers is Script {
+    HelperConfig helperConfig = new HelperConfig();
     string[] names;
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
-
+    uint256 blocksPerHour;
     function run() external returns (address payable powers_) {
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
         // Deploy the DAO and the taxed ERC20 token
         vm.startBroadcast();
         Powers powers = new Powers(
             "Separated Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreie6x6i2bdhuuxqbiumu27w6ub473d7sfajkzayapihwndlggf4ohm"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreif7ucxhedofbo7wbqwdsta26b3qja6xu2md2huq3xtxwkjjnzuf4e"
         );
         vm.stopBroadcast();
 
@@ -97,13 +100,13 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 25; // 25 blocks, about 5 minutes
-        conditions.throttleExecution = 20; // can only be executed once every twenty blocks 
+        conditions.delayExecution = minutesToBlocks(5); // 25 blocks, about 5 minutes
+        conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks 
         lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Propose new actions: Propose a new action to the DAO that can later be executed by holders.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the input params are the targets, values, and calldatas
-            conditions: conditions,
-            description: "Propose new actions: Propose a new action to the DAO that can later be executed by holders."
+            conditions: conditions
         });
         delete conditions;
 
@@ -114,12 +117,12 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = 50; // 50 blocks, about 10 minutes
+        conditions.delayExecution = minutesToBlocks(10); // 50 blocks, about 10 minutes
         lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Veto an action: Veto an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
-            conditions: conditions,
-            description: "Veto an action: Veto an action that was proposed by users."
+            conditions: conditions
         });
         delete conditions;
 
@@ -129,13 +132,13 @@ contract DeploySeparatedPowers is Script {
         conditions.needCompleted = 2; // law 2 needs to have passed. 
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 20; // 20% quorum
-        conditions.succeedAt = 66; // 66% majority
-        conditions.delayExecution = 75; // 75 blocks, about 15 minutes
+        conditions.succeedAt = 66; // 66% majority 
+        conditions.delayExecution = minutesToBlocks(15); // 75 blocks, about 15 minutes
         lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Veto an action: Veto an action that was proposed by subscribers.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
-            conditions: conditions,
-            description: "Veto an action: Veto an action that was proposed by subscribers."
+            conditions: conditions
         });
         delete conditions;
 
@@ -148,10 +151,10 @@ contract DeploySeparatedPowers is Script {
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
         lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "Execute action: Execute an action that was proposed by users and that has not been vetoed by developers.",
             targetLaw: parseLawAddress(6, "OpenAction"),
             config: abi.encode(inputParams), // the same input params as the proposal law
-            conditions: conditions,
-            description: "Execute action: Execute an action that was proposed by users and that has not been vetoed by developers."
+            conditions: conditions
         });
         delete conditions;
 
@@ -163,10 +166,10 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "Assign user role: Assign user role. The account will need to pay at least 100 gwei in tax during the previous epoch.",
             targetLaw: parseLawAddress(13, "TaxSelect"),
-            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 100, 1), // 100 gwei tax threshold, role 1 (user)
-            conditions: conditions,
-            description: "Assign user role: Assign an account to the user role. The account will need to pay at least 100 gwei in tax during the last 1000 blocks."
+            config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 25 gwei tax threshold, role 1 (user)
+            conditions: conditions
         });
         delete conditions;
 
@@ -174,10 +177,10 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Assign holder role: Assign an account to the holder role. The account will need to hold at least 1e18 tokens.",
             targetLaw: parseLawAddress(14, "HolderSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 1e18, 2), // 1e18 token threshold, role 2 (holder)
-            conditions: conditions,
-            description: "Assign holder role: Assign an account to the holder role. The account will need to hold at least 1e18 tokens."
+            conditions: conditions
         });
         delete conditions;
 
@@ -185,10 +188,10 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Assign subscriber role: Assign an account as subscriber. The account will need to pay 1000 gwei in Eth to the Protocol.",
             targetLaw: parseLawAddress(21, "Subscription"),
             config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour 
-            conditions: conditions,
-            description: "Assign subscriber role: Assign an account to the subscriber role. The account will need to pay 1000 gwei in Eth subscription fees to the Protocol contract."
+            conditions: conditions
         });
         delete conditions;
 
@@ -202,10 +205,10 @@ contract DeploySeparatedPowers is Script {
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 50% vote majority
         lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "Assign developer role: Assign an account to the developer role. Developers decide to assign an account to the developer role.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(3), // role 3 (developer)
-            conditions: conditions,
-            description: "Assign developer role to an account: Developers decide to assign an account to the developer role."
+            conditions: conditions
         });
         delete conditions;
 
@@ -215,10 +218,10 @@ contract DeploySeparatedPowers is Script {
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
         conditions.allowedRole = 0;
         lawInitData[9] = PowersTypes.LawInitData({
+            nameDescription: "Assign initial roles and labels: This law can only be used once. It self-destructs after use.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions,
-            description: "Assign initial roles and labels: This law can only be used once. It self-destructs after use."
+            conditions: conditions
         });
         delete conditions;
     }
@@ -270,6 +273,10 @@ contract DeploySeparatedPowers is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 }
 

@@ -16,33 +16,9 @@ import { Erc1155Mock } from "../mocks/Erc1155Mock.sol";
 //                  DEPLOY                      //
 //////////////////////////////////////////////////
 contract DeployTest is TestSetupLaw {
-    function testDeployWithValidName() public {
-        // prep: create a new law with valid name
-        string memory lawName = "Test Law";
-        Law lawMock = new OpenAction(lawName);
-
-        // assert: verify name is set correctly
-        assertEq(lawMock.name(), lawName);
-    }
-
-    function testDeployRevertsWithEmptyName() public {
-        // act & assert: verify deployment reverts with empty name
-        vm.expectRevert(LawUtilities.LawUtilities__EmptyNameNotAllowed.selector);
-        new OpenAction("");
-    }
-
-    function testDeployRevertsWithTooLongName() public {
-        // prep: create a name that's too long (32 characters)
-        string memory longName = "ThisNameIsWaaaaaayTooLongForALawName";
-
-        // act & assert: verify deployment reverts with too long name
-        vm.expectRevert(LawUtilities.LawUtilities__StringTooLong.selector);
-        new OpenAction(longName);
-    }
-
     function testInitializeLawSetsCorrectState() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
         targets = new address[](1);
         values = new uint256[](1);
         calldatas = new bytes[](1);
@@ -52,17 +28,18 @@ contract DeployTest is TestSetupLaw {
         calldatas[0] = abi.encodeWithSelector(bytes4(keccak256("initializeLaw(uint16,ILaw.Conditions,bytes,bytes,string)")), 2, conditions, abi.encode(ROLE_ONE), abi.encode("test"), "Test law initialization");
 
         // prep: create initialization data
-        uint16 lawId = 2;
+        lawId = 2;
         bytes memory configLocal = abi.encode(
             targets,
             values,
             calldatas
         );
-        description = "Test law initialization";
+        nameDescription = "Test law";
+        inputParams = abi.encode("test");
 
         // act: initialize the law
         vm.prank(address(daoMock));
-        lawMock.initializeLaw(lawId, conditions, configLocal, "", description);
+        lawMock.initializeLaw(lawId, nameDescription, inputParams, conditions, configLocal); 
 
         // assert: verify conditions are set correctly
         (conditions) = lawMock.getConditions(address(daoMock), lawId);
@@ -74,7 +51,7 @@ contract DeployTest is TestSetupLaw {
 
     function testInitializeLawEmitsEvent() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
         targets = new address[](1);
         values = new uint256[](1);
         calldatas = new bytes[](1);
@@ -89,27 +66,28 @@ contract DeployTest is TestSetupLaw {
         calldatas[0] = abi.encodeWithSelector(bytes4(keccak256("initializeLaw(uint16,ILaw.Conditions,bytes,bytes,string)")), 2, conditions, configLocal, "", "Test law initialization");
 
         // prep: create initialization data
-        uint16 lawId = 2;
-
-        description = "Test law initialization";
+        lawId = 2;
+        
+        nameDescription = "Test law";
+        inputParams = abi.encode("test");
 
         // assert: verify event is emitted
         vm.expectEmit(true, false, false, false);
-        emit ILaw.Law__Initialized(address(daoMock), lawId, conditions, "", description);
+        emit ILaw.Law__Initialized(address(daoMock), lawId, nameDescription, inputParams, conditions, configLocal);
         vm.prank(address(daoMock));
-        lawMock.initializeLaw(lawId, conditions, configLocal, "", description);
+        lawMock.initializeLaw(lawId, nameDescription, inputParams, conditions, configLocal); 
     }
 
     function testExecuteLawRevertsIfNotCalledFromPowers() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
 
         // prep: initialize the law
-        uint16 lawId = 1;
+        lawId = 1;
         bytes memory configLocal = abi.encode(ROLE_ONE);
-        bytes memory inputParams = abi.encode("test");
-        description = "Test law initialization";
-        lawMock.initializeLaw(lawId, conditions, configLocal, inputParams, description);
+        inputParams = abi.encode("test");
+        nameDescription = "Test law";
+        lawMock.initializeLaw(lawId, nameDescription, inputParams, conditions, configLocal);
 
         // act: try to execute from non-powers address
         vm.expectRevert(Law__OnlyPowers.selector);
@@ -119,10 +97,10 @@ contract DeployTest is TestSetupLaw {
 
     function testHashActionIdReturnsConsistentHash() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
 
         // prep: create test data
-        uint16 lawId = 1;
+        lawId = 1;
         lawCalldata = abi.encode(true);
         nonce = 123;
 
@@ -138,10 +116,10 @@ contract DeployTest is TestSetupLaw {
 
     function testHashLawReturnsConsistentHash() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
 
         // prep: create test data
-        uint16 lawId = 1;
+        lawId = 1;
 
         // act: hash the law
         lawHash = LawUtilities.hashLaw(address(daoMock), lawId);
@@ -155,7 +133,7 @@ contract DeployTest is TestSetupLaw {
 
     function testCreateEmptyArraysReturnsCorrectArrays() public {
         // prep: create a new law
-        Law lawMock = new OpenAction("Test Law");
+        Law lawMock = new OpenAction();
 
         // act: create empty arrays
         uint256 length = 3;
@@ -173,7 +151,7 @@ contract DeployTest is TestSetupLaw {
 //////////////////////////////////////////////////
 contract NeedsProposalVoteTest is TestSetupLaw {
     function testExecuteLawSucceedsWithSuccessfulVote() public {
-        uint16 lawId = 4; 
+        lawId = 4; 
 
         // prep: create a new law
         description = "Executing a proposal vote";
@@ -185,10 +163,10 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 
         // prep: create proposal
         vm.prank(alice);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -212,7 +190,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 
     function testLawRevertsWithUnsuccessfulVote() public {
         // prep: create a new law
-        uint16 lawId = 4;
+        lawId = 4;
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
 
@@ -223,9 +201,8 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         // prep: create proposal
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-
-        // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -246,7 +223,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 
     function testLawRevertsIfVoteStillActive() public {
         // prep: create a new law
-        uint16 lawId = 4;
+        lawId = 4;
         description = "Executing a proposal vote"; 
         lawCalldata = abi.encode(true);
 
@@ -259,7 +236,8 @@ contract NeedsProposalVoteTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -281,7 +259,7 @@ contract NeedsProposalVoteTest is TestSetupLaw {
 contract NeedsParentCompletedTest is TestSetupLaw {
     function testLawSucceedsIfParentCompleted() public {
         // prep: create a parent proposal, vote & execute.
-        uint16 lawId = 2;
+        lawId = 2;
         uint16 parentLawNumber = 1;
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -292,7 +270,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -326,7 +305,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
 
     function testLawRevertsIfParentNotCompleted() public {
         // prep: create a parent proposal and have it be defeated
-        uint16 lawId =2;
+        lawId =2;
         uint16 parentLawNumber = 1;
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -336,7 +315,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -359,7 +339,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
 
     function testLawRevertsIfParentNotFulfilled() public {
         // prep: create a parent proposal that succeeds vote but isn't executed
-        uint16 lawId = 2;
+        lawId = 2;
         uint16 parentLawNumber = 1;
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -369,7 +349,8 @@ contract NeedsParentCompletedTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting  
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // Loop through users, they vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -394,7 +375,7 @@ contract NeedsParentCompletedTest is TestSetupLaw {
 contract ParentCanBlockTest is TestSetupLaw {
     function testLawRevertsIfParentHasCompleted() public {
         // prep: create a parent proposal and execute it
-        uint16 lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
+        lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
         uint16 parentLawNumber = 1; // Using lawId 1 as parent
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -408,7 +389,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote for the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -437,7 +419,7 @@ contract ParentCanBlockTest is TestSetupLaw {
 
     function testLawSucceedsIfParentHasNotCompleted() public {
         // prep: create a parent proposal and have it be defeated
-        uint16 lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
+        lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
         uint16 parentLawNumber = 1; // Using lawId 1 as parent
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -451,7 +433,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote against the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -482,7 +465,7 @@ contract ParentCanBlockTest is TestSetupLaw {
 
     function testLawSucceedsIfParentNotExecuted() public {
         // prep: create a parent proposal that succeeds vote but isn't executed
-        uint16 lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
+        lawId = 3; // Using lawId 3 as it's the one with needNotCompleted = 1
         uint16 parentLawNumber = 1; // Using lawId 1 as parent
         description = "Executing a proposal vote";
         lawCalldata = abi.encode(true);
@@ -496,7 +479,8 @@ contract ParentCanBlockTest is TestSetupLaw {
         uint256 parentActionId = daoMock.propose(parentLawNumber, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(parentLawNumber);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(parentLawNumber);
+        conditions = Law(lawAddress).getConditions(address(daoMock), parentLawNumber);
 
         // prep: vote for the parent proposal
         for (i = 0; i < users.length; i++) {
@@ -529,7 +513,7 @@ contract ParentCanBlockTest is TestSetupLaw {
 contract DelayProposalExecutionTest is TestSetupLaw {
    function testExecuteLawSucceedsAfterDelay() public {
         // prep: create a new law
-        uint16 lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
+        lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
         description = "Executing a delayed proposal vote";
         lawCalldata = abi.encode(true);
 
@@ -538,7 +522,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -562,7 +547,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
 
     function testExecuteLawRevertsBeforeDelay() public {
         // prep: create a new law
-        uint16 lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
+        lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
         description = "Executing a delayed proposal vote";
         lawCalldata = abi.encode(true);
 
@@ -571,9 +556,10 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
-        // prep: vote for the proposal
+        // prep: vote for the proposal  
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -592,7 +578,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
 
     function testExecuteLawRevertsIfVoteNotSucceeded() public {
         // prep: create a new law
-        uint16 lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
+        lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
         description = "Executing a delayed proposal vote";
         lawCalldata = abi.encode(true);
 
@@ -601,7 +587,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against the proposal
         for (i = 0; i < users.length; i++) {
@@ -622,7 +609,7 @@ contract DelayProposalExecutionTest is TestSetupLaw {
 
     function testExecuteLawRevertsIfVoteStillActive() public {
         // prep: create a new law
-        uint16 lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
+        lawId = 4; // Using lawId 4 as it's the one with delayExecution = 5000
         description = "Executing a delayed proposal vote";
         lawCalldata = abi.encode(true);
 
@@ -631,7 +618,8 @@ contract DelayProposalExecutionTest is TestSetupLaw {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote for the proposal
         for (i = 0; i < users.length; i++) {
@@ -654,10 +642,11 @@ contract DelayProposalExecutionTest is TestSetupLaw {
 contract LimitExecutionsTest is TestSetupLaw {
     function testExecuteSucceedsWithinLimits() public {
         // prep: create a new law
-        uint16 lawId = 5; // Using lawId 5 as it's the one with throttle execution
+        lawId = 5; // Using lawId 5 as it's the one with throttle execution
         description = "Executing a throttled proposal";
         lawCalldata = abi.encode(true);
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: execute multiple times with sufficient delay
         uint256 numberOfExecutions = 5;
@@ -680,11 +669,12 @@ contract LimitExecutionsTest is TestSetupLaw {
 
     function testExecuteRevertsIfGapTooSmall() public {
         // prep: create a new law
-        uint16 lawId = 5; // Using lawId 5 as it's the one with throttle execution
+        lawId = 5; // Using lawId 5 as it's the one with throttle execution
         description = "Executing a throttled proposal";
         lawCalldata = abi.encode(true);
 
-        (,, conditions) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: execute first proposal
         vm.roll(block.number + conditions.throttleExecution + 1);

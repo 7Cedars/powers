@@ -31,8 +31,6 @@ import { DeployLaws } from "./DeployLaws.s.sol";
 import { DeployMocks } from "./DeployMocks.s.sol";
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
-
-// config
 import { HelperConfig } from "./HelperConfig.s.sol";
 
 
@@ -45,13 +43,17 @@ contract DeployPowers101 is Script {
     address[] lawAddresses;
     string[] mockNames;
     address[] mockAddresses;
+    uint256 blocksPerHour;
 
     function run() external returns (address payable powers_) {
+        HelperConfig helperConfig = new HelperConfig();
+        blocksPerHour = helperConfig.getConfig().blocksPerHour;
+
         // Deploy the DAO and a mock erc20 votes contract.
         vm.startBroadcast();
         Powers powers = new Powers(
             "Powers 101",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibarfxaegrocorwo2c432w7saetd2vddlx4i5kmwckh3nqgtsztnm"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicwiqgcvzqub6xv7ha37ohgkc3vprvh6ihqtgs7bk235apaadnqha"
         );
         vm.stopBroadcast();
 
@@ -87,10 +89,10 @@ contract DeployPowers101 is Script {
         // It can be used by community members
         conditions.allowedRole = 1; 
         lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
-            conditions: conditions,
-            description: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -99,14 +101,14 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 0;
         conditions.readStateFrom = 1;
         lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law.",
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
                 parseMockAddress(2, "Erc20VotesMock"),
                 15, // max role holders
                 2 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -115,12 +117,12 @@ contract DeployPowers101 is Script {
         conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
         conditions.allowedRole = type(uint256).max;
         lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
             targetLaw: parseLawAddress(4, "SelfSelect"),
             config: abi.encode(
                 1 // roleId to be elected
             ),
-            conditions: conditions,
-            description: "Self select as community member: Self select as a community member. Anyone can call this law."
+            conditions: conditions
         });
         delete conditions;
 
@@ -136,14 +138,14 @@ contract DeployPowers101 is Script {
         inputParams[2] = "bytes[] Calldatas";
 
         conditions.allowedRole = 1;
-        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
         conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
         conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "Propose an action: Propose an action that can later be executed by Delegates.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams),
-            conditions: conditions,
-            description: "Propose an action: Propose an action that can later be executed by Delegates."
+            conditions: conditions
         });
         delete conditions;
 
@@ -152,10 +154,10 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 0;
         conditions.needCompleted = 4;
         lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams),
-            conditions: conditions,
-            description: "Veto an action: Veto an action that has been proposed by the community."
+            conditions: conditions
         });
         delete conditions;
 
@@ -165,15 +167,15 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 2;
         conditions.quorum = 50; // = 50% quorum needed
         conditions.succeedAt = 77; // = 77% simple majority needed for executing an action
-        conditions.votingPeriod = 25; // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
         conditions.needCompleted = 4;
         conditions.needNotCompleted = 5;
-        conditions.delayExecution = 50; // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
+        conditions.delayExecution = minutesToBlocks(10); // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
         lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
             targetLaw: parseLawAddress(6, "OpenAction"),
             config: abi.encode(), // empty config, an open action takes address[], uint256[], bytes[] as input.             
-            conditions: conditions,
-            description: "Execute an action: Execute an action that has been proposed by the community."
+            conditions: conditions
         });
         delete conditions;
 
@@ -183,10 +185,10 @@ contract DeployPowers101 is Script {
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, mockAddresses, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions,
-            description: "Initial setup: Assign labels and mint tokens. This law can only be executed once."
+            conditions: conditions
         });
         delete conditions;
     }
@@ -235,5 +237,9 @@ contract DeployPowers101 is Script {
             revert("Mock name does not match");
         }
         return mockAddresses[index];
+    }
+
+    function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
+        blocks = uint32(min * blocksPerHour / 60);
     }
 } 

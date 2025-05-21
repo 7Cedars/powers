@@ -11,12 +11,12 @@ import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 import { shorterDescription } from "@/utils/parsers";
 
-export function LawList({powers, onUpdatePowers, status}: {powers: Powers | undefined, onUpdatePowers: () => void, status: string}) {
+export function LawList({powers, status}: {powers: Powers | undefined, status: string}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
 
-  // console.log("LawList: ", {deselectedRoles, powers})
+  // console.log("@LawList: ", {deselectedRoles, powers, status})
   
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -51,7 +51,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
               </Button>
             </div>
         )}
-        { powers && 
+        {/* { powers && 
           <button 
             className="w-fit min-h-fit p-1 rounded-md border-slate-500"
             onClick = {() => {
@@ -64,10 +64,10 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                 aria-selected={status == 'pending'}
                 />
           </button>
-        }
+        } */}
       </div>
       {/* table laws  */}
-      {status == "pending" || status == "idle" ?  
+      {status == "pending" ?  
       <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
@@ -85,27 +85,27 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
         </thead>
         <tbody className="w-full h-full text-sm text-right text-slate-500 divide-y divide-slate-200">
           {
-            powers?.activeLaws?.filter(law => law.conditions.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions.allowedRole}`)))?.map((law: Law, i) => 
+            powers?.activeLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
               <tr
                 key={i}
                 className={`text-sm text-left text-slate-800 h-16 p-2`}
               >
-                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {law.index} </td>
+                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {Number(law.index)} </td>
                 <td className="max-h-12 text-left px-2 min-w-44 max-w-52 overflow-x-scroll">
                   <Button
                     showBorder={true}
                     role={
-                      law.conditions.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
+                      law.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
                         ? 6
-                        : law.conditions.allowedRole == 0n
+                        : law.conditions?.allowedRole == 0n
                         ? 0
-                        : Number(law.conditions.allowedRole)
+                        : Number(law.conditions?.allowedRole)
                     }
                     onClick={() => { router.push(`/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
                     align={0}
                     selected={true}
                   >
-                    {shorterDescription(law.description, "short")}
+                    {shorterDescription(law.nameDescription, "short")}
                   </Button>
                 </td>
                 <td className="pe-4 text-slate-500 h-full min-w-fit">
@@ -120,7 +120,7 @@ export function LawList({powers, onUpdatePowers, status}: {powers: Powers | unde
                     </div>
                   }
                 </td>
-                <td className="pe-4 min-w-20 text-slate-500"> {law.conditions.allowedRole != undefined ? bigintToRole(law.conditions.allowedRole, powers) : "-"}
+                <td className="pe-4 min-w-20 text-slate-500"> {law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-"}
                 </td>
               </tr>
             )

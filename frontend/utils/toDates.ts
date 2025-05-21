@@ -25,13 +25,12 @@ export const toTimestamp = (dateFormat: string): string => {
   return String(Date.parse(dateFormat))
 };
 
-export const blocksToHoursAndMinutes = (blocks: number, supportedChain: ChainProps | undefined): string | undefined => { 
-  const blockTime = supportedChain?.blockTimeInSeconds ? supportedChain?.blockTimeInSeconds : 0
-  const minutes = (blocks * blockTime) / 60 
+export const blocksToHoursAndMinutes = (timestamp: number): string | undefined => { 
+  const timeStampNow = Math.floor(Date.now() / 1000)
+  const minutes = (timestamp - timeStampNow) / 60 
 
-  const response = minutes < 60 ? ` ${Math.floor(minutes % 60)} minutes.` 
-  : 
-  ` ${Math.floor(minutes / 60)} hours and ${Math.floor(minutes % 60)} minutes.`
+  const response = minutes < 60 ? ` ${Math.floor(minutes)} minutes.` 
+  : ` ${Math.floor(minutes / 60)} hours and ${Math.floor(minutes % 60)} minutes.`
 
   return response 
 };

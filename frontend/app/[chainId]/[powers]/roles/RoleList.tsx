@@ -26,7 +26,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
 
   // console.log("@RoleList: ", {powers, roles})
 
-  const fetchRoleHolders = useCallback(
+  const fetchAmountRoleHolders = useCallback(
     async (roleIds: bigint[]) => {
       // console.log("fetch role triggered", {roleIds})
       let roleId: bigint; 
@@ -40,7 +40,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
         try {
           for await (roleId of roleIds) {
             // console.log("@fetchRoleHolders: ", {roleId}) 
-            if (Number(roleId) < 4294967296) { 
+            if (Number(roleId) < 429496729600000) { 
             const fetchedRoleHolders = await readContract(wagmiConfig, {
               abi: powersAbi,
               address: powers?.contractAddress as `0x${string}`,
@@ -48,7 +48,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
               args: [roleId]
               })
               // console.log("@fetchRoleHolders, waypoint 1 ", {fetchedRoleHolders})
-              const laws = powers?.laws?.filter(law => law.conditions.allowedRole == BigInt(roleId))
+              const laws = powers?.laws?.filter(law => law.conditions?.allowedRole == BigInt(roleId))
               rolesFetched.push({roleId, holders: Number(fetchedRoleHolders), laws})
             }
           }
@@ -64,9 +64,9 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
 
   useEffect(() => {
     if (powers) {
-      fetchRoleHolders(powers.roles || [])
+      fetchAmountRoleHolders(powers.roles || [])
     }
-  }, [powers, fetchRoleHolders])
+  }, [powers, fetchAmountRoleHolders])
 
   return (
     <div className="w-full flex flex-col justify-start items-center">
@@ -75,7 +75,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
         <div className="text-slate-900 text-center font-bold text-lg">
           Roles
         </div>
-        {powers && 
+        {/* {powers && 
           <button 
             className="w-fit h-fit p-1 rounded-md border-slate-500"
             onClick = {() => fetchRoleHolders(powers?.roles || [])}
@@ -85,10 +85,10 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
                 aria-selected={status == 'pending'}
                 />
           </button>
-        }
+        } */}
       </div>
       {/* table laws  */}
-      {statusPowers == "pending" || statusPowers == "idle" ? 
+      {statusPowers == "pending" ? 
       <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
@@ -112,7 +112,7 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
                     filled={true}
                     role={parseRole(BigInt(role.roleId))}
                     onClick={() => {
-                      router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`);
+                      // router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`); // disabled for now
                     }}
                     align={0}
                   >
