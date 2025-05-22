@@ -1,43 +1,69 @@
-# Deploy Community Governance
+---
+description: Interested in creating your own Powers?
+---
+
+# Deploy Your Powers
 
 🚧 **This page is incomplete and outdated.** 🚧
 
 ## Deployment sequence
 
-Deploying an organization unfolds in four steps.
+Deploying Powers is done in three steps.
 
-1. Deploy
-2. Deploy any additional protocols that will be controlled by the organization.
-3. Deploy multiple instances of `Law.sol`.
-4. Run the `Powers::constitute` function to adopt laws deployed at step 2.
+1. Deploy Powers.sol.
+2. Create a constitution adopting existing Law.sol contracts.
+3. Adopt the constitution in your Powers.sol deployment.
 
-That's the short version.
+Let us expand on these steps. All examples are build in Foundry. If you are not familiar with Foundry, please see the documentation here.&#x20;
 
-## Deployment scripts (Foundry)
+{% hint style="info" %}
+You can check out your Powers by navigating to https://powers-protocol.vercel.app\[chain id here]\[address of your Powers here].&#x20;
 
-In reality, the sequence is a bit more complex because we always need to decide if we need to deploy additional protocols (for instance ERC20 tokens that will be controlled by laws), choose what laws to deploy and how to configure them.
+For example, a Powers implementation ('Powers 101') that is deployed on the optimism sepolia testnet can be viewed at: [https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668](https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668)
+{% endhint %}
 
-The good news for Foundry users is that it is relatively straightforward to deploy a fully fledged community through a single script. See the following examples:
+## Step 1: Deploy Powers.sol
 
-* [https://github.com/7Cedars/separated-powers/blob/7Cedars/solidity/script/DeployBasicDao.s.sol](../../solidity/script/DeployBasicDao.s.sol)
-* [https://github.com/7Cedars/separated-powers/blob/7Cedars/solidity/script/DeployAlignedDao.s.sol](../../solidity/script/DeployAlignedDao.s.sol)
-* [https://github.com/7Cedars/separated-powers/blob/7Cedars/solidity/script/DeployGovernYourTax.s.sol](../../solidity/script/DeployGovernYourTax.s.sol)
+Deploying the Powers contracts is straightforward. The constructor function takes two variables: a name and a uri to metadata.
 
-These scripts automate the following four steps.
+```solidity
+vm.startBroadcast();
+Powers powers = new Powers(
+    // Name of the DAO
+    "My First Powers", 
+    // IPFS link to metadata. See the link for an example layout of this json file. 
+    "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicwiqgcvzqub6xv7ha37ohgkc3vprvh6ihqtgs7bk235apaadnqha" 
+);
+vm.stopBroadcast();
+```
 
-## Step 1: Deploy `Powers.sol`
+At this stage, the Powers contract cannot do anything because it does not have any laws. We need to call the 'constitute' function to implement a constitution.
 
-## Step 2: Deploy any additional protocols
+Before we can do that, we need to create the constitution of our Powers implementation.
 
-## Step 3: Deploy multiple instances of `Law.sol`.
+## Step 2: Deploy create a constitution
 
-text here
+A constitution is an array of LawInitData structs, that is used as input for the constitute function.
 
-{% content-ref url="broken-reference/" %}
-[broken-reference](broken-reference/)
-{% endcontent-ref %}
+This is the LawInitData struct: &#x20;
 
-## Step 4: Run the SeparatedPower::constitute
+```solidity
+ILaw.Conditions memory conditions;
+
+lawInitData = new PowersTypes.LawInitData({
+     nameDescription: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law.",
+     targetLaw: parseLawAddress(0, "DelegateSelect"),
+     config: abi.encode(
+     
+     ),
+     conditions: ILaw.Conditions({
+          
+     });
+
+});
+```
+
+## Step 3: Adopt a constitution
 
 
 

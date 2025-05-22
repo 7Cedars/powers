@@ -1,0 +1,2 @@
+# SnapshotRegisterProposal.sol
+

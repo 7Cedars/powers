@@ -1,0 +1,2 @@
+# AdoptLaw.sol
+

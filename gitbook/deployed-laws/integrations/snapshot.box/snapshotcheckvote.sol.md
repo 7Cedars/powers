@@ -1,0 +1,2 @@
+# SnapshotCheckVote.sol
+
