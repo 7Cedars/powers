@@ -33,11 +33,11 @@
     * [GovernorCheckVote.sol](deployed-laws/integrations/governor.sol-tally.xyz/governorcheckvote.sol.md)
     * [GovernorCreateProposal.sol](deployed-laws/integrations/governor.sol-tally.xyz/governorcreateproposal.sol.md)
 * [Off-chain laws](deployed-laws/off-chain-laws/README.md)
-  * [AiAgentAction.sol](deployed-laws/off-chain-laws/aiagentaction.sol.md)
-  * [AutomatedAction.sol](deployed-laws/off-chain-laws/automatedaction.sol.md)
-  * [OffChainAction.sol](deployed-laws/off-chain-laws/offchainaction.sol.md)
-  * [AttestSelect.sol](deployed-laws/off-chain-laws/attestedselect.sol.md)
-  * [RandomSelect.sol](deployed-laws/off-chain-laws/randomlyselect.sol.md)
+  * [AiAgentAction.sol](example-laws/executive-laws/aiagentaction.sol.md)
+  * [AutomatedAction.sol](example-laws/executive-laws/automatedaction.sol.md)
+  * [OffChainAction.sol](deployed-laws/executive-laws/offchainaction.sol.md)
+  * [AttestSelect.sol](example-laws/electoral-laws/attestedselect.sol.md)
+  * [RandomSelect.sol](example-laws/electoral-laws/randomlyselect.sol.md)
 * [Cross-chain laws](deployed-laws/cross-chain-laws.md)
 * [Electoral laws](example-laws/electoral-laws/README.md)
   * [DelegateSelect.sol](example-laws/electoral-laws/delegateselect.sol.md)
@@ -67,4 +67,4 @@
 ## Integrations
 
 * [Existing DAOs](integrations/existing-daos.md)
-* [Hats Protocol](integrations/hats-protocol.md)
+* [Hats Protocol](integrations/existing-protocols/hats-protocol.md)

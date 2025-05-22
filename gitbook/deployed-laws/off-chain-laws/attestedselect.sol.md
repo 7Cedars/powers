@@ -1,2 +1,0 @@
-# AttestedSelect.sol
-
