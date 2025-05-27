@@ -58,4 +58,19 @@ Only specs that are in addition to the specs of `Law.sol` are noted here.&#x20;
 
 ... list of law specific events.&#x20;
 
-&#x20;&#x20;
+## Current deployments
+
+| Address | Chain Id | Date |
+| ------- | -------- | ---- |
+|         |          |      |
+|         |          |      |
+|         |          |      |
+
+## Previous deployments
+
+| Address | Chain Id | Date |
+| ------- | -------- | ---- |
+|         |          |      |
+|         |          |      |
+|         |          |      |
+
