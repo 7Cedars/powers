@@ -24,6 +24,14 @@ export type LawExecutions = {
   executions: bigint[] 
 }
 
+export type PowersExecutions = {
+  lawId: bigint, 
+  actionId: bigint, 
+  targets: `0x${string}`[], 
+  values: bigint[], 
+  calldatas: `0x${string}`[] 
+}
+
 export type Attribute = {  
   trait_type: string | number ;  
   value: string;
@@ -129,8 +137,8 @@ export type Powers = {
   activeLaws?: Law[];
   proposals?: Proposal[];
   proposalsBlocksFetched?: BlockRange;
-  roleHolders?: Role[];
-  roleHoldersBlocksFetched?: BlockRange;
+  executedActions?: PowersExecutions[];
+  executedActionsBlocksFetched?: BlockRange;
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   deselectedRoles?: bigint[];

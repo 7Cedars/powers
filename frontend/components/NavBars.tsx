@@ -12,7 +12,8 @@ import {
   BookOpenIcon,
   IdentificationIcon,
   ChatBubbleBottomCenterIcon,
-  BuildingLibraryIcon
+  BuildingLibraryIcon,
+  NewspaperIcon
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
@@ -77,7 +78,7 @@ const NavigationBar = () => {
             <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}/laws`)}
               aria-selected={path == `/${chainId}/${addressPowers}/laws`} 
-              className={layoutButton}
+              className={`${layoutButton} hidden md:flex`}
               >
                 <div className={layoutIconBox}> 
                   <BookOpenIcon
@@ -97,6 +98,19 @@ const NavigationBar = () => {
                   className={layoutIcons} 
                   />
                   <p className={layoutText}> Proposals </p>      
+                </div> 
+            </button>
+
+            <button 
+              onClick={() => router.push(`/${chainId}/${addressPowers}/logs`)}
+              aria-selected={path == `/${chainId}/${addressPowers}/logs`} 
+              className={layoutButton}
+              >
+                <div className={layoutIconBox}> 
+                  <NewspaperIcon
+                  className={layoutIcons} 
+                  />
+                  <p className={layoutText}> Logs </p>
                 </div> 
             </button>
 
@@ -125,6 +139,8 @@ const NavigationBar = () => {
                   <p className={layoutText}> Treasury </p>
                 </div> 
             </button>
+
+
           </div>
   )
 }
@@ -157,7 +173,7 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="flex flex-row grow gap-2 md:max-w-2xl opacity-0 md:opacity-100 max-w-0">
+      <div className="flex flex-row grow gap-2 md:max-w-3xl opacity-0 md:opacity-100 max-w-0">
         {addressPowers != '' ? NavigationBar() : null }
       </div>
       

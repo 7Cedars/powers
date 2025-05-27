@@ -7,8 +7,8 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0xf7706726beb1e8100549d0ca5f4fbb9e8de28bdc",
-    chainId: "421614",
+    address: "0xec5EC2CCe0c72Ecb7101927B79CB3eE29A23D26d",
+    chainId: "11155420",
     colourScheme: 0,
   }, 
   {
@@ -19,8 +19,8 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0x918c9796993876ef745f7AA5Fe8Ee1B2CbA702A5",
-    chainId: "421614",
+    address: "0xB5E4A692A153C178501FC4F4f552e297182f9BC6",
+    chainId: "11155420",
     colourScheme: 0,
   }, 
   {
@@ -30,10 +30,21 @@ export const useCases = [
       "Modular addoption by existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0x5be643ce4f98aA58DF2C3f42dE59d9Ad7Ed1213b",
-    chainId: "421614",
-    colourScheme: 1,
+    address: "0x15874abcdc1C045E5F1f9E69fC1a687e2fdd51Cd",
+    chainId: "11155420",
+    colourScheme: 0,
   },
+  {
+    title: "Managed Grants",
+    details: [
+      "Remove and add powers over time.",
+      "Granular, governed, upgrades to on-chain governance."
+    ],
+    demo: "Managed Grants",
+    address: "0x6Ad84f2dDBc07662b910E0FB315c3a4c9Df54a90",
+    chainId: "11155420",
+    colourScheme: 0,
+  },  
   {
     title: "Guard rails for AI agents",
     details: [
@@ -43,8 +54,8 @@ export const useCases = [
     ],
     demo: "AI + Human",
     address: "0x0000000000000000000000000000000000000000",
-    chainId: "421614",
-    colourScheme: 1,
+    chainId: "11155420",
+    colourScheme: 0,
   },
   {
     title: "Hybrid on- and off-chain",
@@ -55,19 +66,9 @@ export const useCases = [
     demo: "Hybrid DAO",
     address: "0x0000000000000000000000000000000000000000",
     chainId: "421614",
-    colourScheme: 2,
+    colourScheme: 0,
   },
-  {
-    title: "Managed Grants",
-    details: [
-      "Remove and add powers over time.",
-      "Granular, governed, upgrades to on-chain governance."
-    ],
-    demo: "Managed Grants",
-    address: "0xF9FB3B29e68B5A22bF6DC257953d9570e36c5b5d",
-    chainId: "421614",
-    colourScheme: 4,
-  },  
+
   {
     title: "Multi-jurisdictional governance",
     details: [ 
@@ -78,7 +79,7 @@ export const useCases = [
     demo: "Attestation Rules",
     address: "0x0000000000000000000000000000000000000000",
     chainId: "421614",
-    colourScheme: 5,
+    colourScheme: 0,
   },
   {
     title: "Integrate existing protocols",
@@ -90,6 +91,6 @@ export const useCases = [
     demo: "Powers to Hats",
     address: "0x0000000000000000000000000000000000000000",
     chainId: "421614",
-    colourScheme: 5,
+    colourScheme: 0,
   },
 ]
