@@ -65,7 +65,7 @@ mapping(address account => Deposit[]) internal deposits;
 
 ## Functions
 
-**Governance Functions**
+*Governance Functions*
 
 ### request
 
@@ -108,9 +108,9 @@ function castVote(uint256 actionId, uint8 support) external
 function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) public
 ```
 
-**Role and Law Administration**
+*Role and Law Administration*
 
-## constitute
+### constitute
 
 Initializes the DAO by activating its founding laws. Can only be called once by an admin account.
 
@@ -118,7 +118,7 @@ Initializes the DAO by activating its founding laws. Can only be called once by 
 function constitute(LawInitData[] memory constituentLaws) external
 ```
 
-### adoptLaw` & `revokeLaw
+### adoptLaw & revokeLaw
 
 Activates or deactivates a law in the protocol.
 
@@ -127,7 +127,7 @@ function adoptLaw(LawInitData memory lawInitData) public
 function revokeLaw(uint16 lawId) public
 ```
 
-### assignRole` & `revokeRole
+### assignRole & revokeRole
 
 Grants or removes a role from an account.
 

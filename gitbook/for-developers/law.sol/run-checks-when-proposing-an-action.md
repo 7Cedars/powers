@@ -1,47 +1,108 @@
-# Run checks
+# Run Checks When Proposing an Action
 
-🚧 **This page is incomplete.** 🚧
+When proposing an action in a law, several validation checks are performed to ensure the action is valid and authorized. These checks are implemented in the `checksAtPropose` function.
 
-Describe basic functionality.
+## Validation Process
 
-Explain why we have this functionality. When it can / should be used.
+### 1. Base Checks
+The `baseChecksAtPropose` function in `LawUtilities` performs fundamental validations:
 
-## When proposing an action
+```solidity
+function baseChecksAtPropose(
+    ILaw.Conditions memory conditions,
+    bytes memory lawCalldata,
+    address powers,
+    uint256 nonce
+) external view
+```
 
-Explain how the functionality is used in practice
+#### Parent Law Completion Check
+- Verifies if a parent law has been completed (if required)
+- Checks the state of the parent law's action
+- Reverts with `LawUtilities__ParentNotCompleted` if parent law is not completed
 
-### Usage (specific title tbi) 
+#### Parent Law Block Check
+- Verifies if a parent law must not be completed
+- Checks the state of the parent law's action
+- Reverts with `LawUtilities__ParentBlocksCompletion` if parent law is completed
 
-Explain how the functionality is used in practice
+### 2. Custom Checks
+Laws can implement additional validation logic by overriding `checksAtPropose`:
 
-### Mechanism
+```solidity
+function checksAtPropose(
+    address caller,
+    Conditions memory conditions,
+    bytes memory lawCalldata,
+    uint256 nonce,
+    address powers
+) public view virtual
+```
 
-Explain how the functionality is implemented under the hood.
+Common custom checks include:
+- Role-based access control
+- Input parameter validation
+- State-dependent conditions
+- Time-based restrictions
+- Resource availability
 
-### Changes
+## Error Handling
 
-Explain if and how changes can be made to the function.
+The following errors may be thrown during proposal checks:
 
-### Additional considerations
+- `LawUtilities__ParentNotCompleted`: Parent law has not been completed
+- `LawUtilities__ParentBlocksCompletion`: Parent law is completed when it shouldn't be
+- `LawUtilities__StringTooShort`: String parameter is too short
+- `LawUtilities__StringTooLong`: String parameter is too long
 
-Highlight gothcha's that are important to realise.
+## Best Practices
 
-## When executing an action
+1. **Comprehensive Validation**
+   - Validate all input parameters
+   - Check all required conditions
+   - Verify caller permissions
+   - Ensure state consistency
 
-Explain how the functionality is used in practice
+2. **Gas Optimization**
+   - Order checks from least to most expensive
+   - Use early returns for invalid conditions
+   - Cache frequently accessed values
 
-### Usage (specific title tbi) 
+3. **Error Messages**
+   - Use clear and descriptive error messages
+   - Include relevant context in errors
+   - Follow consistent error naming
 
-Explain how the functionality is used in practice
+4. **Security**
+   - Validate all external inputs
+   - Check for reentrancy vulnerabilities
+   - Verify caller permissions
+   - Validate state transitions
 
-### Mechanism
+## Example Implementation
 
-Explain how the functionality is implemented under the hood.
-
-### Changes
-
-Explain if and how changes can be made to the function.
-
-### Additional considerations
-
-Highlight gothcha's that are important to realise.
+```solidity
+function checksAtPropose(
+    address caller,
+    Conditions memory conditions,
+    bytes memory lawCalldata,
+    uint256 nonce,
+    address powers
+) public view virtual override {
+    // Run base checks
+    LawUtilities.baseChecksAtPropose(conditions, lawCalldata, powers, nonce);
+    
+    // Custom role check
+    if (!hasRequiredRole(caller, conditions.allowedRole)) {
+        revert("Insufficient permissions");
+    }
+    
+    // Custom state check
+    if (!isValidState()) {
+        revert("Invalid state for proposal");
+    }
+    
+    // Custom parameter validation
+    validateParameters(lawCalldata);
+}
+```
