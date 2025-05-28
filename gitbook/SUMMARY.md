@@ -6,7 +6,6 @@
 
 ## For Developers
 
-* [Governance flow](for-developers/governance-flow.md)
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing actions](for-developers/powers.sol/proposing-actions.md)
@@ -14,6 +13,7 @@
   * [Assigning, revoking and labelling roles](for-developers/powers.sol/assigning-revoking-and-labelling-roles.md)
   * [Adopting and revoking laws](for-developers/powers.sol/adopting-and-revoking-laws.md)
   * [Constituting an Organization](for-developers/powers.sol/constitute-a-new-community.md)
+  * [Governance flow](for-developers/powers.sol/governance-flow.md)
   * [Specs](for-developers/powers.sol/specs.md)
 * [Law.sol](for-developers/law.sol/README.md)
   * [Execute a law](for-developers/law.sol/execute-a-law.md)
