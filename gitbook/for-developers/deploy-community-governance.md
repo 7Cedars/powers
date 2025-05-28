@@ -2,7 +2,7 @@
 description: Interested in creating your own Powers?
 ---
 
-# Deploy Your Powers
+# Deploy your own Powers
 
 🚧 **This page is a work in progress.** 🚧
 
@@ -41,7 +41,7 @@ At this stage, the Powers contract cannot do anything because it does not have a
 
 Before we can do that, we need to create the constitution of our Powers implementation.
 
-## Step 2: Deploy create a constitution
+## Step 2: Create a constitution
 
 A constitution is an array of LawInitData structs, that is used as input for the constitute function.
 
@@ -52,10 +52,10 @@ As Powers adopts laws, each law is given an **index**. The index starts at 1, **
 
 When referring to laws that need to be completed (`conditions.needCompleted`), can veto (`conditions.needNotCompleted`) or record state (`conditions.readStateFrom)` we need to refer to the index the law will have in your Powers deployment - not in your LawInitData array!
 
-To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.     
+To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.
 {% endhint %}
 
-This is the LawInitData struct: 
+This is the LawInitData struct:
 
 ```solidity
 ILaw.Conditions memory conditions;
@@ -150,7 +150,7 @@ delete conditions;
 
 ## Step 3: Adopt a constitution
 
-Call the `constitute` function in your Powers instance, using the array of  LawInitData structs we just created.
+Call the `constitute` function in your Powers instance, using the array of LawInitData structs we just created.
 
 ```solidity
 // Here we call the constitute function, which will adopt the laws. 
@@ -158,6 +158,8 @@ vm.startBroadcast();
 powers.constitute(lawInitData);
 vm.stopBroadcast(); 
 ```
+
+Et voila! You deployed an on-chain Powers :clap:
 
 ## Example deploy scripts
 
@@ -200,4 +202,3 @@ In February, he re-delegates his tokens Charlotte and in the next block calls an
 **Note** that this is an example of assigning roles through what can be called Liquid Democracy. Roles can also be assigned directly, through votes among peers, a council vote or through a minimal threshold of token holdings. Pretty much anything is possible.
 
 </details>
-
