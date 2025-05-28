@@ -65,9 +65,9 @@ mapping(address account => Deposit[]) internal deposits;
 
 ## Functions
 
-### Governance Functions
+**Governance Functions**
 
-**request**
+### request
 
 Initiates an action to be executed through a law. Entry point for all actions in the protocol.
 
@@ -75,7 +75,7 @@ Initiates an action to be executed through a law. Entry point for all actions in
 function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction) external payable
 ```
 
-**fulfill**
+### fulfill
 
 Completes an action by executing the actual calls. Can only be called by an active law contract.
 
@@ -83,7 +83,7 @@ Completes an action by executing the actual calls. Can only be called by an acti
 function fulfill(uint16 lawId, uint256 actionId, address[] calldata targets, uint256[] calldata values, bytes[] calldata calldatas) external payable
 ```
 
-**propose**
+### propose
 
 Creates a new proposal for an action that requires voting. Only callable if the law requires voting (quorum > 0).
 
@@ -91,7 +91,7 @@ Creates a new proposal for an action that requires voting. Only callable if the 
 function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction) external returns (uint256)
 ```
 
-**cancel**
+### cancel
 
 Cancels an existing proposal. Can only be called by the original proposer.
 
@@ -99,7 +99,7 @@ Cancels an existing proposal. Can only be called by the original proposer.
 function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) public returns (uint256)
 ```
 
-**castVote` & `castVoteWithReason**
+### castVote` & `castVoteWithReason
 
 Casts a vote on an active proposal. Vote types: 0=Against, 1=For, 2=Abstain.
 
@@ -108,9 +108,9 @@ function castVote(uint256 actionId, uint8 support) external
 function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) public
 ```
 
-#### Role and Law Administration
+**Role and Law Administration**
 
-**constitute**
+## constitute
 
 Initializes the DAO by activating its founding laws. Can only be called once by an admin account.
 
@@ -118,7 +118,7 @@ Initializes the DAO by activating its founding laws. Can only be called once by 
 function constitute(LawInitData[] memory constituentLaws) external
 ```
 
-**adoptLaw` & `revokeLaw**
+### adoptLaw` & `revokeLaw
 
 Activates or deactivates a law in the protocol.
 
@@ -127,7 +127,7 @@ function adoptLaw(LawInitData memory lawInitData) public
 function revokeLaw(uint16 lawId) public
 ```
 
-**assignRole` & `revokeRole**
+### assignRole` & `revokeRole
 
 Grants or removes a role from an account.
 
@@ -136,7 +136,7 @@ function assignRole(uint256 roleId, address account) public
 function revokeRole(uint256 roleId, address account) public
 ```
 
-**labelRole**
+### labelRole
 
 Assigns a human-readable label to a role.
 
