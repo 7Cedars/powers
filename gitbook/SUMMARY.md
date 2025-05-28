@@ -8,11 +8,9 @@
 
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
-  * [Proposing actions](for-developers/powers.sol/proposing-actions.md)
-  * [Voting on proposed actions](for-developers/powers.sol/voting-on-proposals.md)
+  * [Proposing and voting on actions](for-developers/powers.sol/proposing-actions.md)
   * [Assigning, revoking and labelling roles](for-developers/powers.sol/assigning-revoking-and-labelling-roles.md)
   * [Adopting and revoking laws](for-developers/powers.sol/adopting-and-revoking-laws.md)
-  * [Constituting an Organization](for-developers/powers.sol/constitute-a-new-community.md)
   * [Governance flow](for-developers/powers.sol/governance-flow.md)
   * [Specs](for-developers/powers.sol/specs.md)
 * [Law.sol](for-developers/law.sol/README.md)
@@ -21,9 +19,12 @@
   * [Run checks](for-developers/law.sol/run-checks-when-proposing-an-action.md)
   * [Change state](for-developers/law.sol/change-state.md)
   * [Reply to Powers](for-developers/law.sol/reply-to-powers.md)
-  * [Setting up a new law](for-developers/law.sol/setting-up-a-new-law.md)
   * [Specs](for-developers/law.sol/specs.md)
-* [Deploy Your Powers](for-developers/deploy-community-governance.md)
+* [Deploy your own Powers](for-developers/deploy-community-governance.md)
+
+***
+
+* [Deploy your own law](setting-up-a-new-law.md)
 
 ## Deployed Laws
 
