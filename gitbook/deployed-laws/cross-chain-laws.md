@@ -7,4 +7,4 @@ description: >-
 
 # Cross-chain laws
 
-These laws cover: cross-chain bridges, ... &#x20;
+These laws cover: cross-chain bridges, ... 

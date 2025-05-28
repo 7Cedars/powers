@@ -7,4 +7,4 @@ description: >-
 
 # Off-chain laws
 
-These laws cover: Pull and push oracles; attestation services.&#x20;
+These laws cover: Pull and push oracles; attestation services.

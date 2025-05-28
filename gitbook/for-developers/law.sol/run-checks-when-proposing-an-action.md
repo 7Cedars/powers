@@ -10,19 +10,19 @@ Explain why we have this functionality. When it can / should be used.
 
 Explain how the functionality is used in practice
 
-### Usage (specific title tbi) &#x20;
+### Usage (specific title tbi) 
 
 Explain how the functionality is used in practice
 
-### Mechanism&#x20;
+### Mechanism
 
 Explain how the functionality is implemented under the hood.
 
-### Changes&#x20;
+### Changes
 
 Explain if and how changes can be made to the function.
 
-### Additional considerations&#x20;
+### Additional considerations
 
 Highlight gothcha's that are important to realise.
 
@@ -30,18 +30,18 @@ Highlight gothcha's that are important to realise.
 
 Explain how the functionality is used in practice
 
-### Usage (specific title tbi) &#x20;
+### Usage (specific title tbi) 
 
 Explain how the functionality is used in practice
 
-### Mechanism&#x20;
+### Mechanism
 
 Explain how the functionality is implemented under the hood.
 
-### Changes&#x20;
+### Changes
 
 Explain if and how changes can be made to the function.
 
-### Additional considerations&#x20;
+### Additional considerations
 
 Highlight gothcha's that are important to realise.

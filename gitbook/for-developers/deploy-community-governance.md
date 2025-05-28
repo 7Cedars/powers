@@ -14,10 +14,10 @@ Deploying Powers is done in three steps.
 2. Create a constitution adopting existing Law.sol contracts.
 3. Adopt the constitution in your Powers.sol deployment.
 
-Let us expand on these steps. All examples are build in Foundry. If you are not familiar with Foundry, please see the documentation here.&#x20;
+Let us expand on these steps. All examples are build in Foundry. If you are not familiar with Foundry, please see the documentation here.
 
 {% hint style="info" %}
-You can check out your Powers by navigating to https://powers-protocol.vercel.app\[chain id here]\[address of your Powers here].&#x20;
+You can check out your Powers by navigating to https://powers-protocol.vercel.app\[chain id here]\[address of your Powers here].
 
 For example, a Powers implementation ('Powers 101') that is deployed on the optimism sepolia testnet can be viewed at: [https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668](https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668)
 {% endhint %}
@@ -46,16 +46,16 @@ Before we can do that, we need to create the constitution of our Powers implemen
 A constitution is an array of LawInitData structs, that is used as input for the constitute function.
 
 {% hint style="info" %}
-**IMPORTANT!**&#x20;
+**IMPORTANT!**
 
-As Powers adopts laws, each law is given an **index**. The index starts at 1, **not zero**. The first law to be adopted gets index 1, the second 2, and so on.&#x20;
+As Powers adopts laws, each law is given an **index**. The index starts at 1, **not zero**. The first law to be adopted gets index 1, the second 2, and so on.
 
 When referring to laws that need to be completed (`conditions.needCompleted`), can veto (`conditions.needNotCompleted`) or record state (`conditions.readStateFrom)` we need to refer to the index the law will have in your Powers deployment - not in your LawInitData array!
 
-To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.     &#x20;
+To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.     
 {% endhint %}
 
-This is the LawInitData struct: &#x20;
+This is the LawInitData struct: 
 
 ```solidity
 ILaw.Conditions memory conditions;
@@ -83,7 +83,7 @@ lawInitData = new PowersTypes.LawInitData({
 });
 ```
 
-A typical (but in this case very short) constitution will look something like this:&#x20;
+A typical (but in this case very short) constitution will look something like this:
 
 ```solidity
 // Notice that we create a conditions struct before hand, and reuse it. This to avoid 'stack to deep' errors.  
@@ -150,7 +150,7 @@ delete conditions;
 
 ## Step 3: Adopt a constitution
 
-Call the `constitute` function in your Powers instance, using the array of  LawInitData structs we just created.&#x20;
+Call the `constitute` function in your Powers instance, using the array of  LawInitData structs we just created.
 
 ```solidity
 // Here we call the constitute function, which will adopt the laws. 
@@ -159,9 +159,9 @@ powers.constitute(lawInitData);
 vm.stopBroadcast(); 
 ```
 
-## Example deploy scripts&#x20;
+## Example deploy scripts
 
-to do.&#x20;
+to do.
 
 <details>
 

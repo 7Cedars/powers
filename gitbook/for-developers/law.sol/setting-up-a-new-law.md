@@ -26,9 +26,9 @@ Laws can be adapted by:
 
 Combining these changes makes it possible to pretty much do anything.
 
-## Config&#x20;
+## Config
 
-Text and explanation here.&#x20;
+Text and explanation here.
 
 ## Parameters
 
@@ -36,9 +36,9 @@ Text and explanation here
 
 ## Law utils
 
-Text and explanation here.&#x20;
+Text and explanation here.
 
 ## Changing functions
 
-See next sub pages.&#x20;
+See next sub pages.
 

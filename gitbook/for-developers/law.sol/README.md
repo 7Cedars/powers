@@ -6,11 +6,11 @@ description: Checking under the hood of law implementations.
 
 ## What are laws?
 
-Laws define under what conditions a role can execute which actions.&#x20;
+Laws define under what conditions a role can execute which actions.
 
-&#x20;Laws have the following characteristics:
+Laws have the following characteristics:
 
-* They are singleton contracts. One law instance can be used by multiple Powers protocols, and multiple times by a single protocol.&#x20;
+* They are singleton contracts. One law instance can be used by multiple Powers protocols, and multiple times by a single protocol.
 * Their use is linked to a unique adoption ID of a `Powers.sol` deployment.
 * They are role restricted by a single role.
 * They have multiple (optional) checks.
