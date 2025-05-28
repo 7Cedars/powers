@@ -1,10 +1,10 @@
 # Specs
 
-### Source
+## Source
 
 See [the github repo here](https://github.com/7Cedars/powers/blob/main/solidity/src/Powers.sol).
 
-### Overview
+## Overview
 
 Powers is a Role Restricted Governance Protocol that provides a modular, flexible, decentralized and efficient governance engine for DAOs. It is designed to be used in combination with implementations of `Law.sol` contracts.
 
@@ -16,7 +16,7 @@ Key differences from OpenZeppelin's Governor.sol:
 4. Uses a non-weighted voting mechanism: one account has one vote
 5. Core protocol is intentionally minimalistic - complexity (timelocks, delayed execution, guardian roles, weighted votes, staking) must be integrated through laws
 
-### State Variables
+## State Variables
 
 ### \_actions
 
@@ -34,7 +34,7 @@ An internal mapping of `ActiveLaw` structs that tracks all active laws in the pr
 mapping(uint16 lawId => ActiveLaw) internal laws;
 ```
 
-#### `roles`
+### \_roles
 
 An internal mapping of `Role` structs that tracks role assignments and membership.
 
@@ -42,7 +42,7 @@ An internal mapping of `Role` structs that tracks role assignments and membershi
 mapping(uint256 roleId => Role) internal roles;
 ```
 
-#### `deposits`
+### \_deposits
 
 An internal mapping that tracks deposits from accounts (only covers chain native currency).
 
@@ -50,22 +50,22 @@ An internal mapping that tracks deposits from accounts (only covers chain native
 mapping(address account => Deposit[]) internal deposits;
 ```
 
-#### Constants
+### Constants
 
 * `ADMIN_ROLE`: Set to `type(uint256).min` (0)
 * `PUBLIC_ROLE`: Set to `type(uint256).max`
 * `DENOMINATOR`: Set to 100 (100%)
 
-#### Other State Variables
+### Other State Variables
 
 * `name`: Name of the DAO
 * `uri`: URI to metadata of the DAO
 * `_constituteExecuted`: Boolean tracking if constitute function has been called
 * `lawCount`: Number of laws initiated (starts at 1)
 
-### Functions
+## Functions
 
-#### Governance Functions
+### Governance Functions
 
 **`request`**
 
@@ -144,9 +144,9 @@ Assigns a human-readable label to a role.
 function labelRole(uint256 roleId, string memory label) public
 ```
 
-### Structs
+## Structs
 
-#### `Action`
+### Action
 
 Tracks a proposal's state and voting information.
 
@@ -169,7 +169,7 @@ struct Action {
 }
 ```
 
-#### `ActiveLaw`
+### ActiveLaw
 
 Tracks an active law's address and status.
 
@@ -180,7 +180,7 @@ struct ActiveLaw {
 }
 ```
 
-#### `Role`
+### Role
 
 Tracks role assignments and membership.
 
@@ -192,7 +192,7 @@ struct Role {
 }
 ```
 
-#### `Deposit`
+### Deposit
 
 Tracks a deposit's amount and block number.
 
@@ -203,9 +203,9 @@ struct Deposit {
 }
 ```
 
-### Events
+## Events
 
-#### Governance Events
+### Governance Events
 
 * `ActionRequested`: Emitted when an executive action is requested
 * `ActionExecuted`: Emitted when an executive action has been executed
@@ -213,7 +213,7 @@ struct Deposit {
 * `ProposedActionCancelled`: Emitted when a proposal is cancelled
 * `VoteCast`: Emitted when a vote is cast
 
-#### Role and Law Events
+### Role and Law Events
 
 * `RoleSet`: Emitted when a role is assigned or revoked
 * `RoleLabel`: Emitted when a role is labeled
@@ -221,14 +221,14 @@ struct Deposit {
 * `LawRevoked`: Emitted when a law is revoked
 * `LawRevived`: Emitted when a law is revived
 
-#### Other Events
+### Other Events
 
 * `Powers__Initialized`: Emitted when protocol is initialized
 * `FundsReceived`: Emitted when protocol receives funds
 
-### Enums
+## Enums
 
-#### `ActionState`
+### `ActionState`
 
 Represents the state of a proposal:
 
@@ -240,7 +240,7 @@ Represents the state of a proposal:
 * Fulfilled
 * NonExistent
 
-#### `VoteType`
+### `VoteType`
 
 Supported vote types (matches Governor Bravo ordering):
 
