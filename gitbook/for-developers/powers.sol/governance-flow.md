@@ -10,4 +10,4 @@ This is possible because laws provide a composable governance layer around the P
 
 The following is a diagram of the governance flow in the Powers protocol: &#x20;
 
-<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption><p>Governance flow in the Powers protocol</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (5).png" alt=""><figcaption><p>Governance flow in the Powers protocol</p></figcaption></figure>

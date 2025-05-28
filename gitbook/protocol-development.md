@@ -8,11 +8,11 @@ description: The Powers protocol is under active development.
 
 There are several aims and ethos that guide the development of the Powers protocol.
 
-* **Decentralization.** Powers aims to revolutionize on-chain governance. Dividing powers within a governance protocol along roles that need to be assigned, we can - finally - begin to truly decentralize power in DAOs.  &#x20;
 * **Open source.** The core protocol, laws and app are and will always will remain open source.
-* **Composability.** Laws provide, and will always provide, an open and fully composable layer of smart contracts that integrate with on- and off-chain services, existing DAOs, as well as with other implementations of the protocol. Anyone should be able to create their own laws.  &#x20;
+* **Modularity.** Laws provide, and will always provide, an open and fully modular layer of smart contracts that integrate with on- and off-chain services, existing DAOs, as well as with other implementations of the protocol. Anyone should be able to create their own laws.  &#x20;
 * **Security.** No protocol will ever be a 100% safe. But a role restricted governance protocol allows for additional safety checks by eliminating single points of failure. Protocol and law development will always aim to leverage these security capabilities and include continuous security auditing . &#x20;
 * **Community.** Protocol development and security  demand constant attention. The ultimate aim is to create a sustainable community that develops and secures the protocol.&#x20;
+* **Decentralization.** Powers aims to revolutionize on-chain governance. Dividing powers within a governance protocol along roles that need to be assigned, we can - finally - begin to truly decentralize power in DAOs.  &#x20;
 
 ## Milestones
 
@@ -22,6 +22,7 @@ There are several aims and ethos that guide the development of the Powers protoc
 * Security audits core protocol and laws. &#x20;
 * Optimize core protocol.  &#x20;
 * Improve error handling.
+* Zero-code UI for deploying organisations.
 
 ### v0.3 (current)
 

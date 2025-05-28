@@ -4,7 +4,7 @@ description: Interested in creating your own Powers?
 
 # Deploy Your Powers
 
-🚧 **This page is incomplete and outdated.** 🚧
+🚧 **This page is a work in progress.** 🚧
 
 ## Deployment sequence
 
