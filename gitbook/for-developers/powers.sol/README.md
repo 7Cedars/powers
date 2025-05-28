@@ -6,7 +6,7 @@ description: Checking under the hood of the Powers protocol engine.
 
 ## What are Powers?
 
-Powers are role restricted actions. Because actions are restricted, they are plural: we can create multiple powers in one organisation, and create checks and balances between them. Role restricting actions in a governance protocol allows for the separation of powers in DAOs.   
+Powers are role restricted actions. Because actions are restricted, they are plural: we can create multiple powers in one organisation, and create checks and balances between them. Role restricting actions in a governance protocol allows for the separation of powers in DAOs.
 
 Laws are the way in which role restricted actions are encoded. As such, Powers cannot exist without laws. Powers.sol manages governance flows by calling on laws and executing actions they return.
 
@@ -42,18 +42,10 @@ Having these basic rules out of the way, let us explore the functionalities of P
 [proposing-actions.md](proposing-actions.md)
 {% endcontent-ref %}
 
-{% content-ref url="voting-on-proposals.md" %}
-[voting-on-proposals.md](voting-on-proposals.md)
-{% endcontent-ref %}
-
 {% content-ref url="assigning-revoking-and-labelling-roles.md" %}
 [assigning-revoking-and-labelling-roles.md](assigning-revoking-and-labelling-roles.md)
 {% endcontent-ref %}
 
 {% content-ref url="adopting-and-revoking-laws.md" %}
 [adopting-and-revoking-laws.md](adopting-and-revoking-laws.md)
-{% endcontent-ref %}
-
-{% content-ref url="constitute-a-new-community.md" %}
-[constitute-a-new-community.md](constitute-a-new-community.md)
 {% endcontent-ref %}
