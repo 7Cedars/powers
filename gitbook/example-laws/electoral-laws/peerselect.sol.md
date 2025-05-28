@@ -1,76 +1,148 @@
 # PeerSelect.sol
 
-## Summary
+PeerSelect.sol is an electoral law that enables the selection of accounts from a list of nominees to assign or revoke a specific role. It integrates with NominateMe.sol to manage the nomination process.
 
-Select an accounts from a list of nominated accounts and assign or revoke it a role ID.
+## Overview
+
+This law provides a mechanism to:
+- Select accounts from a list of nominees
+- Assign or revoke a specific role ID
+- Track elected accounts and maintain a sorted list
+- Enforce maximum role holder limits
 
 ## Configuration
 
-When adopting a PeerSelect instance there are three parameters that need to be provided.
+When adopting a PeerSelect instance, three parameters must be provided:
 
-1. `uint256 maxRoleHolders`: maximum number of accounts that can be assigned a role ID.
-2. `uint256 roleID`: The role ID that can be assigned.
-3. As a `condition.readStateFrom`: an address of a `NominateMe.sol` instance needs to be provided.   
+1. `maxRoleHolders` (uint256): Maximum number of accounts that can be assigned the role
+2. `roleID` (uint256): The role ID that can be assigned/revoked
+3. `readStateFrom` (address): Address of the NominateMe.sol instance to read nominees from
 
-## Calling the law
+## Usage
 
-When calling the law, two parameters need to be provided.
+### Proposing an Action
 
-1. `uint256 NomineeIndex`: The index of the nominee in the nominee list. 
-2. `bool assign`: a bool indicating if the address needs to be assigned a role ID (true) or if a role ID needs to be revoked (false).
+When calling the law, two parameters must be provided:
 
-## Execution
+1. `NomineeIndex` (uint256): Index of the nominee in the nominee list
+2. `assign` (bool): 
+   - `true`: Assign the role to the nominee
+   - `false`: Revoke the role from the nominee
 
-The law executes the following logic:
+### Execution Flow
 
-1. Loads data from the `NominateMe.sol` instance.
-2. Retrieves address from the list of nominees.
-3. Checks if this address has already been assigned the role ID.
-4. In case of assigning role,
-   1. Will revert if already has the role.
-   2. Will assign role if not. 
-5. In case of revoking role
-   1. Will revert if does not have role.
-   2. Will revoke role if not.
-6. Adapts the list of selected accounts and saves it to state. 
+1. **Nominee Validation**
+   - Loads nominee data from NominateMe.sol instance
+   - Retrieves nominee address from the list
+   - Verifies nominee exists at the specified index
 
-## Specs
+2. **Role Assignment**
+   - If `assign` is true:
+     - Checks if nominee already has the role
+     - Verifies maximum role holders limit
+     - Assigns role if conditions are met
+   - If `assign` is false:
+     - Verifies nominee has the role
+     - Revokes role if conditions are met
 
-Only specs that are in addition to the specs of `Law.sol` are noted here.
+3. **State Management**
+   - Updates elected accounts list
+   - Maintains sorted list of elected accounts
+   - Records state changes
 
-### Source
-
-.. link to github source.
+## Technical Specifications
 
 ### State Variables
 
-... State Variables
+```solidity
+struct Data {
+    uint256 maxRoleHolders;    // Maximum number of role holders allowed
+    uint256 roleId;           // Role ID to assign/revoke
+    address[] elected;        // List of elected accounts
+    address[] electedSorted;  // Sorted list of elected accounts
+}
+
+mapping(bytes32 lawHash => Data) public data;
+```
 
 ### Functions
 
-... State Variables
+#### `initializeLaw`
+```solidity
+function initializeLaw(
+    uint16 index,
+    string memory nameDescription,
+    bytes memory inputParams,
+    Conditions memory conditions,
+    bytes memory config
+) public override
+```
+- Initializes law with configuration parameters
+- Sets up maximum role holders and role ID
+- Initializes empty elected lists
 
-### Structs
+#### `handleRequest`
+```solidity
+function handleRequest(
+    address caller,
+    address powers,
+    uint16 lawId,
+    bytes memory lawCalldata,
+    uint256 nonce
+) public view virtual override returns (
+    uint256 actionId,
+    address[] memory targets,
+    uint256[] memory values,
+    bytes[] memory calldatas,
+    bytes memory stateChange
+)
+```
+- Processes the selection request
+- Validates nominee and role status
+- Prepares role assignment/revocation call
+- Returns execution data
 
-... Structs
+#### `_changeState`
+```solidity
+function _changeState(
+    bytes32 lawHash,
+    bytes memory stateChange
+) internal override
+```
+- Updates elected accounts list
+- Maintains sorted list of elected accounts
+- Handles both assignments and revocations
 
-### Events
+#### `getData`
+```solidity
+function getData(bytes32 lawHash) public view returns (Data memory)
+```
+- Returns the current state of the law
+- Includes all configuration and elected accounts
 
-... list of law specific events.
+### Error Conditions
 
-## Current deployments
+1. **Role Assignment Errors**
+   - "Account already has role"
+   - "Max role holders reached"
 
-| Address | Chain Id | Date |
+2. **Role Revocation Errors**
+   - "Account does not have role"
+
+3. **Validation Errors**
+   - Invalid nominee index
+   - Invalid role ID
+   - Invalid NominateMe instance
+
+## Current Deployments
+
+| Address | Chain ID | Date |
 | ------- | -------- | ---- |
 |         |          |      |
-|         |          |      |
-|         |          |      |
 
-## Previous deployments
+## Previous Deployments
 
-| Address | Chain Id | Date |
+| Address | Chain ID | Date |
 | ------- | -------- | ---- |
-|         |          |      |
-|         |          |      |
 |         |          |      |
 
