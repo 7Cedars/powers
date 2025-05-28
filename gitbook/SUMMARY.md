@@ -21,10 +21,7 @@
   * [Reply to Powers](for-developers/law.sol/reply-to-powers.md)
   * [Specs](for-developers/law.sol/specs.md)
 * [Deploy your own Powers](for-developers/deploy-community-governance.md)
-
-***
-
-* [Deploy your own law](setting-up-a-new-law.md)
+* [Deploy your own Law](for-developers/setting-up-a-new-law.md)
 
 ## Deployed Laws
 
