@@ -25,6 +25,13 @@ export function LogsList({powers, status}: {powers: Powers | undefined, status: 
     }
   }, [powers?.executedActions, chainId, fetchBlocks])
 
+  const handleActionClick = async (actionId: bigint) => {
+    // have to fetch action data from chain, using actionId.
+
+    // when data is loaded, router push to law page.  
+    router.push(`/${chainId}/${powers?.contractAddress}/actions/${actionId}`)
+  }
+
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
 
@@ -70,10 +77,12 @@ export function LogsList({powers, status}: {powers: Powers | undefined, status: 
       <table className="w-full table-auto">
       <thead className="w-full border-b border-slate-200">
             <tr className="w-96 text-xs font-light text-left text-slate-500">
-                <th className="ps-6 py-2 font-light rounded-tl-md"> Action ID </th>
-                <th className="font-light"> Law </th>
-                <th className="font-light min-w-44"> Targets </th>
+                <th className="ps-6 py-2 font-light rounded-tl-md"> Executed at </th>
+                <th className="font-light "> Law </th>
+                <th className="font-light min-w-44"> Action ID </th>
+                <th className="font-light"> Targets </th>
                 <th className="font-light"> Values </th>
+                <th className="font-light"> Calldatas </th>
                 <th className="font-light"> Role </th>
             </tr>
         </thead>
@@ -90,32 +99,51 @@ export function LogsList({powers, status}: {powers: Powers | undefined, status: 
                   key={i}
                   className={`text-sm text-left text-slate-800 h-full w-full p-2 overflow-x-scroll`}
                 >
-                  <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center py-3 px-4">
+                  {/* Executed at */}
+                  <td className="pe-4 min-w-48 py-3 px-4">
                       <Button
                         showBorder={true}
                         role={parseRole(law.conditions?.allowedRole)}
-                        onClick={() => {
-                          router.push(`/${chainId}/${powers?.contractAddress}/actions/${action.actionId}`);
-                        }}
+                        onClick={() => {}}
                         align={0}
                         selected={true}
                       > 
                         <div className="flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {action.actionId.toString()}
+                          {`${toFullDateFormat(Number(blocks?.find(block => block.number == action.blockNumber)?.timestamp || 0n))}: ${toEurTimeFormat(Number(blocks?.find(block => block.number == action.blockNumber)?.timestamp || 0n))}`} 
                         </div>
                       </Button>
                   </td>
+                  
+                  {/* Law */}
                   <td className="pe-4 text-slate-500 min-w-56">{law.nameDescription}</td>
+                  
+                  {/* Action ID */}
+                  <td className="pe-4 text-slate-500 min-w-48">
+                    {action.actionId.toString().length > 10 ? action.actionId.toString().slice(0, 10) + "..." : action.actionId.toString()  }
+                  </td>
+                  
+                  {/* Targets */}
                   <td className="pe-4 text-slate-500 min-w-48">
                     {action.targets.map((target, i) => (
-                      <div key={i}>{target}</div>
+                      <div key={i}>{target.length > 10 ? target.slice(0, 10) + "..." : target}</div>
                     ))}
                   </td>
+
+                  {/* Values */}
                   <td className="pe-4 text-slate-500">
                     {action.values.map((value, i) => (
-                      <div key={i}>{value.toString()}</div>
+                      <div key={i}>{value.toString().length > 10 ? value.toString().slice(0, 10) + "..." : value.toString()}</div>
                     ))}
                   </td>
+
+                  {/* Calldatas */}
+                  <td className="pe-4 text-slate-500">
+                    {action.calldatas.map((calldata, i) => (
+                      <div key={i}>{calldata.length > 10 ? calldata.slice(0, 10) + "..." : calldata}</div>
+                    ))}
+                  </td>
+
+                  {/* Role */}
                   <td className="pe-4 min-w-20 text-slate-500">
                     {bigintToRole(law.conditions?.allowedRole, powers)}
                   </td>

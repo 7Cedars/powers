@@ -27,6 +27,8 @@ export type LawExecutions = {
 export type PowersExecutions = {
   lawId: bigint, 
   actionId: bigint, 
+  blockNumber: bigint, 
+  blockHash: `0x${string}`, 
   targets: `0x${string}`[], 
   values: bigint[], 
   calldatas: `0x${string}`[] 

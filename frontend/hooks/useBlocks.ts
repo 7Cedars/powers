@@ -12,6 +12,8 @@ export const useBlocks = () => {
   const [error, setError] = useState<any | null>(null)
   const [data, setData] = useState<GetBlockReturnType[]>()
 
+  console.log("@useBlocks, data: ", data)
+
   const fetchBlocks = async (blockNumbers: bigint[], chainId: string) => {
     setStatus("pending")
     // console.log("@useBlocks, fetching blocks: ", blockNumbers, chainId)

@@ -419,19 +419,22 @@ export const usePowers = () => {
             fromBlock: chunkFrom,
             toBlock: chunkTo
           })
-          
+          console.log("@fetchExecutedActions, waypoint 0", {logs})
           const fetchedLogs = parseEventLogs({
             abi: powersAbi,
             eventName: 'ActionExecuted',
             logs
           });
+          console.log("@fetchExecutedActions, waypoint 1", {fetchedLogs})
 
           let newExecutedActions: PowersExecutions[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as PowersExecutions);
           // but with typing of actionId as string
           newExecutedActions = newExecutedActions.map(action => { 
             return {
               ...action,  
-              actionId: BigInt(action.actionId)
+              actionId: BigInt(action.actionId),
+              blockNumber: BigInt(action.blockNumber),
+              blockHash: action.blockHash as `0x${string}`
             }
           })
           // add fetched executed actions to the array
@@ -494,6 +497,10 @@ export const usePowers = () => {
       // console.log("@fetchPowers, waypoint 4", {updatedMetaData})
       if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws)) { 
         fetchLawsAndRoles(updatedMetaData) 
+      }
+      if (updatedMetaData) {
+        fetchProposals(updatedMetaData, 1n, 1000n)
+        fetchExecutedActions(updatedMetaData, 1n, 1000n)
       }
       // console.log("@fetchPowers, waypoint 5", {updatedMetaData})
       setPowers(updatedMetaData)
