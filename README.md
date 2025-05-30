@@ -12,7 +12,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/7Cedars/powers"> 
-    <img src="public/logo.png" alt="Logo" width="300" height="300">
+    <img src="public/logo1_notext.png" alt="Logo" width="300" height="300">
   </a>
 
 <h3 align="center">Powers</h3>

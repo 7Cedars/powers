@@ -1,4 +1,4 @@
-import { Status, Proposal, Powers, Law, Metadata, RoleLabel, Conditions, LawExecutions, BlockRange, Role } from "../context/types"
+import { Status, Proposal, Powers, Law, Metadata, RoleLabel, Conditions, LawExecutions, BlockRange, Role, PowersExecutions } from "../context/types"
 import { wagmiConfig } from '../context/wagmiConfig'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "@/context/abi";
@@ -381,7 +381,7 @@ export const usePowers = () => {
       }
   }
   
-  const fetchRoleHolders = async (powers: Powers, maxRuns: bigint, chunkSize: bigint) => {
+  const fetchExecutedActions = async (powers: Powers, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
     setStatus("pending")
 
@@ -390,27 +390,13 @@ export const usePowers = () => {
       setError("No public client or current block")
     } else {
       // Initialize arrays to collect results
-      let roleHoldersFetched: Role[] = powers?.roleHolders ? powers.roleHolders : [];
-      let distance: bigint = 0n
-      let blockFrom: bigint = 0n
-      let blockTo: bigint = 0n
-
+      let executedActionsFetched: PowersExecutions[] = powers.executedActions || [];
      
-      if (currentBlock == powers?.roleHoldersBlocksFetched?.to) { // are we up to date ? if so:  
-        distance = BigInt(Number(chunkSize) * Number(maxRuns))  // we go as far back as possible. 
-        blockFrom = powers?.roleHoldersBlocksFetched?.from - distance // we start at the last block we have fetched. 
-        blockTo = powers?.roleHoldersBlocksFetched?.from // we end at the last block we have fetched. 
-      } else if (powers?.roleHoldersBlocksFetched?.to) { // are we not up to date? if so:  
-        distance = BigInt(Number(currentBlock) - Number(powers?.roleHoldersBlocksFetched?.to)) // we go as far forward until we reach the current block. 
-        if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) { // but if this distance is greater than the max runs, we limit it to the max runs. 
-          distance = BigInt(Number(chunkSize) * Number(maxRuns))
-        }
-        blockFrom = powers?.roleHoldersBlocksFetched?.to // we start at the last block we have fetched. 
-        blockTo = powers?.roleHoldersBlocksFetched?.to + distance // we end at the last block we have fetched + the distance. 
-      } else { // if we are not up to date, we start at the current block - the max runs. 
-        blockTo = currentBlock
-        blockFrom = BigInt(Number(blockTo) - (Number(chunkSize) * Number(maxRuns)))
+      let distance = powers.executedActionsBlocksFetched ? BigInt(Number(currentBlock) - Number(powers.executedActionsBlocksFetched?.to)) : BigInt(Number(chunkSize) * Number(maxRuns))
+      if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) {
+        distance = BigInt(Number(chunkSize) * Number(maxRuns))
       }
+      const blockFrom = currentBlock - distance
 
       // Fetch blocks in chunks with pagination
       let chunkFrom: bigint = 0n
@@ -420,64 +406,63 @@ export const usePowers = () => {
       // if so, save here everything to disc.  
       let i = 0
       while (distance > i) {
-        // console.log("fetchRoleHolders, waypoint 1", {chunkTo, chunkFrom, i, distance})
-      
         // calculate chunk boundaries
         chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
-        chunkTo = chunkFrom + chunkSize
+        chunkTo = (chunkFrom + chunkSize) > currentBlock ? currentBlock : (chunkFrom + chunkSize)
         
         try { 
           // Fetch events for the current chunk
           const logs = await publicClient.getContractEvents({ 
             address: powers.contractAddress as `0x${string}`,
             abi: powersAbi, 
-            eventName: 'RoleSet',
+            eventName: 'ActionExecuted',
             fromBlock: chunkFrom,
             toBlock: chunkTo
           })
-          
+          console.log("@fetchExecutedActions, waypoint 0", {logs})
           const fetchedLogs = parseEventLogs({
             abi: powersAbi,
-            eventName: 'RoleSet',
+            eventName: 'ActionExecuted',
             logs
           });
+          console.log("@fetchExecutedActions, waypoint 1", {fetchedLogs})
 
-          let newRoleHolders: Role[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Role);
-          // console.log("fetchRoleHolders, waypoint 2", {newRoleHolders})
-
-          // add fetched role holders to the array
-          roleHoldersFetched = [...roleHoldersFetched, ...newRoleHolders]
+          let newExecutedActions: PowersExecutions[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as PowersExecutions);
+          // but with typing of actionId as string
+          newExecutedActions = newExecutedActions.map(action => { 
+            return {
+              ...action,  
+              actionId: BigInt(action.actionId),
+              blockNumber: BigInt(action.blockNumber),
+              blockHash: action.blockHash as `0x${string}`
+            }
+          })
+          // add fetched executed actions to the array
+          executedActionsFetched = [...executedActionsFetched, ...newExecutedActions]
           } catch (error) {
             setStatus("error")
             setError(error)
           }
           i = i + Number(chunkSize)
         }
-
-        // I am sure we can make this les convoluted. But this will  have to do for now. 
-        if (powers.roleHoldersBlocksFetched && powers.roleHoldersBlocksFetched.to < blockTo) {
-          powersUpdated = { ...powers, 
-            roleHolders: roleHoldersFetched, 
-            roleHoldersBlocksFetched: { 
-              from: powers.roleHoldersBlocksFetched.from > blockFrom ? blockFrom : powers.roleHoldersBlocksFetched.from,  
-              to: powers.roleHoldersBlocksFetched.to < blockTo ? blockTo : powers.roleHoldersBlocksFetched.to
-            }
-          }
-        } else {
-          powersUpdated = { ...powers, 
-            roleHolders: roleHoldersFetched, 
-            roleHoldersBlocksFetched: { 
-              from: blockFrom, 
-              to: blockTo
-            }
+        
+        const sortedExecutedActions = executedActionsFetched.sort((a: PowersExecutions, b: PowersExecutions) => a.actionId > b.actionId ? -1 : 1);
+        
+        powersUpdated = { ...powers, 
+          executedActions: sortedExecutedActions, 
+          executedActionsBlocksFetched: { 
+            from: powers.executedActionsBlocksFetched?.from ? 
+              powers.executedActionsBlocksFetched.from : // note: from is only saved once, and is never updated.  
+              blockFrom, 
+            to: chunkTo 
           }
         }
         setPowers(powersUpdated)
         savePowers(powersUpdated)
         setStatus("success")
       }
-  };
-
+  }
+  
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
       if (status == "pending") {
@@ -513,11 +498,15 @@ export const usePowers = () => {
       if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws)) { 
         fetchLawsAndRoles(updatedMetaData) 
       }
+      if (updatedMetaData) {
+        fetchProposals(updatedMetaData, 1n, 1000n)
+        fetchExecutedActions(updatedMetaData, 1n, 1000n)
+      }
       // console.log("@fetchPowers, waypoint 5", {updatedMetaData})
       setPowers(updatedMetaData)
       setStatus("success")
     }, []
   )
 
-  return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, checkLaws, checkSingleLaw, fetchRoleHolders}  
+  return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
 }

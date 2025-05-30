@@ -8,22 +8,31 @@ description: The Powers protocol is under active development.
 
 There are several aims and ethos that guide the development of the Powers protocol.
 
-* **Open source.** The core protocol and example laws are and will always remain open source.
-* **Composability.** Laws provide a fully composable layer of smart contracts that integrates seamlessly with a range of on- and off-chain services, existing DAOs, as well as with other implementations of the protocol.&#x20;
-* **Security.** No protocol will ever be a 100% safe. But a governance protocol that divides powers allows for the elimination of single points of failure. It allowis for new levels of security in on-chain governance. &#x20;
-* **Community.** Protocol development and security are demand constant attention. The ultimate aim is to create a sustainable community that develops and secures the protocol.&#x20;
+* **Open source.** The core protocol, laws and app are and will always will remain open source.
+* **Modularity.** Laws provide, and will always provide, an open and fully modular layer of smart contracts that integrate with on- and off-chain services, existing DAOs, as well as with other implementations of the protocol. Anyone should be able to create their own laws.  
+* **Security.** No protocol will ever be a 100% safe. But a role restricted governance protocol allows for additional safety checks by eliminating single points of failure. Protocol and law development will always aim to leverage these security capabilities and include continuous security auditing . 
+* **Community.** Protocol development and security  demand constant attention. The ultimate aim is to create a sustainable community that develops and secures the protocol.
+* **Decentralization.** Powers aims to revolutionize on-chain governance. Dividing powers within a governance protocol along roles that need to be assigned, we can - finally - begin to truly decentralize power in DAOs.  
 
 ## Milestones
 
-### v0.3 (under development)
+### v0.4
 
-* Implement integration modules for existing protocols.
-* Implement integration for off-chain services.
-* Revise naming of function and variables in Powers.sol.
-* Refactor laws into singleton contracts.&#x20;
+* Development additional laws and example use cases.
+* Security audits core protocol and laws. 
+* Optimize core protocol.  
 * Improve error handling.
+* Zero-code UI for deploying organisations.
 
-### v0.2 (current)
+### v0.3 (current)
+
+* Implement integration modules for existing protocols. (wip)
+* Implement integration for off-chain services. (wip)
+* Revise naming of function and variables in Powers.sol.
+* Refactor laws into singleton contracts. Refactor Powers accordingly.
+* App for live demo's Powers implementations.
+
+### v0.2
 
 * Simplified Powers.sol
 * Implemented modular laws.

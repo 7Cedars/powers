@@ -143,7 +143,7 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                         align={0}
                         selected={true}
                       > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {`${toFullDateFormat(Number(blocks?.reverse()[i]?.timestamp || proposal.voteEnd))}: ${toEurTimeFormat(Number(blocks?.reverse()[i]?.timestamp || proposal.voteEnd))}`} 
+                          {`${toFullDateFormat(Number(blocks?.find(block => block.number == proposal.voteEnd)?.timestamp || 0n))}: ${toEurTimeFormat(Number(blocks?.find(block => block.number == proposal.voteEnd)?.timestamp || 0n))}`} 
                         </div>
                       </Button>
                   </td>

@@ -75,17 +75,6 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
         <div className="text-slate-900 text-center font-bold text-lg">
           Roles
         </div>
-        {/* {powers && 
-          <button 
-            className="w-fit h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => fetchRoleHolders(powers?.roles || [])}
-            >
-              <ArrowPathIcon
-                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
-                aria-selected={status == 'pending'}
-                />
-          </button>
-        } */}
       </div>
       {/* table laws  */}
       {statusPowers == "pending" ? 

@@ -1,0 +1,30 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibbtfbr5t7ndfwrh2gp5xwleahnezkugqiwcfj5oktvt5heijoswq",
+  "description": 
+    "An example implementation of the Powers protocol.",
+  "erc20s": [
+    "0x2f5628002C31B9476aD20a1Ba4ECB817adFc5416",
+    "0xAb751e30cF43cf9bcDbC10947e4755401CDAE8cB"
+  ],
+  "erc721s": [
+    "0xF2b1d9b13de278747EF247e6Dbf9B2B889F94132"],
+  "erc1155s": [{
+    "address": "0xd80c78AF3F6b5D3AAD9390F220055b5d6d8Ec471",
+    "tokenId": 0
+  } ],
+  "attributes": [
+    {
+      "trait_type": "optional trait 1",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 2",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 3",
+      "value": "none"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# SnapshotRegisterProposal.sol
+
+🚧 **Coming soon.** 🚧

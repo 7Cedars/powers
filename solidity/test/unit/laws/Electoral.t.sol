@@ -776,7 +776,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.roll(block.number + 900);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -804,7 +804,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.roll(block.number + 900);
 
         // Request role assignment
         lawCalldata = abi.encode(alice);
@@ -819,7 +819,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.roll(block.number + 900);
 
         // Request role revocation
         lawCalldata = abi.encode(alice);
@@ -865,7 +865,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 25);
+        vm.roll(block.number + 900);
 
         // Request role assignment for alice
         lawCalldata = abi.encode(alice);
@@ -895,7 +895,7 @@ contract TaxSelectTest is TestSetupElectoral {
         vm.stopPrank();
 
         // Advance to next epoch
-        vm.roll(block.number + 26);
+        vm.roll(block.number + 900);
         assertTrue(daoMock.hasRoleSince(alice, ROLE_FOUR) == 0, "Alice should have NOT have role four.");
 
         // act: call handleRequest directly to check its output

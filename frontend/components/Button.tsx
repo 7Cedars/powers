@@ -55,7 +55,7 @@ export const Button = ({
       aria-selected={!selected}
       disabled = {statusButton == "disabled"}
       >
-        <div className={`flex flex-row items-center ${fontAlign[align]} text-slate-700 gap-1 w-full h-full w-full px-2 py-1`}>
+        <div className={`flex flex-row items-center ${fontAlign[align]} text-slate-700 gap-1 w-full h-full px-2 py-1`}>
         {
           statusButton == 'pending' ?  
           <>

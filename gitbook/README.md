@@ -96,7 +96,7 @@ The result can be something like this:
 
 This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/421614/0x86d56c2E4e88aa93bFD08221490023Ab686670B3) on Arbitrum sepolia.
 
-For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/governance-flow.md).
+For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/powers.sol/governance-flow.md).
 
 ## Use Cases
 

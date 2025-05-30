@@ -38,7 +38,7 @@ import { Subscription } from "../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../src/laws/electoral/EndElection.sol";
 import { GovernorCreateProposal } from "../../src/laws/integrations/GovernorCreateProposal.sol";
-import { GovernorCheckVote } from "../../src/laws/integrations/GovernorCheckVote.sol";
+import { GovernorExecuteProposal } from "../../src/laws/integrations/GovernorExecuteProposal.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -90,7 +90,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[22] = address(new StartElection());
         lawAddresses[23] = address(new EndElection());
         lawAddresses[24] = address(new GovernorCreateProposal());
-        lawAddresses[25] = address(new GovernorCheckVote());
+        lawAddresses[25] = address(new GovernorExecuteProposal());
 
         mockAddresses[0] = address(new PowersMock());
         
@@ -129,7 +129,7 @@ contract DeployAnvilMocks is Script {
         lawNames[22] = "StartElection";
         lawNames[23] = "EndElection";
         lawNames[24] = "GovernorCreateProposal";
-        lawNames[25] = "GovernorCheckVote";
+        lawNames[25] = "GovernorExecuteProposal";
 
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
