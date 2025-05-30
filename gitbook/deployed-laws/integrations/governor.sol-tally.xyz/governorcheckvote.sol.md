@@ -1,3 +1,3 @@
-# GovernorCheckVote.sol
+# GovernorExecuteProposal.sol
 
 🚧 **Coming soon.** 🚧

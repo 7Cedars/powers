@@ -28,12 +28,19 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract GovernorCreateProposal is Law {
+    struct MemProposal {
+        address[] targets;
+        uint256[] values;
+        bytes[] calldatas;
+        string description;
+    }
+
     /// the targets, values and calldatas to be used in the calls: set at construction.
     mapping(bytes32 lawHash => address governorContract) public governorContracts;
 
     /// @notice constructor of the law
     constructor() {
-        bytes memory configParams = abi.encode("address GovernorContract", "string[] InputParams");
+        bytes memory configParams = abi.encode("address GovernorContract");
         emit Law__Deployed(configParams);
     }
 
@@ -44,12 +51,12 @@ contract GovernorCreateProposal is Law {
         Conditions memory conditions, 
         bytes memory config
     ) public override {
-        (address governorContract_, bytes memory inputParams_) =
-            abi.decode(config, (address, bytes));
+        (address governorContract_) =
+            abi.decode(config, (address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        bytes memory inputParams_ = abi.encode("address[] Targets", "uint256[] Values", "bytes[] Calldatas", "string Description");
 
         governorContracts[lawHash] = governorContract_;
-
         super.initializeLaw(index, nameDescription, inputParams_, conditions, config);
     }
 
@@ -67,20 +74,19 @@ contract GovernorCreateProposal is Law {
             bytes memory stateChange
         )
     {
+        MemProposal memory proposal;
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        (
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            proposal.description
+        ) = abi.decode(lawCalldata, (address[], uint256[], bytes[], string));
 
-        string memory description = string.concat(
-            "This is a proposal created in the Powers protocol.\n",  
-            "To see the proposal, please visit: https://powers-protocol.vercel.app/",
-            Strings.toHexString(uint256(uint160(powers))), "/proposals/", Strings.toString(lawId)
-        );
-
-        // send the calldata to the target function
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = governorContracts[lawHash];
-        // NB! The vote in the Governor contract does NOT contain the calldata. Otherwise it would allow the action to be executed twice: from the Powers protocol AND the governor contract.
-        calldatas[0] = abi.encodeWithSelector(Governor.propose.selector, targets, values, calldatas, keccak256(abi.encodePacked(description)));
+        calldatas[0] = abi.encodeWithSelector(Governor.propose.selector, proposal.targets, proposal.values, proposal.calldatas, proposal.description);
 
         return (actionId, targets, values, calldatas, "");
     }

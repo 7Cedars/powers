@@ -37,6 +37,8 @@ import { Subscription } from "../src/laws/electoral/Subscription.sol";
 import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
 import { StartElection } from "../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../src/laws/electoral/EndElection.sol";
+import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -44,9 +46,9 @@ import { EndElection } from "../src/laws/electoral/EndElection.sol";
 contract DeployLaws is Script {
     
     function run() external returns (string[] memory names, address[] memory addresses) {
-        names = new string[](24);
-        addresses = new address[](24);
-        bytes[] memory creationCodes = new bytes[](24);
+        names = new string[](26);
+        addresses = new address[](26);
+        bytes[] memory creationCodes = new bytes[](26);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -119,6 +121,12 @@ contract DeployLaws is Script {
 
         names[23] = "EndElection";
         creationCodes[23] = type(EndElection).creationCode;
+
+        names[24] = "GovernorCreateProposal";
+        creationCodes[24] = type(GovernorCreateProposal).creationCode;
+
+        names[25] = "GovernorExecuteProposal";
+        creationCodes[25] = type(GovernorExecuteProposal).creationCode;
 
         for (uint256 i = 0; i < names.length; i++) {
            addresses[i] = deployLaw(creationCodes[i], names[i]);

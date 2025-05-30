@@ -30,7 +30,7 @@
     * [SnapshotCheckVote.sol](deployed-laws/integrations/snapshot.box/snapshotcheckvote.sol.md)
     * [SnapshotRegisterProposal.sol](deployed-laws/integrations/snapshot.box/snapshotregisterproposal.sol.md)
   * [Governor.sol (Tally.xyz)](deployed-laws/integrations/governor.sol-tally.xyz/README.md)
-    * [GovernorCheckVote.sol](deployed-laws/integrations/governor.sol-tally.xyz/governorcheckvote.sol.md)
+    * [GovernorExecuteProposal.sol](deployed-laws/integrations/governor.sol-tally.xyz/GovernorExecuteProposal.sol.md)
     * [GovernorCreateProposal.sol](deployed-laws/integrations/governor.sol-tally.xyz/governorcreateproposal.sol.md)
 * [Off-chain laws](deployed-laws/off-chain-laws/README.md)
   * [AiAgentAction.sol](example-laws/executive-laws/aiagentaction.sol.md)

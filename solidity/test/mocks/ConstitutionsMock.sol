@@ -658,30 +658,26 @@ contract ConstitutionsMock is Test  {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](3);
 
-        string[] memory inputParams = new string[](1);
-        inputParams[0] = "uint256 Quantity"; // we're going to mint tokens as an example.
         // GovernorCreateProposal
         conditions.allowedRole = 1;
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Create Tally.xyz proposal: A law to create a proposal on Tally.xyz that includes a quantity (of tokens to mint).", 
             targetLaw: lawAddresses[24], // GovernorCreateProposal
             config: abi.encode(
-                mockAddresses[1], // GovernorMock
-                inputParams
+                mockAddresses[1] // GovernorMock
             ),
             conditions: conditions
         });
         delete conditions;
 
-        // GovernorCheckVote
+        // GovernorExecuteProposal
         conditions.allowedRole = type(uint256).max;
-        conditions.needCompleted = 1; 
+        // conditions.needCompleted = 1; 
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Check Tally.xyz proposal: A law to check the status of a Tally.xyz proposal.", 
-            targetLaw: lawAddresses[25], // GovernorCheckVote
+            targetLaw: lawAddresses[25], // GovernorExecuteProposal
             config: abi.encode(
-                mockAddresses[1], // GovernorMock
-                inputParams
+                mockAddresses[1] // GovernorMock
             ),
             conditions: conditions
         });
