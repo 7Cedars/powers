@@ -157,16 +157,16 @@ const Header = () => {
     <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
       <div className="flex flex-row gap-1 min-w-16"> 
         <a href="/"  
-            className="flex flex-row justify-center items-center border border-slate-400 rounded-md p-1 px-3"
+            className="flex flex-row justify-center items-center rounded-md p-1 px-3"
             >  
-          <PowerIcon className="h-6 w-6 text-slate-70 font-extrabold" />
-          {/* <Image 
-            src='/logo5.png' 
-            width={30}
-            height={30}
-            alt="Logo Separated Powers"
+          {/* <PowerIcon className="h-6 w-6 text-slate-70 font-extrabold" /> */}
+          <Image 
+            src='/logo1_notext.png' 
+            width={40}
+            height={40}
+            alt="Logo Powers Protocol"
             >
-          </Image> */}
+          </Image>
         </a> 
         <div className="">
       

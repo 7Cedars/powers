@@ -15,7 +15,7 @@ const privyConfig: PrivyClientConfig = {
   appearance: {
       theme: 'light',
       accentColor: '#676FFF',
-      logo: '/logo.png', 
+      logo: '/logo1_notext.png', 
       walletList: ["metamask", "coinbase_wallet", "rainbow", "detected_wallets", "wallet_connect"]
   }
 };
