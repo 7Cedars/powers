@@ -5,8 +5,10 @@ import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { Powers } from "@/context/types";
 import { setRole, useRoleStore } from "@/context/store";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, MapIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 interface OverviewProps {
   powers: Powers | undefined
@@ -16,6 +18,7 @@ interface OverviewProps {
 
 export function Overview({powers, status, onUpdatePowers}: OverviewProps) {
   const {deselectedRoles} = useRoleStore()
+  const { chainId, powers: powersAddress } = useParams<{ chainId: string, powers: string }>()
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = [] 
@@ -54,7 +57,19 @@ export function Overview({powers, status, onUpdatePowers}: OverviewProps) {
           </Button>
           </div>
       )}
-      {onUpdatePowers && 
+      <div className="flex flex-row gap-2">
+        {/* Flow Visualization Link */}
+        <Link href={`/${chainId}/${powersAddress}/flow`}>
+          <button 
+            className="w-fit h-fit p-1 rounded-md border border-slate-300 hover:bg-slate-100 transition-colors"
+            title="View Law Dependency Graph"
+          >
+            <MapIcon className="w-5 h-5 text-slate-800" />
+          </button>
+        </Link>
+        
+        {/* Refresh Button */}
+        {onUpdatePowers && 
           <button 
             className="w-fit h-fit p-1 rounded-md border-slate-500"
             onClick = {() => onUpdatePowers()}
@@ -65,6 +80,7 @@ export function Overview({powers, status, onUpdatePowers}: OverviewProps) {
                 />
           </button>
         }
+      </div>
     </div>
 
     {/* Overview here  */}
