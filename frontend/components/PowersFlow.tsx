@@ -15,6 +15,9 @@ import ReactFlow, {
   Handle,
   Position,
   NodeProps,
+  useReactFlow,
+  ReactFlowProvider,
+  useStore,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { Law, Powers, Checks } from '@/context/types'
@@ -30,8 +33,17 @@ import {
   HandThumbUpIcon,
   DocumentCheckIcon,
   ShieldCheckIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  ClockIcon,
+  StopIcon,
+  CheckCircleIcon,
+  SparklesIcon,
+  RocketLaunchIcon,
+  ArchiveBoxIcon,
+  FlagIcon
 } from '@heroicons/react/24/outline'
+import { useParams, usePathname, useRouter } from 'next/navigation'
+import { setAction, useActionStore } from '@/context/store'
 
 // Role colors matching LawBox.tsx color scheme
 const ROLE_COLORS = [
@@ -68,12 +80,26 @@ interface LawSchemaNodeData {
   law: Law
   checks?: Checks
   roleColor: string
-  isCollapsed: boolean
-  onToggleCollapse: () => void
+  onNodeClick?: (lawId: string) => void
+  selectedLawId?: string
+  connectedNodes?: Set<string>
 }
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => {
-  const { law, checks, roleColor, isCollapsed, onToggleCollapse } = data
+  const { law, checks, roleColor, onNodeClick, selectedLawId, connectedNodes } = data
+
+  const handleClick = () => {
+    if (onNodeClick) {
+      onNodeClick(String(law.index))
+    }
+  }
+
+  const isSelected = selectedLawId === String(law.index)
+  const borderThickness = isSelected ? 'border-4' : 'border-2'
+  
+  // Apply opacity based on connection to selected node
+  const isConnected = !selectedLawId || !connectedNodes || connectedNodes.has(String(law.index))
+  const opacityClass = isConnected ? 'opacity-100' : 'opacity-50'
 
   const checkItems = useMemo(() => {
     if (!checks) return []
@@ -88,7 +114,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
     }[] = []
     
     // 1. Throttle passed
-    if (checks.throttlePassed !== undefined) {
+    if (Number(law.conditions?.throttleExecution) != 0) {
       items.push({ 
         key: 'throttle', 
         label: 'Throttle Passed', 
@@ -99,7 +125,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
     
     // 2 & 3. Law completed and Law not completed (dependency checks)
     if (law.conditions) {
-      if (law.conditions.needCompleted !== 0n) {
+      if (Number(law.conditions.needCompleted) !== 0) {
         items.push({ 
           key: 'needCompleted', 
           label: `Law ${law.conditions.needCompleted} Completed`, 
@@ -110,7 +136,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
         })
       }
       
-      if (law.conditions.needNotCompleted !== 0n) {
+      if (Number(law.conditions.needNotCompleted) !== 0) {
         items.push({ 
           key: 'needNotCompleted', 
           label: `Law ${law.conditions.needNotCompleted} Not Completed`, 
@@ -122,7 +148,23 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       }
     }
     
-    // 4. Proposal passed
+    // 4. Vote started and Vote ended (only shown when proposal passed is also shown)
+    // These appear before proposal passed
+    items.push({ 
+      key: 'voteStarted', 
+      label: 'Vote Started', 
+      status: (checks as any).voteStarted ?? false,
+      hasHandle: false
+    })
+    
+    items.push({ 
+      key: 'voteEnded', 
+      label: 'Vote Ended', 
+      status: (checks as any).voteEnded ?? false,
+      hasHandle: false
+    })
+    
+    // 5. Proposal passed
     items.push({ 
       key: 'proposalPassed', 
       label: 'Proposal Passed', 
@@ -130,8 +172,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       hasHandle: false
     })
     
-    // 5. Delay passed
-    if (checks.delayPassed !== undefined) {
+    // 6. Delay passed
+    if (Number(law.conditions?.delayExecution) != 0) {
       items.push({ 
         key: 'delay', 
         label: 'Delay Passed', 
@@ -140,23 +182,23 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       })
     }
     
-    // 6. Read State From (dependency check)
-    if (law.conditions && law.conditions.readStateFrom !== 0n) {
-      items.push({ 
-        key: 'readStateFrom', 
-        label: `Read State From Law ${law.conditions.readStateFrom}`, 
-        status: undefined, // This doesn't have a direct status check
-        hasHandle: true,
-        targetLaw: law.conditions.readStateFrom,
-        edgeType: 'readStateFrom'
-      })
-    }
+    // 7. Read State From (dependency check)
+    if (law.conditions && Number(law.conditions.readStateFrom) !== 0) {
+        items.push({ 
+          key: 'readStateFrom', 
+          label: `Read State From Law ${law.conditions.readStateFrom}`, 
+          status: undefined, // This doesn't have a direct status check
+          hasHandle: true,
+          targetLaw: law.conditions.readStateFrom,
+          edgeType: 'readStateFrom'
+        })
+      }
     
-    // 7. Executed
+    // 8. Executed
     items.push({ 
       key: 'executed', 
       label: 'Executed', 
-      status: checks.executed,
+      status: checks.executed ?? false,
       hasHandle: false
     })
     
@@ -172,7 +214,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
 
   return (
     <div 
-      className={`shadow-lg rounded-lg bg-white border-2 min-w-[320px] max-w-[450px] ${roleBorderClass}`}
+      className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass}`}
+      onClick={handleClick}
     >
       {/* Target handle for incoming connections */}
       <Handle 
@@ -194,104 +237,84 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
         style={{ borderBottomColor: roleColor }}
       >
         <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="font-bold text-sm mb-1" style={{ color: roleColor }}>
-              📋 Law #{Number(law.index)}
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm mb-1 break-words" style={{ color: roleColor }}>
+              📋 #{Number(law.index)} {law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
             </div>
             
-            {law.nameDescription && (
-              <div className="text-xs text-gray-700 mb-1 font-medium">
-                {law.nameDescription}
+            <div className="text-xs text-gray-700 mb-1 font-medium break-words">
+              {law.nameDescription ? `${law.nameDescription.split(':')[1]}` : ""}
               </div>
-            )}
             
             <div className="flex items-center space-x-4 text-xs text-gray-600">
               {law.conditions && (
                 <>
-                  <span>Role: {Number(law.conditions.allowedRole)}</span>
-                  <span>Quorum: {Number(law.conditions.quorum)}%</span>
+                  <span className="truncate">Role: {
+                    Number(law.conditions.allowedRole) === 0 
+                      ? "Admin" 
+                      : Number(law.conditions.allowedRole) > 10000000000000000 
+                      ? "Public"
+                      : Number(law.conditions.allowedRole)
+                  }</span>
                 </>
               )}
             </div>
           </div>
           
-          {/* Status indicator and collapse button */}
-          <div className="flex items-center space-x-2">
-            {checkItems.length > 0 && (
-              <div 
-                className={`w-3 h-3 rounded-full border ${
-                  allChecksPassing 
-                    ? 'bg-green-500 border-green-600' 
-                    : anyChecksFailing 
-                    ? 'bg-red-500 border-red-600' 
-                    : 'bg-yellow-500 border-yellow-600'
-                }`}
-                title={`${checkItems.filter(i => i.status === true).length}/${checkItems.filter(i => i.status !== undefined).length} checks passing`}
-              />
-            )}
-            
-            {checkItems.length > 0 && (
-              <button
-                onClick={onToggleCollapse}
-                className="p-1 rounded hover:bg-gray-100 transition-colors"
-                title={isCollapsed ? 'Expand checks' : 'Collapse checks'}
-              >
-                <svg 
-                  className={`w-3 h-3 text-gray-600 transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-90'}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-          </div>
+        
         </div>
       </div>
       
       {/* Checks Section - Database Rows Style */}
-      {!isCollapsed && checkItems.length > 0 && (
+      {checkItems.length > 0 && (
         <div className="relative">
           {checkItems.map((item, index) => (
             <div key={item.key} className="relative">
               <div className="px-4 py-2 flex items-center justify-between text-xs relative">
-                <div className="flex items-center space-x-2 flex-1">
+              <div className="flex items-center space-x-2 flex-1">
                   <div className="w-6 h-6 flex justify-center items-center relative">
-                    {item.status !== undefined ? (
-                      // Status-based checks with appropriate icons
+                  {item.status !== undefined ? (
+                    // Status-based checks with appropriate icons
                       item.key === 'executed' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <CheckIcon className="w-4 h-4 text-black" />
+                          <RocketLaunchIcon className="w-4 h-4 text-black" />
                         </div>
                       ) : item.key === 'proposalPassed' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <HandThumbUpIcon className="w-4 h-4 text-black" />
+                          <CheckCircleIcon className="w-4 h-4 text-black" />
                         </div>
                       ) : item.key === 'delay' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <CalendarDaysIcon className="w-4 h-4 text-black" />
                         </div>
-                      ) : item.key === 'throttle' ? (
+                    ) : item.key === 'throttle' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <QueueListIcon className="w-4 h-4 text-black" />
                         </div>
-                      ) : item.key === 'needCompleted' ? (
+                    ) : item.key === 'needCompleted' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <DocumentCheckIcon className="w-4 h-4 text-black" />
                         </div>
-                      ) : item.key === 'needNotCompleted' ? (
+                    ) : item.key === 'needNotCompleted' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <XMarkIcon className="w-4 h-4 text-black" />
+                        </div>
+                    ) : item.key === 'voteStarted' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <ArchiveBoxIcon className="w-4 h-4 text-black" />
+                        </div>
+                    ) : item.key === 'voteEnded' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <FlagIcon className="w-4 h-4 text-black" />
                         </div>
                       ) : (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <ShieldCheckIcon className="w-4 h-4 text-black" />
                         </div>
                       )
-                    ) : (
-                      // Dependency checks without status
-                      item.key === 'readStateFrom' ? (
+                  ) : (
+                    // Dependency checks without status
+                    item.key === 'readStateFrom' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <LinkIcon className="w-4 h-4 text-black" />
                         </div>
@@ -302,25 +325,25 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
                       )
                     )}
                   </div>
-                  <div className="flex-1 flex flex-col">
+                  <div className="flex-1 flex flex-col min-w-0">
                     <div className="text-[10px] text-gray-400 mb-0.5">Dec 15, 2024 - 14:32</div>
-                    <span className="text-gray-700 font-medium">{item.label}</span>
+                    <span className="text-gray-700 font-medium break-words">{item.label}</span>
                   </div>
-                </div>
-                
-                {/* Connection handle for dependency checks */}
-                {item.hasHandle && (
-                  <Handle
-                    type="source"
-                    position={Position.Left}
-                    id={`${item.key}-handle`}
-                    style={{ 
-                      background: '#6B7280', // gray-500 for all dependency handles
-                      width: 8,
-                      height: 8,
-                      left: -4,
-                      top: '50%',
-                      transform: 'translateY(-50%)'
+              </div>
+              
+              {/* Connection handle for dependency checks */}
+              {item.hasHandle && (
+                <Handle
+                  type="source"
+                  position={Position.Left}
+                  id={`${item.key}-handle`}
+                  style={{ 
+                    background: '#6B7280', // gray-500 for all dependency handles
+                    width: 8,
+                    height: 8,
+                    left: -4,
+                    top: '50%',
+                    transform: 'translateY(-50%)'
                     }}
                   />
                 )}
@@ -358,19 +381,6 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
           ))}
         </div>
       )}
-      
-      {/* Collapsed state info */}
-      {isCollapsed && checkItems.length > 0 && (
-        <div className="px-4 py-2 text-xs text-gray-500 bg-gray-50">
-          <div className="flex justify-between items-center">
-            <span>{checkItems.length} checks</span>
-            <span>
-              {checkItems.filter(i => i.status === true).length}/
-              {checkItems.filter(i => i.status !== undefined).length} passing
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -382,13 +392,74 @@ const nodeTypes = {
 interface PowersFlowProps {
   powers: Powers
   lawChecks?: Map<string, Checks>
+  selectedLawId?: string
+}
+
+// Helper function to find all nodes connected to a selected node through dependencies
+function findConnectedNodes(selectedLawId: string, laws: Law[]): Set<string> {
+  const connected = new Set<string>()
+  const visited = new Set<string>()
+  
+  // Build dependency maps
+  const dependencies = new Map<string, Set<string>>()
+  const dependents = new Map<string, Set<string>>()
+  
+  laws.forEach(law => {
+    const lawId = String(law.index)
+    dependencies.set(lawId, new Set())
+    dependents.set(lawId, new Set())
+  })
+  
+  // Populate dependency relationships
+  laws.forEach(law => {
+    const lawId = String(law.index)
+    if (law.conditions) {
+      if (law.conditions.needCompleted !== 0n) {
+        const targetId = String(law.conditions.needCompleted)
+        if (dependencies.has(targetId)) {
+        dependencies.get(lawId)?.add(targetId)
+        dependents.get(targetId)?.add(lawId)
+        }
+      }
+      if (law.conditions.needNotCompleted !== 0n) {
+        const targetId = String(law.conditions.needNotCompleted)
+        if (dependencies.has(targetId)) {
+        dependencies.get(lawId)?.add(targetId)
+        dependents.get(targetId)?.add(lawId)
+        }
+      }
+      if (law.conditions.readStateFrom !== 0n) {
+        const targetId = String(law.conditions.readStateFrom)
+        if (dependencies.has(targetId)) {
+        dependencies.get(lawId)?.add(targetId)
+        dependents.get(targetId)?.add(lawId)
+        }
+      }
+    }
+  })
+  
+  // Recursive function to find all connected nodes
+  const traverse = (nodeId: string) => {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
+    connected.add(nodeId)
+    
+    // Add all dependencies
+    const deps = dependencies.get(nodeId) || new Set()
+    deps.forEach(depId => traverse(depId))
+    
+    // Add all dependents  
+    const dependentNodes = dependents.get(nodeId) || new Set()
+    dependentNodes.forEach(depId => traverse(depId))
+  }
+  
+  traverse(selectedLawId)
+  return connected
 }
 
 // Helper function to create a hierarchical layout based on dependencies
 function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>()
-  const visited = new Set<string>()
-  const levels = new Map<number, string[]>()
   
   // Build dependency graph
   const dependencies = new Map<string, Set<string>>()
@@ -406,187 +477,153 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
     if (law.conditions) {
       if (law.conditions.needCompleted !== 0n) {
         const targetId = String(law.conditions.needCompleted)
-        dependencies.get(lawId)?.add(targetId)
-        dependents.get(targetId)?.add(lawId)
+        // Only add if the target law actually exists
+        if (dependencies.has(targetId)) {
+          dependencies.get(lawId)?.add(targetId)
+          dependents.get(targetId)?.add(lawId)
+        }
       }
       if (law.conditions.needNotCompleted !== 0n) {
         const targetId = String(law.conditions.needNotCompleted)
-        dependencies.get(lawId)?.add(targetId)
-        dependents.get(targetId)?.add(lawId)
+        // Only add if the target law actually exists
+        if (dependencies.has(targetId)) {
+          dependencies.get(lawId)?.add(targetId)
+          dependents.get(targetId)?.add(lawId)
+        }
       }
       if (law.conditions.readStateFrom !== 0n) {
         const targetId = String(law.conditions.readStateFrom)
-        dependencies.get(lawId)?.add(targetId)
-        dependents.get(targetId)?.add(lawId)
+        // Only add if the target law actually exists
+        if (dependencies.has(targetId)) {
+          dependencies.get(lawId)?.add(targetId)
+          dependents.get(targetId)?.add(lawId)
+        }
       }
     }
   })
   
-  // Calculate dependency depth (how many dependencies a node has, directly or indirectly)
-  const getDependencyDepth = (lawId: string, memo = new Map<string, number>(), visiting = new Set<string>()): number => {
-    if (memo.has(lawId)) return memo.get(lawId)!
-    if (visiting.has(lawId)) return 0 // Prevent infinite loops in cycles
-    
-    visiting.add(lawId)
-    const deps = dependencies.get(lawId) || new Set()
-    
-    if (deps.size === 0) {
-      memo.set(lawId, 0)
-      visiting.delete(lawId)
-      return 0
-    }
-    
-    const maxDepDepth = Math.max(...Array.from(deps).map(depId => getDependencyDepth(depId, memo, visiting)))
-    const depth = maxDepDepth + 1
-    memo.set(lawId, depth)
-    visiting.delete(lawId)
-    return depth
-  }
-  
-  // Assign laws to levels based on dependency depth
-  // Level 0 = nodes with no dependencies (bottom row)
-  // Higher levels = nodes with more dependencies (upper rows)
-  const depthMemo = new Map<string, number>()
-  laws.forEach(law => {
-    const lawId = String(law.index)
-    const depth = getDependencyDepth(lawId, depthMemo)
-    if (!levels.has(depth)) {
-      levels.set(depth, [])
-    }
-    levels.get(depth)!.push(lawId)
+  // Find independent nodes (nodes with no dependencies and no dependents)
+  const independentNodes = Array.from(dependencies.keys()).filter(lawId => {
+    const hasDependencies = (dependencies.get(lawId)?.size || 0) > 0
+    const hasDependents = (dependents.get(lawId)?.size || 0) > 0
+    return !hasDependencies && !hasDependents
   })
   
-  // Group nodes within each level by their dependency relationships
-  const groupRelatedNodes = (lawIds: string[]): string[][] => {
-    const groups: string[][] = []
-    const processed = new Set<string>()
+  // Find all dependency chains (excluding independent nodes from chain building)
+  const findChains = (): string[][] => {
+    const visited = new Set<string>()
+    const chains: string[][] = []
     
-    for (const lawId of lawIds) {
-      if (processed.has(lawId)) continue
-      
-      const group = new Set<string>([lawId])
-      const toProcess = [lawId]
-      
-      // Find all nodes that are related through dependencies
-      while (toProcess.length > 0) {
-        const currentId = toProcess.pop()!
-        processed.add(currentId)
-        
-        // Add nodes that this one depends on (if they're in the same level)
-        const deps = dependencies.get(currentId) || new Set()
-        for (const depId of deps) {
-          if (lawIds.includes(depId) && !group.has(depId)) {
-            group.add(depId)
-            toProcess.push(depId)
-          }
-        }
-        
-        // Add nodes that depend on this one (if they're in the same level)
-        const dependentNodes = dependents.get(currentId) || new Set()
-        for (const depId of dependentNodes) {
-          if (lawIds.includes(depId) && !group.has(depId)) {
-            group.add(depId)
-            toProcess.push(depId)
-          }
-        }
-      }
-      
-      groups.push(Array.from(group))
-    }
-    
-    return groups
-  }
-  
-  // Position nodes with vertical arrangement
-  const NODE_SPACING_X = 600 // Horizontal spacing between nodes
-  const NODE_SPACING_Y = 150 // Vertical spacing between nodes
-  const GROUP_SPACING_X = 200 // Additional spacing between different groups
-  const LEVEL_SPACING_Y = 550 // Vertical spacing between levels
-  const CATEGORY_SPACING_X = 800 // Spacing between different dependency categories
-  const MAX_NODES_PER_ROW = 4 // Maximum nodes per row within a group
-  
-  const maxLevel = Math.max(...levels.keys())
-  
-  // Categorize nodes based on their dependency patterns
-  const categorizeNodes = (lawIds: string[]) => {
-    const categories = {
-      onlyChildren: [] as string[], // Nodes that only have other nodes depending on them
-      both: [] as string[], // Nodes that have both dependencies and dependents
-      onlyParents: [] as string[], // Nodes that only depend on other nodes
-      isolated: [] as string[] // Nodes with no dependencies at all
-    }
-    
-    lawIds.forEach(lawId => {
+    // Only consider nodes that have dependencies or dependents for chain building
+    // AND exclude independent nodes explicitly
+    const chainNodes = Array.from(dependencies.keys()).filter(lawId => {
       const hasDependencies = (dependencies.get(lawId)?.size || 0) > 0
       const hasDependents = (dependents.get(lawId)?.size || 0) > 0
+      // Must have either dependencies OR dependents (or both) to be part of a chain
+      return hasDependencies || hasDependents
+    })
+    
+    // Find nodes with no dependencies (but have dependents) - start of chains
+    const startNodes = chainNodes.filter(lawId => 
+      dependencies.get(lawId)?.size === 0 && (dependents.get(lawId)?.size || 0) > 0
+    )
+    
+    // Build chains starting from each start node
+    const buildChain = (startNode: string, currentChain: string[] = []): string[][] => {
+      if (visited.has(startNode)) return []
       
-      if (!hasDependencies && !hasDependents) {
-        categories.isolated.push(lawId)
-      } else if (!hasDependencies && hasDependents) {
-        categories.onlyChildren.push(lawId)
-      } else if (hasDependencies && hasDependents) {
-        categories.both.push(lawId)
-      } else if (hasDependencies && !hasDependents) {
-        categories.onlyParents.push(lawId)
+      const newChain = [...currentChain, startNode]
+      visited.add(startNode)
+      
+      const dependentNodes = Array.from(dependents.get(startNode) || [])
+        .filter(dep => chainNodes.includes(dep)) // Only follow chain nodes
+      
+      if (dependentNodes.length === 0) {
+        // End of chain
+        return [newChain]
+      }
+      
+      // Continue chain with each dependent
+      const subChains: string[][] = []
+      dependentNodes.forEach(dependent => {
+        const subChain = buildChain(dependent, newChain)
+        subChains.push(...subChain)
+      })
+      
+      return subChains.length > 0 ? subChains : [newChain]
+    }
+    
+    // Build chains from start nodes
+    startNodes.forEach(startNode => {
+      const nodeChains = buildChain(startNode)
+      chains.push(...nodeChains)
+    })
+    
+    // Handle any remaining unvisited chain nodes that might be part of cycles
+    // or disconnected components, but ONLY if they have actual dependencies
+    const unvisited = chainNodes.filter(lawId => 
+      !visited.has(lawId) && (dependencies.get(lawId)?.size || 0) > 0
+    )
+    
+    unvisited.forEach(lawId => {
+      if (!visited.has(lawId)) {
+        const nodeChains = buildChain(lawId)
+        chains.push(...nodeChains)
       }
     })
     
-    return categories
+    return chains
   }
   
-  Array.from(levels.entries()).forEach(([level, lawIds]) => {
-    // Invert the Y position so level 0 (no dependencies) is at the bottom
-    const baseY = (maxLevel - level) * LEVEL_SPACING_Y
+  // Get all dependency chains and sort by length (longest first)
+  const chains = findChains().sort((a, b) => b.length - a.length)
+  
+  // Layout constants
+  const NODE_SPACING_X = 500 // Horizontal spacing between nodes
+  const NODE_SPACING_Y = 450 // Vertical spacing between rows
+  const MAX_NODES_PER_ROW = 6 // Maximum nodes per row
+  
+  const positionedNodes = new Set<string>()
+  
+  // Position dependency chains in horizontal rows
+  let currentY = 0
+  
+  chains.forEach(chain => {
+    if (chain.some(node => positionedNodes.has(node))) return // Skip if any node already positioned
     
-    // Categorize nodes by their dependency patterns
-    const categories = categorizeNodes(lawIds)
-    
-    let currentCategoryX = 0
-    
-    // Position each category from left to right: onlyChildren -> both -> onlyParents -> isolated
-    const categoryOrder = [
-      { name: 'onlyChildren', nodes: categories.onlyChildren },
-      { name: 'both', nodes: categories.both },
-      { name: 'onlyParents', nodes: categories.onlyParents },
-      { name: 'isolated', nodes: categories.isolated }
-    ]
-    
-    categoryOrder.forEach(category => {
-      if (category.nodes.length === 0) return
-      
-      // Group related nodes within each category
-      const groups = groupRelatedNodes(category.nodes)
-      
-      let currentGroupX = currentCategoryX
-      
-      groups.forEach(group => {
-        group.forEach((lawId, index) => {
-          const row = Math.floor(index / MAX_NODES_PER_ROW)
-          const col = index % MAX_NODES_PER_ROW
-          
-          const x = currentGroupX + col * NODE_SPACING_X
-          const y = baseY + row * NODE_SPACING_Y
-          
-          positions.set(lawId, { x, y })
-        })
-        
-        // Move to next group position within the category
-        const groupWidth = Math.min(group.length, MAX_NODES_PER_ROW) * NODE_SPACING_X
-        currentGroupX += groupWidth + GROUP_SPACING_X
-      })
-      
-      // Move to next category position
-      const categoryWidth = currentGroupX - currentCategoryX
-      currentCategoryX += Math.max(categoryWidth, NODE_SPACING_X) + CATEGORY_SPACING_X
+    // Position chain horizontally
+    chain.forEach((lawId, index) => {
+      if (!positionedNodes.has(lawId)) {
+        const x = index * NODE_SPACING_X
+        positions.set(lawId, { x, y: currentY })
+        positionedNodes.add(lawId)
+      }
     })
+    
+    currentY += NODE_SPACING_Y
   })
   
-  // If no dependencies exist, arrange in a simple grid at the bottom
-  if (positions.size === 0) {
-    laws.forEach((law, index) => {
-      const lawId = String(law.index)
-      const x = (index % 4) * NODE_SPACING_X
-      const y = Math.floor(index / 4) * 150
+  // Position ALL independent nodes in a single horizontal row
+  if (independentNodes.length > 0) {
+    // Add some extra space before independent nodes row if there are chains above
+    if (chains.length > 0) {
+      currentY += NODE_SPACING_Y * 0.01 // Add half spacing for visual separation
+    }
+    
+    // Position all independent nodes in a single horizontal row
+    independentNodes.forEach((lawId, index) => {
+      const x = index * NODE_SPACING_X
+      positions.set(lawId, { x, y: currentY })
+      positionedNodes.add(lawId)
+    })
+  }
+  
+  // Handle any remaining unpositioned nodes (shouldn't happen, but just in case)
+  const remainingNodes = Array.from(dependencies.keys()).filter(lawId => !positionedNodes.has(lawId))
+  if (remainingNodes.length > 0) {
+    remainingNodes.forEach((lawId, index) => {
+      const x = index * NODE_SPACING_X
+      const y = currentY + NODE_SPACING_Y
       positions.set(lawId, { x, y })
     })
   }
@@ -594,20 +631,138 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
   return positions
 }
 
-export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => {
-  const [collapsedLaws, setCollapsedLaws] = React.useState<Set<string>>(new Set())
+// Store for viewport state persistence using localStorage
+const VIEWPORT_STORAGE_KEY = 'powersflow-viewport'
 
-  const toggleLawCollapse = useCallback((lawId: string) => {
-    setCollapsedLaws(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(lawId)) {
-        newSet.delete(lawId)
-      } else {
-        newSet.add(lawId)
-      }
-      return newSet
+const getStoredViewport = () => {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = localStorage.getItem(VIEWPORT_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    return null
+  }
+}
+
+const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(VIEWPORT_STORAGE_KEY, JSON.stringify(viewport))
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLawId }) => {
+  const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
+  const router = useRouter()
+  const chainId = useParams().chainId as string
+  const action = useActionStore()
+  const [lastSelectedLawId, setLastSelectedLawId] = React.useState<bigint>(action.lawId)
+  const [isInitialized, setIsInitialized] = React.useState(false)
+  const reactFlowInstanceRef = React.useRef<any>(null)
+
+  const handleNodeClick = useCallback((lawId: string) => {
+    // Store current viewport before navigation
+    const currentViewport = getViewport()
+    setStoredViewport(currentViewport)
+    
+    // Navigate to the law page within the flow layout
+    setAction({
+      ...action,
+      lawId: BigInt(lawId),
     })
-  }, [])
+    router.push(`/${chainId}/${powers?.contractAddress}/flow/laws/${lawId}`)
+  }, [router, chainId, powers?.contractAddress, action, getViewport])
+
+  // Handle ReactFlow initialization
+  const onInit = useCallback((reactFlowInstance: any) => {
+    reactFlowInstanceRef.current = reactFlowInstance
+    setIsInitialized(true)
+    
+    const storedViewport = getStoredViewport()
+    
+    if (storedViewport) {
+      // Restore stored viewport
+      setTimeout(() => {
+        setViewport(storedViewport, { duration: 0 })
+      }, 100)
+    } else if (!action.lawId && !selectedLawId) {
+      // First time, fit all nodes
+      setTimeout(() => {
+        fitView({
+          padding: 0.2,
+          duration: 800,
+        })
+        // Save the fitted viewport
+        setTimeout(() => {
+          const currentViewport = getViewport()
+          setStoredViewport(currentViewport)
+        }, 900)
+      }, 100)
+    }
+  }, [setViewport, fitView, getViewport, action.lawId, selectedLawId])
+
+  // Auto-zoom to selected law from store or restore previous viewport
+  React.useEffect(() => {
+    if (!isInitialized) return // Don't run until ReactFlow is initialized
+    
+    const timer = setTimeout(() => {
+      // Only auto-zoom if the selected law has actually changed
+      if (action.lawId !== lastSelectedLawId) {
+        setLastSelectedLawId(action.lawId)
+        
+        if (action.lawId && action.lawId !== 0n) {
+          // Zoom to the law stored in the action store
+          const selectedNode = getNode(String(action.lawId))
+          if (selectedNode) {
+            setCenter(selectedNode.position.x + 200, selectedNode.position.y + 150, {
+              zoom: 1.6,
+              duration: 800,
+            })
+          }
+        } else if (!getStoredViewport()) {
+          // No law selected and no previous viewport, show all nodes
+          fitView({
+            padding: 0.2,
+            duration: 800,
+          })
+        }
+      } else if (getStoredViewport() && !action.lawId && isInitialized) {
+        // Restore previous viewport if no law is selected but we have stored state
+        // Only do this if we haven't already restored it in onInit
+        const storedViewport = getStoredViewport()
+        const currentViewport = getViewport()
+        if (storedViewport && 
+            (Math.abs(currentViewport.x - storedViewport.x) > 10 || 
+             Math.abs(currentViewport.y - storedViewport.y) > 10 ||
+             Math.abs(currentViewport.zoom - storedViewport.zoom) > 0.1)) {
+          setViewport(storedViewport, { duration: 300 })
+        }
+      }
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport])
+
+  // Legacy auto-zoom to selected law (keep for backward compatibility but only if no store state)
+  React.useEffect(() => {
+    if (selectedLawId && (!action.lawId || action.lawId === 0n) && !getStoredViewport()) {
+      // Small delay to ensure nodes are rendered
+      const timer = setTimeout(() => {
+        const selectedNode = getNode(selectedLawId)
+        if (selectedNode) {
+          // Center on the selected node with a nice zoom level
+          setCenter(selectedNode.position.x + 200, selectedNode.position.y + 150, {
+            zoom: 1.6,
+            duration: 800, // Smooth animation
+          })
+        }
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [selectedLawId, getNode, setCenter, action.lawId])
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -618,6 +773,12 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
     
     // Use hierarchical layout instead of simple grid
     const positions = createHierarchicalLayout(powers.activeLaws)
+    
+    // Find connected nodes if a law is selected
+    const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
+    const connectedNodes = selectedLawIdFromStore 
+      ? findConnectedNodes(selectedLawIdFromStore, powers.activeLaws!)
+      : undefined
     
     powers.activeLaws.forEach((law, lawIndex) => {
       const roleColor = law.conditions 
@@ -630,7 +791,6 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
       
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
-      const isCollapsed = collapsedLaws.has(lawId)
       
       // Get checks for this law
       const checks = lawChecks?.get(lawId)
@@ -644,8 +804,9 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
           law,
           checks,
           roleColor,
-          isCollapsed,
-          onToggleCollapse: () => toggleLawCollapse(lawId),
+          onNodeClick: handleNodeClick,
+          selectedLawId: selectedLawIdFromStore,
+          connectedNodes,
         },
       })
       
@@ -654,8 +815,12 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
         const sourceId = lawId
         
         // Edge from needCompleted check to target law
-        if (law.conditions.needCompleted !== 0n) {
+        if (law.conditions.needCompleted != 0n) {
           const targetId = String(law.conditions.needCompleted)
+          // Determine if this edge should be highlighted (connected to selected node)
+          const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
+          const edgeOpacity = isEdgeConnected ? 1 : 0.5
+          
           edges.push({
             id: `${sourceId}-needCompleted-${targetId}`,
             source: sourceId,
@@ -664,16 +829,20 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
             targetHandle: 'executed-target',
             type: 'smoothstep',
             label: 'Needs Completed',
-            style: { stroke: '#6B7280', strokeWidth: 2 },
-            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280' },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
+            style: { stroke: '#6B7280', strokeWidth: 2, opacity: edgeOpacity },
+            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
             zIndex: 10,
           })
         }
         
         // Edge from needNotCompleted check to target law
-        if (law.conditions.needNotCompleted !== 0n) {
+        if (law.conditions.needNotCompleted != 0n) {
           const targetId = String(law.conditions.needNotCompleted)
+          // Determine if this edge should be highlighted (connected to selected node)
+          const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
+          const edgeOpacity = isEdgeConnected ? 1 : 0.5
+          
           edges.push({
             id: `${sourceId}-needNotCompleted-${targetId}`,
             source: sourceId,
@@ -682,16 +851,20 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
             targetHandle: 'executed-target',
             type: 'smoothstep',
             label: 'Needs Not Completed',
-            style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '6,3' },
-            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280' },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
+            style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '6,3', opacity: edgeOpacity },
+            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
             zIndex: 10,
           })
         }
         
         // Edge from readStateFrom check to target law
-        if (law.conditions.readStateFrom !== 0n) {
+        if (law.conditions.readStateFrom != 0n) {
           const targetId = String(law.conditions.readStateFrom)
+          // Determine if this edge should be highlighted (connected to selected node)
+          const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
+          const edgeOpacity = isEdgeConnected ? 1 : 0.5
+          
           edges.push({
             id: `${sourceId}-readStateFrom-${targetId}`,
             source: sourceId,
@@ -700,9 +873,9 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
             targetHandle: 'executed-target',
             type: 'smoothstep',
             label: 'Read State From',
-            style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '3,3' },
-            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280' },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
+            style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '3,3', opacity: edgeOpacity },
+            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
             zIndex: 10,
           })
         }
@@ -710,7 +883,7 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
     })
     
     return { initialNodes: nodes, initialEdges: edges }
-  }, [powers.activeLaws, lawChecks, collapsedLaws, toggleLawCollapse])
+  }, [powers.activeLaws, lawChecks, handleNodeClick, selectedLawId, action.lawId])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -719,6 +892,12 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges],
   )
+
+  // Save viewport state when user manually pans/zooms
+  const onMoveEnd = useCallback(() => {
+    const currentViewport = getViewport()
+    setStoredViewport(currentViewport)
+  }, [getViewport])
 
   // Update nodes when props change
   React.useEffect(() => {
@@ -751,19 +930,20 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
-        fitView
+        fitView={false}
         fitViewOptions={{
           padding: 0.2, // Add 20% padding around the content
-          maxZoom: 0.8, // Limit maximum zoom to prevent excessive zoom-in
-          minZoom: 0.1, // Allow zooming out quite far
+          maxZoom: 1.5, // Limit maximum zoom to prevent excessive zoom-in
+          minZoom: 0.5, // Allow zooming out quite far
         }}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.6 }} // Start with a comfortable zoom level
         attributionPosition="bottom-left"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
         maxZoom={1.2} // Also set global max zoom
         minZoom={0.1} // Global min zoom
+        onMoveEnd={onMoveEnd}
+        onInit={onInit}
       >
         <Controls />
         <Background />
@@ -785,5 +965,13 @@ export const PowersFlow: React.FC<PowersFlowProps> = ({ powers, lawChecks }) => 
     </div>
   )
 }
+
+export const PowersFlow: React.FC<PowersFlowProps> = React.memo((props) => {
+  return (
+    <ReactFlowProvider>
+      <FlowContent {...props} />
+    </ReactFlowProvider>
+  )
+})
 
 export default PowersFlow 
