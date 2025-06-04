@@ -23,7 +23,7 @@ import { powersAbi } from '@/context/abi';
 import { wagmiConfig } from '@/context/wagmiConfig';
 import { PowerIcon } from '@heroicons/react/24/outline';
 
-const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 px-0 align-middle items-center'
+const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
 const layoutText: string = 'lg:opacity-100 lg:text-sm text-[0px] lg:w-fit w-0 opacity-0'
 const layoutButton: string = `w-full h-full flex flex-row justify-center items-center rounded-md border aria-selected:bg-slate-200 md:hover:border-slate-600 text-sm aria-selected:text-slate-700 text-slate-500 border-transparent`
@@ -173,10 +173,12 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="w-fit min-w-44 md:min-w-2xl flex flex-row opacity-0 md:opacity-100">
+      <div className="flex flex-row gap-2 items-center">
+        <div className="w-fit min-w-44 md:min-w-2xl flex flex-row opacity-0 md:opacity-100">
           {addressPowers != '' ? NavigationBar() : null }
-          
-          {path == `/` ? null : <ConnectButton /> }
+        </div>
+        
+        {path == `/` ? null : <ConnectButton /> }
       </div>
     </section>
   </div>

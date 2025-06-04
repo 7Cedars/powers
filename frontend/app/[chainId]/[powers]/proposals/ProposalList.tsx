@@ -113,7 +113,7 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
             <tr className="w-96 text-xs font-light text-left text-slate-500">
                 <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
                 <th className="font-light"> Law </th>
-                <th className="font-light min-w-44"> Uri Description </th>
+                <th className="font-light"> Uri Description </th>
                 <th className="font-light"> Status </th>
                 <th className="font-light"> Role </th>
             </tr>

@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Powers, Law, Checks, LawSimulation, LawExecutions, Status, InputType } from '@/context/types'
 import { PowersFlow } from './PowersFlow'
 import { ConnectedWallet } from '@privy-io/react-auth'
@@ -39,6 +40,12 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
 }) => {
   // const { lawChecks, isLoading, error, refreshChecks } = usePowersFlow({ powers, wallets })
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const pathname = usePathname()
+
+  // Auto-expand panel when navigating to a new page
+  useEffect(() => {
+    setIsCollapsed(false)
+  }, [pathname])
 
   // Find the selected law (fallback to prop)
   const selectedLaw = useMemo(() => {
