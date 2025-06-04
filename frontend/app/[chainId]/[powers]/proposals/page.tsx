@@ -23,7 +23,7 @@ export default function Page() {
   // powers && powers.proposalsBlocksFetched && console.log("@proposals: waypoint 1", powers?.proposalsBlocksFetched.from, powers?.proposalsBlocksFetched.to)
 
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center py-20 px-2">
+    <main className="w-full h-fit flex flex-col justify-start items-center py-20 ps-2 pe-12">
       <ProposalList powers={powers} status={status} />
       {/* block number */}
       

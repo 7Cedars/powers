@@ -167,6 +167,7 @@ export type Checks = {
   authorised?: boolean;
   proposalExists?: boolean;
   proposalPassed?: boolean;
+  executed?: boolean;
   actionNotCompleted?: boolean;
   lawCompleted?: boolean;
   lawNotCompleted?: boolean;

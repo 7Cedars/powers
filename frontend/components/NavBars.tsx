@@ -23,7 +23,7 @@ import { powersAbi } from '@/context/abi';
 import { wagmiConfig } from '@/context/wagmiConfig';
 import { PowerIcon } from '@heroicons/react/24/outline';
 
-const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 align-middle items-center'
+const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
 const layoutText: string = 'lg:opacity-100 lg:text-sm text-[0px] lg:w-fit w-0 opacity-0'
 const layoutButton: string = `w-full h-full flex flex-row justify-center items-center rounded-md border aria-selected:bg-slate-200 md:hover:border-slate-600 text-sm aria-selected:text-slate-700 text-slate-500 border-transparent`
@@ -154,7 +154,7 @@ const Header = () => {
 
   return (
     <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
-    <section className="grow flex flex-row gap-1 justify-between px-2 max-w-screen-xl">
+    <section className="grow flex flex-row gap-1 justify-between px-2">
       <div className="flex flex-row gap-1 min-w-16"> 
         <a href="/"  
             className="flex flex-row justify-center items-center rounded-md p-1 px-3"
@@ -173,11 +173,11 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="flex flex-row grow gap-2 md:max-w-3xl opacity-0 md:opacity-100 max-w-0">
-        {addressPowers != '' ? NavigationBar() : null }
+      <div className="w-fit min-w-44 md:min-w-2xl flex flex-row opacity-0 md:opacity-100">
+          {addressPowers != '' ? NavigationBar() : null }
+          
+          {path == `/` ? null : <ConnectButton /> }
       </div>
-      
-        {path == `/` ? null : <ConnectButton /> }
     </section>
   </div>
   )
@@ -208,7 +208,7 @@ export const NavBars = (props: PropsWithChildren<{}>) => {
       : 
       <div className="w-full h-full flex flex-col justify-start items-center">
         <Header /> 
-        <main className="w-full h-full flex flex-col justify-start items-center max-w-6xl overflow-x-scroll">
+        <main className="w-full h-full flex flex-col justify-start items-center">
           {props.children}   
         </main>
         <Footer /> 

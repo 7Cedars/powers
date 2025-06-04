@@ -24,6 +24,7 @@ export const useChecks = (powers: Powers) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
   const [checks, setChecks ] = useState<Checks>()
+  const [chainChecks, setChainChecks] = useState<Map<string, Checks>>()
 
   const checkAccountAuthorised = useCallback(
     async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
@@ -151,8 +152,36 @@ export const useChecks = (powers: Powers) => {
             setChecks(newChecks)
             // console.log("fetchChecks triggered, waypoint 2", {newChecks})
             setStatus("success") //NB note: after checking status, sets the status back to idle! 
+            return newChecks
         }       
   }, [ ])
 
-  return {status, error, checks, fetchChecks, checkActionStatus, checkAccountAuthorised, hashAction}
+  const fetchChainChecks = useCallback(
+    async (originLaw: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
+      const chainLaws = powers.laws?.filter(law => 
+        law.conditions?.needCompleted == originLaw.index || 
+        law.conditions?.needNotCompleted == originLaw.index || 
+        law.conditions?.readStateFrom == originLaw.index 
+      )
+
+      const checksMap = new Map<string, Checks>()
+      if (chainLaws) {
+        try {
+          // For each active law, calculate basic checks
+          for (const law of chainLaws) {
+            if (!law.conditions) continue
+            const checks = await fetchChecks(law, callData, nonce, wallets, powers)
+            checksMap.set(String(law.index), checks as Checks)
+          }
+  
+        setChainChecks(checksMap)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch law checks')
+      } finally {
+        setStatus("success")
+      }
+    }
+  }, [fetchChecks])
+
+  return {status, error, checks, chainChecks, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction, setChainChecks}
 }
