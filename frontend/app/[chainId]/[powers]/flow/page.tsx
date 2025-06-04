@@ -1,36 +1,157 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
+import { usePrivy } from '@privy-io/react-auth'
+import { useWallets } from '@privy-io/react-auth'
+import { useParams } from 'next/navigation'
+import { parseChainId } from '@/utils/parsers'
+import { usePowers } from '@/hooks/usePowers'
+import { useChains } from 'wagmi'
+import { readContract } from 'wagmi/actions'
+import { wagmiConfig } from '@/context/wagmiConfig'
+import { powersAbi } from '@/context/abi'
+import Image from 'next/image'
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
+import { Assets } from './Assets'
+import { MyProposals } from './MyProposals'
+import { MyRoles } from './MyRoles'
+import { Logs } from './Logs'
 
 export default function FlowPage() {
+  const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
+  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles } = usePowers()
+  const { wallets } = useWallets()
+  const { authenticated } = usePrivy(); 
+  const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
+  const [isValidBanner, setIsValidBanner] = useState(false)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  
+  // console.log("@home:", {chains, supportedChain, powers})
+
+  const validateBannerImage = useCallback(async (url: string | undefined) => {
+      if (!url) {
+          setIsValidBanner(false)
+          return
+      }
+
+      try {
+          const response = await fetch(url)
+          const contentType = response.headers.get('content-type')
+          if (contentType?.includes('image/png')) {
+              setIsValidBanner(true)
+          } else {
+              setIsValidBanner(false)
+          }
+      } catch (error) {
+          setIsValidBanner(false)
+      }
+  }, [])
+
+  useEffect(() => {
+      validateBannerImage(powers?.metadatas?.banner)
+  }, [powers?.metadatas?.banner, validateBannerImage])
+
+  const fetchMyRoles = useCallback(
+    async (account: `0x${string}`, roles: bigint[]) => {
+      let role: bigint; 
+      let fetchedHasRole: {role: bigint; since: bigint}[] = []; 
+
+      try {
+        for await (role of roles) {
+          const fetchedSince = await readContract(wagmiConfig, {
+              abi: powersAbi,
+              address: addressPowers as `0x${string}`,
+              functionName: 'hasRoleSince', 
+              args: [account, role]
+              })
+            fetchedHasRole.push({role, since: fetchedSince as bigint})
+            }
+            setHasRoles(fetchedHasRole)
+        } catch (error) {
+        console.error(error)
+      }
+    }, [])
+
+  useEffect(() => {
+    if (wallets && wallets[0]) {
+      fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
+    }
+  }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
+
+  useEffect(() => {
+    if (addressPowers) {
+      fetchPowers(addressPowers as `0x${string}`)
+    }
+  }, [addressPowers, fetchPowers]) // updateProposals 
+  
   return (
-    <div className="p-6">
-      <div className="space-y-4">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Overview</h3>
-          <p className="text-sm text-gray-600">
-            Select a law node to view detailed information about its checks, dependencies, and execution status.
-          </p>
+    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20 pe-10">
+    {/* hero banner  */}
+    <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
+      {/* Gradient background (always present) */}
+      <div className="absolute inset-0 bg-gradient-to-br to-indigo-600 from-emerald-300" />
+      
+      {/* Banner image (if valid) */}
+      {isValidBanner && powers?.metadatas?.banner && (
+        <div className={`absolute inset-0 transition-opacity duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <Image
+            src={powers.metadatas.banner}
+            alt={`${powers.name} banner`}
+            fill
+            className="object-cover"
+            priority
+            quality={100}
+            onLoadingComplete={() => setIsImageLoaded(true)}
+          />
         </div>
-        
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">Flow Diagram</h3>
-          <p className="text-sm text-blue-700 mb-3">
-            Click on any law node in the diagram to explore its details, simulate actions, or execute proposals.
-          </p>
-          <p className="text-xs text-blue-600">
-            The diagram shows dependency relationships between laws and their current execution status.
-          </p>
-        </div>
-        
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-green-800 mb-2">Navigation</h3>
-          <p className="text-sm text-green-700">
-            Use the controls at the bottom right to zoom and pan around the diagram. The minimap shows your current viewport position.
-          </p>
-        </div>
+      )}
+
+      {/* Content */}
+      <div className="relative w-full max-w-fit h-full max-h-fit text-lg p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+        {supportedChain && supportedChain.name}
       </div>
-    </div>
+      <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+        {powers?.name}
+      </div>
+    </section>
+    
+    {/* Description + link to powers protocol deployment */}  
+    <section className="w-full h-fit flex flex-col gap-2 justify-left items-center border border-slate-300 rounded-md bg-slate-50 lg:max-w-full max-w-3xl p-4">
+      <>
+      <div className="w-full text-slate-800 text-left text-pretty">
+         {powers?.metadatas?.description} 
+      </div>
+      <a
+        href={`${supportedChain?.blockExplorers?.default.url}/address/${addressPowers as `0x${string}`}#code`} target="_blank" rel="noopener noreferrer"
+        className="w-full"
+      >
+      <div className="flex flex-row gap-1 items-center justify-start">
+        <div className="text-left text-sm text-slate-500 break-all w-fit">
+          {addressPowers as `0x${string}`}
+        </div> 
+          <ArrowUpRightIcon
+            className="w-4 h-4 text-slate-500"
+            />
+        </div>
+      </a>
+      </>
+      {/* } */}
+    </section>
+    
+    {/* main body  */}
+    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start">
+      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
+
+      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} /> 
+      
+      <Assets status = {statusPowers} powers = {powers}/> 
+      
+      <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
+      
+    </section>
+  </main>
   )
 } 

@@ -27,7 +27,7 @@ const Page = () => {
   const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
   
-  // console.log( "@Law page: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  console.log( "@Law page FLOW: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
   
   useEffect(() => {
     if (!powers) {
@@ -156,21 +156,15 @@ const Page = () => {
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-x-scroll max-w-6xl">
-      <div className = "h-fit w-full mt-2">
-        <GovernanceOverview law = {law} powers = {powers} /> 
-      </div>
-      {/* main body  */}
       <section className="w-full px-4 lg:max-w-full h-full flex max-w-2xl lg:flex-row flex-col-reverse justify-end items-start">
-
-        {/* left panel: writing, fetching data is done here  */}
-        {
+        {/* { */}
         <div className="lg:w-5/6 max-w-3xl w-full flex my-2 pb-16 min-h-fit"> 
-          {statusPowers == "pending" ?
+          {/* {statusPowers == "pending" ?
           <div className = "w-full flex flex-col justify-center items-center p-4 border border-slate-300 bg-slate-50 rounded-md"> 
             <LoadingBox />
           </div>
-          :
-          law && 
+          : */}
+          {law && 
           <LawBox 
               law = {law}
               checks = {checks || {}} 
@@ -185,7 +179,7 @@ const Page = () => {
               onExecute = {(paramValues, nonce, description) => handleExecute(law, paramValues, nonce, description)}/> 
               }
         </div>
-        }
+        {/* } */}
         
         {/* right panel: info boxes should only reads from zustand.  */}
         <div className="flex flex-col flex-wrap lg:flex-nowrap max-h-48 min-h-48 lg:max-h-full lg:w-96 lg:my-2 my-0 lg:flex-col lg:overflow-hidden lg:ps-4 w-full flex-row gap-4 justify-center items-center overflow-x-scroll overflow-y-hidden scroll-snap-x">

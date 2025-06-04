@@ -44,6 +44,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { setAction, useActionStore } from '@/context/store'
+import { LoadingBox } from '@/components/LoadingBox'
 
 // Role colors matching LawBox.tsx color scheme
 const ROLE_COLORS = [
@@ -88,6 +89,9 @@ interface LawSchemaNodeData {
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => {
   const { law, checks, roleColor, onNodeClick, selectedLawId, connectedNodes } = data
 
+  // Debug logging
+  console.log(`LawSchemaNode ${law.index} - checks:`, checks)
+
   const handleClick = () => {
     if (onNodeClick) {
       onNodeClick(String(law.index))
@@ -95,7 +99,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
   }
 
   const isSelected = selectedLawId === String(law.index)
-  const borderThickness = isSelected ? 'border-4' : 'border-2'
+  const borderThickness = isSelected ? 'border-2' : 'border'
   
   // Apply opacity based on connection to selected node
   const isConnected = !selectedLawId || !connectedNodes || connectedNodes.has(String(law.index))
@@ -148,29 +152,38 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       }
     }
     
-    // 4. Vote started and Vote ended (only shown when proposal passed is also shown)
-    // These appear before proposal passed
-    items.push({ 
-      key: 'voteStarted', 
-      label: 'Vote Started', 
-      status: (checks as any).voteStarted ?? false,
-      hasHandle: false
-    })
-    
-    items.push({ 
-      key: 'voteEnded', 
-      label: 'Vote Ended', 
-      status: (checks as any).voteEnded ?? false,
-      hasHandle: false
-    })
-    
-    // 5. Proposal passed
-    items.push({ 
-      key: 'proposalPassed', 
-      label: 'Proposal Passed', 
-      status: checks.proposalPassed,
-      hasHandle: false
-    })
+    // 4. Vote started, Vote ended, and Proposal passed (only when quorum > 0)
+    // These appear before executed check when voting is required
+    if (law.conditions && Number(law.conditions.quorum) !== 0) {
+      items.push({ 
+        key: 'proposalCreated', 
+        label: 'Proposal Created', 
+        status: checks.proposalExists ?? false,
+        hasHandle: false
+      })
+      
+      items.push({ 
+        key: 'voteStarted', 
+        label: 'Vote Started', 
+        status: (checks as any).voteStarted ?? false,
+        hasHandle: false
+      })
+      
+      items.push({ 
+        key: 'voteEnded', 
+        label: 'Vote Ended', 
+        status: (checks as any).voteEnded ?? false,
+        hasHandle: false
+      })
+      
+      // 5. Proposal passed
+      items.push({ 
+        key: 'proposalPassed', 
+        label: 'Proposal Passed', 
+        status: checks.proposalPassed,
+        hasHandle: false
+      })
+    }
     
     // 6. Delay passed
     if (Number(law.conditions?.delayExecution) != 0) {
@@ -198,7 +211,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
     items.push({ 
       key: 'executed', 
       label: 'Executed', 
-      status: checks.executed ?? false,
+      status: checks.allPassed ?? false,
       hasHandle: false
     })
     
@@ -217,29 +230,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass}`}
       onClick={handleClick}
     >
-      {/* Target handle for incoming connections */}
-      <Handle 
-        type="target" 
-        position={Position.Right} 
-        id="law-target"
-        style={{ 
-          background: roleColor, 
-          width: 10, 
-          height: 10,
-          top: 24, // Position at header height (roughly center of header section)
-          transform: 'translateY(0)'
-        }}
-      />
-      
       {/* Law Header - Database Table Style */}
       <div 
-        className="px-4 py-3 border-b-2 border-gray-300 bg-slate-50"
+        className="px-4 py-3 border-b border-gray-300 bg-slate-100"
         style={{ borderBottomColor: roleColor }}
       >
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-sm mb-1 break-words" style={{ color: roleColor }}>
-              📋 #{Number(law.index)} {law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
+            <div className="font-bold text-sm mb-1 break-words text-slate-800">
+              📋 #{Number(law.index)}{law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
             </div>
             
             <div className="text-xs text-gray-700 mb-1 font-medium break-words">
@@ -266,8 +265,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       </div>
       
       {/* Checks Section - Database Rows Style */}
-      {checkItems.length > 0 && (
-        <div className="relative">
+      {!checks ? (
+        // Loading state when checks are undefined
+        <div className="relative p-4 bg-slate-50">
+          <div className="flex items-center justify-center">
+            <LoadingBox />
+          </div>
+        </div>
+      ) : checkItems.length > 0 ? (
+        <div className="relative bg-slate-50">
           {checkItems.map((item, index) => (
             <div key={item.key} className="relative">
               <div className="px-4 py-2 flex items-center justify-between text-xs relative">
@@ -276,40 +282,44 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
                   {item.status !== undefined ? (
                     // Status-based checks with appropriate icons
                       item.key === 'executed' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <RocketLaunchIcon className="w-4 h-4 text-black" />
+                        <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white relative z-10 ${allChecksPassing ? 'border-black' : 'border-gray-400'}`}>
+                          <RocketLaunchIcon className={`w-4 h-4 ${allChecksPassing ? 'text-black' : 'text-gray-400'}`} />
                         </div>
                       ) : item.key === 'proposalPassed' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <CheckCircleIcon className="w-4 h-4 text-black" />
+                          <CheckCircleIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                       ) : item.key === 'delay' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <CalendarDaysIcon className="w-4 h-4 text-black" />
+                          <CalendarDaysIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                     ) : item.key === 'throttle' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <QueueListIcon className="w-4 h-4 text-black" />
+                          <QueueListIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                     ) : item.key === 'needCompleted' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <DocumentCheckIcon className="w-4 h-4 text-black" />
+                          <DocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                     ) : item.key === 'needNotCompleted' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <XMarkIcon className="w-4 h-4 text-black" />
+                          <XMarkIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                     ) : item.key === 'voteStarted' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ArchiveBoxIcon className="w-4 h-4 text-black" />
+                          <ArchiveBoxIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                     ) : item.key === 'voteEnded' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <FlagIcon className="w-4 h-4 text-black" />
+                          <FlagIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                        </div>
+                    ) : item.key === 'proposalCreated' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <ClipboardDocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                       ) : (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ShieldCheckIcon className="w-4 h-4 text-black" />
+                          <ShieldCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                       )
                   ) : (
@@ -338,7 +348,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
                   position={Position.Left}
                   id={`${item.key}-handle`}
                   style={{ 
-                    background: '#6B7280', // gray-500 for all dependency handles
+                    background: roleColor, // Use role color instead of gray
                     width: 8,
                     height: 8,
                     left: -4,
@@ -355,7 +365,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
                     position={Position.Right}
                     id="executed-target"
                     style={{ 
-                      background: '#374151', // gray-700 for target handle
+                      background: roleColor, // Use role color instead of gray
                       width: 10,
                       height: 10,
                       right: -5,
@@ -380,7 +390,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -391,7 +401,7 @@ const nodeTypes = {
 
 interface PowersFlowProps {
   powers: Powers
-  lawChecks?: Map<string, Checks>
+  chainChecks?: Map<string, Checks>
   selectedLawId?: string
 }
 
@@ -653,7 +663,7 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
   }
 }
 
-const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLawId }) => {
+const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedLawId }) => {
   const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
   const router = useRouter()
   const chainId = useParams().chainId as string
@@ -661,6 +671,92 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
   const [lastSelectedLawId, setLastSelectedLawId] = React.useState<bigint>(action.lawId)
   const [isInitialized, setIsInitialized] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
+
+  // Helper function to calculate proper centering coordinates accounting for panel width
+  const calculateCenterPosition = useCallback((nodeX: number, nodeY: number) => {
+    // Calculate panel width based on PowersOverview logic
+    const viewportWidth = window.innerWidth
+    const expandedPanelWidth = Math.min(640, viewportWidth - 40)
+    const collapsedPanelWidth = 32
+    
+    // For now, assume panel is expanded (we could pass this as a prop if needed)
+    // We need to shift the center point LEFT so the visible result appears centered in the visible area
+    const panelWidth = expandedPanelWidth
+    const centerOffsetX = panelWidth / 2
+    
+    return {
+      x: nodeX + 200 - centerOffsetX, // 200 is half the node width, subtract centerOffsetX to shift left
+      y: nodeY + 150 // Keep existing vertical offset
+    }
+  }, [])
+
+  // Helper function to calculate fitView options accounting for panel width
+  const calculateFitViewOptions = useCallback(() => {
+    const viewportWidth = window.innerWidth
+    const expandedPanelWidth = Math.min(640, viewportWidth - 40)
+    
+    // Calculate the percentage of the screen the panel takes up
+    const panelWidthRatio = expandedPanelWidth / viewportWidth
+    
+    return {
+      padding: 0.2,
+      duration: 800,
+      // Adjust the fit area to exclude the panel area
+      includeHiddenNodes: false,
+      // We can't directly exclude the panel area, so we'll use a smaller effective area
+      minZoom: 0.1,
+      maxZoom: 1.2,
+    }
+  }, [])
+
+  // Custom fitView function that accounts for the side panel
+  const fitViewWithPanel = useCallback(() => {
+    const nodes = getNodes()
+    if (nodes.length === 0) return
+
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const expandedPanelWidth = Math.min(640, viewportWidth - 40)
+    
+    // Calculate the available area for the flow chart (excluding panel)
+    const availableWidth = viewportWidth - expandedPanelWidth
+    const availableHeight = viewportHeight
+    
+    // Find the bounds of all nodes
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    
+    nodes.forEach(node => {
+      const nodeWidth = 380 // Node width from the component
+      const nodeHeight = 300 // Approximate node height
+      
+      minX = Math.min(minX, node.position.x)
+      minY = Math.min(minY, node.position.y)
+      maxX = Math.max(maxX, node.position.x + nodeWidth)
+      maxY = Math.max(maxY, node.position.y + nodeHeight)
+    })
+    
+    // Add padding
+    const padding = 100
+    const contentWidth = maxX - minX + 2 * padding
+    const contentHeight = maxY - minY + 2 * padding
+    
+    // Calculate zoom to fit content in available area
+    const zoomX = availableWidth / contentWidth
+    const zoomY = availableHeight / contentHeight
+    const zoom = Math.min(zoomX, zoomY, 1.2) // Cap at max zoom
+    
+    // Calculate center position accounting for panel
+    const contentCenterX = (minX + maxX) / 2
+    const contentCenterY = (minY + maxY) / 2
+    
+    // Position content in the center of the available area (to the right of panel)
+    // The center of the available area is at: expandedPanelWidth + availableWidth / 2
+    const availableAreaCenterX = expandedPanelWidth + availableWidth / 2
+    const x = -contentCenterX * zoom + availableAreaCenterX
+    const y = -contentCenterY * zoom + availableHeight / 2
+    
+    setViewport({ x, y, zoom }, { duration: 800 })
+  }, [getNodes, setViewport])
 
   const handleNodeClick = useCallback((lawId: string) => {
     // Store current viewport before navigation
@@ -682,26 +778,23 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
     
     const storedViewport = getStoredViewport()
     
-    if (storedViewport) {
-      // Restore stored viewport
+    // If there's no selected law (main flow page), always fit all nodes in view
+    if (!action.lawId && !selectedLawId) {
       setTimeout(() => {
-        setViewport(storedViewport, { duration: 0 })
-      }, 100)
-    } else if (!action.lawId && !selectedLawId) {
-      // First time, fit all nodes
-      setTimeout(() => {
-        fitView({
-          padding: 0.2,
-          duration: 800,
-        })
+        fitViewWithPanel()
         // Save the fitted viewport
         setTimeout(() => {
           const currentViewport = getViewport()
           setStoredViewport(currentViewport)
         }, 900)
       }, 100)
+    } else if (storedViewport) {
+      // Restore stored viewport only when there's a selected law
+      setTimeout(() => {
+        setViewport(storedViewport, { duration: 0 })
+      }, 100)
     }
-  }, [setViewport, fitView, getViewport, action.lawId, selectedLawId])
+  }, [setViewport, fitView, getViewport, action.lawId, selectedLawId, calculateFitViewOptions, fitViewWithPanel])
 
   // Auto-zoom to selected law from store or restore previous viewport
   React.useEffect(() => {
@@ -716,34 +809,24 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
           // Zoom to the law stored in the action store
           const selectedNode = getNode(String(action.lawId))
           if (selectedNode) {
-            setCenter(selectedNode.position.x + 200, selectedNode.position.y + 150, {
+            const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
+            setCenter(centerPos.x, centerPos.y, {
               zoom: 1.6,
               duration: 800,
             })
           }
-        } else if (!getStoredViewport()) {
-          // No law selected and no previous viewport, show all nodes
-          fitView({
-            padding: 0.2,
-            duration: 800,
-          })
+        } else {
+          // No law selected, show all nodes (main flow page)
+          fitViewWithPanel()
         }
       } else if (getStoredViewport() && !action.lawId && isInitialized) {
-        // Restore previous viewport if no law is selected but we have stored state
-        // Only do this if we haven't already restored it in onInit
-        const storedViewport = getStoredViewport()
-        const currentViewport = getViewport()
-        if (storedViewport && 
-            (Math.abs(currentViewport.x - storedViewport.x) > 10 || 
-             Math.abs(currentViewport.y - storedViewport.y) > 10 ||
-             Math.abs(currentViewport.zoom - storedViewport.zoom) > 0.1)) {
-          setViewport(storedViewport, { duration: 300 })
-        }
+        // If no law is selected but we have stored state, still fit all nodes (main page behavior)
+        fitViewWithPanel()
       }
     }, 100)
     
     return () => clearTimeout(timer)
-  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport])
+  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport, calculateCenterPosition, calculateFitViewOptions, fitViewWithPanel])
 
   // Legacy auto-zoom to selected law (keep for backward compatibility but only if no store state)
   React.useEffect(() => {
@@ -752,8 +835,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
       const timer = setTimeout(() => {
         const selectedNode = getNode(selectedLawId)
         if (selectedNode) {
-          // Center on the selected node with a nice zoom level
-          setCenter(selectedNode.position.x + 200, selectedNode.position.y + 150, {
+          // Center on the selected node with proper offset for panel
+          const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
+          setCenter(centerPos.x, centerPos.y, {
             zoom: 1.6,
             duration: 800, // Smooth animation
           })
@@ -762,7 +846,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
       
       return () => clearTimeout(timer)
     }
-  }, [selectedLawId, getNode, setCenter, action.lawId])
+  }, [selectedLawId, getNode, setCenter, action.lawId, calculateCenterPosition])
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -793,7 +877,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
       const position = positions.get(lawId) || { x: 0, y: 0 }
       
       // Get checks for this law
-      const checks = lawChecks?.get(lawId)
+      const checks = chainChecks?.get(lawId)
       
       // Create law schema node
       nodes.push({
@@ -883,7 +967,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
     })
     
     return { initialNodes: nodes, initialEdges: edges }
-  }, [powers.activeLaws, lawChecks, handleNodeClick, selectedLawId, action.lawId])
+  }, [powers.activeLaws, chainChecks, handleNodeClick, selectedLawId, action.lawId])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -921,7 +1005,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
   }
 
   return (
-    <div className="w-full h-full bg-gray-50 overflow-hidden">
+    <div className="w-full h-full bg-slate-100 overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -931,11 +1015,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView={false}
-        fitViewOptions={{
-          padding: 0.2, // Add 20% padding around the content
-          maxZoom: 1.5, // Limit maximum zoom to prevent excessive zoom-in
-          minZoom: 0.5, // Allow zooming out quite far
-        }}
+        fitViewOptions={calculateFitViewOptions()}
         attributionPosition="bottom-left"
         nodesDraggable={true}
         nodesConnectable={false}
@@ -946,7 +1026,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, lawChecks, selectedLaw
         onInit={onInit}
       >
         <Controls />
-        <Background />
         <MiniMap 
           nodeColor={(node) => {
             const nodeData = node.data as LawSchemaNodeData

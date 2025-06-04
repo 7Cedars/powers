@@ -67,11 +67,11 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
         } */}
       </div>
       {/* table laws  */}
-      {status == "pending" ?  
+      {/* {status == "pending" ?  
       <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
         <LoadingBox /> 
       </div>
-      :
+      : */}
       <div className="w-full overflow-scroll">
       {/* border border-t-0 */}
       <table className="w-full table-auto"> 
@@ -128,7 +128,7 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
         </tbody>
       </table>
       </div>
-      }
+      {/* } */}
     </div>
   );
 }

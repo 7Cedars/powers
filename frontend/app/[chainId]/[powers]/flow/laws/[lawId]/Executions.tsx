@@ -94,8 +94,8 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
 
   return (
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
-        <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
-          <div className="text-left w-52">
+        <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900 bg-slate-100">
+          <div className="text-left w-full">
             Latest executions
           </div>
         </div>
@@ -107,7 +107,7 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
         </div>
         :
         lawExecutions?.executions && lawExecutions.executions?.length != 0 ?  
-        <div className = "w-full flex flex-col max-h-36 lg:max-h-56 overflow-y-scroll divide-y divide-slate-300">
+        <div className = "w-full flex flex-col max-h-36 overflow-y-scroll divide-y divide-slate-300">
             {lawExecutions.executions.map((execution, index: number) => 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
