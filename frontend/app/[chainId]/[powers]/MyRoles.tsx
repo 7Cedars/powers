@@ -33,14 +33,14 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   }, [hasRolesSince, chainId, blocksStatus])
 
   return (
-    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
+    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80 max-h-48">
       <div className="w-full h-full flex flex-col gap-0 justify-start items-center"> 
         <button
           onClick={() => router.push(`/${chainId}/${powers?.contractAddress}/roles`) } 
           className="w-full border-b border-slate-300"
         >
         <div className="w-full flex flex-row gap-6 items-center justify-between p-2 ps-4">
-          <div className="text-left text-sm text-slate-600 w-52">
+          <div className="text-left text-sm text-slate-600 w-44">
             My roles
           </div> 
             <ArrowUpRightIcon

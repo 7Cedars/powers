@@ -768,7 +768,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
       ...action,
       lawId: BigInt(lawId),
     })
-    router.push(`/${chainId}/${powers?.contractAddress}/flow/laws/${lawId}`)
+    router.push(`/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
   }, [router, chainId, powers?.contractAddress, action, getViewport])
 
   // Handle ReactFlow initialization
@@ -1022,10 +1022,17 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
         elementsSelectable={true}
         maxZoom={1.2} // Also set global max zoom
         minZoom={0.1} // Global min zoom
+        panOnDrag={true}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        zoomOnDoubleClick={true}
+        panOnScroll={false}
+        preventScrolling={true}
         onMoveEnd={onMoveEnd}
         onInit={onInit}
       >
         <Controls />
+        <Background />
         <MiniMap 
           nodeColor={(node) => {
             const nodeData = node.data as LawSchemaNodeData

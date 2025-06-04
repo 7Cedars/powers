@@ -18,7 +18,7 @@ export default function Page() {
   }, [powers])
 
   return (
-    <main className="w-full min-h-fit flex flex-col justify-start items-center pt-20 px-2 overflow-x-scroll">
+    <main className="w-full min-h-fit flex flex-col justify-start items-center pt-20 ps-2 pe-12 overflow-x-scroll">
       <LawList powers = {powers} status={status} />
     </main>
   )

@@ -20,7 +20,7 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
 
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center py-20 px-2">
+    <main className="w-full h-fit flex flex-col justify-start items-center py-20 ps-2 pe-12">
       <LogsList powers={powers} status={status} />
       
       <div className="py-2 pt-6 w-full h-fit flex flex-col gap-1 justify-start items-center text-slate-500 text-md italic text-center"> 

@@ -10,7 +10,7 @@ export function Assets({status, powers}: {status: Status, powers: Powers | undef
   const { chainId } = useParams<{ chainId: string }>()
   
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-64">
     {
     <div className="w-full h-full flex flex-col gap-0 justify-start items-center"> 
       <button
@@ -23,7 +23,7 @@ export function Assets({status, powers}: {status: Status, powers: Powers | undef
         className="w-full border-b border-slate-300 p-2"
       >
       <div className="w-full flex flex-row gap-6 items-center justify-between px-2">
-        <div className="text-left text-sm text-slate-600 w-52">
+        <div className="text-left text-sm text-slate-600 w-44">
           Total Assets
         </div> 
           <ArrowUpRightIcon

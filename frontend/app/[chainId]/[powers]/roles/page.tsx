@@ -16,7 +16,7 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
   
     return (
-      <main className="w-full h-fit flex flex-col justify-center items-center pt-20 px-2">
+      <main className="w-full h-fit flex flex-col justify-center items-center pt-20 ps-2 pe-12">
         <RoleList powers={powers} status={status} />
       </main>
     )

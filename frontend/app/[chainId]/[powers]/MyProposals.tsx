@@ -61,7 +61,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   // console.log("@myProposals: ",  {activeProposals})
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80"> 
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68"> 
       <button
         onClick={() => 
           { 
@@ -72,7 +72,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
         className="w-full border-b border-slate-300 p-2"
       >
       <div className="w-full flex flex-row gap-6 items-center justify-between px-2">
-        <div className="text-left text-sm text-slate-600 w-52">
+        <div className="text-left text-sm text-slate-600 w-44">
           My active proposals
         </div> 
           <ArrowUpRightIcon

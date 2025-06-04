@@ -7,7 +7,7 @@ import { ConnectedWallet } from '@privy-io/react-auth'
 import { Button } from './Button'
 import { LoadingBox } from './LoadingBox'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-import { LawBox } from '@/app/[chainId]/[powers]/flow/laws/[lawId]/LawBox'
+import { LawBox } from '@/app/[chainId]/[powers]/laws/[lawId]/LawBox'
 
 interface PowersOverviewProps {
   powers: Powers
@@ -63,7 +63,7 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
       <div 
         className="absolute top-0 left-0 bg-slate-100 shadow-lg overflow-hidden transition-all duration-300 ease-in-out z-20"
         style={{
-          width: isCollapsed ? '32px' : 'min(640px, calc(100vw - 40px))',
+          width: isCollapsed ? '32px' : 'min(640px, 100vw)',
           height: '100vh',
         }}
       >
@@ -73,7 +73,7 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
             ? 'opacity-0 pointer-events-none delay-200' 
             : 'opacity-100 delay-0'
         }`} style={{ 
-          width: 'min(640px, calc(100vw - 40px))',
+          width: 'min(640px,100vw)',
         }}> 
           {/* Panel Content */}
           <div className="flex-1 overflow-y-auto">
