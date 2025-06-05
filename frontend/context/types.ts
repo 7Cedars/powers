@@ -144,7 +144,7 @@ export type Powers = {
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   deselectedRoles?: bigint[];
-
+  layout?: Record<string, { x: number; y: number }>; // Graph layout positions
 }
 
 export type Role = {

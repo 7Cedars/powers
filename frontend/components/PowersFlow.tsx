@@ -165,14 +165,14 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'voteStarted', 
         label: 'Vote Started', 
-        status: (checks as any).voteStarted ?? false,
+        status: checks.proposalExists ?? false, // Mirrors proposalCreated - when proposal is created, vote starts
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteEnded', 
         label: 'Vote Ended', 
-        status: (checks as any).voteEnded ?? false,
+        status: checks.proposalPassed ?? false, // Mirrors proposalPassed - when proposal passes, vote has ended
         hasHandle: false
       })
       
@@ -180,7 +180,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'proposalPassed', 
         label: 'Proposal Passed', 
-        status: checks.proposalPassed,
+        status: checks.proposalPassed ?? false, // Ensure consistent nullish coalescing
         hasHandle: false
       })
     }
@@ -211,7 +211,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
     items.push({ 
       key: 'executed', 
       label: 'Executed', 
-      status: checks.allPassed ?? false,
+      status: checks.actionNotCompleted == false,
       hasHandle: false
     })
     
@@ -283,7 +283,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
                     // Status-based checks with appropriate icons
                       item.key === 'executed' ? (
                         <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white relative z-10 ${allChecksPassing ? 'border-black' : 'border-gray-400'}`}>
-                          <RocketLaunchIcon className={`w-4 h-4 ${allChecksPassing ? 'text-black' : 'text-gray-400'}`} />
+                          <RocketLaunchIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
                         </div>
                       ) : item.key === 'proposalPassed' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
@@ -468,26 +468,43 @@ function findConnectedNodes(selectedLawId: string, laws: Law[]): Set<string> {
 }
 
 // Helper function to create a hierarchical layout based on dependencies
-function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: number }> {
+function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x: number; y: number }>): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>()
   
-  // Build dependency graph
+  // If we have saved layout, use it first
+  if (savedLayout) {
+    laws.forEach(law => {
+      const lawId = String(law.index)
+      if (savedLayout[lawId]) {
+        positions.set(lawId, savedLayout[lawId])
+      }
+    })
+    
+    // If all nodes have saved positions, return early
+    if (positions.size === laws.length) {
+      return positions
+    }
+  }
+  
+  // Build dependency graph for nodes that don't have saved positions
   const dependencies = new Map<string, Set<string>>()
   const dependents = new Map<string, Set<string>>()
   
   laws.forEach(law => {
     const lawId = String(law.index)
-    dependencies.set(lawId, new Set())
-    dependents.set(lawId, new Set())
+    if (!positions.has(lawId)) { // Only process nodes without saved positions
+      dependencies.set(lawId, new Set())
+      dependents.set(lawId, new Set())
+    }
   })
   
-  // Populate dependency relationships
+  // Populate dependency relationships for nodes without saved positions
   laws.forEach(law => {
     const lawId = String(law.index)
-    if (law.conditions) {
+    if (!positions.has(lawId) && law.conditions) { // Only for nodes without saved positions
       if (law.conditions.needCompleted !== 0n) {
         const targetId = String(law.conditions.needCompleted)
-        // Only add if the target law actually exists
+        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -495,7 +512,7 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
       }
       if (law.conditions.needNotCompleted !== 0n) {
         const targetId = String(law.conditions.needNotCompleted)
-        // Only add if the target law actually exists
+        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -503,7 +520,7 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
       }
       if (law.conditions.readStateFrom !== 0n) {
         const targetId = String(law.conditions.readStateFrom)
-        // Only add if the target law actually exists
+        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -512,7 +529,12 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
     }
   })
   
-  // Find independent nodes (nodes with no dependencies and no dependents)
+  // Only continue with layout calculation if there are nodes without saved positions
+  if (dependencies.size === 0) {
+    return positions
+  }
+  
+  // Find independent nodes (nodes with no dependencies and no dependents) among unsaved nodes
   const independentNodes = Array.from(dependencies.keys()).filter(lawId => {
     const hasDependencies = (dependencies.get(lawId)?.size || 0) > 0
     const hasDependents = (dependents.get(lawId)?.size || 0) > 0
@@ -595,9 +617,14 @@ function createHierarchicalLayout(laws: Law[]): Map<string, { x: number; y: numb
   
   const positionedNodes = new Set<string>()
   
-  // Position dependency chains in horizontal rows
+  // Determine starting Y position based on existing saved positions
   let currentY = 0
+  if (savedLayout && Object.keys(savedLayout).length > 0) {
+    const maxY = Math.max(...Object.values(savedLayout).map(pos => pos.y))
+    currentY = maxY + NODE_SPACING_Y // Start below existing nodes
+  }
   
+  // Position dependency chains in horizontal rows
   chains.forEach(chain => {
     if (chain.some(node => positionedNodes.has(node))) return // Skip if any node already positioned
     
@@ -671,6 +698,100 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
   const [lastSelectedLawId, setLastSelectedLawId] = React.useState<bigint>(action.lawId)
   const [isInitialized, setIsInitialized] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
+  
+  // Debounced layout saving
+  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  // Function to load saved layout from localStorage
+  const loadSavedLayout = React.useCallback((): Record<string, { x: number; y: number }> | undefined => {
+    try {
+      let localStore = localStorage.getItem("powersProtocols")
+      if (!localStore || localStore === "undefined") return undefined
+      
+      const saved: Powers[] = JSON.parse(localStore)
+      const existing = saved.find(item => item.contractAddress === powers.contractAddress)
+      
+      if (existing && existing.layout) {
+        console.log('Loaded layout from localStorage:', existing.layout)
+        return existing.layout
+      }
+      
+      return undefined
+    } catch (error) {
+      console.error('Failed to load layout from localStorage:', error)
+      return undefined
+    }
+  }, [powers.contractAddress])
+
+  // Function to save powers object to localStorage (similar to usePowers.ts)
+  const savePowersToLocalStorage = React.useCallback((updatedPowers: Powers) => {
+    try {
+      let localStore = localStorage.getItem("powersProtocols")
+      const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+      const existing = saved.find(item => item.contractAddress === updatedPowers.contractAddress)
+      if (existing) {
+        saved.splice(saved.indexOf(existing), 1)
+      }
+      saved.push(updatedPowers)
+      localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value,
+      ))
+      console.log('Layout saved to localStorage')
+    } catch (error) {
+      console.error('Failed to save layout to localStorage:', error)
+    }
+  }, [])
+
+  // Function to extract current layout from ReactFlow nodes
+  const extractCurrentLayout = React.useCallback(() => {
+    const nodes = getNodes()
+    const layout: Record<string, { x: number; y: number }> = {}
+    
+    nodes.forEach(node => {
+      layout[node.id] = {
+        x: node.position.x,
+        y: node.position.y
+      }
+    })
+    
+    return layout
+  }, [getNodes])
+
+  // Function to save layout to powers object and localStorage
+  const saveLayout = React.useCallback(() => {
+    const currentLayout = extractCurrentLayout()
+    
+    // Create updated powers object with layout data
+    const updatedPowers: Powers = {
+      ...powers,
+      layout: currentLayout
+    }
+    
+    // Save to localStorage
+    savePowersToLocalStorage(updatedPowers)
+  }, [powers, extractCurrentLayout, savePowersToLocalStorage])
+
+  // Debounced save function
+  const debouncedSaveLayout = React.useCallback(() => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    
+    // Set new timeout for 0.5 seconds
+    saveTimeoutRef.current = setTimeout(() => {
+      saveLayout()
+    }, 500)
+  }, [saveLayout])
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Helper function to calculate proper centering coordinates accounting for panel width
   const calculateCenterPosition = useCallback((nodeX: number, nodeY: number) => {
@@ -856,7 +977,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
     const edges: Edge[] = []
     
     // Use hierarchical layout instead of simple grid
-    const positions = createHierarchicalLayout(powers.activeLaws)
+    const savedLayout = loadSavedLayout()
+    console.log('Creating layout with saved positions:', savedLayout ? Object.keys(savedLayout).length : 0, 'nodes')
+    const positions = createHierarchicalLayout(powers.activeLaws, savedLayout)
     
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
@@ -967,7 +1090,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
     })
     
     return { initialNodes: nodes, initialEdges: edges }
-  }, [powers.activeLaws, chainChecks, handleNodeClick, selectedLawId, action.lawId])
+  }, [powers.activeLaws, chainChecks, handleNodeClick, selectedLawId, action.lawId, loadSavedLayout])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -981,7 +1104,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
   const onMoveEnd = useCallback(() => {
     const currentViewport = getViewport()
     setStoredViewport(currentViewport)
-  }, [getViewport])
+    // Trigger debounced layout save when viewport changes
+    debouncedSaveLayout()
+  }, [getViewport, debouncedSaveLayout])
 
   // Update nodes when props change
   React.useEffect(() => {
@@ -992,6 +1117,20 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
   React.useEffect(() => {
     setEdges(initialEdges)
   }, [initialEdges, setEdges])
+
+  // Node drag handlers to trigger layout saving
+  const onNodeDragStop = useCallback(() => {
+    debouncedSaveLayout()
+  }, [debouncedSaveLayout])
+
+  const onNodesChangeWithSave = useCallback((changes: any) => {
+    onNodesChange(changes)
+    // Check if any node was dragged
+    const hasDragChange = changes.some((change: any) => change.type === 'position' && change.dragging === false)
+    if (hasDragChange) {
+      debouncedSaveLayout()
+    }
+  }, [onNodesChange, debouncedSaveLayout])
 
   if (!powers.activeLaws || powers.activeLaws.length === 0) {
     return (
@@ -1009,7 +1148,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
+        onNodesChange={onNodesChangeWithSave}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
@@ -1030,6 +1169,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
         preventScrolling={true}
         onMoveEnd={onMoveEnd}
         onInit={onInit}
+        onNodeDragStop={onNodeDragStop}
       >
         <Controls />
         <Background />

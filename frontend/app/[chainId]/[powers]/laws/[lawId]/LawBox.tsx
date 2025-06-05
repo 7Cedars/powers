@@ -14,6 +14,7 @@ import { SimulationBox } from "@/components/SimulationBox";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
 import { useParams, useRouter } from "next/navigation";
+import { hashAction } from "@/utils/hashAction";
 
 type LawBoxProps = {
   law: Law;
@@ -228,8 +229,9 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
               onClick={() => {
                 if (checks?.proposalExists) {
+                  const actionId = hashAction(law.index, action.callData, BigInt(action.nonce))
                   // Navigate to view the existing proposal
-                  router.push(`/${chainId}/${law?.powers}/proposals`)
+                  router.push(`/${chainId}/${law?.powers}/proposals/${actionId}`)
                 } else if (checks?.authorised) {
                   // Navigate to create a new proposal
                   router.push(`/${chainId}/${law?.powers}/proposals/new`)
@@ -274,7 +276,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               action.upToDate && checks.allPassed && !error.error ? 
               status : 'disabled' 
               }> 
-            {!checks?.authorised ? "Not authorised" : "Execute"}
+            {!checks?.authorised ? "Not authorised to execute" : "Execute"}
           </Button>
         </div>
       </section>

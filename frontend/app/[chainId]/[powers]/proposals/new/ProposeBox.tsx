@@ -115,7 +115,12 @@ export function ProposeBox({law, powers, proposalExists, authorised}: {law?: Law
               selected={true}
               statusButton={(!authorised || proposalExists) ? 'disabled' : statusProposals }
               > 
-              Propose
+              {proposalExists 
+                ? 'Proposal Exists' 
+                : !authorised 
+                  ? 'Not authorised to make proposal' 
+                  : 'Propose'
+              }
             </Button>
         </div>
       </section>
