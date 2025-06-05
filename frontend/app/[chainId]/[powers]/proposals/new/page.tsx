@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useChecks } from "@/hooks/useChecks";
 import { useActionStore } from "@/context/store";
 import { Powers, Proposal, Law } from "@/context/types";
-import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { ProposeBox } from "./ProposeBox";
-import { LawLink } from "../[actionId]/LawLink";
-import { ChecksBox } from "./ChecksBox"; 
 import { useWallets } from "@privy-io/react-auth";
 
 const Page = () => {

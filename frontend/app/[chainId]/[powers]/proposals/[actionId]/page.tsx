@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { ProposalBox } from "./ProposalBox";
-import { ChecksBox } from "./ChecksBox"; 
-import { StatusProposal } from "./StatusProposal"; 
 import { Votes } from "./Votes"; 
 import { useChecks } from "@/hooks/useChecks";
 import { setAction, useActionStore } from "@/context/store";
@@ -11,7 +9,6 @@ import { Powers, Proposal, Law, Status } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
-import { LawLink } from "./LawLink";
 import { useWallets } from "@privy-io/react-auth";
 import { parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
