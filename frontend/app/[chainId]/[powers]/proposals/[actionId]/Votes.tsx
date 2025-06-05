@@ -50,11 +50,12 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.quorum)) / 100) : 0
   const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
+  const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
 
   // console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline})
 
   return (
-      <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md max-w-72">
+      <div className="w-full h-fit flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md">
       <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
         <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
           <div className="text-left w-52">
@@ -68,6 +69,32 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
         </div>  
         :
         <div className = "w-full h-full flex flex-col lg:min-h-fit overflow-x-scroll divide-y divide-slate-300 max-h-36 lg:max-h-full overflow-y-scroll">
+        
+        {/* Proposal state block */}
+        <div className = "w-full flex flex-col justify-center items-center p-4 py-3"> 
+            { 
+              !proposal ? 
+                <div className={`${layout} text-slate-500 bg-slate-100`}> No Proposal Found </div>
+              :
+              proposal.state == 0 ? 
+                <div className={`${layout} text-blue-500 bg-blue-100`}> Active </div>
+              :
+              proposal.state == 1 ? 
+                <div className={`${layout} text-orange-500 bg-orange-100`}> Cancelled </div>
+              :
+              proposal.state ==  2 ? 
+                <div className={`${layout} text-red-500 bg-red-100`}> Defeated </div>
+              :
+              proposal.state ==  3 ? 
+                <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
+              :
+              proposal.state == 4 ? 
+                <div className={`${layout} text-slate-500 bg-slate-100`}> Executed </div>
+              :
+              null 
+            }
+        </div>
+        
         {/* Quorum block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
