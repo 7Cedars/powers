@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
 import { getConstants } from "@/context/constants";
+import { setChainChecks } from "@/context/store";
 
 export const useChecks = (powers: Powers) => {
   const { chainId } = useParams<{ chainId: string }>()
@@ -24,24 +25,25 @@ export const useChecks = (powers: Powers) => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
   const [checks, setChecks ] = useState<Checks>()
-  const [chainChecks, setChainChecks] = useState<Map<string, Checks>>()
+
+  console.log("useChecks: waypoint 0", {checks, error, status})
 
   const checkAccountAuthorised = useCallback(
     async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
         try {
-          // console.log("@checkAccountAuthorised: waypoint 0", {law, powers, wallets})
+          console.log("@checkAccountAuthorised: waypoint 0", {law, powers, wallets})
           const result =  await readContract(wagmiConfig, {
                   abi: powersAbi,
                   address: powers.contractAddress as `0x${string}`,
                   functionName: 'canCallLaw', 
                   args: [wallets[0].address, law.index],
                 })
-          // console.log("@checkAccountAuthorised: waypoint 1", {result})
+          console.log("@checkAccountAuthorised: waypoint 1", {result})
           return result as boolean 
         } catch (error) {
             setStatus("error") 
             setError(error)
-            // console.log("@checkAccountAuthorised: waypoint 2", {error})
+            console.log("@checkAccountAuthorised: waypoint 2", {error})
         }
   }, [])
 
@@ -107,17 +109,82 @@ export const useChecks = (powers: Powers) => {
     } 
   }, [])
 
+  const calculateDependencies = (lawId: bigint, powers: Powers) => {
+    const selectedLawId = String(lawId)
+    let connectedNodes: Set<string> = new Set()
+    
+    if (powers.activeLaws) {
+      // Build dependency maps
+      const dependencies = new Map<string, Set<string>>()
+      const dependents = new Map<string, Set<string>>()
+      
+      powers.activeLaws.forEach(law => {
+        const lawId = String(law.index)
+        dependencies.set(lawId, new Set())
+        dependents.set(lawId, new Set())
+      })
+      
+      // Populate dependency relationships
+      powers.activeLaws.forEach(law => {
+        const lawId = String(law.index)
+        if (law.conditions) {
+          if (law.conditions.needCompleted !== 0n) {
+            const targetId = String(law.conditions.needCompleted)
+            if (dependencies.has(targetId)) {
+              dependencies.get(lawId)?.add(targetId)
+              dependents.get(targetId)?.add(lawId)
+            }
+          }
+          if (law.conditions.needNotCompleted !== 0n) {
+            const targetId = String(law.conditions.needNotCompleted)
+            if (dependencies.has(targetId)) {
+              dependencies.get(lawId)?.add(targetId)
+              dependents.get(targetId)?.add(lawId)
+            }
+          }
+          if (law.conditions.readStateFrom !== 0n) {
+            const targetId = String(law.conditions.readStateFrom)
+            if (dependencies.has(targetId)) {
+              dependencies.get(lawId)?.add(targetId)
+              dependents.get(targetId)?.add(lawId)
+            }
+          }
+        }
+      })
+      
+      // Find all connected nodes using traversal
+      const visited = new Set<string>()
+      const traverse = (nodeId: string) => {
+        if (visited.has(nodeId)) return
+        visited.add(nodeId)
+        connectedNodes.add(nodeId)
+        
+        // Add all dependencies
+        const deps = dependencies.get(nodeId) || new Set()
+        deps.forEach(depId => traverse(depId))
+        
+        // Add all dependents  
+        const dependentNodes = dependents.get(nodeId) || new Set()
+        dependentNodes.forEach(depId => traverse(depId))
+      }
+      
+      traverse(selectedLawId)
+    }
+    return connectedNodes
+  }
+
   const fetchChecks = useCallback( 
-    async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
-      // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers})
+    async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers, actionLawId?: bigint, caller?: string) => {
+      // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers, actionLawId, caller})
         setError(null)
         setStatus("pending")
 
         if (wallets[0] && powers?.contractAddress && law.conditions) {
-          
+          // console.log("fetchChecks triggered, waypoint 1", {law, callData, nonce, wallets, powers, actionLawId, caller})
           const throttled = await checkThrottledExecution(law)
           const authorised = await checkAccountAuthorised(law, powers, wallets)
           const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [3, 4, 5])
+          const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
           const delayed = checkDelayedExecution(nonce, callData, law, powers)
 
@@ -125,15 +192,12 @@ export const useChecks = (powers: Powers) => {
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
           const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
 
-          // console.log({notCompleted1: !notCompleted1})
-          
-          // console.log("fetchChecks triggered, waypoint 1", {delayed, throttled, authorised, proposalStatus, proposalExists, notCompleted1, notCompleted2, notCompleted3})
-
             let newChecks: Checks =  {
               delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
               throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
               authorised: authorised,
               proposalExists: law.conditions.quorum == 0n ? true : proposalExists == false,
+              voteActive: law.conditions.quorum == 0n ? true : voteActive,
               proposalPassed: law.conditions.quorum == 0n ? true : proposalStatus,
               actionNotCompleted: !notCompleted1,
               lawCompleted: law.conditions.needCompleted == 0n ? true : notCompleted2, 
@@ -144,6 +208,7 @@ export const useChecks = (powers: Powers) => {
               newChecks.throttlePassed && 
               newChecks.authorised && 
               newChecks.proposalExists && 
+              newChecks.voteActive && 
               newChecks.proposalPassed && 
               newChecks.actionNotCompleted && 
               newChecks.lawCompleted &&
@@ -157,24 +222,23 @@ export const useChecks = (powers: Powers) => {
   }, [ ])
 
   const fetchChainChecks = useCallback(
-    async (originLaw: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
-      const chainLaws = powers.laws?.filter(law => 
-        law.conditions?.needCompleted == originLaw.index || 
-        law.conditions?.needNotCompleted == originLaw.index || 
-        law.conditions?.readStateFrom == originLaw.index 
-      )
+    async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
+      const chainLaws = calculateDependencies(lawId, powers)
+      const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
 
       const checksMap = new Map<string, Checks>()
-      if (chainLaws) {
+      if (chainLaws && law) {
         try {
           // For each active law, calculate basic checks
-          for (const law of chainLaws) {
-            if (!law.conditions) continue
-            const checks = await fetchChecks(law, callData, nonce, wallets, powers)
-            checksMap.set(String(law.index), checks as Checks)
+          for (const lawStrId of chainLaws) {
+            const targetLaw = powers.activeLaws?.find(law => String(law.index) === lawStrId)
+            if (!targetLaw?.conditions) continue
+            const checks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
+            checksMap.set(lawStrId, checks as Checks)
           }
   
         setChainChecks(checksMap)
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch law checks')
       } finally {
@@ -183,5 +247,5 @@ export const useChecks = (powers: Powers) => {
     }
   }, [fetchChecks])
 
-  return {status, error, checks, chainChecks, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction, setChainChecks}
+  return {status, error, checks, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction}
 }

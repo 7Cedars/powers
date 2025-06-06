@@ -14,7 +14,7 @@ export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
     :
     roleId == 0n ? "Admin" 
     :
-    roleIds.includes(roleId) ? powers.roleLabels?.find(roleLabel => roleLabel.roleId == roleId)?.label : `Role ${Number(roleId)}`
+    roleIds.includes(roleId) ? powers.roleLabels?.find(roleLabel => Number(roleLabel.roleId) == Number(roleId))?.label : `Role ${Number(roleId)}`
     
   return roleLabel ? String(roleLabel).charAt(0).toUpperCase() + String(roleLabel).slice(1) : `Role ${Number(roleId)}`
 }

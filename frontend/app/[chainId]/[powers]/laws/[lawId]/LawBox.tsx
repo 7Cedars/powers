@@ -60,7 +60,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
+  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 
@@ -201,7 +201,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         </div>
       }
 
-        <div className="w-full flex flex-row justify-center items-center pt-6 px-6">
+        <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6">
           <Button 
             size={1} 
             showBorder={true} 
@@ -222,7 +222,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
       {/* Proposal Section - only show when quorum > 0 */}
       {law?.conditions?.quorum != 0n && (
-        <div className="w-full px-6 pt-4">          
+        <div className="w-full px-6 py-2 ">          
           <div className="w-full">
             <Button 
               size={1} 
@@ -241,14 +241,14 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               filled={false}
               selected={true}
               statusButton={
-                (!checks?.authorised && !checks?.proposalExists) ? 'disabled' : 'idle'
+                (checks?.authorised && action.upToDate) ? 'idle' :  'disabled'
               }
             >
               {!checks?.authorised && !checks?.proposalExists 
                 ? "Not authorised to make proposal"
                 : checks?.proposalExists 
                   ? "View proposal"
-                  : `Create proposal for: ${shorterDescription(law?.nameDescription, "short")}`
+                  : `Create proposal for '${shorterDescription(law?.nameDescription, "short")}'`
               }
             </Button>
           </div>
@@ -259,7 +259,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
       {simulation && <SimulationBox law = {law} simulation = {simulation} />}
 
       {/* execute button */}
-        <div className="w-full h-fit p-6">
+        <div className="w-full h-fit px-6 py-2 pb-6">
           <Button 
             size={1} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}

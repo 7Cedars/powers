@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useActionStore, setAction } from "@/context/store";
+import { useActionStore, setAction, setError } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
 import { parseRole } from "@/utils/parsers";
-import { Checks, Law, Powers, Proposal, Status } from "@/context/types";
+import { Action, Checks, Law, Powers, Proposal, Status } from "@/context/types";
 import { StaticInput } from "../../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
@@ -13,6 +13,10 @@ import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlockNumber } from "wagmi";
+import { useChecks } from "@/hooks/useChecks";
+import { readContract } from "wagmi/actions";
+import { wagmiConfig } from "@/context/wagmiConfig";
+import { powersAbi } from "@/context/abi";
 
 const roleColour = [  
   "border-blue-600", 
@@ -24,27 +28,44 @@ const roleColour = [
   "border-slate-600",
 ]
 
-export function ProposalBox({proposal, powers, law, checks, status}: {proposal?: Proposal, powers?: Powers, law?: Law, checks?: Checks, status: Status, wallets?: ConnectedWallet[]}) {
+export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law?: Law, checks?: Checks, status: Status, wallets?: ConnectedWallet[]}) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
+  const [proposalStatus, setProposalStatus] = useState<number>(6);
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
   const {data: blockNumber} = useBlockNumber();
-  // console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted, proposal})
+  console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted})
 
-  const handleCastVote = async (proposal: Proposal, support: bigint) => { 
-    if (proposal) {
+  const handleCastVote = async (action: Action, support: bigint) => { 
+    if (action) {
       setLogSupport(support)
       castVote(
-          BigInt(proposal.actionId),
+          BigInt(action.actionId),
           support,
           powers as Powers
         )
     }
   };
+
+  const checkProposalStatus = useCallback(
+    async (law: Law, action: Action) => {
+      try {
+        const state =  await readContract(wagmiConfig, {
+                abi: powersAbi,
+                address: law.powers as `0x${string}`,
+                functionName: 'state', 
+                args: [action.actionId],
+              })
+        setProposalStatus(Number(state)) 
+      } catch (error) {
+        setProposalStatus(6)
+      }
+  }, [law, action])
+
 
   useEffect(() => {
     if (action.actionId && wallets.length > 0) {
@@ -60,6 +81,8 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
           wallets[0].address as `0x${string}`,
           powers as Powers
         )
+
+        checkProposalStatus(law as Law, action)
       }
   }, [action, wallets])
 
@@ -140,7 +163,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
-          { proposal && proposal.state && proposal != undefined && proposal.actionId != "0" && proposal.state != 0 ?  
+          { proposalStatus == 3 || proposalStatus == 4 || proposalStatus == 5 ?  
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Vote has closed  
               </div>
@@ -150,18 +173,12 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 Account has voted  
               </div>
               :
-              blockNumber && proposal && proposal.voteEnd < BigInt(blockNumber) ?
-              <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
-                Vote has closed  
-              </div>
-              :
-              proposal && 
               <div className = "w-full flex flex-row gap-2"> 
                 <Button 
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 1n)} 
+                  onClick={() => handleCastVote(action, 1n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'
@@ -178,7 +195,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 0n)} 
+                  onClick={() => handleCastVote(action, 0n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'
@@ -191,11 +208,11 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                     }> 
                     Against
                 </Button>
-                <Button 
+                <Button   
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 2n)} 
+                  onClick={() => handleCastVote(action, 2n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'

@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { ProposalBox } from "./ProposalBox";
 import { Votes } from "./Votes"; 
-import { useChecks } from "@/hooks/useChecks";
-import { setAction, useActionStore } from "@/context/store";
-import { Powers, Proposal, Law, Status } from "@/context/types";
+import { setAction, useActionStore, useChecksStore } from "@/context/store";
+import { Powers, Proposal, Law, Status, Checks } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
@@ -13,21 +12,27 @@ import { useWallets } from "@privy-io/react-auth";
 import { parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
 import { useProposal } from "@/hooks/useProposal";
+import { useChecks } from "@/hooks/useChecks";
 
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
+  const { chainChecks } = useChecksStore();
+  const { fetchChainChecks } = useChecks(powers as Powers);
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
   // NB: proposal might not have been loaded!  
   const proposal = powers?.proposals?.find(proposal => proposal.actionId == actionId)
   const law = powers?.laws?.find(law => law.index == proposal?.lawId)
   // 
   const action = useActionStore(); 
-  const {checks, fetchChecks, status: statusChecks} = useChecks(powers as Powers);
+  // Get checks for this specific law from Zustand store
+  const checks = law ? chainChecks?.get(String(law.index)) : undefined
+  const statusChecks: Status = 'success' // Since we're getting checks from global store, assume success
 
-  // console.log("@proposal, waypoint 1", {proposal, actionId, powers, action})
+  console.log("@proposal, waypoint 1", {proposal, actionId, powers, action, law, checks, statusChecks})
 
   useEffect(() => {
+    console.log('Proposal page useEffect triggered', { proposal: !!proposal, law: !!law })
     if (proposal && law) { 
       try {
         const values = decodeAbiParameters(parseAbiParameters(law?.params?.map(param => param.dataType).toString() || ""), proposal.executeCalldata as `0x${string}`);
@@ -47,8 +52,7 @@ const Page = () => {
       } catch {
         setAction({...action, upToDate: false })
       }
-      fetchChecks(law, proposal.executeCalldata, BigInt(proposal.nonce), wallets, powers as Powers) 
-      // fetchProposal(proposal, powers as Powers)
+      // Layout manages checks via Zustand store now
     }
   }, [proposal])
 
@@ -58,10 +62,17 @@ const Page = () => {
     }
   }, [addressPowers, fetchPowers])
 
+  useEffect(() => {
+    if (powers) {
+      console.log("@proposals/[actionId], fetchChainChecks: ", {law, action, wallets, powers})
+      fetchChainChecks(BigInt(law?.index || 0), action.callData, BigInt(action.nonce), wallets, powers as Powers)
+    }
+  }, [, powers])
+
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-4 pt-16 overflow-x-scroll ps-4 pe-12">
-      { proposal && <ProposalBox proposal = {proposal} powers = {powers} law = {law} checks = {checks} status = {statusChecks} /> }
-      { proposal && <Votes proposal = {proposal} powers = {powers} status = {statusChecks}/> }
+      { law && <ProposalBox powers = {powers} law = {law} checks = {checks} status = {statusChecks} /> }
+      { law && <Votes action = {action} powers = {powers} status = {statusChecks}/> }
     </main>
   )
 }

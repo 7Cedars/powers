@@ -1,5 +1,3 @@
-import { ChainProps } from "@/context/types";
-
 const nameMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 export const toShortDateFormat = (timestamp: number): string => {

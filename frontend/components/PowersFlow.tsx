@@ -45,6 +45,10 @@ import {
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { setAction, useActionStore } from '@/context/store'
 import { LoadingBox } from '@/components/LoadingBox'
+import { useChecksStore } from '@/context/store'
+import { powersAbi } from '@/context/abi'
+import { usePowers } from '@/hooks/usePowers'
+import { bigintToRole } from '@/utils/bigintToRole'
 
 // Role colors matching LawBox.tsx color scheme
 const ROLE_COLORS = [
@@ -79,18 +83,31 @@ function getRoleBorderClass(roleId: bigint): string {
 
 interface LawSchemaNodeData {
   law: Law
-  checks?: Checks
   roleColor: string
   onNodeClick?: (lawId: string) => void
   selectedLawId?: string
   connectedNodes?: Set<string>
 }
 
-const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => {
-  const { law, checks, roleColor, onNodeClick, selectedLawId, connectedNodes } = data
-
-  // Debug logging
-  console.log(`LawSchemaNode ${law.index} - checks:`, checks)
+const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
+  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes } = data
+  const { powers } = usePowers()
+  const { chainChecks } = useChecksStore()
+  let checks = chainChecks.get(String(law.index))
+  if (!checks) {
+    checks = {
+      allPassed: false,
+      delayPassed: false,
+      throttlePassed: false,
+      authorised: false,
+      proposalExists: false,
+      proposalPassed: false,
+      actionNotCompleted: true,
+      lawCompleted: false,
+      lawNotCompleted: false,
+      voteActive: false,
+    }
+  }
 
   const handleClick = () => {
     if (onNodeClick) {
@@ -106,8 +123,6 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
   const opacityClass = isConnected ? 'opacity-100' : 'opacity-50'
 
   const checkItems = useMemo(() => {
-    if (!checks) return []
-    
     const items: { 
       key: string
       label: string
@@ -122,7 +137,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'throttle', 
         label: 'Throttle Passed', 
-        status: checks.throttlePassed,
+        status: checks?.throttlePassed,
         hasHandle: false
       })
     }
@@ -133,7 +148,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
         items.push({ 
           key: 'needCompleted', 
           label: `Law ${law.conditions.needCompleted} Completed`, 
-          status: checks.lawCompleted,
+          status: checks?.lawCompleted,
           hasHandle: true,
           targetLaw: law.conditions.needCompleted,
           edgeType: 'needCompleted'
@@ -144,7 +159,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
         items.push({ 
           key: 'needNotCompleted', 
           label: `Law ${law.conditions.needNotCompleted} Not Completed`, 
-          status: checks.lawNotCompleted,
+          status: checks?.lawNotCompleted,
           hasHandle: true,
           targetLaw: law.conditions.needNotCompleted,
           edgeType: 'needNotCompleted'
@@ -158,21 +173,21 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'proposalCreated', 
         label: 'Proposal Created', 
-        status: checks.proposalExists ?? false,
+        status: checks?.proposalExists ?? false,
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteStarted', 
         label: 'Vote Started', 
-        status: checks.proposalExists ?? false, // Mirrors proposalCreated - when proposal is created, vote starts
+        status: checks?.proposalExists ?? false, // Mirrors proposalCreated - when proposal is created, vote starts
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteEnded', 
         label: 'Vote Ended', 
-        status: checks.proposalPassed ?? false, // Mirrors proposalPassed - when proposal passes, vote has ended
+        status: checks?.proposalExists && checks?.voteActive == false ? true : false, // Mirrors proposalPassed - when proposal passes, vote has ended
         hasHandle: false
       })
       
@@ -180,7 +195,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'proposalPassed', 
         label: 'Proposal Passed', 
-        status: checks.proposalPassed ?? false, // Ensure consistent nullish coalescing
+        status: checks?.proposalPassed ?? false, // Ensure consistent nullish coalescing
         hasHandle: false
       })
     }
@@ -190,7 +205,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
       items.push({ 
         key: 'delay', 
         label: 'Delay Passed', 
-        status: checks.delayPassed,
+        status: checks?.delayPassed,
         hasHandle: false
       })
     }
@@ -211,7 +226,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
     items.push({ 
       key: 'executed', 
       label: 'Executed', 
-      status: checks.actionNotCompleted == false,
+      status: checks?.actionNotCompleted == false,
       hasHandle: false
     })
     
@@ -248,13 +263,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ({ data, id }) => 
             <div className="flex items-center space-x-4 text-xs text-gray-600">
               {law.conditions && (
                 <>
-                  <span className="truncate">Role: {
-                    Number(law.conditions.allowedRole) === 0 
-                      ? "Admin" 
-                      : Number(law.conditions.allowedRole) > 10000000000000000 
-                      ? "Public"
-                      : Number(law.conditions.allowedRole)
-                  }</span>
+                  <span className="truncate">Role: {bigintToRole(law.conditions.allowedRole, powers as Powers)}</span>
                 </>
               )}
             </div>
@@ -401,7 +410,6 @@ const nodeTypes = {
 
 interface PowersFlowProps {
   powers: Powers
-  chainChecks?: Map<string, Checks>
   selectedLawId?: string
 }
 
@@ -690,8 +698,9 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
   }
 }
 
-const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedLawId }) => {
+const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
+  const { chainChecks } = useChecksStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
@@ -712,7 +721,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
       const existing = saved.find(item => item.contractAddress === powers.contractAddress)
       
       if (existing && existing.layout) {
-        console.log('Loaded layout from localStorage:', existing.layout)
         return existing.layout
       }
       
@@ -736,7 +744,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
       localStorage.setItem("powersProtocols", JSON.stringify(saved, (key, value) =>
         typeof value === "bigint" ? value.toString() : value,
       ))
-      console.log('Layout saved to localStorage')
     } catch (error) {
       console.error('Failed to save layout to localStorage:', error)
     }
@@ -978,7 +985,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, chainChecks, selectedL
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    console.log('Creating layout with saved positions:', savedLayout ? Object.keys(savedLayout).length : 0, 'nodes')
     const positions = createHierarchicalLayout(powers.activeLaws, savedLayout)
     
     // Find connected nodes if a law is selected

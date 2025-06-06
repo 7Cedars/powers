@@ -21,13 +21,16 @@ type ExecutionsProps = {
 export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const action = useActionStore()
-  const { data: blocks, fetchBlocks, status: blocksStatus } = useBlocks()
+  const { timestamps, fetchTimestamps } = useBlocks()
 
   useEffect(() => {
-    if (lawExecutions && lawExecutions.executions && lawExecutions.executions.length > 0 && blocksStatus == "idle") {
-      fetchBlocks(lawExecutions.executions.map(execution => execution), chainId)
+    if (lawExecutions) {
+      const blocks = lawExecutions.executions
+      if (blocks && blocks.length > 0) {
+        fetchTimestamps(blocks, chainId)
+      }
     }
-  }, [lawExecutions, chainId, blocksStatus])
+  }, [lawExecutions, chainId])
 
   // console.log("@Executions: ", {executions, law, status})
   const handleExecutionSelection = useCallback(
@@ -119,8 +122,7 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
                       >  
                       <div className = "flex flex-col w-full"> 
                         <div className = "w-full flex flex-row gap-1 justify-between items-center px-1">
-                            <div> {toFullDateFormat(Number(blocks?.[index]?.timestamp || 0))}</div>
-                            <div> {toEurTimeFormat(Number(blocks?.[index]?.timestamp || 0))}</div>
+                            <div> {timestamps.get(`${chainId}:${execution}`)?.timestamp}</div>
                         </div>
                       </div>
                     </Button>

@@ -5,40 +5,20 @@ import { usePathname } from 'next/navigation'
 import { Powers, Law, Checks, LawSimulation, LawExecutions, Status, InputType } from '@/context/types'
 import { PowersFlow } from './PowersFlow'
 import { ConnectedWallet } from '@privy-io/react-auth'
-import { Button } from './Button'
-import { LoadingBox } from './LoadingBox'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-import { LawBox } from '@/app/[chainId]/[powers]/laws/[lawId]/LawBox'
+import { ChevronRightIcon } from '@heroicons/react/24/outline'
 
 interface PowersOverviewProps {
   powers: Powers
   wallets: ConnectedWallet[]
   selectedLawId?: string
-  // Law-specific props for LawBox integration
-  law?: Law
-  chainChecks?: Map<string, Checks>
-  simulation?: LawSimulation
-  executions?: LawExecutions
-  statusLaw?: Status
-  onSimulate?: (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void
-  onExecute?: (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void
   children?: React.ReactNode
 }
 
 export const PowersOverview: React.FC<PowersOverviewProps> = ({ 
   powers, 
-  wallets, 
   selectedLawId,
-  law,
-  chainChecks,
-  simulation,
-  executions,
-  statusLaw,
-  onSimulate,
-  onExecute,
   children
 }) => {
-  // const { lawChecks, isLoading, error, refreshChecks } = usePowersFlow({ powers, wallets })
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -47,13 +27,6 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
     setIsCollapsed(false)
   }, [pathname])
 
-  // Find the selected law (fallback to prop)
-  const selectedLaw = useMemo(() => {
-    if (law) return law // Use prop if provided
-    if (!selectedLawId || !powers.activeLaws) return null
-    return powers.activeLaws.find(law => law.index.toString() === selectedLawId) || null
-  }, [law, selectedLawId, powers.activeLaws])
-
   return (
     <div className="absolute top-0 left-0 w-screen h-screen">
       {/* Main Flow Diagram - Full Screen Background */}
@@ -61,7 +34,6 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
         <PowersFlow 
           key={`powers-flow-${powers.contractAddress}`}
           powers={powers} 
-          chainChecks={chainChecks} 
           selectedLawId={selectedLawId} 
         />
       </div>
@@ -85,7 +57,7 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
           {/* Panel Content */}
           <div className="flex-1 overflow-y-auto">
             {children ? (
-              // Render children when provided (from layout)
+              // Render children directly since they now use Zustand store
               children
             ) : 
               <div className="h-full p-6">
