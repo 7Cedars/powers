@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useActionStore, setAction } from "@/context/store";
+import { useActionStore, setAction, setError } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
 import { parseRole } from "@/utils/parsers";
-import { Checks, Law, Powers, Proposal, Status } from "@/context/types";
+import { Action, Checks, Law, Powers, Proposal, Status } from "@/context/types";
 import { StaticInput } from "../../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
@@ -13,6 +13,10 @@ import { SectionText } from "@/components/StandardFonts";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlockNumber } from "wagmi";
+import { useChecks } from "@/hooks/useChecks";
+import { readContract } from "wagmi/actions";
+import { wagmiConfig } from "@/context/wagmiConfig";
+import { powersAbi } from "@/context/abi";
 
 const roleColour = [  
   "border-blue-600", 
@@ -24,7 +28,21 @@ const roleColour = [
   "border-slate-600",
 ]
 
-export function ProposalBox({proposal, powers, law, checks, status}: {proposal?: Proposal, powers?: Powers, law?: Law, checks?: Checks, status: Status, wallets?: ConnectedWallet[]}) {
+export function ProposalBox({
+  powers, 
+  law, 
+  checks, 
+  status, 
+  onCheck, 
+  proposalStatus
+}: {
+  powers?: Powers, 
+  law?: Law, 
+  checks?: Checks, 
+  status: Status, 
+  onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void, 
+  proposalStatus: number,
+}) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
@@ -33,13 +51,13 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
   const {data: blockNumber} = useBlockNumber();
-  // console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted, proposal})
+  console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted})
 
-  const handleCastVote = async (proposal: Proposal, support: bigint) => { 
-    if (proposal) {
+  const handleCastVote = async (action: Action, support: bigint) => { 
+    if (action) {
       setLogSupport(support)
       castVote(
-          BigInt(proposal.actionId),
+          BigInt(action.actionId),
           support,
           powers as Powers
         )
@@ -77,11 +95,6 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
   return (
     <main className="w-full flex flex-col justify-start items-center">
       <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
-      {status == "pending" || status == "idle" ?
-      <div className = "w-full flex flex-col justify-center items-center p-2"> 
-        <LoadingBox />
-      </div>
-      :
       <>
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
@@ -136,11 +149,28 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
         </div>
       </form>
 
+      <div className="w-full flex flex-row justify-center items-center p-6 py-2">
+      <Button 
+            size={1} 
+            showBorder={true} 
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+            filled={false}
+            selected={true}
+            onClick={() => 
+              onCheck(law as Law, action, wallets, powers as Powers)
+            } 
+            statusButton={
+                action.uri && action.uri.length > 0 ? status : 'disabled'
+              }> 
+            Check 
+          </Button>
+      </div>
+
       {law && simulation && <SimulationBox simulation = {simulation} law = {law as Law}/> } 
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
-          { proposal && proposal.state && proposal != undefined && proposal.actionId != "0" && proposal.state != 0 ?  
+          { proposalStatus != 0 ?  
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Vote has closed  
               </div>
@@ -150,18 +180,12 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                 Account has voted  
               </div>
               :
-              blockNumber && proposal && proposal.voteEnd < BigInt(blockNumber) ?
-              <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
-                Vote has closed  
-              </div>
-              :
-              proposal && 
               <div className = "w-full flex flex-row gap-2"> 
                 <Button 
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 1n)} 
+                  onClick={() => handleCastVote(action, 1n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'
@@ -178,7 +202,7 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 0n)} 
+                  onClick={() => handleCastVote(action, 0n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'
@@ -191,11 +215,11 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
                     }> 
                     Against
                 </Button>
-                <Button 
+                <Button   
                   size={1} 
                   selected={true}
                   filled={false}
-                  onClick={() => handleCastVote(proposal, 2n)} 
+                  onClick={() => handleCastVote(action, 2n)} 
                   statusButton={
                     checks && !checks.authorised ? 
                       'disabled'
@@ -212,7 +236,6 @@ export function ProposalBox({proposal, powers, law, checks, status}: {proposal?:
           }
         </div>
       </>
-      }
       </section>
     </main>
   );

@@ -5,13 +5,14 @@ import { setAction, setRole, useRoleStore  } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useRouter, useParams } from "next/navigation";
 import { Powers, Proposal } from "@/context/types";
-import { parseProposalStatus, parseRole } from "@/utils/parsers";
+import { parseProposalStatus, parseRole, shorterDescription } from "@/utils/parsers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { bigintToRole } from "@/utils/bigintToRole";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useProposal } from "@/hooks/useProposal";
 import { useBlocks } from "@/hooks/useBlocks";
+import { useChecks } from "@/hooks/useChecks";
 
 // NB: need to delete action from store? Just in case? 
 export function ProposalList({powers, status}: {powers: Powers | undefined, status: string}) {
@@ -21,9 +22,10 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
-  const { data: blocks, fetchBlocks } = useBlocks()
+  const { timestamps, fetchTimestamps } = useBlocks()
+  
 
-  // console.log("powers: ", powers)
+  console.log("@proposalList, powers?.proposals: ", powers?.proposals)
 
   useEffect(() => {
     if (powers) {
@@ -32,10 +34,17 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
   }, [powers])
 
   useEffect(() => {
-    if (powers?.proposals && powers?.proposals.length > 0) {
-      fetchBlocks(powers?.proposals.map(proposal => BigInt(proposal.voteEnd)), chainId)
+    if (powers) {
+      const blocks = powers?.proposals?.map(proposal => proposal.voteEnd)
+      if (blocks && blocks.length > 0) {
+        fetchTimestamps(blocks, chainId)
+      }
     }
-  }, [powers?.proposals, chainId, fetchBlocks])
+  }, [, powers, chainId])
+
+  const blocks = powers?.proposals?.map(proposal => proposal.voteEnd)
+  console.log("@proposalList, blocks: ", blocks)
+  console.log("@proposalList, timestamps: ", timestamps.get(`${chainId}:${blocks ? blocks[0] : 0}`)?.timestamp)
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -143,11 +152,11 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                         align={0}
                         selected={true}
                       > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {`${toFullDateFormat(Number(blocks?.find(block => block.number == proposal.voteEnd)?.timestamp || 0n))}: ${toEurTimeFormat(Number(blocks?.find(block => block.number == proposal.voteEnd)?.timestamp || 0n))}`} 
+                          {`${toFullDateFormat(Number(timestamps.get(`${chainId}:${proposal.voteEnd}`)?.timestamp))}: ${toEurTimeFormat(Number(timestamps.get(`${chainId}:${proposal.voteEnd}`)?.timestamp))}`}
                         </div>
                       </Button>
                   </td>
-                  <td className="pe-4 text-slate-500 min-w-56">{law.nameDescription}</td>
+                  <td className="pe-4 text-slate-500 min-w-56">{shorterDescription(law.nameDescription, "short")}</td>
                   <a 
                     href={proposal.description}
                     target="_blank"

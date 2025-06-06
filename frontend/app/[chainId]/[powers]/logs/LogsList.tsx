@@ -16,14 +16,7 @@ export function LogsList({powers, status}: {powers: Powers | undefined, status: 
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blocks, fetchBlocks } = useBlocks()
-
-  useEffect(() => {
-    if (powers?.executedActions && powers?.executedActions.length > 0) {
-      // For actions, we'll use the current block number since we don't have a specific end time
-      fetchBlocks(powers?.executedActions.map(action => BigInt(action.actionId)), chainId)
-    }
-  }, [powers?.executedActions, chainId, fetchBlocks])
+  const { timestamps, fetchTimestamps } = useBlocks()
 
   const handleActionClick = async (actionId: bigint) => {
     // have to fetch action data from chain, using actionId.
@@ -109,7 +102,7 @@ export function LogsList({powers, status}: {powers: Powers | undefined, status: 
                         selected={true}
                       > 
                         <div className="flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {`${toFullDateFormat(Number(blocks?.find(block => block.number == action.blockNumber)?.timestamp || 0n))}: ${toEurTimeFormat(Number(blocks?.find(block => block.number == action.blockNumber)?.timestamp || 0n))}`} 
+                          {timestamps.get(`${chainId}:${action.blockNumber}`)?.timestamp}
                         </div>
                       </Button>
                   </td>

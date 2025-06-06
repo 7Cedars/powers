@@ -38,7 +38,16 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.role > 0).map(hasRole => hasRole.role)
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blocks, fetchBlocks } = useBlocks()
+  const { timestamps, fetchTimestamps } = useBlocks()
+
+  useEffect(() => {
+    if (authenticated) {
+      const blocks = proposals?.map(proposal => proposal.voteEnd)
+      if (blocks && blocks.length > 0) {
+        fetchTimestamps(blocks, chainId)
+      }
+    }
+  }, [authenticated, proposals, chainId])
 
   // bit convoluted, can be optimised. // £todo
   const active = proposals?.map((proposal: Proposal) => {
@@ -51,14 +60,6 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
-
-  useEffect(() => {
-    if (activeProposals && activeProposals.length > 0) {
-      fetchBlocks(activeProposals.map(item => BigInt(item.proposal.voteEnd)), chainId)
-    }
-  }, [activeProposals, chainId, fetchBlocks])
-
-  // console.log("@myProposals: ",  {activeProposals})
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68"> 
@@ -111,7 +112,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                       <div className ="w-full flex flex-col gap-1 text-sm text-slate-600 justify-center items-center">
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Date: </p> 
-                          <p> {toFullDateFormat(Number(blocks?.[i]?.timestamp || item.proposal.voteEnd))}  </p>
+                          <p> {timestamps.get(`${chainId}:${item.proposal.voteEnd}`)?.timestamp}  </p>
                         </div>
 
                         <div className = "w-full flex flex-row justify-between items-center text-left">

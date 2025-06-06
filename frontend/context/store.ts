@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Action, Roles } from '../context/types'
+import { Action, Roles, Checks, Status } from '../context/types'
 
 type ActionStore = Action;
 const initialStateAction: ActionStore = {
@@ -28,6 +28,24 @@ type RoleStore = {
 const initialStateRole: RoleStore = {
   deselectedRoles: []
 } 
+
+type ChecksStore = {
+  chainChecks: Map<string, Checks>
+}
+
+const initialStateChecks: ChecksStore = {
+  chainChecks: new Map()
+}
+
+type ChecksStatusStore = {
+  status: Status
+  chains: string[]
+}
+
+const initialStateChecksStatus: ChecksStatusStore = {
+  status: 'idle',
+  chains: []
+}
 
 // Action Store
 export const useActionStore = create<ActionStore>()(() => initialStateAction);
@@ -59,3 +77,31 @@ export const setRole: typeof useRoleStore.setState = (role) => {
 export const deleteRole: typeof useRoleStore.setState = () => {
   useRoleStore.setState(initialStateRole)
     }
+
+// Checks Store
+export const useChecksStore = create<ChecksStore>()(() => initialStateChecks);
+
+export const setChainChecks = (chainChecks: Map<string, Checks>) => {
+  useChecksStore.setState({ chainChecks })
+}
+
+export const updateLawChecks = (lawId: string, checks: Checks) => {
+  const currentState = useChecksStore.getState()
+  const newChainChecks = new Map(currentState.chainChecks)
+  newChainChecks.set(lawId, checks)
+  useChecksStore.setState({ chainChecks: newChainChecks })
+}
+
+export const clearChainChecks = () => {
+  useChecksStore.setState(initialStateChecks)
+}
+
+// Checks Status Store
+export const useChecksStatusStore = create<ChecksStatusStore>()(() => initialStateChecksStatus);
+
+export const setChecksStatus: typeof useChecksStatusStore.setState = (status) => {
+  useChecksStatusStore.setState(status)
+}
+export const deleteChecksStatus: typeof useChecksStatusStore.setState = () => {
+  useChecksStatusStore.setState(initialStateChecksStatus)
+}

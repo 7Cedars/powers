@@ -2,29 +2,53 @@
 
 import React, { Children, useEffect } from "react";
 import { LawBox } from "@/app/[chainId]/[powers]/laws/[lawId]/LawBox";
-import { setAction, setError, useActionStore, useErrorStore } from "@/context/store";
+import { setAction, setError, useActionStore, useErrorStore, useChecksStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
-import { useChecks } from "@/hooks/useChecks";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { InputType, Law, Powers } from "@/context/types";
+import { InputType, Law, Powers, Checks } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
 import { Executions } from "./Executions";
+import { useChecks } from "@/hooks/useChecks";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
-  const action = useActionStore();;
+  const action = useActionStore();
+  const { chainChecks } = useChecksStore();
 
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   
   const { powers, fetchPowers, checkSingleLaw, status: statusPowers } = usePowers()
+  const { fetchChainChecks } = useChecks(powers as Powers)
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
-  const { checks, fetchChecks } = useChecks(powers as Powers); 
   const law = powers?.laws?.find(law => law.index == BigInt(lawId))
   
-  console.log( "@Law page FLOW: ", {executions, errorUseLaw, checks, law, statusLaw, action, ready, wallets, addressPowers, simulation})
+  // Get checks for this specific law from Zustand store
+  const checks = law && chainChecks ? chainChecks.get(String(law.index)) : undefined
+  
+  // Debug logging to understand what's happening with checks
+  console.log( "@Law page FLOW: ", {
+    executions, 
+    errorUseLaw, 
+    checks, 
+    law: law ? { index: law.index, nameDescription: law.nameDescription } : null, 
+    statusLaw, 
+    action, 
+    ready, 
+    wallets: wallets.length, 
+    addressPowers, 
+    simulation,
+    chainChecks: chainChecks ? {
+      size: chainChecks.size,
+      keys: Array.from(chainChecks.keys()),
+      hasLawId: lawId ? chainChecks.has(lawId) : false,
+      hasLawIndex: law ? chainChecks.has(String(law.index)) : false
+    } : null,
+    lawId,
+    lawIndex: law ? String(law.index) : null
+  })
   
   useEffect(() => {
     if (!powers) {
@@ -53,8 +77,9 @@ const Page = () => {
         lawCalldata = '0x0'
       }
         // resetting store
+      // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-        // console.log("Handle Simulate waypoint 3a")
+        // console.log("Handle Simulate waypoint 3b")
         setAction({
           lawId: law.index,
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
@@ -66,8 +91,9 @@ const Page = () => {
           upToDate: true
         })
 
+        fetchChainChecks(law.index, lawCalldata, BigInt(action.nonce), wallets, powers)
+
         // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
-        fetchChecks(law, action.callData as `0x${string}`, BigInt(action.nonce), wallets, powers as Powers) 
         
         try {
         // simulating law. 
@@ -139,7 +165,6 @@ const Page = () => {
         })
       }
       fetchExecutions(law)
-      // fetchChecks(law, action.callData as `0x${string}`, action.nonce, wallets, powers as Powers)
       resetStatus()
     }
   }, [, law])
@@ -163,7 +188,7 @@ const Page = () => {
           law && 
           <LawBox 
               law = {law}
-              checks = {checks || {}} 
+              checks = {checks as Checks} 
               params = {law.params || []}
               status = {statusLaw}  
               simulation = {simulation} 

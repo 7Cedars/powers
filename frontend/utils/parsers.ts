@@ -204,17 +204,21 @@ export const parseRole = (role: bigint | undefined): number => {
 }
 
 
-export const parseVoteData = (data: unknown[]): {votes: number[], holders: number, deadline: number} => {
+export const parseVoteData = (data: unknown[]): {votes: number[], holders: number, deadline: number, state: number} => {
   if ( !data || !isArray(data)) {
     throw new Error('@parseVoteData: data not an array.');
   }
-  if (data.length != 3) {
+  if (data.length != 4) {
     throw new Error('@parseVoteData: data not correct length.');
   }
   const dataTypes = data.map(item => item as UseReadContractsReturnType) 
+
+  console.log("@parseVoteData: waypoint 0", {dataTypes})
+  
   let votes: number[]
   let holders: number 
   let deadline: number 
+  let state: number 
   
   if (dataTypes[0] && 'result' in dataTypes[0]) {
     if (
@@ -241,7 +245,13 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
     deadline = 0
   }
 
-  return {votes, holders, deadline}
+  if ('result' in dataTypes[3]) {
+    state = Number(dataTypes[3].result)
+  } else {
+    state = 0
+  }
+
+  return {votes, holders, deadline, state}
 }
   
 // direct copy for now from loyal-customer-engagement project. Adapt as needed. 

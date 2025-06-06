@@ -23,14 +23,16 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   const myRoles = hasRoles.filter(hasRole => hasRole.since != 0n)
   const { chainId } = useParams<{ chainId: string }>()
   const hasRolesSince = myRoles.map(role => BigInt(role.since))
-  const { data: blocks, fetchBlocks, status: blocksStatus } = useBlocks()
-  
-  
+  const { timestamps, fetchTimestamps } = useBlocks()
+
   useEffect(() => {
-    if (hasRolesSince && hasRolesSince.length > 0 && blocksStatus === "idle") {
-      fetchBlocks(hasRolesSince, chainId)
+    if (authenticated) {
+      const blocks = hasRolesSince
+      if (blocks && blocks.length > 0) {
+        fetchTimestamps(blocks, chainId)
+      }
     }
-  }, [hasRolesSince, chainId, blocksStatus])
+  }, [authenticated, hasRolesSince, chainId])
 
   return (
     <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80 max-h-48">
@@ -71,7 +73,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
                 }
               </div>
               <div className = "grow w-full min-w-40 flex flex-row justify-end items-center text-right pe-4">
-                Since: {toFullDateFormat(Number(blocks?.[i]?.timestamp || role.since))} 
+                Since: {timestamps.get(`${chainId}:${role.since}`)?.timestamp} 
               </div>
               </div>
             )

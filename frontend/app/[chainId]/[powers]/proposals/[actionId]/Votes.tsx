@@ -2,23 +2,26 @@
 
 import { powersAbi } from "@/context/abi";
 import { parseChainId, parseVoteData } from "@/utils/parsers";
-import { Powers, Proposal, Status } from "@/context/types";
+import { Action, Powers, Proposal, Status } from "@/context/types";
 import { CheckIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import { useBlockNumber, useChains, useReadContracts } from "wagmi";
 import { blocksToHoursAndMinutes } from "@/utils/toDates";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 import { getConstants } from "@/context/constants";
+import { useProposal } from "@/hooks/useProposal";
+import { useEffect } from "react";
 
-export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Proposal, powers: Powers | undefined, status: Status}) => {
+export const Votes = ({action, powers, status: statusPowers}: {action: Action, powers: Powers | undefined, status: Status}) => {
   // console.log("@Votes: waypoint 0", {proposal, powers})
 
   const { chainId } = useParams<{ chainId: string }>()
   const { data: blockNumber } = useBlockNumber()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === parseChainId(chainId))
-  const law = proposal?.lawId ? powers?.laws?.find(law => law.index == proposal?.lawId) : undefined
+  const law = action?.lawId ? powers?.laws?.find(law => law.index == action?.lawId) : undefined
   const constants = getConstants(parseChainId(chainId) as number)
+  const { proposalsState, getProposalsState } = useProposal()
 
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
@@ -28,9 +31,9 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
   const { isSuccess, status, data } = useReadContracts({
     contracts: [
       {
-        ...powersContract,
+        ...powersContract, 
         functionName: 'getProposedActionVotes',
-        args: [proposal?.actionId]
+        args: [action?.actionId]
       }, 
       {
         ...powersContract,
@@ -40,19 +43,33 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
       {
         ...powersContract,
         functionName: 'getProposedActionDeadline', 
-        args: [proposal?.actionId]
+        args: [action?.actionId]
+      }, 
+      {
+        ...powersContract,
+        functionName: 'state', 
+        args: [action?.actionId]
       }, 
     ]
   })
+
+  useEffect(() => {
+    if (action && powers) {
+      console.log("@Votes: waypoint 1, get proposal state called", {action, powers})
+      getProposalsState(powers as Powers)
+    }
+  }, [action, powers])
+  
   const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
   const init = 0
   const allVotes = votes.reduce((acc, current) => acc + current, init)
   const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.quorum)) / 100) : 0
   const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
+  const state = isSuccess ? parseVoteData(data).state : 0
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
 
-  // console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline})
+  console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline, isSuccess, action})
 
   return (
       <div className="w-full h-fit flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md">
@@ -73,22 +90,22 @@ export const Votes = ({proposal, powers, status: statusPowers}: {proposal: Propo
         {/* Proposal state block */}
         <div className = "w-full flex flex-col justify-center items-center p-4 py-3"> 
             { 
-              !proposal ? 
+              !state ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> No Proposal Found </div>
               :
-              proposal.state == 0 ? 
+              state == 0 ? 
                 <div className={`${layout} text-blue-500 bg-blue-100`}> Active </div>
               :
-              proposal.state == 1 ? 
+              state == 1 ? 
                 <div className={`${layout} text-orange-500 bg-orange-100`}> Cancelled </div>
               :
-              proposal.state ==  2 ? 
+              state ==  2 ? 
                 <div className={`${layout} text-red-500 bg-red-100`}> Defeated </div>
               :
-              proposal.state ==  3 ? 
+              state ==  3 ? 
                 <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
               :
-              proposal.state == 4 ? 
+              state == 4 ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> Executed </div>
               :
               null 
