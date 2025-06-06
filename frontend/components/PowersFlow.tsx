@@ -18,6 +18,7 @@ import ReactFlow, {
   useReactFlow,
   ReactFlowProvider,
   useStore,
+  MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { Law, Powers, Checks } from '@/context/types'
@@ -43,12 +44,13 @@ import {
   FlagIcon
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { setAction, useActionStore } from '@/context/store'
+import { setAction, useActionStore, useChecksStatusStore } from '@/context/store'
 import { LoadingBox } from '@/components/LoadingBox'
 import { useChecksStore } from '@/context/store'
 import { powersAbi } from '@/context/abi'
 import { usePowers } from '@/hooks/usePowers'
 import { bigintToRole } from '@/utils/bigintToRole'
+import { NodeStatusIndicator } from '@/components/node-status-indicator'
 
 // Role colors matching LawBox.tsx color scheme
 const ROLE_COLORS = [
@@ -82,6 +84,7 @@ function getRoleBorderClass(roleId: bigint): string {
 }
 
 interface LawSchemaNodeData {
+  powers: Powers
   law: Law
   roleColor: string
   onNodeClick?: (lawId: string) => void
@@ -90,9 +93,10 @@ interface LawSchemaNodeData {
 }
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
-  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes } = data
-  const { powers } = usePowers()
+  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers } = data
   const { chainChecks } = useChecksStore()
+  const { status: checksStatus, chains: loadingChains } = useChecksStatusStore()
+  
   let checks = chainChecks.get(String(law.index))
   if (!checks) {
     checks = {
@@ -241,166 +245,168 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     : 'border-slate-600'
 
   return (
-    <div 
-      className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass}`}
-      onClick={handleClick}
-    >
-      {/* Law Header - Database Table Style */}
+    <NodeStatusIndicator status={ loadingChains.includes(String(law.index)) ? checksStatus as "loading" | "success" | "error" | "initial" : "success"}>
       <div 
-        className="px-4 py-3 border-b border-gray-300 bg-slate-100"
-        style={{ borderBottomColor: roleColor }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-sm mb-1 break-words text-slate-800">
-              📋 #{Number(law.index)}{law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
-            </div>
-            
-            <div className="text-xs text-gray-700 mb-1 font-medium break-words">
-              {law.nameDescription ? `${law.nameDescription.split(':')[1]}` : ""}
-              </div>
-            
-            <div className="flex items-center space-x-4 text-xs text-gray-600">
-              {law.conditions && (
-                <>
-                  <span className="truncate">Role: {bigintToRole(law.conditions.allowedRole, powers as Powers)}</span>
-                </>
-              )}
-            </div>
-          </div>
-          
-        
-        </div>
-      </div>
-      
-      {/* Checks Section - Database Rows Style */}
-      {!checks ? (
-        // Loading state when checks are undefined
-        <div className="relative p-4 bg-slate-50">
-          <div className="flex items-center justify-center">
-            <LoadingBox />
-          </div>
-        </div>
-      ) : checkItems.length > 0 ? (
-        <div className="relative bg-slate-50">
-          {checkItems.map((item, index) => (
-            <div key={item.key} className="relative">
-              <div className="px-4 py-2 flex items-center justify-between text-xs relative">
-              <div className="flex items-center space-x-2 flex-1">
-                  <div className="w-6 h-6 flex justify-center items-center relative">
-                  {item.status !== undefined ? (
-                    // Status-based checks with appropriate icons
-                      item.key === 'executed' ? (
-                        <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white relative z-10 ${allChecksPassing ? 'border-black' : 'border-gray-400'}`}>
-                          <RocketLaunchIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                      ) : item.key === 'proposalPassed' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <CheckCircleIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                      ) : item.key === 'delay' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <CalendarDaysIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'throttle' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <QueueListIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'needCompleted' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <DocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'needNotCompleted' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <XMarkIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'voteStarted' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ArchiveBoxIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'voteEnded' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <FlagIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                    ) : item.key === 'proposalCreated' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ClipboardDocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                      ) : (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ShieldCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                        </div>
-                      )
-                  ) : (
-                    // Dependency checks without status
-                    item.key === 'readStateFrom' ? (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <LinkIcon className="w-4 h-4 text-black" />
-                        </div>
-                      ) : (
-                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                          <ClipboardDocumentCheckIcon className="w-4 h-4 text-black" />
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col min-w-0">
-                    <div className="text-[10px] text-gray-400 mb-0.5">Dec 15, 2024 - 14:32</div>
-                    <span className="text-gray-700 font-medium break-words">{item.label}</span>
-                  </div>
+        className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
+        onClick={handleClick}
+      >        
+        {/* Law Header - Database Table Style */}
+        <div 
+          className="px-4 py-3 border-b border-gray-300 bg-slate-100"
+          style={{ borderBottomColor: roleColor }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm mb-1 break-words text-slate-800">
+                📋 #{Number(law.index)}{law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
               </div>
               
-              {/* Connection handle for dependency checks */}
-              {item.hasHandle && (
-                <Handle
-                  type="source"
-                  position={Position.Left}
-                  id={`${item.key}-handle`}
-                  style={{ 
-                    background: roleColor, // Use role color instead of gray
-                    width: 8,
-                    height: 8,
-                    left: -4,
-                    top: '50%',
-                    transform: 'translateY(-50%)'
-                    }}
-                  />
+              <div className="text-xs text-gray-700 mb-1 font-medium break-words">
+                {law.nameDescription ? `${law.nameDescription.split(':')[1]}` : ""}
+                </div>
+              
+              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                {law.conditions && powers && (
+                  <>
+                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)}`}</p>
+                  </>
                 )}
+              </div>
+            </div>
+            
+          
+          </div>
+        </div>
+        
+        {/* Checks Section - Database Rows Style */}
+        {!checks ? (
+          // Loading state when checks are undefined
+          <div className="relative p-4 bg-slate-50">
+            <div className="flex items-center justify-center">
+              <LoadingBox />
+            </div>
+          </div>
+        ) : checkItems.length > 0 ? (
+          <div className="relative bg-slate-50">
+            {checkItems.map((item, index) => (
+              <div key={item.key} className="relative">
+                <div className="px-4 py-2 flex items-center justify-between text-xs relative">
+                <div className="flex items-center space-x-2 flex-1">
+                    <div className="w-6 h-6 flex justify-center items-center relative">
+                    {item.status !== undefined ? (
+                      // Status-based checks with appropriate icons
+                        item.key === 'executed' ? (
+                          <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white relative z-10 ${allChecksPassing ? 'border-black' : 'border-gray-400'}`}>
+                            <RocketLaunchIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                        ) : item.key === 'proposalPassed' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <CheckCircleIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                        ) : item.key === 'delay' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <CalendarDaysIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'throttle' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <QueueListIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'needCompleted' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <DocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'needNotCompleted' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <XMarkIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'voteStarted' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <ArchiveBoxIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'voteEnded' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <FlagIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                      ) : item.key === 'proposalCreated' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <ClipboardDocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <ShieldCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
+                          </div>
+                        )
+                    ) : (
+                      // Dependency checks without status
+                      item.key === 'readStateFrom' ? (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <LinkIcon className="w-4 h-4 text-black" />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                            <ClipboardDocumentCheckIcon className="w-4 h-4 text-black" />
+                          </div>
+                        )
+                      )}
+                    </div>
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <div className="text-[10px] text-gray-400 mb-0.5">Dec 15, 2024 - 14:32</div>
+                      <span className="text-gray-700 font-medium break-words">{item.label}</span>
+                    </div>
+                </div>
                 
-                {/* Target handle for executed check */}
-                {item.key === 'executed' && (
+                {/* Connection handle for dependency checks */}
+                {item.hasHandle && (
                   <Handle
-                    type="target"
-                    position={Position.Right}
-                    id="executed-target"
+                    type="source"
+                    position={Position.Left}
+                    id={`${item.key}-handle`}
                     style={{ 
                       background: roleColor, // Use role color instead of gray
-                      width: 10,
-                      height: 10,
-                      right: -5,
+                      width: 8,
+                      height: 8,
+                      left: -4,
                       top: '50%',
                       transform: 'translateY(-50%)'
+                      }}
+                    />
+                  )}
+                  
+                  {/* Target handle for executed check */}
+                  {item.key === 'executed' && (
+                    <Handle
+                      type="target"
+                      position={Position.Right}
+                      id="executed-target"
+                      style={{ 
+                        background: roleColor, // Use role color instead of gray
+                        width: 10,
+                        height: 10,
+                        right: -5,
+                        top: '50%',
+                        transform: 'translateY(-50%)'
+                      }}
+                    />
+                  )}
+                </div>
+                
+                {/* Vertical connecting line to next item */}
+                {index < checkItems.length - 1 && (
+                  <div 
+                    className="absolute w-px bg-black"
+                    style={{ 
+                      left: '28px', // 16px padding + 12px (half of 24px circle width)
+                      top: 'calc(50% + 12px)', // Start from bottom of current circle
+                      height: 'calc(100% - 12px)', // Extend to top of next circle
                     }}
                   />
                 )}
               </div>
-              
-              {/* Vertical connecting line to next item */}
-              {index < checkItems.length - 1 && (
-                <div 
-                  className="absolute w-px bg-black"
-                  style={{ 
-                    left: '28px', // 16px padding + 12px (half of 24px circle width)
-                    top: 'calc(50% + 12px)', // Start from bottom of current circle
-                    height: 'calc(100% - 12px)', // Extend to top of next circle
-                  }}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </NodeStatusIndicator>
   )
 }
 
@@ -1014,6 +1020,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         type: 'lawSchema',
         position,
         data: {
+          powers,
           law,
           checks,
           roleColor,
@@ -1045,6 +1052,12 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             style: { stroke: '#6B7280', strokeWidth: 2, opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
             labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            markerStart: {
+              type: MarkerType.ArrowClosed,
+              color: '#6B7280',
+              width: 20,
+              height: 20,
+            },
             zIndex: 10,
           })
         }
@@ -1067,6 +1080,12 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '6,3', opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
             labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            markerStart: {
+              type: MarkerType.ArrowClosed,
+              color: '#6B7280',
+              width: 20,
+              height: 20,
+            },
             zIndex: 10,
           })
         }
@@ -1089,6 +1108,12 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '3,3', opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
             labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            markerStart: {
+              type: MarkerType.ArrowClosed,
+              color: '#6B7280',
+              width: 20,
+              height: 20,
+            },
             zIndex: 10,
           })
         }

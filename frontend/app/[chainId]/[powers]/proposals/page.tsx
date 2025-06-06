@@ -6,21 +6,23 @@ import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { useBlockNumber } from "wagmi";
 import { Button } from "@/components/Button";
-import { Powers } from "@/context/types";
+import { Action, InputType, Law, Powers } from "@/context/types";
+import { setError } from "@/context/store";
+import { useChecks } from "@/hooks/useChecks";
+import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
   const { powers, fetchPowers, fetchProposals, status } = usePowers()
   const { data:blockNumber } = useBlockNumber()
-
-  // console.log("@status: ", status, blockNumber)
+  const { fetchChainChecks } = useChecks(powers as Powers)
+  const { wallets } = useWallets()
 
   useEffect(() => {
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [addressPowers, fetchPowers])
-
-  // powers && powers.proposalsBlocksFetched && console.log("@proposals: waypoint 1", powers?.proposalsBlocksFetched.from, powers?.proposalsBlocksFetched.to)
 
   return (
     <main className="w-full h-fit flex flex-col justify-start items-center py-20 ps-2 pe-12">

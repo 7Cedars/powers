@@ -28,12 +28,25 @@ const roleColour = [
   "border-slate-600",
 ]
 
-export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law?: Law, checks?: Checks, status: Status, wallets?: ConnectedWallet[]}) {
+export function ProposalBox({
+  powers, 
+  law, 
+  checks, 
+  status, 
+  onCheck, 
+  proposalStatus
+}: {
+  powers?: Powers, 
+  law?: Law, 
+  checks?: Checks, 
+  status: Status, 
+  onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void, 
+  proposalStatus: number,
+}) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
-  const [proposalStatus, setProposalStatus] = useState<number>(6);
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
@@ -51,22 +64,6 @@ export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law
     }
   };
 
-  const checkProposalStatus = useCallback(
-    async (law: Law, action: Action) => {
-      try {
-        const state =  await readContract(wagmiConfig, {
-                abi: powersAbi,
-                address: law.powers as `0x${string}`,
-                functionName: 'state', 
-                args: [action.actionId],
-              })
-        setProposalStatus(Number(state)) 
-      } catch (error) {
-        setProposalStatus(6)
-      }
-  }, [law, action])
-
-
   useEffect(() => {
     if (action.actionId && wallets.length > 0) {
       simulate(
@@ -81,8 +78,6 @@ export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law
           wallets[0].address as `0x${string}`,
           powers as Powers
         )
-
-        checkProposalStatus(law as Law, action)
       }
   }, [action, wallets])
 
@@ -100,11 +95,6 @@ export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law
   return (
     <main className="w-full flex flex-col justify-start items-center">
       <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
-      {status == "pending" || status == "idle" ?
-      <div className = "w-full flex flex-col justify-center items-center p-2"> 
-        <LoadingBox />
-      </div>
-      :
       <>
       {/* title  */}
       <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
@@ -159,11 +149,28 @@ export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law
         </div>
       </form>
 
+      <div className="w-full flex flex-row justify-center items-center p-6 py-2">
+      <Button 
+            size={1} 
+            showBorder={true} 
+            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+            filled={false}
+            selected={true}
+            onClick={() => 
+              onCheck(law as Law, action, wallets, powers as Powers)
+            } 
+            statusButton={
+                action.uri && action.uri.length > 0 ? status : 'disabled'
+              }> 
+            Check 
+          </Button>
+      </div>
+
       {law && simulation && <SimulationBox simulation = {simulation} law = {law as Law}/> } 
 
       {/* execute button */}
         <div className="w-full h-fit p-6">
-          { proposalStatus == 3 || proposalStatus == 4 || proposalStatus == 5 ?  
+          { proposalStatus != 0 ?  
               <div className = "w-full flex flex-row justify-center items-center gap-2 text-slate-400"> 
                 Vote has closed  
               </div>
@@ -229,7 +236,6 @@ export function ProposalBox({powers, law, checks, status}: {powers?: Powers, law
           }
         </div>
       </>
-      }
       </section>
     </main>
   );

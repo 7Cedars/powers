@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Action, Roles, Checks } from '../context/types'
+import { Action, Roles, Checks, Status } from '../context/types'
 
 type ActionStore = Action;
 const initialStateAction: ActionStore = {
@@ -35,6 +35,16 @@ type ChecksStore = {
 
 const initialStateChecks: ChecksStore = {
   chainChecks: new Map()
+}
+
+type ChecksStatusStore = {
+  status: Status
+  chains: string[]
+}
+
+const initialStateChecksStatus: ChecksStatusStore = {
+  status: 'idle',
+  chains: []
 }
 
 // Action Store
@@ -84,4 +94,14 @@ export const updateLawChecks = (lawId: string, checks: Checks) => {
 
 export const clearChainChecks = () => {
   useChecksStore.setState(initialStateChecks)
+}
+
+// Checks Status Store
+export const useChecksStatusStore = create<ChecksStatusStore>()(() => initialStateChecksStatus);
+
+export const setChecksStatus: typeof useChecksStatusStore.setState = (status) => {
+  useChecksStatusStore.setState(status)
+}
+export const deleteChecksStatus: typeof useChecksStatusStore.setState = () => {
+  useChecksStatusStore.setState(initialStateChecksStatus)
 }

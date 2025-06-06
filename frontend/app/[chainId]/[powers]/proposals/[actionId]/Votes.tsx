@@ -55,6 +55,7 @@ export const Votes = ({action, powers, status: statusPowers}: {action: Action, p
 
   useEffect(() => {
     if (action && powers) {
+      console.log("@Votes: waypoint 1, get proposal state called", {action, powers})
       getProposalsState(powers as Powers)
     }
   }, [action, powers])

@@ -212,6 +212,9 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
     throw new Error('@parseVoteData: data not correct length.');
   }
   const dataTypes = data.map(item => item as UseReadContractsReturnType) 
+
+  console.log("@parseVoteData: waypoint 0", {dataTypes})
+  
   let votes: number[]
   let holders: number 
   let deadline: number 

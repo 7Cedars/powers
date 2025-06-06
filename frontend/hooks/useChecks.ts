@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
 import { getConstants } from "@/context/constants";
-import { setChainChecks } from "@/context/store";
+import { setChainChecks, setChecksStatus } from "@/context/store";
 
 export const useChecks = (powers: Powers) => {
   const { chainId } = useParams<{ chainId: string }>()
@@ -224,6 +224,7 @@ export const useChecks = (powers: Powers) => {
   const fetchChainChecks = useCallback(
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       const chainLaws = calculateDependencies(lawId, powers)
+      setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
       const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
 
       const checksMap = new Map<string, Checks>()
@@ -238,10 +239,12 @@ export const useChecks = (powers: Powers) => {
           }
   
         setChainChecks(checksMap)
+        setChecksStatus({status: "success", chains: Array.from(chainLaws)})
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch law checks')
       } finally {
+        setChecksStatus({status: "success", chains: Array.from(chainLaws)})
         setStatus("success")
       }
     }
