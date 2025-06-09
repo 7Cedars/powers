@@ -61,15 +61,8 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
     router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
   }
 
-  // useEffect(() => {
-  //   if (actionData && actionData.lawId != undefined && actionData.actionId != "0" && statusAction == "success") {
-  //     console.log("@LogsList: waypoint 1, actionData", {actionData, powers})
-  //     router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(actionData.lawId)}`)
-  //   }
-  // }, [actionData, statusAction])
-
   return (
-    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 rounded-md overflow-y-scroll">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* table banner:roles  */}
       <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-6 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
@@ -99,72 +92,113 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
         </div>
       </div>
 
-      {/* table laws  */}
-      <div className="w-full overflow-scroll">
+      {/* Table content */}
       {status == "pending" ? 
-      <div className="w-full h-full min-h-fit flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-        <LoadingBox /> 
-      </div>
-      : 
-      <table className="w-full table-auto">
-      <thead className="w-full border-b border-slate-200">
-            <tr className="w-96 text-xs font-light text-left text-slate-500">
-                <th className="ps-6 py-2 font-light rounded-tl-md"> Executed at </th>
-                <th className="font-light "> Law </th>
-                <th className="font-light min-w-44"> Action ID </th>
-                <th className="font-light"> Role </th>
-            </tr>
-        </thead>
-        <tbody className="w-full text-sm text-right text-slate-500 divide-y divide-slate-200">
-          {
-            executedActions?.map((action: Action, i) => {
-              const law = powers?.laws?.find(law => Number(law.index) == Number(action.lawId))
-              return (
-                law && 
-                law.conditions?.allowedRole != undefined && 
-                !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`))
-                ? 
-                <tr
-                  key={i}
-                  className={`text-sm text-left text-slate-800 h-full w-full p-2 overflow-x-scroll`}
-                >
-                  {/* Executed at */}
-                  <td className="pe-4 min-w-48 py-3 px-4">
-                      <Button
-                        showBorder={true}
-                        role={parseRole(law.conditions?.allowedRole)}
-                        onClick={() => handleSelectAction(action)}
-                        align={0}
-                        selected={true}
-                      > 
-                        <div className="flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {`${toFullDateFormat(Number(timestamps.get(`${chainId}:${action.executedAt}`)?.timestamp))}: ${toEurTimeFormat(Number(timestamps.get(`${chainId}:${action.executedAt}`)?.timestamp))}`}
-                        </div>
-                      </Button>
-                  </td>
-                  
-                  {/* Law */}
-                  <td className="pe-4 text-slate-500 min-w-56">{shorterDescription(law.nameDescription, "short")}</td>
-                  
-                  {/* Action ID */}
-                  <td className="pe-4 text-slate-500 min-w-48">
-                    {action.actionId.toString().length > 10 ? action.actionId.toString().slice(0, 10) + "..." : action.actionId.toString()  }
-                  </td>
+        <div className="w-full flex flex-col justify-center items-center p-6">
+          <LoadingBox /> 
+        </div>
+        : 
+        powers?.executedActions && powers?.executedActions.length > 0 ? 
+          <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="px-2 py-3 font-light w-32"> Date </th>
+                    <th className="px-2 py-3 font-light w-auto"> Law </th>
+                    <th className="px-2 py-3 font-light w-24"> Action ID </th>
+                    <th className="px-2 py-3 font-light w-20"> Role </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {
+                    executedActions?.map((action: Action, i) => {
+                      const law = powers?.laws?.find(law => Number(law.index) == Number(action.lawId))
+                      return (
+                        law && 
+                        law.conditions?.allowedRole != undefined && 
+                        !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`))
+                        ? 
+                        <tr
+                          key={i}
+                          className="text-sm text-left text-slate-800"
+                        >
+                          {/* Executed at */}
+                          <td className="px-2 py-3 w-32">
+                            <Button
+                              showBorder={true}
+                              role={parseRole(law.conditions?.allowedRole || 0n)}
+                              onClick={() => handleSelectAction(action)}
+                              align={0}
+                              selected={true}
+                              filled={false}
+                              size={0}
+                            > 
+                              <div className="text-xs whitespace-nowrap py-1 px-1">
+                                {(() => {
+                                  // Ensure consistent block number format for lookup
+                                  const executedAtBlock = typeof action.executedAt === 'bigint' 
+                                    ? action.executedAt 
+                                    : BigInt(action.executedAt as unknown as string)
+                                  
+                                  const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
+                                  const timestamp = timestampData?.timestamp
+                                  
+                                  if (!timestamp || timestamp <= 0n) {
+                                    return 'Loading...'
+                                  }
+                                  
+                                  const timestampNumber = Number(timestamp)
+                                  if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                    return 'Invalid date'
+                                  }
+                                  
+                                  try {
+                                    return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                                  } catch (error) {
+                                    console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                    return 'Date error'
+                                  }
+                                })()}
+                              </div>
+                            </Button>
+                          </td>
+                          
+                          {/* Law */}
+                          <td className="px-2 py-3 w-auto">
+                            <div className="truncate text-slate-500 text-xs">
+                              {shorterDescription(law.nameDescription, "short")}
+                            </div>
+                          </td>
+                          
+                          {/* Action ID */}
+                          <td className="px-2 py-3 w-24">
+                            <div className="truncate text-slate-500 text-xs font-mono">
+                              {action.actionId.toString()}
+                            </div>
+                          </td>
 
-                  {/* Role */}
-                  <td className="pe-4 min-w-20 text-slate-500">
-                    {bigintToRole(law.conditions?.allowedRole, powers as Powers)}
-                  </td>
-                </tr>
-                : 
-                null
-              )
-            }
-          )}
-        </tbody>
-        </table>
+                          {/* Role */}
+                          <td className="px-2 py-3 w-20">
+                            <div className="truncate text-slate-500 text-xs">
+                              {bigintToRole(law.conditions?.allowedRole, powers as Powers)}
+                            </div>
+                          </td>
+                        </tr>
+                        : 
+                        null
+                      )
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No recent executions found
+        </div>
       }
-      </div>
     </div>
   );
 } 
