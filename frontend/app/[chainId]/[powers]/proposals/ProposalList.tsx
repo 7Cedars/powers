@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { setAction, setRole, useRoleStore  } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useRouter, useParams } from "next/navigation";
-import { Powers, Proposal } from "@/context/types";
+import { Powers, Action } from "@/context/types";
 import { parseProposalStatus, parseRole, shorterDescription } from "@/utils/parsers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
@@ -18,33 +18,37 @@ import { useChecks } from "@/hooks/useChecks";
 export function ProposalList({powers, status}: {powers: Powers | undefined, status: string}) {
   const router = useRouter();
   const {getProposalsState} = useProposal()
-  const {deselectedRoles} = useRoleStore()
+  const { deselectedRoles } = useRoleStore()
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
   const { timestamps, fetchTimestamps } = useBlocks()
   
-
-  console.log("@proposalList, powers?.proposals: ", powers?.proposals)
-
   useEffect(() => {
     if (powers) {
       getProposalsState(powers)
     }
   }, [powers])
 
+  console.log("@ProposalList: waypoint 0", {powers, timestamps})
+
   useEffect(() => {
-    if (powers) {
-      const blocks = powers?.proposals?.map(proposal => proposal.voteEnd)
+    if (powers?.proposals) {
+      // Ensure consistent block number handling - convert to bigint for both storage and lookup
+      const blocks = powers?.proposals?.map(proposal => {
+        // Handle different possible types for voteEnd
+        const voteEndValue = typeof proposal.voteEnd === 'bigint' 
+          ? proposal.voteEnd 
+          : BigInt(proposal.voteEnd as unknown as string)
+        return voteEndValue
+      }).filter(block => block !== undefined)
+      
+      console.log("@ProposalList: waypoint 1", {blocks})
       if (blocks && blocks.length > 0) {
-        fetchTimestamps(blocks, chainId)
+        fetchTimestamps(blocks as bigint[], chainId)
       }
     }
-  }, [, powers, chainId])
-
-  const blocks = powers?.proposals?.map(proposal => proposal.voteEnd)
-  console.log("@proposalList, blocks: ", blocks)
-  console.log("@proposalList, timestamps: ", timestamps.get(`${chainId}:${blocks ? blocks[0] : 0}`)?.timestamp)
+  }, [powers?.proposals])
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -122,14 +126,22 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
             <tr className="w-96 text-xs font-light text-left text-slate-500">
                 <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
                 <th className="font-light"> Law </th>
-                <th className="font-light"> Uri Description </th>
                 <th className="font-light"> Status </th>
+                <th className="font-light min-w-48"> Description </th>
                 <th className="font-light"> Role </th>
             </tr>
         </thead>
         <tbody className="w-full text-sm text-right text-slate-500 divide-y divide-slate-200">
           {
-            powers?.proposals?.map((proposal: Proposal, i) => {
+            powers?.proposals
+              ?.slice() // Create a copy to avoid mutating the original array
+              ?.sort((a: Action, b: Action) => {
+                // Sort by voteEnd in descending order (newest first)
+                const aVoteEnd = typeof a.voteEnd === 'bigint' ? a.voteEnd : BigInt(a.voteEnd as unknown as string)
+                const bVoteEnd = typeof b.voteEnd === 'bigint' ? b.voteEnd : BigInt(b.voteEnd as unknown as string)
+                return aVoteEnd > bVoteEnd ? -1 : aVoteEnd < bVoteEnd ? 1 : 0
+              })
+              ?.map((proposal: Action, i) => {
               const law = powers?.laws?.find(law => law.index == proposal.lawId)
               // console.log("timeStamp: ", proposal.voteStartBlockData?.timestamp)
               return (
@@ -152,20 +164,46 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                         align={0}
                         selected={true}
                       > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center">
-                          {`${toFullDateFormat(Number(timestamps.get(`${chainId}:${proposal.voteEnd}`)?.timestamp))}: ${toEurTimeFormat(Number(timestamps.get(`${chainId}:${proposal.voteEnd}`)?.timestamp))}`}
+                          {(() => {
+                            // Ensure consistent block number format for lookup
+                            const voteEndBlock = typeof proposal.voteEnd === 'bigint' 
+                              ? proposal.voteEnd 
+                              : BigInt(proposal.voteEnd as unknown as string)
+                            
+                            const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                            const timestamp = timestampData?.timestamp
+                            
+                            if (!timestamp || timestamp <= 0n) {
+                              return 'Loading...'
+                            }
+                            
+                            const timestampNumber = Number(timestamp)
+                            if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                              return 'Invalid date'
+                            }
+                            
+                            try {
+                              return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                            } catch (error) {
+                              console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                              return 'Date error'
+                            }
+                          })()}
                         </div>
                       </Button>
                   </td>
                   <td className="pe-4 text-slate-500 min-w-56">{shorterDescription(law.nameDescription, "short")}</td>
-                  <a 
-                    href={proposal.description}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pe-4 text-slate-500 min-w-48">{
-                    proposal.description.length > 30 ? `${proposal.description.slice(0, 30)}...` : proposal.description
-                  }
-                  </a>
                   <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
+                  <td className="pe-4 text-slate-500 min-w-fit">
+                    <a 
+                      href={proposal.description}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="pe-4 text-slate-500 min-w-fit">{
+                      proposal.description.length > 30 ? `${proposal.description.slice(0, 30)}...` : proposal.description
+                    }
+                    </a>
+                  </td>
                   <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions?.allowedRole, powers)}
                   </td>
                 </tr>

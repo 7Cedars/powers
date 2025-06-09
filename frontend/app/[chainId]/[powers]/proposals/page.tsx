@@ -6,17 +6,12 @@ import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { useBlockNumber } from "wagmi";
 import { Button } from "@/components/Button";
-import { Action, InputType, Law, Powers } from "@/context/types";
-import { setError } from "@/context/store";
-import { useChecks } from "@/hooks/useChecks";
-import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+import { Powers } from "@/context/types";
 
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
   const { powers, fetchPowers, fetchProposals, status } = usePowers()
   const { data:blockNumber } = useBlockNumber()
-  const { fetchChainChecks } = useChecks(powers as Powers)
-  const { wallets } = useWallets()
 
   useEffect(() => {
     if (addressPowers) {

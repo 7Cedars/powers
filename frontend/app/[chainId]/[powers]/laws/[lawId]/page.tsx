@@ -12,19 +12,18 @@ import { useParams } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
 import { Executions } from "./Executions";
 import { useChecks } from "@/hooks/useChecks";
+import { LawLink } from "@/components/LawLink";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
   const action = useActionStore();
   const { chainChecks } = useChecksStore();
-
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
-  
-  const { powers, fetchPowers, checkSingleLaw, status: statusPowers } = usePowers()
-  const { fetchChainChecks } = useChecks(powers as Powers)
+  const { powers, fetchPowers, status: statusPowers } = usePowers() 
+  const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
-  const law = powers?.laws?.find(law => law.index == BigInt(lawId))
-  
+  const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
+  console.log("@Law page: waypoint 1", {law})
   // Get checks for this specific law from Zustand store
   const checks = law && chainChecks ? chainChecks.get(String(law.index)) : undefined
   
@@ -33,6 +32,7 @@ const Page = () => {
     executions, 
     errorUseLaw, 
     checks, 
+    powers,
     law: law ? { index: law.index, nameDescription: law.nameDescription } : null, 
     statusLaw, 
     action, 
@@ -51,11 +51,11 @@ const Page = () => {
   })
   
   useEffect(() => {
-    if (!powers) {
-      // console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
+    if (addressPowers) {
+      console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
       fetchPowers(addressPowers as `0x${string}`)
     }
-  }, [powers])
+  }, [addressPowers])
 
  
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
@@ -81,12 +81,13 @@ const Page = () => {
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
         // console.log("Handle Simulate waypoint 3b")
         setAction({
+          ...action,
           lawId: law.index,
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
           paramValues: paramValues,
           nonce: nonce.toString(),
-          uri: description,
+          description: description,
           callData: lawCalldata,
           upToDate: true
         })
@@ -202,12 +203,9 @@ const Page = () => {
         </div>
 
         {/* right panel: info boxes should only reads from zustand.  */}
-        <div className="w-full flex flex-col justify-start items-center ps-4 pe-12"> 
-          <div className="w-full max-h-fit py-1 grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md">
-            <Executions lawExecutions = {executions} law = {law} status = {statusLaw}/>
-          </div>
-        </div>
-        
+        <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
+          {law && <Executions roleId = {law.conditions?.allowedRole as bigint} lawExecutions = {executions} powers = {powers} status = {statusLaw}/>}
+        </div>        
     </main>
   )
 

@@ -2,15 +2,12 @@
 
 import { powersAbi } from "@/context/abi";
 import { parseChainId, parseVoteData } from "@/utils/parsers";
-import { Action, Powers, Proposal, Status } from "@/context/types";
+import { Action, Powers, Status } from "@/context/types";
 import { CheckIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import { useBlockNumber, useChains, useReadContracts } from "wagmi";
-import { blocksToHoursAndMinutes } from "@/utils/toDates";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 import { getConstants } from "@/context/constants";
-import { useProposal } from "@/hooks/useProposal";
-import { useEffect } from "react";
 
 export const Votes = ({action, powers, status: statusPowers}: {action: Action, powers: Powers | undefined, status: Status}) => {
   // console.log("@Votes: waypoint 0", {proposal, powers})
@@ -21,11 +18,10 @@ export const Votes = ({action, powers, status: statusPowers}: {action: Action, p
   const supportedChain = chains.find(chain => chain.id === parseChainId(chainId))
   const law = action?.lawId ? powers?.laws?.find(law => law.index == action?.lawId) : undefined
   const constants = getConstants(parseChainId(chainId) as number)
-  const { proposalsState, getProposalsState } = useProposal()
 
   // I try to avoid fetching in info blocks, but we do not do anything else with this data: only for viewing purposes.. 
   const powersContract = {
-    address: powers?.contractAddress,
+    address: powers?.contractAddress, 
     abi: powersAbi,
   } as const
   const { isSuccess, status, data } = useReadContracts({
@@ -53,12 +49,7 @@ export const Votes = ({action, powers, status: statusPowers}: {action: Action, p
     ]
   })
 
-  useEffect(() => {
-    if (action && powers) {
-      console.log("@Votes: waypoint 1, get proposal state called", {action, powers})
-      getProposalsState(powers as Powers)
-    }
-  }, [action, powers])
+  console.log("@Votes: waypoint 0", {data})
   
   const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
   const init = 0
@@ -72,9 +63,9 @@ export const Votes = ({action, powers, status: statusPowers}: {action: Action, p
   console.log("@Votes: waypoint 1", {votes, quorum, threshold, deadline, isSuccess, action})
 
   return (
-      <div className="w-full h-fit flex flex-col gap-3 justify-start items-center bg-slate-50 border slate-300 rounded-md">
-      <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
-        <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900">
+      <div className="w-full h-fit flex flex-col gap-3 justify-start items-center bg-slate-50">
+      <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600 border border-slate-300 rounded-md overflow-hidden" > 
+        <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900 bg-slate-100">
           <div className="text-left w-52">
             Votes
           </div> 
@@ -85,7 +76,7 @@ export const Votes = ({action, powers, status: statusPowers}: {action: Action, p
           <LoadingBox />
         </div>  
         :
-        <div className = "w-full h-full flex flex-col lg:min-h-fit overflow-x-scroll divide-y divide-slate-300 max-h-36 lg:max-h-full overflow-y-scroll">
+        <div className = "w-full h-full flex flex-col lg:min-h-fit overflow-x-scroll divide-y divide-slate-300 max-h-full overflow-y-scroll">
         
         {/* Proposal state block */}
         <div className = "w-full flex flex-col justify-center items-center p-4 py-3"> 

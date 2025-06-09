@@ -6,7 +6,7 @@ const initialStateAction: ActionStore = {
   actionId: "0",
   lawId: 0n,
   caller: `0x0`,
-  uri: "",
+  description: "",
   dataTypes: [],
   paramValues: [],
   nonce: "0",

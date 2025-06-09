@@ -12,11 +12,12 @@ import { readContract } from 'wagmi/actions'
 import { wagmiConfig } from '@/context/wagmiConfig'
 import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
-import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
+import { ArrowUpRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
 import { MyProposals } from './MyProposals'
 import { MyRoles } from './MyRoles'
 import { Logs } from './Logs'
+import { Powers } from '@/context/types'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
@@ -116,6 +117,18 @@ export default function FlowPage() {
       <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
         {powers?.name}
       </div>
+
+      {/* Reload button */}
+      <button
+        onClick={() => addressPowers && fetchLawsAndRoles(powers as Powers)}
+        className="absolute top-4 left-4 p-2 rounded-md bg-slate-50/25 hover:bg-slate-100/90 border border-slate-300/50 shadow-sm transition-all duration-200 backdrop-blur-sm"
+        title="Reload powers data"
+        disabled={statusPowers === "pending"}
+      >
+        <ArrowPathIcon 
+          className={`w-4 h-4 text-slate-700 ${statusPowers === "pending" ? 'animate-spin' : ''}`}
+        />
+      </button>
     </section>
     
     {/* Description + link to powers protocol deployment */}  

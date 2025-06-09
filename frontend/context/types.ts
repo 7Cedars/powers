@@ -24,6 +24,7 @@ export type LawExecutions = {
   executions: bigint[] 
 }
 
+// If possible, remove this type. 
 export type PowersExecutions = {
   lawId: bigint, 
   actionId: bigint, 
@@ -137,10 +138,9 @@ export type Powers = {
   lawCount?: bigint;
   laws?: Law[];
   activeLaws?: Law[];
-  proposals?: Proposal[];
+  proposals?: Action[];
   proposalsBlocksFetched?: BlockRange;
-  executedActions?: PowersExecutions[];
-  executedActionsBlocksFetched?: BlockRange;
+  executedActions?: LawExecutions[]; // executions per law. 
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   deselectedRoles?: bigint[];
@@ -158,7 +158,7 @@ export type Roles = {
   roleId: bigint;
   holders?: number;
   laws?: Law[];
-  proposals?: Proposal[];
+  proposals?: Action[];
   roles?: Role[];
 };
 
@@ -179,37 +179,50 @@ export type Checks = {
 export type Action = {
   actionId: string;
   lawId: bigint;
-  caller: `0x${string}`;
+  caller?: `0x${string}`;
   dataTypes: DataType[] | undefined;
   paramValues: (InputType | InputType[])[] | undefined;
   nonce: string;
-  uri: string;
+  description: string;
   callData: `0x${string}`;
   upToDate: boolean;
-}
-
-export type Proposal = {
-  actionId: string;
-  action?: Action;
-  caller: `0x${string}`;
-  lawId: bigint;
-  nonce: string;
-  voteStart: bigint;
-  voteDuration: bigint;
-  voteEnd: bigint;
-  calldata: `0x${string}`;
-  executeCalldata: `0x${string}`;
-  voteStartBlockData?: GetBlockReturnType;
-  description: string;
-  cancelled: boolean;
-  completed: boolean;
+  state?: number;
+  voteStart?: bigint;
+  voteDuration?: bigint;
+  voteEnd?: bigint;
   againstVotes?: bigint;
   forVotes?: bigint;
   abstainVotes?: bigint;
-  state?: number;
-  blockNumber: bigint;
-  blockHash?: `0x${string}`;
+  executedAt?: bigint;
+  cancelled?: boolean;
+  requested?: boolean;
+  fulfilled?: boolean;
 }
+
+export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">
+
+// export type Proposal = {
+//   actionId: string;
+//   action?: Action;
+//   caller?: `0x${string}`;
+//   lawId: bigint;
+//   nonce: string;
+//   voteStart: bigint;
+//   voteDuration: bigint;
+//   voteEnd: bigint;
+//   calldata: `0x${string}`;
+//   executeCalldata: `0x${string}`;
+//   voteStartBlockData?: GetBlockReturnType;
+//   description: string;
+//   cancelled: boolean;
+//   completed: boolean;
+//   againstVotes?: bigint;
+//   forVotes?: bigint;
+//   abstainVotes?: bigint;
+//   state?: number;
+//   blockNumber: bigint;
+//   blockHash?: `0x${string}`;
+// }
 
 export type ProtocolEvent = {
   address: `0x${string}`;

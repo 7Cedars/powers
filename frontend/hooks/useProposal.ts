@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { powersAbi } from "../context/abi";
-import { Powers, Proposal, Status } from "../context/types";
+import { Powers, Action, Status } from "../context/types";
 import { simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { readContract } from "wagmi/actions";
@@ -40,13 +40,16 @@ export const useProposal = () => {
   
   // Status //
   const getProposalsState = async (powers: Powers) => {
-    let proposal: Proposal
-    let oldProposals: Proposal[] = powers.proposals || []
-    let newProposals: Proposal[] = []
+    console.log("@getProposalsState: waypoint 0", {powers})
+    let proposal: Action
+    let oldProposals: Action[] = powers.proposals || []
+    let newProposals: Action[] = []
     let state: {
       actionId: string,
       state: number
     }[] = []
+
+    console.log("@getProposalsState: waypoint 1", {oldProposals})
 
     if (publicClient && powers.proposals) {
       try {
@@ -64,9 +67,11 @@ export const useProposal = () => {
             }
           }
           newProposals.push(proposal)
+          console.log("@getProposalsState: waypoint 2", {proposal})
         } 
         savePowers({...powers, proposals: newProposals})
         setProposalsState(state)
+        console.log("@getProposalsState: waypoint 3", {state})
       } catch (error) {
         setStatus("error") 
         setError(error)

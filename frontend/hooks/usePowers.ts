@@ -1,4 +1,4 @@
-import { Status, Proposal, Powers, Law, Metadata, RoleLabel, Conditions, LawExecutions, BlockRange, Role, PowersExecutions } from "../context/types"
+import { Status, Action, Powers, Law, Metadata, RoleLabel, Conditions, LawExecutions, BlockRange, Role, PowersExecutions } from "../context/types"
 import { wagmiConfig } from '../context/wagmiConfig'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "@/context/abi";
@@ -12,6 +12,8 @@ export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [powers, setPowers] = useState<Powers | undefined>() 
+  const [isInitializing, setIsInitializing] = useState(false)
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
   const { chainId, powers: address } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId), 
@@ -177,7 +179,7 @@ export const usePowers = () => {
               index: lawId,
               active: lawFetchedTyped[2] as unknown as boolean
             })
-            // console.log("@checkLaws, waypoint 3", {fetchedLaws})  
+            console.log("@checkLaws, waypoint 3", {fetchedLaws})  
           } catch (error) {
             console.log("@checkLaws, waypoint 3", {error})
             setStatus("error")
@@ -284,8 +286,9 @@ export const usePowers = () => {
       setStatus("error")
       setError(error)
     }
-
+    console.log("@fetchLawsAndRoles, waypoint 0", {laws, roles, roleLabels, error})
     if (laws && roles && roleLabels) {
+      console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
         laws: laws, 
         activeLaws: laws.filter((law: Law) => law.active),
@@ -295,21 +298,23 @@ export const usePowers = () => {
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
+      return powersUpdated
     }
+    return powers // Return original powers if update failed
   }
   
-  const fetchProposals = async (powers: Powers, maxRuns: bigint, chunkSize: bigint) => {
+  const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
-    setStatus("pending")
 
-    if (!publicClient || !currentBlock) {
+    if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
-      setError("No public client or current block")
+      setError("No public client, current block, or powers data")
+      return powers
     } else {
       // Initialize arrays to collect results
-      let proposalsFetched: Proposal[] = powers.proposals || [];
+      let proposalsFetched: Action[] = powers?.proposals || []; // Start with existing proposals
      
-      let distance = powers.proposalsBlocksFetched ? BigInt(Number(currentBlock) - Number(powers.proposalsBlocksFetched?.to)) : BigInt(Number(chunkSize) * Number(maxRuns))
+      let distance = powers?.proposalsBlocksFetched ? BigInt(Number(currentBlock) - Number(powers?.proposalsBlocksFetched?.to)) : BigInt(Number(chunkSize) * Number(maxRuns))
       if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) {
         distance = BigInt(Number(chunkSize) * Number(maxRuns))
       }
@@ -332,7 +337,7 @@ export const usePowers = () => {
         try { 
           // Fetch events for the current chunk
           const logs = await publicClient.getContractEvents({ 
-            address: powers.contractAddress as `0x${string}`,
+            address: powers?.contractAddress as `0x${string}`,
             abi: powersAbi, 
             eventName: 'ProposedActionCreated',
             fromBlock: chunkFrom,
@@ -345,7 +350,7 @@ export const usePowers = () => {
             logs
           });
 
-          let newProposals: Proposal[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Proposal);
+          let newProposals: Action[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Action);
           // but with typing of nonce and actionId as string
           newProposals = newProposals.map(proposal => { 
             return {
@@ -354,125 +359,97 @@ export const usePowers = () => {
               nonce: String(proposal.nonce)
             }
           })
-          // add fetched proposals to the array
+          // Append new proposals to the accumulated array
           proposalsFetched = [...proposalsFetched, ...newProposals]
           } catch (error) {
             setStatus("error")
             setError(error)
+            return powers
           }
           i = i + Number(chunkSize)
         }
         
-        const sortedProposals = proposalsFetched.sort((a: Proposal, b: Proposal) => a.voteStart > b.voteStart ? -1 : 1);
-        // console.log("@fetchProposals, waypoint 2", {sortedProposals})
+        // Remove duplicates based on actionId and nonce
+        const uniqueProposals = proposalsFetched.filter((proposal, index, self) => 
+          index === self.findIndex(p => p.actionId === proposal.actionId && p.nonce === proposal.nonce)
+        )
         
-          powersUpdated = { ...powers, 
-            proposals: sortedProposals, 
+        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart > b.voteStart ? -1 : 1);
+        
+          powersUpdated = { ...powers as Powers, 
+            proposals: uniqueProposals, // Use deduplicated proposals
             proposalsBlocksFetched: { 
-              from: powers.proposalsBlocksFetched?.from ? 
-                powers.proposalsBlocksFetched.from : // note: from is only saved once, and is never updated.  
+              from: powers?.proposalsBlocksFetched?.from ? 
+                powers?.proposalsBlocksFetched.from : // note: from is only saved once, and is never updated.  
                 blockFrom, 
               to: chunkTo 
             }
           }
           setPowers(powersUpdated)
           savePowers(powersUpdated)
-          setStatus("success")
+          return powersUpdated
       }
+      return powers
   }
   
-  const fetchExecutedActions = async (powers: Powers, maxRuns: bigint, chunkSize: bigint) => {
+  const fetchExecutedActions = async (powers: Powers) => {
     let powersUpdated: Powers | undefined;
-    setStatus("pending")
+    
+    let law: Law
+    let laws = powers.laws || []
+    let executedActions: LawExecutions[] = []
 
-    if (!publicClient || !currentBlock) {
-      setStatus("error")
-      setError("No public client or current block")
-    } else {
-      // Initialize arrays to collect results
-      let executedActionsFetched: PowersExecutions[] = powers.executedActions || [];
-     
-      let distance = powers.executedActionsBlocksFetched ? BigInt(Number(currentBlock) - Number(powers.executedActionsBlocksFetched?.to)) : BigInt(Number(chunkSize) * Number(maxRuns))
-      if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) {
-        distance = BigInt(Number(chunkSize) * Number(maxRuns))
+    try {
+      for (law of laws) {
+        console.log("@fetchExecutedActions, waypoint 0", {law})
+
+        const executedActionsFetched = await readContract(wagmiConfig, {
+          abi: lawAbi,
+          address: law.lawAddress as `0x${string}`,
+          functionName: 'getExecutions',
+          args: [law.powers, law.index]
+        })
+        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
+        executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
-      const blockFrom = currentBlock - distance
-
-      // Fetch blocks in chunks with pagination
-      let chunkFrom: bigint = 0n
-      let chunkTo: bigint = 0n
-  
-      // check if we reached the end of the distance or max runs
-      // if so, save here everything to disc.  
-      let i = 0
-      while (distance > i) {
-        // calculate chunk boundaries
-        chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
-        chunkTo = (chunkFrom + chunkSize) > currentBlock ? currentBlock : (chunkFrom + chunkSize)
-        
-        try { 
-          // Fetch events for the current chunk
-          const logs = await publicClient.getContractEvents({ 
-            address: powers.contractAddress as `0x${string}`,
-            abi: powersAbi, 
-            eventName: 'ActionExecuted',
-            fromBlock: chunkFrom,
-            toBlock: chunkTo
-          })
-          console.log("@fetchExecutedActions, waypoint 0", {logs})
-          const fetchedLogs = parseEventLogs({
-            abi: powersAbi,
-            eventName: 'ActionExecuted',
-            logs
-          });
-          console.log("@fetchExecutedActions, waypoint 1", {fetchedLogs})
-
-          let newExecutedActions: PowersExecutions[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as PowersExecutions);
-          // but with typing of actionId as string
-          newExecutedActions = newExecutedActions.map(action => { 
-            return {
-              ...action,  
-              actionId: BigInt(action.actionId),
-              blockNumber: BigInt(action.blockNumber),
-              blockHash: action.blockHash as `0x${string}`
-            }
-          })
-          // add fetched executed actions to the array
-          executedActionsFetched = [...executedActionsFetched, ...newExecutedActions]
+      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
+      powersUpdated = { ...powers, executedActions: executedActions }
+      setPowers(powersUpdated)
+      powersUpdated && savePowers(powersUpdated)
+      return powersUpdated
           } catch (error) {
             setStatus("error")
             setError(error)
-          }
-          i = i + Number(chunkSize)
-        }
-        
-        const sortedExecutedActions = executedActionsFetched.sort((a: PowersExecutions, b: PowersExecutions) => a.actionId > b.actionId ? -1 : 1);
-        
-        powersUpdated = { ...powers, 
-          executedActions: sortedExecutedActions, 
-          executedActionsBlocksFetched: { 
-            from: powers.executedActionsBlocksFetched?.from ? 
-              powers.executedActionsBlocksFetched.from : // note: from is only saved once, and is never updated.  
-              blockFrom, 
-            to: chunkTo 
-          }
-        }
-        setPowers(powersUpdated)
-        savePowers(powersUpdated)
-        setStatus("success")
+        return powers
       }
   }
   
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
-      if (status == "pending") {
+      // Prevent multiple simultaneous calls
+      if (status === "pending" || isInitializing) {
+        console.log("@fetchPowers: Already fetching, skipping...")
         return
       }
+      
+      // Add cooldown to prevent rapid successive calls (minimum 5 seconds between calls)
+      const now = Date.now()
+      const timeSinceLastFetch = now - lastFetchTime
+      if (timeSinceLastFetch < 5000) {
+        console.log("@fetchPowers: Cooldown active, skipping...", { timeSinceLastFetch })
+        return
+      }
+      
+      setIsInitializing(true)
+      setLastFetchTime(now)
       setStatus("pending")
 
       let powersToBeUpdated: Powers | undefined = undefined
       let updatedData: Powers | undefined = undefined
       let updatedMetaData: Powers | undefined = undefined
+      let updatedLaws: Powers | undefined = undefined
+      let updatedProposals: Powers | undefined = undefined
+      let updatedExecutedActions: Powers | undefined = undefined
       let localStore = localStorage.getItem("powersProtocols")
       // console.log("@fetchPowers, waypoint 0", {localStore})
       
@@ -487,26 +464,101 @@ export const usePowers = () => {
       }
       // console.log("@fetchPowers, waypoint 2", {powersToBeUpdated})
       
+      try {
+        // Always fetch basic powers data (name, uri, lawCount)
       updatedData = await fetchPowersData(powersToBeUpdated)
       // console.log("@fetchPowers, waypoint 3", {updatedData})
-      if ( updatedData && (updatedData?.metadatas == undefined || updatedData?.metadatas != powersToBeUpdated?.metadatas) ) { 
+        
+        // Only fetch metadata if missing or URI changed
+        if (updatedData && (!updatedData.metadatas || updatedData.uri !== powersToBeUpdated?.uri)) { 
         updatedMetaData = await fetchMetaData(updatedData) 
       } else {
         updatedMetaData = updatedData
       }
-      // console.log("@fetchPowers, waypoint 4", {updatedMetaData})
-      if (updatedMetaData && (updatedMetaData?.laws == undefined || updatedMetaData?.laws != powersToBeUpdated?.laws)) { 
-        fetchLawsAndRoles(updatedMetaData) 
+        console.log("@fetchPowers, waypoint 4", {updatedMetaData, error})
+        
+        // Only fetch laws if they need updating
+        if (updatedMetaData && needsLawsUpdate(updatedMetaData)) { 
+          console.log("@fetchPowers: Fetching laws (needed update)")
+          updatedLaws = await fetchLawsAndRoles(updatedMetaData) 
+        } else {
+          console.log("@fetchPowers: Skipping laws (no update needed)")
+          updatedLaws = updatedMetaData
+        }
+        console.log("@fetchPowers, waypoint 5", {updatedLaws, error})
+        
+        // Only fetch proposals if needed (based on block progress)
+        if (updatedLaws && needsProposalsUpdate(updatedLaws)) {
+          console.log("@fetchPowers: Fetching proposals (needed update)")
+          updatedProposals = await fetchProposals(updatedLaws, 10n, 10000n)
+        } else {
+          console.log("@fetchPowers: Skipping proposals (no update needed)")
+          updatedProposals = updatedLaws
+        }
+        
+        // Only fetch executed actions if laws were updated (executed actions depend on laws)
+        if (updatedProposals && (updatedLaws !== updatedMetaData || !updatedProposals.executedActions)) {
+          console.log("@fetchPowers: Fetching executed actions")
+          updatedExecutedActions = await fetchExecutedActions(updatedProposals)
+        } else {
+          console.log("@fetchPowers: Skipping executed actions (no update needed)")
+          updatedExecutedActions = updatedProposals
+        }
+        
+        console.log("@fetchPowers, waypoint 7", {updatedExecutedActions, error})
+        
+        // Ensure we have the final updated powers object
+        const finalPowers = updatedExecutedActions || updatedProposals || updatedLaws || updatedMetaData
+        if (finalPowers) {
+          setPowers(finalPowers)
+        }
+        setStatus("success")
+      } catch (error) {
+        console.error("@fetchPowers error:", error)
+        setStatus("error")
+        setError(error)
+      } finally {
+        setIsInitializing(false)
       }
-      if (updatedMetaData) {
-        fetchProposals(updatedMetaData, 1n, 1000n)
-        fetchExecutedActions(updatedMetaData, 1n, 1000n)
-      }
-      // console.log("@fetchPowers, waypoint 5", {updatedMetaData})
-      setPowers(updatedMetaData)
-      setStatus("success")
-    }, []
+    }, [status, isInitializing] // Removed currentBlock from dependencies to prevent loop
   )
+
+  // Helper function to check if laws need updating
+  const needsLawsUpdate = (powers: Powers): boolean => {
+    // Check if we have no laws at all
+    if (!powers.laws || powers.laws.length === 0) {
+      return true
+    }
+    
+    // Check if lawCount has changed
+    if (powers.lawCount && powers.laws.length !== Number(powers.lawCount) - 1) {
+      return true
+    }
+    
+    // Check if any laws are missing essential data
+    const hasIncompleteData = powers.laws.some(law => 
+      !law.conditions || !law.nameDescription || !law.params
+    )
+    
+    return hasIncompleteData
+  }
+
+  // Helper function to check if proposals need updating
+  const needsProposalsUpdate = (powers: Powers): boolean => {
+    // If no block data, needs update
+    if (!powers.proposalsBlocksFetched || !currentBlock) {
+      return true
+    }
+    
+    // If no proposals at all, needs update
+    if (!powers.proposals || powers.proposals.length === 0) {
+      return true
+    }
+    
+    // Check if we need to fetch recent blocks (only fetch if there are significant new blocks)
+    const blocksSinceLastFetch = Number(currentBlock) - Number(powers.proposalsBlocksFetched.to)
+    return blocksSinceLastFetch > 50 // Increased threshold to be more conservative
+  }
 
   return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
 }

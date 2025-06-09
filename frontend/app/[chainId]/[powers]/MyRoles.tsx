@@ -35,13 +35,13 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
   }, [authenticated, hasRolesSince, chainId])
 
   return (
-    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80 max-h-48">
+    <div className="w-full grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-80 max-h-48 overflow-hidden">
       <div className="w-full h-full flex flex-col gap-0 justify-start items-center"> 
         <button
           onClick={() => router.push(`/${chainId}/${powers?.contractAddress}/roles`) } 
           className="w-full border-b border-slate-300"
         >
-        <div className="w-full flex flex-row gap-6 items-center justify-between p-2 ps-4">
+        <div className="w-full flex flex-row gap-6 items-center justify-between bg-slate-100 p-2 ps-4">
           <div className="text-left text-sm text-slate-600 w-44">
             My roles
           </div> 
@@ -52,7 +52,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
         </button>
        {
       authenticated ? 
-      <div className = "w-full flex flex-col gap-1 justify-start items-start lg:max-h-48 max-h-36 overflow-y-scroll divider-slate-300 divide-y">
+      <div className = "w-full h-full flex flex-col gap-1 justify-start items-start max-h-36 overflow-y-scroll divider-slate-300 divide-y">
            <div className ={`w-full py-1`}>
             <div className ={`w-full flex flex-row text-sm text-slate-600 justify-center items-center rounded-md ps-4 py-2`}>
               <div className = "w-full flex flex-row justify-start items-center text-left">
@@ -73,7 +73,7 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
                 }
               </div>
               <div className = "grow w-full min-w-40 flex flex-row justify-end items-center text-right pe-4">
-                Since: {timestamps.get(`${chainId}:${role.since}`)?.timestamp} 
+                Since: {toFullDateFormat(Number(timestamps.get(`${chainId}:${role.since}`)?.timestamp))} 
               </div>
               </div>
             )
