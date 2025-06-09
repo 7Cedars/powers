@@ -1,15 +1,13 @@
 `use client`
 
 import { setAction } from "@/context/store";
-import { Law, Powers, Proposal, Status } from "@/context/types";
+import { Law, Powers, Status, Action } from "@/context/types";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
-import { toFullDateFormat } from "@/utils/toDates";
-import { GetBlockReturnType } from "@wagmi/core";
 import { parseRole } from "@/utils/parsers";
-import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useEffect } from "react";
+import { toFullDateFormat } from "@/utils/toDates";
 
 const roleColour = [  
   "border-blue-600", 
@@ -24,13 +22,13 @@ const roleColour = [
 type MyProposalProps = {
   hasRoles: {role: bigint, since: bigint}[]
   authenticated: boolean;
-  proposals: Proposal[] | undefined; 
+  proposals: Action[] | undefined; 
   powers: Powers | undefined;
   status: Status;
 }
 
 type ProposalAndLaw = {
-  proposal: Proposal; 
+  proposal: Action; 
   law: Law; 
 }
 
@@ -42,15 +40,23 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
 
   useEffect(() => {
     if (authenticated) {
-      const blocks = proposals?.map(proposal => proposal.voteEnd)
+      // Ensure consistent block number handling - convert to bigint for both storage and lookup
+      const blocks = proposals?.map(proposal => {
+        // Handle different possible types for voteEnd
+        const voteEndValue = typeof proposal.voteEnd === 'bigint' 
+          ? proposal.voteEnd 
+          : BigInt(proposal.voteEnd as unknown as string)
+        return voteEndValue
+      }).filter(block => block !== undefined)
+      
       if (blocks && blocks.length > 0) {
-        fetchTimestamps(blocks, chainId)
+        fetchTimestamps(blocks as bigint[], chainId)
       }
     }
   }, [authenticated, proposals, chainId])
 
   // bit convoluted, can be optimised. // £todo
-  const active = proposals?.map((proposal: Proposal) => {
+  const active = proposals?.map((proposal: Action) => {
     const law = powers?.laws?.find(law => law.index == proposal.lawId)
     if (law && law.conditions && law.conditions.allowedRole != undefined && myRoles.includes(law.conditions.allowedRole) && proposal.state == 0) {
       return {
@@ -60,9 +66,11 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
+  console.log("@MyProposals: waypoint 0", {activeProposals})
+
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68"> 
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68 overflow-hidden"> 
       <button
         onClick={() => 
           { 
@@ -70,23 +78,18 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
             router.push(`/${chainId}/${powers?.contractAddress}/proposals`)
           }
         } 
-        className="w-full border-b border-slate-300 p-2"
+        className="w-full border-b border-slate-300 p-2 bg-slate-100"
       >
-      <div className="w-full flex flex-row gap-6 items-center justify-between px-2">
+      <div className="w-full flex flex-row gap-6 items-center justify-between">
         <div className="text-left text-sm text-slate-600 w-44">
-          My active proposals
+          Active proposals
         </div> 
           <ArrowUpRightIcon
             className="w-4 h-4 text-slate-800"
             />
         </div>
-      </button>
+      </button> 
        {
-        // status == "pending" || status == "idle" ? 
-        // <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-        //   <LoadingBox /> 
-        // </div>
-        // :  
         authenticated ?
         activeProposals && activeProposals.length > 0 ? 
           <div className = "w-full h-fit lg:max-h-48 max-h-32 flex flex-col gap-2 justify-start items-center overflow-x-scroll p-2 px-1">
@@ -98,11 +101,11 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                     onClick={
                       () => {
                         setAction({
-                          uri: item.proposal.description,
-                          callData: item.proposal.calldata,
+                          description: item.proposal.description,
+                          callData: item.proposal.callData,
                           nonce: item.proposal.nonce,
                           lawId: item.proposal.lawId,
-                          caller: item.proposal.caller,
+                          caller: item.proposal.caller as `0x${string}`,
                           dataTypes: item.law.params?.map(param => param.dataType),
                           upToDate: true
                         })
@@ -112,12 +115,38 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                       <div className ="w-full flex flex-col gap-1 text-sm text-slate-600 justify-center items-center">
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Date: </p> 
-                          <p> {timestamps.get(`${chainId}:${item.proposal.voteEnd}`)?.timestamp}  </p>
+                          <p> 
+                            {(() => {
+                              // Ensure consistent block number format for lookup
+                              const voteEndBlock = typeof item.proposal.voteEnd === 'bigint' 
+                                ? item.proposal.voteEnd 
+                                : BigInt(item.proposal.voteEnd as unknown as string)
+                              
+                              const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                              const timestamp = timestampData?.timestamp
+                              
+                              if (!timestamp || timestamp <= 0n) {
+                                return 'Loading...'
+                              }
+                              
+                              const timestampNumber = Number(timestamp)
+                              if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                return 'Invalid date'
+                              }
+                              
+                              try {
+                                return toFullDateFormat(timestampNumber)
+                              } catch (error) {
+                                console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                return 'Date error'
+                              }
+                            })()}
+                          </p>
                         </div>
 
                         <div className = "w-full flex flex-row justify-between items-center text-left">
                           <p> Law: </p> 
-                          <p> {item.law.nameDescription?.length && item.law.nameDescription?.length > 24 ? item.law.nameDescription?.substring(0, 24) + "..." : item.law.nameDescription}  </p>
+                          <p> {item.law.nameDescription?.length && item.law.nameDescription?.length > 48 ? item.law.nameDescription?.substring(0, 24) + "..." : item.law.nameDescription}  </p>
                         </div>
                       </div>
                   </button>

@@ -8,8 +8,7 @@ import { PowersOverview } from '@/components/PowersOverview'
 import { useParams } from 'next/navigation'
 import { LoadingBox } from '@/components/LoadingBox'
 import { Law, Powers, Checks } from '@/context/types'
-import { useChecks } from '@/hooks/useChecks'
-import { useActionStore, setChainChecks, updateLawChecks, clearChainChecks, useChecksStore } from '@/context/store'
+import { useActionStore, useChecksStore } from '@/context/store'
 
 interface FlowLayoutProps {
   children: React.ReactNode

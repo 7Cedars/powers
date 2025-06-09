@@ -137,25 +137,42 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return hasVoted True if the account has voted, false otherwise
     function hasVoted(uint256 actionId, address account) external view returns (bool hasVoted);
 
-    /// @notice Gets the current vote tallies for a proposal
-    /// @param actionId The unique identifier of the proposal
-    /// @return againstVotes the number of votes against
-    /// @return forVotes the number of votes for
-    /// @return abstainVotes the number of abstain votes
-    function getProposedActionVotes(uint256 actionId)
-        external
-        view
-        returns (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes);
-
     /// @notice Gets the deadline for voting on a proposal
     /// @param actionId The unique identifier of the proposal
     /// @return deadline the block number at which voting ends
     function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
-    /// @notice Gets the lawCalldata of a proposal
+    /// @notice gets the data of an actionId that are not an array. 
     /// @param actionId The unique identifier of the proposal
-    /// @return lawCalldata The lawCalldata of the proposal
-    function getActionCalldata(uint256 actionId) external view returns (bytes memory lawCalldata);
+    /// @return cancelled - whether the action has been cancelled
+    /// @return requested - whether the action has been requested
+    /// @return fulfilled - whether the action has been fulfilled
+    /// @return lawId - the id of the law that the action is associated with
+    /// @return voteStart - the block number at which voting starts
+    /// @return voteDuration - the duration of the voting period
+    /// @return voteEnd - the block number at which voting ends
+    /// @return caller - the address of the caller
+    /// @return againstVotes - the number of votes against the action
+    /// @return forVotes - the number of votes for the action
+    /// @return abstainVotes - the number of abstain votes
+    /// @return nonce - the nonce of the action
+    function getActionData(uint256 actionId) 
+        external 
+        view 
+        returns (
+            bool cancelled, 
+            bool requested, 
+            bool fulfilled, 
+            uint16 lawId, 
+            uint48 voteStart, 
+            uint32 voteDuration, 
+            uint256 voteEnd,
+            address caller, 
+            uint32 againstVotes, 
+            uint32 forVotes, 
+            uint32 abstainVotes, 
+            uint256 nonce
+            );
 
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check

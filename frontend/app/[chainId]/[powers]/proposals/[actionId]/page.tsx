@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ProposalBox } from "./ProposalBox";
 import { Votes } from "./Votes"; 
 import { setAction, setError, useActionStore, useChecksStore } from "@/context/store";
-import { Powers, Proposal, Law, Status, Checks, Action } from "@/context/types";
+import { Powers, Law, Status, Checks, Action } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
@@ -17,74 +17,25 @@ import { readContract } from "wagmi/actions";
 import { powersAbi } from "@/context/abi";
 import { hashAction } from "@/utils/hashAction";
 import { wagmiConfig } from "@/context/wagmiConfig";
+import { LawLink } from "@/components/LawLink";
+import { useReadContracts } from "wagmi";
+import { useAction } from "@/hooks/useAction";
 
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
+  const { fetchChainChecks, status: statusChecks } = useChecks();
+  const { fetchActionData, actionData, status: statusAction } = useAction();
   const { chainChecks } = useChecksStore();
-  const { fetchChainChecks, status: statusChecks } = useChecks(powers as Powers);
-  const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
-  // NB: proposal might not have been loaded!  
-  const proposal = powers?.proposals?.find(proposal => proposal.actionId == actionId)
-  const law = powers?.laws?.find(law => law.index == proposal?.lawId)
-  const [proposalStatus, setProposalStatus] = useState<number>(0)
-
-  // 
   const action = useActionStore(); 
-  // Get checks for this specific law from Zustand store
-  const checks = law ? chainChecks?.get(String(law.index)) : undefined
-  // const statusChecks: Status = 'success' // Since we're getting checks from global store, assume success
+  const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
 
-  console.log("@proposal, waypoint 1", {proposal, actionId, powers, action, law, checks, statusChecks})
-
-  const checkActionStatus = async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint) => {
-      const actionId = hashAction(lawId, lawCalldata, nonce)
-
-      try {
-        const state =  await readContract(wagmiConfig, {
-                abi: powersAbi,
-                address: law.powers as `0x${string}`,
-                functionName: 'state', 
-                args: [actionId],
-              })
-         setProposalStatus(Number(state)) 
-      } catch (error) {
-        setProposalStatus(6)
-        setError({error: error as Error})
-      }
-  } 
-
-  useEffect(() => {
-    console.log('Proposal page useEffect triggered', { proposal: !!proposal, law: !!law })
-    if (proposal && law) { 
-      try {
-        const values = decodeAbiParameters(parseAbiParameters(law?.params?.map(param => param.dataType).toString() || ""), proposal.executeCalldata as `0x${string}`);
-        const valuesParsed = parseParamValues(values)
-
-        setAction({
-          actionId: proposal.actionId,
-          lawId: proposal.lawId,
-          caller: proposal.caller,
-          dataTypes: law?.params?.map(param => param.dataType),
-          paramValues: valuesParsed,
-          nonce: proposal.nonce,
-          uri: proposal.description,
-          callData: proposal.executeCalldata,
-          upToDate: true
-        })
-        checkActionStatus(law, proposal.lawId, proposal.executeCalldata, BigInt(proposal.nonce))
-
-      } catch {
-        setAction({...action, upToDate: false })
-      }
-      // Layout manages checks via Zustand store now
-    }
-  }, [proposal])
-
-  const handleCheck = async (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
-    setError({error: null})
-    fetchChainChecks(law.index, action.callData, BigInt(action.nonce), wallets, powers)
+  const handleCheck = async (lawId: bigint, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
+    console.log("@Proposal page: waypoint 2", {lawId, action, wallets, powers})
+    fetchChainChecks(lawId, action.callData, BigInt(action.nonce), wallets, powers)
   }
+
+  console.log("@Proposal page: waypoint 0", {actionData, action})
 
   useEffect(() => {
     if (addressPowers) {
@@ -93,26 +44,28 @@ const Page = () => {
   }, [addressPowers, fetchPowers])
 
   useEffect(() => {
-    if (powers) {
-      console.log("@proposals/[actionId], fetchChainChecks: ", {law, action, wallets, powers})
-      fetchChainChecks(BigInt(law?.index || 0), action.callData, BigInt(action.nonce), wallets, powers as Powers)
+    if (actionId) {
+      fetchActionData(BigInt(actionId), powers as Powers)
     }
-  }, [, powers])
+  }, [actionId, powers])
+
+  console.log("@Proposal page: waypoint 1", {actionData, statusAction})
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-4 pt-16 overflow-x-scroll ps-4 pe-12">
+    <main className="w-full h-full flex flex-col justify-start items-center gap-4 pt-16 overflow-auto ps-4 pe-12 pb-20">
       { 
-        law && <ProposalBox 
+        actionData?.lawId && <ProposalBox 
         powers = {powers} 
-        law = {law} 
-        checks = {checks} 
+        lawId = {actionData?.lawId} 
+        checks = {chainChecks.get(String(actionData?.lawId)) as Checks} 
         status = {statusChecks} 
-        onCheck = {() => handleCheck(law, action, wallets, powers as Powers)} 
-        proposalStatus = {proposalStatus} /> 
+        onCheck = {() => handleCheck(actionData?.lawId as bigint, action, wallets, powers as Powers)} 
+        proposalStatus = {actionData?.state ? actionData.state : 0} /> 
         }
-      { law && <Votes action = {action} powers = {powers} status = {statusChecks}/> }
+      {actionData?.lawId && powers && <LawLink lawId = {actionData?.lawId} powers = {powers as Powers}/>}
+      { actionData?.lawId && <Votes action = {action} powers = {powers} status = {statusChecks}/> }
     </main>
-  )
+)
 }
 
-export default Page 
+export default Page

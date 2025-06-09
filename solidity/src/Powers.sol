@@ -136,6 +136,7 @@ contract Powers is EIP712, IPowers {
 
         // If checks passed, set action as requested.
         _actions[actionId].caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
+        _actions[actionId].lawId = lawId;
         _actions[actionId].requested = true;
         _actions[actionId].lawCalldata = lawCalldata;
         _actions[actionId].uri = uriAction;
@@ -564,14 +565,40 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getProposedActionVotes(uint256 actionId)
+    function getActionData(uint256 actionId)
         public
         view
         virtual
-        returns (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes)
+        returns (
+            bool cancelled, 
+            bool requested, 
+            bool fulfilled, 
+            uint16 lawId, 
+            uint48 voteStart, 
+            uint32 voteDuration, 
+            uint256 voteEnd,
+            address caller, 
+            uint32 againstVotes, 
+            uint32 forVotes, 
+            uint32 abstainVotes, 
+            uint256 nonce
+            )
     {
-        Action storage proposedAction = _actions[actionId];
-        return (proposedAction.againstVotes, proposedAction.forVotes, proposedAction.abstainVotes);
+        Action storage action = _actions[actionId];
+        return (
+            action.cancelled, 
+            action.requested, 
+            action.fulfilled, 
+            action.lawId, 
+            action.voteStart, 
+            action.voteDuration,
+            action.voteStart + action.voteDuration,
+            action.caller, 
+            action.againstVotes, 
+            action.forVotes, 
+            action.abstainVotes, 
+            action.nonce
+        );
     }
 
     function getActionCalldata(uint256 actionId)
@@ -587,9 +614,9 @@ contract Powers is EIP712, IPowers {
         public
         view
         virtual
-        returns (string memory uri)
+        returns (string memory _uri)
     {
-        return _actions[actionId].uri;
+        _uri = _actions[actionId].uri;
     }
 
     function getActionNonce(uint256 actionId)
@@ -600,6 +627,8 @@ contract Powers is EIP712, IPowers {
     {
         return _actions[actionId].nonce;
     }
+
+    
     /// @inheritdoc IPowers
     function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].amountMembers;

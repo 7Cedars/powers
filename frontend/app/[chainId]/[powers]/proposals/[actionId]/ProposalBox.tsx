@@ -5,7 +5,7 @@ import { useActionStore, setAction, setError } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
 import { parseRole } from "@/utils/parsers";
-import { Action, Checks, Law, Powers, Proposal, Status } from "@/context/types";
+import { Action, Checks, Law, Powers, Status } from "@/context/types";
 import { StaticInput } from "../../../../../components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
@@ -30,14 +30,14 @@ const roleColour = [
 
 export function ProposalBox({
   powers, 
-  law, 
+  lawId, 
   checks, 
   status, 
   onCheck, 
   proposalStatus
 }: {
   powers?: Powers, 
-  law?: Law, 
+  lawId: bigint, 
   checks?: Checks, 
   status: Status, 
   onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void, 
@@ -47,11 +47,12 @@ export function ProposalBox({
   const {simulation, simulate} = useLaw();
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
+  const law = powers?.laws?.find(law => law.index == lawId)
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
   const {data: blockNumber} = useBlockNumber();
-  console.log("@proposalBox: ", {law, action, checks, statusProposal, hasVoted})
+  console.log("@proposalBox: ", {lawId, action, checks, statusProposal, hasVoted})
 
   const handleCastVote = async (action: Action, support: bigint) => { 
     if (action) {
@@ -67,7 +68,7 @@ export function ProposalBox({
   useEffect(() => {
     if (action.actionId && wallets.length > 0) {
       simulate(
-        action.caller,
+        action.caller as `0x${string}`,
         action.callData,
         BigInt(action.nonce),
         law as Law
@@ -97,7 +98,7 @@ export function ProposalBox({
       <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border ${roleColour[parseRole(law?.conditions?.allowedRole) % roleColour.length]} mt-2 rounded-md overflow-hidden`} >
       <>
       {/* title  */}
-      <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2">
+      <div className="w-full flex flex-row gap-3 justify-start items-start border-b border-slate-300 py-4 ps-6 pe-2 bg-slate-100">
         <SectionText
           text={`Proposal: ${law?.nameDescription}`}
           subtext={law?.nameDescription}
@@ -140,7 +141,7 @@ export function ProposalBox({
                 id="reason" 
                 rows={5} 
                 cols ={25} 
-                value={action.uri}
+                value={action.description}
                 className="block min-w-0 grow py-1.5 pl-1 pr-3 bg-slate-100 pl-3 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Describe reason for action here."
                 disabled={true} 
@@ -149,8 +150,8 @@ export function ProposalBox({
         </div>
       </form>
 
-      <div className="w-full flex flex-row justify-center items-center p-6 py-2">
-      <Button 
+      {/* <div className="w-full flex flex-row justify-center items-center p-6 py-2">
+        <Button 
             size={1} 
             showBorder={true} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
@@ -160,11 +161,11 @@ export function ProposalBox({
               onCheck(law as Law, action, wallets, powers as Powers)
             } 
             statusButton={
-                action.uri && action.uri.length > 0 ? status : 'disabled'
+                action.description && action.description.length > 0 ? status : 'disabled'
               }> 
             Check 
-          </Button>
-      </div>
+        </Button>
+      </div> */}
 
       {law && simulation && <SimulationBox simulation = {simulation} law = {law as Law}/> } 
 

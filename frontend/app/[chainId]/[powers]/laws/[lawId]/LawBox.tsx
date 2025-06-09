@@ -154,7 +154,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               name={`nonce`} 
               id={`nonce`}
               value = {action.nonce}
-              className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
+              className="w-full h-8 pe-2 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
                 event.preventDefault()
@@ -180,12 +180,12 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
                 type="text"
                 name="uri" 
                 id="uri" 
-                value={action.uri}
+                value={action.description}
                 className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
                 placeholder="Enter URI to file with notes on the action here."
                 onChange={(event) => {  
                   event.preventDefault()
-                  setAction({...action, uri: event.target.value, upToDate: false}); 
+                  setAction({...action, description: event.target.value, upToDate: false}); 
                 }} />
             </div>
         </div>
@@ -209,10 +209,10 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             filled={false}
             selected={true}
             onClick={() => {
-              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
+              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
             }} 
             statusButton={
-               !action.upToDate && action.uri && action.uri.length > 0 ? 'idle' : 'disabled'
+               !action.upToDate && action.description && action.description.length > 0 ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>
@@ -229,7 +229,8 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
               onClick={() => {
                 if (checks?.proposalExists) {
-                  const actionId = hashAction(law.index, action.callData, BigInt(action.nonce))
+                  console.log("@LawBox: Proposal section", {law, action})
+                  const actionId = hashAction(law?.index, action.callData, BigInt(action.nonce))
                   // Navigate to view the existing proposal
                   router.push(`/${chainId}/${law?.powers}/proposals/${actionId}`)
                 } else if (checks?.authorised) {
@@ -265,7 +266,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
               if (checks?.authorised) {
-                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.uri)
+                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
               }
               // Do nothing if not authorized
             }} 
@@ -273,7 +274,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             selected={true}
             statusButton={
               !checks?.authorised ? 'disabled' :
-              action.upToDate && checks.allPassed && !error.error ? 
+              action.upToDate && checks.allPassed ? 
               status : 'disabled' 
               }> 
             {!checks?.authorised ? "Not authorised to execute" : "Execute"}

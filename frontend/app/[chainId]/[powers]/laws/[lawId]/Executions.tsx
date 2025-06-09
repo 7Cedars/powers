@@ -1,4 +1,4 @@
-import { Execution, Law, Status, LawExecutions } from "@/context/types";
+import { Execution, Law, Status, LawExecutions, Powers } from "@/context/types";
 import { parseChainId, parseParamValues, parseRole } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
@@ -8,20 +8,22 @@ import { decodeAbiParameters, parseAbiParameters } from "viem";
 import { getPublicClient, readContract } from "wagmi/actions";
 import { lawAbi, powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
+import { useAction } from "@/hooks/useAction";
 
 type ExecutionsProps = {
+  roleId: bigint;
   lawExecutions: LawExecutions | undefined
-  law: Law | undefined;
+  powers: Powers | undefined;
   status: Status;
 };
 
-export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
+export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
-  const action = useActionStore()
   const { timestamps, fetchTimestamps } = useBlocks()
+  const { fetchActionData } = useAction()
 
   useEffect(() => {
     if (lawExecutions) {
@@ -32,73 +34,11 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
     }
   }, [lawExecutions, chainId])
 
-  // console.log("@Executions: ", {executions, law, status})
-  const handleExecutionSelection = useCallback(
-    async (index: number, law: Law | undefined, lawExecutions: LawExecutions | undefined) => {
-    // console.log("@Executions: waypoint 1", {index, lawExecutions, law, status, action})
-    
-    if (lawExecutions && index != undefined && law) {
-      // console.log("@Executions: waypoint 2", {index, law, status, action, executionAtIndex: lawExecutions.actionsIds[Number(index)]})
-      try {
-        const lawCalldata = await readContract(wagmiConfig, {
-          abi: powersAbi,
-          address: law?.powers as `0x${string}`,
-          functionName: 'getActionCalldata',
-          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
-        })  
-
-        const actionUri = await readContract(wagmiConfig, {
-          abi: powersAbi,
-          address: law?.powers as `0x${string}`,
-          functionName: 'getActionUri',
-          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
-        })
-        
-        const actionNonce = await readContract(wagmiConfig, {
-          abi: powersAbi,
-          address: law?.powers as `0x${string}`,
-          functionName: 'getActionNonce',
-          args: [BigInt(lawExecutions.actionsIds[Number(index)])]
-        })
-
-        // console.log("@Executions: waypoint 2", {lawCalldata, actionUri, actionNonce})
-
-        if (lawCalldata && actionUri && actionNonce) {
-          // console.log("@Executions: waypoint 3")
-
-          let dataTypes = law?.params?.map(param => param.dataType)
-          let valuesParsed = undefined
-          if (dataTypes != undefined && dataTypes.length > 0) {
-            const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), lawCalldata as `0x${string}`);
-            valuesParsed = parseParamValues(values) 
-          }
-
-          // console.log("@Executions: waypoint 4")
-
-          setAction({
-            actionId: String(lawExecutions.actionsIds[Number(index)]),
-            lawId: law?.index,
-            caller: undefined,
-            dataTypes: dataTypes,
-            paramValues: valuesParsed,
-            nonce: actionNonce.toString(),
-            uri: actionUri as string,
-            callData: lawCalldata as `0x${string}`,
-            upToDate: false
-          })
-
-          // console.log("@Executions: waypoint 5")
-        }
-      } catch (error) {
-        console.log("@Executions: ", error)
-      }
-    }
-  }, [ ])
-
   return (
+  <main className="w-full max-h-fit grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
     <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
-        <div className="w-full flex flex-row items-center justify-between px-4 py-2 text-slate-900 bg-slate-100">
-          <div className="text-left w-full">
+        <div className="w-full flex flex-row items-center justify-between bg-slate-100 text-slate-900">
+          <div className="text-left w-full px-4 py-2">
             Latest executions
           </div>
         </div>
@@ -109,20 +49,21 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
           <LoadingBox />
         </div>
         :
-        lawExecutions?.executions && lawExecutions.executions?.length != 0 ?  
+        lawExecutions?.executions && lawExecutions?.executions?.length != 0 ?  
         <div className = "w-full flex flex-col max-h-36 overflow-y-scroll divide-y divide-slate-300">
-            {lawExecutions.executions.map((execution, index: number) => 
+            {lawExecutions?.executions.map((execution, index: number) => 
               <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
                   <Button
                       showBorder={true}
-                      role={law?.conditions?.allowedRole != undefined ? parseRole(law.conditions?.allowedRole) : 0}
-                      onClick={() => handleExecutionSelection(index, law, lawExecutions)}
+                      role={Number(roleId)}
+                      onClick={() => fetchActionData(lawExecutions.actionsIds[index], powers as Powers)}
                       align={0}
                       selected={false}
                       >  
                       <div className = "flex flex-col w-full"> 
                         <div className = "w-full flex flex-row gap-1 justify-between items-center px-1">
-                            <div> {timestamps.get(`${chainId}:${execution}`)?.timestamp}</div>
+                            <div className = "text-left"> {toFullDateFormat(Number(timestamps.get(`${chainId}:${execution}`)?.timestamp))}</div>
+                            <div className = "text-right"> {toEurTimeFormat(Number(timestamps.get(`${chainId}:${execution}`)?.timestamp))}</div>
                         </div>
                       </div>
                     </Button>
@@ -135,6 +76,7 @@ export const Executions = ({lawExecutions, law, status}: ExecutionsProps) => {
                 No executions found. 
             </div> 
           }
-    </section>
+      </section>
+    </main>
   )
 }

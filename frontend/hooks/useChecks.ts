@@ -11,11 +11,8 @@ import { hashAction } from "@/utils/hashAction";
 import { getConstants } from "@/context/constants";
 import { setChainChecks, setChecksStatus } from "@/context/store";
 
-export const useChecks = (powers: Powers) => {
+export const useChecks = () => {
   const { chainId } = useParams<{ chainId: string }>()
-  const supportedChains = useChains()
-  const supportedChain = supportedChains.find(chain => chain.id == parseChainId(chainId))
-  const constants = getConstants(parseChainId(chainId) as number)
   const { data: blockNumber } = useBlockNumber({
     chainId: parseChainId(chainId)
   })
@@ -24,9 +21,9 @@ export const useChecks = (powers: Powers) => {
   })
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
-  const [checks, setChecks ] = useState<Checks>()
+  // note: the state of checks is not stored here, it is stored in the Zustand store
 
-  console.log("useChecks: waypoint 0", {checks, error, status})
+  console.log("useChecks: waypoint 0", {error, status})
 
   const checkAccountAuthorised = useCallback(
     async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
@@ -50,6 +47,7 @@ export const useChecks = (powers: Powers) => {
   const checkActionStatus = useCallback(
     async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
       const actionId = hashAction(lawId, lawCalldata, nonce)
+      console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
 
       try {
         const state =  await readContract(wagmiConfig, {
@@ -65,18 +63,7 @@ export const useChecks = (powers: Powers) => {
         setError(error)
       }
   }, []) 
-
-
-  const checkDelayedExecution = (nonce: bigint, calldata: `0x${string}`, law: Law, powers: Powers) => {
-    // console.log("CheckDelayedExecution triggered")
-    const actionId = hashAction(law.index, calldata, nonce)
-    const selectedProposal = powers.proposals?.find(proposal => BigInt(proposal.actionId) == actionId)
-
-    // console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
-    const result = Number(selectedProposal?.voteEnd) + Number(law.conditions?.delayExecution) < Number(blockNumber)
-    return result as boolean
-  }
-
+  
   const fetchExecutions = async (law: Law) => {
     // console.log("@fetchExecutions: waypoint 0", {lawId})
     if (publicClient) {
@@ -108,6 +95,21 @@ export const useChecks = (powers: Powers) => {
       return true
     } 
   }, [])
+
+  const checkDelayedExecution = (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
+    // NB! CONTINUE HERE! The proposal box should NOT depend on data saved at powers.proposals. Too few of the proposals are saved.
+    // instead should fetch data straigh from contract: use the getProposedActionDeadline function. 
+    console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
+    const actionId = hashAction(lawId, calldata, nonce)
+    const law = powers.activeLaws?.find(law => law.index === lawId)
+    console.log("waypoint 0, CheckDelayedExecution: ", {actionId})
+    const selectedProposal = powers.proposals?.find(proposal => BigInt(proposal.actionId) == actionId)
+
+    console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
+    const result = Number(selectedProposal?.voteEnd) + Number(law?.conditions?.delayExecution) < Number(blockNumber)
+    return result as boolean
+  }
+
 
   const calculateDependencies = (lawId: bigint, powers: Powers) => {
     const selectedLawId = String(lawId)
@@ -174,7 +176,7 @@ export const useChecks = (powers: Powers) => {
   }
 
   const fetchChecks = useCallback( 
-    async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers, actionLawId?: bigint, caller?: string) => {
+    async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers, actionLawId, caller})
         setError(null)
         setStatus("pending")
@@ -186,7 +188,7 @@ export const useChecks = (powers: Powers) => {
           const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [3, 4, 5])
           const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
-          const delayed = checkDelayedExecution(nonce, callData, law, powers)
+          const delayed = checkDelayedExecution(law.index, nonce, callData, powers)
 
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
@@ -208,13 +210,11 @@ export const useChecks = (powers: Powers) => {
               newChecks.throttlePassed && 
               newChecks.authorised && 
               newChecks.proposalExists && 
-              newChecks.voteActive && 
               newChecks.proposalPassed && 
               newChecks.actionNotCompleted && 
               newChecks.lawCompleted &&
               newChecks.lawNotCompleted 
-            
-            setChecks(newChecks)
+          
             // console.log("fetchChecks triggered, waypoint 2", {newChecks})
             setStatus("success") //NB note: after checking status, sets the status back to idle! 
             return newChecks
@@ -223,6 +223,7 @@ export const useChecks = (powers: Powers) => {
 
   const fetchChainChecks = useCallback(
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
+      
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
       const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
@@ -234,8 +235,8 @@ export const useChecks = (powers: Powers) => {
           for (const lawStrId of chainLaws) {
             const targetLaw = powers.activeLaws?.find(law => String(law.index) === lawStrId)
             if (!targetLaw?.conditions) continue
-            const checks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
-            checksMap.set(lawStrId, checks as Checks)
+            const singleChecks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
+            checksMap.set(lawStrId, singleChecks as Checks)
           }
   
         setChainChecks(checksMap)
@@ -250,5 +251,5 @@ export const useChecks = (powers: Powers) => {
     }
   }, [fetchChecks])
 
-  return {status, error, checks, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction}
+  return {status, error, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction}
 }

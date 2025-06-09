@@ -1051,7 +1051,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             label: 'Needs Completed',
             style: { stroke: '#6B7280', strokeWidth: 2, opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            labelBgStyle: { fill: '#f1f5f9', fillOpacity: 0.8 * edgeOpacity },
             markerStart: {
               type: MarkerType.ArrowClosed,
               color: '#6B7280',
@@ -1079,7 +1079,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             label: 'Needs Not Completed',
             style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '6,3', opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            labelBgStyle: { fill: '#f1f5f9', fillOpacity: 0.8 * edgeOpacity },
             markerStart: {
               type: MarkerType.ArrowClosed,
               color: '#6B7280',
@@ -1107,7 +1107,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             label: 'Read State From',
             style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '3,3', opacity: edgeOpacity },
             labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
-            labelBgStyle: { fill: 'white', fillOpacity: 0.8 * edgeOpacity },
+            labelBgStyle: { fill: '#f1f5f9', fillOpacity: 0.8 * edgeOpacity },
             markerStart: {
               type: MarkerType.ArrowClosed,
               color: '#6B7280',
@@ -1121,7 +1121,17 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     })
     
     return { initialNodes: nodes, initialEdges: edges }
-  }, [powers.activeLaws, chainChecks, handleNodeClick, selectedLawId, action.lawId, loadSavedLayout])
+  }, [
+    powers.activeLaws, 
+    powers.contractAddress,
+    powers.laws,
+    powers.activeLaws,
+    chainChecks, 
+    handleNodeClick, 
+    selectedLawId, 
+    action.lawId, 
+    loadSavedLayout
+  ])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)

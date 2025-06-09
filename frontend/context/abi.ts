@@ -448,6 +448,28 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
+    "name": "getActionData",
+    "inputs": [
+      { "name": "actionId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "cancelled", "type": "bool", "internalType": "bool" },
+      { "name": "requested", "type": "bool", "internalType": "bool" },
+      { "name": "fulfilled", "type": "bool", "internalType": "bool" },
+      { "name": "lawId", "type": "uint16", "internalType": "uint16" },
+      { "name": "voteStart", "type": "uint48", "internalType": "uint48" },
+      { "name": "voteDuration", "type": "uint32", "internalType": "uint32" },
+      { "name": "voteEnd", "type": "uint256", "internalType": "uint256" },
+      { "name": "caller", "type": "address", "internalType": "address" },
+      { "name": "againstVotes", "type": "uint32", "internalType": "uint32" },
+      { "name": "forVotes", "type": "uint32", "internalType": "uint32" },
+      { "name": "abstainVotes", "type": "uint32", "internalType": "uint32" },
+      { "name": "nonce", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getActionNonce",
     "inputs": [
       { "name": "actionId", "type": "uint256", "internalType": "uint256" }
@@ -464,7 +486,7 @@ export const powersAbi: Abi = [
       { "name": "actionId", "type": "uint256", "internalType": "uint256" }
     ],
     "outputs": [
-      { "name": "uri", "type": "string", "internalType": "string" }
+      { "name": "_uri", "type": "string", "internalType": "string" }
     ],
     "stateMutability": "view"
   },
@@ -522,23 +544,6 @@ export const powersAbi: Abi = [
       { "name": "actionId", "type": "uint256", "internalType": "uint256" }
     ],
     "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getProposedActionVotes",
-    "inputs": [
-      { "name": "actionId", "type": "uint256", "internalType": "uint256" }
-    ],
-    "outputs": [
-      {
-        "name": "againstVotes",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      { "name": "forVotes", "type": "uint256", "internalType": "uint256" },
-      { "name": "abstainVotes", "type": "uint256", "internalType": "uint256" }
-    ],
     "stateMutability": "view"
   },
   {
