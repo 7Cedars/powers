@@ -91,14 +91,14 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
       </button>
        {
         powers?.executedActions && powers?.executedActions.length > 0 ? 
-          <div className="w-full h-fit lg:max-h-48 max-h-32 flex flex-col justify-start items-center overflow-hidden">
+          <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
            <div className="w-full overflow-x-auto overflow-y-auto">
             <table className="w-full table-auto text-sm">
             <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
             <tr className="w-full text-xs font-light text-left text-slate-500">
-                <th className="px-2 py-3 font-light"> Date </th>
-                <th className="px-2 py-3 font-light"> Law </th>
-                <th className="px-2 py-3 font-light"> Action ID </th>
+                <th className="px-2 py-3 font-light w-32"> Date </th>
+                <th className="px-2 py-3 font-light w-auto"> Law </th>
+                <th className="px-2 py-3 font-light w-24"> Action ID </th>
             </tr>
         </thead>
         <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
@@ -112,7 +112,7 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
                   className="text-sm text-left text-slate-800"
                 >
                   {/* Executed at */}
-                  <td className="px-2 py-3">
+                  <td className="px-2 py-3 w-32">
                       <Button
                         showBorder={true}
                         role={parseRole(law.conditions?.allowedRole || 0n)}
@@ -153,14 +153,14 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
                   </td>
                   
                   {/* Law */}
-                  <td className="px-2 py-3 max-w-0">
+                  <td className="px-2 py-3 w-auto">
                     <div className="truncate text-slate-500 text-xs">
                       {shorterDescription(law.nameDescription, "short")}
                     </div>
                   </td>
                   
                   {/* Action ID */}
-                  <td className="px-2 py-3 max-w-0">
+                  <td className="px-2 py-3 w-24">
                     <div className="truncate text-slate-500 text-xs font-mono">
                       {action.actionId.toString()}
                     </div>

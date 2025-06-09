@@ -157,13 +157,15 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
                   <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center py-3 px-4">
                       <Button
                         showBorder={true}
+                        size={0}
                         role={parseRole(law.conditions?.allowedRole)}
+                        filled={false}
                         onClick={() => {
                           router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`);
                         }}
                         align={0}
                         selected={true}
-                      > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center">
+                      > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center p-1">
                           {(() => {
                             // Ensure consistent block number format for lookup
                             const voteEndBlock = typeof proposal.voteEnd === 'bigint' 

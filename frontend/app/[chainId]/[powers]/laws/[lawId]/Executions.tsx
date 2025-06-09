@@ -1,17 +1,34 @@
 import { Execution, Law, Status, LawExecutions, Powers } from "@/context/types";
-import { parseChainId, parseParamValues, parseRole } from "@/utils/parsers";
+import { parseChainId, parseParamValues, parseRole, parseActionData } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 import { LoadingBox } from "@/components/LoadingBox";
 import { setAction, setError, useActionStore } from "@/context/store";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
 import { getPublicClient, readContract } from "wagmi/actions";
+import { getEnsName } from "@wagmi/core";
 import { lawAbi, powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAction } from "@/hooks/useAction";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+
+// Helper function to truncate addresses, preferring ENS names
+const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
+  if (ensName) return ensName
+  if (!address) return 'Unknown'
+  if (address.length < 10) return address
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+type ExecutionWithCaller = {
+  execution: bigint;
+  actionId: bigint;
+  caller?: `0x${string}`;
+  ensName?: string | null;
+}
 
 type ExecutionsProps = {
   roleId: bigint;
@@ -24,6 +41,8 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const { fetchActionData } = useAction()
+  const router = useRouter()
+  const [executionsWithCallers, setExecutionsWithCallers] = useState<ExecutionWithCaller[]>([])
 
   useEffect(() => {
     if (lawExecutions) {
@@ -34,49 +53,180 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
     }
   }, [lawExecutions, chainId])
 
-  return (
-  <main className="w-full max-h-fit grow flex flex-col gap-3 justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-    <section className="w-full flex flex-col divide-y divide-slate-300 text-sm text-slate-600" > 
-        <div className="w-full flex flex-row items-center justify-between bg-slate-100 text-slate-900">
-          <div className="text-left w-full px-4 py-2">
-            Latest executions
-          </div>
-        </div>
+  // Fetch caller information for each execution
+  useEffect(() => {
+    if (lawExecutions?.executions && lawExecutions?.actionsIds && powers?.contractAddress) {
+      const fetchCallers = async () => {
+        try {
+          const executionsData = await Promise.all(
+            lawExecutions.executions.map(async (execution, index) => {
+              const actionId = lawExecutions.actionsIds[index]
+              try {
+                const actionData = await readContract(wagmiConfig, {
+                  abi: powersAbi,
+                  address: powers.contractAddress,
+                  functionName: 'getActionData',
+                  args: [actionId]
+                })
+                const parsedActionData = parseActionData(actionData as unknown as unknown[])
+                 
+                 // Try to get ENS name for the caller
+                 let ensName: string | null = null
+                 try {
+                   ensName = await getEnsName(wagmiConfig, {
+                     address: parsedActionData.caller as `0x${string}`
+                   })
+                 } catch (ensError) {
+                   // ENS lookup failed, continue without ENS name
+                   console.log('ENS lookup failed for:', parsedActionData.caller)
+                 }
+                 
+                 return {
+                   execution,
+                   actionId,
+                   caller: parsedActionData.caller,
+                   ensName
+                 }
+              } catch (error) {
+                console.error('Error fetching caller for action:', actionId, error)
+                return {
+                  execution,
+                  actionId,
+                  caller: undefined,
+                  ensName: null
+                }
+              }
+            })
+          )
+          setExecutionsWithCallers(executionsData)
+        } catch (error) {
+          console.error('Error fetching callers:', error)
+        }
+      }
+      fetchCallers()
+    }
+  }, [lawExecutions, powers?.contractAddress])
 
-        {/* execution logs block 1 */}
-        {status == "pending" ?
-        <div className = "w-full flex flex-col justify-center items-center p-2"> 
+  const handleSelectAction = (actionId: bigint) => {
+    fetchActionData(actionId, powers as Powers)
+  }
+
+  return (
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+      <button
+        onClick={() => 
+          { 
+            router.push(`/${chainId}/${powers?.contractAddress}/laws`)
+          }
+        } 
+        className="w-full border-b border-slate-300 p-2 bg-slate-100"
+      >
+        <div className="w-full flex flex-row gap-6 items-center justify-between">
+          <div className="text-left text-sm text-slate-600">
+            Latest executions
+          </div> 
+          <ArrowUpRightIcon
+            className="w-4 h-4 text-slate-800"
+            />
+        </div>
+      </button>
+      
+      {status == "pending" ?
+        <div className="w-full flex flex-col justify-center items-center p-6">
           <LoadingBox />
         </div>
         :
-        lawExecutions?.executions && lawExecutions?.executions?.length != 0 ?  
-        <div className = "w-full flex flex-col max-h-36 overflow-y-scroll divide-y divide-slate-300">
-            {lawExecutions?.executions.map((execution, index: number) => 
-              <div className = "w-full flex flex-col justify-center items-center p-2" key = {index}> 
-                  <Button
-                      showBorder={true}
-                      role={Number(roleId)}
-                      onClick={() => fetchActionData(lawExecutions.actionsIds[index], powers as Powers)}
-                      align={0}
-                      selected={false}
-                      >  
-                      <div className = "flex flex-col w-full"> 
-                        <div className = "w-full flex flex-row gap-1 justify-between items-center px-1">
-                            <div className = "text-left"> {toFullDateFormat(Number(timestamps.get(`${chainId}:${execution}`)?.timestamp))}</div>
-                            <div className = "text-right"> {toEurTimeFormat(Number(timestamps.get(`${chainId}:${execution}`)?.timestamp))}</div>
-                        </div>
-                      </div>
-                    </Button>
-                </div>
-                )
-            }
+        lawExecutions?.executions && lawExecutions?.executions?.length > 0 ?  
+          <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="px-2 py-3 font-light w-32"> Date </th>
+                    <th className="px-2 py-3 font-light w-24"> Executioner </th>
+                    <th className="px-2 py-3 font-light w-24"> Action ID </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {
+                    (executionsWithCallers.length > 0 ? executionsWithCallers : 
+                     lawExecutions.executions.map((execution, index) => ({
+                       execution,
+                       actionId: lawExecutions.actionsIds[index],
+                       caller: undefined,
+                       ensName: null
+                     }))
+                    ).map((executionData, index: number) => (
+                      <tr
+                        key={index}
+                        className="text-sm text-left text-slate-800"
+                      >
+                        {/* Executed at */}
+                        <td className="px-2 py-3 w-32">
+                          <Button
+                            showBorder={true}
+                            role={Number(roleId)}
+                            onClick={() => handleSelectAction(executionData.actionId)}
+                            align={0}
+                            selected={true}
+                            filled={false}
+                            size={0}
+                          > 
+                            <div className="text-xs whitespace-nowrap py-1 px-1">
+                              {(() => {
+                                // Ensure consistent block number format for lookup
+                                const executedAtBlock = typeof executionData.execution === 'bigint' 
+                                  ? executionData.execution 
+                                  : BigInt(executionData.execution as unknown as string)
+                                
+                                const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
+                                const timestamp = timestampData?.timestamp
+                                
+                                if (!timestamp || timestamp <= 0n) {
+                                  return 'Loading...'
+                                }
+                                
+                                const timestampNumber = Number(timestamp)
+                                if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                  return 'Invalid date'
+                                }
+                                
+                                try {
+                                  return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                                } catch (error) {
+                                  console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                  return 'Date error'
+                                }
+                              })()}
+                            </div>
+                          </Button>
+                        </td>
+                      
+                        {/* Executioner */}
+                        <td className="px-2 py-3 w-24">
+                          <div className="truncate text-slate-500 text-xs font-mono">
+                            {truncateAddress(executionData.caller, executionData.ensName)}
+                          </div>
+                        </td>
+
+                        {/* Action ID */}
+                          <td className="px-2 py-3 w-24">
+                          <div className="truncate text-slate-500 text-xs font-mono">
+                            {executionData.actionId.toString()}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
             </div>
-            :
-            <div className = "w-full flex flex-col justify-center items-center italic text-slate-400 p-2">
-                No executions found. 
-            </div> 
-          }
-      </section>
-    </main>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No recent executions found
+        </div>
+      }
+    </div>
   )
 }
