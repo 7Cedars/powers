@@ -150,23 +150,6 @@ export function ProposalBox({
         </div>
       </form>
 
-      {/* <div className="w-full flex flex-row justify-center items-center p-6 py-2">
-        <Button 
-            size={1} 
-            showBorder={true} 
-            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
-            filled={false}
-            selected={true}
-            onClick={() => 
-              onCheck(law as Law, action, wallets, powers as Powers)
-            } 
-            statusButton={
-                action.description && action.description.length > 0 ? status : 'disabled'
-              }> 
-            Check 
-        </Button>
-      </div> */}
-
       {law && simulation && <SimulationBox simulation = {simulation} law = {law as Law}/> } 
 
       {/* execute button */}

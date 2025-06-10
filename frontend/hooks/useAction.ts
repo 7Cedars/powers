@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Status, LawSimulation, Law, LawExecutions, Action, Powers, ActionTruncated, DataType } from "../context/types"
-import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
+import { Status, Action, Powers, ActionTruncated, LawExecutions } from "../context/types"
+import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { useWaitForTransactionReceipt } from "wagmi";
-import { usePrivy } from "@privy-io/react-auth";
-import { usePowers } from "./usePowers";
 import { parseActionData, parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { setAction, useActionStore } from "@/context/store";
+import { setAction } from "@/context/store";
 
 export const useAction = () => {
   const [status, setStatus ] = useState<Status>("idle")
@@ -49,6 +46,16 @@ export const useAction = () => {
             if (lawCalldata && actionUri != undefined && actionData != undefined) {
               console.log("@Executions: waypoint 3:" , {lawCalldata, actionUri, actionData})
               const law = powers.laws?.find(law => law.index == parsedActionData.lawId)
+              const executions = await readContract(wagmiConfig, {
+                abi: lawAbi,
+                address: law?.lawAddress as `0x${string}`,
+                functionName: 'getExecutions',
+                args: [powers.contractAddress as `0x${string}`, parsedActionData.lawId]
+              })
+              console.log("@useAction: waypoint 2", {executions})
+              const executionsParsed = executions as unknown as LawExecutions
+              const index = executionsParsed.actionsIds.findIndex(actionId => actionId == actionId)
+              const executedAt = executionsParsed.executions[index]
 
               let dataTypes = law?.params?.map(param => param.dataType)
               let valuesParsed = undefined
@@ -74,6 +81,7 @@ export const useAction = () => {
                   voteDuration: parsedActionData.voteDuration,
                   voteEnd: parsedActionData.voteEnd,
                   againstVotes: parsedActionData.againstVotes,
+                  executedAt: executedAt,
                   forVotes: parsedActionData.forVotes,
                   abstainVotes: parsedActionData.abstainVotes,
                   cancelled: parsedActionData.cancelled,
@@ -82,6 +90,8 @@ export const useAction = () => {
               }
               setAction(returnActionData)
               setActionData(returnActionData)
+              setStatus("success")
+              return returnActionData
 
               console.log("@useAction: waypoint 5", {returnActionData})
             }
