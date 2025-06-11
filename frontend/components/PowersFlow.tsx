@@ -23,6 +23,11 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { Law, Powers, Checks } from '@/context/types'
 import { parseRole } from '@/utils/parsers'
+import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
+import { useBlocks } from '@/hooks/useBlocks'
+import { parseChainId } from '@/utils/parsers'
+import { getConstants } from '@/context/constants'
+import { useBlockNumber } from 'wagmi'
 import {
   CalendarDaysIcon,
   QueueListIcon,
@@ -44,7 +49,7 @@ import {
   FlagIcon
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { setAction, useActionStore, useChecksStatusStore } from '@/context/store'
+import { setAction, useActionStore, useChecksStatusStore, useActionDataStore } from '@/context/store'
 import { LoadingBox } from '@/components/LoadingBox'
 import { useChecksStore } from '@/context/store'
 import { powersAbi } from '@/context/abi'
@@ -90,13 +95,227 @@ interface LawSchemaNodeData {
   onNodeClick?: (lawId: string) => void
   selectedLawId?: string
   connectedNodes?: Set<string>
+  actionDataTimestamp?: number
 }
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
   const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers } = data
   const { chainChecks } = useChecksStore()
   const { status: checksStatus, chains: loadingChains } = useChecksStatusStore()
+  const { actionData } = useActionDataStore()
+  const { timestamps, fetchTimestamps } = useBlocks()
+  const chainId = useParams().chainId as string
+  const { data: blockNumber } = useBlockNumber()
+  const constants = getConstants(parseChainId(chainId) as number)
   
+  // Fetch timestamps for the current law's action data
+  React.useEffect(() => {
+    const currentLawAction = actionData.get(String(law.index))
+    if (currentLawAction) {
+      const blockNumbers: bigint[] = []
+      
+      // Collect all block numbers that need timestamps
+      if (currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+        blockNumbers.push(currentLawAction.voteStart)
+      }
+      if (currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+        blockNumbers.push(currentLawAction.voteEnd)
+      }
+      if (currentLawAction.executedAt && currentLawAction.executedAt !== 0n) {
+        blockNumbers.push(currentLawAction.executedAt)
+      }
+      
+      // Also fetch timestamps for dependent laws
+      if (law.conditions) {
+        if (law.conditions.needCompleted !== 0n) {
+          const dependentAction = actionData.get(String(law.conditions.needCompleted))
+          if (dependentAction && dependentAction.executedAt && dependentAction.executedAt !== 0n) {
+            blockNumbers.push(dependentAction.executedAt)
+          }
+        }
+        if (law.conditions.needNotCompleted !== 0n) {
+          const dependentAction = actionData.get(String(law.conditions.needNotCompleted))
+          if (dependentAction && dependentAction.executedAt && dependentAction.executedAt !== 0n) {
+            blockNumbers.push(dependentAction.executedAt)
+          }
+        }
+      }
+      
+      // Fetch timestamps if we have block numbers
+      if (blockNumbers.length > 0) {
+        fetchTimestamps(blockNumbers, chainId)
+      }
+    }
+  }, [actionData, law.index, law.conditions, chainId, fetchTimestamps])
+  
+  // Helper function to format block number or timestamp to desired format
+  const formatBlockNumberOrTimestamp = (value: bigint | undefined): string | null => {
+    if (!value || value === 0n) {
+      return null
+    }
+    
+    try {
+      // First, check if we have this as a cached timestamp from useBlocks
+      const cacheKey = `${chainId}:${value}`
+      const cachedTimestamp = timestamps.get(cacheKey)
+      
+      if (cachedTimestamp && cachedTimestamp.timestamp) {
+        // Convert bigint timestamp to number for the utility functions
+        const timestampNumber = Number(cachedTimestamp.timestamp)
+        const dateStr = toFullDateFormat(timestampNumber)
+        const timeStr = toEurTimeFormat(timestampNumber)
+        return `${dateStr}: ${timeStr}`
+      }
+      
+      // If not in cache, it might be a direct timestamp (fallback)
+      // Check if the value looks like a timestamp (large number) vs block number (smaller)
+      const valueNumber = Number(value)
+      
+      // If it's a very large number, treat as timestamp
+      if (valueNumber > 1000000000) { // Unix timestamp threshold
+        const dateStr = toFullDateFormat(valueNumber)
+        const timeStr = toEurTimeFormat(valueNumber)
+        return `${dateStr}: ${timeStr}`
+      }
+      
+      // If it's a smaller number, it's likely a block number that hasn't been fetched yet
+      return null
+    } catch (error) {
+      return null
+    }
+  }
+  
+  // Helper function to calculate when delay will pass with time remaining info
+  const calculateDelayPassTime = (voteEndBlock: bigint | undefined, delaySeconds: bigint): string | null => {
+    if (!voteEndBlock || voteEndBlock === 0n || delaySeconds === 0n) {
+      return null
+    }
+    
+    try {
+      // First, get the timestamp for the voteEnd block
+      const cacheKey = `${chainId}:${voteEndBlock}`
+      const cachedTimestamp = timestamps.get(cacheKey)
+      
+      if (cachedTimestamp && cachedTimestamp.timestamp) {
+        // Add the delay in seconds to the vote end timestamp
+        const voteEndTimestamp = Number(cachedTimestamp.timestamp)
+        const delayPassTimestamp = voteEndTimestamp + Number(delaySeconds)
+        
+        // Check if delay has already passed by comparing with current time
+        const currentTimestamp = Math.floor(Date.now() / 1000)
+        const isDelayInFuture = delayPassTimestamp > currentTimestamp
+        
+        // If delay is in the future and we have current block number, calculate time remaining
+        if (isDelayInFuture && blockNumber) {
+          // Calculate how many seconds remain
+          const secondsRemaining = delayPassTimestamp - currentTimestamp
+          
+          // Convert to hours and minutes
+          const hoursRemaining = Math.floor(secondsRemaining / 3600)
+          const minutesRemaining = Math.floor((secondsRemaining % 3600) / 60)
+          
+          // Format the date/time when delay will pass
+          const dateStr = toFullDateFormat(delayPassTimestamp)
+          const timeStr = toEurTimeFormat(delayPassTimestamp)
+          
+          // Add time remaining info
+          let timeRemainingStr = ''
+          if (hoursRemaining > 0) {
+            timeRemainingStr = ` (${hoursRemaining}h ${minutesRemaining}m left)`
+          } else {
+            timeRemainingStr = ` (${minutesRemaining}m left)`
+          }
+          
+          return `${dateStr}: ${timeStr}${timeRemainingStr}`
+        } else {
+          // Delay has passed or no current block info, just show the date/time
+          const dateStr = toFullDateFormat(delayPassTimestamp)
+          const timeStr = toEurTimeFormat(delayPassTimestamp)
+          return `${dateStr}: ${timeStr}`
+        }
+      }
+      
+      // If timestamp not available yet, return null
+      return null
+    } catch (error) {
+      return null
+    }
+  }
+
+  // Helper function to get date for each check item
+  const getCheckItemDate = (itemKey: string): string | null => {
+    const currentLawAction = actionData.get(String(law.index))
+    
+    switch (itemKey) {
+      case 'needCompleted':
+      case 'needNotCompleted':
+        // Get executedAt from the dependent law - this should work regardless of current law's action data
+        const dependentLawId = itemKey === 'needCompleted' 
+          ? law.conditions?.needCompleted 
+          : law.conditions?.needNotCompleted
+        
+        if (dependentLawId && dependentLawId !== 0n) {
+          const dependentAction = actionData.get(String(dependentLawId))
+          
+          return formatBlockNumberOrTimestamp(dependentAction?.executedAt)
+        }
+        return null
+      
+      case 'proposalCreated':
+      case 'voteStarted':
+        // Use voteStart field - show if current law has action data with voteStart
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
+        }
+        return null
+      
+      case 'voteEnded':
+      case 'proposalPassed':
+        // Use voteEnd field - only show if current law has action data and vote has ended
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
+        }
+        return null
+      
+      case 'delay':
+        // Calculate delay pass time if voteEnd exists and delay > 0
+        // Only show if current law has action data with voteEnd
+        if (law.conditions && law.conditions.delayExecution !== 0n && currentLawAction?.voteEnd) {
+          return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
+        }
+        // Return null if no action data or no delay condition
+        return null
+      
+      case 'throttle':
+        // Keep as null for now
+        return null
+      
+      case 'executed':
+        // Use executedAt field - only show if current law has action data and actually executed
+        if (currentLawAction) {
+          console.log(`DEBUG Law #${law.index} - executed check:`, {
+            executedAt: currentLawAction.executedAt?.toString(),
+            actionNotCompleted: checks?.actionNotCompleted,
+            hasExecutedAt: !!currentLawAction.executedAt,
+            executedAtIsZero: currentLawAction.executedAt === 0n
+          })
+        }
+        
+        // Only show date if actually executed (executedAt > 0 AND actionNotCompleted is false)
+        if (currentLawAction && currentLawAction.executedAt && currentLawAction.executedAt !== 0n && checks?.actionNotCompleted === false) {
+          return formatBlockNumberOrTimestamp(currentLawAction.executedAt)
+        }
+        return null
+      
+      case 'readStateFrom':
+        // This doesn't have a direct status check, keep as null
+        return null
+      
+      default:
+        return null
+    }
+  }
+
   let checks = chainChecks.get(String(law.index))
   if (!checks) {
     checks = {
@@ -350,7 +569,9 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
                       )}
                     </div>
                     <div className="flex-1 flex flex-col min-w-0">
-                      <div className="text-[10px] text-gray-400 mb-0.5">Dec 15, 2024 - 14:32</div>
+                      {getCheckItemDate(item.key) && (
+                        <div className="text-[10px] text-gray-400 mb-0.5">{getCheckItemDate(item.key)}</div>
+                      )}
                       <span className="text-gray-700 font-medium break-words">{item.label}</span>
                     </div>
                 </div>
@@ -707,12 +928,15 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
 const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
   const { chainChecks } = useChecksStore()
+  const { actionData } = useActionDataStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
   const [lastSelectedLawId, setLastSelectedLawId] = React.useState<bigint>(action.lawId)
   const [isInitialized, setIsInitialized] = React.useState(false)
+  const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
+  const { status: checksStatus } = useChecksStatusStore()
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -932,7 +1156,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   // Auto-zoom to selected law from store or restore previous viewport
   React.useEffect(() => {
-    if (!isInitialized) return // Don't run until ReactFlow is initialized
+    // Don't change viewport if:
+    // 1. ReactFlow isn't initialized yet
+    // 2. Checks are currently being performed (pending status)
+    // 3. User has manually interacted with the viewport recently
+    if (!isInitialized || checksStatus === "pending" || userHasInteracted) return
     
     const timer = setTimeout(() => {
       // Only auto-zoom if the selected law has actually changed
@@ -960,10 +1188,13 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }, 100)
     
     return () => clearTimeout(timer)
-  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport, calculateCenterPosition, calculateFitViewOptions, fitViewWithPanel])
+  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport, calculateCenterPosition, calculateFitViewOptions, fitViewWithPanel, checksStatus, userHasInteracted])
 
   // Legacy auto-zoom to selected law (keep for backward compatibility but only if no store state)
   React.useEffect(() => {
+    // Don't change viewport during checks or if user has interacted
+    if (checksStatus === "pending" || userHasInteracted) return
+    
     if (selectedLawId && (!action.lawId || action.lawId === 0n) && !getStoredViewport()) {
       // Small delay to ensure nodes are rendered
       const timer = setTimeout(() => {
@@ -980,7 +1211,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       
       return () => clearTimeout(timer)
     }
-  }, [selectedLawId, getNode, setCenter, action.lawId, calculateCenterPosition])
+  }, [selectedLawId, getNode, setCenter, action.lawId, calculateCenterPosition, checksStatus, userHasInteracted])
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -1027,6 +1258,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
           onNodeClick: handleNodeClick,
           selectedLawId: selectedLawIdFromStore,
           connectedNodes,
+          actionDataTimestamp: Date.now(),
         },
       })
       
@@ -1130,7 +1362,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     handleNodeClick, 
     selectedLawId, 
     action.lawId, 
-    loadSavedLayout
+    loadSavedLayout,
+    actionData
   ])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -1145,9 +1378,27 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const onMoveEnd = useCallback(() => {
     const currentViewport = getViewport()
     setStoredViewport(currentViewport)
+    // Mark that user has interacted with viewport
+    setUserHasInteracted(true)
     // Trigger debounced layout save when viewport changes
     debouncedSaveLayout()
   }, [getViewport, debouncedSaveLayout])
+
+  // Track user interactions with viewport
+  const onMoveStart = useCallback(() => {
+    setUserHasInteracted(true)
+  }, [])
+
+  // Reset user interaction flag after a period of inactivity
+  React.useEffect(() => {
+    if (userHasInteracted) {
+      const timer = setTimeout(() => {
+        setUserHasInteracted(false)
+      }, 3000) // Reset after 3 seconds of no interaction
+      
+      return () => clearTimeout(timer)
+    }
+  }, [userHasInteracted])
 
   // Update nodes when props change
   React.useEffect(() => {
@@ -1161,6 +1412,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   // Node drag handlers to trigger layout saving
   const onNodeDragStop = useCallback(() => {
+    setUserHasInteracted(true) // Mark interaction when dragging nodes
     debouncedSaveLayout()
   }, [debouncedSaveLayout])
 
@@ -1169,6 +1421,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     // Check if any node was dragged
     const hasDragChange = changes.some((change: any) => change.type === 'position' && change.dragging === false)
     if (hasDragChange) {
+      setUserHasInteracted(true) // Mark interaction when dragging nodes
       debouncedSaveLayout()
     }
   }, [onNodesChange, debouncedSaveLayout])
@@ -1208,6 +1461,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         zoomOnDoubleClick={true}
         panOnScroll={false}
         preventScrolling={true}
+        onMoveStart={onMoveStart}
         onMoveEnd={onMoveEnd}
         onInit={onInit}
         onNodeDragStop={onNodeDragStop}

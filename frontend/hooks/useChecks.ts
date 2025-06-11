@@ -1,15 +1,15 @@
 import { useCallback, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Law, Checks, Status, LawExecutions, Powers } from "../context/types"
+import { Law, Checks, Status, LawExecutions, Powers, Action } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
 import { getPublicClient, readContract } from "wagmi/actions";
-import { useChains, useBlockNumber, useAccount } from 'wagmi'
+import { useBlockNumber } from 'wagmi'
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
-import { getConstants } from "@/context/constants";
-import { setChainChecks, setChecksStatus } from "@/context/store";
+import { setActionData, setChainChecks, setChecksStatus } from "@/context/store";
+import { useAction } from "./useAction";
 
 export const useChecks = () => {
   const { chainId } = useParams<{ chainId: string }>()
@@ -19,6 +19,7 @@ export const useChecks = () => {
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId)
   })
+  const { status: actionStatus, error: actionError, actionData, fetchActionData } = useAction()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
   // note: the state of checks is not stored here, it is stored in the Zustand store
@@ -223,12 +224,15 @@ export const useChecks = () => {
 
   const fetchChainChecks = useCallback(
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
+
+      console.log("@fetchChainChecks: waypoint 0", {lawId, callData, nonce, wallets, powers})
       
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
       const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
 
       const checksMap = new Map<string, Checks>()
+      const actionDataMap = new Map<string, Action>()
       if (chainLaws && law) {
         try {
           // For each active law, calculate basic checks
@@ -237,10 +241,16 @@ export const useChecks = () => {
             if (!targetLaw?.conditions) continue
             const singleChecks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
             checksMap.set(lawStrId, singleChecks as Checks)
+
+            const actionId = hashAction(BigInt(lawStrId), callData, nonce)
+            console.log("@fetchChainChecks: waypoint 1", {actionId})
+            const actionData: Action | undefined = await fetchActionData(actionId, powers)
+            console.log("@fetchChainChecks: waypoint 2", {actionData})
+            actionData ? actionDataMap.set(lawStrId, actionData) : null
           }
-  
-        setChainChecks(checksMap)
-        setChecksStatus({status: "success", chains: Array.from(chainLaws)})
+          console.log("@fetchChainChecks: waypoint 3", {checksMap, actionDataMap})
+          setChainChecks(checksMap)
+          setActionData( actionDataMap )
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch law checks')

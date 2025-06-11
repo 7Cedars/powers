@@ -15,7 +15,7 @@ type ButtonProps = {
 };
 
 const fontSize = [
-  "text-xs font-light h-6",
+  "text-sm py-1",
   "text-md p-1 h-10", 
   "text-lg p-3 h-16", 
 ]

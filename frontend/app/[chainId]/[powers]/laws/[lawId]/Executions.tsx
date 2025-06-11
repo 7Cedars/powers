@@ -1,16 +1,14 @@
-import { Execution, Law, Status, LawExecutions, Powers } from "@/context/types";
-import { parseChainId, parseParamValues, parseRole, parseActionData } from "@/utils/parsers";
+import { Status, LawExecutions, Powers } from "@/context/types";
+import { parseActionData } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 import { LoadingBox } from "@/components/LoadingBox";
-import { setAction, setError, useActionStore } from "@/context/store";
-import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { getPublicClient, readContract } from "wagmi/actions";
+import { readContract } from "wagmi/actions";
 import { getEnsName } from "@wagmi/core";
-import { lawAbi, powersAbi } from "@/context/abi";
+import { powersAbi } from "@/context/abi";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAction } from "@/hooks/useAction";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
@@ -67,7 +65,7 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
                   address: powers.contractAddress,
                   functionName: 'getActionData',
                   args: [actionId]
-                })
+                }) 
                 const parsedActionData = parseActionData(actionData as unknown as unknown[])
                  
                  // Try to get ENS name for the caller

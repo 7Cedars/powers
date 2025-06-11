@@ -102,7 +102,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             className="w-full"
           >
           <div className="flex flex-row gap-1 items-center justify-start">
-            <div className="text-left text-sm text-slate-500 break-all w-fit">
+            <div className="text-left text-xs text-slate-500 break-all w-fit">
               Law: {law.lawAddress }
             </div> 
               <ArrowUpRightIcon
@@ -146,15 +146,15 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             )
           })
         }
-      <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3">
-        <label htmlFor="nonce" className="text-sm text-slate-600 ps-3 pt-1 pe-11 ">Nonce</label>
-        <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-3 outline outline-1 outline-slate-300">
+      <div className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3">
+        <label htmlFor="nonce" className="text-xs text-slate-600 ps-3 min-w-20 ">Nonce</label>
+        <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">
             <input 
               type="number"   
               name={`nonce`} 
               id={`nonce`}
               value = {action.nonce}
-              className="w-full h-8 pe-2 text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
+              className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
               placeholder={`Enter random number.`}
               onChange={(event) => {
                 event.preventDefault()
@@ -173,15 +173,15 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           </button>    
         </div>
 
-        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3">
-        <label htmlFor="uri" className="text-sm text-slate-600 ps-3 pt-1 pe-4 ">Description</label>
-          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-3 outline outline-1 outline-slate-300">
+        <div className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3">
+        <label htmlFor="uri" className="text-xs text-slate-600 ps-3 min-w-20 ">Description</label>
+          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">
               <input 
                 type="text"
                 name="uri" 
                 id="uri" 
                 value={action.description}
-                className="w-full h-8 pe-2 text-base text-slate-600 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6" 
+                className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                 placeholder="Enter URI to file with notes on the action here."
                 onChange={(event) => {  
                   event.preventDefault()
@@ -203,7 +203,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6">
           <Button 
-            size={1} 
+            size={0} 
             showBorder={true} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             filled={false}
@@ -225,7 +225,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         <div className="w-full px-6 py-2 ">          
           <div className="w-full">
             <Button 
-              size={1} 
+              size={0} 
               role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
               onClick={() => {
                 if (checks?.proposalExists) {
@@ -262,7 +262,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
       {/* execute button */}
         <div className="w-full h-fit px-6 py-2 pb-6">
           <Button 
-            size={1} 
+            size={0} 
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             onClick={() => {
               if (checks?.authorised) {
