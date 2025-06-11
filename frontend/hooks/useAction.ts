@@ -75,7 +75,7 @@ export const useAction = () => {
                   nonce: String(parsedActionData.nonce),
                   description: actionUri as string,
                   callData: lawCalldata as `0x${string}`,
-                  upToDate: false,
+                  upToDate: true,
                   state: parsedActionData.state,
                   voteStart: parsedActionData.voteStart,
                   voteDuration: parsedActionData.voteDuration,

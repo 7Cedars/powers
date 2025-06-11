@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { ProposalBox } from "./ProposalBox";
-import { Votes } from "./Votes"; 
+import { Voting } from "./Voting"; 
+import { Votes } from "./Votes";
 import { setAction, setError, useActionStore, useChecksStore } from "@/context/store";
 import { Powers, Law, Status, Checks, Action } from "@/context/types";
 import { GovernanceOverview } from "@/components/GovernanceOverview";
@@ -63,7 +64,8 @@ const Page = () => {
         proposalStatus = {actionData?.state ? actionData.state : 0} /> 
         }
       {actionData?.lawId && powers && <LawLink lawId = {actionData?.lawId} powers = {powers as Powers}/>}
-      { actionData?.lawId && <Votes action = {action} powers = {powers} status = {statusChecks}/> }
+      { actionData?.lawId && <Voting action = {action} powers = {powers} status = {statusChecks}/> }
+      { <Votes actionId = {actionId} powers = {powers} status = {statusChecks}/> }
     </main>
 )
 }

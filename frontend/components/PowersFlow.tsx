@@ -95,6 +95,7 @@ interface LawSchemaNodeData {
   onNodeClick?: (lawId: string) => void
   selectedLawId?: string
   connectedNodes?: Set<string>
+  actionDataTimestamp?: number
 }
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
@@ -148,9 +149,9 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   }, [actionData, law.index, law.conditions, chainId, fetchTimestamps])
   
   // Helper function to format block number or timestamp to desired format
-  const formatBlockNumberOrTimestamp = (value: bigint | undefined): string => {
+  const formatBlockNumberOrTimestamp = (value: bigint | undefined): string | null => {
     if (!value || value === 0n) {
-      return '-: -'
+      return null
     }
     
     try {
@@ -178,16 +179,16 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       }
       
       // If it's a smaller number, it's likely a block number that hasn't been fetched yet
-      return '-: -'
+      return null
     } catch (error) {
-      return '-: -'
+      return null
     }
   }
   
   // Helper function to calculate when delay will pass with time remaining info
-  const calculateDelayPassTime = (voteEndBlock: bigint | undefined, delaySeconds: bigint): string => {
+  const calculateDelayPassTime = (voteEndBlock: bigint | undefined, delaySeconds: bigint): string | null => {
     if (!voteEndBlock || voteEndBlock === 0n || delaySeconds === 0n) {
-      return '-: -'
+      return null
     }
     
     try {
@@ -234,15 +235,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         }
       }
       
-      // If timestamp not available yet, return placeholder
-      return '-: -'
+      // If timestamp not available yet, return null
+      return null
     } catch (error) {
-      return '-: -'
+      return null
     }
   }
 
   // Helper function to get date for each check item
-  const getCheckItemDate = (itemKey: string): string => {
+  const getCheckItemDate = (itemKey: string): string | null => {
     const currentLawAction = actionData.get(String(law.index))
     
     switch (itemKey) {
@@ -253,47 +254,28 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
           ? law.conditions?.needCompleted 
           : law.conditions?.needNotCompleted
         
-        // Debug logging for law #5 and #6
-        if (law.index === 5n || law.index === 6n) {
-          console.log(`DEBUG Law #${law.index} - ${itemKey}:`, {
-            dependentLawId: dependentLawId?.toString(),
-            hasConditions: !!law.conditions,
-            needCompleted: law.conditions?.needCompleted?.toString(),
-            needNotCompleted: law.conditions?.needNotCompleted?.toString()
-          })
-        }
-        
         if (dependentLawId && dependentLawId !== 0n) {
           const dependentAction = actionData.get(String(dependentLawId))
           
-          // More debug logging
-          if (law.index === 5n || law.index === 6n) {
-            console.log(`DEBUG Law #${law.index} - dependent action for law #${dependentLawId}:`, {
-              actionExists: !!dependentAction,
-              executedAt: dependentAction?.executedAt?.toString(),
-              actionKeys: dependentAction ? Object.keys(dependentAction) : 'no action'
-            })
-          }
-          
           return formatBlockNumberOrTimestamp(dependentAction?.executedAt)
         }
-        return '-: -'
+        return null
       
       case 'proposalCreated':
       case 'voteStarted':
-        // Use voteStart field - only show if current law has action data
-        if (currentLawAction) {
+        // Use voteStart field - show if current law has action data with voteStart
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
         }
-        return '-: -'
+        return null
       
       case 'voteEnded':
       case 'proposalPassed':
-        // Use voteEnd field - only show if current law has action data
-        if (currentLawAction) {
+        // Use voteEnd field - only show if current law has action data and vote has ended
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
         }
-        return '-: -'
+        return null
       
       case 'delay':
         // Calculate delay pass time if voteEnd exists and delay > 0
@@ -301,26 +283,36 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         if (law.conditions && law.conditions.delayExecution !== 0n && currentLawAction?.voteEnd) {
           return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
         }
-        // Show dummy if no action data or no delay condition
-        return '-: -'
+        // Return null if no action data or no delay condition
+        return null
       
       case 'throttle':
-        // Keep as dummy for now
-        return '-: -'
+        // Keep as null for now
+        return null
       
       case 'executed':
-        // Use executedAt field - only show if current law has action data
+        // Use executedAt field - only show if current law has action data and actually executed
         if (currentLawAction) {
+          console.log(`DEBUG Law #${law.index} - executed check:`, {
+            executedAt: currentLawAction.executedAt?.toString(),
+            actionNotCompleted: checks?.actionNotCompleted,
+            hasExecutedAt: !!currentLawAction.executedAt,
+            executedAtIsZero: currentLawAction.executedAt === 0n
+          })
+        }
+        
+        // Only show date if actually executed (executedAt > 0 AND actionNotCompleted is false)
+        if (currentLawAction && currentLawAction.executedAt && currentLawAction.executedAt !== 0n && checks?.actionNotCompleted === false) {
           return formatBlockNumberOrTimestamp(currentLawAction.executedAt)
         }
-        return '-: -'
+        return null
       
       case 'readStateFrom':
-        // This doesn't have a direct status check, keep as dummy
-        return '-: -'
+        // This doesn't have a direct status check, keep as null
+        return null
       
       default:
-        return '-: -'
+        return null
     }
   }
 
@@ -577,7 +569,9 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
                       )}
                     </div>
                     <div className="flex-1 flex flex-col min-w-0">
-                      <div className="text-[10px] text-gray-400 mb-0.5">{getCheckItemDate(item.key)}</div>
+                      {getCheckItemDate(item.key) && (
+                        <div className="text-[10px] text-gray-400 mb-0.5">{getCheckItemDate(item.key)}</div>
+                      )}
                       <span className="text-gray-700 font-medium break-words">{item.label}</span>
                     </div>
                 </div>
@@ -934,6 +928,7 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
 const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
   const { chainChecks } = useChecksStore()
+  const { actionData } = useActionDataStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
@@ -1263,6 +1258,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
           onNodeClick: handleNodeClick,
           selectedLawId: selectedLawIdFromStore,
           connectedNodes,
+          actionDataTimestamp: Date.now(),
         },
       })
       
@@ -1366,7 +1362,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     handleNodeClick, 
     selectedLawId, 
     action.lawId, 
-    loadSavedLayout
+    loadSavedLayout,
+    actionData
   ])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)

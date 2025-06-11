@@ -65,7 +65,7 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
                   address: powers.contractAddress,
                   functionName: 'getActionData',
                   args: [actionId]
-                })
+                }) 
                 const parsedActionData = parseActionData(actionData as unknown as unknown[])
                  
                  // Try to get ENS name for the caller

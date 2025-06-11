@@ -107,12 +107,8 @@ export const clearChainChecks = () => {
 // Action Data Store
 export const useActionDataStore = create<ActionDataStore>()(() => initialStateActionData);
 
-export const setActionData: typeof useActionDataStore.setState = (actionData) => {
-  useActionDataStore.setState(actionData)
-}
-
-export const deleteActionData: typeof useActionDataStore.setState = () => {
-  useActionDataStore.setState(initialStateActionData)
+export const setActionData = (actionData: Map<string, Action>) => {
+  useActionDataStore.setState({ actionData })
 }
 
 // Checks Status Store

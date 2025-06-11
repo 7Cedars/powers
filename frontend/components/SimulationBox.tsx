@@ -38,12 +38,12 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
           ... jsxElements0, 
           <tr
             key={i}
-            className={`text-sm text-slate-800 h-16 p-2 overflow-x-scroll`}
+            className={`text-xs font-mono text-slate-800 h-16 p-2 overflow-x-scroll`}
           >
             {/*  */}
-            <td className="ps-6 text-left text-slate-500"> {simulation[1][i]} </td> 
-            <td className="text-center text-slate-500"> {String(simulation[2][i])} </td>
-            <td className="pe-4 text-left text-slate-500"> {simulation[3][i]} </td>
+            <td className="ps-6 text-left font-mono text-slate-500"> {simulation[1][i]} </td> 
+            <td className="text-center font-mono text-slate-500"> {String(simulation[2][i])} </td>
+            <td className="pe-4 text-left font-mono text-slate-500"> {simulation[3][i]} </td>
           </tr>
         ];
       }
@@ -57,11 +57,11 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
           ... jsxElements1, 
           <tr
             key={i}
-            className={`text-sm text-slate-800 h-16 p-2 overflow-x-scroll`}
+            className={`text-xs font-mono text-slate-800 h-16 p-2 overflow-x-scroll`}
           >
             {/*  */}
-            <td className="ps-6 text-left text-slate-500"> {dataTypes[i]} </td> 
-            <td className="text-left text-slate-500"> {String(stateVarsParsed[i])} </td>
+            <td className="ps-6 text-left font-mono text-slate-500"> {dataTypes[i]} </td> 
+            <td className="text-left font-mono text-slate-500"> {String(stateVarsParsed[i])} </td>
             </tr>
         ];
       }
@@ -74,18 +74,18 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
     <section className="w-full flex flex-col gap-6 justify-start items-center px-6 pt-4">
     {dataTypes.length > 0 ? 
       <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
-          <div className="w-full text-xs text-center text-slate-500 p-2 ">
+          <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
             State variables to be saved in law 
           </div>
           <div className="w-full h-fit overflow-scroll">
             <table className="table-auto w-full ">
               <thead className="w-full border-b border-slate-300">
-                <tr className="w-96 bg-slate-50 text-xs font-light text-left text-slate-500">
+                <tr className="w-96 bg-slate-50 text-xs font-light font-mono text-left text-slate-600">
                     <th className="ps-6 py-2 font-light"> Data type </th>
                     <th className="font-light text-left"> Value </th>
                 </tr>
               </thead>
-                <tbody className="w-full text-sm text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
+                <tbody className="w-full text-xs text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
                   { jsxSimulation[0] ? jsxSimulation[0].map(row => {return (row)} ) : null } 
                 </tbody>
               </table>
@@ -96,26 +96,26 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
       }
 
       <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
-        <div className="w-full text-xs text-center text-slate-500 p-2 ">
+        <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
           Calldata to be send to protocol 
         </div>
         <div className="w-full h-fit overflow-scroll">
           <table className="table-auto w-full ">
             <thead className="w-full border-b border-slate-300">
-              <tr className="w-96 bg-slate-50 text-xs font-light text-left text-slate-500">
+              <tr className="w-96 bg-slate-50 text-xs font-light text-left text-slate-600">
                   <th className="ps-6 py-2 font-light"> Target contracts </th>
                   <th className="font-light pe-4"> Value </th>
                   <th className="font-light"> Calldata </th>
               </tr>
             </thead>
-              <tbody className="w-full text-sm text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
+              <tbody className="w-full text-xs text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
                 { 
                   jsxSimulation[1] ? 
                     jsxSimulation[1].map(row => {return (row)} ) 
                   : status && status == "error" ?
-                    <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm">
-                      Error: 
-                      {String(error)}
+                    <div className="w-full flex flex-col gap-0 justify-start items-center text-red-800 text-xs p-4">
+                      <div className="font-medium">Error:</div>
+                      <div className="font-mono">{String(error)}</div>
                     </div>  
                   :
                   null 
