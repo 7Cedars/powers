@@ -244,7 +244,7 @@ export const useChecks = () => {
 
             const actionId = hashAction(BigInt(lawStrId), callData, nonce)
             console.log("@fetchChainChecks: waypoint 1", {actionId})
-            const actionData: Action | undefined = await fetchActionData(actionId, powers)
+            const actionData = await fetchActionData(actionId, powers)
             console.log("@fetchChainChecks: waypoint 2", {actionData})
             actionData ? actionDataMap.set(lawStrId, actionData) : null
           }

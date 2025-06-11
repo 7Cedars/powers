@@ -9,8 +9,9 @@ import { Token, Powers, Status } from "@/context/types";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
+import { Button } from "@/components/Button";
 
-export function AssetList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
+export function AssetList({powers, status: statusPowers, onRefresh}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
@@ -23,86 +24,175 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
     }
   }, [powers, statusPowers, fetchTokens])
 
-  return (
-  <div className="w-full h-full flex flex-col justify-start items-center gap-6 overflow-x-scroll">   
+  const handleRefreshAssets = () => {
+    if (powers) {
+      fetchTokens(powers)
+    }
+  }
 
-    {/* Ether + owned assets table  */}
-    <section className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden">
-      {/* table banner  */}
-      <div className="w-full flex flex-row gap-3 justify-between items-center py-4 px-6 border-b border-slate-200">
+  return (
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+      {/* Header - matching LogsList.tsx structure */}
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4">
         <div className="text-slate-900 text-center font-bold text-lg">
           Treasury
         </div>
-        {supportedChain && powers &&
-        <button 
-          className="w-fit h-fit p-1 border border-opacity-0 hover:border-opacity-100 rounded-md border-slate-500 aria-selected:animate-spin"
-          onClick = {() => fetchTokens(powers)}
-          >
-            <ArrowPathIcon
-              className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
-              aria-selected={status && status == 'pending'}
-              />
-        </button>
-        }
+        <div className="flex flex-row gap-2 items-center">
+          {supportedChain && powers && (
+            <div className="w-8 h-8">
+              <Button
+                size={0}
+                showBorder={true}
+                onClick={handleRefreshAssets}
+              >
+                <ArrowPathIcon className={`w-5 h-5 ${status === 'pending' ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          )}
+          {onRefresh && (
+            <div className="w-8 h-8">
+              <Button
+                size={0}
+                showBorder={true}
+                onClick={onRefresh}
+              >
+                <ArrowPathIcon className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-      {/* table laws  */}
-      <div className="w-full h-full overflow-x-scroll overflow-y-hidden">
-      { status && status == 'pending' ? 
-        <div className="w-full h-full flex flex-row justify-center items-center p-4">
+
+      {/* Table content - matching LogsList.tsx structure */}
+      {status && status == 'pending' ? 
+        <div className="w-full flex flex-col justify-center items-center p-6">
           <LoadingBox />
         </div>
-      :
-      <table className="w-full table-auto ">
-        <thead className="w-full border-b border-slate-200">
-          <tr className="text-xs font-light text-slate-500 text-left">
-              {/* name, possibly later also icon */}
-              {/* any N/A should just be shown with a simple '-' */}
-              <th className="ps-6  py-2 font-light"> Asset </th> 
-              <th className="font-light"> Symbol </th>
-              <th className="font-light"> Address </th>
-              <th className="font-light"> Quantity </th>
-              <th className="font-light"> {`Value (${native?.symbol})`} </th>
-              {/* here add button to switch between USD, EUR and GBP + maybe YEN, ? other currency */}
-              <th className="font-light"> Value </th> 
-          </tr>
-        </thead>
-        <tbody className="w-full text-sm text-right text-slate-500 divide-y divide-slate-200">
-          {native &&
-            <tr className={`text-sm text-left text-slate-500 h-16 overflow-x-scroll py-2`}>
-                <td className="ps-6 px-2"> {supportedChain?.nativeCurrency?.name} </td>
-                <td className=""> {native?.symbol} </td>
-                <td className=""> - </td>
-                <td className=""> {String((Number(native?.value)/ 10 ** Number(native?.decimals)).toFixed(4))} </td>
-                <td className=""> {String((Number(native?.value)/ 10 ** Number(native?.decimals)).toFixed(4))} </td>
-            </tr>
-          }
-          {
-            tokens?.map((token: Token, i) => 
-              <tr className={`text-sm text-left text-slate-500 h-16 overflow-x-scroll`} key = {i}>
-                <td className="ps-6 pe-4"> {token.name} </td>
-                <td className="pe-4"> {token.symbol} </td>
-                <td className="pe-4">
-                  <a
-                    href={`${supportedChain?.blockExplorers?.default.url}/address/${token.address}#code`} target="_blank" rel="noopener noreferrer"
-                    className="w-full flex flex-row gap-1 py-2 items-start justify-start"
-                  >
-                    {token.address?.slice(0, 6)}...{token.address?.slice(-6)}
-                    <ArrowUpRightIcon
-                    className="w-4 h-4 text-slate-500"
-                    />
-                  </a>
-                </td>
-                <td className=""> {String((Number(token.balance)/ 10 ** Number(token.decimals)).toFixed(4))} </td>
-                <td className=""> {token.valueNative  ? token.valueNative : ` - `} </td>
-                <td className=""> {` - `} </td>
-              </tr>
-              )
-            }
-      </tbody>
-      </table>
+        :
+        (native || (tokens && tokens.length > 0)) ?
+          <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="ps-4 px-2 py-3 font-light w-auto"> Asset </th>
+                    <th className="px-2 py-3 font-light w-20"> Symbol </th>
+                    <th className="px-2 py-3 font-light w-32"> Address </th>
+                    <th className="px-2 py-3 font-light w-24"> Quantity </th>
+                    <th className="px-2 py-3 font-light w-24"> {`Value (${native?.symbol})`} </th>
+                    <th className="px-2 py-3 font-light w-20"> Value </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {native && (
+                    <tr className="text-xs text-left text-slate-800">
+                      {/* Asset */}
+                      <td className="ps-4 px-2 py-3 w-auto">
+                        <div className="text-slate-500 text-xs">
+                          {supportedChain?.nativeCurrency?.name}
+                        </div>
+                      </td>
+                      
+                      {/* Symbol */}
+                      <td className="px-2 py-3 w-20">
+                        <div className="text-slate-500 text-xs">
+                          {native?.symbol}
+                        </div>
+                      </td>
+                      
+                      {/* Address */}
+                      <td className="px-2 py-3 w-32">
+                        <div className="text-slate-500 text-xs">
+                          -
+                        </div>
+                      </td>
+                      
+                      {/* Quantity */}
+                      <td className="px-2 py-3 w-24">
+                        <div className="text-slate-500 text-xs">
+                          {String((Number(native?.value)/ 10 ** Number(native?.decimals)).toFixed(4))}
+                        </div>
+                      </td>
+                      
+                      {/* Value (Native) */}
+                      <td className="px-2 py-3 w-24">
+                        <div className="text-slate-500 text-xs">
+                          {String((Number(native?.value)/ 10 ** Number(native?.decimals)).toFixed(4))}
+                        </div>
+                      </td>
+                      
+                      {/* Value */}
+                      <td className="px-2 py-3 w-20">
+                        <div className="text-slate-500 text-xs">
+                          -
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {
+                    tokens?.map((token: Token, i) => 
+                      <tr className="text-xs text-left text-slate-800" key={i}>
+                        {/* Asset */}
+                        <td className="ps-4 px-2 py-3 w-auto">
+                          <div className="truncate text-slate-500 text-xs">
+                            {token.name}
+                          </div>
+                        </td>
+                        
+                        {/* Symbol */}
+                        <td className="px-2 py-3 w-20">
+                          <div className="truncate text-slate-500 text-xs">
+                            {token.symbol}
+                          </div>
+                        </td>
+                        
+                        {/* Address */}
+                        <td className="px-2 py-3 w-32">
+                          <div className="truncate text-slate-500 text-xs">
+                            <a
+                              href={`${supportedChain?.blockExplorers?.default.url}/address/${token.address}#code`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex flex-row items-center gap-1 hover:text-slate-700 transition-colors"
+                            >
+                              <span>{token.address?.slice(0, 6)}...{token.address?.slice(-4)}</span>
+                              <ArrowUpRightIcon className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </td>
+                        
+                        {/* Quantity */}
+                        <td className="px-2 py-3 w-24">
+                          <div className="text-slate-500 text-xs">
+                            {String((Number(token.balance)/ 10 ** Number(token.decimals)).toFixed(4))}
+                          </div>
+                        </td>
+                        
+                        {/* Value (Native) */}
+                        <td className="px-2 py-3 w-24">
+                          <div className="text-slate-500 text-xs">
+                            {token.valueNative ? token.valueNative : '-'}
+                          </div>
+                        </td>
+                        
+                        {/* Value */}
+                        <td className="px-2 py-3 w-20">
+                          <div className="text-slate-500 text-xs">
+                            -
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No assets found
+        </div>
       }
-      </div>
-    </section>
-    </div> 
+    </div>
   );
 }

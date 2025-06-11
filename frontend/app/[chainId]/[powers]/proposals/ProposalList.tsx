@@ -15,7 +15,7 @@ import { useBlocks } from "@/hooks/useBlocks";
 import { useChecks } from "@/hooks/useChecks";
 
 // NB: need to delete action from store? Just in case? 
-export function ProposalList({powers, status}: {powers: Powers | undefined, status: string}) {
+export function ProposalList({powers, status, onRefresh}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
   const {getProposalsState} = useProposal()
   const { deselectedRoles } = useRoleStore()
@@ -74,9 +74,9 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
   };
 
   return (
-    <div className="w-full min-w-96 flex flex-col justify-start items-center bg-slate-50 border slate-300 rounded-md overflow-y-scroll">
-      {/* table banner:roles  */}
-      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-6 overflow-y-scroll">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+      {/* Header with roles - matching LogsList.tsx structure */}
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
           Proposals
         </div>
@@ -93,10 +93,21 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
             </Button>
             </div>
         )}
+        {onRefresh && (
+          <div className="w-8 h-8">
+            <Button
+              size={0}
+              showBorder={true}
+              onClick={onRefresh}
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* table banner:status  */}
-      <div className="w-full flex flex-row gap-6 justify-between items-between py-2 overflow-y-scroll border-b border-slate-200 px-6">
+      {/* Status filter bar */}
+      <div className="w-full flex flex-row gap-6 justify-between items-center py-2 overflow-y-scroll border-b border-slate-200 px-4">
       {
         possibleStatus.map((option, i) => {
           return (
@@ -113,111 +124,139 @@ export function ProposalList({powers, status}: {powers: Powers | undefined, stat
       }
       </div>
 
-      {/* table laws  */}
-
-      <div className="w-full overflow-scroll">
+      {/* Table content - matching LogsList.tsx structure */}
       {status == "pending" ? 
-      <div className="w-full h-full min-h-fit flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-        <LoadingBox /> 
-      </div>
-      :
-      <table className="w-full table-auto">
-      <thead className="w-full border-b border-slate-200">
-            <tr className="w-96 text-xs font-light text-left text-slate-500">
-                <th className="ps-6 py-2 font-light rounded-tl-md"> Vote ends </th>
-                <th className="font-light"> Law </th>
-                <th className="font-light"> Status </th>
-                <th className="font-light min-w-48"> Description </th>
-                <th className="font-light"> Role </th>
-            </tr>
-        </thead>
-        <tbody className="w-full text-sm text-right text-slate-500 divide-y divide-slate-200">
-          {
-            powers?.proposals
-              ?.slice() // Create a copy to avoid mutating the original array
-              ?.sort((a: Action, b: Action) => {
-                // Sort by voteEnd in descending order (newest first)
-                const aVoteEnd = typeof a.voteEnd === 'bigint' ? a.voteEnd : BigInt(a.voteEnd as unknown as string)
-                const bVoteEnd = typeof b.voteEnd === 'bigint' ? b.voteEnd : BigInt(b.voteEnd as unknown as string)
-                return aVoteEnd > bVoteEnd ? -1 : aVoteEnd < bVoteEnd ? 1 : 0
-              })
-              ?.map((proposal: Action, i) => {
-              const law = powers?.laws?.find(law => law.index == proposal.lawId)
-              // console.log("timeStamp: ", proposal.voteStartBlockData?.timestamp)
-              return (
-                law && 
-                law.conditions?.allowedRole != undefined && 
-                !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)) && 
-                !deselectedStatus.includes(String(proposal.state) ? String(proposal.state) : '9') 
-                ? 
-                <tr
-                  key={i}
-                  className={`text-sm text-left text-slate-800 h-full w-full p-2 overflow-x-scroll`}
-                >
-                  <td className="h-full w-full max-w-48 flex flex-col text-center justify-center items-center py-3 px-4">
-                      <Button
-                        showBorder={true}
-                        size={0}
-                        role={parseRole(law.conditions?.allowedRole)}
-                        filled={false}
-                        onClick={() => {
-                          router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`);
-                        }}
-                        align={0}
-                        selected={true}
-                      > <div className = "flex flex-row gap-3 w-fit min-w-48 text-center p-1">
-                          {(() => {
-                            // Ensure consistent block number format for lookup
-                            const voteEndBlock = typeof proposal.voteEnd === 'bigint' 
-                              ? proposal.voteEnd 
-                              : BigInt(proposal.voteEnd as unknown as string)
-                            
-                            const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
-                            const timestamp = timestampData?.timestamp
-                            
-                            if (!timestamp || timestamp <= 0n) {
-                              return 'Loading...'
-                            }
-                            
-                            const timestampNumber = Number(timestamp)
-                            if (isNaN(timestampNumber) || timestampNumber <= 0) {
-                              return 'Invalid date'
-                            }
-                            
-                            try {
-                              return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
-                            } catch (error) {
-                              console.error('Date formatting error:', error, { timestamp, timestampNumber })
-                              return 'Date error'
-                            }
-                          })()}
-                        </div>
-                      </Button>
-                  </td>
-                  <td className="pe-4 text-slate-500 min-w-56">{shorterDescription(law.nameDescription, "short")}</td>
-                  <td className="pe-4 text-slate-500">{parseProposalStatus(String(proposal.state))}</td>
-                  <td className="pe-4 text-slate-500 min-w-fit">
-                    <a 
-                      href={proposal.description}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="pe-4 text-slate-500 min-w-fit">{
-                      proposal.description.length > 30 ? `${proposal.description.slice(0, 30)}...` : proposal.description
-                    }
-                    </a>
-                  </td>
-                  <td className="pe-4 min-w-20 text-slate-500"> {bigintToRole(law.conditions?.allowedRole, powers)}
-                  </td>
-                </tr>
-                : 
-                null
-              )
-            }
-          )}
-        </tbody>
-        </table>
+        <div className="w-full flex flex-col justify-center items-center p-6">
+          <LoadingBox /> 
+        </div>
+        : 
+        powers?.proposals && powers?.proposals.length > 0 ? 
+          <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="ps-4 px-2 py-3 font-light w-32"> Vote ends </th>
+                    <th className="px-2 py-3 font-light w-auto"> Law </th>
+                    <th className="px-2 py-3 font-light w-24"> Status </th>
+                    <th className="px-2 py-3 font-light w-auto"> Description </th>
+                    <th className="px-2 py-3 font-light w-20"> Role </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {
+                    powers?.proposals
+                      ?.slice() // Create a copy to avoid mutating the original array
+                      ?.sort((a: Action, b: Action) => {
+                        // Sort by voteEnd in descending order (newest first)
+                        const aVoteEnd = typeof a.voteEnd === 'bigint' ? a.voteEnd : BigInt(a.voteEnd as unknown as string)
+                        const bVoteEnd = typeof b.voteEnd === 'bigint' ? b.voteEnd : BigInt(b.voteEnd as unknown as string)
+                        return aVoteEnd > bVoteEnd ? -1 : aVoteEnd < bVoteEnd ? 1 : 0
+                      })
+                      ?.map((proposal: Action, i) => {
+                      const law = powers?.laws?.find(law => law.index == proposal.lawId)
+                      return (
+                        law && 
+                        law.conditions?.allowedRole != undefined && 
+                        !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)) && 
+                        !deselectedStatus.includes(String(proposal.state) ? String(proposal.state) : '9') 
+                        ? 
+                        <tr
+                          key={i}
+                          className="text-xs text-left text-slate-800"
+                        >
+                          {/* Vote ends */}
+                          <td className="ps-4 px-2 py-3 w-32">
+                            <Button
+                              showBorder={true}
+                              role={parseRole(law.conditions?.allowedRole)}
+                              onClick={() => {
+                                router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`);
+                              }}
+                              align={0}
+                              selected={true}
+                              filled={false}
+                              size={0}
+                            > 
+                              <div className="text-xs whitespace-nowrap py-1 px-1">
+                                {(() => {
+                                  // Ensure consistent block number format for lookup
+                                  const voteEndBlock = typeof proposal.voteEnd === 'bigint' 
+                                    ? proposal.voteEnd 
+                                    : BigInt(proposal.voteEnd as unknown as string)
+                                  
+                                  const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                                  const timestamp = timestampData?.timestamp
+                                  
+                                  if (!timestamp || timestamp <= 0n) {
+                                    return 'Loading...'
+                                  }
+                                  
+                                  const timestampNumber = Number(timestamp)
+                                  if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                    return 'Invalid date'
+                                  }
+                                  
+                                  try {
+                                    return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                                  } catch (error) {
+                                    console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                    return 'Date error'
+                                  }
+                                })()}
+                              </div>
+                            </Button>
+                          </td>
+                          
+                          {/* Law */}
+                          <td className="px-2 py-3 w-auto">
+                            <div className="truncate text-slate-500 text-xs">
+                              {shorterDescription(law.nameDescription, "short")}
+                            </div>
+                          </td>
+                          
+                          {/* Status */}
+                          <td className="px-2 py-3 w-24">
+                            <div className="truncate text-slate-500 text-xs">
+                              {parseProposalStatus(String(proposal.state))}
+                            </div>
+                          </td>
+                          
+                          {/* Description */}
+                          <td className="px-2 py-3 w-auto">
+                            <div className="truncate text-slate-500 text-xs">
+                              <a 
+                                href={proposal.description}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-slate-700 transition-colors"
+                              >
+                                {proposal.description.length > 30 ? `${proposal.description.slice(0, 30)}...` : proposal.description}
+                              </a>
+                            </div>
+                          </td>
+
+                          {/* Role */}
+                          <td className="px-2 py-3 w-20">
+                            <div className="truncate text-slate-500 text-xs">
+                              {bigintToRole(law.conditions?.allowedRole, powers)}
+                            </div>
+                          </td>
+                        </tr>
+                        : 
+                        null
+                      )
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No proposals found
+        </div>
       }
-      </div>
     </div>
   );
 }

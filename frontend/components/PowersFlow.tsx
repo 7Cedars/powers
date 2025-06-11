@@ -1177,18 +1177,14 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
               duration: 800,
             })
           }
-        } else {
-          // No law selected, show all nodes (main flow page)
-          fitViewWithPanel()
         }
-      } else if (getStoredViewport() && !action.lawId && isInitialized) {
-        // If no law is selected but we have stored state, still fit all nodes (main page behavior)
-        fitViewWithPanel()
+        // Remove the automatic fitViewWithPanel call when no law is selected
+        // This was causing the continuous zooming out behavior
       }
     }, 100)
     
     return () => clearTimeout(timer)
-  }, [action.lawId, getNode, setCenter, fitView, setViewport, lastSelectedLawId, isInitialized, getViewport, calculateCenterPosition, calculateFitViewOptions, fitViewWithPanel, checksStatus, userHasInteracted])
+  }, [action.lawId, getNode, setCenter, lastSelectedLawId, isInitialized, calculateCenterPosition, checksStatus, userHasInteracted])
 
   // Legacy auto-zoom to selected law (keep for backward compatibility but only if no store state)
   React.useEffect(() => {
@@ -1356,14 +1352,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   }, [
     powers.activeLaws, 
     powers.contractAddress,
-    powers.laws,
-    powers.activeLaws,
     chainChecks, 
     handleNodeClick, 
     selectedLawId, 
     action.lawId, 
-    loadSavedLayout,
-    actionData
+    loadSavedLayout
   ])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
