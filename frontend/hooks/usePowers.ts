@@ -12,8 +12,6 @@ export const usePowers = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [powers, setPowers] = useState<Powers | undefined>() 
-  const [isInitializing, setIsInitializing] = useState(false)
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
   const { chainId, powers: address } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId), 
@@ -426,22 +424,6 @@ export const usePowers = () => {
   
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
-      // Prevent multiple simultaneous calls
-      if (status === "pending" || isInitializing) {
-        console.log("@fetchPowers: Already fetching, skipping...")
-        return
-      }
-      
-      // Add cooldown to prevent rapid successive calls (minimum 5 seconds between calls)
-      const now = Date.now()
-      const timeSinceLastFetch = now - lastFetchTime
-      if (timeSinceLastFetch < 5000) {
-        console.log("@fetchPowers: Cooldown active, skipping...", { timeSinceLastFetch })
-        return
-      }
-      
-      setIsInitializing(true)
-      setLastFetchTime(now)
       setStatus("pending")
 
       let powersToBeUpdated: Powers | undefined = undefined
@@ -512,15 +494,14 @@ export const usePowers = () => {
         if (finalPowers) {
           setPowers(finalPowers)
         }
-        setStatus("success")
       } catch (error) {
         console.error("@fetchPowers error:", error)
         setStatus("error")
         setError(error)
       } finally {
-        setIsInitializing(false)
+        setStatus("success")
       }
-    }, [status, isInitializing] // Removed currentBlock from dependencies to prevent loop
+    }, [status] // Removed currentBlock from dependencies to prevent loop
   )
 
   // Helper function to check if laws need updating

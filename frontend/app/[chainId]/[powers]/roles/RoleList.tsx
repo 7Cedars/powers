@@ -14,7 +14,7 @@ import { bigintToRole } from "@/utils/bigintToRole";
 import { LoadingBox } from "@/components/LoadingBox";
 import { getPublicClient } from "wagmi/actions";
 
-export function RoleList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
+export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const [status, setStatus] = useState<Status>('idle')
@@ -68,53 +68,107 @@ export function RoleList({powers, status: statusPowers}: {powers: Powers | undef
     }
   }, [powers, fetchAmountRoleHolders])
 
+  const handleRefreshRoles = () => {
+    if (powers) {
+      fetchAmountRoleHolders(powers.roles || [])
+    }
+  }
+
   return (
-    <div className="w-full flex flex-col justify-start items-center">
-      {/* table banner  */}
-      <div className="w-full min-h-16 flex flex-row gap-3 justify-between items-center bg-slate-50 border slate-300 px-6 rounded-t-md">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+      {/* Header - matching LogsList.tsx structure */}
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4">
         <div className="text-slate-900 text-center font-bold text-lg">
           Roles
         </div>
+        <div className="flex flex-row gap-2 items-center">
+          <div className="w-8 h-8">
+            <Button
+              size={0}
+              showBorder={true}
+              onClick={handleRefreshRoles}
+            >
+              <ArrowPathIcon className={`w-5 h-5 ${status === 'pending' ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+          {onRefresh && (
+            <div className="w-8 h-8">
+              <Button
+                size={0}
+                showBorder={true}
+                onClick={onRefresh}
+              >
+                <ArrowPathIcon className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
-      {/* table laws  */}
-      {statusPowers == "pending" ? 
-      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-        <LoadingBox /> 
-      </div>
-      :
-      <table className="w-full table-auto border border-t-0">
-      <thead className="w-full">
-            <tr className="w-96 bg-slate-50 text-xs font-light text-left text-slate-500 rounded-md border-b border-slate-200">
-                <th className="ps-6 py-2 font-light rounded-tl-md"> Role </th>
-                <th className="font-light text-center"> Holders </th>
-                <th className="font-light text-right pe-8"> Laws </th>
-            </tr>
-        </thead>
-        <tbody className="w-full text-sm text-right text-slate-500 bg-slate-50 divide-y divide-slate-200 border-t-0 border-slate-200 rounded-b-md">
-          {
-            powers && roles && roles?.map((role: Roles, i: number) =>
-              <tr key = {i}>
-                <td className="flex flex-col w-full max-w-60 min-w-40 justify-center items-start text-left rounded-bl-md px-4 py-3 w-fit">
-                 <Button
-                    showBorder={true}
-                    selected={true}
-                    filled={true}
-                    role={parseRole(BigInt(role.roleId))}
-                    onClick={() => {
-                      // router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`); // disabled for now
-                    }}
-                    align={0}
-                  >
-                  {bigintToRole(role.roleId, powers)} 
-                  </Button>
-                </td>
-                <td className="pe-4 text-left text-slate-500 text-center">{role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? '-' : role.holders}</td>
-                <td className="pe-4 text-right pe-8 text-slate-500">{role.laws?.length} </td>
-              </tr> 
-            )
-          }
-        </tbody>
-      </table>
+
+      {/* Table content - matching LogsList.tsx structure */}
+      {statusPowers == "pending" || status === "pending" ? 
+        <div className="w-full flex flex-col justify-center items-center p-6">
+          <LoadingBox /> 
+        </div>
+        :
+        roles && roles.length > 0 ?
+          <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="ps-4 px-2 py-3 font-light w-auto"> Role </th>
+                    <th className="px-2 py-3 font-light w-20"> Holders </th>
+                    <th className="px-2 py-3 font-light w-16"> Laws </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {
+                    roles?.map((role: Roles, i: number) =>
+                      <tr key={i} className="text-xs text-left text-slate-800">
+                        {/* Role */}
+                        <td className="ps-4 px-2 py-3 w-auto">
+                          <Button
+                            showBorder={true}
+                            selected={true}
+                            filled={false}
+                            role={parseRole(BigInt(role.roleId))}
+                            onClick={() => {
+                              // router.push(`/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`); // disabled for now
+                            }}
+                            align={0}
+                            size={0}
+                          >
+                            <div className="text-xs py-1 px-1">
+                              {bigintToRole(role.roleId, powers as Powers)} 
+                            </div>
+                          </Button>
+                        </td>
+                        
+                        {/* Holders */}
+                        <td className="px-2 py-3 w-20">
+                          <div className="text-slate-500 text-xs text-center">
+                            {role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? '-' : role.holders}
+                          </div>
+                        </td>
+                        
+                        {/* Laws */}
+                        <td className="px-2 py-3 w-16">
+                          <div className="text-slate-500 text-xs text-center">
+                            {role.laws?.length}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No roles found
+        </div>
       }
     </div>
   );

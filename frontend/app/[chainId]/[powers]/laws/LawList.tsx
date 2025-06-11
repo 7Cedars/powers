@@ -11,7 +11,7 @@ import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 import { shorterDescription } from "@/utils/parsers";
 
-export function LawList({powers, status}: {powers: Powers | undefined, status: string}) {
+export function LawList({powers, status, onRefresh}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
   const {deselectedRoles} = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
@@ -32,9 +32,9 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-0 justify-start items-center bg-slate-50 border slate-300 rounded-md">
-      {/* table banner  */}
-      <div className="w-full min-h-16 flex flex-row gap-3 justify-between items-center py-3 px-4 overflow-y-scroll border-b slate-300">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+      {/* Header with roles - matching LogsList.tsx structure */}
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
           Laws
         </div>
@@ -51,83 +51,108 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
               </Button>
             </div>
         )}
-        {/* { powers && 
-          <button 
-            className="w-fit min-h-fit p-1 rounded-md border-slate-500"
-            onClick = {() => {
-              onUpdatePowers()
-            }}
-            disabled={status == 'pending'}
+        {onRefresh && (
+          <div className="w-8 h-8">
+            <Button
+              size={0}
+              showBorder={true}
+              onClick={onRefresh}
             >
-              <ArrowPathIcon
-                className="w-5 h-5 text-slate-800 aria-selected:animate-spin"
-                aria-selected={status == 'pending'}
-                />
-          </button>
-        } */}
+              <ArrowPathIcon className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
-      {/* table laws  */}
+
+      {/* Table content - matching LogsList.tsx structure */}
       {status == "pending" ?  
-      <div className="w-full h-full flex flex-col justify-start text-sm text-slate-500 items-start p-3">
-        <LoadingBox /> 
-      </div>
-      :
-      <div className="w-full overflow-scroll">
-      {/* border border-t-0 */}
-      <table className="w-full table-auto"> 
-        <thead className="w-full border-b border-slate-200">
-            <tr className="w-96 text-xs font-light text-left text-slate-500 ">
-                <th className="ps-4 py-2 font-light"> Id </th>
-                <th className="font-light"> Description </th>
-                <th className="font-light"> Address </th>
-                <th className="font-light"> Role </th>
-            </tr>
-        </thead>
-        <tbody className="w-full h-full text-sm text-right text-slate-500 divide-y divide-slate-200">
-          {
-            powers?.activeLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
-              <tr
-                key={i}
-                className={`text-sm text-left text-slate-800 h-16 p-2`}
-              >
-                <td className="w-fit ps-4 p-2 text-slate-500 text-left"> {Number(law.index)} </td>
-                <td className="max-h-12 text-left px-2 min-w-36 max-w-36 py-3 overflow-x-scroll">
-                  <Button
-                    showBorder={true}
-                    role={
-                      law.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
-                        ? 6
-                        : law.conditions?.allowedRole == 0n
-                        ? 0
-                        : Number(law.conditions?.allowedRole)
-                    }
-                    onClick={() => { router.push(`/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
-                    align={0}
-                    selected={true}
-                  >
-                    {shorterDescription(law.nameDescription, "short")}
-                  </Button>
-                </td>
-                <td className="pe-4 text-slate-500 h-full min-w-fit">
-                  {law.lawAddress && 
-                    <div className="flex flex-row justify-start items-center">
-                      <a href={`https://sepolia.etherscan.io/address/${law.lawAddress}`} target="_blank" rel="noopener noreferrer">
-                        {`${law.lawAddress.slice(0, 8)}...${law.lawAddress.slice(-6)}`}
-                      </a>
-                      <ArrowUpRightIcon
-                        className="w-4 h-4 text-slate-500"
-                      />
-                    </div>
+        <div className="w-full flex flex-col justify-center items-center p-6">
+          <LoadingBox /> 
+        </div>
+        :
+        powers?.activeLaws && powers?.activeLaws.length > 0 ?
+          <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
+            <div className="w-full overflow-x-auto overflow-y-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="ps-4 px-2 py-3 font-light w-16"> Id </th>
+                    <th className="px-2 py-3 font-light w-auto"> Description </th>
+                    <th className="px-2 py-3 font-light w-32"> Address </th>
+                    <th className="px-2 py-3 font-light w-20"> Role </th>
+                  </tr>
+                </thead>
+                <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
+                  {
+                    powers?.activeLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
+                      <tr
+                        key={i}
+                        className="text-xs text-left text-slate-800"
+                      >
+                        {/* ID */}
+                        <td className="ps-4 px-2 py-3 w-16">
+                          <div className="text-slate-500 text-xs">
+                            {Number(law.index)}
+                          </div>
+                        </td>
+                        
+                        {/* Description */}
+                        <td className="px-2 py-3 w-auto">
+                          <Button
+                            showBorder={true}
+                            role={
+                              law.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
+                                ? 6
+                                : law.conditions?.allowedRole == 0n
+                                ? 0
+                                : Number(law.conditions?.allowedRole)
+                            }
+                            onClick={() => { router.push(`/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
+                            align={0}
+                            selected={true}
+                            filled={false}
+                            size={0}
+                          >
+                            <div className="text-xs py-1 px-1">
+                              {shorterDescription(law.nameDescription, "short")}
+                            </div>
+                          </Button>
+                        </td>
+                        
+                        {/* Address */}
+                        <td className="px-2 py-3 w-32">
+                          <div className="truncate text-slate-500 text-xs">
+                            {law.lawAddress && 
+                              <a 
+                                href={`https://sepolia.etherscan.io/address/${law.lawAddress}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex flex-row items-center gap-1 hover:text-slate-700 transition-colors"
+                              >
+                                <span>{`${law.lawAddress.slice(0, 6)}...${law.lawAddress.slice(-4)}`}</span>
+                                <ArrowUpRightIcon className="w-3 h-3" />
+                              </a>
+                            }
+                          </div>
+                        </td>
+                        
+                        {/* Role */}
+                        <td className="px-2 py-3 w-20">
+                          <div className="truncate text-slate-500 text-xs">
+                            {law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-"}
+                          </div>
+                        </td>
+                      </tr>
+                    )
                   }
-                </td>
-                <td className="pe-4 min-w-20 text-slate-500"> {law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-"}
-                </td>
-              </tr>
-            )
-          }
-        </tbody>
-      </table>
-      </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        :
+        <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
+          No active laws found
+        </div>
       }
     </div>
   );

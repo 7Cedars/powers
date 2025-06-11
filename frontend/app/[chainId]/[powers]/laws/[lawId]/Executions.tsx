@@ -11,7 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAction } from "@/hooks/useAction";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowUpRightIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -41,6 +41,7 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
   const { fetchActionData } = useAction()
   const router = useRouter()
   const [executionsWithCallers, setExecutionsWithCallers] = useState<ExecutionWithCaller[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
     if (lawExecutions) {
@@ -51,56 +52,61 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
     }
   }, [lawExecutions, chainId])
 
+  const fetchCallers = async () => {
+    try {
+      if (!lawExecutions?.executions || !lawExecutions?.actionsIds || !powers?.contractAddress) return
+
+      setIsRefreshing(true)
+      const executionsData = await Promise.all(
+        lawExecutions?.executions.map(async (execution, index) => {
+          const actionId = lawExecutions?.actionsIds[index]
+          try {
+            const actionData = await readContract(wagmiConfig, {
+              abi: powersAbi,
+              address: powers?.contractAddress,
+              functionName: 'getActionData',
+              args: [actionId]
+            }) 
+            const parsedActionData = parseActionData(actionData as unknown as unknown[])
+             
+             // Try to get ENS name for the caller
+             let ensName: string | null = null
+             try {
+               ensName = await getEnsName(wagmiConfig, {
+                 address: parsedActionData.caller as `0x${string}`
+               })
+             } catch (ensError) {
+               // ENS lookup failed, continue without ENS name
+               console.log('ENS lookup failed for:', parsedActionData.caller)
+             }
+             return {
+               execution,
+               actionId,
+               caller: parsedActionData.caller,
+               ensName
+             }
+          } catch (error) {
+            console.error('Error fetching caller for action:', actionId, error)
+            return {
+              execution,
+              actionId,
+              caller: undefined,
+              ensName: null
+            }
+          }
+        })
+      )
+      setExecutionsWithCallers(executionsData)
+      setIsRefreshing(false)
+    } catch (error) {
+      console.error('Error fetching callers:', error)
+      setIsRefreshing(false)
+    }
+  }
+
   // Fetch caller information for each execution
   useEffect(() => {
     if (lawExecutions?.executions && lawExecutions?.actionsIds && powers?.contractAddress) {
-      const fetchCallers = async () => {
-        try {
-          const executionsData = await Promise.all(
-            lawExecutions.executions.map(async (execution, index) => {
-              const actionId = lawExecutions.actionsIds[index]
-              try {
-                const actionData = await readContract(wagmiConfig, {
-                  abi: powersAbi,
-                  address: powers.contractAddress,
-                  functionName: 'getActionData',
-                  args: [actionId]
-                }) 
-                const parsedActionData = parseActionData(actionData as unknown as unknown[])
-                 
-                 // Try to get ENS name for the caller
-                 let ensName: string | null = null
-                 try {
-                   ensName = await getEnsName(wagmiConfig, {
-                     address: parsedActionData.caller as `0x${string}`
-                   })
-                 } catch (ensError) {
-                   // ENS lookup failed, continue without ENS name
-                   console.log('ENS lookup failed for:', parsedActionData.caller)
-                 }
-                 
-                 return {
-                   execution,
-                   actionId,
-                   caller: parsedActionData.caller,
-                   ensName
-                 }
-              } catch (error) {
-                console.error('Error fetching caller for action:', actionId, error)
-                return {
-                  execution,
-                  actionId,
-                  caller: undefined,
-                  ensName: null
-                }
-              }
-            })
-          )
-          setExecutionsWithCallers(executionsData)
-        } catch (error) {
-          console.error('Error fetching callers:', error)
-        }
-      }
       fetchCallers()
     }
   }, [lawExecutions, powers?.contractAddress])
@@ -111,29 +117,38 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-      <button
-        onClick={() => 
-          { 
-            router.push(`/${chainId}/${powers?.contractAddress}/laws`)
-          }
-        } 
+      <div
         className="w-full border-b border-slate-300 p-2 bg-slate-100"
       >
         <div className="w-full flex flex-row gap-6 items-center justify-between">
           <div className="text-left text-sm text-slate-600">
             Latest executions
           </div> 
-          <ArrowUpRightIcon
-            className="w-4 h-4 text-slate-800"
+          <div className="flex flex-row gap-2 items-center">
+            <button
+              className="p-1 hover:bg-slate-200 rounded transition-colors"
+              onClick={() => {
+                fetchCallers()
+              }}
+            >
+              {isRefreshing ? (
+                <ArrowPathIcon
+                  className="w-4 h-4 text-slate-800 animate-spin"
+                />
+              ) : (
+                <ArrowPathIcon
+                  className="w-4 h-4 text-slate-800"
+                />
+              )}
+            </button>
+            <ArrowUpRightIcon
+              className="w-4 h-4 text-slate-800"
             />
+          </div>
         </div>
-      </button>
+      </div>
       
-      {status == "pending" ?
-        <div className="w-full flex flex-col justify-center items-center p-6">
-          <LoadingBox />
-        </div>
-        :
+    {
         lawExecutions?.executions && lawExecutions?.executions?.length > 0 ?  
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">

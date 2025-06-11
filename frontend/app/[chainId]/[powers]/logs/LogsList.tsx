@@ -64,7 +64,7 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* table banner:roles  */}
-      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-6 overflow-y-scroll">
+      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll">
         <div className="text-slate-900 text-center font-bold text-lg">
           Logs
         </div>
@@ -104,7 +104,7 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
               <table className="w-full table-auto text-sm">
                 <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
                   <tr className="w-full text-xs font-light text-left text-slate-500">
-                    <th className="px-2 py-3 font-light w-32"> Date </th>
+                    <th className="ps-4 px-2 py-3 font-light w-32"> Date </th>
                     <th className="px-2 py-3 font-light w-auto"> Law </th>
                     <th className="px-2 py-3 font-light w-24"> Action ID </th>
                     <th className="px-2 py-3 font-light w-20"> Role </th>
@@ -121,10 +121,10 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
                         ? 
                         <tr
                           key={i}
-                          className="text-sm text-left text-slate-800"
+                          className="text-xs text-left text-slate-800"
                         >
                           {/* Executed at */}
-                          <td className="px-2 py-3 w-32">
+                          <td className="ps-4 px-2 py-3 w-32">
                             <Button
                               showBorder={true}
                               role={parseRole(law.conditions?.allowedRole || 0n)}
