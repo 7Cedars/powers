@@ -155,7 +155,7 @@ export default function FlowPage() {
     </section>
     
     {/* main body  */}
-    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start">
+    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20">
       <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
 
       <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} /> 

@@ -4,10 +4,11 @@ import { setAction } from "@/context/store";
 import { Law, Powers, Status, Action } from "@/context/types";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
-import { parseRole } from "@/utils/parsers";
+import { parseRole, shorterDescription } from "@/utils/parsers";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useEffect } from "react";
-import { toFullDateFormat } from "@/utils/toDates";
+import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates";
+import { Button } from "@/components/Button";
 
 const roleColour = [  
   "border-blue-600", 
@@ -68,6 +69,18 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const activeProposals = active?.filter(item => item != undefined)
   console.log("@MyProposals: waypoint 0", {activeProposals})
 
+  const handleSelectProposal = (item: ProposalAndLaw) => {
+    setAction({
+      description: item.proposal.description,
+      callData: item.proposal.callData,
+      nonce: item.proposal.nonce,
+      lawId: item.proposal.lawId,
+      caller: item.proposal.caller as `0x${string}`,
+      dataTypes: item.law.params?.map(param => param.dataType),
+      upToDate: true
+    })
+    router.push(`/${chainId}/${powers?.contractAddress}/proposals/${item.proposal.actionId}`)
+  }
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68 overflow-hidden"> 
@@ -92,68 +105,84 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
        {
         authenticated ?
         activeProposals && activeProposals.length > 0 ? 
-          <div className = "w-full h-fit lg:max-h-48 max-h-32 flex flex-col gap-2 justify-start items-center overflow-x-scroll p-2 px-1">
+          <div className="w-full h-fit lg:max-h-48 max-h-32 flex flex-col justify-start items-center overflow-hidden">
+           <div className="w-full overflow-x-auto overflow-y-auto">
+            <table className="w-full table-auto text-sm">
+            <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+            <tr className="w-full text-xs font-light text-left text-slate-500">
+                <th className="px-2 py-3 font-light w-32"> Date </th>
+                <th className="px-2 py-3 font-light w-auto"> Law </th>
+                <th className="px-2 py-3 font-light w-24"> Action ID </th>
+            </tr>
+        </thead>
+        <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
           {
             activeProposals?.map((item: ProposalAndLaw, i) => 
-                <div className = "w-full px-2" key={i}>
-                  <button 
-                    className = {`w-full h-full disabled:opacity-50 rounded-md border ${roleColour[parseRole(item.law.conditions?.allowedRole || 0n)]} text-sm p-1 px-2`} 
-                    onClick={
-                      () => {
-                        setAction({
-                          description: item.proposal.description,
-                          callData: item.proposal.callData,
-                          nonce: item.proposal.nonce,
-                          lawId: item.proposal.lawId,
-                          caller: item.proposal.caller as `0x${string}`,
-                          dataTypes: item.law.params?.map(param => param.dataType),
-                          upToDate: true
-                        })
-                        router.push(`/${chainId}/${powers?.contractAddress}/proposals/${item.proposal.actionId}`)
-                        }
-                      }>
-                      <div className ="w-full flex flex-col gap-1 text-sm text-slate-600 justify-center items-center">
-                        <div className = "w-full flex flex-row justify-between items-center text-left">
-                          <p> Date: </p> 
-                          <p> 
-                            {(() => {
-                              // Ensure consistent block number format for lookup
-                              const voteEndBlock = typeof item.proposal.voteEnd === 'bigint' 
-                                ? item.proposal.voteEnd 
-                                : BigInt(item.proposal.voteEnd as unknown as string)
-                              
-                              const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
-                              const timestamp = timestampData?.timestamp
-                              
-                              if (!timestamp || timestamp <= 0n) {
-                                return 'Loading...'
-                              }
-                              
-                              const timestampNumber = Number(timestamp)
-                              if (isNaN(timestampNumber) || timestampNumber <= 0) {
-                                return 'Invalid date'
-                              }
-                              
-                              try {
-                                return toFullDateFormat(timestampNumber)
-                              } catch (error) {
-                                console.error('Date formatting error:', error, { timestamp, timestampNumber })
-                                return 'Date error'
-                              }
-                            })()}
-                          </p>
+                <tr
+                  key={i}
+                  className="text-sm text-left text-slate-800"
+                >
+                  {/* Vote End Date */}
+                  <td className="px-2 py-3 w-32">
+                      <Button
+                        showBorder={true}
+                        role={parseRole(item.law.conditions?.allowedRole || 0n)}
+                        onClick={() => handleSelectProposal(item)}
+                        align={0}
+                        selected={true}
+                        filled={false}
+                        size={0}
+                      > 
+                        <div className="text-xs whitespace-nowrap py-1 px-1">
+                          {(() => {
+                            // Ensure consistent block number format for lookup
+                            const voteEndBlock = typeof item.proposal.voteEnd === 'bigint' 
+                              ? item.proposal.voteEnd 
+                              : BigInt(item.proposal.voteEnd as unknown as string)
+                            
+                            const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                            const timestamp = timestampData?.timestamp
+                            
+                            if (!timestamp || timestamp <= 0n) {
+                              return 'Loading...'
+                            }
+                            
+                            const timestampNumber = Number(timestamp)
+                            if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                              return 'Invalid date'
+                            }
+                            
+                            try {
+                              return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                            } catch (error) {
+                              console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                              return 'Date error'
+                            }
+                          })()}
                         </div>
-
-                        <div className = "w-full flex flex-row justify-between items-center text-left">
-                          <p> Law: </p> 
-                          <p> {item.law.nameDescription?.length && item.law.nameDescription?.length > 48 ? item.law.nameDescription?.substring(0, 24) + "..." : item.law.nameDescription}  </p>
-                        </div>
-                      </div>
-                  </button>
-                </div>
+                      </Button>
+                  </td>
+                  
+                  {/* Law */}
+                  <td className="px-2 py-3 w-auto">
+                    <div className="truncate text-slate-500 text-xs">
+                      {shorterDescription(item.law.nameDescription, "short")}
+                    </div>
+                  </td>
+                  
+                  {/* Action ID */}
+                  <td className="px-2 py-3 w-24">
+                    <div className="truncate text-slate-500 text-xs font-mono">
+                      {item.proposal.actionId.toString()}
+                    </div>
+                  </td>
+                </tr>
             )
           }
-        </div>
+        </tbody>
+        </table>
+           </div>
+          </div>
       :
       <div className = "w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
         No active proposals found
