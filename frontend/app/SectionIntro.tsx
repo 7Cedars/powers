@@ -22,7 +22,7 @@ export function SectionIntro() {
           {/* Image  */}
           <section className = "w-full max-w-6xl flex flex-col justify-center items-center relative aspect-video my-8"> 
             <Image 
-                src={"/home2.png"} 
+                src={"/powers101.png"} 
                 className = "p-2 rounded-md" 
                 style={{objectFit: "contain"}}
                 fill={true}
