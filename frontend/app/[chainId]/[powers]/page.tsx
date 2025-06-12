@@ -89,7 +89,7 @@ export default function FlowPage() {
   }, [, addressPowers, fetchPowers]) // updateProposals 
   
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-20 pe-10">
+    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10">
     {/* hero banner  */}
     <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
       {/* Gradient background (always present) */}
@@ -119,7 +119,7 @@ export default function FlowPage() {
       </div>
 
       {/* Reload button */}
-      <button
+      {/* <button
         onClick={() => addressPowers && fetchLawsAndRoles(powers as Powers)}
         className="absolute top-4 left-4 p-2 rounded-md bg-slate-50/25 hover:bg-slate-100/90 border border-slate-300/50 shadow-sm transition-all duration-200 backdrop-blur-sm"
         title="Reload powers data"
@@ -128,7 +128,7 @@ export default function FlowPage() {
         <ArrowPathIcon 
           className={`w-4 h-4 text-slate-700 ${statusPowers === "pending" ? 'animate-spin' : ''}`}
         />
-      </button>
+      </button> */}
     </section>
     
     {/* Description + link to powers protocol deployment */}  

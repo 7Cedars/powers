@@ -54,7 +54,7 @@ import { LoadingBox } from '@/components/LoadingBox'
 import { useChecksStore } from '@/context/store'
 import { powersAbi } from '@/context/abi'
 import { usePowers } from '@/hooks/usePowers'
-import { bigintToRole } from '@/utils/bigintToRole'
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { NodeStatusIndicator } from '@/components/node-status-indicator'
 
 // Role colors matching LawBox.tsx color scheme
@@ -487,7 +487,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
               <div className="flex items-center space-x-4 text-xs text-gray-600">
                 {law.conditions && powers && (
                   <>
-                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)}`}</p>
+                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)} (${bigintToRoleHolders(law.conditions.allowedRole, powers)}) `}</p>
                   </>
                 )}
               </div>
@@ -1032,19 +1032,22 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   // Helper function to calculate proper centering coordinates accounting for panel width
   const calculateCenterPosition = useCallback((nodeX: number, nodeY: number) => {
-    // Calculate panel width based on PowersOverview logic
     const viewportWidth = window.innerWidth
     const expandedPanelWidth = Math.min(640, viewportWidth - 40)
-    const collapsedPanelWidth = 32
-    
-    // For now, assume panel is expanded (we could pass this as a prop if needed)
-    // We need to shift the center point LEFT so the visible result appears centered in the visible area
-    const panelWidth = expandedPanelWidth
-    const centerOffsetX = panelWidth / 2
-    
-    return {
-      x: nodeX + 200 - centerOffsetX, // 200 is half the node width, subtract centerOffsetX to shift left
-      y: nodeY + 150 // Keep existing vertical offset
+    const isSmallScreen = viewportWidth <= 2 * expandedPanelWidth
+    if (isSmallScreen) {
+      // Center in the middle of the viewport
+      return {
+        x: nodeX + 200 - viewportWidth / 2,
+        y: nodeY + 150
+      }
+    } else {
+      // Offset for the panel as before
+      const centerOffsetX = expandedPanelWidth / 2
+      return {
+        x: nodeX + 200 - centerOffsetX, // 200 is half the node width, subtract centerOffsetX to shift left
+        y: nodeY + 150 // Keep existing vertical offset
+      }
     }
   }, [])
 
@@ -1052,16 +1055,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const calculateFitViewOptions = useCallback(() => {
     const viewportWidth = window.innerWidth
     const expandedPanelWidth = Math.min(640, viewportWidth - 40)
-    
-    // Calculate the percentage of the screen the panel takes up
-    const panelWidthRatio = expandedPanelWidth / viewportWidth
-    
+    const isSmallScreen = viewportWidth <= 2 * expandedPanelWidth
     return {
       padding: 0.2,
       duration: 800,
-      // Adjust the fit area to exclude the panel area
       includeHiddenNodes: false,
-      // We can't directly exclude the panel area, so we'll use a smaller effective area
       minZoom: 0.1,
       maxZoom: 1.2,
     }
@@ -1075,44 +1073,43 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
     const expandedPanelWidth = Math.min(640, viewportWidth - 40)
-    
+    const isSmallScreen = viewportWidth <= 2 * expandedPanelWidth
     // Calculate the available area for the flow chart (excluding panel)
-    const availableWidth = viewportWidth - expandedPanelWidth
+    const availableWidth = isSmallScreen ? viewportWidth : viewportWidth - expandedPanelWidth
     const availableHeight = viewportHeight
-    
+
     // Find the bounds of all nodes
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    
     nodes.forEach(node => {
       const nodeWidth = 380 // Node width from the component
       const nodeHeight = 300 // Approximate node height
-      
       minX = Math.min(minX, node.position.x)
       minY = Math.min(minY, node.position.y)
       maxX = Math.max(maxX, node.position.x + nodeWidth)
       maxY = Math.max(maxY, node.position.y + nodeHeight)
     })
-    
     // Add padding
     const padding = 100
     const contentWidth = maxX - minX + 2 * padding
     const contentHeight = maxY - minY + 2 * padding
-    
     // Calculate zoom to fit content in available area
     const zoomX = availableWidth / contentWidth
     const zoomY = availableHeight / contentHeight
     const zoom = Math.min(zoomX, zoomY, 1.2) // Cap at max zoom
-    
-    // Calculate center position accounting for panel
+    // Calculate center position
     const contentCenterX = (minX + maxX) / 2
     const contentCenterY = (minY + maxY) / 2
-    
-    // Position content in the center of the available area (to the right of panel)
-    // The center of the available area is at: expandedPanelWidth + availableWidth / 2
-    const availableAreaCenterX = expandedPanelWidth + availableWidth / 2
-    const x = -contentCenterX * zoom + availableAreaCenterX
-    const y = -contentCenterY * zoom + availableHeight / 2
-    
+    let x, y
+    if (isSmallScreen) {
+      // Center in the middle of the viewport
+      x = -contentCenterX * zoom + viewportWidth / 2
+      y = -contentCenterY * zoom + availableHeight / 2
+    } else {
+      // Offset for the panel as before
+      const availableAreaCenterX = expandedPanelWidth + availableWidth / 2
+      x = -contentCenterX * zoom + availableAreaCenterX
+      y = -contentCenterY * zoom + availableHeight / 2
+    }
     setViewport({ x, y, zoom }, { duration: 800 })
   }, [getNodes, setViewport])
 

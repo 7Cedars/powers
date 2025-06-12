@@ -8,7 +8,7 @@ import { Action, LawExecutions, Powers, PowersExecutions } from "@/context/types
 import { parseRole, shorterDescription } from "@/utils/parsers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
-import { bigintToRole } from "@/utils/bigintToRole";
+import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAction } from "@/hooks/useAction";

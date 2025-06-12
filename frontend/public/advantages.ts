@@ -16,6 +16,14 @@ export const advantages = [
     ]
   }, 
   {
+    advantage: "Modularity",
+    examples: [
+      "Powers cannot exist without modular laws",
+      "Laws are interoperable with any off-chain system",
+      "Existing DAOs can take up dedicated roles"
+    ]
+  }, 
+  {
     advantage: "Flexibility",
     examples: [
       "Assign roles to any type of account", 
@@ -38,13 +46,5 @@ export const advantages = [
       "Tokens held, amount staked, votes delegated or community elections",
       "Diversify representation and boost community engagement" 
     ]
-  },
-  {
-    advantage: "Composability",
-    examples: [
-      "Any existing smart contract can be integrated into a law",
-      "Existing DAOs can take up dedicated roles", 
-      "Fully interoperable with off-chain systems"
-    ]
-  }, 
+  }
 ]

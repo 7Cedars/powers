@@ -123,6 +123,7 @@ export type Metadata = {
 export type RoleLabel = { 
   roleId: bigint; 
   label: string; 
+  holders?: bigint;
 }
 
 export type BlockRange = {
@@ -143,6 +144,7 @@ export type Powers = {
   executedActions?: LawExecutions[]; // executions per law. 
   roles?: bigint[];
   roleLabels?: RoleLabel[];
+  roleHolders?: bigint[];
   deselectedRoles?: bigint[];
   layout?: Record<string, { x: number; y: number }>; // Graph layout positions
 }
@@ -200,29 +202,6 @@ export type Action = {
 }
 
 export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">
-
-// export type Proposal = {
-//   actionId: string;
-//   action?: Action;
-//   caller?: `0x${string}`;
-//   lawId: bigint;
-//   nonce: string;
-//   voteStart: bigint;
-//   voteDuration: bigint;
-//   voteEnd: bigint;
-//   calldata: `0x${string}`;
-//   executeCalldata: `0x${string}`;
-//   voteStartBlockData?: GetBlockReturnType;
-//   description: string;
-//   cancelled: boolean;
-//   completed: boolean;
-//   againstVotes?: bigint;
-//   forVotes?: bigint;
-//   abstainVotes?: bigint;
-//   state?: number;
-//   blockNumber: bigint;
-//   blockHash?: `0x${string}`;
-// }
 
 export type ProtocolEvent = {
   address: `0x${string}`;

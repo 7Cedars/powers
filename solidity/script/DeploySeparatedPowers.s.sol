@@ -129,13 +129,13 @@ contract DeploySeparatedPowers is Script {
         // This law allows subscribers to veto proposed actions
         // Only subscribers can use this law
         conditions.allowedRole = 4; // subscriber role
-        conditions.needCompleted = 2; // law 2 needs to have passed. 
+        conditions.needCompleted = 1; // law 2 needs to have passed. 
         conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
         conditions.quorum = 20; // 20% quorum
         conditions.succeedAt = 66; // 66% majority 
         conditions.delayExecution = minutesToBlocks(15); // 75 blocks, about 15 minutes
         lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Veto an action: Veto an action that was proposed by subscribers.",
+            nameDescription: "Ok an action: Ok an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "ProposalOnly"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions
