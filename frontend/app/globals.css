@@ -14,9 +14,18 @@
   --text-color-dark: #ffffff;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 body {
+  padding-top: constant(safe-area-inset-top); /* iOS < 11.2 */
+  padding-top: env(safe-area-inset-top);      /* Standard */
+  padding-bottom: constant(safe-area-inset-bottom); /* iOS < 11.2 */
+  padding-bottom: env(safe-area-inset-bottom);      /* Standard */
+  background: #f1f5f9; /* slate-100 */
   font-family: Arial, Helvetica, sans-serif;
-  background-color: var(--background-color); /* Use background-color directly */
   color: var(--text-color);
   display: flex;
   height: 100vh;
