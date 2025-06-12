@@ -75,7 +75,7 @@ export const useAction = () => {
                   nonce: String(parsedActionData.nonce),
                   description: actionUri as string,
                   callData: lawCalldata as `0x${string}`,
-                  upToDate: true,
+                  upToDate: false,
                   state: parsedActionData.state,
                   voteStart: parsedActionData.voteStart,
                   voteDuration: parsedActionData.voteDuration,
@@ -92,8 +92,6 @@ export const useAction = () => {
               setActionData(returnActionData)
               setStatus("success")
               return returnActionData
-
-              console.log("@useAction: waypoint 5", {returnActionData})
             }
         } catch (error) {
             console.log("@Executions: ", error)
