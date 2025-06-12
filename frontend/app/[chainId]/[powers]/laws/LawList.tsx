@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { useRouter, useParams } from "next/navigation";
 import { Law, Powers } from "@/context/types";
 
-import { bigintToRole } from "@/utils/bigintToRole";
+import { bigintToRole } from "@/utils/bigintTo";
 import { setRole, useRoleStore } from "@/context/store";
 import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";

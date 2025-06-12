@@ -54,7 +54,7 @@ import { LoadingBox } from '@/components/LoadingBox'
 import { useChecksStore } from '@/context/store'
 import { powersAbi } from '@/context/abi'
 import { usePowers } from '@/hooks/usePowers'
-import { bigintToRole } from '@/utils/bigintToRole'
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { NodeStatusIndicator } from '@/components/node-status-indicator'
 
 // Role colors matching LawBox.tsx color scheme
@@ -487,7 +487,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
               <div className="flex items-center space-x-4 text-xs text-gray-600">
                 {law.conditions && powers && (
                   <>
-                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)}`}</p>
+                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)} (${bigintToRoleHolders(law.conditions.allowedRole, powers)}) `}</p>
                   </>
                 )}
               </div>

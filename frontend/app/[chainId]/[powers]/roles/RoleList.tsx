@@ -10,7 +10,7 @@ import { powersAbi } from "@/context/abi";
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { setRole } from "@/context/store"
-import { bigintToRole } from "@/utils/bigintToRole";
+import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import { getPublicClient } from "wagmi/actions";
 

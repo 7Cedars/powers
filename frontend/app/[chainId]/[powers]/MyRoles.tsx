@@ -3,7 +3,7 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
-import { bigintToRole } from "@/utils/bigintToRole";
+import { bigintToRole } from "@/utils/bigintTo";
 import { GetBlockReturnType } from "@wagmi/core";
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates";
 import { Powers, Status } from "@/context/types";

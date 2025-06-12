@@ -5,21 +5,24 @@ import { usePathname } from 'next/navigation'
 import { Powers, Law, Checks, LawSimulation, LawExecutions, Status, InputType } from '@/context/types'
 import { PowersFlow } from './PowersFlow'
 import { ConnectedWallet } from '@privy-io/react-auth'
-import { ChevronRightIcon } from '@heroicons/react/24/outline'
+import { ChevronRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface PowersOverviewProps {
   powers: Powers
   wallets: ConnectedWallet[]
   selectedLawId?: string
   children?: React.ReactNode
+  fetchLawsAndRoles?: (powers: Powers) => Promise<Powers | undefined>
 }
 
 export const PowersOverview: React.FC<PowersOverviewProps> = ({ 
   powers, 
   selectedLawId,
-  children
+  children,
+  fetchLawsAndRoles
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const pathname = usePathname()
 
   // Auto-expand panel when navigating to a new page
@@ -27,8 +30,41 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
     setIsCollapsed(false)
   }, [pathname])
 
+  // Debug: Log if fetchLawsAndRoles is available
+  useEffect(() => {
+    console.log('PowersOverview fetchLawsAndRoles:', !!fetchLawsAndRoles)
+  }, [fetchLawsAndRoles])
+
+  const handleRefresh = async () => {
+    if (!fetchLawsAndRoles || isRefreshing) return
+    
+    setIsRefreshing(true)
+    try {
+      await fetchLawsAndRoles(powers)
+      // The viewport will be updated automatically when the component re-renders with new data
+    } catch (error) {
+      console.error('Failed to refresh laws and roles:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return (
     <div className="absolute top-0 left-0 w-screen h-screen">
+      {/* Refresh Button - Top Right Corner - Above everything */}
+      {fetchLawsAndRoles && (
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="absolute top-2 left-20 z-50 bg-slate-100/25 backdrop-blur-sm text-slate-800 border border-slate-400 hover:border-slate-600 rounded-lg p-2 transition-colors duration-200 flex items-center gap-2"
+          title="Refresh Laws and Roles"
+        >
+          <ArrowPathIcon 
+            className={`w-5 h-5 text-slate-600 ${isRefreshing ? 'animate-spin' : ''}`} 
+          />
+        </button>
+      )}
+
       {/* Main Flow Diagram - Full Screen Background */}
       <div className="absolute top-0 left-0 w-full h-full bg-slate-100 z-0" style={{ boxShadow: 'inset 8px 0 16px -8px rgba(0, 0, 0, 0.1)' }}>
         <PowersFlow 

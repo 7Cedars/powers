@@ -8,7 +8,7 @@ import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 export function SectionIntro() { 
 
   return (    
-    <section id="intro" className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always py-12 px-6">
+    <section id="intro" className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-600 snap-start snap-always">
         {/* title  */}
           <section className="w-full flex flex-col justify-center items-center pt-12">
               <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">

@@ -30,7 +30,8 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
     powers,
     status: powersStatus,
     error: powersError,
-    fetchPowers
+    fetchPowers,
+    fetchLawsAndRoles
   } = usePowers()
   const law = powers?.laws?.find(law => law.index == BigInt(action.lawId))
 
@@ -109,7 +110,7 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <PowersOverview powers={powers} wallets={wallets}>
+      <PowersOverview powers={powers} wallets={wallets} fetchLawsAndRoles={fetchLawsAndRoles}>
         {children}
       </PowersOverview>
     </div>

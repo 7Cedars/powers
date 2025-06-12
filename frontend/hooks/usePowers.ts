@@ -150,7 +150,7 @@ export const usePowers = () => {
       }
   }
 
-  const checkLaws = async (powers: Powers, lawIds: bigint[]) => {
+  const checkLaws = async (lawIds: bigint[]) => {
     // console.log("@checkLaws, waypoint 0", {lawIds})
     let lawId: bigint
     let fetchedLaws: Law[] = []
@@ -236,8 +236,12 @@ export const usePowers = () => {
   const calculateRoles = (laws: Law[]): bigint[] | undefined => {
     try {
       const activeLaws = laws.filter((law: Law) => law.active)
+      // console.log("@calculateRoles, waypoint 0", {activeLaws})
       const rolesAll = activeLaws.map((law: Law) => law.conditions?.allowedRole)
-      return [... new Set(rolesAll)] as bigint[]
+      // console.log("@calculateRoles, waypoint 1", {rolesAll})
+      const roles = [... new Set(rolesAll)] as bigint[]
+      // console.log("@calculateRoles, waypoint 2", {roles})
+      return roles
     } catch (error) {
       setStatus("error") 
       setError(error)
@@ -246,18 +250,26 @@ export const usePowers = () => {
 
   const updateRoleLabels = async (roles: bigint[], powers: Powers): Promise<RoleLabel[] | undefined> => {
     let role: bigint
-    const updatedRoleLabels: RoleLabel[] = []
+    let updatedRoleLabels: RoleLabel[] = []
 
     if (roles.length > 0) {
     try {
       for (role of roles) {
-        const roleLabel = await readContract(wagmiConfig, {
-          abi: powersAbi,
-          address: powers.contractAddress as `0x${string}`,
-          functionName: 'getRoleLabel',
-          args: [role]
-        })
-        updatedRoleLabels.push({roleId: role, label: roleLabel as string})
+        const [roleLabel, roleHolders] = await Promise.all([
+          readContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress as `0x${string}`,
+            functionName: 'getRoleLabel',
+            args: [role]
+          }),
+          readContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress as `0x${string}`,
+            functionName: 'getAmountRoleHolders',
+            args: [role]
+          })
+        ])
+        updatedRoleLabels = [...updatedRoleLabels, {roleId: role, label: roleLabel as string, holders: roleHolders as bigint }]
       }
       return updatedRoleLabels
     } catch (error) {
@@ -276,7 +288,7 @@ export const usePowers = () => {
 
     try {
       const lawIds: bigint[] = Array.from({length: Number(powers.lawCount) - 1}, (_, i) => BigInt(i+1))
-      laws = await checkLaws(powers, lawIds)
+      laws = await checkLaws(lawIds)
       if (laws) { lawsPopulated = await populateLaws(laws) }
       if (lawsPopulated) { roles = calculateRoles(lawsPopulated) } 
       if (roles) { roleLabels = await updateRoleLabels(roles, powers) }  
@@ -421,78 +433,71 @@ export const usePowers = () => {
         return powers
       }
   }
-  
+
   const fetchPowers = useCallback(
+    async (address: `0x${string}`) => {
+      setStatus("pending")
+      let powersToBeUpdated: Powers | undefined = undefined
+      let localStore = localStorage.getItem("powersProtocols")
+
+      const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+      const existing = saved.find(item => item.contractAddress == address)
+
+      if (existing) { 
+        powersToBeUpdated = existing
+        setPowers(powersToBeUpdated)
+        setStatus("success")
+      } else {
+        refetchPowers(address)
+        setStatus("success")
+      }      
+    }, [powers?.contractAddress]
+  )
+  
+  const refetchPowers = useCallback(
     async (address: `0x${string}`) => {
       setStatus("pending")
 
       let powersToBeUpdated: Powers | undefined = undefined
-      let updatedData: Powers | undefined = undefined
-      let updatedMetaData: Powers | undefined = undefined
-      let updatedLaws: Powers | undefined = undefined
-      let updatedProposals: Powers | undefined = undefined
-      let updatedExecutedActions: Powers | undefined = undefined
-      let localStore = localStorage.getItem("powersProtocols")
-      // console.log("@fetchPowers, waypoint 0", {localStore})
-      
-      const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
-      const existing = saved.find(item => item.contractAddress == address)
-      // console.log("@fetchPowers, waypoint 1", {existing})
+      let data: Powers | undefined = undefined
+      let metaData: Powers | undefined = undefined
+      let laws: Powers | undefined = undefined
+      let executedActions: Powers | undefined = undefined
+      let proposals: Powers | undefined = undefined
 
-      if (existing) { 
-        powersToBeUpdated = existing 
-      } else {
-        powersToBeUpdated = { contractAddress: address }
-      }
-      // console.log("@fetchPowers, waypoint 2", {powersToBeUpdated})
-      
+      powersToBeUpdated = { contractAddress: address }
+
       try {
-        // Always fetch basic powers data (name, uri, lawCount)
-      updatedData = await fetchPowersData(powersToBeUpdated)
-      // console.log("@fetchPowers, waypoint 3", {updatedData})
-        
-        // Only fetch metadata if missing or URI changed
-        if (updatedData && (!updatedData.metadatas || updatedData.uri !== powersToBeUpdated?.uri)) { 
-        updatedMetaData = await fetchMetaData(updatedData) 
-      } else {
-        updatedMetaData = updatedData
-      }
-        console.log("@fetchPowers, waypoint 4", {updatedMetaData, error})
-        
-        // Only fetch laws if they need updating
-        if (updatedMetaData && needsLawsUpdate(updatedMetaData)) { 
-          console.log("@fetchPowers: Fetching laws (needed update)")
-          updatedLaws = await fetchLawsAndRoles(updatedMetaData) 
-        } else {
-          console.log("@fetchPowers: Skipping laws (no update needed)")
-          updatedLaws = updatedMetaData
+        [data, proposals] = await Promise.all([
+          fetchPowersData(powersToBeUpdated),
+          fetchProposals(powersToBeUpdated, 10n, 10000n),
+        ])
+
+        if (data) {
+          [metaData, laws] = await Promise.all([
+            fetchMetaData(data),
+            fetchLawsAndRoles(data)
+          ])
+          if (laws) {
+            executedActions = await fetchExecutedActions(laws)
+          }
         }
-        console.log("@fetchPowers, waypoint 5", {updatedLaws, error})
-        
-        // Only fetch proposals if needed (based on block progress)
-        if (updatedLaws && needsProposalsUpdate(updatedLaws)) {
-          console.log("@fetchPowers: Fetching proposals (needed update)")
-          updatedProposals = await fetchProposals(updatedLaws, 10n, 10000n)
-        } else {
-          console.log("@fetchPowers: Skipping proposals (no update needed)")
-          updatedProposals = updatedLaws
-        }
-        
-        // Only fetch executed actions if laws were updated (executed actions depend on laws)
-        if (updatedProposals && (updatedLaws !== updatedMetaData || !updatedProposals.executedActions)) {
-          console.log("@fetchPowers: Fetching executed actions")
-          updatedExecutedActions = await fetchExecutedActions(updatedProposals)
-        } else {
-          console.log("@fetchPowers: Skipping executed actions (no update needed)")
-          updatedExecutedActions = updatedProposals
-        }
-        
-        console.log("@fetchPowers, waypoint 7", {updatedExecutedActions, error})
-        
-        // Ensure we have the final updated powers object
-        const finalPowers = updatedExecutedActions || updatedProposals || updatedLaws || updatedMetaData
-        if (finalPowers) {
-          setPowers(finalPowers)
+
+        if (data && metaData && laws && executedActions && proposals) {
+          setPowers({
+            contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
+            name: data.name,
+            uri: data.uri,
+            lawCount: data.lawCount,
+            laws: laws.laws,
+            activeLaws: laws.activeLaws,
+            proposals: proposals.proposals,
+            executedActions: executedActions.executedActions,
+            roles: laws.roles,
+            roleLabels: laws.roleLabels,
+            deselectedRoles: laws.deselectedRoles,
+            layout: powersToBeUpdated.layout
+          })
         }
       } catch (error) {
         console.error("@fetchPowers error:", error)
@@ -501,45 +506,57 @@ export const usePowers = () => {
       } finally {
         setStatus("success")
       }
-    }, [status] // Removed currentBlock from dependencies to prevent loop
+    }, [ ] 
   )
 
-  // Helper function to check if laws need updating
-  const needsLawsUpdate = (powers: Powers): boolean => {
-    // Check if we have no laws at all
-    if (!powers.laws || powers.laws.length === 0) {
-      return true
-    }
-    
-    // Check if lawCount has changed
-    if (powers.lawCount && powers.laws.length !== Number(powers.lawCount) - 1) {
-      return true
-    }
-    
-    // Check if any laws are missing essential data
-    const hasIncompleteData = powers.laws.some(law => 
-      !law.conditions || !law.nameDescription || !law.params
-    )
-    
-    return hasIncompleteData
-  }
-
-  // Helper function to check if proposals need updating
-  const needsProposalsUpdate = (powers: Powers): boolean => {
-    // If no block data, needs update
-    if (!powers.proposalsBlocksFetched || !currentBlock) {
-      return true
-    }
-    
-    // If no proposals at all, needs update
-    if (!powers.proposals || powers.proposals.length === 0) {
-      return true
-    }
-    
-    // Check if we need to fetch recent blocks (only fetch if there are significant new blocks)
-    const blocksSinceLastFetch = Number(currentBlock) - Number(powers.proposalsBlocksFetched.to)
-    return blocksSinceLastFetch > 50 // Increased threshold to be more conservative
-  }
-
-  return {status, error, powers, fetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
+  return {status, error, powers, fetchPowers, refetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
 }
+
+
+
+// const executionsData = await Promise.all(
+//   lawExecutions?.executions.map(async (execution, index) => {
+//     const actionId = lawExecutions?.actionsIds[index]
+//     try {
+//       const actionData = await readContract(wagmiConfig, {
+//         abi: powersAbi,
+//         address: powers?.contractAddress,
+//         functionName: 'getActionData',
+//         args: [actionId]
+//       }) 
+//       const parsedActionData = parseActionData(actionData as unknown as unknown[])
+       
+//        // Try to get ENS name for the caller
+//        let ensName: string | null = null
+//        try {
+//          ensName = await getEnsName(wagmiConfig, {
+//            address: parsedActionData.caller as `0x${string}`
+//          })
+//        } catch (ensError) {
+//          // ENS lookup failed, continue without ENS name
+//          console.log('ENS lookup failed for:', parsedActionData.caller)
+//        }
+//        return {
+//          execution,
+//          actionId,
+//          caller: parsedActionData.caller,
+//          ensName
+//        }
+//     } catch (error) {
+//       console.error('Error fetching caller for action:', actionId, error)
+//       return {
+//         execution,
+//         actionId,
+//         caller: undefined,
+//         ensName: null
+//       }
+//     }
+//   })
+// )
+// setExecutionsWithCallers(executionsData)
+// setIsRefreshing(false)
+// } catch (error) {
+// console.error('Error fetching callers:', error)
+// setIsRefreshing(false)
+// }
+// }
