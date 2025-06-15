@@ -11,24 +11,19 @@ import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { Button } from "@/components/Button";
 
-export function AssetList({powers, status: statusPowers, onRefresh}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
+export function AssetList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const {status, error, tokens, native, fetchTokens} = useAssets(powers)
 
+  // console.log("@AssetList: waypoint 0", {powers, statusPowers, status, error, tokens, native})
+
   useEffect(() => {
     if (supportedChain && statusPowers == "success" && powers) {
-      // console.log("FetchTokens triggered:" , {supportedChain, statusPowers, powers})
       fetchTokens(powers) 
     }
   }, [powers, statusPowers, fetchTokens])
-
-  const handleRefreshAssets = () => {
-    if (powers) {
-      fetchTokens(powers)
-    }
-  }
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
@@ -40,24 +35,19 @@ export function AssetList({powers, status: statusPowers, onRefresh}: {powers: Po
         <div className="flex flex-row gap-2 items-center">
           {supportedChain && powers && (
             <div className="w-8 h-8">
-              <Button
-                size={0}
-                showBorder={true}
-                onClick={handleRefreshAssets}
+              <button
+                onClick={() => {
+                  if (powers) {
+                    fetchTokens(powers)
+                  }
+                }}
+                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}  
               >
-                <ArrowPathIcon className={`w-5 h-5 ${status === 'pending' ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          )}
-          {onRefresh && (
-            <div className="w-8 h-8">
-              <Button
-                size={0}
-                showBorder={true}
-                onClick={onRefresh}
-              >
-                <ArrowPathIcon className="w-5 h-5" />
-              </Button>
+                <ArrowPathIcon 
+                  className="w-5 h-5 text-slate-500 aria-selected:animate-spin"
+                  aria-selected={status == "pending"}
+                />
+              </button>
             </div>
           )}
         </div>

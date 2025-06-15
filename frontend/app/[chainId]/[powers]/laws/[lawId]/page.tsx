@@ -23,36 +23,36 @@ const Page = () => {
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
-  console.log("@Law page: waypoint 1", {law})
+  // console.log("@Law page: waypoint 1", {law})
   // Get checks for this specific law from Zustand store
   const checks = law && chainChecks ? chainChecks.get(String(law.index)) : undefined
   
   // Debug logging to understand what's happening with checks
-  console.log( "@Law page FLOW: ", {
-    executions, 
-    errorUseLaw, 
-    checks, 
-    powers,
-    law: law ? { index: law.index, nameDescription: law.nameDescription } : null, 
-    statusLaw, 
-    action, 
-    ready, 
-    wallets: wallets.length, 
-    addressPowers, 
-    simulation,
-    chainChecks: chainChecks ? {
-      size: chainChecks.size,
-      keys: Array.from(chainChecks.keys()),
-      hasLawId: lawId ? chainChecks.has(lawId) : false,
-      hasLawIndex: law ? chainChecks.has(String(law.index)) : false
-    } : null,
-    lawId,
-    lawIndex: law ? String(law.index) : null
-  })
+  // console.log( "@Law page FLOW: ", {
+  //   executions, 
+  //   errorUseLaw, 
+  //   checks, 
+  //   powers,
+  //   law: law ? { index: law.index, nameDescription: law.nameDescription } : null, 
+  //   statusLaw, 
+  //   action, 
+  //   ready, 
+  //   wallets: wallets.length, 
+  //   addressPowers, 
+  //   simulation,
+  //   chainChecks: chainChecks ? {
+  //     size: chainChecks.size,
+  //     keys: Array.from(chainChecks.keys()),
+  //     hasLawId: lawId ? chainChecks.has(lawId) : false,
+  //     hasLawIndex: law ? chainChecks.has(String(law.index)) : false
+  //   } : null,
+  //   lawId,
+  //   lawIndex: law ? String(law.index) : null
+  // })
   
   useEffect(() => {
     if (addressPowers) {
-      console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
+      // console.log("useEffect, fetchPowers triggered at Law page:", {addressPowers})
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [addressPowers])
@@ -79,6 +79,8 @@ const Page = () => {
         // resetting store
       // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
+        fetchChainChecks(law.index, lawCalldata, BigInt(action.nonce), wallets, powers)
+
         // console.log("Handle Simulate waypoint 3b")
         setAction({
           ...action,
@@ -91,9 +93,6 @@ const Page = () => {
           callData: lawCalldata,
           upToDate: true
         })
-
-        fetchChainChecks(law.index, lawCalldata, BigInt(action.nonce), wallets, powers)
-
         // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
         
         try {

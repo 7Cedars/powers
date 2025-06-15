@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { usePublicClient } from "wagmi"
+import { useChains, usePublicClient } from "wagmi"
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { powersAbi } from "@/context/abi"
 import { parseChainId } from "@/utils/parsers"
@@ -9,7 +9,8 @@ import { useBlocks } from "@/hooks/useBlocks"
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates"
 import { getEnsName } from "@wagmi/core"
 import { LoadingBox } from "@/components/LoadingBox"
-import { Powers, Status } from "@/context/types"
+import { Action, Powers, Status } from "@/context/types"
+import { useAction } from "@/hooks/useAction"
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -48,11 +49,12 @@ type VoteData = {
 
 type VotesProps = {
   actionId: string
+  action: Action
   powers: Powers | undefined
   status: Status
 }
 
-export const Votes = ({ actionId, powers, status }: VotesProps) => {
+export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { actionData } = useActionDataStore()
   const { timestamps, fetchTimestamps } = useBlocks()
@@ -60,14 +62,15 @@ export const Votes = ({ actionId, powers, status }: VotesProps) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const publicClient = usePublicClient()
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
 
-  // Get the action data for this specific actionId
-  const currentAction = actionData.get(actionId)
 
   useEffect(() => {
-    if (!currentAction?.voteStart || !currentAction?.voteEnd || !powers?.contractAddress || !publicClient) {
+    if (!action?.voteStart || !action?.voteEnd || !powers?.contractAddress || !publicClient) {
       return
     }
+    console.log("@Votes: waypoint 0", {action, actionId, powers, publicClient})
 
     const fetchVotes = async () => {
       setLoading(true)
@@ -75,25 +78,16 @@ export const Votes = ({ actionId, powers, status }: VotesProps) => {
       
       try {
         // Fetch VoteCast event logs between voteStart and voteEnd blocks
-        const logs = await publicClient.getLogs({
-          address: powers.contractAddress,
-          event: {
-            type: 'event',
-            name: 'VoteCast',
-            inputs: [
-              { name: 'voter', type: 'address', indexed: true },
-              { name: 'actionId', type: 'uint256', indexed: true },
-              { name: 'support', type: 'uint8', indexed: false },
-              { name: 'reason', type: 'string', indexed: false }
-            ]
-          },
-          args: {
-            actionId: BigInt(actionId)
-          },
-          fromBlock: currentAction.voteStart,
-          toBlock: currentAction.voteEnd,
-          strict: true
+        const logs = await publicClient.getContractEvents({
+          address: powers?.contractAddress as `0x${string}`,
+          abi: powersAbi,
+          eventName: 'VoteCast',
+          args: {actionId: BigInt(actionId)},
+          fromBlock: BigInt(action?.voteStart ? action.voteStart : 0),
+          toBlock: BigInt(action?.voteEnd ? action.voteEnd : 0)
         })
+
+        console.log("@Votes: waypoint 1", {logs})
 
         // Process logs and fetch ENS names
         const votePromises = logs.map(async (log: any): Promise<VoteData> => {
@@ -147,9 +141,9 @@ export const Votes = ({ actionId, powers, status }: VotesProps) => {
     }
 
     fetchVotes()
-  }, [currentAction?.voteStart, currentAction?.voteEnd, powers?.contractAddress, actionId, chainId, fetchTimestamps, publicClient])
+  }, [action?.voteStart, action?.voteEnd, powers?.contractAddress, actionId, chainId, fetchTimestamps, publicClient])
 
-  if (!currentAction?.voteStart || !currentAction?.voteEnd) {
+  if (!action?.voteStart || !action?.voteEnd) {
     return null // Don't render if no voting period data
   }
 
@@ -172,7 +166,7 @@ export const Votes = ({ actionId, powers, status }: VotesProps) => {
           {error}
         </div>
       ) : votes.length > 0 ? (
-        <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
+        <div className="w-full h-fit max-h-56 flex flex-col justify-start items-center overflow-hidden">
           <div className="w-full overflow-x-auto overflow-y-auto">
             <table className="w-full table-auto text-sm">
               <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
@@ -229,7 +223,7 @@ export const Votes = ({ actionId, powers, status }: VotesProps) => {
                     {/* Transaction hash */}
                     <td className="px-2 py-3 w-24">
                       <a
-                        href={`https://etherscan.io/tx/${vote.transactionHash}`}
+                        href={`${supportedChain?.blockExplorers?.default.url}/tx/${vote.transactionHash}#code`} 
                         target="_blank"
                         rel="noopener noreferrer"
                         className="truncate text-blue-500 hover:text-blue-700 text-xs font-mono underline"

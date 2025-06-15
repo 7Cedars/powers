@@ -177,7 +177,7 @@ export const usePowers = () => {
               index: lawId,
               active: lawFetchedTyped[2] as unknown as boolean
             })
-            console.log("@checkLaws, waypoint 3", {fetchedLaws})  
+            console.log("@checkLaws, waypoint 3", {error})
           } catch (error) {
             console.log("@checkLaws, waypoint 3", {error})
             setStatus("error")
@@ -280,6 +280,7 @@ export const usePowers = () => {
   }
 
   const fetchLawsAndRoles = async (powers: Powers) => {
+    setStatus("pending")
     let laws: Law[] | undefined = undefined
     let lawsPopulated: Law[] | undefined = undefined
     let roles: bigint[] | undefined = undefined
@@ -309,8 +310,11 @@ export const usePowers = () => {
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
       return powersUpdated
+    } else {
+      setStatus("error")
+      setError("Failed to fetch laws and roles")
+      return powers
     }
-    return powers // Return original powers if update failed
   }
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
@@ -403,8 +407,8 @@ export const usePowers = () => {
   }
   
   const fetchExecutedActions = async (powers: Powers) => {
+    setStatus("pending")
     let powersUpdated: Powers | undefined;
-    
     let law: Law
     let laws = powers.laws || []
     let executedActions: LawExecutions[] = []
@@ -426,10 +430,11 @@ export const usePowers = () => {
       powersUpdated = { ...powers, executedActions: executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
+      setStatus("success")
       return powersUpdated
-          } catch (error) {
-            setStatus("error")
-            setError(error)
+      } catch (error) {
+        setStatus("error")
+        setError(error)
         return powers
       }
   }
@@ -484,9 +489,11 @@ export const usePowers = () => {
         }
 
         if (data && metaData && laws && executedActions && proposals) {
-          setPowers({
+          console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
+          const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             name: data.name,
+            metadatas: metaData.metadatas,
             uri: data.uri,
             lawCount: data.lawCount,
             laws: laws.laws,
@@ -497,7 +504,9 @@ export const usePowers = () => {
             roleLabels: laws.roleLabels,
             deselectedRoles: laws.deselectedRoles,
             layout: powersToBeUpdated.layout
-          })
+          }
+          setPowers(newPowers)
+          savePowers(newPowers)
         }
       } catch (error) {
         console.error("@fetchPowers error:", error)

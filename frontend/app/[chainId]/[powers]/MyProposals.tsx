@@ -67,7 +67,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
-  console.log("@MyProposals: waypoint 0", {activeProposals})
+  // console.log("@MyProposals: waypoint 0", {activeProposals})
 
   const handleSelectProposal = (item: ProposalAndLaw) => {
     setAction({

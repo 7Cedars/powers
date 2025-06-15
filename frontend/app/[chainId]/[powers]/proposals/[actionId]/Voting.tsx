@@ -49,18 +49,16 @@ export const Voting = ({action, powers, status: statusPowers}: {action: Action, 
     ]
   })
 
-  console.log("@Voting: waypoint 0", {data})
+  // console.log("@Voting: waypoint 0", {data})
   
-  const votes = isSuccess ? parseVoteData(data).votes : [0, 0, 0]
-  const init = 0
-  const allVotes = votes.reduce((acc, current) => acc + current, init)
+  const allVotes = Number(action.forVotes) + Number(action.againstVotes) + Number(action.abstainVotes)
   const quorum = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.quorum)) / 100) : 0
   const threshold = isSuccess ? Math.floor((parseVoteData(data).holders * Number(law?.conditions?.succeedAt)) / 100) : 0
   const deadline = isSuccess ? parseVoteData(data).deadline : 0
   const state = isSuccess ? parseVoteData(data).state : 0
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
 
-  console.log("@Voting: waypoint 1", {votes, quorum, threshold, deadline, isSuccess, action, state})
+  // console.log("@Voting: waypoint 1", {votes, quorum, threshold, deadline, isSuccess, action, state})
 
   return (
       <div className="w-full h-fit flex flex-col gap-3 justify-start items-center bg-slate-50">
@@ -106,45 +104,45 @@ export const Voting = ({action, powers, status: statusPowers}: {action: Action, 
         {/* Quorum block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
-            { votes[1] + votes[2] >= quorum ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
+            { Number(action.forVotes) + Number(action.abstainVotes) >= quorum ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
             <div>
-            { votes[1] + votes[2] >= quorum ? "Quorum passed" : "Quorum not passed"}
+            { Number(action.forVotes) + Number(action.abstainVotes) >= quorum ? "Quorum passed" : "Quorum not passed"}
             </div>
           </div>
           <div className={`relative w-full leading-none rounded-sm h-3 border border-slate-300 overflow-hidden`}>
             <div 
               className={`absolute bottom-0 leading-none h-3 bg-slate-400`}
-              style={{width:`${((votes[1] + votes[2]) * 100) / quorum }%`}}> 
+              style={{width:`${((Number(action.forVotes) + Number(action.abstainVotes)) * 100) / quorum }%`}}> 
             </div>
           </div>
           <div className="w-full text-sm text-left text-slate-500"> 
-           {isSuccess ? `${votes[1] + votes[2] } / ${quorum} votes` : ""}
+           {isSuccess ? `${Number(action.forVotes) + Number(action.abstainVotes) } / ${quorum} votes` : ""}
           </div>
         </div>
 
         {/* Threshold block */}
         <div className = "w-full flex flex-col justify-center items-center gap-2 py-2 px-4"> 
           <div className = "w-full flex flex-row justify-between items-center">
-            { votes[1] >= threshold ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
+            { Number(action.forVotes) >= threshold ? <CheckIcon className="w-4 h-4 text-green-600"/> : <XMarkIcon className="w-4 h-4 text-red-600"/>}
             <div>
-            { votes[1] >= threshold ? "Threshold passed" : "Threshold not passed"}
+            { Number(action.forVotes) >= threshold ? "Threshold passed" : "Threshold not passed"}
             </div>
           </div>
           <div className={`relative w-full flex flex-row justify-start leading-none rounded-sm h-3 border border-slate-300`}>
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-gray-400`} />
-            <div className={`absolute bottom-0 w-full leading-none h-3 bg-red-400`} style={{width:`${((votes[1] + votes[0]) / allVotes)*100}%`}} />
-            <div className={`absolute bottom-0 w-full leading-none h-3 bg-green-400`} style={{width:`${((votes[1]) / allVotes)*100}%`}} />
+            <div className={`absolute bottom-0 w-full leading-none h-3 bg-red-400`} style={{width:`${((Number(action.forVotes) + Number(action.againstVotes)) / allVotes)*100}%`}} />
+            <div className={`absolute bottom-0 w-full leading-none h-3 bg-green-400`} style={{width:`${((Number(action.forVotes)) / allVotes)*100}%`}} />
             <div className={`absolute -top-2 w-full leading-none h-6 border-r-4 border-green-500`} style={{width:`${law?.conditions?.succeedAt}%`}} />
           </div>
           <div className="w-full flex flex-row justify-between items-center"> 
             <div className="w-fit text-sm text-center text-green-500">
-              {isSuccess ? `${votes[1]} for` : "na"}
+              {isSuccess ? `${Number(action.forVotes)} for` : "na"}
             </div>
             <div className="w-fit text-sm text-center text-red-500">
-              {isSuccess ? `${votes[0]} against` : "na"}
+              {isSuccess ? `${Number(action.againstVotes)} against` : "na"}
             </div>
             <div className="w-fit text-sm text-center text-gray-500">
-            {isSuccess ? `${votes[2]} abstain` : "na"}
+            {isSuccess ? `${Number(action.abstainVotes)} abstain` : "na"}
             </div>
           </div>
         </div>

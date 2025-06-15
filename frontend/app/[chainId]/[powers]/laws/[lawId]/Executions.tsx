@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useAction } from "@/hooks/useAction";
 import { ArrowUpRightIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { setAction } from "@/context/store";
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -38,7 +39,7 @@ type ExecutionsProps = {
 export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData } = useAction()
+  const { fetchActionData, data: actionData } = useAction()
   const router = useRouter()
   const [executionsWithCallers, setExecutionsWithCallers] = useState<ExecutionWithCaller[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -114,6 +115,12 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
   const handleSelectAction = (actionId: bigint) => {
     fetchActionData(actionId, powers as Powers)
   }
+
+  useEffect(() => {
+    if (actionData) {
+      setAction(actionData)
+    }
+  }, [actionData])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

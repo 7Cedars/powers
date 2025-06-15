@@ -36,7 +36,7 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData, actionData, status: statusAction } = useAction()
+  const { fetchActionData, data: actionData, status: statusAction } = useAction()
   const [tempActions, setTempActions] = useState<TempAction[]>([])
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
     }
   }, [powers])
 
-  console.log("@Logs: waypoint 0", {tempActions})
+  // console.log("@Logs: waypoint 0", {tempActions})
   let executedActions: TempAction[] = tempActions.filter((action): action is TempAction => action !== undefined)
   executedActions = executedActions.sort((a, b) => Number(b?.executedAt) - Number(a?.executedAt))
 

@@ -11,6 +11,7 @@ import { StaticInput } from "@/components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+import { hashAction } from "@/utils/hashAction";
 
 const roleColor = [  
   "#007bff",
@@ -28,6 +29,8 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
   const {status: statusProposals, propose} = useProposal();
   const { wallets } = useWallets();
   const { actionData } = useActionDataStore();
+  const router = useRouter();
+  const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
 
   console.log("@ProposeBox: waypoint 0", {actionData})
 
@@ -39,6 +42,11 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
       law as Law
     )
   }, [law, action])
+
+  const navigateToProposal = () => {
+    const hash = hashAction(law?.index as bigint, action.callData, BigInt(action.nonce))
+    router.push(`/${chainId}/${addressPowers}/proposals/${hash}`)
+  }
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
@@ -119,19 +127,26 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
         <div className="w-full h-fit px-6 py-2 pb-6">
             <Button 
               size={0} 
-              onClick={() => propose(
-                law?.index as bigint, 
-                action.callData, 
-                BigInt(action.nonce),
-                action.description,
-                powers as Powers
-              )} 
+              onClick={(event) => {
+                if (proposalExists) {
+                  event.preventDefault()
+                  navigateToProposal()
+                } else {
+                  propose(
+                    law?.index as bigint, 
+                    action.callData, 
+                    BigInt(action.nonce),
+                    action.description,
+                    powers as Powers
+                  )
+                }
+              }} 
               filled={false}
               selected={true}
-              statusButton={(!authorised || proposalExists) ? 'disabled' : statusProposals }
+              statusButton={(!authorised) ? 'disabled' : (proposalExists) ? 'idle' : statusProposals }
               > 
               {proposalExists 
-                ? 'Proposal Exists' 
+                ? 'View Proposal' 
                 : !authorised 
                   ? 'Not authorised to make proposal' 
                   : 'Propose'

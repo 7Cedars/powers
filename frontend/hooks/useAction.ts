@@ -10,14 +10,14 @@ import { setAction } from "@/context/store";
 export const useAction = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
-  const [actionData, setActionData ] = useState<Action | undefined>()
+  const [data, setData ] = useState<Action | undefined>()
 
   const fetchActionData = useCallback( 
     async (actionId: bigint, powers: Powers) => {
       setError(null)
       setStatus("pending")
 
-      console.log("@useAction: waypoint 0", {actionId, powers})
+      // console.log("@useAction: waypoint 0", {actionId, powers})
       
         try {
             const lawCalldata = await readContract(wagmiConfig, {
@@ -41,10 +41,10 @@ export const useAction = () => {
             args: [actionId]
             })
             const parsedActionData: ActionTruncated = parseActionData(actionData as unknown as unknown[])
-            console.log("@useAction: waypoint 1", {lawCalldata, actionUri, actionData})
+            // console.log("@useAction: waypoint 1", {lawCalldata, actionUri, actionData})
 
             if (lawCalldata && actionUri != undefined && actionData != undefined) {
-              console.log("@Executions: waypoint 3:" , {lawCalldata, actionUri, actionData})
+              // console.log("@Executions: waypoint 3:" , {lawCalldata, actionUri, actionData})
               const law = powers.laws?.find(law => law.index == parsedActionData.lawId)
               const executions = await readContract(wagmiConfig, {
                 abi: lawAbi,
@@ -52,7 +52,7 @@ export const useAction = () => {
                 functionName: 'getExecutions',
                 args: [powers.contractAddress as `0x${string}`, parsedActionData.lawId]
               })
-              console.log("@useAction: waypoint 2", {executions})
+              // console.log("@useAction: waypoint 2", {executions})
               const executionsParsed = executions as unknown as LawExecutions
               const index = executionsParsed.actionsIds.findIndex(actionId => actionId == actionId)
               const executedAt = executionsParsed.executions[index]
@@ -64,7 +64,7 @@ export const useAction = () => {
                 valuesParsed = parseParamValues(values) 
               }
 
-              console.log("@useAction: waypoint 4", {dataTypes, valuesParsed, law})
+              // console.log("@useAction: waypoint 4", {dataTypes, valuesParsed, law})
 
               const returnActionData: Action = {
                   actionId: String(actionId),
@@ -75,7 +75,7 @@ export const useAction = () => {
                   nonce: String(parsedActionData.nonce),
                   description: actionUri as string,
                   callData: lawCalldata as `0x${string}`,
-                  upToDate: false,
+                  upToDate: true,
                   state: parsedActionData.state,
                   voteStart: parsedActionData.voteStart,
                   voteDuration: parsedActionData.voteDuration,
@@ -88,8 +88,8 @@ export const useAction = () => {
                   requested: parsedActionData.requested,
                   fulfilled: parsedActionData.fulfilled
               }
-              setAction(returnActionData)
-              setActionData(returnActionData)
+              // setAction(returnActionData)
+              setData(returnActionData)
               setStatus("success")
               return returnActionData
             }
@@ -100,5 +100,5 @@ export const useAction = () => {
     }, [ ]
 )
 
-  return {status, error, actionData, fetchActionData}
+  return {status, error, data, fetchActionData}
 }

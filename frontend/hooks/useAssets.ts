@@ -197,11 +197,8 @@ export const useAssets = (powers: Powers | undefined) => {
 
   const fetchTokens = useCallback( 
     async (powers: Powers) => {
-        setError(null)
         setStatus("pending")
-
-        // console.log("@useAssets, Fetch tokens reached")
-
+        setError(null)
         const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
         const selectedErc20s = powers?.metadatas?.erc20s ? powers?.metadatas?.erc20s : []
         // console.log("@useAssets, savedErc20s:", {savedErc20s})
@@ -213,12 +210,11 @@ export const useAssets = (powers: Powers | undefined) => {
 
         if (erc20s) {
           erc20s.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
-
           // console.log("@useAssets, fetchedTokens:", {erc20s})
-
           setTokens(erc20s) 
-          setStatus("success") 
+          
         }
+        setStatus("success") 
   }, [ ])
 
   const addErc20 = (erc20: `0x${string}`) => {

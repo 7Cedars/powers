@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 import { LogsList } from "./LogsList";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
-import { useBlockNumber } from "wagmi";
-import { Button } from "@/components/Button";
 import { Powers } from "@/context/types";
 
 export default function Page() { 
