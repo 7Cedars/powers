@@ -130,7 +130,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
       {/* dynamic form */}
       { 
       action && 
-      <form action="" method="get" className="w-full">
+      <form onSubmit={(e) => e.preventDefault()} className="w-full">
         {
           params.map((param, index) => {
             // console.log("@dynamic form", {param, index, paramValues})
@@ -208,11 +208,12 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             filled={false}
             selected={true}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
             }} 
             statusButton={
-               !action.upToDate && action.description && action.description.length > 0 ? 'idle' : 'disabled'
+               action && action.description && action.description.length > 0 && action.nonce ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>

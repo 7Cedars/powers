@@ -143,7 +143,7 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
               }} 
               filled={false}
               selected={true}
-              statusButton={(!authorised) ? 'disabled' : (proposalExists) ? 'idle' : statusProposals }
+              statusButton={(proposalExists) ? 'idle' : (!authorised) ? 'disabled' : statusProposals }
               > 
               {proposalExists 
                 ? 'View Proposal' 
