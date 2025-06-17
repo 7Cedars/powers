@@ -177,9 +177,9 @@ export const usePowers = () => {
               index: lawId,
               active: lawFetchedTyped[2] as unknown as boolean
             })
-            console.log("@checkLaws, waypoint 3", {error})
+            // console.log("@checkLaws, waypoint 3", {error})
           } catch (error) {
-            console.log("@checkLaws, waypoint 3", {error})
+            // console.log("@checkLaws, waypoint 3", {error})
             setStatus("error")
             setError(error)
           }
@@ -297,9 +297,9 @@ export const usePowers = () => {
       setStatus("error")
       setError(error)
     }
-    console.log("@fetchLawsAndRoles, waypoint 0", {laws, roles, roleLabels, error})
+    // console.log("@fetchLawsAndRoles, waypoint 0", {laws, roles, roleLabels, error})
     if (laws && roles && roleLabels) {
-      console.log("@fetchLawsAndRoles, waypoint 1")
+      // console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
         laws: laws, 
         activeLaws: laws.filter((law: Law) => law.active),
@@ -319,6 +319,7 @@ export const usePowers = () => {
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
+    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
 
     if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
@@ -333,20 +334,23 @@ export const usePowers = () => {
         distance = BigInt(Number(chunkSize) * Number(maxRuns))
       }
       const blockFrom = currentBlock - distance
+      // console.log("@fetchProposals, waypoint 1", {blockFrom, distance, currentBlock})
 
       // Fetch blocks in chunks with pagination
       let chunkFrom: bigint = 0n
       let chunkTo: bigint = 0n
+      // console.log("@fetchProposals, waypoint 2", {chunkFrom, chunkTo})
   
       // check if we reached the end of the distance or max runs
       // if so, save here everything to disc.  
       let i = 0
-      while (distance > i) {
-        // console.log("@fetchProposals, waypoint 1", {chunkTo, i, distance})
+      while (i < Number(distance)) {
+        // console.log("@fetchProposals, waypoint 3", {chunkTo, i, distance})
       
         // calculate chunk boundaries
-        chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
-        chunkTo = (chunkFrom + chunkSize) > currentBlock ? currentBlock : (chunkFrom + chunkSize)
+        chunkFrom = BigInt(Number(blockFrom) + i)
+        chunkTo = (Number(chunkFrom) + Number(chunkSize)) > Number(currentBlock) ? currentBlock : BigInt(Number(chunkFrom) + Number(chunkSize))
+        // console.log("@fetchProposals, waypoint 3.1", {chunkFrom, chunkTo, currentBlock})
         
         try { 
           // Fetch events for the current chunk
@@ -357,13 +361,13 @@ export const usePowers = () => {
             fromBlock: chunkFrom,
             toBlock: chunkTo
           })
-          
+          // console.log("@fetchProposals, waypoint 4", {logs, publicClient})          
           const fetchedLogs = parseEventLogs({
             abi: powersAbi,
             eventName: 'ProposedActionCreated',
             logs
           });
-
+          // console.log("@fetchProposals, waypoint 5", {fetchedLogs})
           let newProposals: Action[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Action);
           // but with typing of nonce and actionId as string
           newProposals = newProposals.map(proposal => { 
@@ -373,6 +377,7 @@ export const usePowers = () => {
               nonce: String(proposal.nonce)
             }
           })
+          // console.log("@fetchProposals, waypoint 6", {newProposals})
           // Append new proposals to the accumulated array
           proposalsFetched = [...proposalsFetched, ...newProposals]
           } catch (error) {
@@ -387,8 +392,9 @@ export const usePowers = () => {
         const uniqueProposals = proposalsFetched.filter((proposal, index, self) => 
           index === self.findIndex(p => p.actionId === proposal.actionId && p.nonce === proposal.nonce)
         )
-        
-        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart > b.voteStart ? -1 : 1);
+        // console.log("@fetchProposals, waypoint 7", {uniqueProposals})
+        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart && b.voteStart ? a.voteStart > b.voteStart ? -1 : 1 : 0);
+        // console.log("@fetchProposals, waypoint 8", {sortedProposals})
         
           powersUpdated = { ...powers as Powers, 
             proposals: uniqueProposals, // Use deduplicated proposals
@@ -399,11 +405,12 @@ export const usePowers = () => {
               to: chunkTo 
             }
           }
+          // console.log("@fetchProposals, waypoint 9", {powersUpdated})
           setPowers(powersUpdated)
           savePowers(powersUpdated)
-          return powersUpdated
+          // return powersUpdated
       }
-      return powers
+      // return powers
   }
   
   const fetchExecutedActions = async (powers: Powers) => {
@@ -415,7 +422,7 @@ export const usePowers = () => {
 
     try {
       for (law of laws) {
-        console.log("@fetchExecutedActions, waypoint 0", {law})
+        // console.log("@fetchExecutedActions, waypoint 0", {law})
 
         const executedActionsFetched = await readContract(wagmiConfig, {
           abi: lawAbi,
@@ -423,10 +430,10 @@ export const usePowers = () => {
           functionName: 'getExecutions',
           args: [law.powers, law.index]
         })
-        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
+        // console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
         executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
-      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
+      // console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
       powersUpdated = { ...powers, executedActions: executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
@@ -489,7 +496,7 @@ export const usePowers = () => {
         }
 
         if (data && metaData && laws && executedActions && proposals) {
-          console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
+          // console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             name: data.name,
@@ -509,7 +516,7 @@ export const usePowers = () => {
           savePowers(newPowers)
         }
       } catch (error) {
-        console.error("@fetchPowers error:", error)
+        //  console.error("@fetchPowers error:", error)
         setStatus("error")
         setError(error)
       } finally {
@@ -520,52 +527,3 @@ export const usePowers = () => {
 
   return {status, error, powers, fetchPowers, refetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
 }
-
-
-
-// const executionsData = await Promise.all(
-//   lawExecutions?.executions.map(async (execution, index) => {
-//     const actionId = lawExecutions?.actionsIds[index]
-//     try {
-//       const actionData = await readContract(wagmiConfig, {
-//         abi: powersAbi,
-//         address: powers?.contractAddress,
-//         functionName: 'getActionData',
-//         args: [actionId]
-//       }) 
-//       const parsedActionData = parseActionData(actionData as unknown as unknown[])
-       
-//        // Try to get ENS name for the caller
-//        let ensName: string | null = null
-//        try {
-//          ensName = await getEnsName(wagmiConfig, {
-//            address: parsedActionData.caller as `0x${string}`
-//          })
-//        } catch (ensError) {
-//          // ENS lookup failed, continue without ENS name
-//          console.log('ENS lookup failed for:', parsedActionData.caller)
-//        }
-//        return {
-//          execution,
-//          actionId,
-//          caller: parsedActionData.caller,
-//          ensName
-//        }
-//     } catch (error) {
-//       console.error('Error fetching caller for action:', actionId, error)
-//       return {
-//         execution,
-//         actionId,
-//         caller: undefined,
-//         ensName: null
-//       }
-//     }
-//   })
-// )
-// setExecutionsWithCallers(executionsData)
-// setIsRefreshing(false)
-// } catch (error) {
-// console.error('Error fetching callers:', error)
-// setIsRefreshing(false)
-// }
-// }

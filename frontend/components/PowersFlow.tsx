@@ -928,7 +928,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const reactFlowInstanceRef = React.useRef<any>(null)
   const { status: checksStatus } = useChecksStatusStore()
 
-  console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
+  // console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -1413,7 +1413,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   if (!powers.activeLaws || powers.activeLaws.length === 0) {
     return (
-      <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">
           <div className="text-gray-500 text-lg mb-2">No active laws found</div>
           <div className="text-gray-400 text-sm">Deploy some laws to see the visualization</div>

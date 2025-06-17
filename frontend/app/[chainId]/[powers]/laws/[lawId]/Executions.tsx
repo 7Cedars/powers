@@ -45,7 +45,7 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
   const [isRefreshing, setIsRefreshing] = useState(false)
   const action = useActionStore() 
 
-  console.log('@Executions: action', action)
+  // console.log('@Executions: action', action)
 
   useEffect(() => {
     if (lawExecutions) {

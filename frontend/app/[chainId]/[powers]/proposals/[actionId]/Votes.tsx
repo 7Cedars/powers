@@ -148,7 +148,7 @@ export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
   }
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+    <div className="w-full h-fit flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       <div className="w-full border-b border-slate-300 p-2 bg-slate-100">
         <div className="w-full flex flex-row gap-6 items-center justify-between">
           <div className="text-left text-sm text-slate-600">

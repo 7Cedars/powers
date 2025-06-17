@@ -30,7 +30,7 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
     }
   }, [powers])
 
-  console.log("@ProposalList: waypoint 0", {powers, timestamps})
+  // console.log("@ProposalList: waypoint 0", {powers, timestamps})
 
   useEffect(() => {
     if (powers?.proposals) {
