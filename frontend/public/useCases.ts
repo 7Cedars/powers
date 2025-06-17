@@ -41,7 +41,7 @@ export const useCases = [
       "Granular, governed, upgrades to on-chain governance."
     ],
     demo: "Managed Grants",
-    address: "0x7258Fd1B2cbF89644Ad29Cc3a9485f1d95B26cdD",
+    address: "0x62c4493cd442550d71b6016ba2bec28962808d55",
     chainId: "11155420",
     colourScheme: 0,
   },  

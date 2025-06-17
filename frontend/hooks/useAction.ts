@@ -40,8 +40,9 @@ export const useAction = () => {
             functionName: 'getActionData',
             args: [actionId]
             })
-            const parsedActionData: ActionTruncated = parseActionData(actionData as unknown as unknown[])
-            // console.log("@useAction: waypoint 1", {lawCalldata, actionUri, actionData})
+            console.log("@useAction: waypoint 1", {actionData})
+            const parsedActionData: ActionTruncated = parseActionData(actionData as unknown[])
+            console.log("@useAction: waypoint 2", {lawCalldata, actionUri, parsedActionData})
 
             if (lawCalldata && actionUri != undefined && actionData != undefined) {
               // console.log("@Executions: waypoint 3:" , {lawCalldata, actionUri, actionData})

@@ -97,20 +97,30 @@ export const useChecks = () => {
     } 
   }, [])
 
-  const checkDelayedExecution = (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
+  const checkDelayedExecution = async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
     // NB! CONTINUE HERE! The proposal box should NOT depend on data saved at powers.proposals. Too few of the proposals are saved.
     // instead should fetch data straigh from contract: use the getProposedActionDeadline function. 
-    // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
+    console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
+    console.log("Deadline ActionId:", actionId)
     const law = powers.activeLaws?.find(law => law.index === lawId)
-    // console.log("waypoint 0, CheckDelayedExecution: ", {actionId})
-    const selectedProposal = powers.proposals?.find(proposal => BigInt(proposal.actionId) == actionId)
-
-    // console.log("waypoint 1, CheckDelayedExecution: ", {selectedProposal, blockNumber})
-    const result = Number(selectedProposal?.voteEnd) + Number(law?.conditions?.delayExecution) < Number(blockNumber)
-    return result as boolean
+    try {
+      const deadline = await readContract(wagmiConfig, {
+        abi: powersAbi,
+        address: powers.contractAddress as `0x${string}`,
+        functionName: 'getProposedActionDeadline',
+        args: [actionId]
+      })
+      console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
+      console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
+      console.log("Deadline Result:", result) 
+      return result as boolean
+    } catch (error) {
+      console.log("Error fetching deadline:", error)
+      return false
+    }
   }
-
 
   const calculateDependencies = (lawId: bigint, powers: Powers) => {
     const selectedLawId = String(lawId)
@@ -189,7 +199,7 @@ export const useChecks = () => {
           const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [3, 4, 5])
           const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
-          const delayed = checkDelayedExecution(law.index, nonce, callData, powers)
+          const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
 
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])

@@ -286,9 +286,22 @@ export const usePowers = () => {
     let roles: bigint[] | undefined = undefined
     let roleLabels: RoleLabel[] | undefined = undefined
     let powersUpdated: Powers | undefined = undefined
+    let lawIds: bigint[] | undefined = undefined
 
     try {
-      const lawIds: bigint[] = Array.from({length: Number(powers.lawCount) - 1}, (_, i) => BigInt(i+1))
+      const lawCount = await readContract(wagmiConfig, {
+        abi: powersAbi,
+        address: powers.contractAddress as `0x${string}`,
+        functionName: 'lawCount'
+      })
+      console.log("@fetchLawsAndRoles, waypoint 0", {lawCount})
+      if (lawCount) {
+        lawIds = Array.from({length: Number(lawCount) - 1}, (_, i) => BigInt(i+1))
+      } else {
+        setStatus("error")
+        setError("Failed to fetch law count")
+        return powers
+      }
       laws = await checkLaws(lawIds)
       if (laws) { lawsPopulated = await populateLaws(laws) }
       if (lawsPopulated) { roles = calculateRoles(lawsPopulated) } 

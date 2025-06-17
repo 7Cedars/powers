@@ -57,7 +57,7 @@ const Page = () => {
   }, [actionData])
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-4 pt-16 overflow-auto ps-4 pe-12 pb-20">
+    <main className="w-full h-fit flex flex-col justify-start items-center gap-4 pt-16 overflow-x-scroll ps-4 pe-12 pb-20">
       { 
         actionData?.lawId && <ProposalBox 
         powers = {powers} 

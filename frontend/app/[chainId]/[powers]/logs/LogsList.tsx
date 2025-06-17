@@ -60,12 +60,12 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
 
   const handleSelectAction = (action: Action) => {
     fetchActionData(BigInt(action.actionId), powers as Powers)
-    router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
   }
 
   useEffect(() => {
     if (actionData) {
       setAction(actionData)
+      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(actionData.lawId)}`)
     }
   }, [actionData])
 
