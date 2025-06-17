@@ -40,23 +40,27 @@ export const useAction = () => {
             functionName: 'getActionData',
             args: [actionId]
             })
-            console.log("@useAction: waypoint 1", {actionData})
+            // console.log("@useAction: waypoint 1", {actionData})
             const parsedActionData: ActionTruncated = parseActionData(actionData as unknown[])
-            console.log("@useAction: waypoint 2", {lawCalldata, actionUri, parsedActionData})
+            // console.log("@useAction: waypoint 2", {lawCalldata, actionUri, parsedActionData})
 
             if (lawCalldata && actionUri != undefined && actionData != undefined) {
               // console.log("@Executions: waypoint 3:" , {lawCalldata, actionUri, actionData})
               const law = powers.laws?.find(law => law.index == parsedActionData.lawId)
+              // console.log("@useAction: waypoint 2.0", {law})
               const executions = await readContract(wagmiConfig, {
                 abi: lawAbi,
                 address: law?.lawAddress as `0x${string}`,
                 functionName: 'getExecutions',
                 args: [powers.contractAddress as `0x${string}`, parsedActionData.lawId]
               })
-              // console.log("@useAction: waypoint 2", {executions})
+              // console.log("@useAction: waypoint 2.1", {executions})
               const executionsParsed = executions as unknown as LawExecutions
-              const index = executionsParsed.actionsIds.findIndex(actionId => actionId == actionId)
+              // console.log("@useAction: waypoint 3", {executionsParsed})
+              const index = executionsParsed.actionsIds.findIndex(a => a == actionId)
+              // console.log("@useAction: waypoint 4", {executionsParsed, index})
               const executedAt = executionsParsed.executions[index]
+              // console.log("@useAction: waypoint 5", {executedAt})
 
               let dataTypes = law?.params?.map(param => param.dataType)
               let valuesParsed = undefined
@@ -90,6 +94,7 @@ export const useAction = () => {
                   fulfilled: parsedActionData.fulfilled
               }
               // setAction(returnActionData)
+              console.log("@useAction: waypoint 6", {returnActionData})
               setData(returnActionData)
               setStatus("success")
               return returnActionData

@@ -197,17 +197,9 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       const cachedTimestamp = timestamps.get(cacheKey)
       
       if (cachedTimestamp && cachedTimestamp.timestamp) {
-        // Convert delay from blocks to seconds using BLOCKS_PER_HOUR
-        const parsedChainId = parseChainId(chainId)
-        if (!parsedChainId) return null
-        
-        const blocksPerHour = getConstants(parsedChainId).BLOCKS_PER_HOUR
-        const secondsPerBlock = 3600 / blocksPerHour // 3600 seconds in an hour
-        const delayInSeconds = Number(delaySeconds) * secondsPerBlock
-        
         // Add the delay in seconds to the vote end timestamp
         const voteEndTimestamp = Number(cachedTimestamp.timestamp)
-        const delayPassTimestamp = voteEndTimestamp + delayInSeconds
+        const delayPassTimestamp = voteEndTimestamp + Number(delaySeconds)
         
         // Check if delay has already passed by comparing with current time
         const currentTimestamp = Math.floor(Date.now() / 1000)
@@ -253,6 +245,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
     const currentLawAction = actionData.get(String(law.index))
+    console.log("currentLawAction", currentLawAction)
     
     switch (itemKey) {
       case 'needCompleted':
