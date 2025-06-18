@@ -333,11 +333,11 @@ contract PresetActionTest is TestSetupExecutive {
     }
 }
 
-contract ProposalOnlyTest is TestSetupExecutive {
+contract StatementOfIntentTest is TestSetupExecutive {
     using ShortStrings for *;
 
     function testConstructorInitialization() public {
-        // Get the ProposalOnly contract from the test setup
+        // Get the StatementOfIntent contract from the test setup
         uint16 proposalOnly = 1;
         (address proposalOnlyAddress, , ) = daoMock.getActiveLaw(proposalOnly);
         
@@ -366,7 +366,7 @@ contract ProposalOnlyTest is TestSetupExecutive {
         daoMock.request(proposalOnly, lawCalldata, nonce, description);
 
         // assert
-        // Note: ProposalOnly doesn't execute the action, it just creates a proposal
+        // Note: StatementOfIntent doesn't execute the action, it just creates a proposal
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 0, "Should not have minted any coins");
     }
 
@@ -402,7 +402,7 @@ contract ProposalOnlyTest is TestSetupExecutive {
         daoMock.request(proposalOnly, lawCalldata, nonce, "Second proposal");
 
         // assert
-        // Note: ProposalOnly doesn't execute the actions, it just creates proposals
+        // Note: StatementOfIntent doesn't execute the actions, it just creates proposals
         assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 0, "Should not have minted any coins");
     }
 

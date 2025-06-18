@@ -7,7 +7,7 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0x2f0D545b9cAC39c6a50b798021AAeEFa04eD88c4",
+    address: "0x1978d642224e047487DFFAb77FAD3B17f068eB79",
     chainId: "11155420",
     colourScheme: 0,
   }, 
@@ -19,7 +19,7 @@ export const useCases = [
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0xEc75440C5525383385FE2BC6dc2D29D7177Df6f1",
+    address: "0x4Bd2BbaDCE8E8424c1A06268dca537B6015C3A04",
     chainId: "11155420",
     colourScheme: 0,
   }, 
@@ -30,7 +30,7 @@ export const useCases = [
       "Modular addoption by existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0x884b534C5D1c35c27889B7be6E59BFab4595a2C5",
+    address: "0x26f561D6720ccdF4bE9b800033bCB40a69731933",
     chainId: "11155420",
     colourScheme: 0,
   },
@@ -41,7 +41,7 @@ export const useCases = [
       "Granular, governed, upgrades to on-chain governance."
     ],
     demo: "Managed Grants",
-    address: "0x62c4493cd442550d71b6016ba2bec28962808d55",
+    address: "0x8D1ba0c753fc03f0f5A00BF1Eb292E480576E89F",
     chainId: "11155420",
     colourScheme: 0,
   },  

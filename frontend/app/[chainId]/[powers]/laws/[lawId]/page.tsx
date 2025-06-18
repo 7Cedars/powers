@@ -23,7 +23,7 @@ const Page = () => {
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
-  // console.log("@Law page: waypoint 1", {law})
+  console.log("@Law page: waypoint 1", {law, powers})
   // Get checks for this specific law from Zustand store
   const checks = law && chainChecks ? chainChecks.get(String(law.index)) : undefined
   
@@ -107,8 +107,6 @@ const Page = () => {
           // console.log("Handle Simulate waypoint 3c")
           setError({error: error as Error})
         }
-
-        
       }
   };
 

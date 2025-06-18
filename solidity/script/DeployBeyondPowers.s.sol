@@ -103,7 +103,7 @@ contract DeployBeyondPowers is Script {
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Propose an action: Propose an action inside Powers.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         });

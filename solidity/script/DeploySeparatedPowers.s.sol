@@ -104,7 +104,7 @@ contract DeploySeparatedPowers is Script {
         conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks 
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Propose new actions: Propose a new action to the DAO that can later be executed by holders.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), // the input params are the targets, values, and calldatas
             conditions: conditions
         });
@@ -120,7 +120,7 @@ contract DeploySeparatedPowers is Script {
         conditions.delayExecution = minutesToBlocks(10); // 50 blocks, about 10 minutes
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that was proposed by users.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions
         });
@@ -136,7 +136,7 @@ contract DeploySeparatedPowers is Script {
         conditions.delayExecution = minutesToBlocks(15); // 75 blocks, about 15 minutes
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Ok an action: Ok an action that was proposed by users.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), // the same input params as the proposal law
             conditions: conditions
         });

@@ -71,10 +71,13 @@ export const usePowers = () => {
   }
 
   const fetchMetaData = async (powers: Powers): Promise<Powers | undefined> => {
-    let updatedMetaData: Metadata | undefined = powers.metadatas
-    let powersUpdated: Powers | undefined = undefined
+    let updatedMetaData: Metadata | undefined
+    let powersUpdated: Powers | undefined
 
-    if (publicClient && powers && powers.uri && !updatedMetaData) {
+    console.log("@fetchMetaData, waypoint 0", {powers})
+
+    if (publicClient && powers && powers.uri) {
+      console.log("@fetchMetaData, waypoint 1")
       try {
         if (powers.uri) {
           const fetchedMetadata: unknown = await(
@@ -82,15 +85,18 @@ export const usePowers = () => {
             ).json() 
           updatedMetaData = parseMetadata(fetchedMetadata) 
         } 
+        console.log("@fetchMetaData, waypoint 2", {updatedMetaData})
         if (updatedMetaData) {
           powersUpdated = { ...powers, 
             metadatas: updatedMetaData
           }
+          console.log("@fetchMetaData, waypoint 3", {powersUpdated})
           setPowers(powersUpdated)
           powersUpdated && savePowers(powersUpdated)
           return powersUpdated
         }
       } catch (error) {
+        console.log("@fetchMetaData, waypoint 4", {error})
         setStatus("error") 
         setError(error)
       }
@@ -469,8 +475,22 @@ export const usePowers = () => {
       const existing = saved.find(item => item.contractAddress == address)
 
       if (existing) { 
+        // Load cached data first
         powersToBeUpdated = existing
         setPowers(powersToBeUpdated)
+        
+        // Then fetch metadata to ensure it's up to date
+        if (powersToBeUpdated.uri) {
+          try {
+            const updatedMetadata = await fetchMetaData(powersToBeUpdated)
+            if (updatedMetadata) {
+              powersToBeUpdated = updatedMetadata
+              setPowers(powersToBeUpdated)
+            }
+          } catch (error) {
+            console.error("Error fetching metadata for cached protocol:", error)
+          }
+        }
         setStatus("success")
       } else {
         refetchPowers(address)
@@ -498,11 +518,14 @@ export const usePowers = () => {
           fetchProposals(powersToBeUpdated, 10n, 10000n),
         ])
 
+        console.log("@fetchPowers, waypoint 0.1", {data, proposals})
+
         if (data) {
           [metaData, laws] = await Promise.all([
             fetchMetaData(data),
             fetchLawsAndRoles(data)
           ])
+          console.log("@fetchPowers, waypoint 0.2", {metaData, laws})
           if (laws) {
             executedActions = await fetchExecutedActions(laws)
           }

@@ -210,11 +210,11 @@
     {
       "hash": "0x7e77545ba1f4e0886b8693071d71d6371523501906bdb77cef570baa9396d7b3",
       "transactionType": "CREATE2",
-      "contractName": "ProposalOnly",
+      "contractName": "StatementOfIntent",
       "contractAddress": "0xc022c635a7a3cab04981c8959b9c85a69e4a3fda",
       "function": null,
       "arguments": [
-        "ProposalOnly"
+        "StatementOfIntent"
       ],
       "transaction": {
         "from": "0x328735d26e5ada93610f0006c32abe2278c46211",

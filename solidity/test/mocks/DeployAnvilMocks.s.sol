@@ -16,7 +16,7 @@ import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { DelegateSelect } from "../../src/laws/electoral/DelegateSelect.sol";
 import { DirectSelect } from "../../src/laws/electoral/DirectSelect.sol";
 import { PeerSelect } from "../../src/laws/electoral/PeerSelect.sol";
-import { ProposalOnly } from "../../src/laws/executive/ProposalOnly.sol";
+import { StatementOfIntent } from "../../src/laws/executive/StatementOfIntent.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 import { PresetAction } from "../../src/laws/executive/PresetAction.sol";
 import { BespokeAction } from "../../src/laws/executive/BespokeAction.sol";
@@ -73,7 +73,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[5] = address(new BespokeAction());
         lawAddresses[6] = address(new OpenAction());
         lawAddresses[7] = address(new PresetAction());
-        lawAddresses[8] = address(new ProposalOnly());
+        lawAddresses[8] = address(new StatementOfIntent());
         lawAddresses[9] = address(new AddressesMapping());
         lawAddresses[10] = address(new NominateMe());
         lawAddresses[11] = address(new StringsArray());
@@ -112,7 +112,7 @@ contract DeployAnvilMocks is Script {
         lawNames[5] = "BespokeAction";
         lawNames[6] = "OpenAction";
         lawNames[7] = "PresetAction";
-        lawNames[8] = "ProposalOnly";
+        lawNames[8] = "StatementOfIntent";
         lawNames[9] = "AddressesMapping";
         lawNames[10] = "NominateMe";
         lawNames[11] = "StringsArray";

@@ -17,7 +17,7 @@ import { NominateMe } from "../src/laws/state/NominateMe.sol";
 import { DelegateSelect } from "../src/laws/electoral/DelegateSelect.sol";
 import { DirectSelect } from "../src/laws/electoral/DirectSelect.sol";
 import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
-import { ProposalOnly } from "../src/laws/executive/ProposalOnly.sol";
+import { StatementOfIntent } from "../src/laws/executive/StatementOfIntent.sol";
 import { OpenAction } from "../src/laws/executive/OpenAction.sol";
 import { BespokeAction } from "../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../src/laws/executive/PresetAction.sol";
@@ -74,8 +74,8 @@ contract DeployLaws is Script {
         names[7] = "PresetAction";
         creationCodes[7] = type(PresetAction).creationCode;
 
-        names[8] = "ProposalOnly";
-        creationCodes[8] = type(ProposalOnly).creationCode;
+        names[8] = "StatementOfIntent";
+        creationCodes[8] = type(StatementOfIntent).creationCode;
 
         names[9] = "AddressesMapping";
         creationCodes[9] = type(AddressesMapping).creationCode;

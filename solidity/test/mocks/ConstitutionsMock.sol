@@ -80,7 +80,7 @@ contract ConstitutionsMock is Test  {
 
         conditions.allowedRole = 3;
         lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "ProposalOnly: A law to propose a new core value to or remove an existing from the Dao. Subject to a vote.",
+            nameDescription: "StatementOfIntent: A law to propose a new core value to or remove an existing from the Dao. Subject to a vote.",
             targetLaw: lawAddresses[8], // proposalOnly
             config: abi.encode(inputParams),
             conditions: conditions
@@ -156,7 +156,7 @@ contract ConstitutionsMock is Test  {
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "ProposalOnly: Needs Proposal Vote to pass",
+            nameDescription: "StatementOfIntent: Needs Proposal Vote to pass",
             targetLaw: lawAddresses[8], // proposalOnly
             config: abi.encode(),
             conditions: conditions
@@ -432,7 +432,7 @@ contract ConstitutionsMock is Test  {
         // proposalOnly
         conditions.allowedRole = type(uint256).max;
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "ProposalOnly: A law to propose a new core value to or remove an existing from the Dao. Subject to a vote.",
+            nameDescription: "StatementOfIntent: A law to propose a new core value to or remove an existing from the Dao. Subject to a vote.",
             targetLaw: lawAddresses[8], // proposalOnly
             config: abi.encode(abi.encode("address[] Targets")),
             conditions: conditions

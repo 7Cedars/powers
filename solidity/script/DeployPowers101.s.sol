@@ -143,7 +143,7 @@ contract DeployPowers101 is Script {
         conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "Propose an action: Propose an action that can later be executed by Delegates.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         });
@@ -155,7 +155,7 @@ contract DeployPowers101 is Script {
         conditions.needCompleted = 4;
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         });

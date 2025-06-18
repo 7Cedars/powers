@@ -88,7 +88,7 @@ contract DeployManagedGrants is Script {
          
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Request a grant: Community members can request a grant from a grant program.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), 
             conditions: conditions
         });
@@ -109,7 +109,7 @@ contract DeployManagedGrants is Script {
  
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto grant program: Judges can veto the deployment of a new grant program.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), 
             conditions: conditions
         });
