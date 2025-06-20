@@ -930,12 +930,12 @@ BRF:1
 BRH:1
 end_of_record
 TN:
-SF:src/laws/executive/ProposalOnly.sol
-FN:27,ProposalOnly.
-FNDA:125,ProposalOnly.
+SF:src/laws/executive/StatementOfIntent.sol
+FN:27,StatementOfIntent.
+FNDA:125,StatementOfIntent.
 DA:35,125
-FN:39,ProposalOnly.executeLaw
-FNDA:1,ProposalOnly.executeLaw
+FN:39,StatementOfIntent.executeLaw
+FNDA:1,StatementOfIntent.executeLaw
 DA:51,1
 DA:54,1
 DA:55,1

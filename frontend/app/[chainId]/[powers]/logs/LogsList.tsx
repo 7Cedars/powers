@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { setAction, setRole, useRoleStore  } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useRouter, useParams } from "next/navigation";
-import { Action, LawExecutions, Powers, PowersExecutions } from "@/context/types";
+import { Action, LawExecutions, Powers, PowersExecutions, Status } from "@/context/types";
 import { parseRole, shorterDescription } from "@/utils/parsers";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
@@ -17,8 +17,10 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
   const { deselectedRoles } = useRoleStore()
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData, actionData, status: statusAction } = useAction()
+  const { fetchActionData, data: actionData, status: statusAction } = useAction()
   const router = useRouter()
+
+  // console.log("@LogsList: waypoint 0", {powers, status, onRefresh})
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -46,7 +48,7 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
     return executions as unknown as (Action | undefined)[]
   }).flat() as (Action | undefined)[]
   
-  console.log("@LogsList: waypoint 0", {tempActions})
+  // console.log("@LogsList: waypoint 0", {tempActions})
   let executedActions: Action[] = tempActions.filter((action): action is Action => action !== undefined)
   executedActions = executedActions.sort((a, b) => Number(b?.executedAt) - Number(a?.executedAt))
 
@@ -58,8 +60,14 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
 
   const handleSelectAction = (action: Action) => {
     fetchActionData(BigInt(action.actionId), powers as Powers)
-    router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
   }
+
+  useEffect(() => {
+    if (actionData) {
+      setAction(actionData)
+      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(actionData.lawId)}`)
+    }
+  }, [actionData])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
@@ -82,13 +90,15 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
             </div>
         )}
         <div className="w-8 h-8">
-          <Button
-            size={0}
-            showBorder={true}
+          <button
             onClick={onRefresh}
+            className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}  
           >
-            <ArrowPathIcon className="w-5 h-5" />
-          </Button>
+            <ArrowPathIcon 
+              className="w-5 h-5 text-slate-500 aria-selected:animate-spin"
+              aria-selected={status == "pending"}
+            />
+          </button>
         </div>
       </div>
 

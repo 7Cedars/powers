@@ -1,6 +1,6 @@
-# ProposalOnly.sol
+# StatementOfIntent.sol
 
-ProposalOnly.sol is an executive law that enables the creation of proposals without execution. It provides a mechanism to propose actions that can be executed by other laws.
+StatementOfIntent.sol is an executive law that enables the creation of proposals without execution. It provides a mechanism to propose actions that can be executed by other laws.
 
 ## Overview
 
@@ -13,7 +13,7 @@ This law provides a mechanism to:
 
 ## Configuration
 
-When adopting a ProposalOnly instance, no parameters are required. The law is designed to only create proposals without executing them.
+When adopting a StatementOfIntent instance, no parameters are required. The law is designed to only create proposals without executing them.
 
 ## Usage
 

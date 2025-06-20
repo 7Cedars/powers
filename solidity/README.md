@@ -125,7 +125,7 @@ solidity/
 │    │    │    ├── BespokeAction.sol           # Preset contract/function calls
 │    │    │    ├── OpenAction.sol              # Dynamic action execution
 │    │    │    ├── PresetAction.sol            # Preset action execution
-│    │    │    ├── ProposalOnly.sol            # Proposal-only execution
+│    │    │    ├── StatementOfIntent.sol            # Proposal-only execution
 │    │    │    └── SelfDestructAction.sol      # Self-destruct action
 │    │    │
 │    │    ├── state/                           # State management laws

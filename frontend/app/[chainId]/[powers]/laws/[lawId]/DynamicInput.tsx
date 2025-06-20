@@ -38,7 +38,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
     dataType.indexOf('[]') > -1 ? true : false
 
   const handleChange=({event, item}: {event:ChangeEvent<HTMLInputElement>, item: number}) => {
-    console.log("@handleChange triggered", event.target.value, item)
+    // console.log("@handleChange triggered", event.target.value, item)
 
     const currentInput = parseInput(event, dataType)
     if (currentInput == 'Incorrect input data') {

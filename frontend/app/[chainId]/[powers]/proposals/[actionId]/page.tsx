@@ -26,7 +26,7 @@ const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
   const { fetchChainChecks, status: statusChecks } = useChecks();
-  const { fetchActionData, actionData, status: statusAction } = useAction();
+  const { fetchActionData, data: actionData, status: statusAction } = useAction();
   const { chainChecks } = useChecksStore();
   const action = useActionStore(); 
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
@@ -50,10 +50,14 @@ const Page = () => {
     }
   }, [actionId, powers])
 
-  console.log("@Proposal page: waypoint 1", {actionData, statusAction})
+  useEffect(() => {
+    if (actionData) {
+      setAction(actionData)
+    }
+  }, [actionData])
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-4 pt-16 overflow-auto ps-4 pe-12 pb-20">
+    <main className="w-full h-fit flex flex-col justify-start items-center gap-4 pt-16 overflow-x-scroll ps-4 pe-12 pb-20">
       { 
         actionData?.lawId && <ProposalBox 
         powers = {powers} 
@@ -65,7 +69,7 @@ const Page = () => {
         }
       {actionData?.lawId && powers && <LawLink lawId = {actionData?.lawId} powers = {powers as Powers}/>}
       { actionData?.lawId && <Voting action = {action} powers = {powers} status = {statusChecks}/> }
-      { <Votes actionId = {actionId} powers = {powers} status = {statusChecks}/> }
+      { <Votes actionId = {actionId} action = {action} powers = {powers} status = {statusChecks}/> }
     </main>
 )
 }

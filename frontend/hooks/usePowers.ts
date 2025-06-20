@@ -71,10 +71,13 @@ export const usePowers = () => {
   }
 
   const fetchMetaData = async (powers: Powers): Promise<Powers | undefined> => {
-    let updatedMetaData: Metadata | undefined = powers.metadatas
-    let powersUpdated: Powers | undefined = undefined
+    let updatedMetaData: Metadata | undefined
+    let powersUpdated: Powers | undefined
 
-    if (publicClient && powers && powers.uri && !updatedMetaData) {
+    console.log("@fetchMetaData, waypoint 0", {powers})
+
+    if (publicClient && powers && powers.uri) {
+      console.log("@fetchMetaData, waypoint 1")
       try {
         if (powers.uri) {
           const fetchedMetadata: unknown = await(
@@ -82,15 +85,18 @@ export const usePowers = () => {
             ).json() 
           updatedMetaData = parseMetadata(fetchedMetadata) 
         } 
+        console.log("@fetchMetaData, waypoint 2", {updatedMetaData})
         if (updatedMetaData) {
           powersUpdated = { ...powers, 
             metadatas: updatedMetaData
           }
+          console.log("@fetchMetaData, waypoint 3", {powersUpdated})
           setPowers(powersUpdated)
           powersUpdated && savePowers(powersUpdated)
           return powersUpdated
         }
       } catch (error) {
+        console.log("@fetchMetaData, waypoint 4", {error})
         setStatus("error") 
         setError(error)
       }
@@ -177,9 +183,9 @@ export const usePowers = () => {
               index: lawId,
               active: lawFetchedTyped[2] as unknown as boolean
             })
-            console.log("@checkLaws, waypoint 3", {fetchedLaws})  
+            // console.log("@checkLaws, waypoint 3", {error})
           } catch (error) {
-            console.log("@checkLaws, waypoint 3", {error})
+            // console.log("@checkLaws, waypoint 3", {error})
             setStatus("error")
             setError(error)
           }
@@ -280,14 +286,28 @@ export const usePowers = () => {
   }
 
   const fetchLawsAndRoles = async (powers: Powers) => {
+    setStatus("pending")
     let laws: Law[] | undefined = undefined
     let lawsPopulated: Law[] | undefined = undefined
     let roles: bigint[] | undefined = undefined
     let roleLabels: RoleLabel[] | undefined = undefined
     let powersUpdated: Powers | undefined = undefined
+    let lawIds: bigint[] | undefined = undefined
 
     try {
-      const lawIds: bigint[] = Array.from({length: Number(powers.lawCount) - 1}, (_, i) => BigInt(i+1))
+      const lawCount = await readContract(wagmiConfig, {
+        abi: powersAbi,
+        address: powers.contractAddress as `0x${string}`,
+        functionName: 'lawCount'
+      })
+      console.log("@fetchLawsAndRoles, waypoint 0", {lawCount})
+      if (lawCount) {
+        lawIds = Array.from({length: Number(lawCount) - 1}, (_, i) => BigInt(i+1))
+      } else {
+        setStatus("error")
+        setError("Failed to fetch law count")
+        return powers
+      }
       laws = await checkLaws(lawIds)
       if (laws) { lawsPopulated = await populateLaws(laws) }
       if (lawsPopulated) { roles = calculateRoles(lawsPopulated) } 
@@ -296,9 +316,9 @@ export const usePowers = () => {
       setStatus("error")
       setError(error)
     }
-    console.log("@fetchLawsAndRoles, waypoint 0", {laws, roles, roleLabels, error})
+    // console.log("@fetchLawsAndRoles, waypoint 0", {laws, roles, roleLabels, error})
     if (laws && roles && roleLabels) {
-      console.log("@fetchLawsAndRoles, waypoint 1")
+      // console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
         laws: laws, 
         activeLaws: laws.filter((law: Law) => law.active),
@@ -309,12 +329,16 @@ export const usePowers = () => {
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
       return powersUpdated
+    } else {
+      setStatus("error")
+      setError("Failed to fetch laws and roles")
+      return powers
     }
-    return powers // Return original powers if update failed
   }
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
+    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
 
     if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
@@ -329,20 +353,23 @@ export const usePowers = () => {
         distance = BigInt(Number(chunkSize) * Number(maxRuns))
       }
       const blockFrom = currentBlock - distance
+      // console.log("@fetchProposals, waypoint 1", {blockFrom, distance, currentBlock})
 
       // Fetch blocks in chunks with pagination
       let chunkFrom: bigint = 0n
       let chunkTo: bigint = 0n
+      // console.log("@fetchProposals, waypoint 2", {chunkFrom, chunkTo})
   
       // check if we reached the end of the distance or max runs
       // if so, save here everything to disc.  
       let i = 0
-      while (distance > i) {
-        // console.log("@fetchProposals, waypoint 1", {chunkTo, i, distance})
+      while (i < Number(distance)) {
+        // console.log("@fetchProposals, waypoint 3", {chunkTo, i, distance})
       
         // calculate chunk boundaries
-        chunkFrom = blockFrom + BigInt(i * Number(chunkSize))
-        chunkTo = (chunkFrom + chunkSize) > currentBlock ? currentBlock : (chunkFrom + chunkSize)
+        chunkFrom = BigInt(Number(blockFrom) + i)
+        chunkTo = (Number(chunkFrom) + Number(chunkSize)) > Number(currentBlock) ? currentBlock : BigInt(Number(chunkFrom) + Number(chunkSize))
+        // console.log("@fetchProposals, waypoint 3.1", {chunkFrom, chunkTo, currentBlock})
         
         try { 
           // Fetch events for the current chunk
@@ -353,13 +380,13 @@ export const usePowers = () => {
             fromBlock: chunkFrom,
             toBlock: chunkTo
           })
-          
+          // console.log("@fetchProposals, waypoint 4", {logs, publicClient})          
           const fetchedLogs = parseEventLogs({
             abi: powersAbi,
             eventName: 'ProposedActionCreated',
             logs
           });
-
+          // console.log("@fetchProposals, waypoint 5", {fetchedLogs})
           let newProposals: Action[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Action);
           // but with typing of nonce and actionId as string
           newProposals = newProposals.map(proposal => { 
@@ -369,6 +396,7 @@ export const usePowers = () => {
               nonce: String(proposal.nonce)
             }
           })
+          // console.log("@fetchProposals, waypoint 6", {newProposals})
           // Append new proposals to the accumulated array
           proposalsFetched = [...proposalsFetched, ...newProposals]
           } catch (error) {
@@ -383,8 +411,9 @@ export const usePowers = () => {
         const uniqueProposals = proposalsFetched.filter((proposal, index, self) => 
           index === self.findIndex(p => p.actionId === proposal.actionId && p.nonce === proposal.nonce)
         )
-        
-        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart > b.voteStart ? -1 : 1);
+        // console.log("@fetchProposals, waypoint 7", {uniqueProposals})
+        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart && b.voteStart ? a.voteStart > b.voteStart ? -1 : 1 : 0);
+        // console.log("@fetchProposals, waypoint 8", {sortedProposals})
         
           powersUpdated = { ...powers as Powers, 
             proposals: uniqueProposals, // Use deduplicated proposals
@@ -395,23 +424,24 @@ export const usePowers = () => {
               to: chunkTo 
             }
           }
+          // console.log("@fetchProposals, waypoint 9", {powersUpdated})
           setPowers(powersUpdated)
           savePowers(powersUpdated)
-          return powersUpdated
+          // return powersUpdated
       }
-      return powers
+      // return powers
   }
   
   const fetchExecutedActions = async (powers: Powers) => {
+    setStatus("pending")
     let powersUpdated: Powers | undefined;
-    
     let law: Law
     let laws = powers.laws || []
     let executedActions: LawExecutions[] = []
 
     try {
       for (law of laws) {
-        console.log("@fetchExecutedActions, waypoint 0", {law})
+        // console.log("@fetchExecutedActions, waypoint 0", {law})
 
         const executedActionsFetched = await readContract(wagmiConfig, {
           abi: lawAbi,
@@ -419,17 +449,18 @@ export const usePowers = () => {
           functionName: 'getExecutions',
           args: [law.powers, law.index]
         })
-        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
+        // console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
         executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
-      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
+      // console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
       powersUpdated = { ...powers, executedActions: executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
+      setStatus("success")
       return powersUpdated
-          } catch (error) {
-            setStatus("error")
-            setError(error)
+      } catch (error) {
+        setStatus("error")
+        setError(error)
         return powers
       }
   }
@@ -444,8 +475,22 @@ export const usePowers = () => {
       const existing = saved.find(item => item.contractAddress == address)
 
       if (existing) { 
+        // Load cached data first
         powersToBeUpdated = existing
         setPowers(powersToBeUpdated)
+        
+        // Then fetch metadata to ensure it's up to date
+        if (powersToBeUpdated.uri) {
+          try {
+            const updatedMetadata = await fetchMetaData(powersToBeUpdated)
+            if (updatedMetadata) {
+              powersToBeUpdated = updatedMetadata
+              setPowers(powersToBeUpdated)
+            }
+          } catch (error) {
+            console.error("Error fetching metadata for cached protocol:", error)
+          }
+        }
         setStatus("success")
       } else {
         refetchPowers(address)
@@ -473,20 +518,25 @@ export const usePowers = () => {
           fetchProposals(powersToBeUpdated, 10n, 10000n),
         ])
 
+        console.log("@fetchPowers, waypoint 0.1", {data, proposals})
+
         if (data) {
           [metaData, laws] = await Promise.all([
             fetchMetaData(data),
             fetchLawsAndRoles(data)
           ])
+          console.log("@fetchPowers, waypoint 0.2", {metaData, laws})
           if (laws) {
             executedActions = await fetchExecutedActions(laws)
           }
         }
 
         if (data && metaData && laws && executedActions && proposals) {
-          setPowers({
+          // console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
+          const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             name: data.name,
+            metadatas: metaData.metadatas,
             uri: data.uri,
             lawCount: data.lawCount,
             laws: laws.laws,
@@ -497,10 +547,12 @@ export const usePowers = () => {
             roleLabels: laws.roleLabels,
             deselectedRoles: laws.deselectedRoles,
             layout: powersToBeUpdated.layout
-          })
+          }
+          setPowers(newPowers)
+          savePowers(newPowers)
         }
       } catch (error) {
-        console.error("@fetchPowers error:", error)
+        //  console.error("@fetchPowers error:", error)
         setStatus("error")
         setError(error)
       } finally {
@@ -511,52 +563,3 @@ export const usePowers = () => {
 
   return {status, error, powers, fetchPowers, refetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
 }
-
-
-
-// const executionsData = await Promise.all(
-//   lawExecutions?.executions.map(async (execution, index) => {
-//     const actionId = lawExecutions?.actionsIds[index]
-//     try {
-//       const actionData = await readContract(wagmiConfig, {
-//         abi: powersAbi,
-//         address: powers?.contractAddress,
-//         functionName: 'getActionData',
-//         args: [actionId]
-//       }) 
-//       const parsedActionData = parseActionData(actionData as unknown as unknown[])
-       
-//        // Try to get ENS name for the caller
-//        let ensName: string | null = null
-//        try {
-//          ensName = await getEnsName(wagmiConfig, {
-//            address: parsedActionData.caller as `0x${string}`
-//          })
-//        } catch (ensError) {
-//          // ENS lookup failed, continue without ENS name
-//          console.log('ENS lookup failed for:', parsedActionData.caller)
-//        }
-//        return {
-//          execution,
-//          actionId,
-//          caller: parsedActionData.caller,
-//          ensName
-//        }
-//     } catch (error) {
-//       console.error('Error fetching caller for action:', actionId, error)
-//       return {
-//         execution,
-//         actionId,
-//         caller: undefined,
-//         ensName: null
-//       }
-//     }
-//   })
-// )
-// setExecutionsWithCallers(executionsData)
-// setIsRefreshing(false)
-// } catch (error) {
-// console.error('Error fetching callers:', error)
-// setIsRefreshing(false)
-// }
-// }

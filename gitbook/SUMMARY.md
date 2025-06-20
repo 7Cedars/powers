@@ -51,7 +51,7 @@
   * [BespokeAction.sol](example-laws/executive-laws/bespokeaction.sol.md)
   * [OpenAction.sol](example-laws/executive-laws/openaction.sol.md)
   * [PresetAction.sol](example-laws/executive-laws/presetaction.sol.md)
-  * [ProposalOnly.sol](example-laws/executive-laws/proposalonly.sol.md)
+  * [StatementOfIntent.sol](example-laws/executive-laws/proposalonly.sol.md)
   * [AdoptLaw.sol](example-laws/executive-laws/adoptlaw.sol.md)
   * [StartGrant.sol](example-laws/executive-laws/startgrant.sol.md)
   * [EndGrant.sol](example-laws/executive-laws/endgrant.sol.md)
