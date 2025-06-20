@@ -4,13 +4,13 @@
   "description": 
     "A base implementation of the Powers protocol. \n It consists of an executive governance track in which Members, Admins and Delegates check each others powers. \n It also includes tracks to assign delegates and members.",
   "erc20s": [
-    "0x2f5628002C31B9476aD20a1Ba4ECB817adFc5416",
-    "0xAb751e30cF43cf9bcDbC10947e4755401CDAE8cB"
+    "0x1f62CEC33D2a0c96FAb268546748aA85901C84fe", 
+    "0xA3230F7A1d18F6952945045445cFd76d770dB3AD" 
   ],
   "erc721s": [
-    "0xF2b1d9b13de278747EF247e6Dbf9B2B889F94132"],
+    "0x7151E91b1D763Cac419b480cD4a2d360de274Dc2"],
   "erc1155s": [{
-    "address": "0xd80c78AF3F6b5D3AAD9390F220055b5d6d8Ec471",
+    "address": "0x1c564C5360cE73290b8aE4350326fC8c9930E0d1",
     "tokenId": 0
   } ],
   "attributes": [

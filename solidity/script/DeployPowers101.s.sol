@@ -45,7 +45,7 @@ contract DeployPowers101 is Script {
     address[] mockAddresses;
     uint256 blocksPerHour;
 
-    function run() external returns (address payable powers_) {
+    function run() external returns (address payable powers_, string[] memory mockNames_, address[] memory mockAddresses_) {
         HelperConfig helperConfig = new HelperConfig();
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
 
@@ -53,7 +53,7 @@ contract DeployPowers101 is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Powers 101",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicwiqgcvzqub6xv7ha37ohgkc3vprvh6ihqtgs7bk235apaadnqha"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieioptfopmddgpiowg6duuzsd4n6koibutthev72dnmweczjybs4q"
         );
         vm.stopBroadcast();
 
@@ -73,7 +73,7 @@ contract DeployPowers101 is Script {
         powers.constitute(lawInitData);
         vm.stopBroadcast();
 
-        return (powers_);
+        return (powers_, mockNames, mockAddresses);
     }
 
     function createConstitution(
@@ -167,10 +167,10 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 2;
         conditions.quorum = 50; // = 50% quorum needed
         conditions.succeedAt = 77; // = 77% simple majority needed for executing an action
-        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); 
         conditions.needCompleted = 4;
         conditions.needNotCompleted = 5;
-        conditions.delayExecution = minutesToBlocks(10); // = 50 blocks = about 10 minutes. This gives admin time to veto the action.  
+        conditions.delayExecution = minutesToBlocks(3); // = 15 blocks = about 3 minutes. This gives admin time to veto the action.  
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
             targetLaw: parseLawAddress(6, "OpenAction"),

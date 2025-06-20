@@ -98,7 +98,7 @@ contract DeployBeyondPowers is Script {
     
         // A Law to allows a proposal to be made.
         conditions.allowedRole = 1; // member role
-        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);  
         conditions.quorum = 50; // 30% quorum
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({

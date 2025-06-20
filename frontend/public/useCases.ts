@@ -7,19 +7,19 @@ export const useCases = [
       "Checking powers to execute actions" 
     ],
     demo: "Powers 101",
-    address: "0x1978d642224e047487DFFAb77FAD3B17f068eB79",
+    address: "0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D",
     chainId: "11155420",
     colourScheme: 0,
   }, 
   {
-    title: "Decentralise power",
+    title: "Decentralise power", 
     details: [
       "Avoid hostile takeovers",
       "Avoid centralisation",
       "Create checks and balances between roles" 
     ],
     demo: "Separated Powers",
-    address: "0x4Bd2BbaDCE8E8424c1A06268dca537B6015C3A04",
+    address: "0xA2bC87A810cf3B6B18e4Dc9Fb18bc74640207f15",
     chainId: "11155420",
     colourScheme: 0,
   }, 
@@ -30,7 +30,7 @@ export const useCases = [
       "Modular addoption by existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0x26f561D6720ccdF4bE9b800033bCB40a69731933",
+    address: "0xa42eBa397054882F651457E7816035A466A28756",
     chainId: "11155420",
     colourScheme: 0,
   },
@@ -41,7 +41,7 @@ export const useCases = [
       "Granular, governed, upgrades to on-chain governance."
     ],
     demo: "Managed Grants",
-    address: "0x8D1ba0c753fc03f0f5A00BF1Eb292E480576E89F",
+    address: "0x26ff6c8d13FC8e6619b40e4b12575ffA85826755",
     chainId: "11155420",
     colourScheme: 0,
   },  

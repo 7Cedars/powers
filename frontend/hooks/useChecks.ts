@@ -13,11 +13,14 @@ import { useAction } from "./useAction";
 
 export const useChecks = () => {
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blockNumber } = useBlockNumber({
-    chainId: parseChainId(chainId)
+  const { data: blockNumber, refetch } = useBlockNumber({
+    chainId: parseChainId(chainId),
+    cacheTime: 2_000
   })
+  console.log("blockNumber", {blockNumber, chainId})
+
   const publicClient = getPublicClient(wagmiConfig, {
-    chainId: parseChainId(chainId)
+    chainId: parseChainId(chainId),
   })
   const { status: actionStatus, error: actionError, data: actionData, fetchActionData } = useAction()
   const [status, setStatus ] = useState<Status>("idle")
@@ -98,8 +101,6 @@ export const useChecks = () => {
   }, [])
 
   const checkDelayedExecution = async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
-    // NB! CONTINUE HERE! The proposal box should NOT depend on data saved at powers.proposals. Too few of the proposals are saved.
-    // instead should fetch data straigh from contract: use the getProposedActionDeadline function. 
     console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     console.log("Deadline ActionId:", actionId)
@@ -200,6 +201,7 @@ export const useChecks = () => {
           const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
           const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
+          console.log("delay passed at law", law.index, {delayed})
 
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
@@ -236,7 +238,8 @@ export const useChecks = () => {
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
 
       // console.log("@fetchChainChecks: waypoint 0", {lawId, callData, nonce, wallets, powers})
-      
+      refetch() // refetch
+
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
       const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
