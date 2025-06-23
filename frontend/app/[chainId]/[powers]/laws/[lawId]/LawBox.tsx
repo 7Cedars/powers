@@ -60,7 +60,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
+  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 

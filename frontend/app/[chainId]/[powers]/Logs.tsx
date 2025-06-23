@@ -67,7 +67,10 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
 
   const handleSelectAction = (action: TempAction) => {
     fetchActionData(BigInt(action.actionId), powers as Powers)
-    router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+    if (actionData) {
+      setAction(actionData)
+      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+    }
   }
 
   return (
