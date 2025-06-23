@@ -2,7 +2,7 @@
 
 import { setAction } from "@/context/store";
 import { Law, Powers, Status, Action } from "@/context/types";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { parseRole, shorterDescription } from "@/utils/parsers";
 import { useBlocks } from "@/hooks/useBlocks";
@@ -26,6 +26,7 @@ type MyProposalProps = {
   proposals: Action[] | undefined; 
   powers: Powers | undefined;
   status: Status;
+  onFetchProposals: () => void;
 }
 
 type ProposalAndLaw = {
@@ -33,28 +34,29 @@ type ProposalAndLaw = {
   law: Law; 
 }
 
-export function MyProposals({ hasRoles, authenticated, proposals, powers, status}: MyProposalProps ) {
+export function MyProposals({ hasRoles, authenticated, proposals, powers, status, onFetchProposals}: MyProposalProps ) {
   const router = useRouter();
   const myRoles = hasRoles.filter(hasRole => hasRole.role > 0).map(hasRole => hasRole.role)
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
 
+  console.log("@MyProposals: waypoint 0", {hasRoles, authenticated, proposals, powers, status})
+
   useEffect(() => {
-    if (authenticated) {
       // Ensure consistent block number handling - convert to bigint for both storage and lookup
       const blocks = proposals?.map(proposal => {
         // Handle different possible types for voteEnd
-        const voteEndValue = typeof proposal.voteEnd === 'bigint' 
-          ? proposal.voteEnd 
-          : BigInt(proposal.voteEnd as unknown as string)
-        return voteEndValue
+        const voteStartValue = typeof proposal.voteStart === 'bigint' 
+          ? proposal.voteStart 
+          : BigInt(proposal.voteStart as unknown as string)
+        return voteStartValue
       }).filter(block => block !== undefined)
       
       if (blocks && blocks.length > 0) {
         fetchTimestamps(blocks as bigint[], chainId)
       }
-    }
-  }, [authenticated, proposals, chainId])
+  }, [proposals, chainId])
+
 
   // bit convoluted, can be optimised. // £todo
   const active = proposals?.map((proposal: Action) => {
@@ -67,7 +69,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
-  // console.log("@MyProposals: waypoint 0", {activeProposals})
+  console.log("@MyProposals: waypoint 1", {activeProposals})
 
   const handleSelectProposal = (item: ProposalAndLaw) => {
     setAction({
@@ -84,26 +86,39 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md max-w-68 overflow-hidden"> 
-      <button
-        onClick={() => 
-          { 
-             // here have to set deselectedRoles
-            router.push(`/${chainId}/${powers?.contractAddress}/proposals`)
-          }
-        } 
-        className="w-full border-b border-slate-300 p-2 bg-slate-100"
-      >
-      <div className="w-full flex flex-row gap-6 items-center justify-between">
-        <div className="text-left text-sm text-slate-600 w-44">
-          Active proposals
-        </div> 
-          <ArrowUpRightIcon
-            className="w-4 h-4 text-slate-800"
-            />
-        </div>
-      </button> 
+      <div className="w-full border-b border-slate-300 p-2 bg-slate-100">
+        <div className="w-full flex flex-row gap-6 items-center justify-between">
+          <div className="text-left text-sm text-slate-600 w-44">
+            Active proposals
+          </div>
+          <div className="flex flex-row gap-2">
+            <button
+              onClick={() => {
+                onFetchProposals()
+              }}
+              className={`w-full h-full flex justify-center items-center py-1`}  
+            >
+              <ArrowPathIcon 
+                className="w-4 h-4 text-slate-800 aria-selected:animate-spin"
+                aria-selected={status == "pending"}
+              />
+            </button>
+            <button
+              onClick={() => 
+                { 
+                  // here have to set deselectedRoles
+                  router.push(`/${chainId}/${powers?.contractAddress}/proposals`)
+                }
+              }  
+            > 
+            <ArrowUpRightIcon
+              className="w-4 h-4 text-slate-800"
+              />
+          </button> 
+      </div>
+      </div> 
+      </div>
        {
-        authenticated ?
         activeProposals && activeProposals.length > 0 ? 
           <div className="w-full h-fit lg:max-h-48 max-h-32 flex flex-col justify-start items-center overflow-hidden">
            <div className="w-full overflow-x-auto overflow-y-auto">
@@ -186,10 +201,6 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
       :
       <div className = "w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
         No active proposals found
-      </div>
-      :   
-      <div className="w-full h-full flex flex-col justify-center text-sm text-slate-500 items-center p-3">
-        Connect your wallet to see your proposals. 
       </div>
     }
     </div>

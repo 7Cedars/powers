@@ -19,7 +19,7 @@ export const advantages = [
     advantage: "Modularity",
     examples: [
       "Powers cannot exist without modular laws",
-      "Laws are interoperable with any off-chain system",
+      "Laws are interoperable with any off- and cross-chain system",
       "Existing DAOs can take up dedicated roles"
     ]
   }, 
@@ -27,23 +27,21 @@ export const advantages = [
     advantage: "Flexibility",
     examples: [
       "Assign roles to any type of account", 
-      "DAOs, AI agents, oracles, humans, unicorns. Anything.", 
-      "Assign roles to users along legal regime.",
+      "DAOs, AI agents, oracles, humans, unicorns. Anything", 
+      "Assign roles to users along regulatory regimes",
     ]
   }, 
   {
     advantage: "Efficiency",
     examples: [
-      "Only vote on proposals that concern you", 
-      "Streamline decision making processes",
-      "Role restrict available governance actions" 
+      "Only vote on proposals that concern your role", 
+      "Streamline decision making processes"
     ]
   }, 
   {
     advantage: "Engagement",
     examples: [
-      "Assign roles based on engagement",  
-      "Tokens held, amount staked, votes delegated or community elections",
+      "Assign roles based on engagement, tokens held, amount staked, votes delegated or community elections, etc",  
       "Diversify representation and boost community engagement" 
     ]
   }

@@ -338,7 +338,7 @@ export const usePowers = () => {
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
-    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
+    console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
 
     if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
