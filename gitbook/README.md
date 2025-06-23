@@ -12,13 +12,12 @@ description: >-
 
 The Powers protocol is a role restricted governance protocol.
 
-This means, simply, that all governance actions are restricted by roles that are assigned to accounts. Only accounts with a 'Senior' role can vote for senior proposals, execute actions designated for seniors, and so on.
+It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**.
 
-It allows for the creation of checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.
+* **Laws** define what actions can be taken by which roles under what conditions.
+* **Powers** manages assigning roles to addresses and executing actions.
 
-The challenge is that actions need to be _restricted_ before they can be _role_ restricted. Role restricted governance protocols only work with external contracts that define which actions a specific role can do under what conditions. These type of protocols become very complex, very quickly.
-
-The Powers protocol provides a minimalist, but very powerful, proof of concept of a role restricted governance protocol.
+Together they create a governance protocol that is modular, upgradable and asynchronous. A protocol that allows for the creation of checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.
 
 ## Quick links
 
@@ -47,8 +46,8 @@ The governance flow is defined by the following restrictions:
 * Executing, proposing and voting can only be done in reference to a role restricted law.
 * Roles and laws can only be assigned and revoked through the execute function of the protocol itself.
 
-{% content-ref url="for-developers/powers.sol/" %}
-[powers.sol](for-developers/powers.sol/)
+{% content-ref url="for-developers/powers.sol" %}
+[powers.sol](for-developers/powers.sol)
 {% endcontent-ref %}
 
 ### 📜 Laws
@@ -82,8 +81,8 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 5. Saves any state change to the law.
 6. Returns the computed function call to the Powers deployment for execution.
 
-{% content-ref url="for-developers/law.sol/" %}
-[law.sol](for-developers/law.sol/)
+{% content-ref url="for-developers/law.sol" %}
+[law.sol](for-developers/law.sol)
 {% endcontent-ref %}
 
 ### 🏛️ Powers + Laws = Governance
