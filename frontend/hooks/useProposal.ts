@@ -22,7 +22,7 @@ export const useProposal = () => {
     state: number
   }[]>([])
 
-  console.log("@useProposal: ", {proposalsState, status})
+  // console.log("@useProposal: ", {proposalsState, status})
 
     // function to save powers to local storage
   const savePowers = (powers: Powers) => {

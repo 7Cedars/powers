@@ -21,7 +21,7 @@ Let us expand on these steps. All examples are build in Foundry. If you are not 
 {% hint style="info" %}
 You can check out your Powers by navigating to https://powers-protocol.vercel.app\[chain id here]\[address of your Powers here].
 
-For example, a Powers implementation ('Powers 101') that is deployed on the optimism sepolia testnet can be viewed at: [https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668](https://powers-protocol.vercel.app/11155420/0x41381207E6f862CF5a3994B9d0e274530E4c3668)
+For example, a Powers implementation ('Powers 101') that is deployed on the optimism sepolia testnet can be viewed at: [https://powers-protocol.vercel.app/11155420/0x1978d642224e047487DFFAb77FAD3B17f068eB79](https://powers-protocol.vercel.app/11155420/0x1978d642224e047487DFFAb77FAD3B17f068eB79)
 {% endhint %}
 
 ## Step 1: Deploy Powers.sol

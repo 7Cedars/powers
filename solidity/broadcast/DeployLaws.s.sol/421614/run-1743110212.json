@@ -189,11 +189,11 @@
     {
       "hash": null,
       "transactionType": "CREATE2",
-      "contractName": "ProposalOnly",
+      "contractName": "StatementOfIntent",
       "contractAddress": "0xeb99b0beb7569e8eb3fcd5e274c8584676468a56",
       "function": null,
       "arguments": [
-        "ProposalOnly"
+        "StatementOfIntent"
       ],
       "transaction": {
         "from": "0x328735d26e5ada93610f0006c32abe2278c46211",
@@ -304,7 +304,7 @@
     },
     "names": {
       "internal_type": "string[]",
-      "value": "[DelegateSelect, DirectSelect, PeerSelect, RenounceRole, SelfSelect, BespokeAction, OpenAction, PresetAction, ProposalOnly, AddressesMapping, NominateMe, StringsArray, TokensArray]"
+      "value": "[DelegateSelect, DirectSelect, PeerSelect, RenounceRole, SelfSelect, BespokeAction, OpenAction, PresetAction, StatementOfIntent, AddressesMapping, NominateMe, StringsArray, TokensArray]"
     }
   },
   "timestamp": 1743110212,

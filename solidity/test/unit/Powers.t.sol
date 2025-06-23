@@ -476,9 +476,11 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (uint256 againstVotes,,) = daoMock.getProposedActionVotes(actionId);
+        (, , , , , , , , uint256 againstVotes, , , ) = daoMock.getActionData(actionId);
         assertEq(againstVotes, numberAgainstVotes);
     }
+
+            
 
     function testForVoteIsCorrectlyCounted() public {
         // prep: create a proposal
@@ -502,7 +504,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (, uint256 forVotes,) = daoMock.getProposedActionVotes(actionId);
+        (, , , , , , , , , uint256 forVotes , , ) = daoMock.getActionData(actionId);
         assertEq(forVotes, numberForVotes);
     }
 
@@ -528,7 +530,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (,, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
+        (, , , , , , , , , , uint256 abstainVotes, ) = daoMock.getActionData(actionId);
         assertEq(abstainVotes, numberAbstainVotes);
     }
 
@@ -545,7 +547,7 @@ contract VoteTest is TestSetupPowers {
         daoMock.castVote(actionId, 4); // invalid vote type
 
         // assert
-        (uint256 againstVotes, uint256 forVotes, uint256 abstainVotes) = daoMock.getProposedActionVotes(actionId);
+        (, , , , , , , , uint256 againstVotes, uint256 forVotes, uint256 abstainVotes, ) = daoMock.getActionData(actionId);
         assertEq(againstVotes, 0);
         assertEq(forVotes, 0);
         assertEq(abstainVotes, 0);

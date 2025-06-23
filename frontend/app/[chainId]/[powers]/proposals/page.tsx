@@ -11,7 +11,9 @@ import { Powers } from "@/context/types";
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
   const { powers, fetchPowers, fetchProposals, status } = usePowers()
-  const { data:blockNumber } = useBlockNumber()
+  const { data: blockNumber } = useBlockNumber()
+
+  console.log("@Proposals page, waypoint 0", {powers, status, blockNumber})
 
   useEffect(() => {
     if (addressPowers) {

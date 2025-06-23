@@ -30,11 +30,6 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
     setIsCollapsed(false)
   }, [pathname])
 
-  // Debug: Log if fetchLawsAndRoles is available
-  useEffect(() => {
-    console.log('PowersOverview fetchLawsAndRoles:', !!fetchLawsAndRoles)
-  }, [fetchLawsAndRoles])
-
   const handleRefresh = async () => {
     if (!fetchLawsAndRoles || isRefreshing) return
     

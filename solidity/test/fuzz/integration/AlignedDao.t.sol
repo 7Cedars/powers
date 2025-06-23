@@ -206,7 +206,7 @@
 //         // has role 1.
 //         vm.prank(caller);
 //         actionId = alignedDao.propose(
-//             laws[3], // = ProposalOnly (reinstate membership)
+//             laws[3], // = StatementOfIntent (reinstate membership)
 //             lawCalldata, // note: same lawCalldata as step 0.
 //             description // note: same description as step 0.
 //         );
@@ -245,7 +245,7 @@
 //         // step 2: accept challenge and reinstate membership.
 //         vm.prank(david); // has role 2.
 //         actionId = alignedDao.propose(
-//             laws[4], // = ProposalOnly (reinstate membership)
+//             laws[4], // = StatementOfIntent (reinstate membership)
 //             lawCalldata, // note: same lawCalldata as step 0.
 //             description // note: same description as step 0.
 //         );

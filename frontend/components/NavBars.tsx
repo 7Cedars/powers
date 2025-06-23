@@ -5,9 +5,7 @@ import type { PropsWithChildren } from "react";
 import { useRouter } from 'next/navigation'
 import { useEffect } from "react";
 import Image from 'next/image'
-import { Button } from "./Button";
 import { 
-  MagnifyingGlassIcon, 
   HomeIcon, 
   BookOpenIcon,
   IdentificationIcon,
@@ -18,10 +16,6 @@ import {
 import { ConnectButton } from './ConnectButton';
 import { usePowers } from '@/hooks/usePowers';
 import { useAccount, useSwitchChain } from 'wagmi'
-import { watchContractEvent } from '@wagmi/core';
-import { powersAbi } from '@/context/abi';
-import { wagmiConfig } from '@/context/wagmiConfig';
-import { PowerIcon } from '@heroicons/react/24/outline';
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -33,19 +27,8 @@ const NavigationBar = () => {
   const { chain } = useAccount()
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
   const path = usePathname()
-  const { status: statusUpdate, fetchPowers, fetchLawsAndRoles, powers } = usePowers()  
+  const { status: statusUpdate, fetchPowers } = usePowers()  
   const { switchChain } = useSwitchChain()
-  // const unwatch = watchContractEvent(wagmiConfig, {
-  //   address: addressPowers as `0x${string}`,
-  //   abi: powersAbi,
-  //   eventName: 'LawAdopted',
-  //   onLogs(logs) {
-  //     if (powers) {
-  //       fetchLawsAndRoles(powers)
-  //     }
-  //     console.log('New logs!', logs)
-  //   },
-  // })
 
   useEffect(() => {
     // console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
@@ -146,11 +129,8 @@ const NavigationBar = () => {
 }
 
 const Header = () => {
-  const router = useRouter();
-
   const { powers: addressPowers } = useParams<{ powers: string }>()  
   const path = usePathname()
-  const { status: statusUpdate, fetchPowers, powers } = usePowers()
 
   return (
     <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
@@ -194,7 +174,6 @@ const Footer = () => {
 }
 
 export const NavBars = (props: PropsWithChildren<{}>) => {
-  // need to include error handling for when the powers are not found - todo 
   const path = usePathname()
 
   return (

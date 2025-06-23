@@ -118,7 +118,7 @@ contract DeployGovernedUpgrades is Script {
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Veto new law: Veto the adoption of a new law.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParamsAdopt),
             conditions: conditions
         });
@@ -132,7 +132,7 @@ contract DeployGovernedUpgrades is Script {
         conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto revoking law: Veto the revocation of an existing, stopped, law.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode("uint16 LawId"),
             conditions: conditions
         });
@@ -173,7 +173,7 @@ contract DeployGovernedUpgrades is Script {
         conditions.allowedRole = 3; // previous DAO role
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Veto token mint: Veto minting of tokens to a delegate.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode("uint256 Quantity"),
             conditions: conditions
         });
@@ -216,7 +216,8 @@ contract DeployGovernedUpgrades is Script {
         // DAO admin has the right to start an election.  
         conditions.allowedRole = 3;
         ILaw.Conditions memory electionConditions;
-        electionConditions.allowedRole = 1;
+        electionConditions.allowedRole = type(uint256).max; // anybody can vote
+        electionConditions.readStateFrom = 7; // law 7 should have passed
         lawInitData[8] = PowersTypes.LawInitData({
             nameDescription: "Start election: Start an election that allows members to vote for a delegate.",
             targetLaw: parseLawAddress(22, "StartElection"), // startElection

@@ -245,6 +245,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
     const currentLawAction = actionData.get(String(law.index))
+    // console.log("currentLawAction", currentLawAction)
     
     switch (itemKey) {
       case 'needCompleted':
@@ -290,17 +291,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         // Keep as null for now
         return null
       
-      case 'executed':
-        // Use executedAt field - only show if current law has action data and actually executed
-        if (currentLawAction) {
-          console.log(`DEBUG Law #${law.index} - executed check:`, {
-            executedAt: currentLawAction.executedAt?.toString(),
-            actionNotCompleted: checks?.actionNotCompleted,
-            hasExecutedAt: !!currentLawAction.executedAt,
-            executedAtIsZero: currentLawAction.executedAt === 0n
-          })
-        }
-        
+      case 'executed':        
         // Only show date if actually executed (executedAt > 0 AND actionNotCompleted is false)
         if (currentLawAction && currentLawAction.executedAt && currentLawAction.executedAt !== 0n && checks?.actionNotCompleted === false) {
           return formatBlockNumberOrTimestamp(currentLawAction.executedAt)
@@ -937,6 +928,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
   const { status: checksStatus } = useChecksStatusStore()
+
+  // console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -1117,14 +1110,16 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     // Store current viewport before navigation
     const currentViewport = getViewport()
     setStoredViewport(currentViewport)
-    
+    console.log("@handleNodeClick: waypoint 0", {lawId, action})
     // Navigate to the law page within the flow layout
     setAction({
       ...action,
       lawId: BigInt(lawId),
+      upToDate: false
     })
     router.push(`/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
-  }, [router, chainId, powers?.contractAddress, action, getViewport])
+    console.log("@handleNodeClick: waypoint 1", {action})
+  }, [router, chainId, powers?.contractAddress, action, getViewport, setAction])
 
   // Handle ReactFlow initialization
   const onInit = useCallback((reactFlowInstance: any) => {
@@ -1167,6 +1162,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         if (action.lawId && action.lawId !== 0n) {
           // Zoom to the law stored in the action store
           const selectedNode = getNode(String(action.lawId))
+          console.log("@onInit: waypoint 0", {selectedNode})
           if (selectedNode) {
             const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
             setCenter(centerPos.x, centerPos.y, {
@@ -1418,7 +1414,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   if (!powers.activeLaws || powers.activeLaws.length === 0) {
     return (
-      <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">
           <div className="text-gray-500 text-lg mb-2">No active laws found</div>
           <div className="text-gray-400 text-sm">Deploy some laws to see the visualization</div>

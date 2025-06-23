@@ -29,7 +29,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract ProposalOnly is Law {
+contract StatementOfIntent is Law {
     /// @notice Constructor function for Open contract.
     constructor() {
         bytes memory configParams = abi.encode("string[] InputParams");

@@ -60,7 +60,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
+  // console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     let currentInput = action.paramValues 
@@ -130,7 +130,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
       {/* dynamic form */}
       { 
       action && 
-      <form action="" method="get" className="w-full">
+      <form onSubmit={(e) => e.preventDefault()} className="w-full">
         {
           params.map((param, index) => {
             // console.log("@dynamic form", {param, index, paramValues})
@@ -208,11 +208,12 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
             role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
             filled={false}
             selected={true}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
             }} 
             statusButton={
-               !action.upToDate && action.description && action.description.length > 0 ? 'idle' : 'disabled'
+               action && action.description && action.description.length > 0 && action.nonce ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>
@@ -229,7 +230,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
               role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
               onClick={() => {
                 if (checks?.proposalExists) {
-                  console.log("@LawBox: Proposal section", {law, action})
+                  // console.log("@LawBox: Proposal section", {law, action})
                   const actionId = hashAction(law?.index, action.callData, BigInt(action.nonce))
                   // Navigate to view the existing proposal
                   router.push(`/${chainId}/${law?.powers}/proposals/${actionId}`)
@@ -245,7 +246,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
                 (checks?.authorised && action.upToDate) ? 'idle' :  'disabled'
               }
             >
-              {!checks?.authorised && !checks?.proposalExists 
+              {!checks?.authorised 
                 ? "Not authorised to make proposal"
                 : checks?.proposalExists 
                   ? "View proposal"

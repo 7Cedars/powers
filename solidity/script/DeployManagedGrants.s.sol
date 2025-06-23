@@ -6,7 +6,7 @@
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
 /// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         ///
+///                                                                         /// 
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
@@ -88,7 +88,7 @@ contract DeployManagedGrants is Script {
          
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Request a grant: Community members can request a grant from a grant program.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), 
             conditions: conditions
         });
@@ -109,7 +109,7 @@ contract DeployManagedGrants is Script {
  
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto grant program: Judges can veto the deployment of a new grant program.",
-            targetLaw: parseLawAddress(8, "ProposalOnly"),
+            targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams), 
             conditions: conditions
         });
@@ -125,15 +125,15 @@ contract DeployManagedGrants is Script {
         grantConditions.succeedAt = 51; // simple 51% majority 
 
         // NB: these are the conditions for the deploy grants law.  
-        conditions.allowedRole = 2; // delegate role
+        conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
-        conditions.delayExecution = minutesToBlocks(10); // 10 minutes
+        conditions.delayExecution = minutesToBlocks(3); // 10 minutes
         conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
 
         lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Deploy grant program: Delegates can deploy a new grant program, as long as it has not been vetoed by judges.",
+            nameDescription: "Deploy grant program: Governors can deploy a new grant program, as long as it has not been vetoed by judges.",
             targetLaw: parseLawAddress(16, "StartGrant"),
             config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)),
             conditions: conditions
@@ -141,15 +141,15 @@ contract DeployManagedGrants is Script {
         delete conditions;
         delete grantConditions;
 
-        // This law allows delegates to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
-        conditions.allowedRole = 2; // delegate role
+        // This law allows governors to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
+        conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote for a new grant program to be deployed. 
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed. 
         conditions.succeedAt = 66; // 66% majority
-        conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
+        conditions.needCompleted = 3; // a governor needs to have started a grant program. 
 
         lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "End grant program: Delegates can stop a grant program when it has spent nearly all its tokens and it has expired.",
+            nameDescription: "End grant program: Governors can stop a grant program when it has spent nearly all its tokens and it has expired.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
                 10, // the maximum amount of tokens left in the grant before it can be stopped. 
@@ -163,7 +163,7 @@ contract DeployManagedGrants is Script {
         conditions.allowedRole = 3; // judge role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
         conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
-        conditions.needCompleted = 3; // a delegate needs to have started a grant program. 
+        conditions.needCompleted = 3; // a governor needs to have started a grant program. 
         conditions.succeedAt = 51; // 66% majority 
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "End grant program: Judges can stop a grant program at any time.",
@@ -180,10 +180,10 @@ contract DeployManagedGrants is Script {
         // //                 Electoral Laws                   // 
         // //////////////////////////////////////////////////////
         // This law allows accounts to self-nominate for any role
-        // It can be used by community members to self select for a delegate role. 
+        // It can be used by community members to self select for a governor role. 
         conditions.allowedRole = 1; 
         lawInitData[6] = PowersTypes.LawInitData({
-            nameDescription: "Nominate for delegate: Community members can use this law to nominate themselves for a delegate role.",
+            nameDescription: "Nominate for governor: Community members can use this law to nominate themselves for a governor role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(), // empty config
             conditions: conditions
@@ -195,7 +195,7 @@ contract DeployManagedGrants is Script {
         conditions.allowedRole = 5;
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
-            nameDescription: "Elect delegates: Only the DAO admin can use this law to elect delegates.",
+            nameDescription: "Elect governors: Only the DAO admin can use this law to elect governors.",
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(
                 parseMockAddress(2, "Erc20VotesMock"),
@@ -229,14 +229,14 @@ contract DeployManagedGrants is Script {
         });
         delete conditions;
 
-        // This law allows delegates to assign or revoke an allocator role to a nominated account. 
-        conditions.allowedRole = 2; // delegate role
+        // This law allows governors to assign or revoke an allocator role to a nominated account. 
+        conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of delegates need to vote to assign an allocator role to a nominated account. 
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote to assign an allocator role to a nominated account. 
         conditions.succeedAt = 66; // 66% majority  
         
         lawInitData[10] = PowersTypes.LawInitData({
-            nameDescription: "Assign allocator role: Delegates can assign or revoke an allocator role to a nominated account.",
+            nameDescription: "Assign allocator role: Governors can assign or revoke an allocator role to a nominated account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
             config: abi.encode(4), // allocator role
             conditions: conditions
@@ -284,7 +284,7 @@ contract DeployManagedGrants is Script {
         calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocators");
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Legacy DAO");
         calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
-        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign delegate role
+        calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign Governor role
         targets[7] = parseMockAddress(3, "Erc20TaxedMock");
         calldatas[7] = abi.encodeWithSelector(Erc20TaxedMock.faucet.selector);
         calldatas[8] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);

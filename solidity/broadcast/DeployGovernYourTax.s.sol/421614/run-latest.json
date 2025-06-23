@@ -64,7 +64,7 @@
     {
       "hash": null,
       "transactionType": "CREATE",
-      "contractName": "ProposalOnly",
+      "contractName": "StatementOfIntent",
       "contractAddress": "0x20d761e6f41e672dcf235425ab6623a7ad604832",
       "function": null,
       "arguments": [
