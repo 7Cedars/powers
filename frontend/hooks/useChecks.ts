@@ -10,14 +10,18 @@ import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
 import { setActionData, setChainChecks, setChecksStatus } from "@/context/store";
 import { useAction } from "./useAction";
+import { getBlockNumber } from '@wagmi/core'
 
 export const useChecks = () => {
   const { chainId } = useParams<{ chainId: string }>()
-  const { data: blockNumber } = useBlockNumber({
-    chainId: parseChainId(chainId)
-  })
+  // const { data: blockNumber, refetch } = useBlockNumber({
+  //   chainId: parseChainId(chainId),
+  //   cacheTime: 2_000
+  // })
+  // console.log("blockNumber", {blockNumber, chainId})
+
   const publicClient = getPublicClient(wagmiConfig, {
-    chainId: parseChainId(chainId)
+    chainId: parseChainId(chainId),
   })
   const { status: actionStatus, error: actionError, data: actionData, fetchActionData } = useAction()
   const [status, setStatus ] = useState<Status>("idle")
@@ -86,10 +90,13 @@ export const useChecks = () => {
 
   const checkThrottledExecution = useCallback( async (law: Law) => {
     const fetchedExecutions = await fetchExecutions(law)
+    
+    const blockNumber = await getBlockNumber(wagmiConfig, {
+      chainId: parseChainId(chainId),
+    })
+    console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law, blockNumber})
 
-    // console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law})
-
-    if (fetchedExecutions && fetchedExecutions.executions?.length > 0) {
+    if (fetchedExecutions && fetchedExecutions.executions?.length > 0 && blockNumber) {
       const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
       return result as boolean
     } else {
@@ -98,13 +105,16 @@ export const useChecks = () => {
   }, [])
 
   const checkDelayedExecution = async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
-    // NB! CONTINUE HERE! The proposal box should NOT depend on data saved at powers.proposals. Too few of the proposals are saved.
-    // instead should fetch data straigh from contract: use the getProposedActionDeadline function. 
     console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     console.log("Deadline ActionId:", actionId)
     const law = powers.activeLaws?.find(law => law.index === lawId)
     try {
+      const blockNumber = await getBlockNumber(wagmiConfig, {
+        chainId: parseChainId(chainId),
+      })
+      console.log("BlockNumber:", blockNumber)
+
       const deadline = await readContract(wagmiConfig, {
         abi: powersAbi,
         address: powers.contractAddress as `0x${string}`,
@@ -113,9 +123,14 @@ export const useChecks = () => {
       })
       console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
       console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
-      const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
-      console.log("Deadline Result:", result) 
-      return result as boolean
+      
+      if (deadline && blockNumber) {
+        const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
+        console.log("Deadline Result:", result) 
+        return result as boolean
+      } else {
+        return false
+      }
     } catch (error) {
       console.log("Error fetching deadline:", error)
       return false
@@ -192,7 +207,7 @@ export const useChecks = () => {
         setError(null)
         setStatus("pending")
 
-        if (wallets[0] && powers?.contractAddress && law.conditions) {
+        if (wallets[0] && powers?.contractAddress && law.conditions) { 
           // console.log("fetchChecks triggered, waypoint 1", {law, callData, nonce, wallets, powers, actionLawId, caller})
           const throttled = await checkThrottledExecution(law)
           const authorised = await checkAccountAuthorised(law, powers, wallets)
@@ -200,6 +215,7 @@ export const useChecks = () => {
           const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
           const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
+          console.log("delay passed at law", law.index, {delayed})
 
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
@@ -234,9 +250,6 @@ export const useChecks = () => {
 
   const fetchChainChecks = useCallback(
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
-
-      // console.log("@fetchChainChecks: waypoint 0", {lawId, callData, nonce, wallets, powers})
-      
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
       const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)

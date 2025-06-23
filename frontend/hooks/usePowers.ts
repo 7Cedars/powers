@@ -338,7 +338,7 @@ export const usePowers = () => {
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
-    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
+    console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
 
     if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
@@ -427,7 +427,7 @@ export const usePowers = () => {
           // console.log("@fetchProposals, waypoint 9", {powersUpdated})
           setPowers(powersUpdated)
           savePowers(powersUpdated)
-          // return powersUpdated
+          return powersUpdated
       }
       // return powers
   }
@@ -503,12 +503,12 @@ export const usePowers = () => {
     async (address: `0x${string}`) => {
       setStatus("pending")
 
-      let powersToBeUpdated: Powers | undefined = undefined
-      let data: Powers | undefined = undefined
-      let metaData: Powers | undefined = undefined
-      let laws: Powers | undefined = undefined
-      let executedActions: Powers | undefined = undefined
-      let proposals: Powers | undefined = undefined
+      let powersToBeUpdated: Powers | undefined
+      let data: Powers | undefined
+      let metaData: Powers | undefined
+      let laws: Powers | undefined
+      let executedActions: Powers | undefined
+      let proposals: Powers | undefined
 
       powersToBeUpdated = { contractAddress: address }
 
@@ -518,20 +518,20 @@ export const usePowers = () => {
           fetchProposals(powersToBeUpdated, 10n, 10000n),
         ])
 
-        console.log("@fetchPowers, waypoint 0.1", {data, proposals})
+        console.log("@refetchPowers, waypoint 0.1", {data, proposals})
 
         if (data) {
           [metaData, laws] = await Promise.all([
             fetchMetaData(data),
             fetchLawsAndRoles(data)
           ])
-          console.log("@fetchPowers, waypoint 0.2", {metaData, laws})
-          if (laws) {
-            executedActions = await fetchExecutedActions(laws)
-          }
+        }
+        console.log("@refetchPowers, waypoint 0.2", {metaData, laws})
+        if (laws) {
+          executedActions = await fetchExecutedActions(laws)
         }
 
-        if (data && metaData && laws && executedActions && proposals) {
+        if (data != undefined && metaData != undefined && laws != undefined && executedActions != undefined && proposals != undefined) {
           // console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,

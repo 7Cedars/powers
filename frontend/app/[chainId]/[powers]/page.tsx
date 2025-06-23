@@ -21,7 +21,7 @@ import { Powers } from '@/context/types'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles } = usePowers()
+  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy(); 
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
@@ -156,9 +156,13 @@ export default function FlowPage() {
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20">
-      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
+      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {() => {
+        fetchExecutedActions(powers as Powers)
+      }}/>
 
-      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} /> 
+      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {() => {
+        fetchProposals(powers as Powers, 10n, 9000n)
+      }}/> 
       
       <Assets status = {statusPowers} powers = {powers}/> 
       

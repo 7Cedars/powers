@@ -2,7 +2,7 @@
 
 import { setAction } from "@/context/store";
 import { Law, Powers, Status, LawExecutions, Action } from "@/context/types";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { GetBlockReturnType } from "@wagmi/core";
@@ -12,6 +12,7 @@ import { useBlocks } from "@/hooks/useBlocks";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { useAction } from "@/hooks/useAction";
+import { usePowers } from "@/hooks/usePowers";
 
 const roleColour = [  
   "border-blue-600", 
@@ -30,15 +31,16 @@ type LogsProps = {
   authenticated: boolean;
   powers: Powers | undefined;
   status: Status;
+  onRefresh: () => void;
 }
 
-export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
+export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: LogsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const { fetchActionData, data: actionData, status: statusAction } = useAction()
   const [tempActions, setTempActions] = useState<TempAction[]>([])
-
+  
   useEffect(() => {
     if (powers?.executedActions) {
       const actionArray = powers.executedActions.map((lawActions: LawExecutions, i) => {
@@ -67,28 +69,42 @@ export function Logs({ hasRoles, authenticated, powers, status}: LogsProps) {
 
   const handleSelectAction = (action: TempAction) => {
     fetchActionData(BigInt(action.actionId), powers as Powers)
-    router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+    if (actionData) {
+      setAction(actionData)
+      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+    }
   }
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden"> 
-      <button
-        onClick={() => 
-          { 
-            router.push(`/${chainId}/${powers?.contractAddress}/laws`)
-          }
-        } 
-        className="w-full border-b border-slate-300 p-2 bg-slate-100"
-      >
+      <div className="w-full border-b border-slate-300 p-2 bg-slate-100">
       <div className="w-full flex flex-row gap-6 items-center justify-between">
         <div className="text-left text-sm text-slate-600">
           Latest executions
         </div> 
-          <ArrowUpRightIcon
+        <div className="flex flex-row gap-2">
+          <button
+            onClick={() => {onRefresh()}}
+            className={`w-full h-full flex justify-center items-center py-1`}  
+          >
+            <ArrowPathIcon 
+              className="w-4 h-4 text-slate-800 aria-selected:animate-spin"
+              aria-selected={status == "pending"}
+            />
+          </button>
+          <button
+            onClick={() => 
+              { 
+                router.push(`/${chainId}/${powers?.contractAddress}/laws`)
+              }
+            }>
+           <ArrowUpRightIcon
             className="w-4 h-4 text-slate-800"
             />
+          </button>
         </div>
-      </button>
+        </div>
+      </div>
        {
         powers?.executedActions && powers?.executedActions.length > 0 ? 
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">

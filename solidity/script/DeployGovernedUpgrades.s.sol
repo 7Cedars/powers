@@ -63,7 +63,7 @@ contract DeployGovernedUpgrades is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Governed Upgrades",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibb4fcsnon2xzjcq63notbdhgxzy6v2khgkvd5fwz5j3cb3vhbp6m"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiakcm5i4orree75muwzlezxyegyi2wjluyr2l657oprgfqlxllzoi"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -113,7 +113,7 @@ contract DeployGovernedUpgrades is Script {
 
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);  
         conditions.quorum = 50; // 30% quorum
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
@@ -127,7 +127,7 @@ contract DeployGovernedUpgrades is Script {
         // Law to veto revoking a law
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);  
         conditions.quorum = 15; // 15% quorum
         conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
@@ -180,7 +180,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);  
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         conditions.needNotCompleted = 5; // law 5 needs to have passed

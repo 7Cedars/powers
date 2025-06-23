@@ -56,7 +56,7 @@ contract DeploySeparatedPowers is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Separated Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreif7ucxhedofbo7wbqwdsta26b3qja6xu2md2huq3xtxwkjjnzuf4e"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidvtdjbajp5u6miavuiw3utuqburheqrjgin4orpg6leb27po2hzu"
         );
         vm.stopBroadcast();
 
@@ -97,10 +97,10 @@ contract DeploySeparatedPowers is Script {
         inputParams[2] = "bytes[] Calldatas";
 
         conditions.allowedRole = 1; // user role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = minutesToBlocks(5); // 25 blocks, about 5 minutes
+        conditions.delayExecution = minutesToBlocks(5);  
         conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks 
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Propose new actions: Propose a new action to the DAO that can later be executed by holders.",
@@ -114,10 +114,10 @@ contract DeploySeparatedPowers is Script {
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
         conditions.needCompleted = 1; // law 1 needs to have passed. 
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = minutesToBlocks(10); // 50 blocks, about 10 minutes
+        conditions.delayExecution = minutesToBlocks(4); //
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
@@ -130,10 +130,10 @@ contract DeploySeparatedPowers is Script {
         // Only subscribers can use this law
         conditions.allowedRole = 4; // subscriber role
         conditions.needCompleted = 1; // law 2 needs to have passed. 
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 20; // 20% quorum
         conditions.succeedAt = 66; // 66% majority 
-        conditions.delayExecution = minutesToBlocks(15); // 75 blocks, about 15 minutes
+        conditions.delayExecution = minutesToBlocks(6);  
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Ok an action: Ok an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
@@ -147,7 +147,7 @@ contract DeploySeparatedPowers is Script {
         conditions.allowedRole = 2; // holder role
         conditions.needCompleted = 3; // law 3 needs to have passed. 
         conditions.needNotCompleted = 2; // law 2 needs to have not passed. 
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
         lawInitData[4] = PowersTypes.LawInitData({
@@ -166,7 +166,7 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[5] = PowersTypes.LawInitData({
-            nameDescription: "Assign user role: Assign user role. The account will need to pay at least 100 gwei in tax during the previous epoch.",
+            nameDescription: "Assign user role: Assign user role. The account will need to pay at least a 100 MockTaxed tokens in tax.",
             targetLaw: parseLawAddress(13, "TaxSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 25, 1), // 25 gwei tax threshold, role 1 (user)
             conditions: conditions
@@ -177,7 +177,7 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[6] = PowersTypes.LawInitData({
-            nameDescription: "Assign holder role: Assign an account to the holder role. The account will need to hold at least 1e18 tokens.",
+            nameDescription: "Assign holder role: Assign an account to the holder role. The account has to hold at least 1e18 MockTaxed tokens.",
             targetLaw: parseLawAddress(14, "HolderSelect"),
             config: abi.encode(parseMockAddress(3, "Erc20TaxedMock"), 1e18, 2), // 1e18 token threshold, role 2 (holder)
             conditions: conditions
@@ -188,7 +188,7 @@ contract DeploySeparatedPowers is Script {
         // No role restrictions, anyone can use this law
         conditions.allowedRole = type(uint256).max; // no role restriction
         lawInitData[7] = PowersTypes.LawInitData({
-            nameDescription: "Assign subscriber role: Assign an account as subscriber. The account will need to pay 1000 gwei in Eth to the Protocol.",
+            nameDescription: "Assign subscriber role: Assign an account as subscriber. The account will need to pay 1000 gwei in Eth to Powers.",
             targetLaw: parseLawAddress(21, "Subscription"),
             config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour 
             conditions: conditions
@@ -201,7 +201,7 @@ contract DeploySeparatedPowers is Script {
         // Law for developers to manage their own role
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
-        conditions.votingPeriod = 25; // 25 blocks, about 5 minutes
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 50% vote majority
         lawInitData[8] = PowersTypes.LawInitData({

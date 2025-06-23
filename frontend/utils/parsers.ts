@@ -408,10 +408,11 @@ export const shorterDescription = (message: string | undefined, output: "short" 
 
 // would be great to make this more dynamic. 
 export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | undefined => {
+  // console.log("@parseChainId: waypoint 0", {chainId})
   if (!chainId) {
     return undefined
   }
-  if ( chainId != "1" && chainId != "421614" && chainId != "11155111" && chainId != "11155420") {
+  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420") {
     return undefined
   }
   return parseInt(chainId) as 421614 | 11155111 | 11155420 | undefined
@@ -426,7 +427,7 @@ export const parseActionData = (data: unknown[]): ActionTruncated => {
     throw new Error('@parseActionData: data not correct length.');
   }
 
-  console.log("@parseActionData: waypoint 0", {data})
+  // console.log("@parseActionData: waypoint 0", {data})
 
   const action: ActionTruncated = {
     cancelled: data[0] as boolean,
@@ -443,7 +444,7 @@ export const parseActionData = (data: unknown[]): ActionTruncated => {
     nonce: data[11] as unknown as string
   }
 
-  console.log("@parseActionData: waypoint 1", {action})
+  // console.log("@parseActionData: waypoint 1", {action})
 
   return action as ActionTruncated
 } 

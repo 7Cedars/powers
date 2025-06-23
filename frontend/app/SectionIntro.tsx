@@ -35,11 +35,21 @@ export function SectionIntro() {
           {/* Bottom text */}
           <section className="w-full flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
               <p>
-                Powers is a Proof of Concept of a role restricted governance protocol. 
+                Powers is a PoC of a role restricted governance protocol. 
               </p>
               <p>
-                It combines a governance engine with role restricted and modular contracts, called laws. 
-                Together they create a governance protocol that is more flexible, upgradable and safe than existing alternatives.
+                It combines a governance engine, <span className="font-bold">Powers</span>, with role restricted and modular contracts, called <span className="font-bold">laws</span>.
+              </p>
+              <div className="flex flex-col gap-0">
+                <p>              
+                  <span className="font-bold">Laws</span> define what actions can be taken by which roles under what conditions. 
+                </p>
+                <p>
+                  <span className="font-bold">Powers</span> manages assigning roles to addresses and executing actions. 
+                </p>
+              </div>
+              <p>
+                Together they create a governance protocol that is modular, upgradable and asynchronous.
               </p>
           </section>
 
