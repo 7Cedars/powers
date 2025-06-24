@@ -95,7 +95,13 @@ export const Voting = ({action, powers, status: statusPowers}: {action: Action, 
                 <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
               :
               state == 4 ? 
-                <div className={`${layout} text-slate-500 bg-slate-100`}> Executed </div>
+                <div className={`${layout} text-slate-700 bg-slate-200`}> Requested </div>
+              :
+              state == 5 ? 
+                <div className={`${layout} text-slate-700 bg-slate-200`}> Fulfilled </div>
+              :
+              state == 6 ? 
+                <div className={`${layout} text-slate-500 bg-slate-100`}> NonExistent </div>
               :
               null 
             }

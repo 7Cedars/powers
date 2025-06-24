@@ -67,13 +67,12 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
     }
   }, [executedActions])
 
-  const handleSelectAction = (action: TempAction) => {
-    fetchActionData(BigInt(action.actionId), powers as Powers)
+  useEffect(() => {
     if (actionData) {
       setAction(actionData)
-      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+      router.push(`/${chainId}/${powers?.contractAddress}/laws/${Number(actionData.lawId)}`)
     }
-  }
+  }, [actionData])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden"> 
@@ -132,7 +131,7 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
                       <Button
                         showBorder={true}
                         role={parseRole(law.conditions?.allowedRole || 0n)}
-                        onClick={() => handleSelectAction(action)}
+                        onClick={() => fetchActionData(BigInt(action.actionId), powers as Powers)}
                         align={0}
                         selected={true}
                         filled={false}
