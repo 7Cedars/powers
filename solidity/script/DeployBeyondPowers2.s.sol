@@ -35,7 +35,7 @@ import { HelperConfig } from "./HelperConfig.s.sol";
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 import { GovernorMock } from "../test/mocks/GovernorMock.sol";
 
-contract DeployBeyondPowers is Script {
+contract DeployBeyondPowers2 is Script {
     string[] names;
     address[] lawAddresses;
     string[] mockNames;
@@ -44,9 +44,16 @@ contract DeployBeyondPowers is Script {
 
     HelperConfig helperConfig = new HelperConfig();
     uint256 blocksPerHour;
+    uint64 subscriptionId;
+    uint32 gasLimit;
+    bytes32 donID;
 
     function run() external returns (address payable powers_) {
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
+        subscriptionId = helperConfig.getConfig().chainlinkFunctionsSubscriptionId;
+        gasLimit = helperConfig.getConfig().chainlinkFunctionsGasLimit;
+        donID = helperConfig.getConfig().chainlinkFunctionsDonId;
+        
         vm.startBroadcast();
         Powers powers = new Powers(
             "Beyond Powers",
@@ -64,6 +71,11 @@ contract DeployBeyondPowers is Script {
         // Create the constitution
         PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
+        // console2.log("lawInitData[0]");
+        // console2.logBytes(lawInitData[0].config);
+        // console2.log("lawInitData[1]");
+        // console2.logBytes(lawInitData[1].config);
+
         // constitute dao
         vm.startBroadcast();
         powers.constitute(lawInitData);
@@ -76,84 +88,28 @@ contract DeployBeyondPowers is Script {
         address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](6);
+        lawInitData = new PowersTypes.LawInitData[](2);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
         //////////////////////////////////////////////////////
 
-        string[] memory inputParams = new string[](4);
-        inputParams[0] = "address[] Targets";
-        inputParams[1] = "uint256[] Values";
-        inputParams[2] = "bytes[] Calldatas"; 
-        inputParams[3] = "string Description";
-    
         // A Law to allows a proposal to be made.
-        conditions.allowedRole = 1; // member role
-        conditions.votingPeriod = minutesToBlocks(5);  
-        conditions.quorum = 50; // 30% quorum
-        conditions.succeedAt = 33; // 51% majority
+        conditions.allowedRole = type(uint256).max; // any one can use this law
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Propose an action: Propose an action inside Powers.",
-            targetLaw: parseLawAddress(8, "StatementOfIntent"),
-            config: abi.encode(inputParams),
-            conditions: conditions
-        });
-        delete conditions;
-
-        // Law to send proposal to tally.xyz
-        // any one can use this law.
-        conditions.allowedRole = type(uint256).max; // anyone 
-        conditions.needCompleted = 1; // law 1 should have passed
-        lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Send to Governor: Send a proposal to Governor.sol.",
-            targetLaw: parseLawAddress(24, "GovernorCreateProposal"),
-            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
-            conditions: conditions
-        });
-        delete conditions;
-
-        // Law to check the Tally.xyz proposal and execute in case it has passed the vote. 
-        // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = type(uint256).max; // anyone  
-        conditions.needCompleted = 2; // law 2 should have passed
-        lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Execute proposal: Check the status of a proposal at Governor.sol. If it has passed its vote, execute the proposal.",
-            targetLaw: parseLawAddress(25, "GovernorExecuteProposal"),
-            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
-            conditions: conditions
-        });
-        delete conditions;
-
-
-        //////////////////////////////////////////////////////
-        //                 Electoral Laws                   // 
-        //////////////////////////////////////////////////////
-        // Law to nominate oneself for member role
-        // No role restrictions, anyone can use this law
-        conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
-        conditions.allowedRole = type(uint256).max;
-        lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
-            targetLaw: parseLawAddress(4, "SelfSelect"),
+            nameDescription: "Does proposal exist: Check if a proposal and choice exists at the hvax.eth Snapshot space.",
+            targetLaw: parseLawAddress(26, "SnapToGov_CheckSnapExists"),
             config: abi.encode(
-                1 // roleId to be elected
+                "hvax.eth", // spaceId
+                subscriptionId,
+                gasLimit,
+                donID
             ),
             conditions: conditions
         });
         delete conditions;
 
-        // Preset law to assign previous DAO role
-        // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, uint16(lawInitData.length - 1));
-        conditions.allowedRole = 0; // admin role
-        lawInitData[5] = PowersTypes.LawInitData({
-            nameDescription: "Initial setup: Assign labels. This law can only be executed once.",
-            targetLaw: parseLawAddress(7, "PresetAction"),
-            config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
-            conditions: conditions
-        });
-        delete conditions;
+      return lawInitData;
     }
 
     //////////////////////////////////////////////////////////////

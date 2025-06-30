@@ -170,9 +170,8 @@ abstract contract Law is ERC165, ILaw {
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas
-    ) internal {
+    ) internal virtual {
         // Base implementation: send data back to Powers protocol
-        // note that it cannot be overridden by implementing contracts. The exact data returned by handleRequest is returned to Powers.
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         IPowers(payable(laws[lawHash].executions.powers)).fulfill(lawId, actionId, targets, values, calldatas);
     }

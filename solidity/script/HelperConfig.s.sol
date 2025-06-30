@@ -9,6 +9,11 @@ contract HelperConfig is Script {
     // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.
     struct NetworkConfig {
         uint256 blocksPerHour; // a basic way of establishing time. As long as block times are fairly stable on a chain, this will work.
+        address chainlinkFunctionsRouter;
+        uint64 chainlinkFunctionsSubscriptionId;
+        uint32 chainlinkFunctionsGasLimit;
+        bytes32 chainlinkFunctionsDonId;
+        string chainlinkFunctionsEncryptedSecretsEndpoint;
     }
 
     uint256 constant LOCAL_CHAIN_ID = 31_337;
@@ -40,26 +45,52 @@ contract HelperConfig is Script {
         }
     }
 
+        function getEthSepoliaConfig() public returns (NetworkConfig memory) {
+        networkConfig.blocksPerHour = 300; // new block every 12 seconds
+
+        networkConfig.chainlinkFunctionsRouter = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
+        networkConfig.chainlinkFunctionsSubscriptionId = 5819;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
+
+        return networkConfig;
+    }
+
+
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 300; // new block every 12 seconds
 
+        networkConfig.chainlinkFunctionsRouter = 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C;
+        networkConfig.chainlinkFunctionsSubscriptionId = 1;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
+
         return networkConfig;
     }
 
-    function getEthSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300; // new block every 12 seconds
-
-        return networkConfig;
-    }
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
+
+        networkConfig.chainlinkFunctionsRouter = 0xC17094E3A1348E5C7544D4fF8A36c28f2C6AAE28;
+        networkConfig.chainlinkFunctionsSubscriptionId = 256;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
         return networkConfig;
     }
 
     function getBaseSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
+
+        networkConfig.chainlinkFunctionsRouter = 0xf9B8fc078197181C841c296C876945aaa425B278;
+        networkConfig.chainlinkFunctionsSubscriptionId = 1;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
         return networkConfig;
     }

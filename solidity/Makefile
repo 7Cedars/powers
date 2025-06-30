@@ -16,9 +16,9 @@ remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gi
 # Install modules
 install :; forge install foundry-rs/forge-std@v1.9.1 --no-commit && \
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit && \
-	forge install Hats-Protocol/hats-protocol@v1.0 --no-commit && \
 	forge install smartcontractkit/chainlink --no-git --no-commit && \
 	forge install smartcontractkit/foundry-chainlink-toolkit --no-git --no-commit
+# forge install Hats-Protocol/hats-protocol@v1.0 --no-commit
 
 # Update Dependencies
 update :; forge update
@@ -35,7 +35,7 @@ format :; forge fmt
 anvil :; anvil --steps-tracing --block-time 1
 
 ###############################
-# 		Deploy Commands  				#
+# 		Deploy Commands  				# 
 ###############################
 ANVIL_ARGS_0 := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY_0) --broadcast
 ARB_SEPOLIA_TEST_ARGS := --fork-url $(ARB_SEPOLIA_RPC_URL)
@@ -54,6 +54,7 @@ anvilDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:Deploy
 
 sepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(SEPOLIA_DEPLOY_ARGS)
+sepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers2.s.sol:DeployBeyondPowers2 $(SEPOLIA_DEPLOY_ARGS)
 
 arbSepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(ARB_SEPOLIA_DEPLOY_ARGS)
@@ -67,7 +68,7 @@ optSepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101
 optSepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(OPT_SEPOLIA_DEPLOY_ARGS)
-optSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers.s.sol:DeployBeyondPowers $(OPT_SEPOLIA_DEPLOY_ARGS)
+optSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers2.s.sol:DeployBeyondPowers2 $(OPT_SEPOLIA_DEPLOY_ARGS)
 
 arbSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 421614 --etherscan-api-key $(ARBISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch
 optSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 11155420 --etherscan-api-key $(OPTISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch

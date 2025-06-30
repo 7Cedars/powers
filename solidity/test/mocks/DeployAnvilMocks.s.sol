@@ -39,6 +39,7 @@ import { StartElection } from "../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../src/laws/electoral/EndElection.sol";
 import { GovernorCreateProposal } from "../../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../../src/laws/integrations/GovernorExecuteProposal.sol";
+import { SnapToGov_CheckSnapExists } from "../../src/laws/integrations/SnapToGov_CheckSnapExists.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -47,6 +48,7 @@ import { Erc20TaxedMock } from "./Erc20TaxedMock.sol";
 import { Erc721Mock } from "./Erc721Mock.sol";
 import { PowersMock } from "./PowersMock.sol";
 import { GovernorMock } from "./GovernorMock.sol";
+import { FunctionsRouterMock } from "./FunctionsRouterMock.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -59,10 +61,10 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](26);
-        lawAddresses = new address[](26);
-        mockNames = new string[](6);
-        mockAddresses = new address[](6);
+        lawNames = new string[](27);
+        lawAddresses = new address[](27);
+        mockNames = new string[](7);
+        mockAddresses = new address[](7);
 
         vm.startBroadcast();
         lawAddresses[0] = address(new DelegateSelect());
@@ -91,8 +93,12 @@ contract DeployAnvilMocks is Script {
         lawAddresses[23] = address(new EndElection());
         lawAddresses[24] = address(new GovernorCreateProposal());
         lawAddresses[25] = address(new GovernorExecuteProposal());
+        
 
         mockAddresses[0] = address(new PowersMock());
+        mockAddresses[6] = address(new FunctionsRouterMock());
+
+        lawAddresses[26] = address(new SnapToGov_CheckSnapExists(mockAddresses[6]));
         
         vm.stopBroadcast();
 
@@ -102,6 +108,9 @@ contract DeployAnvilMocks is Script {
         mockAddresses[4] = address(new Erc721Mock());
         mockAddresses[5] = address(new Erc1155Mock());
         mockAddresses[1] = address(new GovernorMock(mockAddresses[2]));
+        
+        // Deploy SnapToGov_CheckSnapExists with the FunctionsRouterMock
+        
         vm.stopBroadcast();
         
         lawNames[0] = "DelegateSelect";
@@ -130,6 +139,7 @@ contract DeployAnvilMocks is Script {
         lawNames[23] = "EndElection";
         lawNames[24] = "GovernorCreateProposal";
         lawNames[25] = "GovernorExecuteProposal";
+        lawNames[26] = "SnapToGov_CheckSnapExists";
 
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
@@ -137,5 +147,6 @@ contract DeployAnvilMocks is Script {
         mockNames[3] = "Erc20TaxedMock";
         mockNames[4] = "Erc721Mock";
         mockNames[5] = "Erc1155Mock";
+        mockNames[6] = "FunctionsRouterMock";
     }
 }
