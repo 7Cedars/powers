@@ -52,7 +52,7 @@ export const useChecks = () => {
   const checkActionStatus = useCallback(
     async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
       const actionId = hashAction(lawId, lawCalldata, nonce)
-      // console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
+      console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
 
       try {
         const state =  await readContract(wagmiConfig, {
@@ -61,6 +61,7 @@ export const useChecks = () => {
                 functionName: 'state', 
                 args: [actionId],
               })
+        console.log("@checkActionStatus: waypoint 1", {state})
         const result = stateToCheck.includes(Number(state)) 
         return result 
       } catch (error) {
@@ -220,6 +221,8 @@ export const useChecks = () => {
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
           const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
+
+          console.log("notCompleted1", {notCompleted1})
 
             let newChecks: Checks =  {
               delayPassed: law.conditions.delayExecution == 0n ? true : delayed,

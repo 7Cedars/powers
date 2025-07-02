@@ -13,12 +13,12 @@ import { SectionUsecases } from "./SectionUsecases";
 import { SectionRunDemo } from "./SectionRunDemo";
 import { Footer } from "./Footer";
 import { SectionAdvantages } from "./SectionAdvantages";
+
 import { 
     ChevronDownIcon
   } from '@heroicons/react/24/outline';
 
-export default function Page() {
-          
+export default function Page() {          
     return (
         <main className="w-full h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden">
             <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-indigo-700 snap-start snap-always"> 

@@ -656,7 +656,7 @@ contract ConstitutionsMock is Test  {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData)
     {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](3);
+        lawInitData = new PowersTypes.LawInitData[](4);
 
         // GovernorCreateProposal
         conditions.allowedRole = 1;
@@ -678,6 +678,21 @@ contract ConstitutionsMock is Test  {
             targetLaw: lawAddresses[25], // GovernorExecuteProposal
             config: abi.encode(
                 mockAddresses[1] // GovernorMock
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // SnapToGov_CheckSnapExists
+        conditions.allowedRole = 1;
+        lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Check Snapshot Proposal Exists: A law to check if a snapshot proposal exists using Chainlink Functions.", 
+            targetLaw: lawAddresses[26], // SnapToGov_CheckSnapExists
+            config: abi.encode(
+                "test.eth", // spaceId
+                uint64(1), // subscriptionId
+                uint32(300000), // gasLimit
+                bytes32(uint256(1)) // donID
             ),
             conditions: conditions
         });

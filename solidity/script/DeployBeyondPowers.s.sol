@@ -13,22 +13,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Deploy script Beyond Powers
-/// @notice Beyond Powers is a simple example of a DAO that integrates with Tally.xyz and (TBI) snapshot. 
-///
-/// Currently, this example implements:
-/// - A law to create a proposal on Tally.xyz that includes a quantity (of tokens to mint).
-/// - A law to check the status of a Tally.xyz proposal.
-///
-/// Future plans:
-/// - A law to create a proposal on snapshot that includes a quantity (of tokens to mint).
-/// - A law to check the status of a snapshot proposal.
-///
+/// @notice Beyond Powers showcases a DAO that integrates on- and off-chain discussion and voting, integrating snapshot and tally into one governance system.
+///         It uses Chainlink Functions to fetch the latest off-chain data from Snapshot.
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
-import { console2 } from "forge-std/console2.sol";
+// import { console2 } from "forge-std/console2.sol";
 
 // core protocol 
 import { Powers } from "../src/Powers.sol";
@@ -52,9 +44,16 @@ contract DeployBeyondPowers is Script {
 
     HelperConfig helperConfig = new HelperConfig();
     uint256 blocksPerHour;
+    uint64 subscriptionId;
+    uint32 gasLimit;
+    bytes32 donID;
 
     function run() external returns (address payable powers_) {
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
+        subscriptionId = helperConfig.getConfig().chainlinkFunctionsSubscriptionId;
+        gasLimit = helperConfig.getConfig().chainlinkFunctionsGasLimit;
+        donID = helperConfig.getConfig().chainlinkFunctionsDonId;
+        
         vm.startBroadcast();
         Powers powers = new Powers(
             "Beyond Powers",
@@ -72,6 +71,11 @@ contract DeployBeyondPowers is Script {
         // Create the constitution
         PowersTypes.LawInitData[] memory lawInitData = createConstitution(powers_);
 
+        // console2.log("lawInitData[0]");
+        // console2.logBytes(lawInitData[0].config);
+        // console2.log("lawInitData[1]");
+        // console2.logBytes(lawInitData[1].config);
+
         // constitute dao
         vm.startBroadcast();
         powers.constitute(lawInitData);
@@ -84,79 +88,125 @@ contract DeployBeyondPowers is Script {
         address payable powers_
     ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](6);
+        lawInitData = new PowersTypes.LawInitData[](10);
 
         //////////////////////////////////////////////////////
         //               Executive Laws                     // 
         //////////////////////////////////////////////////////
 
-        string[] memory inputParams = new string[](4);
-        inputParams[0] = "address[] Targets";
-        inputParams[1] = "uint256[] Values";
-        inputParams[2] = "bytes[] Calldatas"; 
-        inputParams[3] = "string Description";
-    
-        // A Law to allows a proposal to be made.
-        conditions.allowedRole = 1; // member role
-        conditions.votingPeriod = minutesToBlocks(5);  
-        conditions.quorum = 50; // 30% quorum
-        conditions.succeedAt = 33; // 51% majority
+        // A Law to check if a proposal and choice exists, and linking it to targets[], values[], calldatas[].
+        conditions.allowedRole = 1; // executioners can use this law
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Propose an action: Propose an action inside Powers.",
-            targetLaw: parseLawAddress(8, "StatementOfIntent"),
-            config: abi.encode(inputParams),
-            conditions: conditions
-        });
-        delete conditions;
-
-        // Law to send proposal to tally.xyz
-        // any one can use this law.
-        conditions.allowedRole = type(uint256).max; // anyone 
-        conditions.needCompleted = 1; // law 1 should have passed
-        lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Send to Governor: Send a proposal to Governor.sol.",
-            targetLaw: parseLawAddress(24, "GovernorCreateProposal"),
-            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
-            conditions: conditions
-        });
-        delete conditions;
-
-        // Law to check the Tally.xyz proposal and execute in case it has passed the vote. 
-        // Only previous DAO (role 1) can use this law
-        conditions.allowedRole = type(uint256).max; // anyone  
-        conditions.needCompleted = 2; // law 2 should have passed
-        lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Execute proposal: Check the status of a proposal at Governor.sol. If it has passed its vote, execute the proposal.",
-            targetLaw: parseLawAddress(25, "GovernorExecuteProposal"),
-            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
-            conditions: conditions
-        });
-        delete conditions;
-
-
-        //////////////////////////////////////////////////////
-        //                 Electoral Laws                   // 
-        //////////////////////////////////////////////////////
-        // Law to nominate oneself for member role
-        // No role restrictions, anyone can use this law
-        conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
-        conditions.allowedRole = type(uint256).max;
-        lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
-            targetLaw: parseLawAddress(4, "SelfSelect"),
+            nameDescription: "Does proposal exist?: Check if a proposal and choice exists at the 7cedars.eth Snapshot space.",
+            targetLaw: parseLawAddress(26, "SnapToGov_CheckSnapExists"),
             config: abi.encode(
-                1 // roleId to be elected
+                "7cedars.eth", // spaceId
+                subscriptionId,
+                gasLimit,
+                donID
             ),
             conditions: conditions
         });
         delete conditions;
 
-        // Preset law to assign previous DAO role
-        // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, uint16(lawInitData.length - 1));
-        conditions.allowedRole = 0; // admin role
+        // A Law to check if a proposal and choice exists, and linking it to targets[], values[], calldatas[].
+        conditions.allowedRole = 1; // executioners can use this law
+        conditions.needCompleted = 1;
+        lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Did choice pass?: Check if a proposal and choice passed at the 7cedars.eth Snapshot space.",
+            targetLaw: parseLawAddress(27, "SnapToGov_CheckSnapPassed"),
+            config: abi.encode(
+                "7cedars.eth", // spaceId
+                subscriptionId,
+                gasLimit,
+                donID
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
+        conditions.allowedRole = 1; // executioners can use this law
+        conditions.needCompleted = 2;
+        lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Create Governor.sol proposal: Create a new Governor.sol proposal using Erc20VotesMock as votes.",
+            targetLaw: parseLawAddress(28, "SnapToGov_CreateGov"),
+            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
+            conditions: conditions
+        });
+        delete conditions;
+
+        conditions.allowedRole = 2; // Security council members can use this law
+        conditions.needCompleted = 3;
+        conditions.quorum = 77; // 77% of the Security Council members must vote to cancel a proposal.
+        conditions.votingPeriod = minutesToBlocks(5); // 10 minutes.
+        conditions.succeedAt = 51; // 51% majority. 
+        lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "Cancel Governor.sol proposal: Cancel a Governor.sol proposal.",
+            targetLaw: parseLawAddress(29, "SnapToGov_CancelGov"),
+            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
+            conditions: conditions
+        });
+        delete conditions;
+
+        conditions.allowedRole = 1; // Security council members can use this law
+        conditions.needCompleted = 3;
+        conditions.quorum = 10; // 10% of the Security Council members must vote to execute a proposal.
+        conditions.votingPeriod = minutesToBlocks(5); // 10 minutes.
+        conditions.succeedAt = 10; // 10% majority.
+        conditions.delayExecution = minutesToBlocks(10); // 10 minutes.
         lawInitData[5] = PowersTypes.LawInitData({
-            nameDescription: "Initial setup: Assign labels. This law can only be executed once.",
+            nameDescription: "Execute Governor.sol proposal: Execute a Governor.sol proposal.",
+            targetLaw: parseLawAddress(30, "SnapToGov_ExecuteGov"),
+            config: abi.encode(parseMockAddress(2, "Erc20VotesMock")),
+            conditions: conditions
+        });
+        delete conditions;
+
+        //////////////////////////////////////////////////////
+        //               Electoral Laws                     // 
+        //////////////////////////////////////////////////////
+
+        // A Law to nominate oneself for Executioner role
+        conditions.allowedRole = type(uint256).max; // anyone can use this law
+        lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Nominate oneself: Nominate oneself for the Executioner role.",
+            targetLaw: parseLawAddress(10, "NominateMe"),
+            config: abi.encode(),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // a law to elect executioners by delegated tokens. 
+        conditions.allowedRole = type(uint256).max; // anyone can use this law
+        conditions.readStateFrom = 6;
+        lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "Elect executioners: Elect executioners using delegated tokens.",
+            targetLaw: parseLawAddress(0, "DelegateSelect"),
+            config: abi.encode(parseMockAddress(2, "Erc20VotesMock"), 50, 1),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // a law that allows the admin to (de)select members for the security council. 
+        conditions.allowedRole = 0; // admin can use this law
+        lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "Select Security Council: Select members for the Security Council.",
+            targetLaw: parseLawAddress(1, "DirectSelect"),
+            config: abi.encode(2), // roleId
+            conditions: conditions
+        });
+        delete conditions;
+
+        //////////////////////////////////////////////////////
+        //               Initiation Law                     // 
+        //////////////////////////////////////////////////////
+        
+                // Preset law to assign previous DAO role
+        // Only admin (role 0) can use this law
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
+        conditions.allowedRole = type(uint256).max; // anyone can use execute this law. 
+        lawInitData[9] = PowersTypes.LawInitData({
+            nameDescription: "Initial setup: Assign role labels. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
             conditions: conditions
@@ -172,15 +222,16 @@ contract DeployBeyondPowers is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        targets = new address[](2);
-        values = new uint256[](2);
-        calldatas = new bytes[](2);
+        targets = new address[](3);
+        values = new uint256[](3);
+        calldatas = new bytes[](3);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = powers_;
         }
         // label roles
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
-        calldatas[1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Executioners");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Security Council");
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         return (targets, values, calldatas);
     }
 

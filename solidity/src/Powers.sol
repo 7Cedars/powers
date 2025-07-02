@@ -124,6 +124,8 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         ActiveLaw memory law = laws[lawId];
 
+        // console2.log("request: waypoint 0");
+
         // check 1: does executioner have access to law being executed?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
 
@@ -324,13 +326,13 @@ contract Powers is EIP712, IPowers {
     function constitute(LawInitData[] memory constituentLaws) external virtual {
         // check 1: only admin can call this function
         if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__AccessDenied();
-
+        
         // check 2: this function can only be called once.
         if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
 
         // if checks pass, set _constituentLawsExecuted to true...
         _constituteExecuted = true;
-
+        
         // ...and set laws as active.
         for (uint256 i = 0; i < constituentLaws.length; i++) {
             // note: ignore empty slots in LawInitData array.

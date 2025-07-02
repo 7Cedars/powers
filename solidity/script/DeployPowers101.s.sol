@@ -20,7 +20,7 @@
 pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
-import { console2 } from "forge-std/console2.sol";
+// import { console2 } from "forge-std/console2.sol";
 
 // core protocol
 import { Powers} from "../src/Powers.sol";
