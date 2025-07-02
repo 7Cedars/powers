@@ -29,7 +29,6 @@ contract FunctionsRouterMock is IFunctionsRouter {
     ) external {
         require(requestToClient[requestId] != address(0), "Request not found");
         require(!requestFulfilled[requestId], "Request already fulfilled");
-        requestFulfilled[requestId] = true;
         // In a real router, this would call the client contract. Here, it's a stub.
     }
     

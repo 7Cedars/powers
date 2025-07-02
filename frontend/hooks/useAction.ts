@@ -100,7 +100,7 @@ export const useAction = () => {
               return returnActionData
             }
         } catch (error) {
-            console.log("@Executions: ", error)
+          setError(error) 
         }
             
     }, [ ]

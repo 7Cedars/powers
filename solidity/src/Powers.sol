@@ -124,6 +124,8 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         ActiveLaw memory law = laws[lawId];
 
+        // console2.log("request: waypoint 0");
+
         // check 1: does executioner have access to law being executed?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
 

@@ -1,4 +1,6 @@
 const proposalId = args[0];
+const choice = args[1]; 
+
 const url = 'https://hub.snapshot.org/graphql/';
 const gqlRequest = Functions.makeHttpRequest({
   url: url,
@@ -10,7 +12,6 @@ const gqlRequest = Functions.makeHttpRequest({
     query: `{\
         proposal(id: "${proposalId}") { \
           choices \
-          scores \
           state \
         } \
       }`,
@@ -20,13 +21,8 @@ const gqlRequest = Functions.makeHttpRequest({
 const gqlResponse = await gqlRequest;
 if (gqlResponse.error) throw Error("Request failed");
 
-const countryData = gqlResponse["data"]["data"];
-const result = countryData.proposal.choices; 
-console.log("result: ", {result})
-return Functions.encodeString(JSON.stringify(result));
-
-// const result = {
-//   choices: countryData.proposal.choices,
-//   scores: countryData.proposal.scores,
-//   state: countryData.proposal.state
-// };
+const snapshotData = gqlResponse["data"]["data"];
+if (snapshotData.proposal.state.length == 0) return Functions.encodeString("Proposal not recognised.");
+if (snapshotData.proposal.state != "pending") return Functions.encodeString("Proposal not pending.");
+if (!snapshotData.proposal.choices.includes(choice)) return Functions.encodeString("Choice not present.");
+return Functions.encodeString("true");

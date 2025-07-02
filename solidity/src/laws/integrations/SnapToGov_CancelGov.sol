@@ -25,9 +25,10 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
+import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract SnapToGov_CreateGov is Law {
+contract SnapToGov_CancelGov is Law {
     struct MemProposal {
         address[] targets;
         uint256[] values;
@@ -93,10 +94,25 @@ contract SnapToGov_CreateGov is Law {
             proposal.description
         ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
+        uint256 proposalId = Governor(payable(governorContracts[lawHash])).getProposalId(
+            proposal.targets, 
+            proposal.values, 
+            proposal.calldatas, 
+            keccak256(bytes(proposal.description))
+            );
+        if (proposalId == 0) {    
+            revert("Proposal not found");
+        }
+
+        IGovernor.ProposalState state = Governor(payable(governorContracts[lawHash])).state(proposalId);
+        if (state == IGovernor.ProposalState.Succeeded || state == IGovernor.ProposalState.Expired || state == IGovernor.ProposalState.Canceled || state == IGovernor.ProposalState.Defeated || state == IGovernor.ProposalState.Executed) {
+            revert("Proposal already succeeded, expired, canceled, defeated or executed");
+        }
+
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = governorContracts[lawHash];
-        calldatas[0] = abi.encodeWithSelector(Governor.propose.selector, proposal.targets, proposal.values, proposal.calldatas, proposal.description);
-
+        calldatas[0] = abi.encodeWithSelector(Governor.cancel.selector, proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description)));
+        
         return (actionId, targets, values, calldatas, "");
     }
 }

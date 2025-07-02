@@ -42,6 +42,10 @@ import { EndElection } from "../src/laws/electoral/EndElection.sol";
 import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 import { SnapToGov_CheckSnapExists } from "../src/laws/integrations/SnapToGov_CheckSnapExists.sol";
+import { SnapToGov_CheckSnapPassed } from "../src/laws/integrations/SnapToGov_CheckSnapPassed.sol";
+import { SnapToGov_CreateGov } from "../src/laws/integrations/SnapToGov_CreateGov.sol";
+import { SnapToGov_CancelGov } from "../src/laws/integrations/SnapToGov_CancelGov.sol";
+import { SnapToGov_ExecuteGov } from "../src/laws/integrations/SnapToGov_ExecuteGov.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -55,10 +59,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
         
-        names = new string[](27);
-        addresses = new address[](27);
-        bytes[] memory creationCodes = new bytes[](27);
-        bytes[] memory constructorArgs = new bytes[](27);
+        names = new string[](31);
+        addresses = new address[](31);
+        bytes[] memory creationCodes = new bytes[](31);
+        bytes[] memory constructorArgs = new bytes[](31);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -168,11 +172,27 @@ contract DeployLaws is Script {
         creationCodes[26] = type(SnapToGov_CheckSnapExists).creationCode;
         constructorArgs[26] = abi.encode(router);
 
+        names[27] = "SnapToGov_CheckSnapPassed";
+        creationCodes[27] = type(SnapToGov_CheckSnapPassed).creationCode;
+        constructorArgs[27] = abi.encode(router);
+
+        names[28] = "SnapToGov_CreateGov";
+        creationCodes[28] = type(SnapToGov_CreateGov).creationCode;
+        constructorArgs[28] = abi.encode("SnapToGov_CreateGov");
+
+        names[29] = "SnapToGov_CancelGov";
+        creationCodes[29] = type(SnapToGov_CancelGov).creationCode;
+        constructorArgs[29] = abi.encode("SnapToGov_CancelGov");
+
+        names[30] = "SnapToGov_ExecuteGov";
+        creationCodes[30] = type(SnapToGov_ExecuteGov).creationCode;
+        constructorArgs[30] = abi.encode("SnapToGov_ExecuteGov");
+
         // console2.log("router2", router);
 
         for (uint256 i = 0; i < creationCodes.length; i++) {
         //    console2.log("router", router);
-           addresses[i] = deployLaw(creationCodes[i], constructorArgs[i], names[i]);
+           addresses[i] = deployLaw(creationCodes[i], constructorArgs[i]);
         }
     }
 
@@ -180,7 +200,7 @@ contract DeployLaws is Script {
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //
     //////////////////////////////////////////////////////////////
-    function deployLaw(bytes memory creationCode, bytes memory constructorArgs, string memory name) public returns (address) {
+    function deployLaw(bytes memory creationCode, bytes memory constructorArgs) public returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(constructorArgs));
         address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
 
@@ -200,6 +220,5 @@ contract DeployLaws is Script {
             // console2.log(string.concat(name, " deployed at: "), computedAddress);
             return computedAddress;
         }
-        
     }
 }

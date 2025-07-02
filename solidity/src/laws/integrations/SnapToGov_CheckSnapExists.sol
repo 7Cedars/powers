@@ -51,13 +51,7 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         bytes32 donID;
     }
 
-    struct SnapshotProposal {
-        string[] choices;
-        uint256[] scores;
-        string state;
-    }
-
-    struct ProposalRequest {
+    struct Request {
         bytes32 lawHash;
         string choice;
         address powers;
@@ -70,15 +64,12 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
     mapping(bytes32 lawHash => Data) public data;
-    mapping(string proposalId => SnapshotProposal) public snapshotProposal;
-    mapping(string proposalId => ProposalRequest) public proposalRequest;
+    mapping(string proposalId => Request) public requests;
 
     // see the example here: https://github.com/smartcontractkit/smart-contract-examples/blob/main/functions-examples/examples/4-post-data/source.js
     // see the script in chainlinkFunctionScript.js. It can be tried at https://functions.chain.link/playground. It works at time of writing. 
     // I used this website https://www.espruino.com/File%20Converter to convert the source code to a string.
-    string internal constant source = "const proposalId = args[0];\nconst url = 'https://hub.snapshot.org/graphql/';\nconst gqlRequest = Functions.makeHttpRequest({\n  url: url,\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\",\n  },\n  data: {\n    query: `{\\\n        proposal(id: \"${proposalId}\") { \\\n          choices \\\n          scores \\\n          state \\\n        } \\\n      }`,\n  },\n});\n\nconst gqlResponse = await gqlRequest;\nif (gqlResponse.error) throw Error(\"Request failed\");\n\nconst countryData = gqlResponse[\"data\"][\"data\"];\nconst result = countryData.proposal.choices; \nconsole.log(\"result: \", {result})\nreturn Functions.encodeString(JSON.stringify(result));\n\n// const result = {\n//   choices: countryData.proposal.choices,\n//   scores: countryData.proposal.scores,\n//   state: countryData.proposal.state\n// };\n";
-    
-    event Response(bytes32 indexed requestId, bytes response, bytes err);
+    string internal constant source = "const proposalId = args[0];\nconst choice = args[1]; \n\nconst url = 'https://hub.snapshot.org/graphql/';\nconst gqlRequest = Functions.makeHttpRequest({\n  url: url,\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\",\n  },\n  data: {\n    query: `{\\\n        proposal(id: \"${proposalId}\") { \\\n          choices \\\n          state \\\n        } \\\n      }`,\n  },\n});\n\nconst gqlResponse = await gqlRequest;\nif (gqlResponse.error) throw Error(\"Request failed\");\n\nconst snapshotData = gqlResponse[\"data\"][\"data\"];\nif (snapshotData.proposal.state.length == 0) return Functions.encodeString(\"Proposal not recognised.\");\nif (snapshotData.proposal.state != \"pending\") return Functions.encodeString(\"Proposal not pending.\");\nif (!snapshotData.proposal.choices.includes(choice)) return Functions.encodeString(\"Choice not present.\");\nreturn Functions.encodeString(\"true\");\n";
 
     /// @notice constructor of the law.
     constructor(address router) FunctionsClient(router) ConfirmedOwner(msg.sender) {  // if I can take owner out - do so. checks are handled through the Powers protocol. 
@@ -104,14 +95,13 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         });
         
         // Note how snapshotProposalId and a choice is linked to Targets, Values and CallDatas. 
-        inputParams = abi.encodePacked(
-            abi.encode(
+        inputParams = abi.encode(
                 "string ProposalId", 
                 "string Choice", 
                 "address[] Targets", 
                 "uint256[] Values", 
-                "bytes[] CallDatas"
-                )
+                "bytes[] CallDatas",
+                "string GovDescription"
         );
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
@@ -131,11 +121,13 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (string memory proposalId, string memory choice, , , ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[]));
+        (string memory proposalId, string memory choice, , , , ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         calldatas[0] = abi.encode(proposalId, powers, choice);
         stateChange = abi.encode(proposalId, powers, lawId, actionId, choice);
+
+        // console2.log("handleRequest: waypoint 0");
 
         return (actionId, targets, values, calldatas, stateChange);
     }
@@ -147,6 +139,8 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         args[0] = proposalId;
         args[1] = choice;
 
+        // console2.log("handleRequest: waypoint 1");
+
         // call to the oracle. 
         sendRequest(args, powers, lawId);
     }
@@ -154,7 +148,7 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         (string memory proposalId, address powers, uint16 lawId, uint256 actionId, string memory choice) = abi.decode(stateChange, (string, address, uint16, uint256, string));
         s_lastProposalId = proposalId;
-        proposalRequest[proposalId] = ProposalRequest({
+        requests[proposalId] = Request({
             lawHash: LawUtilities.hashLaw(powers, lawId),
             powers: powers,
             lawId: lawId,
@@ -181,6 +175,8 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         Data memory data_ = data[lawHash];
 
+        // console2.log("sendRequest: waypoint 0");
+
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source);
         // if (encryptedSecretsUrls.length > 0)
@@ -193,12 +189,14 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         // }
         if (args.length > 0) req.setArgs(args);
         // if (bytesArgs.length > 0) req.setBytesArgs(bytesArgs);
+        // console2.log("sendRequest: waypoint 1");
         s_lastRequestId = _sendRequest(
             req.encodeCBOR(),
             data_.subscriptionId,
             data_.gasLimit,
             data_.donID
         );
+        // console2.log("sendRequest: waypoint 2");
         return s_lastRequestId;
     }
 
@@ -214,11 +212,14 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         bytes memory response,
         bytes memory err
     ) internal override {
+        // console2.log("fulfillRequest: waypoint 0");
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
         s_lastResponse = response;
         s_lastError = err;
+
+        // console2.log("fulfillRequest: waypoint 1");
 
         if (err.length > 0) {
             revert(string(err));
@@ -236,9 +237,10 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
         }
 
         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
-        ProposalRequest memory proposalRequest_ = proposalRequest[s_lastProposalId];
-        IPowers(payable(proposalRequest_.powers)).fulfill(proposalRequest_.lawId, proposalRequest_.actionId, targets, values, calldatas);
-        emit Response(requestId, s_lastResponse, s_lastError);
+        Request memory request_ = requests[s_lastProposalId];
+        // console2.log("fulfillRequest: waypoint 0");
+        // console2.log(request_.actionId);
+        IPowers(payable(request_.powers)).fulfill(request_.lawId, request_.actionId, targets, values, calldatas);
     }
 
     /////////////////////////////////
@@ -250,10 +252,6 @@ contract SnapToGov_CheckSnapExists is Law, FunctionsClient, ConfirmedOwner {
 
     function getRouter() public view returns (address) {
         return address(i_router);
-    }
-
-    function getSnapshotProposal(string memory proposalId) public view returns (SnapshotProposal memory snapshotProposal_) {
-        snapshotProposal_ = snapshotProposal[proposalId];
     }
 }
 

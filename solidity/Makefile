@@ -16,7 +16,7 @@ remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gi
 # Install modules
 install :; forge install foundry-rs/forge-std@v1.9.1 --no-commit && \
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit && \
-	forge install smartcontractkit/chainlink --no-git --no-commit && \
+	forge install smartcontractkit/chainlink-evm --no-git --no-commit && \
 	forge install smartcontractkit/foundry-chainlink-toolkit --no-git --no-commit
 # forge install Hats-Protocol/hats-protocol@v1.0 --no-commit
 
@@ -43,6 +43,8 @@ ARB_SEPOLIA_TEST_ARGS := --fork-url $(ARB_SEPOLIA_RPC_URL)
 SEPOLIA_DEPLOY_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier-url https://api.etherscan.io/v2/api?chainId=11155111 --verify -vvvv
 ARB_SEPOLIA_DEPLOY_ARGS := --rpc-url $(ARB_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --chain-id 421614 --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier-url https://api.etherscan.io/v2/api?chainId=421614 --verify -vvvv
 OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier-url https://api.etherscan.io/v2/api?chainId=11155420 --verify -vvvv
+OPT_DEPLOY_ARGS := --rpc-url $(OPT_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier-url https://api.etherscan.io/v2/api?chainId=10 --verify -vvvv
+
 
 anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
@@ -68,8 +70,12 @@ optSepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101
 optSepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(OPT_SEPOLIA_DEPLOY_ARGS)
-optSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers2.s.sol:DeployBeyondPowers2 $(OPT_SEPOLIA_DEPLOY_ARGS)
+optSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers.s.sol:DeployBeyondPowers $(OPT_SEPOLIA_DEPLOY_ARGS)
+
+optDeployMockVotes :; forge script script/DeployMockVotes.s.sol:DeployMockVotes $(OPT_DEPLOY_ARGS)
+
 
 arbSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 421614 --etherscan-api-key $(ARBISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch
 optSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 11155420 --etherscan-api-key $(OPTISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch
+
 
