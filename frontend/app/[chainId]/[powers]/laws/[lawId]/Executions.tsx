@@ -186,43 +186,37 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
                       >
                         {/* Executed at */}
                         <td className="px-2 py-3 w-32">
-                          <Button
-                            showBorder={true}
-                            role={Number(roleId)}
-                            onClick={() => handleSelectAction(executionData.actionId)}
-                            align={0}
-                            selected={true}
-                            filled={false}
-                            size={0}
-                          > 
-                            <div className="text-xs whitespace-nowrap py-1 px-1">
-                              {(() => {
-                                // Ensure consistent block number format for lookup
-                                const executedAtBlock = typeof executionData.execution === 'bigint' 
-                                  ? executionData.execution 
-                                  : BigInt(executionData.execution as unknown as string)
-                                
-                                const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
-                                const timestamp = timestampData?.timestamp
-                                
-                                if (!timestamp || timestamp <= 0n) {
-                                  return 'Loading...'
-                                }
-                                
-                                const timestampNumber = Number(timestamp)
-                                if (isNaN(timestampNumber) || timestampNumber <= 0) {
-                                  return 'Invalid date'
-                                }
-                                
-                                try {
-                                  return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
-                                } catch (error) {
-                                  console.error('Date formatting error:', error, { timestamp, timestampNumber })
-                                  return 'Date error'
-                                }
-                              })()}
-                            </div>
-                          </Button>
+                          <a
+                            href="#"
+                            onClick={e => { e.preventDefault(); handleSelectAction(executionData.actionId); }}
+                            className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
+                          >
+                            {(() => {
+                              // Ensure consistent block number format for lookup
+                              const executedAtBlock = typeof executionData.execution === 'bigint' 
+                                ? executionData.execution 
+                                : BigInt(executionData.execution as unknown as string)
+                              
+                              const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
+                              const timestamp = timestampData?.timestamp
+                              
+                              if (!timestamp || timestamp <= 0n) {
+                                return 'Loading...'
+                              }
+                              
+                              const timestampNumber = Number(timestamp)
+                              if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                return 'Invalid date'
+                              }
+                              
+                              try {
+                                return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                              } catch (error) {
+                                console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                return 'Date error'
+                              }
+                            })()}
+                          </a>
                         </td>
                       
                         {/* Executioner */}

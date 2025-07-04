@@ -122,7 +122,7 @@ contract SnapToGov_CheckSnapPassed is Law, FunctionsClient, ConfirmedOwner {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         (string memory proposalId, string memory choice, , , , ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
         calldatas[0] = abi.encode(proposalId, powers, choice);
         stateChange = abi.encode(proposalId, powers, lawId, actionId, choice);
 
@@ -218,7 +218,7 @@ contract SnapToGov_CheckSnapPassed is Law, FunctionsClient, ConfirmedOwner {
         }
 
         // (string[] memory choices, uint256[] memory scores, string memory state) = abi.decode(s_lastResponse, (string[], uint256[], string));
-        (string memory reply) = abi.decode(s_lastResponse, (string));
+        (string memory reply) = abi.decode(abi.encode(s_lastResponse), (string));
 
         if (keccak256(abi.encodePacked(reply)) != keccak256(abi.encodePacked("true"))) {
             revert(reply);

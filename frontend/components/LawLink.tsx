@@ -32,7 +32,7 @@ export const LawLink = ({lawId, powers}: {lawId: bigint, powers: Powers}) => {
               <div className = "w-full flex flex-col justify-center items-center p-2"> 
                   <Button
                       showBorder={true}
-                      role={powers?.laws?.find(law => law.index == lawId)?.conditions?.allowedRole != undefined ? parseRole(powers?.laws?.find(law => law.index == lawId)?.conditions?.allowedRole) : 0}
+                      role={6}
                       onClick={() => router.push(`/${chainId}/${powers.contractAddress}/laws/${lawId}`)}
                       align={0}
                       selected={false}

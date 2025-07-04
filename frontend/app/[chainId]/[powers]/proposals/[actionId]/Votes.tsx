@@ -226,7 +226,7 @@ export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
                         href={`${supportedChain?.blockExplorers?.default.url}/tx/${vote.transactionHash}#code`} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="truncate text-blue-500 hover:text-blue-700 text-xs font-mono underline"
+                        className="truncate text-slate-600 hover:text-slate-700 text-xs font-mono underline"
                       >
                         {vote.transactionHash.slice(0, 6)}...{vote.transactionHash.slice(-4)}
                       </a>

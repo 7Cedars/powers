@@ -5,23 +5,17 @@ import { useActionDataStore, useActionStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useParams, useRouter } from "next/navigation";
 import { useLaw } from "@/hooks/useLaw";
-import { parseRole, shorterDescription } from "@/utils/parsers";
 import { Law, Powers, Action, Status } from "@/context/types";
 import { StaticInput } from "@/components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { hashAction } from "@/utils/hashAction";
-
-const roleColor = [  
-  "#007bff",
-  "#dc3545",
-  "#ffc107",
-  "#6f42c1",
-  "#28a745",
-  "#fd7e14",
-  "#17a2b8",
-]
+import HeaderLaw from '@/components/HeaderLaw';
+import { useChains } from 'wagmi';
+import { parseChainId } from '@/utils/parsers';
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
+import { TitleText } from "@/components/StandardFonts";
 
 export function ProposeBox({law, powers, proposalExists, authorised, onCheck, status}: {law?: Law, powers: Powers, status: Status, proposalExists: boolean, authorised: boolean, onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void}) {
   const action = useActionStore(); 
@@ -31,6 +25,8 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
   const { actionData } = useActionDataStore();
   const router = useRouter();
   const { powers: addressPowers, chainId } = useParams<{ powers: string, chainId: string }>()  
+  const chains = useChains();
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId));
 
   console.log("@ProposeBox: waypoint 0", {actionData})
 
@@ -50,15 +46,18 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border-2 mt-2 rounded-md overflow-hidden`} style={{ borderColor: roleColor[parseRole(law?.conditions?.allowedRole ?? 0n) % roleColor.length] }}>
-      {/* title  */}
-      <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-        <div className="text-md font-bold text-slate-800 break-all w-fit">
-          📋 #{law?.index}: {shorterDescription(law?.nameDescription, "short")}
-        </div>
-        <div className="text-sm text-slate-800 break-all w-fit">
-          {shorterDescription(law?.nameDescription, "long")}
-        </div>
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border-2 rounded-md border-slate-600 overflow-hidden`}>
+      {/* title - replaced with HeaderLaw */}
+      <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+        <HeaderLaw
+          powers={powers}
+          lawName={law?.nameDescription ? `#${Number(law?.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law?.index)}`}
+          roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
+          numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
+          description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
+          contractAddress={law?.lawAddress || ''}
+          blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+        />
       </div>
 
       {/* static form */}
@@ -108,7 +107,7 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
         <Button 
             size={0} 
             showBorder={true} 
-            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+            role={6}
             filled={false}
             selected={true}
             onClick={() => 

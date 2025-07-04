@@ -7,6 +7,7 @@ import { usePowers } from "@/hooks/usePowers";
 import { useBlockNumber } from "wagmi";
 import { Button } from "@/components/Button";
 import { Powers } from "@/context/types";
+import { TitleText } from "@/components/StandardFonts";
 
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
@@ -22,7 +23,12 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
 
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center py-20 ps-2 pe-12">
+    <main className="w-full h-fit flex flex-col justify-start items-center pt-16 ps-4 pe-12">
+      <TitleText
+        title="Proposals"
+        subtitle="View and manage the proposals for your Powers."
+        size={2}
+      />
       <ProposalList powers={powers} status={status} />
       {/* block number */}
       

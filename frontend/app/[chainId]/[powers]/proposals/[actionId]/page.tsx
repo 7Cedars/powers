@@ -21,6 +21,7 @@ import { wagmiConfig } from "@/context/wagmiConfig";
 import { LawLink } from "@/components/LawLink";
 import { useReadContracts } from "wagmi";
 import { useAction } from "@/hooks/useAction";
+import { TitleText } from "@/components/StandardFonts";
 
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
@@ -57,7 +58,12 @@ const Page = () => {
   }, [actionData])
 
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center gap-4 pt-16 overflow-x-scroll ps-4 pe-12 pb-20">
+    <main className="w-full h-fit flex flex-col justify-start items-center gap-3 pt-16 overflow-x-scroll ps-4 pe-12 pb-20">
+      <TitleText 
+        title="Vote"
+        subtitle="Vote on a proposal."
+        size={2}
+      />
       { 
         actionData?.lawId && <ProposalBox 
         powers = {powers} 

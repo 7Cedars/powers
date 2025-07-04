@@ -97,10 +97,10 @@ contract DeployBeyondPowers is Script {
         // A Law to check if a proposal and choice exists, and linking it to targets[], values[], calldatas[].
         conditions.allowedRole = 1; // executioners can use this law
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Does proposal exist?: Check if a proposal and choice exists at the 7cedars.eth Snapshot space.",
+            nameDescription: "Does proposal exist?: Check if a proposal and choice exists at the hvax.eth Snapshot space.",
             targetLaw: parseLawAddress(26, "SnapToGov_CheckSnapExists"),
             config: abi.encode(
-                "7cedars.eth", // spaceId
+                "hvax.eth", // spaceId
                 subscriptionId,
                 gasLimit,
                 donID
@@ -113,10 +113,10 @@ contract DeployBeyondPowers is Script {
         conditions.allowedRole = 1; // executioners can use this law
         conditions.needCompleted = 1;
         lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Did choice pass?: Check if a proposal and choice passed at the 7cedars.eth Snapshot space.",
+            nameDescription: "Did choice pass?: Check if a proposal and choice passed at the hvax.eth Snapshot space.",
             targetLaw: parseLawAddress(27, "SnapToGov_CheckSnapPassed"),
             config: abi.encode(
-                "7cedars.eth", // spaceId
+                "hvax.eth", // spaceId
                 subscriptionId,
                 gasLimit,
                 donID

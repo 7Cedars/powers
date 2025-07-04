@@ -8,15 +8,18 @@ import { SectionText } from "@/components/StandardFonts";
 import { useChainId, useChains } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { parseChainId, parseLawError, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
-import { Checks, DataType, Execution, InputType, Law, LawSimulation } from "@/context/types";
+import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers } from "@/context/types";
 import { DynamicInput } from "@/app/[chainId]/[powers]/laws/[lawId]/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
 import { useParams, useRouter } from "next/navigation";
 import { hashAction } from "@/utils/hashAction";
+import HeaderLaw from '@/components/HeaderLaw';
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 
 type LawBoxProps = {
+  powers: Powers;
   law: Law;
   checks: Checks;
   params: {
@@ -52,7 +55,7 @@ const roleColor = [
   "#17a2b8",
 ]
 
-export function LawBox({law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute}: LawBoxProps) {
+export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute}: LawBoxProps) {
   const action = useActionStore();
   const error = useErrorStore()
   const router = useRouter();
@@ -88,43 +91,33 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
 
   return (
     <main className="w-full h-full">
-      <section className={`w-full h-full bg-slate-50 border-2 rounded-md overflow-hidden`} style={{ borderColor: roleColor[parseRole(law?.conditions?.allowedRole) % roleColor.length] }}>
-      {/* title  */}
-      <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-            <div className="text-md font-bold text-slate-800 break-all w-fit">
-            📋 #{law?.index}: {shorterDescription(law?.nameDescription, "short")}
-            </div>
-            <div className="text-sm text-slate-800 break-all w-fit">
-              {shorterDescription(law?.nameDescription, "long")}
-            </div>
-         <a
-            href={`${supportedChain?.blockExplorers?.default.url}/address/${law.lawAddress}#code`} target="_blank" rel="noopener noreferrer"
+      <section className={`w-full h-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`} >
+      {/* title - replaced with HeaderLaw */}
+      <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+        <HeaderLaw
+          powers={powers}
+          lawName={law?.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`}
+          roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
+          numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
+          description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
+          contractAddress={law.lawAddress}
+          blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+        />
+        {selectedExecution && (
+          <a
+            href={`${supportedChain?.blockExplorers?.default.url}/tx/${selectedExecution.log.transactionHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full"
           >
-          <div className="flex flex-row gap-1 items-center justify-start">
-            <div className="text-left text-xs text-slate-500 break-all w-fit">
-              Law: {law.lawAddress }
-            </div> 
-              <ArrowUpRightIcon
-                className="w-4 h-4 text-slate-500"
-                />
+            <div className="flex flex-row gap-1 items-center justify-start mt-1">
+              <div className="text-left text-sm text-slate-500 break-all w-fit">
+                Tx: {selectedExecution.log.transactionHash}
+              </div>
+              <ArrowUpRightIcon className="w-4 h-4 text-slate-500" />
             </div>
           </a>
-          {selectedExecution && 
-            <a
-            href={`${supportedChain?.blockExplorers?.default.url}/tx/${selectedExecution.log.transactionHash}`} target="_blank" rel="noopener noreferrer"
-              className="w-full"
-            >
-            <div className="flex flex-row gap-1 items-center justify-start">
-              <div className="text-left text-sm text-slate-500 break-all w-fit">
-                Tx: {selectedExecution.log.transactionHash }
-              </div> 
-                <ArrowUpRightIcon
-                  className="w-4 h-4 text-slate-500"
-                  />
-              </div>
-            </a>
-          }
+        )}
       </div>
 
       {/* dynamic form */}
@@ -205,7 +198,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           <Button 
             size={0} 
             showBorder={true} 
-            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+            role={6}
             filled={false}
             selected={true}
             onClick={(e) => {
@@ -227,7 +220,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
           <div className="w-full">
             <Button 
               size={0} 
-              role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+              role={6}
               onClick={() => {
                 if (checks?.proposalExists) {
                   // console.log("@LawBox: Proposal section", {law, action})
@@ -264,7 +257,7 @@ export function LawBox({law, checks, params, status, simulation, selectedExecuti
         <div className="w-full h-fit px-6 py-2 pb-6">
           <Button 
             size={0} 
-            role={law?.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(law?.conditions?.allowedRole)}
+            role={6}
             onClick={() => {
               if (checks?.authorised) {
                 onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)

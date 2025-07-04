@@ -5,6 +5,7 @@ import { LogsList } from "./LogsList";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { Powers } from "@/context/types";
+import { TitleText } from "@/components/StandardFonts";
 
 export default function Page() { 
   const { powers: addressPowers} = useParams<{ powers: string }>()  
@@ -17,7 +18,12 @@ export default function Page() {
   }, [addressPowers, fetchPowers])
 
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center py-20 ps-2 pe-12">
+    <main className="w-full h-fit flex flex-col justify-start items-center pb-20 pt-16 ps-4 pe-12">
+      <TitleText
+        title="Logs"
+        subtitle="View the logs of the actions executed by your Powers."
+        size={2}
+      />
       {powers && <LogsList powers={powers} status={status} onRefresh={() => {
         fetchExecutedActions(powers as Powers)
       }}/>}

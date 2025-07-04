@@ -55,7 +55,7 @@ export function Footer() {
         <div className="w-full flex flex-row gap-3 md:justify-end justify-center items-end snap-end">
             <div className="flex flex-col gap-3 justify-start md:items-end items-center pb-12">
             <Image 
-            src='/logo.png' 
+            src='/logo1_notext.png' 
             width={48}
             height={48}
             alt="Logo Separated Powers"

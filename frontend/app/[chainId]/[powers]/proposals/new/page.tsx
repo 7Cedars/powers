@@ -9,6 +9,7 @@ import { ProposeBox } from "./ProposeBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { useChecks } from "@/hooks/useChecks";
 import { LawLink } from "@/components/LawLink";
+import { TitleText } from "@/components/StandardFonts";
 
 const Page = () => {
   const { powers, fetchPowers, status } = usePowers()
@@ -33,8 +34,13 @@ const Page = () => {
   }
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16 overflow-auto ps-4 pe-12 pb-20">
-        <div className="w-full flex my-2 min-h-fit"> 
+    <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16">
+        <TitleText 
+          title="Propose"
+          subtitle="Propose a new action that other role holders can vote on."
+          size={2}
+        />
+        <div className="w-full flex min-h-fit"> 
           { powers && law && <ProposeBox 
               law = {law} 
               powers = {powers as Powers} 
