@@ -139,43 +139,37 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
                 >
                   {/* Vote End Date */}
                   <td className="px-2 py-3 w-32">
-                      <Button
-                        showBorder={true}
-                        role={parseRole(item.law.conditions?.allowedRole || 0n)}
-                        onClick={() => handleSelectProposal(item)}
-                        align={0}
-                        selected={true}
-                        filled={false}
-                        size={0}
-                      > 
-                        <div className="text-xs whitespace-nowrap py-1 px-1">
-                          {(() => {
-                            // Ensure consistent block number format for lookup
-                            const voteEndBlock = typeof item.proposal.voteEnd === 'bigint' 
-                              ? item.proposal.voteEnd 
-                              : BigInt(item.proposal.voteEnd as unknown as string)
-                            
-                            const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
-                            const timestamp = timestampData?.timestamp
-                            
-                            if (!timestamp || timestamp <= 0n) {
-                              return 'Loading...'
-                            }
-                            
-                            const timestampNumber = Number(timestamp)
-                            if (isNaN(timestampNumber) || timestampNumber <= 0) {
-                              return 'Invalid date'
-                            }
-                            
-                            try {
-                              return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
-                            } catch (error) {
-                              console.error('Date formatting error:', error, { timestamp, timestampNumber })
-                              return 'Date error'
-                            }
-                          })()}
-                        </div>
-                      </Button>
+                    <a
+                      href="#"
+                      onClick={e => { e.preventDefault(); handleSelectProposal(item); }}
+                      className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
+                    >
+                      {(() => {
+                        // Ensure consistent block number format for lookup
+                        const voteEndBlock = typeof item.proposal.voteEnd === 'bigint' 
+                          ? item.proposal.voteEnd 
+                          : BigInt(item.proposal.voteEnd as unknown as string)
+                        
+                        const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                        const timestamp = timestampData?.timestamp
+                        
+                        if (!timestamp || timestamp <= 0n) {
+                          return 'Loading...'
+                        }
+                        
+                        const timestampNumber = Number(timestamp)
+                        if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                          return 'Invalid date'
+                        }
+                        
+                        try {
+                          return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                        } catch (error) {
+                          console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                          return 'Date error'
+                        }
+                      })()}
+                    </a>
                   </td>
                   
                   {/* Law */}

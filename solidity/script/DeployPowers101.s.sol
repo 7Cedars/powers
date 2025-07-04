@@ -142,7 +142,7 @@ contract DeployPowers101 is Script {
         conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
         conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "Propose an action: Propose an action that can later be executed by Delegates.",
+            nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions

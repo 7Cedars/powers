@@ -58,7 +58,7 @@ const NavigationBar = () => {
                 </div> 
             </button>
 
-            <button 
+            {/* <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}/laws`)}
               aria-selected={path == `/${chainId}/${addressPowers}/laws`} 
               className={`${layoutButton} hidden md:flex`}
@@ -69,7 +69,7 @@ const NavigationBar = () => {
                   />
                   <p className={layoutText}> Laws </p>      
                 </div> 
-            </button>
+            </button> */}
 
             <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}/proposals`)}
@@ -97,7 +97,7 @@ const NavigationBar = () => {
                 </div> 
             </button>
 
-            <button 
+            {/* <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}/roles`)}
               aria-selected={path == `/${chainId}/${addressPowers}/roles`} 
               className={layoutButton}
@@ -108,7 +108,7 @@ const NavigationBar = () => {
                   />
                   <p className={layoutText}> Roles </p>
                 </div> 
-            </button>
+            </button> */}
 
             <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}/treasury`)}

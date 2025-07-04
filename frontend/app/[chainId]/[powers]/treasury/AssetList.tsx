@@ -28,9 +28,9 @@ export function AssetList({powers, status: statusPowers}: {powers: Powers | unde
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* Header - matching LogsList.tsx structure */}
-      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4">
-        <div className="text-slate-900 text-center font-bold text-lg">
-          Treasury
+      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
+        <div className="text-slate-800 text-center text-lg">
+          Assets
         </div>
         <div className="flex flex-row gap-2 items-center">
           {supportedChain && powers && (

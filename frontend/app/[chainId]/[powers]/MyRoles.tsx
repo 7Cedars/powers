@@ -81,25 +81,9 @@ export function MyRoles({hasRoles, authenticated, powers, status}: MyRolesProps 
                     >
                       {/* Role Name */}
                       <td className="px-2 py-3 w-auto">
-                        {role.role === 0n ? (
-                          <div className="text-xs text-slate-600">
-                            Public
-                          </div>
-                        ) : (
-                          <Button
-                            showBorder={true}
-                            role={parseRole(role.role)}
-                            onClick={() => handleRoleClick(role)}
-                            align={0}
-                            selected={true}
-                            filled={false}
-                            size={0}
-                          >
-                            <div className="text-xs py-1 px-1">
-                              {powers ? bigintToRole(role.role, powers) : 'Loading...'}
-                            </div>
-                          </Button>
-                        )}
+                        <div className="text-xs text-slate-600">
+                          {role.role === 0n ? 'Public' : (powers ? bigintToRole(role.role, powers) : 'Loading...')}
+                        </div>
                       </td>
                       
                       {/* Since Date */}

@@ -13,6 +13,7 @@ import { LoadingBox } from "@/components/LoadingBox";
 import { Executions } from "./Executions";
 import { useChecks } from "@/hooks/useChecks";
 import { LawLink } from "@/components/LawLink";
+import { TitleText } from "@/components/StandardFonts";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
@@ -176,7 +177,15 @@ const Page = () => {
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16">
-        <div className="w-full flex my-2 min-h-fit ps-4 pe-12"> 
+        {/* title */}
+        <div className="w-full flex flex-col justify-start items-center px-4">
+          <TitleText 
+            title="Act"
+            subtitle="Create a new action. Execution is restricted by the conditions of the law."
+            size={2}
+          />
+        </div>
+        <div className="w-full flex min-h-fit ps-4 pe-12"> 
           {
           statusPowers == "pending" ?
           <div className = "w-full flex flex-col justify-center items-center p-4 border border-slate-300 bg-slate-50 rounded-md"> 
@@ -185,6 +194,7 @@ const Page = () => {
           :   
           law && 
           <LawBox 
+              powers = {powers as Powers}
               law = {law}
               checks = {checks as Checks} 
               params = {law.params || []}

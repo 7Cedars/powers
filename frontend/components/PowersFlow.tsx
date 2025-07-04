@@ -26,8 +26,7 @@ import { parseRole } from '@/utils/parsers'
 import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
 import { useBlocks } from '@/hooks/useBlocks'
 import { parseChainId } from '@/utils/parsers'
-import { getConstants } from '@/context/constants'
-import { useBlockNumber } from 'wagmi'
+import { useBlockNumber, useChains } from 'wagmi'
 import {
   CalendarDaysIcon,
   QueueListIcon,
@@ -56,36 +55,27 @@ import { powersAbi } from '@/context/abi'
 import { usePowers } from '@/hooks/usePowers'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { NodeStatusIndicator } from '@/components/node-status-indicator'
+import HeaderLaw from '@/components/HeaderLaw'
 
-// Role colors matching LawBox.tsx color scheme
-const ROLE_COLORS = [
-  '#2563EB', // blue-600
-  '#DC2626', // red-600  
-  '#D97706', // yellow-600 (amber-600 for better contrast)
-  '#9333EA', // purple-600
-  '#16A34A', // green-600
-  '#EA580C', // orange-600
-  '#475569', // slate-600
-]
-
-const ROLE_BORDER_COLORS = [
-  'border-blue-600',
-  'border-red-600', 
-  'border-yellow-600',
-  'border-purple-600',
-  'border-green-600',
-  'border-orange-600',
-  'border-slate-600',
-]
+// Default colors for all nodes
+const DEFAULT_NODE_COLOR = '#475569' // slate-600
+const DEFAULT_BORDER_CLASS = 'border-slate-600'
+const EXECUTED_BORDER_CLASS = 'border-green-600'
 
 function getRoleColor(roleId: bigint): string {
-  const roleIndex = parseRole(roleId) % ROLE_COLORS.length
-  return ROLE_COLORS[roleIndex]
+  return DEFAULT_NODE_COLOR
 }
 
 function getRoleBorderClass(roleId: bigint): string {
-  const roleIndex = parseRole(roleId) % ROLE_BORDER_COLORS.length
-  return ROLE_BORDER_COLORS[roleIndex]
+  return DEFAULT_BORDER_CLASS
+}
+
+function getNodeBorderClass(law: Law, checks: Checks | undefined): string {
+  // Check if the action has been successfully executed
+  if (checks && checks.actionNotCompleted === false) {
+    return EXECUTED_BORDER_CLASS
+  }
+  return DEFAULT_BORDER_CLASS
 }
 
 interface LawSchemaNodeData {
@@ -105,9 +95,10 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   const { actionData } = useActionDataStore()
   const { timestamps, fetchTimestamps } = useBlocks()
   const chainId = useParams().chainId as string
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
-  const constants = getConstants(parseChainId(chainId) as number)
-  
+
   // Fetch timestamps for the current law's action data
   React.useEffect(() => {
     const currentLawAction = actionData.get(String(law.index))
@@ -450,9 +441,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   const allChecksPassing = checkItems.filter(item => item.status !== undefined).every(item => item.status === true)
   const anyChecksFailing = checkItems.filter(item => item.status !== undefined).some(item => item.status === false)
 
-  const roleBorderClass = law.conditions 
-    ? getRoleBorderClass(law.conditions.allowedRole)
-    : 'border-slate-600'
+  const roleBorderClass = getNodeBorderClass(law, checks)
+
+  // Helper values for HeaderLaw
+  const lawName = law.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`;
+  const roleName = law.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : '';
+  const numHolders = law.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers) : '';
+  const description = law.nameDescription ? law.nameDescription.split(':')[1] || '' : '';
+  const contractAddress = law.lawAddress;
+  const blockExplorerUrl = supportedChain?.blockExplorers?.default.url;
 
   return (
     <NodeStatusIndicator status={ loadingChains.includes(String(law.index)) ? checksStatus as "loading" | "success" | "error" | "initial" : "success"}>
@@ -460,32 +457,17 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
         onClick={handleClick}
       >        
-        {/* Law Header - Database Table Style */}
-        <div 
-          className="px-4 py-3 border-b border-gray-300 bg-slate-100"
-          style={{ borderBottomColor: roleColor }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm mb-1 break-words text-slate-800">
-                📋 #{Number(law.index)}{law.nameDescription ? `: ${law.nameDescription.split(':')[0]}` : ""}
-              </div>
-              
-              <div className="text-xs text-gray-700 mb-1 font-medium break-words">
-                {law.nameDescription ? `${law.nameDescription.split(':')[1]}` : ""}
-                </div>
-              
-              <div className="flex items-center space-x-4 text-xs text-gray-600">
-                {law.conditions && powers && (
-                  <>
-                    <p>{`Role: ${bigintToRole(law.conditions.allowedRole, powers)} (${bigintToRoleHolders(law.conditions.allowedRole, powers)}) `}</p>
-                  </>
-                )}
-              </div>
-            </div>
-            
-          
-          </div>
+        {/* Law Header - replaced with HeaderLaw */}
+        <div className="px-4 py-3 border-b border-gray-300 bg-slate-100" style={{ borderBottomColor: roleColor }}>
+          <HeaderLaw
+            powers={powers as Powers}
+            lawName={lawName}
+            roleName={roleName}
+            numHolders={numHolders}
+            description={description}
+            contractAddress={contractAddress}
+            blockExplorerUrl={blockExplorerUrl}
+          />
         </div>
         
         {/* Checks Section - Database Rows Style */}
@@ -1220,19 +1202,14 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       : undefined
     
     powers.activeLaws.forEach((law, lawIndex) => {
-      const roleColor = law.conditions 
-        ? getRoleColor(law.conditions.allowedRole)
-        : '#475569' // slate-600 as fallback
+      const roleColor = DEFAULT_NODE_COLOR
       
-      const roleBorderClass = law.conditions 
-        ? getRoleBorderClass(law.conditions.allowedRole)
-        : 'border-slate-600'
+      // Get checks for this law
+      const checks = chainChecks?.get(String(law.index))
+      const roleBorderClass = getNodeBorderClass(law, checks)
       
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
-      
-      // Get checks for this law
-      const checks = chainChecks?.get(lawId)
       
       // Create law schema node
       nodes.push({

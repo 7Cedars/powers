@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { setAction, setRole, useRoleStore  } from "@/context/store";
+import { setAction } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useRouter, useParams } from "next/navigation";
 import { Powers, Action } from "@/context/types";
@@ -18,11 +18,10 @@ import { useChecks } from "@/hooks/useChecks";
 export function ProposalList({powers, status, onRefresh}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
   const {getProposalsState} = useProposal()
-  const { deselectedRoles } = useRoleStore()
-  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
+  const { timestamps, fetchTimestamps } = useBlocks()
   const { chainId } = useParams<{ chainId: string }>()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']; 
-  const { timestamps, fetchTimestamps } = useBlocks()
+  const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   
   useEffect(() => {
     if (powers) {
@@ -50,19 +49,6 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
     }
   }, [powers?.proposals])
 
-  const handleRoleSelection = (role: bigint) => {
-    let newDeselection: bigint[] = []
-
-    if (deselectedRoles?.includes(role)) {
-      newDeselection = deselectedRoles?.filter((oldRole: bigint) => oldRole != role)
-    } else if (deselectedRoles != undefined) {
-      newDeselection = [...deselectedRoles, role]
-    } else {
-      newDeselection = [role]
-    }
-    setRole({deselectedRoles: newDeselection})
-  };
-
   const handleStatusSelection = (proposalStatus: string) => {
     let newDeselection: string[] = []
     if (deselectedStatus.includes(proposalStatus)) {
@@ -76,24 +62,11 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* Header with roles - matching LogsList.tsx structure */}
-      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll">
-        <div className="text-slate-900 text-center font-bold text-lg">
-          Proposals
-        </div>
-        {powers?.roles?.map((role, i) => 
-            <div className="flex flex-row w-full min-w-fit h-8" key={i}>
-            <Button
-              size={0}
-              showBorder={true}
-              role={role == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(role)}
-              selected={!deselectedRoles?.includes(BigInt(role))}
-              onClick={() => handleRoleSelection(BigInt(role))}
-            >
-              {bigintToRole(role, powers)} 
-            </Button>
-            </div>
-        )}
-        {onRefresh && (
+      {/* <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll"> */}
+        {/* <div className="text-slate-800 text-center text-lg">
+          Proposals history
+        </div> */}
+        {/* {onRefresh && (
           <div className="w-8 h-8">
             <Button
               size={0}
@@ -103,11 +76,11 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
               <ArrowPathIcon className="w-5 h-5" />
             </Button>
           </div>
-        )}
-      </div>
+        )} */}
+      {/* </div> */}
 
       {/* Status filter bar */}
-      <div className="w-full flex flex-row gap-6 justify-between items-center py-2 overflow-y-scroll border-b border-slate-200 px-4">
+      <div className="w-full flex flex-row gap-6 justify-between items-center py-4 overflow-y-scroll border-b border-slate-200 px-4">
       {
         possibleStatus.map((option, i) => {
           return (
@@ -158,7 +131,6 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
                       return (
                         law && 
                         law.conditions?.allowedRole != undefined && 
-                        !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)) && 
                         !deselectedStatus.includes(String(proposal.state) ? String(proposal.state) : '9') 
                         ? 
                         <tr
@@ -167,45 +139,37 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
                         >
                           {/* Vote ends */}
                           <td className="ps-4 px-2 py-3 w-32">
-                            <Button
-                              showBorder={true}
-                              role={parseRole(law.conditions?.allowedRole)}
-                              onClick={() => {
-                                router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`);
-                              }}
-                              align={0}
-                              selected={true}
-                              filled={false}
-                              size={0}
-                            > 
-                              <div className="text-xs whitespace-nowrap py-1 px-1">
-                                {(() => {
-                                  // Ensure consistent block number format for lookup
-                                  const voteEndBlock = typeof proposal.voteEnd === 'bigint' 
-                                    ? proposal.voteEnd 
-                                    : BigInt(proposal.voteEnd as unknown as string)
-                                  
-                                  const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
-                                  const timestamp = timestampData?.timestamp
-                                  
-                                  if (!timestamp || timestamp <= 0n) {
-                                    return 'Loading...'
-                                  }
-                                  
-                                  const timestampNumber = Number(timestamp)
-                                  if (isNaN(timestampNumber) || timestampNumber <= 0) {
-                                    return 'Invalid date'
-                                  }
-                                  
-                                  try {
-                                    return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
-                                  } catch (error) {
-                                    console.error('Date formatting error:', error, { timestamp, timestampNumber })
-                                    return 'Date error'
-                                  }
-                                })()}
-                              </div>
-                            </Button>
+                            <a
+                              href="#"
+                              onClick={e => { e.preventDefault(); router.push(`/${chainId}/${powers?.contractAddress}/proposals/${proposal.actionId}`); }}
+                              className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
+                            >
+                              {(() => {
+                                // Ensure consistent block number format for lookup
+                                const voteEndBlock = typeof proposal.voteEnd === 'bigint' 
+                                  ? proposal.voteEnd 
+                                  : BigInt(proposal.voteEnd as unknown as string)
+                                
+                                const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                                const timestamp = timestampData?.timestamp
+                                
+                                if (!timestamp || timestamp <= 0n) {
+                                  return 'Loading...'
+                                }
+                                
+                                const timestampNumber = Number(timestamp)
+                                if (isNaN(timestampNumber) || timestampNumber <= 0) {
+                                  return 'Invalid date'
+                                }
+                                
+                                try {
+                                  return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
+                                } catch (error) {
+                                  console.error('Date formatting error:', error, { timestamp, timestampNumber })
+                                  return 'Date error'
+                                }
+                              })()}
+                            </a>
                           </td>
                           
                           {/* Law */}

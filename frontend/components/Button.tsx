@@ -33,7 +33,7 @@ const roleBorderColour = [
   "bg-purple-200 border-purple-600",
   "bg-green-200 border-green-600",
   "bg-orange-200 border-orange-600",
-  "bg-slate-200 border-slate-400"
+  "bg-slate-200 border-slate-600"
 ]
 
 export const Button = ({

@@ -16,6 +16,10 @@ import { useChecks } from "@/hooks/useChecks";
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { powersAbi } from "@/context/abi";
+import HeaderLaw from '@/components/HeaderLaw';
+import { useChains } from 'wagmi';
+import { parseChainId } from '@/utils/parsers';
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 
 const roleColor = [  
   "#007bff",
@@ -47,6 +51,8 @@ export function ProposalBox({
   const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
   const law = powers?.laws?.find(law => law.index == lawId)
+  const chains = useChains();
+  const supportedChain = chains.find(chain => chain.id == parseChainId(powers?.contractAddress ? powers.contractAddress.slice(0, 10) : ''));
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
@@ -94,16 +100,19 @@ export function ProposalBox({
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
-      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border-2 mt-2 rounded-md overflow-hidden`} style={{ borderColor: roleColor[parseRole(law?.conditions?.allowedRole) % roleColor.length] }}>
+      <section className={`w-full flex flex-col justify-start items-center bg-slate-50 border-2 border-slate-600 rounded-md overflow-hidden`}>
       <>
-      {/* title  */}
-      <div className="w-full flex flex-col gap-2 justify-start items-start border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-        <div className="text-md font-bold text-slate-800 break-all w-fit">
-          📋 #{law?.index}: {shorterDescription(law?.nameDescription, "short")}
-        </div>
-        <div className="text-sm text-slate-800 break-all w-fit">
-          {shorterDescription(law?.nameDescription, "long")}
-        </div>
+      {/* title - replaced with HeaderLaw */}
+      <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+        <HeaderLaw
+          powers={powers as Powers}
+          lawName={law?.nameDescription ? `#${Number(law?.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law?.index)}`}
+          roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
+          numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
+          description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
+          contractAddress={law?.lawAddress || ''}
+          blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+        />
       </div>
 
       {/* static form */}
