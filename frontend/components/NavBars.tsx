@@ -134,10 +134,10 @@ const Header = () => {
 
   return (
     <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
-    <section className="grow flex flex-row gap-1 justify-between px-2">
+    <section className="grow flex flex-row gap-1 justify-between pe-2">
       <div className="flex flex-row gap-1 min-w-16"> 
         <a href="/"  
-            className="flex flex-row justify-center items-center rounded-md p-1 px-3"
+            className="flex flex-row justify-center items-center rounded-md p-1 px-2"
             >  
           {/* <PowerIcon className="h-6 w-6 text-slate-70 font-extrabold" /> */}
           <Image 
