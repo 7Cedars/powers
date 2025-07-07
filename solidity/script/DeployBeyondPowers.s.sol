@@ -57,7 +57,7 @@ contract DeployBeyondPowers is Script {
         vm.startBroadcast();
         Powers powers = new Powers(
             "Beyond Powers",
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibb4fcsnon2xzjcq63notbdhgxzy6v2khgkvd5fwz5j3cb3vhbp6m"
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreia377dgpm7276q74nr3dijipu65p2arqu2ivpioo6fwghyfsgrdpm"
         );
         vm.stopBroadcast();
         powers_ = payable(address(powers));
@@ -169,7 +169,7 @@ contract DeployBeyondPowers is Script {
         // A Law to nominate oneself for Executioner role
         conditions.allowedRole = type(uint256).max; // anyone can use this law
         lawInitData[6] = PowersTypes.LawInitData({
-            nameDescription: "Nominate oneself: Nominate oneself for the Executioner role.",
+            nameDescription: "Nominate oneself: Nominate oneself for the Executives role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
             config: abi.encode(),
             conditions: conditions
@@ -180,7 +180,7 @@ contract DeployBeyondPowers is Script {
         conditions.allowedRole = type(uint256).max; // anyone can use this law
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
-            nameDescription: "Elect executioners: Elect executioners using delegated tokens.",
+            nameDescription: "Elect executives: Elect executives using delegated tokens.",
             targetLaw: parseLawAddress(0, "DelegateSelect"),
             config: abi.encode(parseMockAddress(2, "Erc20VotesMock"), 50, 1),
             conditions: conditions
@@ -229,7 +229,7 @@ contract DeployBeyondPowers is Script {
             targets[i] = powers_;
         }
         // label roles
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Executioners");
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Executives");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Security Council");
         calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         return (targets, values, calldatas);
