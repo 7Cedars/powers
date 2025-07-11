@@ -4,14 +4,19 @@
 
 ## What it is
 
-The Powers protocol is a role restricted governance protocol. It allows for actions to be restricted along designated roles, and for roles to check each other's actions.
+The Powers protocol is a role restricted governance protocol. It allows for actions to be restricted along designated roles and for roles to check each other's actions through the creation of governance chains.&#x20;
 
-It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**.
+Using Powers, a single decision can be shepherded across multiple stakeholders and voting mechanisms in a completely modular, transparent and asynchronous way.
 
-* **Laws** define what actions can be taken by which roles under what conditions.
-* **Powers** manages assigning roles to addresses and executing actions.
+It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
 
-Together they create a governance protocol that is modular, upgradable and asynchronous. A protocol that allows for the creation of checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.
+* **Powers** manages assigning roles to addresses and governance flows.
+* **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.&#x20;
+* **Actions** consist of calldata and a unique nonce that is send to a target law.  &#x20;
+
+Crucially, Powers allows the **same action** to be send to **different laws** enabling law A to check the status of the same action at law B.
+
+Together they create a governance protocol that allows for the creation of governance chains, enabling checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.
 
 ## Quick links
 
@@ -21,7 +26,7 @@ Together they create a governance protocol that is modular, upgradable and async
 
 ## The protocol
 
-The Powers protocol consists of two elements: Powers and Laws.
+The Powers protocol consists of two elements: Powers and Laws. Together they manage how actions are governed.&#x20;
 
 ### ⚡ Powers
 
@@ -58,9 +63,9 @@ Laws are contracts that follow the `ilaw.sol` interface. They can be created by 
 Laws have the following functionalities:
 
 * They are role restricted by a single role.
-* They have multiple (optional) checks.
+* They have multiple (optional) checks, including if an action has passed at another law.
 * They have an `initializeLaw` function, that is called when the law is adopted.
-* They have an `executeLaw` function, that is called when the law is executed.
+* They have an `executeLaw` function, that is called when the law executes an action.
 * They can save a state.
 * They can return three arrays to the Powers contract: targets laws, values and function calls.
 * All functionalities are restricted along the `Powers.sol` deployment that adopted the law by calling `initializeLaw`.
