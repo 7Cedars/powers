@@ -4,9 +4,9 @@
 
 ## What it is
 
-The Powers protocol is a role restricted governance protocol. It allows for actions to be restricted along designated roles and for roles to check each other's actions through the creation of governance chains.&#x20;
+The Powers protocol is a role restricted governance protocol. It allows for actions to be restricted along designated roles and for roles to check each other's actions.&#x20;
 
-Using Powers, a single decision can be shepherded across multiple stakeholders and voting mechanisms in a completely modular, transparent and asynchronous way.
+Using Powers, a single decision can be shepherded across multiple stakeholders and voting mechanisms through completely modular, transparent and asynchronous governance chains.
 
 It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
 
@@ -16,7 +16,9 @@ It combines a governance engine, **Powers**, with role restricted and modular co
 
 Crucially, Powers allows the **same action** to be send to **different laws** enabling law A to check the status of the same action at law B.
 
-Together they create a governance protocol that allows for the creation of governance chains, enabling checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.
+Together they create a governance protocol that allows for the creation of governance chains, enabling checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.&#x20;
+
+Above all else, in an era of DAO foundations, committees, councils and working groups it allows for on-chain governance to reclaim transparency, accountability and a decentralization of power.
 
 ## Quick links
 
