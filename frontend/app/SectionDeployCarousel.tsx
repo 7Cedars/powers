@@ -195,8 +195,8 @@ export function SectionDeployCarousel() {
   };
 
   return (
-    <section className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 pt-16">
-      <div className="w-full flex flex-col gap-12 justify-start items-center">
+    <section className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 sm:pt-16 pt-4">
+      <div className="w-full flex flex-col gap-4 justify-start items-center">
         <section className="flex flex-col justify-center items-center"> 
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
             Deploy Your Own Powers
@@ -206,7 +206,7 @@ export function SectionDeployCarousel() {
           </div>
         </section>
 
-        <section className="w-full max-h-[80vh] flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm ">
+        <section className="w-full grow max-h-[80vh] flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm ">
           {/* Carousel Header */}
           <div className="w-full flex flex-row justify-between items-center py-4 px-6 border-b border-slate-200 flex-shrink-0">
             <button
@@ -260,7 +260,7 @@ export function SectionDeployCarousel() {
               </p>
             </div>
 
-            <div className="space-y-3 flex-grow">
+            <div className="space-y-3">
               {currentForm.fields.map((field) => (
                 <div key={field.name} className="flex flex-col">
                   <label className="text-sm font-medium text-slate-700 mb-1">
