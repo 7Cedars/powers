@@ -195,7 +195,7 @@ export function SectionDeployCarousel() {
   };
 
   return (
-    <section className="min-h-screen grow flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 pt-16">
+    <section className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 pt-16">
       <div className="w-full flex flex-col gap-12 justify-start items-center">
         <section className="flex flex-col justify-center items-center"> 
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
@@ -206,9 +206,9 @@ export function SectionDeployCarousel() {
           </div>
         </section>
 
-        <section className="w-full h-full flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm ">
+        <section className="w-full max-h-[80vh] flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm ">
           {/* Carousel Header */}
-          <div className="w-full flex flex-row justify-between items-center py-4 px-6 border-b border-slate-200">
+          <div className="w-full flex flex-row justify-between items-center py-4 px-6 border-b border-slate-200 flex-shrink-0">
             <button
               onClick={prevForm}
               className="p-2 rounded-md hover:bg-slate-100 transition-colors"
@@ -239,10 +239,10 @@ export function SectionDeployCarousel() {
           </div>
 
           {/* Form Content */}
-          <div className="w-full p-6 flex flex-col min-h-[600px] overflow-y-auto">
+          <div className="w-full p-6 flex flex-col overflow-y-auto flex-1">
             {/* Image Display */}
             {currentForm.banner && (
-              <div className="mb-6 flex justify-center">
+              <div className="mb-4 flex justify-center">
                 <img 
                   src={currentForm.banner} 
                   alt={`${currentForm.title} template`}
@@ -254,13 +254,13 @@ export function SectionDeployCarousel() {
               </div>
             )}
             
-            <div className="mb-6">
+            <div className="mb-4">
               <p className="text-slate-600 text-sm leading-relaxed">
                 {currentForm.description}
               </p>
             </div>
 
-            <div className="space-y-4 flex-grow">
+            <div className="space-y-3 flex-grow">
               {currentForm.fields.map((field) => (
                 <div key={field.name} className="flex flex-col">
                   <label className="text-sm font-medium text-slate-700 mb-1">
@@ -280,7 +280,7 @@ export function SectionDeployCarousel() {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 flex-shrink-0">
+            <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4 flex-shrink-0">
               {/* Deploy button - positioned below on small screens, left on large screens */}
               <div className="w-full sm:w-fit h-12 order-2 sm:order-1">
                 <Button 
