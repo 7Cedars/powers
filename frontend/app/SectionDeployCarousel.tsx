@@ -5,6 +5,7 @@ import { ConnectButton } from "@/components/ConnectButton";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useDeployContract, useTransactionReceipt, useSwitchChain, useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 import { bytecodePowers } from "@/context/bytecode";
 import { powersAbi } from "@/context/abi";
 import { Law, Powers, Status } from "@/context/types";
@@ -82,9 +83,11 @@ export function SectionDeployCarousel() {
   const [status, setStatus] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
+  const [constituteCompleted, setConstituteCompleted] = useState(false)
   const { ready, authenticated } = usePrivy();
   const { chain } = useAccount()
   const { switchChain } = useSwitchChain()
+  const router = useRouter()
 
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [selectedChain, setSelectedChain] = useState("Ethereum Sepolia");
@@ -171,6 +174,7 @@ export function SectionDeployCarousel() {
             // console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
+            setConstituteCompleted(true)
             // console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
@@ -184,7 +188,13 @@ export function SectionDeployCarousel() {
     if (receipt?.contractAddress) {
       callConstitute(receipt.contractAddress as `0x${string}`)
     }
-  }, [receipt?.contractAddress])
+  }, [receipt?.contractAddress, callConstitute])
+
+  const handleSeeYourPowers = () => {
+    if (receipt?.contractAddress && selectedChainId) {
+      router.push(`/${selectedChainId}/${receipt.contractAddress}`)
+    }
+  }
 
   const nextForm = () => {
     setCurrentFormIndex((prev) => (prev + 1) % deploymentForms.length);
@@ -281,24 +291,37 @@ export function SectionDeployCarousel() {
             </div>
 
             <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4 flex-shrink-0">
-              {/* Deploy button - positioned below on small screens, left on large screens */}
+              {/* Deploy/See Your Powers button - positioned below on small screens, left on large screens */}
               <div className="w-full sm:w-fit h-12 order-2 sm:order-1">
-                <Button 
-                  size={1} 
-                  role={6} 
-                  statusButton={!ready || !authenticated || currentForm.disabled ? 'disabled' : 'idle'}
-                  onClick={() =>
-                    deployContract({
-                      abi: powersAbi, 
-                      args: [currentForm.title, currentForm.uri],
-                      bytecode: bytecodePowers,
-                    })
-                  }
-                > 
-                  <div className="text-slate-600 font-medium">
-                    {currentForm.disabled ? 'Coming soon!' : `Deploy ${currentForm.title}`}
-                  </div>    
-                </Button>
+                {constituteCompleted && receipt?.contractAddress ? (
+                  <Button 
+                    size={1} 
+                    role={6} 
+                    statusButton="idle"
+                    onClick={handleSeeYourPowers}
+                  > 
+                    <div className="text-slate-600 font-medium">
+                      See Your New Powers
+                    </div>    
+                  </Button>
+                ) : (
+                  <Button 
+                    size={1} 
+                    role={6} 
+                    statusButton={!ready || !authenticated || currentForm.disabled ? 'disabled' : 'idle'}
+                    onClick={() =>
+                      deployContract({
+                        abi: powersAbi, 
+                        args: [currentForm.title, currentForm.uri],
+                        bytecode: bytecodePowers,
+                      })
+                    }
+                  > 
+                    <div className="text-slate-600 font-medium">
+                      {currentForm.disabled ? 'Coming soon!' : `Deploy ${currentForm.title}`}
+                    </div>    
+                  </Button>
+                )}
               </div>
 
               {/* Chain and Connect buttons - positioned above deploy button on small screens, right on large screens */}

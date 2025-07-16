@@ -111,7 +111,7 @@ export function createPowers101LawInitData(formData: Powers101FormData, chainId:
   return [
     {
       nameDescription: "Statement of Intent Law",
-      targetLaw: "0x0000000000000000000000000000000000000001", // Dummy governance law address
+      targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
       config: "0x", // Empty bytes
       conditions: {
         allowedRole: 0, // ADMIN_ROLE
@@ -136,7 +136,7 @@ export function createCrossChainGovernanceLawInitData(formData: CrossChainGovern
     return [
         {
           nameDescription: "Statement of Intent Law",
-          targetLaw: "0x0000000000000000000000000000000000000001", // Dummy governance law address
+          targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
           config: "0x", // Empty bytes
           conditions: {
             allowedRole: 0, // ADMIN_ROLE
@@ -161,7 +161,7 @@ export function createGrantsManagerLawInitData(formData: GrantsManagerFormData, 
     return [
         {
           nameDescription: "Statement of Intent Law",
-          targetLaw: "0x0000000000000000000000000000000000000001", // Dummy governance law address
+          targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
           config: "0x", // Empty bytes
           conditions: {
             allowedRole: 0, // ADMIN_ROLE
