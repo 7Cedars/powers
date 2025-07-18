@@ -131,13 +131,11 @@ function getData(bytes32 lawHash) public view returns (Data memory)
 
 ## Current Deployments
 
-| Address | Chain ID | Date |
-| ------- | -------- | ---- |
-|         |          |      |
+| Chain ID | Chain Name      | Address                                      |
+|----------|----------------|----------------------------------------------|
+| 421614   | Arbitrum Sepolia | 0xb1115dA4fF650AA685600B37A23009B2cDeCc830  |
+| 11155420 | Optimism Sepolia | 0x198705747E88b84D8CbC3531267Bb1e79ab26c2f  |
+| 11155111 | Ethereum Sepolia | 0xb1115dA4fF650AA685600B37A23009B2cDeCc830  | 
 
-## Previous Deployments
 
-| Address | Chain ID | Date |
-| ------- | -------- | ---- |
-|         |          |      |
 
