@@ -11,6 +11,7 @@ import React, { useState, useEffect } from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
 import { SectionRunDemo } from "./SectionRunDemo";
+import { SectionDeployCarousel } from "./SectionDeployCarousel";
 import { Footer } from "./Footer";
 import { SectionAdvantages } from "./SectionAdvantages";
 
@@ -20,7 +21,7 @@ import {
 
 export default function Page() {          
     return (
-        <main className="w-full h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden">
+        <main className="w-full h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden bg-slate-50">
             <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-indigo-700 snap-start snap-always"> 
             
                 {/* Title and subtitle */}
@@ -30,7 +31,7 @@ export default function Page() {
                         <b>Powers</b>  
                     </div>
                     <div className = "w-full flex justify-center items-center text-xl sm:text-2xl py-4 text-slate-300 max-w-3xl text-center p-4">
-                        Distribute power, increase security, transparency and efficiency with role restricted governance of the Powers protocol.
+                        Increase security, transparency and efficiency by separating and distributing powers in on-chain organisations.
                     </div>
                 </section> 
 
@@ -45,7 +46,8 @@ export default function Page() {
             < SectionIntro /> 
             < SectionAdvantages /> 
             < SectionUsecases /> 
-            < SectionRunDemo />
+            {/* < SectionRunDemo /> */}
+            < SectionDeployCarousel />
             <div className = "min-h-48"/>  
             < Footer /> 
            

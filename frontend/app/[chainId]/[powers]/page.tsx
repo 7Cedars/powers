@@ -93,7 +93,7 @@ export default function FlowPage() {
     {/* hero banner  */}
     <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
       {/* Gradient background (always present) */}
-      <div className="absolute inset-0 bg-gradient-to-br to-indigo-600 from-emerald-300" />
+      <div className="absolute inset-0 bg-gradient-to-br to-indigo-500 from-orange-400" />
       
       {/* Banner image (if valid) */}
       {isValidBanner && powers?.metadatas?.banner && (

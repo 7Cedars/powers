@@ -34,7 +34,7 @@ const Page = () => {
   }
 
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16">
+    <main className="w-full h-full flex flex-col justify-start items-center gap-2 ps-4 pe-12 pt-16">
         <TitleText 
           title="Propose"
           subtitle="Propose a new action that other role holders can vote on."

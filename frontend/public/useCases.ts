@@ -63,9 +63,9 @@ export const useCases = [
       "Full support for async governance",
       "Let off-chain institutions interact with on-chain governance.",
     ],
-    demo: "Hybrid DAO",
-    address: "0x0000000000000000000000000000000000000000",
-    chainId: "421614",
+    demo: "Beyond Powers",
+    address: "0x072DB0B14A48D7dd4653eAB8Df40Ed8930e55f1E",
+    chainId: "11155420",
     colourScheme: 0,
   },
 

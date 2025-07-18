@@ -12,10 +12,10 @@ export function SectionIntro() {
         {/* title  */}
           <section className="w-full flex flex-col justify-center items-center pt-12">
               <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
-                  The next generation of on-chain governance
+                The next generation of on-chain governance
               </div>
-              <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-2xl text-center pt-1">
-                Powers + Laws = Governance
+              <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-3xl text-center pt-1">
+                Create checks, balances and accountability using governance chains.
               </div>
           </section>
 
@@ -35,9 +35,10 @@ export function SectionIntro() {
           {/* Bottom text */}
           <section className="w-full flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
               <p>
-                Powers is a PoC of a role restricted governance protocol. 
+                Powers provides the infrastructure to shepherd decisions across multiple stakeholders and voting mechanisms. Completely modular, async, transparant and trustless. 
+                It can be integrated into any on-chain organisation, and can be used to govern any type of decision. 
               </p>
-              <p>
+              {/* <p>
                 It combines a governance engine, <span className="font-bold">Powers</span>, with role restricted and modular contracts, called <span className="font-bold">laws</span>.
               </p>
               <div className="flex flex-col gap-0">
@@ -50,7 +51,7 @@ export function SectionIntro() {
               </div>
               <p>
                 Together they create a governance protocol that is modular, upgradable and asynchronous.
-              </p>
+              </p> */}
           </section>
 
       {/* arrow down */}

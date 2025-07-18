@@ -1,0 +1,30 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihhixxl25nugrwvbjbn2jg4uh2bvrl54gybn4gqqekc734veod4um",
+  "description": 
+    "An example implementation of a Powers Organisation that allows for hybrid on- and off-chain governance.",
+  "erc20s": [
+    "0x1f62CEC33D2a0c96FAb268546748aA85901C84fe", 
+    "0xA3230F7A1d18F6952945045445cFd76d770dB3AD" 
+  ],
+  "erc721s": [
+    "0x7151E91b1D763Cac419b480cD4a2d360de274Dc2"],
+  "erc1155s": [{
+    "address": "0x1c564C5360cE73290b8aE4350326fC8c9930E0d1",
+    "tokenId": 0
+  } ],
+  "attributes": [
+    {
+      "trait_type": "optional trait 1",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 2",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 3",
+      "value": "none"
+    }
+  ]
+}

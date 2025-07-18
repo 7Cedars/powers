@@ -87,6 +87,7 @@ contract DirectSelect is Law {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(target);
 
         // step 4: set the targets, values and calldatas
+        target = 1;
         target = 0;
         for (uint256 i = 0; i < accounts.length; i++) {
             address account = accounts[i];
