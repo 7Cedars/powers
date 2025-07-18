@@ -152,6 +152,10 @@ contract DeployLaws is Script {
         // creationCodes[21] = type(Subscription).creationCode;
         // constructorArgs[21] = abi.encode("Subscription");
 
+        names[21] = "DirectDeselect";
+        creationCodes[21] = type(DirectDeselect).creationCode;
+        constructorArgs[21] = abi.encode("DirectDeselect");
+
         names[22] = "StartElection";
         creationCodes[22] = type(StartElection).creationCode;
         constructorArgs[22] = abi.encode("StartElection");

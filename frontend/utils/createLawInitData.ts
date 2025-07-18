@@ -40,6 +40,7 @@ export interface Powers101FormData {
 export interface CrossChainGovernanceFormData {
   snapshotSpace?: string;
   governorAddress?: `0x${string}`;
+  chainlinkSubscriptionId: number;
 }
 
 export interface GrantsManagerFormData {
@@ -275,28 +276,231 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
 }
 
 /**
- * Creates law initialization data for Governed Upgrades
- * Includes upgrade governance and implementation management laws
+ * Creates law initialization data for Cross Chain Governance
+ * Based on the createConstitution function from DeployBeyondPowers.s.sol
  */
-export function createCrossChainGovernanceLawInitData(formData: CrossChainGovernanceFormData, chainId: number): LawInitData[] {
-    return [
-        {
-          nameDescription: "Statement of Intent Law",
-          targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
-          config: "0x", // Empty bytes
-          conditions: {
-            allowedRole: ADMIN_ROLE, // ADMIN_ROLE
-            needCompleted: 0n,
-            delayExecution: 0n,
-            throttleExecution: 0n,
-            readStateFrom: 0n,
-            votingPeriod: minutesToBlocks(100, chainId), // 100 blocks
-            quorum: 50n, // 50% quorum
-            succeedAt: 60n, // 60% success threshold
-            needNotCompleted: 0n,
-          }
-        }
-      ];
+export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string}`, formData: CrossChainGovernanceFormData, chainId: number): LawInitData[] {
+  const lawInitData: LawInitData[] = [];
+  const constants = getConstants(chainId);
+  const subscriptionId = formData.chainlinkSubscriptionId ?? 0;
+
+  //////////////////////////////////////////////////////////////////
+  //                       Executive laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 1: Check if proposal exists
+  // This law checks if a proposal and choice exists at the Snapshot space
+  // Only executioners (role 1) can use this law
+  lawInitData.push({
+    nameDescription: "Does proposal exist?: Check if a proposal and choice exists at the hvax.eth Snapshot space.",
+    targetLaw: getLawAddress("SnapToGov_CheckSnapExists", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'spaceId', type: 'string' },
+        { name: 'subscriptionId', type: 'uint64' },
+        { name: 'gasLimit', type: 'uint32' },
+        { name: 'donID', type: 'bytes32' }
+      ],
+      [
+        formData.snapshotSpace ?? "hvax.eth",
+        BigInt(subscriptionId),
+        constants.CHAINLINK_GAS_LIMIT,
+        constants.CHAINLINK_DON_ID
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n
+    })
+  });
+
+  // Law 2: Check if choice passed
+  // This law checks if a proposal and choice passed at the Snapshot space
+  // Only executioners (role 1) can use this law, requires Law 1 to be completed
+  lawInitData.push({
+    nameDescription: "Did choice pass?: Check if a proposal and choice passed at the hvax.eth Snapshot space.",
+    targetLaw: getLawAddress("SnapToGov_CheckSnapPassed", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'spaceId', type: 'string' },
+        { name: 'subscriptionId', type: 'uint64' },
+        { name: 'gasLimit', type: 'uint32' },
+        { name: 'donID', type: 'bytes32' }
+      ],
+      [
+        formData.snapshotSpace ?? "hvax.eth",
+        BigInt(subscriptionId),
+        constants.CHAINLINK_GAS_LIMIT,
+        constants.CHAINLINK_DON_ID
+      ]
+    ),  
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 1n
+    })
+  });
+
+  // Law 3: Create Governor.sol proposal
+  // This law creates a new Governor.sol proposal using Erc20VotesMock as votes
+  // Only executioners (role 1) can use this law, requires Law 2 to be completed
+  lawInitData.push({
+    nameDescription: "Create Governor.sol proposal: Create a new Governor.sol proposal using Erc20VotesMock as votes.",
+    targetLaw: getLawAddress("SnapToGov_CreateGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 2n
+    })
+  });
+
+  // Law 4: Cancel Governor.sol proposal
+  // This law allows canceling a Governor.sol proposal
+  // Only Security Council members (role 2) can use this law, requires Law 3 to be completed
+  lawInitData.push({
+    nameDescription: "Cancel Governor.sol proposal: Cancel a Governor.sol proposal.",
+    targetLaw: getLawAddress("SnapToGov_CancelGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 2n,
+      needCompleted: 3n,
+      quorum: 77n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      succeedAt: 51n
+    })
+  });
+
+  // Law 5: Execute Governor.sol proposal
+  // This law allows executing a Governor.sol proposal
+  // Only executioners (role 1) can use this law, requires Law 3 to be completed
+  lawInitData.push({
+    nameDescription: "Execute Governor.sol proposal: Execute a Governor.sol proposal.",
+    targetLaw: getLawAddress("SnapToGov_ExecuteGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 3n,
+      quorum: 10n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      succeedAt: 10n,
+      delayExecution: minutesToBlocks(10, chainId)
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Electoral laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 6: Nominate oneself for Executioner role
+  // This law allows anyone to nominate themselves for the Executives role
+  // Anyone can use this law
+  lawInitData.push({
+    nameDescription: "Nominate oneself: Nominate oneself for the Executives role.",
+    targetLaw: getLawAddress("NominateMe", chainId),
+    config: "0x", // empty config
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  // Law 7: Elect executives using delegated tokens
+  // This law enables electing executives using delegated tokens
+  // Anyone can use this law, reads state from Law 6
+  lawInitData.push({
+    nameDescription: "Elect executives: Elect executives using delegated tokens.",
+    targetLaw: getLawAddress("DelegateSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' },
+        { name: 'maxRoleHolders', type: 'uint256' },
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId), 50n, 1n]
+    ),
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE,
+      readStateFrom: 6n
+    })
+  });
+
+  // Law 8: Select Security Council members
+  // This law allows the admin to select members for the Security Council
+  // Only admin (role 0) can use this law
+  lawInitData.push({
+    nameDescription: "Select Security Council: Select members for the Security Council.",
+    targetLaw: getLawAddress("DirectSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [2n] // roleId for Security Council
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Initiation Law                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 9: Initial setup - Assign role labels
+  // This law assigns labels to roles and can only be executed once
+  // Anyone can execute this law initially
+  lawInitData.push({
+    nameDescription: "Initial setup: Assign role labels. This law can only be executed once.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress,
+          powersAddress,
+          powersAddress
+        ], // targets
+        [0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Executives"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [2n, "Security Council"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [9n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  return lawInitData;
 }
 
 /**
@@ -337,7 +541,7 @@ export function createLawInitDataByType(
     case 'Powers101':
       return createPowers101LawInitData(powersAddress, formData as Powers101FormData, chainId);
     case 'CrossChainGovernance':
-      return createCrossChainGovernanceLawInitData(formData as CrossChainGovernanceFormData, chainId);
+      return createCrossChainGovernanceLawInitData(powersAddress, formData as CrossChainGovernanceFormData, chainId);
     case 'GrantsManager':
       return createGrantsManagerLawInitData(formData as GrantsManagerFormData, chainId);
     default:
