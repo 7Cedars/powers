@@ -103,7 +103,7 @@ For a detailed diagram of how Powers.sol and Law.sol structure governance flows 
 
 Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. The following use cases highlight the use of checks and balances between roles, guard-rails for specific (AI agentic) accounts and hybrid on- and off-chain communities.&#x20;
 
-Coming soon: a no-code UI to deploy these examples.
+Please see [https://powers-protocol.vercel.app/#deploy](https://powers-protocol.vercel.app/#deploy) for a no-code UI to deploy several of these examples.
 
 <details>
 
