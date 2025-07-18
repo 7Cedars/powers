@@ -1383,7 +1383,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testConstructorInitializationStartElection() public {
         // Get the StartElection contract from the test setup
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         
         vm.startPrank(address(daoMock));
@@ -1394,7 +1394,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testStartElection() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         lawHash = LawUtilities.hashLaw(address(daoMock), startElection);
         
@@ -1426,7 +1426,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testStartElectionWithInvalidTiming() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         
         // Setup election parameters with invalid timing (end before start)
         uint48 startVote = uint48(block.number + 200);
@@ -1458,7 +1458,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testHandleRequestOutput() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         
         // Setup election parameters
@@ -1489,7 +1489,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testVerifyStoredData() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         lawHash = LawUtilities.hashLaw(address(daoMock), startElection);
 
@@ -1505,12 +1505,12 @@ contract EndElectionTest is TestSetupElectoral {
 
     function testConstructorInitialization() public {
         // Get the EndElection contract from the test setup
-        uint16 EndElection = 12;
+        uint16 EndElection = 11;
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         vm.startPrank(address(daoMock));
         assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).allowedRole, 0, "Allowed role should be set to ADMIN_ROLE");
-        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).needCompleted, 11, "NeedCompleted should be set to StartElection law ID");
+        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).needCompleted, 10, "NeedCompleted should be set to StartElection law ID");
         assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).readStateFrom, 1, "ReadStateFrom should be set to NominateMe law ID");
         assertEq(Law(EndElectionAddress).getExecutions(address(daoMock), EndElection).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
@@ -1519,8 +1519,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionCheck() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
@@ -1568,8 +1568,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionBeforeStart() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1598,8 +1598,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionAfterEnd() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1631,8 +1631,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testHandleRequestOutput() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
@@ -1680,8 +1680,8 @@ contract EndElectionTest is TestSetupElectoral {
 
     function testEndElectionWithoutNominees() public {
         // prep
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // Start an election without any nominees

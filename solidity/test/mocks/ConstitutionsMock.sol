@@ -391,7 +391,7 @@ contract ConstitutionsMock is Test  {
 
         // EndElection
         conditions.allowedRole = 0;
-        conditions.needCompleted = 11; 
+        conditions.needCompleted = 10; 
         conditions.readStateFrom = 1;
         lawInitData[11] = PowersTypes.LawInitData({
             nameDescription: "EndElection: A law to stop an election.",

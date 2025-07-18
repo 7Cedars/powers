@@ -54,7 +54,7 @@ anvilDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:De
 anvilDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(ANVIL_ARGS_0)
 anvilDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(ANVIL_ARGS_0)
 
-
+sepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(SEPOLIA_DEPLOY_ARGS)

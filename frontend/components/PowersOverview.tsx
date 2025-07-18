@@ -53,10 +53,13 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
           disabled={isRefreshing}
           className="absolute top-16 right-2 z-50 bg-slate-100/25 backdrop-blur-sm text-slate-800 border border-slate-400 hover:border-slate-600 rounded-lg p-1.5 transition-colors duration-200 flex items-center gap-2"
           title="Refresh Laws and Roles"
-        >
-          <ArrowPathIcon 
-            className={`w-4 h-4 text-slate-600 ${isRefreshing ? 'animate-spin' : ''}`} 
-          />
+        > 
+          <div className="flex items-center gap-2 px-2">
+            <p className="text-sm font-medium text-slate-600">Refresh</p>
+            <ArrowPathIcon 
+              className={`w-4 h-4 text-slate-600 ${isRefreshing ? 'animate-spin' : ''}`} 
+            />
+          </div>
         </button>
       )}
 

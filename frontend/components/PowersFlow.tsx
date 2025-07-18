@@ -54,7 +54,7 @@ import { useChecksStore } from '@/context/store'
 import { powersAbi } from '@/context/abi'
 import { usePowers } from '@/hooks/usePowers'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import { NodeStatusIndicator } from '@/components/node-status-indicator'
+import { NodeStatusIndicator } from '@/components/NodeStatusIndicator'
 import HeaderLaw from '@/components/HeaderLaw'
 
 // Default colors for all nodes
