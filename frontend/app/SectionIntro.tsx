@@ -35,7 +35,7 @@ export function SectionIntro() {
           {/* Bottom text */}
           <section className="w-full flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
               <p>
-                Powers provides the infrastructure to shepherd decisions across multiple stakeholders and voting mechanisms. Completely modular, async, transparant and trustless. 
+                Powers provides the infrastructure to guide decisions across multiple stakeholders and voting mechanisms. Completely modular, async, transparant and trustless. 
                 It can be integrated into any on-chain organisation, and can be used to govern any type of decision. 
               </p>
               {/* <p>

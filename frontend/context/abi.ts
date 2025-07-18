@@ -47,6 +47,26 @@ export const erc20Abi: Abi = [
   },
 ]
 
+export const erc20TaxedAbi: Abi = [
+  {
+    "type": "function",
+    "name": "faucet",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+]
+
+export const erc20VotesAbi: Abi = [
+  {
+    "type": "function",
+    "name": "mintVotes",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+]
+
 export const erc721Abi: Abi = [
   {
     "type": "function",

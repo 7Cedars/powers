@@ -1,45 +1,53 @@
-import { getDeployedLawAddresses } from "@/context/constants";
-import { encodeAbiParameters } from "viem";
+import { powersAbi, erc20TaxedAbi, erc20VotesAbi } from "@/context/abi";
+import { getConstants } from "@/context/constants";
+import { encodeAbiParameters, encodeFunctionData } from "viem";
 
 export interface LawConditions {
-  allowedRole: number;
-  needCompleted: number;
-  delayExecution: number;
-  throttleExecution: number;
-  readStateFrom: number;
-  votingPeriod: number;
-  quorum: number;
-  succeedAt: number;
-  needNotCompleted: number;
+  allowedRole: bigint;
+  needCompleted: bigint;
+  delayExecution: bigint;
+  throttleExecution: bigint;
+  readStateFrom: bigint;
+  votingPeriod: bigint;
+  quorum: bigint;
+  succeedAt: bigint;
+  needNotCompleted: bigint;
+}
+
+export interface CreateConditionsParams {
+  allowedRole?: bigint;
+  needCompleted?: bigint;
+  delayExecution?: bigint;
+  throttleExecution?: bigint;
+  readStateFrom?: bigint;
+  votingPeriod?: bigint;
+  quorum?: bigint;
+  succeedAt?: bigint;
+  needNotCompleted?: bigint;
 }
 
 export interface LawInitData {
   nameDescription: string;
-  targetLaw: string;
-  config: string;
+  targetLaw: `0x${string}`;
+  config: `0x${string}`;
   conditions: LawConditions;
 }
 
 export interface Powers101FormData {
-  treasuryAddress?: string;
+  treasuryAddress?: `0x${string}`;
 }
 
 export interface CrossChainGovernanceFormData {
   snapshotSpace?: string;
-  governorAddress?: string;
+  governorAddress?: `0x${string}`;
+  chainlinkSubscriptionId: number;
 }
 
 export interface GrantsManagerFormData {
-  parentDaoAddress?: string;
-  grantTokenAddress?: string;
-  assessors?: string[];
+  parentDaoAddress?: `0x${string}`;
+  grantTokenAddress?: `0x${string}`;
+  assessors?: `0x${string}`[];
 }
-
-// other examples tbi: 
-// - WG manager
-// - Accountability of Service providers (think Uniswap UAC but for service providers :) 
-// - dynamic governance for different type of proposals? 
-// - Inter-DAO governance? 
 
 // Type for deployment returns data
 export interface DeploymentReturns {
@@ -53,152 +61,116 @@ export interface DeploymentReturns {
   };
 }
 
-// Type for deployment file structure
-export interface DeploymentFile {
-  returns: DeploymentReturns;
-}
-
 /**
- * Fetches the address of a deployed law by its name and chain ID
+ * Fetches a law address by its name and chain ID
  * @param lawName - The name of the law to find
  * @param chainId - The chain ID to search in
- * @returns The law address if found, undefined otherwise
+ * @returns The address of the law (undefined if not found)
  */
-export async function getLawAddressByName(lawName: string, chainId: number): Promise<string | undefined> {
-  try {
-    // Dynamically import the deployment file for the specified chain
-    const deploymentData = await import(`../../solidity/broadcast/DeployLaws.s.sol/${chainId}/run-latest.json`) as DeploymentFile;
-    
-    if (deploymentData && deploymentData.returns) {
-      // Parse the JSON string arrays from the returns data
-      const addresses = JSON.parse(deploymentData.returns.addresses.value) as string[];
-      const names = JSON.parse(deploymentData.returns.names.value) as string[];
-      
-      // Find the index of the law name
-      const lawIndex = names.findIndex(name => name === lawName);
-      
-      // Return the corresponding address if found
-      if (lawIndex !== -1 && addresses[lawIndex]) {
-        return addresses[lawIndex];
-      }
-    }
-    
-    return undefined;
-  } catch (error) {
-    console.warn(`Could not load deployment data for chain ${chainId}:`, error);
-    return undefined;
+const getLawAddress = (lawName: string, chainId: number): `0x${string}` => {
+  const constants = getConstants(chainId);
+  const address = constants.LAW_ADDRESSES[constants.LAW_NAMES.indexOf(lawName)];
+  if (!address) {
+    throw new Error(`Law address not found for: ${lawName}`);
   }
-}
+  return address;
+};
 
 /**
- * Fetches multiple law addresses by their names and chain ID
- * @param lawNames - Array of law names to find
+ * Fetches a law address by its name and chain ID
+ * @param lawName - The name of the law to find
  * @param chainId - The chain ID to search in
- * @returns Object mapping law names to their addresses (undefined if not found)
+ * @returns The address of the law (undefined if not found)
  */
-export async function getLawAddressesByNames(lawNames: string[], chainId: number): Promise<Record<string, string | undefined>> {
-  const result: Record<string, string | undefined> = {};
-  
-  for (const lawName of lawNames) {
-    result[lawName] = await getLawAddressByName(lawName, chainId);
+const getMockAddress = (mockName: string, chainId: number): `0x${string}` => {
+  const constants = getConstants(chainId);
+  const address = constants.MOCK_ADDRESSES[constants.MOCK_NAMES.indexOf(mockName)];
+  if (!address) {
+    throw new Error(`Mock address not found for: ${mockName}`);
   }
-  
-  return result;
-}
+  return address;
+};
+
+const createConditions = (params: CreateConditionsParams): LawConditions => ({
+  allowedRole: params.allowedRole ?? 0n, 
+  needCompleted: params.needCompleted ?? 0n, 
+  delayExecution: params.delayExecution ?? 0n, 
+  throttleExecution: params.throttleExecution ?? 0n, 
+  readStateFrom: params.readStateFrom ?? 0n, 
+  votingPeriod: params.votingPeriod ?? 0n, 
+  quorum: params.quorum ?? 0n, 
+  succeedAt: params.succeedAt ?? 0n, 
+  needNotCompleted: params.needNotCompleted ?? 0n
+});
+
+const minutesToBlocks = (minutes: number, chainId: number): bigint => {
+  const constants = getConstants(chainId);
+  return BigInt(Math.floor(minutes *  constants.BLOCKS_PER_HOUR / 60));
+};
+
+const ADMIN_ROLE = 0n;
+const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
 /**
  * Creates law initialization data for Powers 101 DAO
  * Based on the createConstitution function from DeployPowers101.s.sol
  */
-export function createPowers101LawInitData(formData: Powers101FormData, chainId: number): LawInitData[] {
-  const blocksPerHour = getBlocksPerHour(chainId);
-  
-  // Helper function to convert minutes to blocks
-  const minutesToBlocks = (minutes: number): number => {
-    return Math.floor(minutes * blocksPerHour / 60);
-  };
-
-  // Helper function to get law address by name
-  const getLawAddress = (lawName: string): string => {
-    const address = getDeployedLawAddresses(lawName);
-    if (!address) {
-      throw new Error(`Law address not found for: ${lawName}`);
-    }
-    return address;
-  };
-
-  // Helper function to create empty conditions
-  const createEmptyConditions = (): LawConditions => ({
-    allowedRole: 0,
-    needCompleted: 0,
-    delayExecution: 0,
-    throttleExecution: 0,
-    readStateFrom: 0,
-    votingPeriod: 0,
-    quorum: 0,
-    succeedAt: 0,
-    needNotCompleted: 0
-  });
-
+export function createPowers101LawInitData(powersAddress: `0x${string}`, formData: Powers101FormData, chainId: number): LawInitData[] {
   const lawInitData: LawInitData[] = [];
 
   //////////////////////////////////////////////////////////////////
   //                       Electoral laws                         // 
   //////////////////////////////////////////////////////////////////
-  
   // Law 1: Nominate me for delegate
   // This law allows accounts to self-nominate for any role
   // It can be used by community members
-  let conditions = createEmptyConditions();
-  conditions.allowedRole = 1;
   lawInitData.push({
     nameDescription: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law.",
-    targetLaw: getLawAddress("NominateMe"),
+    targetLaw: getLawAddress("NominateMe", chainId),
     config: "0x", // empty config
-    conditions: conditions
+    conditions: createConditions({
+      allowedRole: 1n
+    })
   });
 
   // Law 2: Elect delegates
   // This law enables role selection through delegated voting using an ERC20 token
   // Only role 0 (admin) can use this law
-  conditions = createEmptyConditions();
-  conditions.allowedRole = 0;
-  conditions.readStateFrom = 1;
   // Note: We'll need mock addresses for this config, using placeholder for now
   // In the Solidity version: abi.encode(parseMockAddress(2, "Erc20VotesMock"), 15, 2)
-  const delegateSelectConfig = encodeAbiParameters(
-    [
-      { name: 'tokenAddress', type: 'address' },
-      { name: 'maxRoleHolders', type: 'uint256' },
-      { name: 'roleId', type: 'uint256' }
-    ],
-    ["0x0000000000000000000000000000000000000000", 15n, 2n] // Placeholder address, will need actual mock address
-  );
   lawInitData.push({
     nameDescription: "Elect delegates: Elect delegates using delegated votes. You need to be an admin to use this law.",
-    targetLaw: getLawAddress("DelegateSelect"),
-    config: delegateSelectConfig,
-    conditions: conditions
+    targetLaw: getLawAddress("DelegateSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' },
+        { name: 'maxRoleHolders', type: 'uint256' },
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId), 15n, 2n]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE,
+      readStateFrom: 1n
+    })
   });
 
   // Law 3: Self select as community member
   // This law enables anyone to select themselves as a community member
   // Anyone can use this law
-  conditions = createEmptyConditions();
-  conditions.throttleExecution = 25; // this law can be called once every 25 blocks
-  conditions.allowedRole = Number.MAX_SAFE_INTEGER; // equivalent to type(uint256).max
-  // In the Solidity version: abi.encode(1)
-  const selfSelectConfig = encodeAbiParameters(
-    [
-      { name: 'roleId', type: 'uint256' }
-    ],
-    [1n] // roleId to be elected
-  );
   lawInitData.push({
     nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
-    targetLaw: getLawAddress("SelfSelect"),
-    config: selfSelectConfig,
-    conditions: conditions
+    targetLaw: getLawAddress("SelfSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [1n] // roleId to be elected
+    ),
+    conditions: createConditions({
+      throttleExecution: 25n,
+      allowedRole: PUBLIC_ROLE
+    })
   });
 
   //////////////////////////////////////////////////////////////////
@@ -208,127 +180,327 @@ export function createPowers101LawInitData(formData: Powers101FormData, chainId:
   // Law 4: Statement of Intent
   // This law allows proposing changes to core values of the DAO
   // Only community members can use this law. It is subject to a vote.
-  conditions = createEmptyConditions();
-  conditions.allowedRole = 1;
-  conditions.votingPeriod = minutesToBlocks(5); // about 5 minutes
-  conditions.succeedAt = 51; // 51% simple majority needed
-  conditions.quorum = 20; // 20% quorum needed
-  // In the Solidity version: abi.encode(inputParams)
-  const inputParams = ["address[] Targets", "uint256[] Values", "bytes[] Calldatas"];
   const statementOfIntentConfig = encodeAbiParameters(
     [
-      { name: 'inputParams', type: 'string[]' }
+      { name: 'inputParams', type: 'string[]' },
     ],
-    [inputParams]
-  );
+    [["address[] Targets", "uint256[] Values", "bytes[] Calldatas"]]
+  ); // In the Solidity version: abi.encode(inputParams)
   lawInitData.push({
     nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
-    targetLaw: getLawAddress("StatementOfIntent"),
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: statementOfIntentConfig,
-    conditions: conditions
+    conditions: createConditions({
+      allowedRole: 1n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      succeedAt: 51n,
+      quorum: 20n
+    })
   });
 
   // Law 5: Veto an action
   // This law allows a proposed action to be vetoed
   // Only the admin can use this law
-  conditions = createEmptyConditions();
-  conditions.allowedRole = 0;
-  conditions.needCompleted = 4; // references the Statement of Intent law
   lawInitData.push({
     nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
-    targetLaw: getLawAddress("StatementOfIntent"),
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: statementOfIntentConfig,
-    conditions: conditions
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE,
+      needCompleted: 4n // references the Statement of Intent law
+    })
   });
 
   // Law 6: Execute an action
   // This law allows executing any action with voting requirements
   // Only role 2 can use this law
-  conditions = createEmptyConditions();
-  conditions.allowedRole = 2;
-  conditions.quorum = 50; // 50% quorum needed
-  conditions.succeedAt = 77; // 77% simple majority needed for executing an action
-  conditions.votingPeriod = minutesToBlocks(5);
-  conditions.needCompleted = 4; // references the Statement of Intent law
-  conditions.needNotCompleted = 5; // references the Veto law
-  conditions.delayExecution = minutesToBlocks(3); // 3 minutes delay to give admin time to veto
   lawInitData.push({
     nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
-    targetLaw: getLawAddress("OpenAction"),
+    targetLaw: getLawAddress("OpenAction", chainId),
     config: "0x", // empty config, an open action takes address[], uint256[], bytes[] as input
-    conditions: conditions
+    conditions: createConditions({
+      allowedRole: 2n,
+      quorum: 50n,
+      succeedAt: 77n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      needCompleted: 4n,
+      needNotCompleted: 5n,
+      delayExecution: minutesToBlocks(3, chainId)
+    })
   });
 
   // Law 7: Initial setup
   // This law sets up initial role assignments for the DAO & role labelling
   // Only the admin can use this law
-  conditions = createEmptyConditions();
-  conditions.allowedRole = 0;
   // In the Solidity version: abi.encode(targetsRoles, valuesRoles, calldatasRoles)
   // This would need the actual mock addresses and powers address, but for now using placeholders
-  const initialSetupConfig = encodeAbiParameters(
-    [
-      { name: 'targets', type: 'address[]' },
-      { name: 'values', type: 'uint256[]' },
-      { name: 'calldatas', type: 'bytes[]' }
-    ],
-    [
-      ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"], // targets
-      [0n, 0n, 0n, 0n, 0n], // values
-      ["0x", "0x", "0x", "0x", "0x"] // calldatas - would need actual encoded function calls
-    ]
-  );
   lawInitData.push({
-    nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
-    targetLaw: getLawAddress("PresetAction"),
-    config: initialSetupConfig,
-    conditions: conditions
+    nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws. Press the refresh button to see the new labels.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress, powersAddress, powersAddress
+        ], // targets
+        [0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Members"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",  
+            args: [2n, "Delegates"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [7n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE
+    })
   });
 
   return lawInitData;
 }
 
 /**
- * Helper function to get blocks per hour for a given chain ID
+ * Creates law initialization data for Cross Chain Governance
+ * Based on the createConstitution function from DeployBeyondPowers.s.sol
  */
-function getBlocksPerHour(chainId: number): number {
-  switch (chainId) {
-    case 421614: // arb sepolia
-      return 300;
-    case 11155420: // optimism sepolia
-      return 1800;
-    case 11155111: // mainnet sepolia
-      return 300;
-    case 31337: // anvil local
-      return 300;
-    default:
-      return 300;
-  }
-}
+export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string}`, formData: CrossChainGovernanceFormData, chainId: number): LawInitData[] {
+  const lawInitData: LawInitData[] = [];
+  const constants = getConstants(chainId);
+  const subscriptionId = formData.chainlinkSubscriptionId ?? 0;
 
-/**
- * Creates law initialization data for Governed Upgrades
- * Includes upgrade governance and implementation management laws
- */
-export function createCrossChainGovernanceLawInitData(formData: CrossChainGovernanceFormData, chainId: number): LawInitData[] {
-    return [
-        {
-          nameDescription: "Statement of Intent Law",
-          targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
-          config: "0x", // Empty bytes
-          conditions: {
-            allowedRole: 0, // ADMIN_ROLE
-            needCompleted: 0,
-            delayExecution: 0,
-            throttleExecution: 0,
-            readStateFrom: 0,
-            votingPeriod: 100, // 100 blocks
-            quorum: 50, // 50% quorum
-            succeedAt: 60, // 60% success threshold
-            needNotCompleted: 0
-          }
-        }
-      ];
+  //////////////////////////////////////////////////////////////////
+  //                       Executive laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 1: Check if proposal exists
+  // This law checks if a proposal and choice exists at the Snapshot space
+  // Only executioners (role 1) can use this law
+  lawInitData.push({
+    nameDescription: "Does proposal exist?: Check if a proposal and choice exists at the hvax.eth Snapshot space.",
+    targetLaw: getLawAddress("SnapToGov_CheckSnapExists", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'spaceId', type: 'string' },
+        { name: 'subscriptionId', type: 'uint64' },
+        { name: 'gasLimit', type: 'uint32' },
+        { name: 'donID', type: 'bytes32' }
+      ],
+      [
+        formData.snapshotSpace ?? "hvax.eth",
+        BigInt(subscriptionId),
+        constants.CHAINLINK_GAS_LIMIT,
+        constants.CHAINLINK_DON_ID
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n
+    })
+  });
+
+  // Law 2: Check if choice passed
+  // This law checks if a proposal and choice passed at the Snapshot space
+  // Only executioners (role 1) can use this law, requires Law 1 to be completed
+  lawInitData.push({
+    nameDescription: "Did choice pass?: Check if a proposal and choice passed at the hvax.eth Snapshot space.",
+    targetLaw: getLawAddress("SnapToGov_CheckSnapPassed", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'spaceId', type: 'string' },
+        { name: 'subscriptionId', type: 'uint64' },
+        { name: 'gasLimit', type: 'uint32' },
+        { name: 'donID', type: 'bytes32' }
+      ],
+      [
+        formData.snapshotSpace ?? "hvax.eth",
+        BigInt(subscriptionId),
+        constants.CHAINLINK_GAS_LIMIT,
+        constants.CHAINLINK_DON_ID
+      ]
+    ),  
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 1n
+    })
+  });
+
+  // Law 3: Create Governor.sol proposal
+  // This law creates a new Governor.sol proposal using Erc20VotesMock as votes
+  // Only executioners (role 1) can use this law, requires Law 2 to be completed
+  lawInitData.push({
+    nameDescription: "Create Governor.sol proposal: Create a new Governor.sol proposal using Erc20VotesMock as votes.",
+    targetLaw: getLawAddress("SnapToGov_CreateGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 2n
+    })
+  });
+
+  // Law 4: Cancel Governor.sol proposal
+  // This law allows canceling a Governor.sol proposal
+  // Only Security Council members (role 2) can use this law, requires Law 3 to be completed
+  lawInitData.push({
+    nameDescription: "Cancel Governor.sol proposal: Cancel a Governor.sol proposal.",
+    targetLaw: getLawAddress("SnapToGov_CancelGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 2n,
+      needCompleted: 3n,
+      quorum: 77n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      succeedAt: 51n
+    })
+  });
+
+  // Law 5: Execute Governor.sol proposal
+  // This law allows executing a Governor.sol proposal
+  // Only executioners (role 1) can use this law, requires Law 3 to be completed
+  lawInitData.push({
+    nameDescription: "Execute Governor.sol proposal: Execute a Governor.sol proposal.",
+    targetLaw: getLawAddress("SnapToGov_ExecuteGov", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId)]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n,
+      needCompleted: 3n,
+      quorum: 10n,
+      votingPeriod: minutesToBlocks(5, chainId),
+      succeedAt: 10n,
+      delayExecution: minutesToBlocks(10, chainId)
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Electoral laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 6: Nominate oneself for Executioner role
+  // This law allows anyone to nominate themselves for the Executives role
+  // Anyone can use this law
+  lawInitData.push({
+    nameDescription: "Nominate oneself: Nominate oneself for the Executives role.",
+    targetLaw: getLawAddress("NominateMe", chainId),
+    config: "0x", // empty config
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  // Law 7: Elect executives using delegated tokens
+  // This law enables electing executives using delegated tokens
+  // Anyone can use this law, reads state from Law 6
+  lawInitData.push({
+    nameDescription: "Elect executives: Elect executives using delegated tokens.",
+    targetLaw: getLawAddress("DelegateSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'tokenAddress', type: 'address' },
+        { name: 'maxRoleHolders', type: 'uint256' },
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [getMockAddress("Erc20VotesMock", chainId), 50n, 1n]
+    ),
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE,
+      readStateFrom: 6n
+    })
+  });
+
+  // Law 8: Select Security Council members
+  // This law allows the admin to select members for the Security Council
+  // Only admin (role 0) can use this law
+  lawInitData.push({
+    nameDescription: "Select Security Council: Select members for the Security Council.",
+    targetLaw: getLawAddress("DirectSelect", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'roleId', type: 'uint256' }
+      ],
+      [2n] // roleId for Security Council
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Initiation Law                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 9: Initial setup - Assign role labels
+  // This law assigns labels to roles and can only be executed once
+  // Anyone can execute this law initially
+  lawInitData.push({
+    nameDescription: "Initial setup: Assign role labels. This law can only be executed once.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress,
+          powersAddress,
+          powersAddress
+        ], // targets
+        [0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Executives"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [2n, "Security Council"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [9n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  return lawInitData;
 }
 
 /**
@@ -342,15 +514,15 @@ export function createGrantsManagerLawInitData(formData: GrantsManagerFormData, 
           targetLaw: "0x4d30c1B4f522af77d9208472af616bAE8E550615", // Dummy governance law address
           config: "0x", // Empty bytes
           conditions: {
-            allowedRole: 0, // ADMIN_ROLE
-            needCompleted: 0,
-            delayExecution: 0,
-            throttleExecution: 0,
-            readStateFrom: 0,
-            votingPeriod: 100, // 100 blocks
-            quorum: 50, // 50% quorum
-            succeedAt: 60, // 60% success threshold
-            needNotCompleted: 0
+            allowedRole: ADMIN_ROLE, // ADMIN_ROLE
+            needCompleted: 0n,
+            delayExecution: 0n,
+            throttleExecution: 0n,
+            readStateFrom: 0n,
+            votingPeriod: 100n, // 100 blocks
+            quorum: 50n, // 50% quorum
+            succeedAt: 60n, // 60% success threshold
+            needNotCompleted: 0n
           }
         }
       ];
@@ -361,14 +533,15 @@ export function createGrantsManagerLawInitData(formData: GrantsManagerFormData, 
  */
 export function createLawInitDataByType(
   type: 'Powers101' | 'CrossChainGovernance' | 'GrantsManager',
+  powersAddress: `0x${string}`,
   formData: Powers101FormData | CrossChainGovernanceFormData | GrantsManagerFormData,
   chainId: number
 ): LawInitData[] {
   switch (type) {
     case 'Powers101':
-      return createPowers101LawInitData(formData as Powers101FormData, chainId);
+      return createPowers101LawInitData(powersAddress, formData as Powers101FormData, chainId);
     case 'CrossChainGovernance':
-      return createCrossChainGovernanceLawInitData(formData as CrossChainGovernanceFormData, chainId);
+      return createCrossChainGovernanceLawInitData(powersAddress, formData as CrossChainGovernanceFormData, chainId);
     case 'GrantsManager':
       return createGrantsManagerLawInitData(formData as GrantsManagerFormData, chainId);
     default:

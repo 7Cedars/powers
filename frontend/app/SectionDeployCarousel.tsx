@@ -18,6 +18,7 @@ import {
   createGrantsManagerLawInitData,
   createLawInitDataByType 
 } from "@/utils/createLawInitData";
+import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 interface DeploymentForm {
   id: number;
@@ -52,10 +53,11 @@ const deploymentForms: DeploymentForm[] = [
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiakcm5i4orree75muwzlezxyegyi2wjluyr2l657oprgfqlxllzoi",
     banner: "",
     description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. The snapshot space and governor address are optional, if left empty a mock space and address are used.",
-    disabled: true,
+    disabled: false,
     fields: [
       { name: "snapshotSpace", placeholder: "Snapshot space address (0x...)", type: "text", required: false },
-      { name: "governorAddress", placeholder: "Governor address (0x...)", type: "text", required: false }
+      { name: "governorAddress", placeholder: "Governor address (0x...)", type: "text", required: false },
+      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true },
     ]
   },
   {
@@ -75,6 +77,7 @@ const deploymentForms: DeploymentForm[] = [
 
 export function SectionDeployCarousel() {
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
+  const [powersAddress, setPowersAddress] = useState<`0x${string}`>("0x0000000000000000000000000000000000000000");
   const [formData, setFormData] = useState<Record<string, string>>({});
   const { deployContract, data } = useDeployContract()
   const { data: receipt } = useTransactionReceipt({
@@ -90,12 +93,13 @@ export function SectionDeployCarousel() {
   const router = useRouter()
 
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
-  const [selectedChain, setSelectedChain] = useState("Ethereum Sepolia");
+  const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
   const chains = [
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
-    { name: "Arbitrum Sepolia", id: 421614 }
+    { name: "Arbitrum Sepolia", id: 421614 },
+    // { name: "Anvil", id: 31337 } -- todo 
   ];
 
   // Get the current selected chain ID
@@ -124,7 +128,7 @@ export function SectionDeployCarousel() {
     switch (currentForm.title) {
       case "Powers 101":
         return 'Powers101';
-      case "Cross Chain Governance":
+      case "Bridging Off-Chain Governance":
         return 'CrossChainGovernance';
       case "Grants Manager":
         return 'GrantsManager';
@@ -134,18 +138,30 @@ export function SectionDeployCarousel() {
   };
 
   // Function to create law initialization data based on current form
-  const createLawInitDataForCurrentForm = () => {
+  const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
     const formType = getCurrentFormType();
+    console.log("formType: ", formType)
     const chainId = selectedChainId || 11155111;
+    console.log("chainId: ", chainId)
     
     try {
-      return createLawInitDataByType(formType, formData, chainId);
+      return createLawInitDataByType(formType, powersAddress, formData, chainId);
     } catch (error) {
       console.error('Error creating law init data:', error);
       // Fallback to basic DAO if there's an error
-      return createPowers101LawInitData(formData, chainId);
+      return createPowers101LawInitData(powersAddress, formData, chainId);
     }
   };
+
+  // Function to check if all required fields are filled
+  const areRequiredFieldsFilled = () => {
+    return currentForm.fields
+      .filter(field => field.required)
+      .every(field => formData[field.name] && formData[field.name].trim() !== '');
+  };
+
+  // Check if there are any required fields
+  const hasRequiredFields = currentForm.fields.some(field => field.required);
 
   const callConstitute = useCallback( 
     async (
@@ -156,7 +172,7 @@ export function SectionDeployCarousel() {
         setStatus("pending")
         try {
           // Create dynamic law initialization data based on current form
-          const lawInitData = createLawInitDataForCurrentForm();
+          const lawInitData = createLawInitDataForCurrentForm(powersAddress);
           console.log("Calling constitute with dynamic law data:", lawInitData)
           
           const { request } = await simulateContract(wagmiConfig, {
@@ -281,7 +297,7 @@ export function SectionDeployCarousel() {
                     type={field.type}
                     name={field.name}
                     placeholder={field.placeholder}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full h-12 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     value={formData[field.name] || ''}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
                     required={field.required}
@@ -290,37 +306,52 @@ export function SectionDeployCarousel() {
               ))}
             </div>
 
+            {/* Required fields indicator */}
+            {hasRequiredFields && (
+              <div className="text-red-500 text-sm font-medium pt-2">
+                * Required
+              </div>
+            )}
+
             <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4 flex-shrink-0">
-              {/* Deploy/See Your Powers button - positioned below on small screens, left on large screens */}
+                            {/* Deploy/See Your Powers button - positioned below on small screens, left on large screens */}
               <div className="w-full sm:w-fit h-12 order-2 sm:order-1">
                 {constituteCompleted && receipt?.contractAddress ? (
-                  <Button 
-                    size={1} 
-                    role={6} 
-                    statusButton="idle"
+                  <button 
+                    className="w-full sm:w-fit h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors duration-200 flex items-center justify-center"
                     onClick={handleSeeYourPowers}
                   > 
-                    <div className="text-slate-600 font-medium">
-                      See Your New Powers
-                    </div>    
-                  </Button>
+                    See Your New Powers
+                  </button>
                 ) : (
-                  <Button 
-                    size={1} 
-                    role={6} 
-                    statusButton={!ready || !authenticated || currentForm.disabled ? 'disabled' : 'idle'}
-                    onClick={() =>
-                      deployContract({
-                        abi: powersAbi, 
-                        args: [currentForm.title, currentForm.uri],
-                        bytecode: bytecodePowers,
-                      })
-                    }
+                  <button 
+                    className={`w-full sm:w-fit h-12 px-6 font-medium rounded-md transition-colors duration-200 flex items-center justify-center ${
+                      !ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    }`}
+                    onClick={() => {
+                      if (ready && authenticated && !currentForm.disabled && areRequiredFieldsFilled()) {
+                        deployContract({
+                          abi: powersAbi, 
+                          args: [currentForm.title, currentForm.uri],
+                          bytecode: bytecodePowers,
+                        })
+                      }
+                    }}
+                    disabled={!ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()}
                   > 
-                    <div className="text-slate-600 font-medium">
-                      {currentForm.disabled ? 'Coming soon!' : `Deploy ${currentForm.title}`}
-                    </div>    
-                  </Button>
+                    {currentForm.disabled ? (
+                      'Coming soon!'
+                    ) : data && !constituteCompleted ? (
+                      <div className="flex items-center gap-2">
+                        <TwoSeventyRingWithBg className="w-5 h-5 animate-spin" color="text-slate-200" />
+                        Deploying...
+                      </div>
+                    ) : (
+                      `Deploy ${currentForm.title}`
+                    )}
+                  </button>
                 )}
               </div>
 

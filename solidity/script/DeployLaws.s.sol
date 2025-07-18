@@ -35,7 +35,7 @@ import { StartGrant } from "../src/laws/executive/StartGrant.sol";
 import { EndGrant } from "../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 import { DirectDeselect } from "../src/laws/electoral/DirectDeselect.sol";
-import { Subscription } from "../src/laws/electoral/Subscription.sol";
+// import { Subscription } from "../src/laws/electoral/Subscription.sol";
 import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
 import { StartElection } from "../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../src/laws/electoral/EndElection.sol";
@@ -148,9 +148,13 @@ contract DeployLaws is Script {
         creationCodes[20] = type(DirectDeselect).creationCode;
         constructorArgs[20] = abi.encode("DirectDeselect");
 
-        names[21] = "Subscription";
-        creationCodes[21] = type(Subscription).creationCode;
-        constructorArgs[21] = abi.encode("Subscription");
+        // names[21] = "Subscription";
+        // creationCodes[21] = type(Subscription).creationCode;
+        // constructorArgs[21] = abi.encode("Subscription");
+
+        names[21] = "DirectDeselect";
+        creationCodes[21] = type(DirectDeselect).creationCode;
+        constructorArgs[21] = abi.encode("DirectDeselect");
 
         names[22] = "StartElection";
         creationCodes[22] = type(StartElection).creationCode;

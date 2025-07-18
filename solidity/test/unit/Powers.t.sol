@@ -33,7 +33,7 @@ contract DeployTest is TestSetupPowers {
         vm.prank(alice);
 
         vm.expectEmit(true, false, false, false);
-        emit FundsReceived(1 ether);
+        emit FundsReceived(1 ether, alice);
         (bool success,) = address(daoMock).call{ value: 1 ether }("");
 
         assertTrue(success);

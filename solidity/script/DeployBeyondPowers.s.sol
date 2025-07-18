@@ -201,7 +201,7 @@ contract DeployBeyondPowers is Script {
         //               Initiation Law                     // 
         //////////////////////////////////////////////////////
         
-                // Preset law to assign previous DAO role
+        // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
         conditions.allowedRole = type(uint256).max; // anyone can use execute this law. 

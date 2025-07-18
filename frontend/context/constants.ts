@@ -1,82 +1,131 @@
 type Constants = {
   BLOCKS_PER_HOUR: number; 
+  LAW_NAMES: string[];
+  LAW_ADDRESSES: `0x${string}`[];
+  MOCK_NAMES: string[];
+  MOCK_ADDRESSES: `0x${string}`[];
+  CHAINLINK_GAS_LIMIT: number;
+  CHAINLINK_DON_ID: `0x${string}`;
+  CHAINLINK_ENCRYPTED_SECRETS_ENDPOINT?: string;
 }
-
-
-// Type for deployment returns data
-type DeploymentReturns = {
-  addresses: {
-    internal_type: string;
-    value: string; // JSON string array of addresses
-  };
-  names: {
-    internal_type: string;
-    value: string; // JSON string array of names
-  };
-};
-
-// Type for deployment file structure
-type DeploymentFile = {
-  returns: DeploymentReturns;
-};
-
-/**
- * Reads deployment data from DeployLaws.s.sol broadcast files and creates a mapping of law addresses
- * @param chainId - The chain ID to get deployment data for
- * @returns A mapping of law names to their deployed addresses
- */
-export const getDeployedLawAddresses = (lawName: string): `0x${string}` | undefined => {
-  const lawNames: string[] = [
-    "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
-    "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
-    "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
-    "Grant", "StartGrant", "EndGrant", "AdoptLaw", "VoteOnAccounts", 
-    "DirectDeselect", "Subscription", "StartElection", "EndElection", "GovernorCreateProposal", 
-    "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-    "SnapToGov_ExecuteGov"
-  ] 
-  const lawAddresses: string[] = [
-    "0x3Dd2B6982ccC9FBfF3c7995a09649Ca86B92Ba61", "0x458dB0C9930cF11c8C071D782f70414868b0cacD", "0xc29F9C05Ad10F415a0D3b20e70981325DC292774", "0x0F326187968a12A4672a39fE2b11115c2ffF0459", "0x3103B1E05123d0A3D110d891BfB8512aE6D78415", 
-    "0x9B5576d05524c371010D44168349EcFcE39629Ac", "0x1dCE375A3e48236a324D3B5981d43987ADAf36Ac", "0xE0E3296bfAed00eD16a0A11d36C4819992c2B705", "0x4d30c1B4f522af77d9208472af616bAE8E550615", "0xB9260dD1b3bf29E81F5C21bC6A7A7B3F3Ce0C832", 
-    "0x2274716cBDB7588Bf2dFa09744998DAdD06EdC43", "0xb1115dA4fF650AA685600B37A23009B2cDeCc830", "0x3E38A61C98204c6d507F7Df18015478fEe3ffA47", "0x5E0B5B52340b9b4dF683a7560e0e783E6e7B8F82", "0x525C7Ce8Db8745AD74A4f3110908C775205278d4", 
-    "0x07A2FCC652E91B0e80a34F671213C08e5A5180fc", "0x7b4B4dFCee8fe1Fb2f95121f8925e17a9f72F07F", "0x29da0f1A6bFB57AECF9DC114dCbc426400B2B543", "0x84172AC5E14dC09f8E506975D63be04A7d828356", "0x0aB735F24cc09E4E3f692c501BdbE47A999e55bA", 
-    "0xDBEf9280dd21d318Ea3b8af18Fe5fC72D7a347eE", "0x9b024C825DBA0f0fa181FE8853A73507e6bA547F", "0xE15d3921fbb83Fd6f7B0d33751344616CDf32254", "0x2B3ebF29548E7d51c26BCFE6d235dA7e9B6874f3", "0x1e181080fA3591D84Bc0eddD8224640088bAeD5E", 
-    "0xd5Bd408dA78258D032796a65b7182DC13487eeA9", "0x797594B56fBef90d024121f31737f534D5d188Fa", "0xd21713620305cE99802e143dBB52EC0515513F75", "0x1cA157bf1a6d8B262e7E957a60FAd620Bd46A9d6", "0x070a0b84747DE3F543CC6F2bc2eA0Ecdeb4c0bF5", 
-    "0x0eC676F77DAF19c05D03cDfb7095511859370649"
-  ] 
-
-  // Find the index of the law name in the names array
-  const index = lawNames.indexOf(lawName);
-  
-  // If the law name is found, return the corresponding address
-  if (index !== -1 && index < lawAddresses.length) {
-    return lawAddresses[index] as `0x${string}`;
-  } else {
-    return undefined;
-  }
-};
 
 export const getConstants = (chainId: number): Constants => {
   switch (chainId) {
     case 421614: // arb sepolia
       return {
-        BLOCKS_PER_HOUR: 300
+        BLOCKS_PER_HOUR: 300,
+        LAW_NAMES: [
+          "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
+          "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
+          "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
+          "Grant", "StartGrant", "EndGrant", "AdoptLaw", "VoteOnAccounts", 
+          "DirectDeselect", "Subscription", "StartElection", "EndElection", "GovernorCreateProposal", 
+          "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
+          "SnapToGov_ExecuteGov"
+        ], 
+        LAW_ADDRESSES: [
+          "0x3Dd2B6982ccC9FBfF3c7995a09649Ca86B92Ba61", "0x458dB0C9930cF11c8C071D782f70414868b0cacD", "0xc29F9C05Ad10F415a0D3b20e70981325DC292774", "0x0F326187968a12A4672a39fE2b11115c2ffF0459", "0x3103B1E05123d0A3D110d891BfB8512aE6D78415", 
+          "0x9B5576d05524c371010D44168349EcFcE39629Ac", "0x1dCE375A3e48236a324D3B5981d43987ADAf36Ac", "0xE0E3296bfAed00eD16a0A11d36C4819992c2B705", "0x4d30c1B4f522af77d9208472af616bAE8E550615", "0xB9260dD1b3bf29E81F5C21bC6A7A7B3F3Ce0C832", 
+          "0x2274716cBDB7588Bf2dFa09744998DAdD06EdC43", "0xb1115dA4fF650AA685600B37A23009B2cDeCc830", "0x3E38A61C98204c6d507F7Df18015478fEe3ffA47", "0x5E0B5B52340b9b4dF683a7560e0e783E6e7B8F82", "0x525C7Ce8Db8745AD74A4f3110908C775205278d4", 
+          "0x07A2FCC652E91B0e80a34F671213C08e5A5180fc", "0x7b4B4dFCee8fe1Fb2f95121f8925e17a9f72F07F", "0x29da0f1A6bFB57AECF9DC114dCbc426400B2B543", "0x84172AC5E14dC09f8E506975D63be04A7d828356", "0x0aB735F24cc09E4E3f692c501BdbE47A999e55bA", 
+          "0xDBEf9280dd21d318Ea3b8af18Fe5fC72D7a347eE", "0x9b024C825DBA0f0fa181FE8853A73507e6bA547F", "0xE15d3921fbb83Fd6f7B0d33751344616CDf32254", "0x2B3ebF29548E7d51c26BCFE6d235dA7e9B6874f3", "0x1e181080fA3591D84Bc0eddD8224640088bAeD5E", 
+          "0xd5Bd408dA78258D032796a65b7182DC13487eeA9", "0x797594B56fBef90d024121f31737f534D5d188Fa", "0xd21713620305cE99802e143dBB52EC0515513F75", "0x1cA157bf1a6d8B262e7E957a60FAd620Bd46A9d6", "0x070a0b84747DE3F543CC6F2bc2eA0Ecdeb4c0bF5", 
+          "0x0eC676F77DAF19c05D03cDfb7095511859370649"
+        ], 
+        MOCK_NAMES: [
+          "PowersMock", "GovernorMock", "Erc20VotesMock", 
+          "Erc20TaxedMock", "Erc721Mock", "Erc1155Mock"
+        ],
+        MOCK_ADDRESSES: [
+          "0xB492F73271616530f8B5b1d57aaa2dC1de19d5E0", "0x3D1A58Cae97A91495b8A6051E9Fef4BdaD708b23", "0x52536c4e334B57c56e36A5De4F4C3F2530a15851", 
+          "0x30cd84735502A954Ba7f16C10b79F7510E32DE57", "0x9C06D27a3402BDfbCAE93c65B2F34727356c9A2b", "0xEFE0832C1e3232F6F9c8AC188d872DE1365A31fd"
+        ],
+        CHAINLINK_GAS_LIMIT: 300_000,
+        CHAINLINK_DON_ID: "0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000",
       }
     case 11155420: // optimism sepolia
       return {
-        BLOCKS_PER_HOUR: 1800
+        BLOCKS_PER_HOUR: 1800,
+        LAW_NAMES: [
+          "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
+          "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
+          "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
+          "Grant", "StartGrant", "EndGrant", "AdoptLaw", "VoteOnAccounts", 
+          "DirectDeselect", "Subscription", "StartElection", "EndElection", "GovernorCreateProposal", 
+          "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
+          "SnapToGov_ExecuteGov"
+        ], 
+        LAW_ADDRESSES: [
+          "0x07D6caC7e7450eB2c0419E9cc0a4b8d98782ddf8", "0x04FF4b774A825577eD73aeE6b85c9b1Af68e5d9c", "0x97A22b5116101b909f6af425FC82F04d78d7A1fF", "0xF66a0E7C0b9ae836a095f7Dab60cF365a29FB057", "0x9a649652962cC6C51647ec1a54C67369aFC09615",
+          "0x2D16b04c012ffb94d73CAa6230d2bCb100035Fde", "0x71B43028268c4472965032FD89Dcd921917b3880", "0x2D518987F2A4CCE7627B9EA76014AB185f1f06b9", "0x7b42C3Ca539B47B339D2aE570386d0DAead252d6", "0x8Ec1D2e176a3341d3fBe18Ef9fBdD95E2AAeC400", 
+          "0x939C5772c704dE694Adf63737032Ad429c63377B", "0x198705747E88b84D8CbC3531267Bb1e79ab26c2f", "0x695e4B597c0615299c185A69c1874b18689A8702", "0x4821f8CF6d9997F7afEd039043610A98D2bFDAB0", "0x08f9CdE7b78184C6F1B5db5C9B3C69c8797B4A01", 
+          "0x2c7534b9bF51778F53e8443F52e5704bCa2CfEb0", "0x25eCa504558B9B7289F85edbC180cf58A7eA064D", "0x1b8202bBC468E112020f1e27E2976A55ca2A4E8B", "0x9A70425FCADbDBAc6c68506df6727B3f56b6b705", "0x063796FCD3767AD811e2A806Ed324a354395Ab52", 
+          "0x7A44e32e9E171e4F856602b95D636947C1dC0D61", "0x7A44e32e9E171e4F856602b95D636947C1dC0D61", "0xe7EcEb9633fb2b88F69D10CeE28627BA896536FE", "0x5F27d20377e770CeA5d89783d7A57792686C3DFf", "0x6f9dDd3dAde84663071e0703D05f66371284B3d8", 
+          "0x9e21b95913c20aD8FB8114Bb950245AEDE1B3735", "0x83E04B3E1A31e38E14Cc0D2daC3afeA0f93FA8C0", "0xb004943A9D3eD1b0a712C184919560A42dD75Dc4", "0x1102DacFaa5ef089fA51c1C7BDb2fDee3525fF32", "0xc5Eb364774BD65c8AF47041d938Bd2D5AF9D2500", 
+          "0x817E4549E0a776384B7c8EBb6e39BC36dD08334D"
+        ], 
+        MOCK_NAMES: [
+          "PowersMock", "GovernorMock", "Erc20VotesMock", 
+          "Erc20TaxedMock", "Erc721Mock", "Erc1155Mock"
+        ],
+        MOCK_ADDRESSES: [
+          "0xB492F73271616530f8B5b1d57aaa2dC1de19d5E0", "0x3D1A58Cae97A91495b8A6051E9Fef4BdaD708b23", "0x52536c4e334B57c56e36A5De4F4C3F2530a15851", 
+          "0x30cd84735502A954Ba7f16C10b79F7510E32DE57", "0x9C06D27a3402BDfbCAE93c65B2F34727356c9A2b", "0xEFE0832C1e3232F6F9c8AC188d872DE1365A31fd"
+        ],
+        CHAINLINK_GAS_LIMIT: 300_000,
+        CHAINLINK_DON_ID: "0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000",
       }
     case 11155111: // mainnet sepolia
       return {
-        BLOCKS_PER_HOUR: 300
+        BLOCKS_PER_HOUR: 300,
+        LAW_NAMES: [
+          "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
+          "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
+          "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
+          "Grant", "StartGrant", "EndGrant", "AdoptLaw", "VoteOnAccounts", 
+          "DirectDeselect", "Subscription", "StartElection", "EndElection", "GovernorCreateProposal", 
+          "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
+          "SnapToGov_ExecuteGov"
+        ], 
+        LAW_ADDRESSES: [
+          "0x3Dd2B6982ccC9FBfF3c7995a09649Ca86B92Ba61", "0x458dB0C9930cF11c8C071D782f70414868b0cacD", "0xc29F9C05Ad10F415a0D3b20e70981325DC292774", "0x0F326187968a12A4672a39fE2b11115c2ffF0459", "0x3103B1E05123d0A3D110d891BfB8512aE6D78415", 
+          "0x9B5576d05524c371010D44168349EcFcE39629Ac", "0x1dCE375A3e48236a324D3B5981d43987ADAf36Ac", "0xE0E3296bfAed00eD16a0A11d36C4819992c2B705", "0x4d30c1B4f522af77d9208472af616bAE8E550615", "0xB9260dD1b3bf29E81F5C21bC6A7A7B3F3Ce0C832", 
+          "0x2274716cBDB7588Bf2dFa09744998DAdD06EdC43", "0xb1115dA4fF650AA685600B37A23009B2cDeCc830", "0x3E38A61C98204c6d507F7Df18015478fEe3ffA47", "0x5E0B5B52340b9b4dF683a7560e0e783E6e7B8F82", "0x525C7Ce8Db8745AD74A4f3110908C775205278d4", 
+          "0x07A2FCC652E91B0e80a34F671213C08e5A5180fc", "0x7b4B4dFCee8fe1Fb2f95121f8925e17a9f72F07F", "0x29da0f1A6bFB57AECF9DC114dCbc426400B2B543", "0x84172AC5E14dC09f8E506975D63be04A7d828356", "0x0aB735F24cc09E4E3f692c501BdbE47A999e55bA", 
+          "0xDBEf9280dd21d318Ea3b8af18Fe5fC72D7a347eE", "0x9b024C825DBA0f0fa181FE8853A73507e6bA547F", "0xE15d3921fbb83Fd6f7B0d33751344616CDf32254", "0x2B3ebF29548E7d51c26BCFE6d235dA7e9B6874f3", "0x1e181080fA3591D84Bc0eddD8224640088bAeD5E", 
+          "0xd5Bd408dA78258D032796a65b7182DC13487eeA9", "0x797594B56fBef90d024121f31737f534D5d188Fa", "0xd21713620305cE99802e143dBB52EC0515513F75", "0x1cA157bf1a6d8B262e7E957a60FAd620Bd46A9d6", "0x070a0b84747DE3F543CC6F2bc2eA0Ecdeb4c0bF5", 
+          "0x0eC676F77DAF19c05D03cDfb7095511859370649"
+        ],
+        MOCK_NAMES: [
+          "PowersMock", "GovernorMock", "Erc20VotesMock", 
+          "Erc20TaxedMock", "Erc721Mock", "Erc1155Mock"
+        ],
+        MOCK_ADDRESSES: [
+          "0xB492F73271616530f8B5b1d57aaa2dC1de19d5E0", "0x3D1A58Cae97A91495b8A6051E9Fef4BdaD708b23", "0x52536c4e334B57c56e36A5De4F4C3F2530a15851", 
+          "0x30cd84735502A954Ba7f16C10b79F7510E32DE57", "0x9C06D27a3402BDfbCAE93c65B2F34727356c9A2b", "0xEFE0832C1e3232F6F9c8AC188d872DE1365A31fd"
+        ], 
+        CHAINLINK_GAS_LIMIT: 300_000,
+        CHAINLINK_DON_ID: "0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000",
       }
     case 31337: // anvil local
       return {
-        BLOCKS_PER_HOUR: 300
+        BLOCKS_PER_HOUR: 300,
+        LAW_NAMES: [],
+        LAW_ADDRESSES: [],
+        MOCK_NAMES: [],
+        MOCK_ADDRESSES: [],
+        CHAINLINK_GAS_LIMIT: 300_000,
+        CHAINLINK_DON_ID: "0x0000000000000000000000000000000000000000000000000000000000000000",
       }
     default:
       return {
-        BLOCKS_PER_HOUR: 300
+        BLOCKS_PER_HOUR: 300,
+        LAW_NAMES: [],
+        LAW_ADDRESSES: [],
+        MOCK_NAMES: [],
+        MOCK_ADDRESSES: [],
+        CHAINLINK_GAS_LIMIT: 300_000,
+        CHAINLINK_DON_ID: "0x0000000000000000000000000000000000000000000000000000000000000000",
       }
   }
 }

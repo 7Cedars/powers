@@ -21,7 +21,7 @@ import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { DirectSelect } from "../../../src/laws/electoral/DirectSelect.sol";
 import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
 import { DirectDeselect } from "../../../src/laws/electoral/DirectDeselect.sol";
-import { Subscription } from "../../../src/laws/electoral/Subscription.sol";
+// import { Subscription } from "../../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../../src/laws/electoral/EndElection.sol";
 
@@ -1192,198 +1192,198 @@ contract DirectDeselectTest is TestSetupElectoral {
     }
 } 
 
-contract SubscriptionTest is TestSetupElectoral {
-    using ShortStrings for *;
+// contract SubscriptionTest is TestSetupElectoral {
+//     using ShortStrings for *;
 
-    function testConstructorInitialization() public {
-        // Get the Subscription contract from the test setup
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//     function testConstructorInitialization() public {
+//         // Get the Subscription contract from the test setup
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
         
-        vm.startPrank(address(daoMock));
-        assertEq(Law(subscriptionAddress).getConditions(address(daoMock), subscription).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(subscriptionAddress).getExecutions(address(daoMock), subscription).powers, address(daoMock), "Powers address should be set correctly");
-        vm.stopPrank();
-    }
+//         vm.startPrank(address(daoMock));
+//         assertEq(Law(subscriptionAddress).getConditions(address(daoMock), subscription).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
+//         assertEq(Law(subscriptionAddress).getExecutions(address(daoMock), subscription).powers, address(daoMock), "Powers address should be set correctly");
+//         vm.stopPrank();
+//     }
 
-    function testAssignRoleBasedOnSubscription() public {
-        // prep
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
-        lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
+//     function testAssignRoleBasedOnSubscription() public {
+//         // prep
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
         
-        // Get the configured subscription amount from the law
-        Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
-        uint256 subscriptionAmount = data.subscriptionAmount;
+//         // Get the configured subscription amount from the law
+//         Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
+//         uint256 subscriptionAmount = data.subscriptionAmount;
         
-        // Setup: Make alice pay enough tax to meet subscription amount
-        vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
-        vm.prank(alice);
-        address(daoMock).call{value: subscriptionAmount}(""); 
+//         // Setup: Make alice pay enough tax to meet subscription amount
+//         vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
+//         vm.prank(alice);
+//         address(daoMock).call{value: subscriptionAmount}(""); 
 
-        // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+//         // Advance to next epoch
+//         vm.roll(block.number + data.epochDuration);
 
-        // Request role assignment
-        lawCalldata = abi.encode(alice);
-        vm.prank(alice);
-        daoMock.request(subscription, lawCalldata, nonce, "Requesting role based on subscription payment");
+//         // Request role assignment
+//         lawCalldata = abi.encode(alice);
+//         vm.prank(alice);
+//         daoMock.request(subscription, lawCalldata, nonce, "Requesting role based on subscription payment");
 
-        // assert
-        assertTrue(daoMock.hasRoleSince(alice, data.roleIdToSet) > 0, "Alice should have the role");
-    }
+//         // assert
+//         assertTrue(daoMock.hasRoleSince(alice, data.roleIdToSet) > 0, "Alice should have the role");
+//     }
 
-    function testRevokeRoleBasedOnInsufficientSubscription() public {
-        // prep
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
-        lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
+//     function testRevokeRoleBasedOnInsufficientSubscription() public {
+//         // prep
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
         
-        // Get the configured subscription amount from the law
-        Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
-        uint256 subscriptionAmount = data.subscriptionAmount;
+//         // Get the configured subscription amount from the law
+//         Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
+//         uint256 subscriptionAmount = data.subscriptionAmount;
         
-        // Setup: Make alice pay enough tax to meet subscription amount
-        vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
-        vm.prank(alice);
-        address(daoMock).call{value: subscriptionAmount + 1}(""); 
+//         // Setup: Make alice pay enough tax to meet subscription amount
+//         vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
+//         vm.prank(alice);
+//         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
-        // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+//         // Advance to next epoch
+//         vm.roll(block.number + data.epochDuration);
 
-        // Request role assignment
-        lawCalldata = abi.encode(alice);
-        vm.prank(alice);
-        daoMock.request(subscription, lawCalldata, nonce, "Requesting role based on subscription payment");
-        nonce++;
+//         // Request role assignment
+//         lawCalldata = abi.encode(alice);
+//         vm.prank(alice);
+//         daoMock.request(subscription, lawCalldata, nonce, "Requesting role based on subscription payment");
+//         nonce++;
 
-        // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+//         // Advance to next epoch
+//         vm.roll(block.number + data.epochDuration);
 
-        // Setup: Make alice pay not enough tax to meet subscription amount
-        vm.prank(alice);
-        address(daoMock).call{value: subscriptionAmount -1}(""); 
+//         // Setup: Make alice pay not enough tax to meet subscription amount
+//         vm.prank(alice);
+//         address(daoMock).call{value: subscriptionAmount -1}(""); 
 
-        // Request role revocation
-        lawCalldata = abi.encode(alice);
-        vm.prank(alice);
-        daoMock.request(subscription, lawCalldata, nonce, "Requesting role revocation based on insufficient subscription");
+//         // Request role revocation
+//         lawCalldata = abi.encode(alice);
+//         vm.prank(alice);
+//         daoMock.request(subscription, lawCalldata, nonce, "Requesting role revocation based on insufficient subscription");
 
-        // assert
-        assertEq(daoMock.hasRoleSince(alice, data.roleIdToSet), 0, "Alice should not have the role");
-    }
+//         // assert
+//         assertEq(daoMock.hasRoleSince(alice, data.roleIdToSet), 0, "Alice should not have the role");
+//     }
 
-    function testCannotAssignRoleInFirstEpoch() public {
-        // prep
-        uint16 subscription = 10;
+//     function testCannotAssignRoleInFirstEpoch() public {
+//         // prep
+//         uint16 subscription = 10;
         
-        // Try to request role assignment in first epoch
-        vm.roll(1); // set blocknumber to 1
-        lawCalldata = abi.encode(alice);
-        vm.prank(alice);
-        vm.expectRevert("No finished epoch yet.");
-        daoMock.request(subscription, lawCalldata, nonce, "Requesting role in first epoch");
-    }
+//         // Try to request role assignment in first epoch
+//         vm.roll(1); // set blocknumber to 1
+//         lawCalldata = abi.encode(alice);
+//         vm.prank(alice);
+//         vm.expectRevert("No finished epoch yet.");
+//         daoMock.request(subscription, lawCalldata, nonce, "Requesting role in first epoch");
+//     }
 
-    function testMultipleAccountsSubscriptionBasedRoles() public {
-        // prep
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
-        lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
+//     function testMultipleAccountsSubscriptionBasedRoles() public {
+//         // prep
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
         
-        // Get the configured subscription amount from the law
-        Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
-        uint256 subscriptionAmount = data.subscriptionAmount;
+//         // Get the configured subscription amount from the law
+//         Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
+//         uint256 subscriptionAmount = data.subscriptionAmount;
         
-        // Setup: Make alice and bob pay enough tax to meet subscription amount
-        vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
-        vm.prank(alice);
-        address(daoMock).call{value: subscriptionAmount + 1}(""); 
+//         // Setup: Make alice and bob pay enough tax to meet subscription amount
+//         vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
+//         vm.prank(alice);
+//         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
-        // Setup: Make bob pay enough tax to meet subscription amount
-        vm.deal(bob, 1 * 10 ** 18); // = 1 ether 
-        vm.prank(bob);
-        address(daoMock).call{value: subscriptionAmount + 1}(""); 
+//         // Setup: Make bob pay enough tax to meet subscription amount
+//         vm.deal(bob, 1 * 10 ** 18); // = 1 ether 
+//         vm.prank(bob);
+//         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
-        // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+//         // Advance to next epoch
+//         vm.roll(block.number + data.epochDuration);
 
-        // Request role assignment for alice
-        lawCalldata = abi.encode(alice);
-        vm.prank(alice);
-        daoMock.request(subscription, lawCalldata, nonce, "Alice requesting role");
-        nonce++;
+//         // Request role assignment for alice
+//         lawCalldata = abi.encode(alice);
+//         vm.prank(alice);
+//         daoMock.request(subscription, lawCalldata, nonce, "Alice requesting role");
+//         nonce++;
 
-        // Request role assignment for bob
-        lawCalldata = abi.encode(bob);
-        vm.prank(bob);
-        daoMock.request(subscription, lawCalldata, nonce, "Bob requesting role");
+//         // Request role assignment for bob
+//         lawCalldata = abi.encode(bob);
+//         vm.prank(bob);
+//         daoMock.request(subscription, lawCalldata, nonce, "Bob requesting role");
 
-        // assert
-        assertTrue(daoMock.hasRoleSince(alice, data.roleIdToSet) > 0, "Alice should have the role");
-        assertTrue(daoMock.hasRoleSince(bob, data.roleIdToSet) > 0, "Bob should have the role");
-    }
+//         // assert
+//         assertTrue(daoMock.hasRoleSince(alice, data.roleIdToSet) > 0, "Alice should have the role");
+//         assertTrue(daoMock.hasRoleSince(bob, data.roleIdToSet) > 0, "Bob should have the role");
+//     }
 
-    function testHandleRequestOutput() public {
-        // prep
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
-        lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
+//     function testHandleRequestOutput() public {
+//         // prep
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
         
-        // Get the configured subscription amount from the law
-        Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
-        uint256 subscriptionAmount = data.subscriptionAmount;
+//         // Get the configured subscription amount from the law
+//         Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
+//         uint256 subscriptionAmount = data.subscriptionAmount;
 
-        // Setup: Make alice pay enough tax to meet subscription amount
-        vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
-        vm.prank(alice);
-        address(daoMock).call{value: subscriptionAmount + 1}(""); 
+//         // Setup: Make alice pay enough tax to meet subscription amount
+//         vm.deal(alice, 1 * 10 ** 18); // = 1 ether 
+//         vm.prank(alice);
+//         address(daoMock).call{value: subscriptionAmount + 1}(""); 
 
-        // Advance to next epoch
-        vm.roll(block.number + data.epochDuration);
+//         // Advance to next epoch
+//         vm.roll(block.number + data.epochDuration);
 
-        lawCalldata = abi.encode(alice);
+//         lawCalldata = abi.encode(alice);
 
-        // act: call handleRequest directly to check its output
-        vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = Law(subscriptionAddress).handleRequest(alice, address(daoMock), subscription, lawCalldata, nonce);
+//         // act: call handleRequest directly to check its output
+//         vm.prank(address(daoMock));
+//         (
+//             actionId,
+//             targets,
+//             values,
+//             calldatas,
+//             stateChange
+//         ) = Law(subscriptionAddress).handleRequest(alice, address(daoMock), subscription, lawCalldata, nonce);
 
-        // assert
-        assertEq(targets.length, 1, "Should have one target");
-        assertEq(values.length, 1, "Should have one value");
-        assertEq(calldatas.length, 1, "Should have one calldata");
-        assertEq(targets[0], address(daoMock), "Target should be the DAO");
-        assertEq(values[0], 0, "Value should be 0");
-        assertNotEq(calldatas[0], "", "Calldata should not be empty");
-        assertNotEq(actionId, 0, "Action ID should not be 0");
-    }
+//         // assert
+//         assertEq(targets.length, 1, "Should have one target");
+//         assertEq(values.length, 1, "Should have one value");
+//         assertEq(calldatas.length, 1, "Should have one calldata");
+//         assertEq(targets[0], address(daoMock), "Target should be the DAO");
+//         assertEq(values[0], 0, "Value should be 0");
+//         assertNotEq(calldatas[0], "", "Calldata should not be empty");
+//         assertNotEq(actionId, 0, "Action ID should not be 0");
+//     }
 
-    function testVerifyStoredData() public {
-        // prep
-        uint16 subscription = 10;
-        (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
-        lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
+//     function testVerifyStoredData() public {
+//         // prep
+//         uint16 subscription = 10;
+//         (address subscriptionAddress, , ) = daoMock.getActiveLaw(subscription);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), subscription);
 
-        // assert
-        Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
-        assertEq(data.epochDuration, 120, "Epoch duration should be set correctly");
-        assertEq(data.subscriptionAmount, 1000, "Subscription amount should be set correctly");
-        assertEq(data.roleIdToSet, ROLE_FOUR, "Role ID to set should be set correctly");
-    }
-} 
+//         // assert
+//         Subscription.Data memory data = Subscription(subscriptionAddress).getData(lawHash);
+//         assertEq(data.epochDuration, 120, "Epoch duration should be set correctly");
+//         assertEq(data.subscriptionAmount, 1000, "Subscription amount should be set correctly");
+//         assertEq(data.roleIdToSet, ROLE_FOUR, "Role ID to set should be set correctly");
+//     }
+// } 
 
 contract StartElectionTest is TestSetupElectoral {
     using ShortStrings for *;
 
     function testConstructorInitializationStartElection() public {
         // Get the StartElection contract from the test setup
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         
         vm.startPrank(address(daoMock));
@@ -1394,7 +1394,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testStartElection() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         lawHash = LawUtilities.hashLaw(address(daoMock), startElection);
         
@@ -1426,7 +1426,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testStartElectionWithInvalidTiming() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         
         // Setup election parameters with invalid timing (end before start)
         uint48 startVote = uint48(block.number + 200);
@@ -1458,7 +1458,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testHandleRequestOutput() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         
         // Setup election parameters
@@ -1489,7 +1489,7 @@ contract StartElectionTest is TestSetupElectoral {
 
     function testVerifyStoredData() public {
         // prep
-        uint16 startElection = 11;
+        uint16 startElection = 10;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         lawHash = LawUtilities.hashLaw(address(daoMock), startElection);
 
@@ -1505,12 +1505,12 @@ contract EndElectionTest is TestSetupElectoral {
 
     function testConstructorInitialization() public {
         // Get the EndElection contract from the test setup
-        uint16 EndElection = 12;
+        uint16 EndElection = 11;
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         vm.startPrank(address(daoMock));
         assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).allowedRole, 0, "Allowed role should be set to ADMIN_ROLE");
-        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).needCompleted, 11, "NeedCompleted should be set to StartElection law ID");
+        assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).needCompleted, 10, "NeedCompleted should be set to StartElection law ID");
         assertEq(Law(EndElectionAddress).getConditions(address(daoMock), EndElection).readStateFrom, 1, "ReadStateFrom should be set to NominateMe law ID");
         assertEq(Law(EndElectionAddress).getExecutions(address(daoMock), EndElection).powers, address(daoMock), "Powers address should be set correctly");
         vm.stopPrank();
@@ -1519,8 +1519,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionCheck() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
@@ -1568,8 +1568,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionBeforeStart() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1598,8 +1598,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testEndElectionAfterEnd() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         
         // First nominate some users
         vm.startPrank(bob);
@@ -1631,8 +1631,8 @@ contract EndElectionTest is TestSetupElectoral {
     function testHandleRequestOutput() public {
         // prep
         uint16 nominateMe = 1;
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address startElectionAddress, , ) = daoMock.getActiveLaw(startElection);
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
@@ -1680,8 +1680,8 @@ contract EndElectionTest is TestSetupElectoral {
 
     function testEndElectionWithoutNominees() public {
         // prep
-        uint16 startElection = 11;
-        uint16 EndElection = 12;
+        uint16 startElection = 10;
+        uint16 EndElection = 11;
         (address EndElectionAddress, , ) = daoMock.getActiveLaw(EndElection);
         
         // Start an election without any nominees
