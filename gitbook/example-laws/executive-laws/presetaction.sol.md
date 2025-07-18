@@ -112,9 +112,11 @@ function handleRequest(
 
 ## Current Deployments
 
-| Chain ID | Address  |
-| -------  | -------- | 
-|          |          | 
+| Chain ID | Chain Name      | Address                                      |
+|----------|----------------|----------------------------------------------|
+| 421614   | Arbitrum Sepolia | 0xE0E3296bfAed00eD16a0A11d36C4819992c2B705  |
+| 11155420 | Optimism Sepolia | 0x2D518987F2A4CCE7627B9EA76014AB185f1f06b9  |
+| 11155111 | Ethereum Sepolia | 0xE0E3296bfAed00eD16a0A11d36C4819992c2B705  | 
 
 
 
