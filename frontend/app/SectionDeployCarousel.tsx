@@ -221,7 +221,7 @@ export function SectionDeployCarousel() {
   };
 
   return (
-    <section className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 sm:pt-16 pt-4">
+    <section id="deploy" className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 sm:pt-16 pt-4">
       <div className="w-full flex flex-col gap-4 justify-start items-center">
         <section className="flex flex-col justify-center items-center"> 
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
