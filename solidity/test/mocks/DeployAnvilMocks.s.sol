@@ -34,7 +34,7 @@ import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
 import { VoteOnAccounts } from "../../src/laws/state/VoteOnAccounts.sol";
 import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
-import { Subscription } from "../../src/laws/electoral/Subscription.sol";
+// import { Subscription } from "../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../src/laws/electoral/EndElection.sol";
 import { GovernorCreateProposal } from "../../src/laws/integrations/GovernorCreateProposal.sol";
@@ -88,7 +88,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[18] = address(new AdoptLaw());
         lawAddresses[19] = address(new VoteOnAccounts());
         lawAddresses[20] = address(new DirectDeselect());
-        lawAddresses[21] = address(new Subscription());
+        // lawAddresses[21] = address(new Subscription());
         lawAddresses[22] = address(new StartElection());
         lawAddresses[23] = address(new EndElection());
         lawAddresses[24] = address(new GovernorCreateProposal());
@@ -134,7 +134,7 @@ contract DeployAnvilMocks is Script {
         lawNames[18] = "AdoptLaw";
         lawNames[19] = "VoteOnAccounts";
         lawNames[20] = "DirectDeselect";
-        lawNames[21] = "Subscription";
+        // lawNames[21] = "Subscription";
         lawNames[22] = "StartElection";
         lawNames[23] = "EndElection";
         lawNames[24] = "GovernorCreateProposal";

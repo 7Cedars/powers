@@ -55,12 +55,11 @@ contract Powers is EIP712, IPowers {
     mapping(uint256 actionId => Action) internal _actions; // mapping actionId to Action struct
     mapping(uint16 lawId => ActiveLaw) internal laws; // mapping law address to Law struct
     mapping(uint256 roleId => Role) internal roles; // mapping roleId to Role struct
-    mapping(address account => Deposit[]) internal deposits; // mapping deposits from accounts (note: this only covers chain native currency)
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint256).max.
     uint256 public constant ADMIN_ROLE = type(uint256).min; // == 0
     uint256 public constant PUBLIC_ROLE = type(uint256).max; // == a lot
-    uint256 constant DENOMINATOR = 100; // = 100%
+    uint256 public constant DENOMINATOR = 100; // == 100%
 
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO.
@@ -106,8 +105,7 @@ contract Powers is EIP712, IPowers {
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
     /// @dev No access control on this function: anyone can send funds in native currency into the contract.
     receive() external payable virtual {
-        deposits[msg.sender].push(Deposit(msg.value, uint48(block.number)));
-        emit FundsReceived(msg.value);
+        emit FundsReceived(msg.value, msg.sender);
     }
 
     //////////////////////////////////////////////////////////////
@@ -124,15 +122,13 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         ActiveLaw memory law = laws[lawId];
 
-        // console2.log("request: waypoint 0");
-
         // check 1: does executioner have access to law being executed?
         if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
 
-        // check 3: has action already been set as requested?
+        // check 2: has action already been set as requested?
         if (_actions[actionId].requested == true) revert Powers__ActionAlreadyInitiated();
 
-        // check 4: is proposedAction cancelled?
+        // check 3: is proposedAction cancelled?
         // if law did not need a proposedAction proposedAction vote to start with, check will pass.
         if (_actions[actionId].cancelled == true) revert Powers__ActionCancelled();
 
@@ -657,10 +653,6 @@ contract Powers is EIP712, IPowers {
         lawHash = keccak256(abi.encode(address(this), lawId));
 
         return (law, lawHash, active);
-    }
-
-    function getDeposits(address account) public view returns (Deposit[] memory accountDeposits) {
-        return deposits[account];
     }
 
     //////////////////////////////////////////////////////////////

@@ -90,10 +90,4 @@ interface PowersTypes {
         uint256 amountMembers;
         string label;
     }
-
-    /// @notice struct keeping track of a deposit.
-    struct Deposit {
-        uint256 amount;
-        uint48 atBlock;
-    }
 }

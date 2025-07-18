@@ -28,7 +28,8 @@ interface PowersEvents {
 
     /// @notice Emitted when protocol receives funds.
     /// @param value the amount of funds received
-    event FundsReceived(uint256 value);
+    /// @param sender the address of the sender
+    event FundsReceived(uint256 value, address sender);
 
     /// @notice Emitted when executive action is requested.
     /// @param caller the address of the caller
