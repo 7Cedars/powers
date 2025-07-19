@@ -44,7 +44,7 @@ const deploymentForms: DeploymentForm[] = [
     description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol. The treasury address is optional, if left empty a mock treasury address is used.",
     disabled: false,
     fields: [
-      { name: "treasuryAddress", placeholder: "Treasury address (0x...)", type: "text", required: false }
+      { name: "treasuryAddress", placeholder: "Optional: Treasury address (0x...)", type: "text", required: false }
     ]
   },
   {
@@ -55,8 +55,8 @@ const deploymentForms: DeploymentForm[] = [
     description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. The snapshot space and governor address are optional, if left empty a mock space and address are used.",
     disabled: false,
     fields: [
-      { name: "snapshotSpace", placeholder: "Snapshot space address (0x...)", type: "text", required: false },
-      { name: "governorAddress", placeholder: "Governor address (0x...)", type: "text", required: false },
+      { name: "snapshotSpace", placeholder: "Optional: Snapshot space address (0x...)", type: "text", required: false },
+      { name: "governorAddress", placeholder: "Optional: Governor address (0x...)", type: "text", required: false },
       { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true },
     ]
   },
@@ -68,9 +68,9 @@ const deploymentForms: DeploymentForm[] = [
     description: "Deploy a DAO focused on grant management. This form allows you to deploy a Powers.sol instance with grant distribution laws. The grant manager contract is optional, if left empty a mock grant manager contract is used. Assessors can also be selected after the deployment.",
     disabled: true,
     fields: [
-      { name: "parentDaoAddress", placeholder: "Parent DAO address (0x...)", type: "text", required: false },
-      { name: "grantTokenAddress", placeholder: "Grant token address (0x...)", type: "text", required: false },
-      { name: "assessors", placeholder: "Assessors addresses (0x...), comma separated", type: "text", required: false }
+      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
+      { name: "grantTokenAddress", placeholder: "Optional: Grant token address (0x...)", type: "text", required: false },
+      { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false }
     ]
   }
 ];
@@ -99,7 +99,7 @@ export function SectionDeployCarousel() {
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
     { name: "Arbitrum Sepolia", id: 421614 },
-    // { name: "Anvil", id: 31337 } -- todo 
+    ...(typeof window !== 'undefined' && window.location.hostname === 'localhost' ? [{ name: "Foundry", id: 31337 }] : [])
   ];
 
   // Get the current selected chain ID

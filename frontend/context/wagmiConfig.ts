@@ -53,8 +53,15 @@ export const optimismSepolia = defineChain({
 
 
 // [ = preferred ]
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
 export const wagmiConfig = createConfig({
-  chains: [arbitrumSepolia, sepolia, optimismSepolia], //  foundry,  arbitrumSepolia, sepolia,  baseSepolia, [ optimismSepolia ], polygonMumbai
+  chains: [
+    arbitrumSepolia, 
+    sepolia, 
+    optimismSepolia,
+    ...(isLocalhost ? [foundry] : [])
+  ],
   // batch: { multicall: true }, 
   connectors: [injected(), coinbaseWallet()],
   transports: {
@@ -62,7 +69,7 @@ export const wagmiConfig = createConfig({
     [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_HTTPS), 
     [optimismSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_OPT_SEPOLIA_HTTPS),
     // [baseSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_BASE_SEPOLIA_HTTPS),
-    // [foundry.id]: http("http://localhost:8545"),   
+    [foundry.id]: http("http://localhost:8545"),   
   },
   ssr: true,
   // storage: createStorage({

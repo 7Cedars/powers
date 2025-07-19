@@ -49,6 +49,8 @@ OPT_DEPLOY_ARGS := --rpc-url $(OPT_RPC_URL) --account dev_3 --sender ${DEV2_ADDR
 anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
+anvilDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0)
+anvilDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0)
 anvilDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(ANVIL_ARGS_0)
 anvilDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(ANVIL_ARGS_0)
 anvilDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(ANVIL_ARGS_0)

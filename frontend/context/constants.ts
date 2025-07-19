@@ -110,8 +110,24 @@ export const getConstants = (chainId: number): Constants => {
     case 31337: // anvil local
       return {
         BLOCKS_PER_HOUR: 300,
-        LAW_NAMES: [],
-        LAW_ADDRESSES: [],
+        LAW_NAMES: [
+          "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
+          "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
+          "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
+          "Grant", "StartGrant", "EndGrant", "AdoptLaw", "VoteOnAccounts", 
+          "DirectDeselect", "Subscription", "StartElection", "EndElection", "GovernorCreateProposal", 
+          "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
+          "SnapToGov_ExecuteGov"
+        ], 
+        LAW_ADDRESSES: [
+          "0x07D6caC7e7450eB2c0419E9cc0a4b8d98782ddf8", "0x04FF4b774A825577eD73aeE6b85c9b1Af68e5d9c", "0x97A22b5116101b909f6af425FC82F04d78d7A1fF", "0xF66a0E7C0b9ae836a095f7Dab60cF365a29FB057", "0x9a649652962cC6C51647ec1a54C67369aFC09615",
+          "0x2D16b04c012ffb94d73CAa6230d2bCb100035Fde", "0x71B43028268c4472965032FD89Dcd921917b3880", "0x2D518987F2A4CCE7627B9EA76014AB185f1f06b9", "0x7b42C3Ca539B47B339D2aE570386d0DAead252d6", "0x8Ec1D2e176a3341d3fBe18Ef9fBdD95E2AAeC400", 
+          "0x939C5772c704dE694Adf63737032Ad429c63377B", "0x198705747E88b84D8CbC3531267Bb1e79ab26c2f", "0x695e4B597c0615299c185A69c1874b18689A8702", "0x4821f8CF6d9997F7afEd039043610A98D2bFDAB0", "0x08f9CdE7b78184C6F1B5db5C9B3C69c8797B4A01", 
+          "0x2c7534b9bF51778F53e8443F52e5704bCa2CfEb0", "0x25eCa504558B9B7289F85edbC180cf58A7eA064D", "0x1b8202bBC468E112020f1e27E2976A55ca2A4E8B", "0x9A70425FCADbDBAc6c68506df6727B3f56b6b705", "0x063796FCD3767AD811e2A806Ed324a354395Ab52", 
+          "0x7A44e32e9E171e4F856602b95D636947C1dC0D61", "0x7A44e32e9E171e4F856602b95D636947C1dC0D61", "0xe7EcEb9633fb2b88F69D10CeE28627BA896536FE", "0x5F27d20377e770CeA5d89783d7A57792686C3DFf", "0x6f9dDd3dAde84663071e0703D05f66371284B3d8", 
+          "0x9e21b95913c20aD8FB8114Bb950245AEDE1B3735", "0x83E04B3E1A31e38E14Cc0D2daC3afeA0f93FA8C0", "0xb004943A9D3eD1b0a712C184919560A42dD75Dc4", "0x1102DacFaa5ef089fA51c1C7BDb2fDee3525fF32", "0xc5Eb364774BD65c8AF47041d938Bd2D5AF9D2500", 
+          "0x817E4549E0a776384B7c8EBb6e39BC36dD08334D"
+        ],
         MOCK_NAMES: [],
         MOCK_ADDRESSES: [],
         CHAINLINK_GAS_LIMIT: 300_000,
