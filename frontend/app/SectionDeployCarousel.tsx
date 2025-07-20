@@ -205,7 +205,7 @@ export function SectionDeployCarousel() {
             </button>
             
             <div className="flex flex-col items-center">
-              <h3 className="text-xl font-semibold text-slate-800">{currentForm.title}</h3>
+              <h3 className="text-xl font-semibold text-slate-800 text-center">{currentForm.title}</h3>
               <div className="flex gap-1 mt-2">
                 {availableDeploymentForms.map((_, index) => (
                   <div

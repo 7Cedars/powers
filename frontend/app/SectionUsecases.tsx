@@ -18,7 +18,7 @@ export function SectionUsecases() {
                 Use cases for Powers
             </div>
             <div className = "w-full flex flex-col gap-1 justify-center items-center md:text-2xl text-xl text-slate-100 max-w-4xl text-center text-pretty">
-                Powers brings several advantages to existing governance protocols.
+                Powers has several advantages in comparison to existing governance protocols.
             </div>
         </div>
 
