@@ -17,63 +17,9 @@ import {
   createCrossChainGovernanceLawInitData, 
   createGrantsManagerLawInitData,
   createLawInitDataByType 
-} from "@/utils/createLawInitData";
+} from "@/public/createLawInitData";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
-
-interface DeploymentForm {
-  id: number;
-  title: string;
-  uri: string; 
-  banner: string;
-  description: string;
-  disabled: boolean;
-  fields: {
-    name: string;
-    placeholder: string;
-    type: string;
-    required: boolean;
-  }[];
-}
-
-const deploymentForms: DeploymentForm[] = [
-  {
-    id: 1,
-    title: "Powers 101",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieioptfopmddgpiowg6duuzsd4n6koibutthev72dnmweczjybs4q",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibbtfbr5t7ndfwrh2gp5xwleahnezkugqiwcfj5oktvt5heijoswq",
-    description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol. The treasury address is optional, if left empty a mock treasury address is used.",
-    disabled: false,
-    fields: [
-      { name: "treasuryAddress", placeholder: "Optional: Treasury address (0x...)", type: "text", required: false }
-    ]
-  },
-  {
-    id: 2,
-    title: "Bridging Off-Chain Governance",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiakcm5i4orree75muwzlezxyegyi2wjluyr2l657oprgfqlxllzoi",
-    banner: "",
-    description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. The snapshot space and governor address are optional, if left empty a mock space and address are used.",
-    disabled: false,
-    fields: [
-      { name: "snapshotSpace", placeholder: "Optional: Snapshot space address (0x...)", type: "text", required: false },
-      { name: "governorAddress", placeholder: "Optional: Governor address (0x...)", type: "text", required: false },
-      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true },
-    ]
-  },
-  {
-    id: 3,
-    title: "Grants Manager",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiduudrmyjwrv3krxl2kg6dfuofyag7u2d22beyu5os5kcitghtjbm",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
-    description: "Deploy a DAO focused on grant management. This form allows you to deploy a Powers.sol instance with grant distribution laws. The grant manager contract is optional, if left empty a mock grant manager contract is used. Assessors can also be selected after the deployment.",
-    disabled: true,
-    fields: [
-      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
-      { name: "grantTokenAddress", placeholder: "Optional: Grant token address (0x...)", type: "text", required: false },
-      { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false }
-    ]
-  }
-];
+import { deploymentForms, DeploymentForm } from "@/public/deploymentForms";
 
 export function SectionDeployCarousel() {
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
@@ -95,11 +41,18 @@ export function SectionDeployCarousel() {
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
+  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
+  // Filter deployment forms based on localhost condition
+  const availableDeploymentForms = deploymentForms.filter(form => 
+    !form.onLocalhost || (form.onLocalhost && isLocalhost)
+  );
+
   const chains = [
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
     { name: "Arbitrum Sepolia", id: 421614 },
-    ...(typeof window !== 'undefined' && window.location.hostname === 'localhost' ? [{ name: "Foundry", id: 31337 }] : [])
+    ...(isLocalhost ? [{ name: "Foundry", id: 31337 }] : [])
   ];
 
   // Get the current selected chain ID
@@ -112,9 +65,16 @@ export function SectionDeployCarousel() {
     }
   }, [selectedChainId, chain?.id, switchChain])
 
+  // Reset current form index if it becomes invalid after filtering
+  useEffect(() => {
+    if (currentFormIndex >= availableDeploymentForms.length) {
+      setCurrentFormIndex(0);
+    }
+  }, [currentFormIndex, availableDeploymentForms.length]);
+
   console.log("deploy: ", {status, error, data, receipt})
 
-  const currentForm = deploymentForms[currentFormIndex];
+  const currentForm = availableDeploymentForms[currentFormIndex];
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
@@ -132,6 +92,8 @@ export function SectionDeployCarousel() {
         return 'CrossChainGovernance';
       case "Grants Manager":
         return 'GrantsManager';
+      case "Split Governance":
+        return 'SplitGovernance'; // Using GrantsManager as fallback for test form
       default:
         return 'Powers101';
     }
@@ -213,11 +175,11 @@ export function SectionDeployCarousel() {
   }
 
   const nextForm = () => {
-    setCurrentFormIndex((prev) => (prev + 1) % deploymentForms.length);
+    setCurrentFormIndex((prev) => (prev + 1) % availableDeploymentForms.length);
   };
 
   const prevForm = () => {
-    setCurrentFormIndex((prev) => (prev - 1 + deploymentForms.length) % deploymentForms.length);
+    setCurrentFormIndex((prev) => (prev - 1 + availableDeploymentForms.length) % availableDeploymentForms.length);
   };
 
   return (
@@ -245,7 +207,7 @@ export function SectionDeployCarousel() {
             <div className="flex flex-col items-center">
               <h3 className="text-xl font-semibold text-slate-800">{currentForm.title}</h3>
               <div className="flex gap-1 mt-2">
-                {deploymentForms.map((_, index) => (
+                {availableDeploymentForms.map((_, index) => (
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full ${

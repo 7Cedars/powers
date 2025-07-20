@@ -15,7 +15,7 @@ export function SectionIntro() {
                 The next generation of on-chain governance
               </div>
               <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-4xl text-center pt-1">
-               Have a single decision travel along multiple stakeholders through a modular, asynchronous and trustless governance chain before it is executed.
+               A single decision can travel along multiple stakeholders through a modular, asynchronous and trustless governance chain before it is executed.
               </div>
           </section>
 

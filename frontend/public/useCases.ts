@@ -1,96 +1,84 @@
 export const useCases = [
   {
-    title: "Powers 101",
+    title: "Avoid centralisation",
     details: [
-      "An introduction to the protocol",
-      "A simple DAO with three roles",
-      "Checking powers to execute actions" 
-    ],
-    demo: "Powers 101",
-    address: "0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D",
-    chainId: "11155420",
-    colourScheme: 0,
-  }, 
-  {
-    title: "Decentralise power", 
-    details: [
-      "Avoid hostile takeovers",
-      "Avoid centralisation",
-      "Create checks and balances between roles" 
+      "Avoid centralisation of power",
+      "Separate powers between stakeholders",
+      "Create checks and balances"
     ],
     demo: "Separated Powers",
     address: "0xA2bC87A810cf3B6B18e4Dc9Fb18bc74640207f15",
-    chainId: "11155420",
-    colourScheme: 0,
+    chainId: "11155420"
+
   }, 
   {
-    title: "Governed Upgrades",
+    title: "Increase efficiency", 
     details: [
-      "Granular controls over DAO upgrades",
-      "Modular addoption by existing DAOs"
+      "Only vote on proposals that concern your role", 
+      "Streamline decision making processes"
+    ],
+    demo: "Powers 101",
+    address: "0x0000000000000000000000000000000000000000",
+    chainId: "11155420"
+  }, 
+  {
+    title: "Allow granular upgrades",
+    details: [
+      "Granular controls over upgrades of on-chain governance systems",
+      "Use Powers as modular add-ons for existing DAOs"
     ],
     demo: "Governed Upgrades",
-    address: "0xa42eBa397054882F651457E7816035A466A28756",
-    chainId: "11155420",
-    colourScheme: 0,
+    address: "0x0000000000000000000000000000000000000000",
+    chainId: "11155420"
   },
   {
-    title: "Managed Grants",
+    title: "Avoid single points of failure",
     details: [
-      "Remove and add powers over time.",
-      "Granular, governed, upgrades to on-chain governance."
+      "Create interlocking roles to avoid single points of failure",
+      "Render hostile takeovers increasingly difficult"
     ],
-    demo: "Managed Grants",
-    address: "0x26ff6c8d13FC8e6619b40e4b12575ffA85826755",
-    chainId: "11155420",
-    colourScheme: 0,
+    demo: "Powers 101",
+    address: "0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D",
+    chainId: "11155420"
   },  
   {
-    title: "Guard rails for AI agents",
+    title: "Increase transparency",
     details: [
-      "Seamlessly integrate AI agents",
-      "Increase transparency of AI actions",
-      "Granular controls over AI powers",
+      "All votes and decisions are logged on-chain",
+      "Decisions can be traced back along governance paths"
     ],
     demo: "AI + Human",
     address: "0x0000000000000000000000000000000000000000",
-    chainId: "11155420",
-    colourScheme: 0,
+    chainId: "11155420"
   },
   {
-    title: "Hybrid on- and off-chain",
+    title: "Create trustless on- and off-chain governance",
     details: [
-      "Full support for async governance",
-      "Let off-chain institutions interact with on-chain governance.",
+      "Build on-chain systems that seamlessly integrate off- and on-chain votes"
     ],
     demo: "Beyond Powers",
     address: "0x072DB0B14A48D7dd4653eAB8Df40Ed8930e55f1E",
-    chainId: "11155420",
-    colourScheme: 0,
+    chainId: "11155420"
   },
-
+  // {
+  //   title: "Multi-jurisdictional governance",
+  //   details: [ 
+  //     // "Translate off-chain attestations to on-chain roles.",
+  //     "Designate roles to reflect varied national legal jurisdictions.",
+  //     "Assign powers based on on- or off-chain reputation."
+  //   ],
+  //   demo: "Attestation Rules",
+  //   address: "0x0000000000000000000000000000000000000000",
+  //   chainId: "421614"
+  // },
   {
-    title: "Multi-jurisdictional governance",
-    details: [ 
-      // "Translate off-chain attestations to on-chain roles.",
-      "Designate roles to reflect varied national legal jurisdictions.",
-      "Assign powers based on on- or off-chain reputation."
-    ],
-    demo: "Attestation Rules",
-    address: "0x0000000000000000000000000000000000000000",
-    chainId: "421614",
-    colourScheme: 0,
-  },
-  {
-    title: "Integrate existing protocols",
+    title: "Integrate any existing protocols",
     details: [
-      "Haberdasher's Hats Protocol",
-      "OpenZeppelin's Governor.sol", 
-      "More coming soon..."
+      "Integrate any existing protocols into your on-chain governance system",
+      "Hats Protocol, Governor.sol, etc." 
     ],
     demo: "Powers to Hats",
     address: "0x0000000000000000000000000000000000000000",
-    chainId: "421614",
-    colourScheme: 0,
+    chainId: "421614"
   },
 ]
