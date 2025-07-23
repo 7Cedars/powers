@@ -1,8 +1,8 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibbtfbr5t7ndfwrh2gp5xwleahnezkugqiwcfj5oktvt5heijoswq",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihatpxc2fp7jvqu4jdx5qrlobhfk2czzhibbjgwwtxvsyikcjv574",
   "description": 
-    "A base implementation of the Powers protocol. \n It consists of an executive governance track in which Members, Admins and Delegates check each others powers. \n It also includes tracks to assign delegates and members.",
+    "An example implementation of an organisation that has multiple governance tracks and where selectors can decide which track to use for a specific proposal.",
   "erc20s": [
     "0x1f62CEC33D2a0c96FAb268546748aA85901C84fe", 
     "0xA3230F7A1d18F6952945045445cFd76d770dB3AD" 

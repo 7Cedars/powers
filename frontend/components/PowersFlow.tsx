@@ -675,10 +675,10 @@ function findConnectedNodes(selectedLawId: string, laws: Law[]): Set<string> {
   return connected
 }
 
-// Helper function to create a hierarchical layout based on dependencies
+// Helper function to create a compact layered tree layout based on dependencies
 function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x: number; y: number }>): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>()
-  
+
   // If we have saved layout, use it first
   if (savedLayout) {
     laws.forEach(law => {
@@ -687,32 +687,24 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
         positions.set(lawId, savedLayout[lawId])
       }
     })
-    
-    // If all nodes have saved positions, return early
     if (positions.size === laws.length) {
       return positions
     }
   }
-  
-  // Build dependency graph for nodes that don't have saved positions
+
+  // Build dependency and dependent maps
   const dependencies = new Map<string, Set<string>>()
   const dependents = new Map<string, Set<string>>()
-  
   laws.forEach(law => {
     const lawId = String(law.index)
-    if (!positions.has(lawId)) { // Only process nodes without saved positions
-      dependencies.set(lawId, new Set())
-      dependents.set(lawId, new Set())
-    }
+    dependencies.set(lawId, new Set())
+    dependents.set(lawId, new Set())
   })
-  
-  // Populate dependency relationships for nodes without saved positions
   laws.forEach(law => {
     const lawId = String(law.index)
-    if (!positions.has(lawId) && law.conditions) { // Only for nodes without saved positions
+    if (law.conditions) {
       if (law.conditions.needCompleted !== 0n) {
         const targetId = String(law.conditions.needCompleted)
-        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -720,7 +712,6 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
       }
       if (law.conditions.needNotCompleted !== 0n) {
         const targetId = String(law.conditions.needNotCompleted)
-        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -728,7 +719,6 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
       }
       if (law.conditions.readStateFrom !== 0n) {
         const targetId = String(law.conditions.readStateFrom)
-        // Only add if the target law actually exists and doesn't have saved position
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
@@ -736,143 +726,115 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
       }
     }
   })
-  
-  // Only continue with layout calculation if there are nodes without saved positions
-  if (dependencies.size === 0) {
-    return positions
-  }
-  
-  // Find independent nodes (nodes with no dependencies and no dependents) among unsaved nodes
-  const independentNodes = Array.from(dependencies.keys()).filter(lawId => {
-    const hasDependencies = (dependencies.get(lawId)?.size || 0) > 0
-    const hasDependents = (dependents.get(lawId)?.size || 0) > 0
-    return !hasDependencies && !hasDependents
-  })
-  
-  // Find all dependency chains (excluding independent nodes from chain building)
-  const findChains = (): string[][] => {
-    const visited = new Set<string>()
-    const chains: string[][] = []
-    
-    // Only consider nodes that have dependencies or dependents for chain building
-    // AND exclude independent nodes explicitly
-    const chainNodes = Array.from(dependencies.keys()).filter(lawId => {
-      const hasDependencies = (dependencies.get(lawId)?.size || 0) > 0
-      const hasDependents = (dependents.get(lawId)?.size || 0) > 0
-      // Must have either dependencies OR dependents (or both) to be part of a chain
-      return hasDependencies || hasDependents
-    })
-    
-    // Find nodes with no dependencies (but have dependents) - start of chains
-    const startNodes = chainNodes.filter(lawId => 
-      dependencies.get(lawId)?.size === 0 && (dependents.get(lawId)?.size || 0) > 0
-    )
-    
-    // Build chains starting from each start node
-    const buildChain = (startNode: string, currentChain: string[] = []): string[][] => {
-      if (visited.has(startNode)) return []
-      
-      const newChain = [...currentChain, startNode]
-      visited.add(startNode)
-      
-      const dependentNodes = Array.from(dependents.get(startNode) || [])
-        .filter(dep => chainNodes.includes(dep)) // Only follow chain nodes
-      
-      if (dependentNodes.length === 0) {
-        // End of chain
-        return [newChain]
-      }
-      
-      // Continue chain with each dependent
-      const subChains: string[][] = []
-      dependentNodes.forEach(dependent => {
-        const subChain = buildChain(dependent, newChain)
-        subChains.push(...subChain)
-      })
-      
-      return subChains.length > 0 ? subChains : [newChain]
+
+  // Find root nodes (no dependencies)
+  const allLawIds = laws.map(law => String(law.index))
+  const rootNodes = allLawIds.filter(lawId => (dependencies.get(lawId)?.size || 0) === 0)
+
+  // Layout constants (flipped axes)
+  const NODE_SPACING_X = 500 // Now used for depth (main flow, horizontal)
+  const NODE_SPACING_Y = 450 // Now used for siblings (vertical stack)
+
+  // Track placed nodes to avoid cycles
+  const placed = new Set<string>()
+
+  // Compute the size (number of rows) of each subtree
+  const subtreeSize = new Map<string, number>()
+  function computeSubtreeSize(lawId: string, visiting: Set<string> = new Set()): number {
+    if (visiting.has(lawId)) return 0; // Prevent cycles
+    visiting.add(lawId);
+    const children = Array.from(dependents.get(lawId) || [])
+    if (children.length === 0) {
+      subtreeSize.set(lawId, 1)
+      visiting.delete(lawId);
+      return 1
     }
-    
-    // Build chains from start nodes
-    startNodes.forEach(startNode => {
-      const nodeChains = buildChain(startNode)
-      chains.push(...nodeChains)
-    })
-    
-    // Handle any remaining unvisited chain nodes that might be part of cycles
-    // or disconnected components, but ONLY if they have actual dependencies
-    const unvisited = chainNodes.filter(lawId => 
-      !visited.has(lawId) && (dependencies.get(lawId)?.size || 0) > 0
-    )
-    
-    unvisited.forEach(lawId => {
-      if (!visited.has(lawId)) {
-        const nodeChains = buildChain(lawId)
-        chains.push(...nodeChains)
-      }
-    })
-    
-    return chains
+    // Compute size for all children
+    const sizes = children.map(childId => computeSubtreeSize(childId, visiting))
+    const total = sizes.reduce((a, b) => a + b, 0)
+    subtreeSize.set(lawId, total)
+    visiting.delete(lawId);
+    return total
   }
-  
-  // Get all dependency chains and sort by length (longest first)
-  const chains = findChains().sort((a, b) => b.length - a.length)
-  
-  // Layout constants
-  const NODE_SPACING_X = 500 // Horizontal spacing between nodes
-  const NODE_SPACING_Y = 450 // Vertical spacing between rows
-  const MAX_NODES_PER_ROW = 6 // Maximum nodes per row
-  
-  const positionedNodes = new Set<string>()
-  
-  // Determine starting Y position based on existing saved positions
-  let currentY = 0
-  if (savedLayout && Object.keys(savedLayout).length > 0) {
-    const maxY = Math.max(...Object.values(savedLayout).map(pos => pos.y))
-    currentY = maxY + NODE_SPACING_Y // Start below existing nodes
-  }
-  
-  // Position dependency chains in horizontal rows
-  chains.forEach(chain => {
-    if (chain.some(node => positionedNodes.has(node))) return // Skip if any node already positioned
-    
-    // Position chain horizontally
-    chain.forEach((lawId, index) => {
-      if (!positionedNodes.has(lawId)) {
-        const x = index * NODE_SPACING_X
-        positions.set(lawId, { x, y: currentY })
-        positionedNodes.add(lawId)
-      }
-    })
-    
-    currentY += NODE_SPACING_Y
-  })
-  
-  // Position ALL independent nodes in a single horizontal row
-  if (independentNodes.length > 0) {
-    // Add some extra space before independent nodes row if there are chains above
-    if (chains.length > 0) {
-      currentY += NODE_SPACING_Y * 0.01 // Add half spacing for visual separation
+  rootNodes.forEach(rootId => computeSubtreeSize(rootId))
+
+  // Track the next available y row
+  let nextY = 0
+
+  // Recursive function to place nodes (cycle-safe)
+  function placeNode(lawId: string, x: number, y: number, visiting: Set<string> = new Set()) {
+    if (placed.has(lawId)) return;
+    if (visiting.has(lawId)) return; // Prevent cycles
+    placed.add(lawId);
+    positions.set(lawId, { x: x * NODE_SPACING_X, y: y * NODE_SPACING_Y });
+
+    visiting.add(lawId);
+    const children = Array.from(dependents.get(lawId) || []);
+    if (children.length === 0) {
+      visiting.delete(lawId);
+      return;
     }
-    
-    // Position all independent nodes in a single horizontal row
-    independentNodes.forEach((lawId, index) => {
-      const x = index * NODE_SPACING_X
-      positions.set(lawId, { x, y: currentY })
-      positionedNodes.add(lawId)
-    })
+    // Sort children by subtree size descending, so the largest is the 'main' child
+    children.sort((a, b) => (subtreeSize.get(b) || 1) - (subtreeSize.get(a) || 1));
+    let childY = y;
+    for (let i = 0; i < children.length; i++) {
+      const childId = children[i];
+      placeNode(childId, x + 1, childY, visiting);
+      childY += subtreeSize.get(childId) || 1;
+    }
+    visiting.delete(lawId);
   }
-  
-  // Handle any remaining unpositioned nodes (shouldn't happen, but just in case)
-  const remainingNodes = Array.from(dependencies.keys()).filter(lawId => !positionedNodes.has(lawId))
-  if (remainingNodes.length > 0) {
-    remainingNodes.forEach((lawId, index) => {
-      const x = index * NODE_SPACING_X
-      const y = currentY + NODE_SPACING_Y
-      positions.set(lawId, { x, y })
-    })
-  }
-  
+
+  // Place all root nodes, stacking them vertically
+  rootNodes.forEach(rootId => {
+    placeNode(rootId, 0, nextY)
+    nextY += subtreeSize.get(rootId) || 1
+  })
+
+  // Place any unplaced nodes (disconnected or cycles)
+  // Collect all singletons (no dependencies and no dependents)
+  const singletons: string[] = []
+  allLawIds.forEach(lawId => {
+    if (!placed.has(lawId)) {
+      if ((dependencies.get(lawId)?.size || 0) === 0 && (dependents.get(lawId)?.size || 0) === 0) {
+        singletons.push(lawId)
+      } else {
+        positions.set(lawId, { x: 0, y: nextY * NODE_SPACING_Y })
+        nextY += 1
+        placed.add(lawId)
+      }
+    }
+  })
+
+  // --- COMPACTION PASS ---
+  // Find all used y rows, sort, and remap to compact (no gaps)
+  const usedYRows = Array.from(new Set(Array.from(positions.values()).map(pos => pos.y / NODE_SPACING_Y))).sort((a, b) => a - b)
+  const yRowMap = new Map<number, number>()
+  usedYRows.forEach((row, idx) => yRowMap.set(row, idx))
+  // Shift all nodes up to fill gaps
+  positions.forEach((pos, lawId) => {
+    const oldRow = pos.y / NODE_SPACING_Y
+    if (yRowMap.has(oldRow)) {
+      positions.set(lawId, { x: pos.x, y: yRowMap.get(oldRow)! * NODE_SPACING_Y })
+    }
+  })
+
+  // Place all singletons in a horizontal row at the bottom
+  // Find all y rows (in row units, not pixels) used by non-singleton nodes
+  const singletonSet = new Set(singletons);
+  let maxRow = 0;
+  positions.forEach((pos, lawId) => {
+    if (!singletonSet.has(lawId)) {
+      const row = Math.round(pos.y / NODE_SPACING_Y);
+      if (row > maxRow) maxRow = row;
+    }
+  });
+  const singletonRow = maxRow + 1;
+  singletons.forEach((lawId, idx) => {
+    positions.set(lawId, { x: idx * NODE_SPACING_X, y: singletonRow * NODE_SPACING_Y });
+    placed.add(lawId);
+  });
+
   return positions
 }
 
@@ -1092,7 +1054,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     // Store current viewport before navigation
     const currentViewport = getViewport()
     setStoredViewport(currentViewport)
-    console.log("@handleNodeClick: waypoint 0", {lawId, action})
+    // console.log("@handleNodeClick: waypoint 0", {lawId, action})
     // Navigate to the law page within the flow layout
     setAction({
       ...action,
@@ -1100,7 +1062,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       upToDate: false
     })
     router.push(`/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
-    console.log("@handleNodeClick: waypoint 1", {action})
+    // console.log("@handleNodeClick: waypoint 1", {action})
   }, [router, chainId, powers?.contractAddress, action, getViewport, setAction])
 
   // Handle ReactFlow initialization

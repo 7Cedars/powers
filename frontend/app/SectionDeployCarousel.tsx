@@ -8,7 +8,7 @@ import { useDeployContract, useTransactionReceipt, useSwitchChain, useAccount } 
 import { useRouter } from "next/navigation";
 import { bytecodePowers } from "@/context/bytecode";
 import { powersAbi } from "@/context/abi";
-import { Law, Powers, Status } from "@/context/types";
+import { Law, OrganizationType, Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
 import { usePrivy } from "@privy-io/react-auth";
@@ -23,11 +23,10 @@ import { deploymentForms, DeploymentForm } from "@/public/deploymentForms";
 
 export function SectionDeployCarousel() {
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
-  const [powersAddress, setPowersAddress] = useState<`0x${string}`>("0x0000000000000000000000000000000000000000");
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const { deployContract, data } = useDeployContract()
+  const { deployContract, data: deployHash } = useDeployContract()
   const { data: receipt } = useTransactionReceipt({
-    hash: data,
+    hash: deployHash,
   })
   const [status, setStatus] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
@@ -45,7 +44,7 @@ export function SectionDeployCarousel() {
 
   // Filter deployment forms based on localhost condition
   const availableDeploymentForms = deploymentForms.filter(form => 
-    !form.onLocalhost || (form.onLocalhost && isLocalhost)
+    !form.onlyLocalhost || (form.onlyLocalhost && isLocalhost)
   );
 
   const chains = [
@@ -72,7 +71,7 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  console.log("deploy: ", {status, error, data, receipt})
+  console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 
@@ -83,31 +82,14 @@ export function SectionDeployCarousel() {
     }));
   };
 
-  // Function to get the current form type
-  const getCurrentFormType = () => {
-    switch (currentForm.title) {
-      case "Powers 101":
-        return 'Powers101';
-      case "Bridging Off-Chain Governance":
-        return 'CrossChainGovernance';
-      case "Grants Manager":
-        return 'GrantsManager';
-      case "Split Governance":
-        return 'SplitGovernance'; // Using GrantsManager as fallback for test form
-      default:
-        return 'Powers101';
-    }
-  };
-
   // Function to create law initialization data based on current form
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
-    const formType = getCurrentFormType();
-    console.log("formType: ", formType)
+    console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
     console.log("chainId: ", chainId)
     
     try {
-      return createLawInitDataByType(formType, powersAddress, formData, chainId);
+      return createLawInitDataByType(currentForm.title as OrganizationType, powersAddress, formData, chainId);
     } catch (error) {
       console.error('Error creating law init data:', error);
       // Fallback to basic DAO if there's an error
@@ -129,7 +111,7 @@ export function SectionDeployCarousel() {
     async (
       powersAddress: `0x${string}`
     ) => {  
-        // console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
+        console.log("@execute: waypoint 0", {powersAddress})
         setError(null)
         setStatus("pending")
         try {
@@ -144,21 +126,21 @@ export function SectionDeployCarousel() {
             args: [lawInitData]
           })
 
-          // console.log("@execute: waypoint 1", {request})
+          console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          // console.log("@execute: waypoint 2", {client})
+          console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            // console.log("@execute: waypoint 3", {request})
+            console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
             setConstituteCompleted(true)
-            // console.log("@execute: waypoint 4", {result})
+            console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          // console.log("@execute: waypoint 5", {error}) 
+          console.log("@execute: waypoint 5", {error}) 
       }
   }, [currentFormIndex, formData] )
 
@@ -305,7 +287,7 @@ export function SectionDeployCarousel() {
                   > 
                     {currentForm.disabled ? (
                       'Coming soon!'
-                    ) : data && !constituteCompleted ? (
+                    ) : deployHash && !constituteCompleted ? (
                       <div className="flex items-center gap-2">
                         <TwoSeventyRingWithBg className="w-5 h-5 animate-spin" color="text-slate-200" />
                         Deploying...

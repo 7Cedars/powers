@@ -74,10 +74,10 @@ export const usePowers = () => {
     let updatedMetaData: Metadata | undefined
     let powersUpdated: Powers | undefined
 
-    console.log("@fetchMetaData, waypoint 0", {powers})
+    // console.log("@fetchMetaData, waypoint 0", {powers})
 
     if (publicClient && powers && powers.uri) {
-      console.log("@fetchMetaData, waypoint 1")
+      // console.log("@fetchMetaData, waypoint 1")
       try {
         if (powers.uri) {
           const fetchedMetadata: unknown = await(
@@ -85,18 +85,18 @@ export const usePowers = () => {
             ).json() 
           updatedMetaData = parseMetadata(fetchedMetadata) 
         } 
-        console.log("@fetchMetaData, waypoint 2", {updatedMetaData})
+        // console.log("@fetchMetaData, waypoint 2", {updatedMetaData})
         if (updatedMetaData) {
           powersUpdated = { ...powers, 
             metadatas: updatedMetaData
           }
-          console.log("@fetchMetaData, waypoint 3", {powersUpdated})
+          // console.log("@fetchMetaData, waypoint 3", {powersUpdated})
           setPowers(powersUpdated)
           powersUpdated && savePowers(powersUpdated)
           return powersUpdated
         }
       } catch (error) {
-        console.log("@fetchMetaData, waypoint 4", {error})
+        // console.log("@fetchMetaData, waypoint 4", {error})
         setStatus("error") 
         setError(error)
       }

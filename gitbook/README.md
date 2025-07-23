@@ -18,8 +18,6 @@ Crucially, Powers allows the **same action** to be send to **different laws** en
 
 Together they create a governance protocol that allows for the creation of governance chains, enabling checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.&#x20;
 
-In an era of DAO foundations, committees, councils and working groups it allows for on-chain governance to reclaim transparency, accountability and a decentralization of power.
-
 ## Quick links
 
 * [The Github repository](https://github.com/7Cedars/powers)

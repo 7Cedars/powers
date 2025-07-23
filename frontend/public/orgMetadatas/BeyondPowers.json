@@ -1,8 +1,8 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihhixxl25nugrwvbjbn2jg4uh2bvrl54gybn4gqqekc734veod4um",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeigtg54snwvwxmotdelgholl2jny2xobla6eqmpi2chmxuy5pzs6dm",
   "description": 
-    "An example implementation of a Powers Organisation that allows for hybrid on- and off-chain governance.",
+    "An example implementation of an on-chain organisation that integrates off-chain and on-chain voting platforms creating hybrid governance.",
   "erc20s": [
     "0x1f62CEC33D2a0c96FAb268546748aA85901C84fe", 
     "0xA3230F7A1d18F6952945045445cFd76d770dB3AD" 
