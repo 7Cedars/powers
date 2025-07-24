@@ -20,7 +20,7 @@ export const deploymentForms: DeploymentForm[] = [
     title: "Powers 101",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighvtmagvaungqtvig2rz5lour4nj6m6jgnjbr7husq4m7cicukxm",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeickdiqcdmjjwx6ah6ckuveufjw6n2g6qdvatuhxcsbmkub3pvshnm",
-    description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol. The treasury address is optional, if left empty a mock treasury address is used.",
+    description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
     disabled: false,
     onlyLocalhost: false,
     fields: [
@@ -29,10 +29,33 @@ export const deploymentForms: DeploymentForm[] = [
   },
   {
     id: 2,
+    title: "Split Governance",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiabdhbbcfcj6mgfusngaoapxwirqcpm3fjw45qvwsnuzke7k3ftoi",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiduqnzehle3y5t47mxoxgqvbxqus7meu6gfxldzrff2r3cmzjdham",
+    description: "Deploy Governance that splits decision making along type of proposal. In this example proposals are assessed on 3 different paths: low risk, repetitive tasks, mid risk and high risk, non-repetitive tasks. Each path has different voting thresholds and quorums to adjust security and efficiency according to the risk of the proposal.",
+    disabled: false,
+    onlyLocalhost: false,
+    fields: [
+      { name: "Erc20VotesAddress1", placeholder: "Optional: Erc20Votes address (0x...)", type: "text", required: false },
+      { name: "Erc20VotesAddress2", placeholder: "Optional: Erc20Votes address (0x...)", type: "text", required: false }
+    ]
+  },
+  {
+    id: 3,
+    title: "Packaged Upgrades",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidwzi5bvmcew73ixlgv7a37fgiajwl2iruq5ttllaakfxj7irsue4",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
+    description: "Deploy an organisation with to governance options, each encoded in an executable law that upgrades the Powers contract. Option A results in adopting a governance systsem similar to the Powers101 example. Option B results in adopting a governance systsem similar to the Split Governance example. Note that the upgrade is one-time use only. If you want to re-try, redeploy this organisation.",
+    disabled: false,
+    onlyLocalhost: false,
+    fields: []
+  },
+  {
+    id: 4,
     title: "Bridging Off-Chain Governance",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihwyr2mtoxodb3s3572lvixhskxbv5gjshli2rhnj7ermfhu7z6ni",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeigtg54snwvwxmotdelgholl2jny2xobla6eqmpi2chmxuy5pzs6dm",
-    description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. The ERC20Votes contract, snapshot space and governor address are optional, if left empty a mock contract, space and address are used.",
+    description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. It uses a Chainlink Function subscription to check proposals on snapshot.box. Please see https://docs.chain.link/chainlink-functions for more information. After setting up a subscription, deploy this organisation and add the two snapshot laws as subscribers to your Chainlink Function subscription.",
     disabled: false,
     onlyLocalhost: false,
     fields: [
@@ -43,39 +66,18 @@ export const deploymentForms: DeploymentForm[] = [
     ]
   },
   {
-    id: 3,
+    id: 5,
     title: "Grants Manager",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiduudrmyjwrv3krxl2kg6dfuofyag7u2d22beyu5os5kcitghtjbm",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
-    description: "Deploy a DAO focused on grant management. This form allows you to deploy a Powers.sol instance with grant distribution laws. The grant manager contract is optional, if left empty a mock grant manager contract is used. Assessors can also be selected after the deployment.",
+    description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a council to assess them and allows to distribute funds along key milestones and performance indicatorrs. It also has a mechanisms for challening decisions. Note that assessors and judges can also be (de)selected after deployment.",
     disabled: true,
     onlyLocalhost: false,
     fields: [
-      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
       { name: "grantTokenAddress", placeholder: "Optional: Grant token address (0x...)", type: "text", required: false },
-      { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false }
+      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
+      { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false },
+      { name: "judges", placeholder: "Optional: Judges addresses (0x...), comma separated", type: "text", required: false }
     ]
-  },
-  {
-    id: 4,
-    title: "Split Governance",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiabdhbbcfcj6mgfusngaoapxwirqcpm3fjw45qvwsnuzke7k3ftoi",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiduqnzehle3y5t47mxoxgqvbxqus7meu6gfxldzrff2r3cmzjdham",
-    description: "Deploy Governance that splits decision making along type of proposal. It is a well known approach to creating efficient decision making processes.",
-    disabled: false,
-    onlyLocalhost: false,
-    fields: [
-      { name: "treasuryAddress", placeholder: "Optional: Treasury address (0x...)", type: "text", required: false }
-    ]
-  },
-  {
-    id: 5,
-    title: "Packaged Upgrades",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidwzi5bvmcew73ixlgv7a37fgiajwl2iruq5ttllaakfxj7irsue4",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
-    description: "Deploy an organisation with to governance options, each encoded in an executable law that upgrades the Powers contract.",
-    disabled: false,
-    onlyLocalhost: false,
-    fields: []
   }
 ]; 

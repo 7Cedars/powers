@@ -24,7 +24,7 @@ import { deploymentForms, DeploymentForm } from "@/public/deploymentForms";
 export function SectionDeployCarousel() {
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const { deployContract, data: deployHash } = useDeployContract()
+  const { deployContract, data: deployHash, reset } = useDeployContract()
   const { data: receipt } = useTransactionReceipt({
     hash: deployHash,
   })
@@ -70,6 +70,15 @@ export function SectionDeployCarousel() {
       setCurrentFormIndex(0);
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
+
+  // Reset deployHash and receipt when switching between forms/pages
+  useEffect(() => {
+    reset();
+    setError(null)
+    setStatus("idle")
+    setTransactionHash(undefined)
+    setConstituteCompleted(false)
+  }, [currentFormIndex, reset]);
 
   console.log("deploy: ", {status, error, deployHash, receipt})
 
@@ -270,9 +279,11 @@ export function SectionDeployCarousel() {
                 ) : (
                   <button 
                     className={`w-full sm:w-fit h-12 px-6 font-medium rounded-md transition-colors duration-200 flex items-center justify-center ${
-                      !ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      status === 'error'
+                        ? 'bg-red-600 hover:bg-red-700 text-white border border-red-700'
+                        : !ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                     }`}
                     onClick={() => {
                       if (ready && authenticated && !currentForm.disabled && areRequiredFieldsFilled()) {
@@ -283,9 +294,11 @@ export function SectionDeployCarousel() {
                         })
                       }
                     }}
-                    disabled={!ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()}
+                    disabled={!ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled() || status === 'error'}
                   > 
-                    {currentForm.disabled ? (
+                    {status === 'error' ? (
+                      'Error'
+                    ) : currentForm.disabled ? (
                       'Coming soon!'
                     ) : deployHash && !constituteCompleted ? (
                       <div className="flex items-center gap-2">

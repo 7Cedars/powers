@@ -135,9 +135,12 @@ contract ElectionListTest is TestSetupElectoral {
         if (vote.length > 0) vote[0] = true;
         lawCalldata = abi.encode(vote);
         vm.roll(s + 1); // ensure election is started
+        // Use handleRequest to check output, but note: handleRequest is view and does not update state
         (actionId,,,,stateChange) = Law(electionListAddress).handleRequest(alice, address(daoMock), electionListId, lawCalldata, nonce);
         assertTrue(actionId != 0, "ActionId should not be zero");
         assertTrue(stateChange.length > 0, "StateChange should not be empty");
+        // To actually update state, use daoMock.request:
+        // daoMock.request(electionListId, lawCalldata, nonce, "Vote");
     }
 
     function testChangeStateUpdatesVotes() public {
@@ -149,8 +152,8 @@ contract ElectionListTest is TestSetupElectoral {
         if (vote.length > 0) vote[0] = true;
         lawCalldata = abi.encode(vote);
         vm.roll(s + 1);
-        // Simulate a vote
-        Law(electionListAddress).handleRequest(alice, address(daoMock), electionListId, lawCalldata, nonce);
+        // Use daoMock.request to update state (handleRequest is view-only)
+        daoMock.request(electionListId, lawCalldata, nonce, "Vote");
         // Check tally
         (address[] memory n, uint256[] memory votes) = ElectionList(electionListAddress).getElectionTally(lawHash);
         if (votes.length > 0) {

@@ -40,7 +40,7 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { ElectionList } from "./ElectionList.sol";
 import { ElectionTally } from "./ElectionTally.sol";
 
-import "forge-std/Test.sol"; // for testing only. remove before deployment.
+// import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 contract ElectionStart is Law {
 
@@ -200,13 +200,13 @@ contract ElectionStart is Law {
         address nominateMeAddress, 
         bytes32 nominateMeHash
         ) {
-        console2.log("getElectionData");
-        console2.log(data[lawHash].startElection);
-        console2.log(data[lawHash].endElection);
-        console2.log(data[lawHash].roleId);
-        console2.log(data[lawHash].maxToElect);
-        console2.log(data[lawHash].nominateMeAddress);
-        console2.logBytes32(data[lawHash].nominateMeHash);
+        // console2.log("getElectionData");
+        // console2.log(data[lawHash].startElection);
+        // console2.log(data[lawHash].endElection);
+        // console2.log(data[lawHash].roleId);
+        // console2.log(data[lawHash].maxToElect);
+        // console2.log(data[lawHash].nominateMeAddress);
+        // console2.logBytes32(data[lawHash].nominateMeHash);
 
         startElection = data[lawHash].startElection;
         endElection = data[lawHash].endElection;

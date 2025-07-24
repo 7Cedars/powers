@@ -15,10 +15,10 @@ export function SectionUsecases() {
         {/* title & subtitle */}
         <div className="w-full flex flex-col justify-center items-center pt-10">
             <div className = "w-full flex flex-col gap-1 justify-center items-center md:text-4xl text-2xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
-                Use cases for Powers
+                The Added Value of Powers
             </div>
             <div className = "w-full flex flex-col gap-1 justify-center items-center md:text-2xl text-xl text-slate-100 max-w-4xl text-center text-pretty">
-                Powers has several advantages in comparison to existing governance protocols.
+                Powers has several advantages in comparison to existing governance protocols. 
             </div>
         </div>
 
