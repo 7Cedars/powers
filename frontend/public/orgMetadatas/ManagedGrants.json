@@ -4,13 +4,14 @@
   "description": 
     "An example of grant management using the Powers protocol. The original DAO retains control over the grant process, while delegating day-to-day governance to a council of governors.",
   "erc20s": [
-    "0x1f62CEC33D2a0c96FAb268546748aA85901C84fe", 
-    "0xA3230F7A1d18F6952945045445cFd76d770dB3AD" 
+    "0x53Fa2e3Da143d47359ecb0C0F45fcae928931dc8", 
+    "0x908B8158F2B6CC789539956E7011c3630640d237" 
   ],
   "erc721s": [
-    "0x7151E91b1D763Cac419b480cD4a2d360de274Dc2"],
+    "0x6D62A5dF14619FF5477D5F74445080c4Ec5Af12e"
+  ],
   "erc1155s": [{
-    "address": "0x1c564C5360cE73290b8aE4350326fC8c9930E0d1",
+    "address": "0xa051c100C5a5F430a1F27D553aF70f7A3Be2D8e6",
     "tokenId": 0
   } ],
   "attributes": [

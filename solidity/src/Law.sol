@@ -62,7 +62,7 @@ abstract contract Law is ERC165, ILaw {
         bytes memory config
     ) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        LawUtilities.checkStringLength(nameDescription, 1, 127);
+        LawUtilities.checkStringLength(nameDescription, 1, 255);
 
         laws[lawHash] = LawData({ 
             nameDescription: nameDescription,

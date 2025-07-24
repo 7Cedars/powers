@@ -71,18 +71,11 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  // Reset deployHash and receipt when switching between forms/pages
-  useEffect(() => {
-    reset();
-    setError(null)
-    setStatus("idle")
-    setTransactionHash(undefined)
-    setConstituteCompleted(false)
-  }, [currentFormIndex, reset]);
-
   console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
+
+  console.log("currentForm: ", {currentForm, currentFormIndex})
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
@@ -165,12 +158,22 @@ export function SectionDeployCarousel() {
     }
   }
 
+  const resetFormData = () => {
+    reset()
+    setConstituteCompleted(false)
+    setStatus("idle")
+    setError(null)
+    setTransactionHash(undefined)
+  }
+
   const nextForm = () => {
     setCurrentFormIndex((prev) => (prev + 1) % availableDeploymentForms.length);
+    resetFormData();
   };
 
   const prevForm = () => {
     setCurrentFormIndex((prev) => (prev - 1 + availableDeploymentForms.length) % availableDeploymentForms.length);
+    resetFormData();
   };
 
   return (

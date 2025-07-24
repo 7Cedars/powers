@@ -34,12 +34,9 @@ export interface LawInitData {
   conditions: LawConditions;
 }
 
-export interface Powers101FormData {
-  treasuryAddress?: `0x${string}`;
-}
+export interface Powers101FormData { }
 
 export interface CrossChainGovernanceFormData {
-  erc20Votes?: `0x${string}`;
   snapshotSpace?: string;
   governorAddress?: `0x${string}`;
   chainlinkSubscriptionId: number;
@@ -51,14 +48,9 @@ export interface GrantsManagerFormData {
   assessors?: `0x${string}`[];
 }
 
-export interface ManagedUpgradesFormData {
-  treasuryAddress?: `0x${string}`;
-}
+export interface ManagedUpgradesFormData { }
 
-export interface SplitGovernanceFormData {
-  erc20VotesAddress1?: `0x${string}`;
-  erc20VotesAddress2?: `0x${string}`;
-}
+export interface SplitGovernanceFormData { }
 
 // Type for deployment returns data
 export interface DeploymentReturns {
@@ -443,7 +435,7 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
         { name: 'maxRoleHolders', type: 'uint256' },
         { name: 'roleId', type: 'uint256' }
       ],
-      [formData.erc20Votes ? formData.erc20Votes : getMockAddress("Erc20VotesMock", chainId), 50n, 1n]
+      [getMockAddress("Erc20VotesMock", chainId), 50n, 1n]
     ),
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE,
@@ -726,7 +718,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
 
   // law 12: token voting to elect selectors council. -- no distinct elections. Vote can happen at any time. 
   lawInitData.push({
-    nameDescription: `Elect selectors council: Use the ERC20Votes governance token at ${formData.erc20VotesAddress1 ? formData.erc20VotesAddress1 : getMockAddress("Erc20VotesMock", chainId)} to elect selectors council.`,
+    nameDescription: `Elect selectors council: Use the ERC20Votes governance token at ${getMockAddress("Erc20VotesMock", chainId)} to elect selectors council.`,
     targetLaw: getLawAddress("DelegateSelect", chainId),
     config: encodeAbiParameters(
       [
@@ -734,7 +726,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
         { name: 'maxRoleHolders', type: 'uint256' },
         { name: 'roleId', type: 'uint256' }
       ],
-      [formData.erc20VotesAddress1 ? formData.erc20VotesAddress1 : getMockAddress("Erc20VotesMock", chainId), 5n, 1n]
+      [getMockAddress("Erc20VotesMock", chainId), 5n, 1n]
     ),
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE,
@@ -754,7 +746,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
 
   // law 14: token voting to elect executive council. -- no distinct elections. Vote can happen at any time. 
   lawInitData.push({
-    nameDescription: `Elect executives council: Use the ERC20Votes governance token at ${formData.erc20VotesAddress2 ? formData.erc20VotesAddress2 : getMockAddress("Erc20VotesMock", chainId)} to elect executives council.`,
+    nameDescription: `Elect executives council: Use the ERC20Votes governance token at ${getMockAddress("Erc20VotesMock", chainId)} to elect executives council.`,
     targetLaw: getLawAddress("DelegateSelect", chainId),
     config: encodeAbiParameters(
       [
@@ -762,7 +754,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
         { name: 'maxRoleHolders', type: 'uint256' },
         { name: 'roleId', type: 'uint256' }
       ],
-      [formData.erc20VotesAddress2 ? formData.erc20VotesAddress2 : getMockAddress("Erc20VotesMock", chainId), 12n, 3n]
+      [getMockAddress("Erc20VotesMock", chainId), 12n, 3n]
     ),
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE,
@@ -1101,9 +1093,11 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
           powersAddress,
           powersAddress,
           powersAddress,
+          powersAddress,
+          powersAddress,
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           // optional law 9: create an SoI for an action that can later be executed by Delegates. 
           encodeFunctionData({

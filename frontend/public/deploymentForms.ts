@@ -23,9 +23,7 @@ export const deploymentForms: DeploymentForm[] = [
     description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
     disabled: false,
     onlyLocalhost: false,
-    fields: [
-      { name: "treasuryAddress", placeholder: "Optional: Treasury address (0x...)", type: "text", required: false }
-    ]
+    fields: []
   },
   {
     id: 2,
@@ -35,10 +33,7 @@ export const deploymentForms: DeploymentForm[] = [
     description: "Deploy Governance that splits decision making along type of proposal. In this example proposals are assessed on 3 different paths: low risk, repetitive tasks, mid risk and high risk, non-repetitive tasks. Each path has different voting thresholds and quorums to adjust security and efficiency according to the risk of the proposal.",
     disabled: false,
     onlyLocalhost: false,
-    fields: [
-      { name: "Erc20VotesAddress1", placeholder: "Optional: Erc20Votes address (0x...)", type: "text", required: false },
-      { name: "Erc20VotesAddress2", placeholder: "Optional: Erc20Votes address (0x...)", type: "text", required: false }
-    ]
+    fields: []
   },
   {
     id: 3,
@@ -59,7 +54,6 @@ export const deploymentForms: DeploymentForm[] = [
     disabled: false,
     onlyLocalhost: false,
     fields: [
-      { name: "erc20Votes", placeholder: "Optional: Erc20Votes address (0x...)", type: "text", required: false },
       { name: "snapshotSpace", placeholder: "Optional: Snapshot space address (0x...)", type: "text", required: false },
       { name: "governorAddress", placeholder: "Optional: Governor address (0x...)", type: "text", required: false },
       { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true },
@@ -74,7 +68,6 @@ export const deploymentForms: DeploymentForm[] = [
     disabled: true,
     onlyLocalhost: false,
     fields: [
-      { name: "grantTokenAddress", placeholder: "Optional: Grant token address (0x...)", type: "text", required: false },
       { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
       { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false },
       { name: "judges", placeholder: "Optional: Judges addresses (0x...), comma separated", type: "text", required: false }
