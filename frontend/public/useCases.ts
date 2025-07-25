@@ -25,7 +25,7 @@ export const useCases = [
     title: "Allow granular upgrades",
     details: [
       "Granular controls over upgrades.",
-      "Multi-law upgrades can be packaged as a single law and executed in one transaction."
+      "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demo: "Packaged Upgrades",
     address: "0xbf7f38bbce6af986c8f6ce5cdce27f6e2c803f9d",
