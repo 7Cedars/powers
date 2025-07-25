@@ -8,7 +8,7 @@ import { useDeployContract, useTransactionReceipt, useSwitchChain, useAccount } 
 import { useRouter } from "next/navigation";
 import { bytecodePowers } from "@/context/bytecode";
 import { powersAbi } from "@/context/abi";
-import { Law, Powers, Status } from "@/context/types";
+import { Law, OrganizationType, Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
 import { usePrivy } from "@privy-io/react-auth";
@@ -17,71 +17,16 @@ import {
   createCrossChainGovernanceLawInitData, 
   createGrantsManagerLawInitData,
   createLawInitDataByType 
-} from "@/utils/createLawInitData";
+} from "@/public/createLawInitData";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
-
-interface DeploymentForm {
-  id: number;
-  title: string;
-  uri: string; 
-  banner: string;
-  description: string;
-  disabled: boolean;
-  fields: {
-    name: string;
-    placeholder: string;
-    type: string;
-    required: boolean;
-  }[];
-}
-
-const deploymentForms: DeploymentForm[] = [
-  {
-    id: 1,
-    title: "Powers 101",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieioptfopmddgpiowg6duuzsd4n6koibutthev72dnmweczjybs4q",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibbtfbr5t7ndfwrh2gp5xwleahnezkugqiwcfj5oktvt5heijoswq",
-    description: "A simple DAO with a basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol. The treasury address is optional, if left empty a mock treasury address is used.",
-    disabled: false,
-    fields: [
-      { name: "treasuryAddress", placeholder: "Treasury address (0x...)", type: "text", required: false }
-    ]
-  },
-  {
-    id: 2,
-    title: "Bridging Off-Chain Governance",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiakcm5i4orree75muwzlezxyegyi2wjluyr2l657oprgfqlxllzoi",
-    banner: "",
-    description: "Deploy a DAO that bridges off-chain snapshot votes to on-chain governor.sol governance. The snapshot space and governor address are optional, if left empty a mock space and address are used.",
-    disabled: false,
-    fields: [
-      { name: "snapshotSpace", placeholder: "Snapshot space address (0x...)", type: "text", required: false },
-      { name: "governorAddress", placeholder: "Governor address (0x...)", type: "text", required: false },
-      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true },
-    ]
-  },
-  {
-    id: 3,
-    title: "Grants Manager",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiduudrmyjwrv3krxl2kg6dfuofyag7u2d22beyu5os5kcitghtjbm",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
-    description: "Deploy a DAO focused on grant management. This form allows you to deploy a Powers.sol instance with grant distribution laws. The grant manager contract is optional, if left empty a mock grant manager contract is used. Assessors can also be selected after the deployment.",
-    disabled: true,
-    fields: [
-      { name: "parentDaoAddress", placeholder: "Parent DAO address (0x...)", type: "text", required: false },
-      { name: "grantTokenAddress", placeholder: "Grant token address (0x...)", type: "text", required: false },
-      { name: "assessors", placeholder: "Assessors addresses (0x...), comma separated", type: "text", required: false }
-    ]
-  }
-];
+import { deploymentForms, DeploymentForm } from "@/public/deploymentForms";
 
 export function SectionDeployCarousel() {
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
-  const [powersAddress, setPowersAddress] = useState<`0x${string}`>("0x0000000000000000000000000000000000000000");
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const { deployContract, data } = useDeployContract()
+  const { deployContract, data: deployHash, reset } = useDeployContract()
   const { data: receipt } = useTransactionReceipt({
-    hash: data,
+    hash: deployHash,
   })
   const [status, setStatus] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
@@ -95,11 +40,18 @@ export function SectionDeployCarousel() {
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
+  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
+  // Filter deployment forms based on localhost condition
+  const availableDeploymentForms = deploymentForms.filter(form => 
+    !form.onlyLocalhost || (form.onlyLocalhost && isLocalhost)
+  );
+
   const chains = [
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
     { name: "Arbitrum Sepolia", id: 421614 },
-    // { name: "Anvil", id: 31337 } -- todo 
+    ...(isLocalhost ? [{ name: "Foundry", id: 31337 }] : [])
   ];
 
   // Get the current selected chain ID
@@ -112,9 +64,18 @@ export function SectionDeployCarousel() {
     }
   }, [selectedChainId, chain?.id, switchChain])
 
-  console.log("deploy: ", {status, error, data, receipt})
+  // Reset current form index if it becomes invalid after filtering
+  useEffect(() => {
+    if (currentFormIndex >= availableDeploymentForms.length) {
+      setCurrentFormIndex(0);
+    }
+  }, [currentFormIndex, availableDeploymentForms.length]);
 
-  const currentForm = deploymentForms[currentFormIndex];
+  console.log("deploy: ", {status, error, deployHash, receipt})
+
+  const currentForm = availableDeploymentForms[currentFormIndex];
+
+  console.log("currentForm: ", {currentForm, currentFormIndex})
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
@@ -123,29 +84,14 @@ export function SectionDeployCarousel() {
     }));
   };
 
-  // Function to get the current form type
-  const getCurrentFormType = () => {
-    switch (currentForm.title) {
-      case "Powers 101":
-        return 'Powers101';
-      case "Bridging Off-Chain Governance":
-        return 'CrossChainGovernance';
-      case "Grants Manager":
-        return 'GrantsManager';
-      default:
-        return 'Powers101';
-    }
-  };
-
   // Function to create law initialization data based on current form
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
-    const formType = getCurrentFormType();
-    console.log("formType: ", formType)
+    console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
     console.log("chainId: ", chainId)
     
     try {
-      return createLawInitDataByType(formType, powersAddress, formData, chainId);
+      return createLawInitDataByType(currentForm.title as OrganizationType, powersAddress, formData, chainId);
     } catch (error) {
       console.error('Error creating law init data:', error);
       // Fallback to basic DAO if there's an error
@@ -167,7 +113,7 @@ export function SectionDeployCarousel() {
     async (
       powersAddress: `0x${string}`
     ) => {  
-        // console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
+        console.log("@execute: waypoint 0", {powersAddress})
         setError(null)
         setStatus("pending")
         try {
@@ -182,21 +128,21 @@ export function SectionDeployCarousel() {
             args: [lawInitData]
           })
 
-          // console.log("@execute: waypoint 1", {request})
+          console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          // console.log("@execute: waypoint 2", {client})
+          console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            // console.log("@execute: waypoint 3", {request})
+            console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
             setConstituteCompleted(true)
-            // console.log("@execute: waypoint 4", {result})
+            console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          // console.log("@execute: waypoint 5", {error}) 
+          console.log("@execute: waypoint 5", {error}) 
       }
   }, [currentFormIndex, formData] )
 
@@ -212,12 +158,22 @@ export function SectionDeployCarousel() {
     }
   }
 
+  const resetFormData = () => {
+    reset()
+    setConstituteCompleted(false)
+    setStatus("idle")
+    setError(null)
+    setTransactionHash(undefined)
+  }
+
   const nextForm = () => {
-    setCurrentFormIndex((prev) => (prev + 1) % deploymentForms.length);
+    setCurrentFormIndex((prev) => (prev + 1) % availableDeploymentForms.length);
+    resetFormData();
   };
 
   const prevForm = () => {
-    setCurrentFormIndex((prev) => (prev - 1 + deploymentForms.length) % deploymentForms.length);
+    setCurrentFormIndex((prev) => (prev - 1 + availableDeploymentForms.length) % availableDeploymentForms.length);
+    resetFormData();
   };
 
   return (
@@ -243,9 +199,9 @@ export function SectionDeployCarousel() {
             </button>
             
             <div className="flex flex-col items-center">
-              <h3 className="text-xl font-semibold text-slate-800">{currentForm.title}</h3>
+              <h3 className="text-xl font-semibold text-slate-800 text-center">{currentForm.title}</h3>
               <div className="flex gap-1 mt-2">
-                {deploymentForms.map((_, index) => (
+                {availableDeploymentForms.map((_, index) => (
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full ${
@@ -326,9 +282,11 @@ export function SectionDeployCarousel() {
                 ) : (
                   <button 
                     className={`w-full sm:w-fit h-12 px-6 font-medium rounded-md transition-colors duration-200 flex items-center justify-center ${
-                      !ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      status === 'error'
+                        ? 'bg-red-600 hover:bg-red-700 text-white border border-red-700'
+                        : !ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                     }`}
                     onClick={() => {
                       if (ready && authenticated && !currentForm.disabled && areRequiredFieldsFilled()) {
@@ -339,11 +297,13 @@ export function SectionDeployCarousel() {
                         })
                       }
                     }}
-                    disabled={!ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled()}
+                    disabled={!ready || !authenticated || currentForm.disabled || !areRequiredFieldsFilled() || status === 'error'}
                   > 
-                    {currentForm.disabled ? (
+                    {status === 'error' ? (
+                      'Error'
+                    ) : currentForm.disabled ? (
                       'Coming soon!'
-                    ) : data && !constituteCompleted ? (
+                    ) : deployHash && !constituteCompleted ? (
                       <div className="flex items-center gap-2">
                         <TwoSeventyRingWithBg className="w-5 h-5 animate-spin" color="text-slate-200" />
                         Deploying...

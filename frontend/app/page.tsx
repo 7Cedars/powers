@@ -44,7 +44,7 @@ export default function Page() {
             </section>
 
             < SectionIntro /> 
-            < SectionAdvantages /> 
+            {/* < SectionAdvantages />  */}
             < SectionUsecases /> 
             {/* < SectionRunDemo /> */}
             < SectionDeployCarousel />

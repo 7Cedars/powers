@@ -13,17 +13,19 @@ import { setError, useErrorStore } from "@/context/store";
 type InputProps = {
   dataType: DataType;
   varName: string;
-  values: InputType | InputType[]
+  values: InputType | InputType[] | undefined
   onChange: (input: InputType | InputType[]) => void;
+  index: number;
 }
 
-export function DynamicInput({dataType, varName, values, onChange}: InputProps) {
-  const [inputArray, setInputArray] = useState<InputType[]>(values instanceof Array ? values : [values])
+export function DynamicInput({dataType, varName, values, onChange, index}: InputProps) {
+  const [inputArray, setInputArray] = useState<InputType[]>(values instanceof Array ? values : [values || ""])
   const [itemsArray, setItemsArray] = useState<number[]>([0])
   const action = useActionStore()
   const error = useErrorStore()
+  const inputValue = values instanceof Array ? values[index] : values
 
-  // console.log("@dynamicInput: ", {error, inputArray, dataType, varName, values})
+  // console.log("@dynamicInput: ", {error, inputArray, dataType, varName, values, itemsArray})
 
   const inputType = 
     dataType.indexOf('int') > -1 ? "number"
@@ -38,21 +40,20 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
     dataType.indexOf('[]') > -1 ? true : false
 
   const handleChange=({event, item}: {event:ChangeEvent<HTMLInputElement>, item: number}) => {
-    // console.log("@handleChange triggered", event.target.value, item)
-
     const currentInput = parseInput(event, dataType)
     if (currentInput == 'Incorrect input data') {
       setError({error: currentInput}) 
     } else if(typeof onChange === 'function'){
+      setError({error: "no error"})
       let currentArray = inputArray
       if (array) {  
         currentArray[item] = currentInput
         setInputArray(currentArray)
-        onChange(inputArray)
+        onChange(currentArray)
       } else {
-        currentArray[0] =  currentInput
+        currentArray[0] = currentInput
         setInputArray(currentArray)
-        onChange(inputArray[0])
+        onChange(currentArray[0])
         }
         setAction({...action, upToDate: false})   
       }    
@@ -76,17 +77,11 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
     }
   }
 
-  useEffect(() => {
-    if (values && values instanceof Array ) {
-      setInputArray(values)
-    } else {
-      setInputArray([values])
-    } 
-  }, [values])
-
   return (
     <div className="w-full flex flex-col justify-center items-center">
-      {itemsArray.map((item, i) =>  
+      {itemsArray.map((item, i) => {
+        console.log("@inputArray", {inputArray, item, test: inputArray[item], values, index})  
+        return (
           <section className="w-full mt-4 flex flex-row justify-center items-center gap-4 px-6" key = {i}>
             <div className="text-xs block min-w-16 font-medium text-slate-600">
               {`${varName.length > 10 ? varName.slice(0, 10) + ".." : varName}`}
@@ -99,7 +94,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
                     type= "text" 
                     name={`input${item}`} 
                     id={`input${item}`}
-                    value = {typeof inputArray[item] != "boolean" && inputArray[item] ? inputArray[item] : ""}
+                    value = {typeof inputValue != "boolean" && inputValue ? inputValue : ""}
                     className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                     placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} here.`}
                     onChange={(event) => handleChange({event, item})}
@@ -112,7 +107,7 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
                   type="number" 
                   name={`input${item}`} 
                   id={`input${item}`}
-                  value = {String(inputArray[item])}
+                  value = {String(inputValue)}
                   className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                   placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} value here.`}
                   onChange={(event) => handleChange({event, item})}
@@ -120,40 +115,20 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
               </div>  
             :
             inputType == "boolean" ? 
-                <div className = {"w-full h-8 ps-4 flex flex-row gap-4  items-center rounded-md bg-white outline outline-1 outline-gray-300" }>
-                {/* radio button true  */}
-                  <div className = {"flex flex-row gap-1 "}>
-                    <label 
-                      htmlFor={`input${item}true`} 
-                      className="block text-xs font-medium text-slate-600 pe-2">
-                        {`true`}
-                    </label>
-                      <input 
-                        type="radio" 
-                        name={`input${item}`} 
-                        id={`input${item}true`} 
-                        value={'true'} 
-                        checked = {inputArray[item] == true}
-                        className="min-w-0 text-xs text-slate-500 font-mono placeholder:text-gray-400" 
-                        onChange={(event) => handleChange({event, item})}
-                      />
-                  </div>
-                  {/* radio button false  */}
-                  <div className = {"flex flex-row gap-1"}>
-                    <label 
-                      htmlFor={`input${item}false`} 
-                      className="block text-xs font-medium text-slate-600 pe-2">
-                        {`false`}
-                    </label>
-                      <input 
-                        type="radio" 
-                        name={`input${item}`} 
-                        id={`input${item}false`} 
-                        value={'false'} 
-                        checked = {inputArray[item] == false}
-                        className="min-w-0 text-xs text-slate-500 font-mono placeholder:text-gray-400" 
-                        onChange={(event) => handleChange({event, item})}
-                      />
+                <div className="w-full flex text-xs items-center rounded-md bg-white pl-2 outline outline-1 outline-gray-300">  
+                  <div className="flex flex-row items-center gap-2 h-8">
+                    <input 
+                      type="checkbox" 
+                      name={`input${item}`} 
+                      id={`input${item}`}
+                      value={inputValue === true ? "false" : "true"} 
+                      checked = {inputValue === true}
+                      className="h-4 w-4 text-slate-500 focus:ring-slate-300" 
+                      onChange={(event) => handleChange({event, item})}
+                    />
+                    <span className="text-xs font-mono text-slate-500">
+                      {inputValue === true ? "true" : "false"}
+                    </span>
                   </div>
                 </div>
             :
@@ -185,9 +160,8 @@ export function DynamicInput({dataType, varName, values, onChange}: InputProps) 
             } 
 
           </section>
-
-      )
-      }
+        )
+      })}
     </div>
   )
 }

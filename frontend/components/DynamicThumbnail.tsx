@@ -28,7 +28,7 @@ function findMatchingThumbnail(labelOrId: string): string | undefined {
   // List of available PNG files in /public/roleThumbnails (update if new files are added)
   const files = [
     'admin.png', 'public.png', 'delega.png', 'devrel.png', 'hodl.png', 'holder.png', 'whale.png', 'dev.png', 'subscr.png', 'exec.png', 'memb.png', 'guard.png', 'security.png', 'user.png',
-    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', 'unknown.png',
+    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', 'select.png', 'unknown.png',
   ];
   // Lowercase for case-insensitive matching
   const lower = labelOrId.toLowerCase();

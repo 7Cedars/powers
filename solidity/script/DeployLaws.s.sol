@@ -46,6 +46,9 @@ import { SnapToGov_CheckSnapPassed } from "../src/laws/integrations/SnapToGov_Ch
 import { SnapToGov_CreateGov } from "../src/laws/integrations/SnapToGov_CreateGov.sol";
 import { SnapToGov_CancelGov } from "../src/laws/integrations/SnapToGov_CancelGov.sol";
 import { SnapToGov_ExecuteGov } from "../src/laws/integrations/SnapToGov_ExecuteGov.sol";
+import { ElectionList } from "../src/laws/electoral/ElectionList.sol";
+import { ElectionStart } from "../src/laws/electoral/ElectionStart.sol";
+import { ElectionTally } from "../src/laws/electoral/ElectionTally.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -59,10 +62,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
         
-        names = new string[](31);
-        addresses = new address[](31);
-        bytes[] memory creationCodes = new bytes[](31);
-        bytes[] memory constructorArgs = new bytes[](31);
+        names = new string[](34);
+        addresses = new address[](34);
+        bytes[] memory creationCodes = new bytes[](34);
+        bytes[] memory constructorArgs = new bytes[](34);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -191,6 +194,18 @@ contract DeployLaws is Script {
         names[30] = "SnapToGov_ExecuteGov";
         creationCodes[30] = type(SnapToGov_ExecuteGov).creationCode;
         constructorArgs[30] = abi.encode("SnapToGov_ExecuteGov");
+
+        names[31] = "ElectionList";
+        creationCodes[31] = type(ElectionList).creationCode;
+        constructorArgs[31] = abi.encode("ElectionList");
+
+        names[32] = "ElectionStart";
+        creationCodes[32] = type(ElectionStart).creationCode;
+        constructorArgs[32] = abi.encode("ElectionStart");
+
+        names[33] = "ElectionTally";
+        creationCodes[33] = type(ElectionTally).creationCode;
+        constructorArgs[33] = abi.encode("ElectionTally");
 
         // console2.log("router2", router);
 

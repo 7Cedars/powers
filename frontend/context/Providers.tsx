@@ -8,9 +8,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
 const privyConfig: PrivyClientConfig = {
   defaultChain: arbitrumSepolia,
-  supportedChains: [ arbitrumSepolia ], //  [ sepolia, arbitrumSepolia, optimismSepolia, baseSepolia, foundry ],
+  supportedChains: [
+    arbitrumSepolia,
+    ...(isLocalhost ? [foundry] : [])
+  ],
   loginMethods: ['wallet'],
   appearance: {
       theme: 'light',

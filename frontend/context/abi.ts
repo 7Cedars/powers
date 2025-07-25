@@ -61,7 +61,9 @@ export const erc20VotesAbi: Abi = [
   {
     "type": "function",
     "name": "mintVotes",
-    "inputs": [],
+    "inputs": [
+      { "name": "amount", "type": "uint256", "internalType": "uint256" }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },

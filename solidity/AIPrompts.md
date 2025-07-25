@@ -1,5 +1,29 @@
 # AI Prompts 
 
+## Update constants.ts after deployment new laws. 
+[ the ref needs to be broadcast/DeployLaws/31337/run-latest.json]
+Can you check the @run-latest.json for chains 31337, 421614, 11155111 and 11155420 and update the LAW_NAMES and LAW_ADDRESSES accordingly in @constants.ts ? You can the necessary data in "returns" in the file.  
+
+[ the ref needs to be broadcast/DeployMocks/31337/run-latest.json]
+Can you check the @run-latest.json for chains 31337, 421614, 11155111 and 11155420 and update the MOCK_NAMES and MOCK_ADDRESSES accordingly in @constants.ts ? You can the necessary data in "returns" in the file.  
+
+## Update Docs after deployment new laws.  
+[ the ref needs to be broadcast/DeployLaws/421614/run-latest.json]
+Can you check the @run-latest.json for chains 421614, 11155111 and 11155420 please? 
+
+In the run-latest.json files, there is a section "returns". For each law mentioned there, can you go to the gitbook documentation, search for the documentation on this law, and update the deployment table in the 'Current Deployments' section? Thank you! 
+
+## Update refs in metadata json to mock contracts and treasuries.  
+[ the ref needs to be broadcast/DeployMocks/421614/run-latest.json]
+Can you check the @run-latest.json for chain 421614 please? We will use this file to update all the .json files in @/orgMetadatas.
+
+There is a section "returns" in run-latest.json. Use this data to do the following: 
+- Please check take the addresses with the same index as Erc20VotesMock, Erc20TaxedMock and replace the addresses in the `erc20s` field with these addresses.   
+- Please check take the address with the same index as Erc721Mock and replace the addresses in the `erc721s` field with this addresses. 
+- Please check take the address with the same index as Erc1155Mock and replace the addresses in the `erc1155s` field with this addresses. 
+
+Please note: do this for each and every .json file in @/orgMetadatas. Thank you! 
+
 ## Refactor test
 Please refactor the existing tests in LimitExecutionsTest in Law.t.sol according to the changes made to Law.sol and Powers.sol Please keep in mind the following: 
 - You can use the DeployTest contract in the same file as an example.

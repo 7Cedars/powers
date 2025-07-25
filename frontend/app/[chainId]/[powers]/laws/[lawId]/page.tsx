@@ -14,6 +14,7 @@ import { Executions } from "./Executions";
 import { useChecks } from "@/hooks/useChecks";
 import { LawLink } from "@/components/LawLink";
 import { TitleText } from "@/components/StandardFonts";
+import { parseTrueFalse } from "@/utils/parsers";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
@@ -24,7 +25,7 @@ const Page = () => {
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
-  console.log("@Law page: waypoint 1", {law, powers})
+  // console.log("@Law page: waypoint 1", {law, powers})
   // Get checks for this specific law from Zustand store
   const checks = law && chainChecks ? chainChecks.get(String(law.index)) : undefined
   
@@ -60,15 +61,15 @@ const Page = () => {
 
  
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      // console.log("Handle Simulate called:", {paramValues, nonce})
+      console.log("Handle Simulate called:", {paramValues, nonce, law})
       setError({error: null})
       let lawCalldata: `0x${string}` | undefined
-      // console.log("Handle Simulate waypoint 1")
+      console.log("Handle Simulate waypoint 1")
       if (paramValues.length > 0 && paramValues) {
         try {
-          // console.log("Handle Simulate waypoint 2a")
+          console.log("Handle Simulate waypoint 2a")
           lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
+          console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
         } catch (error) {
           // console.log("Handle Simulate waypoint 2c")
           setError({error: error as Error})

@@ -80,7 +80,7 @@ export function Footer() {
                     mirror.xyz
                 </a>
                 <a
-                    href={`t.me/thd83`} target="_blank" rel="noopener noreferrer"
+                    href={`https://t.me/thd83`} target="_blank" rel="noopener noreferrer"
                     className="text-slate-500"
                 >
                     telegram

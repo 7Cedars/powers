@@ -49,17 +49,23 @@ OPT_DEPLOY_ARGS := --rpc-url $(OPT_RPC_URL) --account dev_3 --sender ${DEV2_ADDR
 anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
+anvilDeployAll :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0) && \
+	forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0) 
 anvilDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(ANVIL_ARGS_0)
 anvilDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(ANVIL_ARGS_0)
 anvilDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(ANVIL_ARGS_0)
 anvilDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(ANVIL_ARGS_0)
 
+sepoliaDeployAll :; forge script script/DeployMocks.s.sol:DeployMocks $(SEPOLIA_DEPLOY_ARGS) && \
+	forge script script/DeployLaws.s.sol:DeployLaws $(SEPOLIA_DEPLOY_ARGS) 
 sepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.sol:DeploySeparatedPowers $(SEPOLIA_DEPLOY_ARGS)
 sepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers2.s.sol:DeployBeyondPowers2 $(SEPOLIA_DEPLOY_ARGS)
 
+arbSepoliaDeployAll :; forge script script/DeployMocks.s.sol:DeployMocks $(ARB_SEPOLIA_DEPLOY_ARGS) && \
+	forge script script/DeployLaws.s.sol:DeployLaws $(ARB_SEPOLIA_DEPLOY_ARGS) 
 arbSepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(ARB_SEPOLIA_DEPLOY_ARGS)
@@ -68,6 +74,8 @@ arbSepoliaDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s
 arbSepoliaDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(ARB_SEPOLIA_DEPLOY_ARGS)
 arbSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers.s.sol:DeployBeyondPowers $(ARB_SEPOLIA_DEPLOY_ARGS)
 
+optSepoliaDeployAll :; forge script script/DeployMocks.s.sol:DeployMocks $(OPT_SEPOLIA_DEPLOY_ARGS) && \
+	forge script script/DeployLaws.s.sol:DeployLaws $(OPT_SEPOLIA_DEPLOY_ARGS) 
 optSepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeploy101 :; forge script script/DeployPowers101.s.sol:DeployPowers101 $(OPT_SEPOLIA_DEPLOY_ARGS)
@@ -75,9 +83,6 @@ optSepoliaDeploySeparatedPowers :; forge script script/DeploySeparatedPowers.s.s
 optSepoliaDeployGovernedUpgrades :; forge script script/DeployGovernedUpgrades.s.sol:DeployGovernedUpgrades $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployManagedGrants :; forge script script/DeployManagedGrants.s.sol:DeployManagedGrants $(OPT_SEPOLIA_DEPLOY_ARGS)
 optSepoliaDeployBeyondPowers :; forge script script/DeployBeyondPowers.s.sol:DeployBeyondPowers $(OPT_SEPOLIA_DEPLOY_ARGS)
-
-optDeployMockVotes :; forge script script/DeployMockVotes.s.sol:DeployMockVotes $(OPT_DEPLOY_ARGS)
-
 
 arbSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 421614 --etherscan-api-key $(ARBISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch
 optSepoliaVerifyContract :; forge verify-contract --verifier etherscan --chain-id 11155420 --etherscan-api-key $(OPTISCAN_API_KEY) --verifier-url https://api-sepolia.arbiscan.io/api 0x9478aB247F91EAcbcaA1D120d5e35240d294AcA9 src/laws/electoral/NominateMe.sol:NominateMe --watch

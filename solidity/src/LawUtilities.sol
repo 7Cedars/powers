@@ -295,4 +295,25 @@ library LawUtilities {
         values = new uint256[](length);
         calldatas = new bytes[](length);
     }
+
+    /// @notice Converts a boolean array from calldata to a memory array
+    /// @dev Uses assembly to efficiently decode the boolean array from calldata
+    /// @param numBools The number of booleans to decode
+    /// @return boolArray The decoded boolean array
+    /// Note: written by Cursor AI.
+    function arrayifyBools(uint256 numBools) public pure returns (bool[] memory boolArray) {
+        assembly {
+            // Allocate memory for the array
+            boolArray := mload(0x40)
+            mstore(boolArray, numBools) // set array length
+            let dataOffset := 0x24 // skip 4 bytes selector, start at 0x04, but arrays start at 0x20
+            for { let i := 0 } lt(i, numBools) { i := add(i, 1) } {
+                // Each bool is 32 bytes
+                let value := calldataload(add(4, mul(i, 32)))
+                mstore(add(add(boolArray, 0x20), mul(i, 0x20)), iszero(iszero(value)))
+            }
+            // Update free memory pointer
+            mstore(0x40, add(add(boolArray, 0x20), mul(numBools, 0x20)))
+        }
+    }
 }

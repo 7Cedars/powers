@@ -140,6 +140,8 @@ export const parseAttributes = (attributes: unknown): Attribute[]  => {
 
 export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataType): InputType => {
   // very basic parser. Here necessary input checks can be added later.  
+  console.log("@parseInput: ", {event, dataType})
+
   const errorMessage = 'Incorrect input data';
   if ( !event.target.value && typeof event.target.value !== 'string' && typeof event.target.value !== 'number' && typeof event.target.value !== 'boolean' ) {
      throw new Error('@parseInput: Incorrect or missing data.');
@@ -151,24 +153,27 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   // Note that later on I can also check for maximum values by taking the power of uintxxx
   if (dataType.indexOf('uint') > -1) {
+    console.log("@parseInput UINT: waypoint 0", {event, dataType})
     try {
       return Number(event.target.value) 
     } catch {
       return errorMessage
     }
   }
-
-  if (dataType.indexOf('bool') > -1) {
-    try {
-      return event.target.value == 'true' ? true : event.target.value == 'false' ? false : errorMessage
-    } catch {
-      return errorMessage
-    }
-  }
   
   if (dataType.indexOf('string') > -1) { 
+    console.log("@parseInput STRING: waypoint 0", {event, dataType})
     try {
       return event.target.value as string 
+    } catch {
+      return errorMessage
+    } 
+  }
+
+  if (dataType.indexOf('bool') > -1) { 
+    try {
+      console.log("@parseInput BOOL: waypoint 1", {event, value: event.target.value})
+      return event.target.value == "true" ? true : false
     } catch {
       return errorMessage
     }
@@ -176,6 +181,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
   
   if (dataType.indexOf('address') > -1) {
     try {
+      console.log("@parseInput ADDRESS: waypoint 0", {event, dataType})
       return event.target.value as `0x${string}` 
     } catch {
       return errorMessage
@@ -184,6 +190,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   if (dataType.indexOf('bytes') > -1)  {
     try {
+      console.log("@parseInput BYTES: waypoint 0", {event, dataType})
       return event.target.value as `0x${string}` 
     } catch {
       return errorMessage
@@ -192,6 +199,24 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   return errorMessage
 };
+
+export const parseTrueFalse = (value: (InputType | InputType[])[]): (InputType | InputType[])[] => {
+  return value.map((item) => {
+    if (Array.isArray(item)) {
+      // Recursively handle nested arrays
+      return item.map((subitem) => {
+        if (subitem) return true;
+        if (!subitem) return false;
+        return subitem as InputType;
+      });
+    } else {
+      if (item) return true;
+      if (!item) return false;
+      
+      return item as InputType;
+    }
+  });
+}
 
 export const parseRole = (role: bigint | undefined): number => {
   const returnValue = 
@@ -407,15 +432,15 @@ export const shorterDescription = (message: string | undefined, output: "short" 
 };
 
 // would be great to make this more dynamic. 
-export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | undefined => {
+export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | 31337 | undefined => {
   // console.log("@parseChainId: waypoint 0", {chainId})
   if (!chainId) {
     return undefined
   }
-  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420") {
+  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420" && chainId !== "31337") {
     return undefined
   }
-  return parseInt(chainId) as 421614 | 11155111 | 11155420 | undefined
+  return parseInt(chainId) as 421614 | 11155111 | 11155420 | 31337 | undefined
 }
 
 

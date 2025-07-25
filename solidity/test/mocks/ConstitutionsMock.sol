@@ -239,7 +239,7 @@ contract ConstitutionsMock is Test  {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData)
     {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](13);
+        lawInitData = new PowersTypes.LawInitData[](14);
 
         // CONTINUE HERE. 
         // NB: NEED TO ADD  NOMINATE ME LAW.
@@ -401,17 +401,37 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
+        // ElectionStart
+        conditions.allowedRole = 0;
+        conditions.readStateFrom = 1;
+        lawInitData[12] = PowersTypes.LawInitData({
+            nameDescription: "ElectionStart: A law to start an election.",
+            targetLaw: lawAddresses[27], // ElectionStart
+            config: abi.encode(
+                lawAddresses[28], // ElectionList
+                lawAddresses[29], // ElectionTally
+                3, // roleId
+                1 // maxToElect
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getActions(daoMock, 12); // powersMock
+            _getActions(daoMock, 13); // powersMock
         conditions.allowedRole = 0;
-        lawInitData[12] = PowersTypes.LawInitData({
+        lawInitData[13] = PowersTypes.LawInitData({
             nameDescription: "PresetAction: A law to execute a preset action.",
             targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.
             conditions: conditions
         });
         delete conditions;
+
+
+
+// 
     }
 
         

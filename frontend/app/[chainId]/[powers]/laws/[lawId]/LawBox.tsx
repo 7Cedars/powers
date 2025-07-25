@@ -7,7 +7,7 @@ import { ArrowUpRightIcon, PlusIcon, SparklesIcon, UserGroupIcon, CheckIcon, XMa
 import { SectionText } from "@/components/StandardFonts";
 import { useChainId, useChains } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
-import { parseChainId, parseLawError, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
+import { parseChainId, parseLawError, parseParamValues, parseRole, parseTrueFalse, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers } from "@/context/types";
 import { DynamicInput } from "@/app/[chainId]/[powers]/laws/[lawId]/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
@@ -72,20 +72,40 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
     setAction({...action, paramValues: currentInput, upToDate: false})
   }
 
+
   useEffect(() => {
-    // console.log("useEffect triggered at LawBox")
+    console.log("useEffect triggered at LawBox")
       try {
         const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData);
         const valuesParsed = parseParamValues(values) 
-        // console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
+        console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
-          setAction({...action, paramValues: dataTypes.map(dataType => dataType == "string" ? [""] : dataType == "bool" ? [false] : [0]), upToDate: false})
+          console.log("@LawBox: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
+          setAction({...action, paramValues: dataTypes.map(dataType => {
+            const isArray = dataType.indexOf('[]') > -1;
+            if (dataType.indexOf('string') > -1) {
+              return isArray ? [""] : "";
+            } else if (dataType.indexOf('bool') > -1) {
+              return isArray ? [false] : false;
+            } else {
+              return isArray ? [0] : 0;
+            }
+          }), upToDate: false})
         } else {
           setAction({...action, paramValues: valuesParsed, upToDate: false})
         }
       } catch(error) { 
-        setAction({...action, paramValues: [], upToDate: false})
-        // console.error("Error decoding abi parameters at action calldata: ", error)
+        console.error("Error decoding abi parameters at action calldata: ", error)
+        setAction({...action, paramValues: dataTypes.map(dataType => {
+          const isArray = dataType.indexOf('[]') > -1;
+          if (dataType.indexOf('string') > -1) {
+            return isArray ? [""] : "";
+          } else if (dataType.indexOf('bool') > -1) {
+            return isArray ? [false] : false;
+          } else {
+            return isArray ? [0] : 0;
+          }
+        }), upToDate: false})
       }  
   }, [ , law ])
 
@@ -126,13 +146,14 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       <form onSubmit={(e) => e.preventDefault()} className="w-full">
         {
           params.map((param, index) => {
-            // console.log("@dynamic form", {param, index, paramValues})
+            console.log("@dynamic form", {param, index, paramValues: action.paramValues, values: action.paramValues && action.paramValues[index] !== undefined ? action.paramValues[index] : []})
             
             return (
               <DynamicInput 
                   dataType = {param.dataType} 
                   varName = {param.varName} 
-                  values = {action.paramValues ? action.paramValues[index] : []} 
+                  index = {index}
+                  values = {action.paramValues && action.paramValues[index] !== undefined ? action.paramValues[index] : ""}
                   onChange = {(input)=> {handleChange(input, index)}}
                   key = {index}
                   />

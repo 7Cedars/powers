@@ -40,6 +40,9 @@ import { EndElection } from "../../src/laws/electoral/EndElection.sol";
 import { GovernorCreateProposal } from "../../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../../src/laws/integrations/GovernorExecuteProposal.sol";
 import { SnapToGov_CheckSnapExists } from "../../src/laws/integrations/SnapToGov_CheckSnapExists.sol";
+import { ElectionStart } from "../../src/laws/electoral/ElectionStart.sol";
+import { ElectionList } from "../../src/laws/electoral/ElectionList.sol";
+import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -61,8 +64,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](27);
-        lawAddresses = new address[](27);
+        lawNames = new string[](30);
+        lawAddresses = new address[](30);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -93,12 +96,14 @@ contract DeployAnvilMocks is Script {
         lawAddresses[23] = address(new EndElection());
         lawAddresses[24] = address(new GovernorCreateProposal());
         lawAddresses[25] = address(new GovernorExecuteProposal());
-        
 
         mockAddresses[0] = address(new PowersMock());
         mockAddresses[6] = address(new FunctionsRouterMock());
 
         lawAddresses[26] = address(new SnapToGov_CheckSnapExists(mockAddresses[6]));
+        lawAddresses[27] = address(new ElectionStart());
+        lawAddresses[28] = address(new ElectionList());
+        lawAddresses[29] = address(new ElectionTally());
         
         vm.stopBroadcast();
 
@@ -140,6 +145,9 @@ contract DeployAnvilMocks is Script {
         lawNames[24] = "GovernorCreateProposal";
         lawNames[25] = "GovernorExecuteProposal";
         lawNames[26] = "SnapToGov_CheckSnapExists";
+        lawNames[27] = "ElectionStart";
+        lawNames[28] = "ElectionList";
+        lawNames[29] = "ElectionTally";
 
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";

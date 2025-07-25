@@ -18,9 +18,8 @@ export const advantages = [
   {
     advantage: "Modularity",
     examples: [
-      "Powers cannot exist without modular laws",
-      "Laws are interoperable with any off- and cross-chain system",
-      "Existing DAOs can take up dedicated roles"
+      "Do not get stuck on a single law or a single system",
+      "Use modular laws to build bespoke, dynamic, governance systems"
     ]
   }, 
   {
