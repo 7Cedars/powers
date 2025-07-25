@@ -120,12 +120,65 @@ const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457
  */
 export function createPowers101LawInitData(powersAddress: `0x${string}`, formData: Powers101FormData, chainId: number): LawInitData[] {
   const lawInitData: LawInitData[] = [];
+  
+  // Law 1: Initial setup
+  // This law sets up initial role assignments for the DAO & role labelling
+  // Only the admin can use this law
+  // In the Solidity version: abi.encode(targetsRoles, valuesRoles, calldatasRoles)
+  // This would need the actual mock addresses and powers address, but for now using placeholders
+  lawInitData.push({
+    nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws and mints tokens. Press the refresh button to see the new labels.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress, powersAddress, getMockAddress("Erc20TaxedMock", chainId), getMockAddress("Erc20VotesMock", chainId), powersAddress
+        ], // targets
+        [0n, 0n, 0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Members"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",  
+            args: [2n, "Delegates"]
+          }),
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // faucet 
+          }),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [2500000000000000000n] // mint 2.5 votes to the admin
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [1n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE
+    })
+  });
 
   //////////////////////////////////////////////////////////////////
   //                       Executive laws                         // 
   //////////////////////////////////////////////////////////////////
 
-  // Law 1: Statement of Intent
+  // Law 2: Statement of Intent
   // This law allows proposing changes to core values of the DAO
   // Only community members can use this law. It is subject to a vote.
   const statementOfIntentConfig = encodeAbiParameters(
@@ -146,7 +199,7 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // Law 2: Veto an action
+  // Law 3: Veto an action
   // This law allows a proposed action to be vetoed
   // Only the admin can use this law
   lawInitData.push({
@@ -155,11 +208,11 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     config: statementOfIntentConfig,
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: 1n // references the Statement of Intent law
+      needCompleted: 2n // references the Statement of Intent law
     })
   });
 
-  // Law 3: Execute an action
+  // Law 4: Execute an action
   // This law allows executing any action with voting requirements
   // Only role 2 can use this law
   lawInitData.push({
@@ -171,8 +224,8 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
       quorum: 50n,
       succeedAt: 77n,
       votingPeriod: minutesToBlocks(5, chainId),
-      needCompleted: 1n,
-      needNotCompleted: 2n,
+      needCompleted: 2n,
+      needNotCompleted: 3n,
       delayExecution: minutesToBlocks(3, chainId)
     })
   });
@@ -181,7 +234,7 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
   //////////////////////////////////////////////////////////////////
   //                       Electoral laws                         // 
   //////////////////////////////////////////////////////////////////
-  // Law 4: Nominate me for delegate
+  // Law 5: Nominate me for delegate
   // This law allows accounts to self-nominate for any role
   // It can be used by community members
   lawInitData.push({
@@ -193,7 +246,7 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // law 5: Call election for delegate role. 
+  // law 6: Call election for delegate role. 
   lawInitData.push({
     nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
     targetLaw: getLawAddress("ElectionStart", chainId),
@@ -212,12 +265,12 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     ),
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      readStateFrom: 4n
+      readStateFrom: 5n
     })
   });
 
 
-  // Law 6: Self select as community member 
+  // Law 7: Self select as community member 
   // This law enables anyone to select themselves as a community member
   // Anyone can use this law
   lawInitData.push({
@@ -232,50 +285,6 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     conditions: createConditions({
       throttleExecution: 25n,
       allowedRole: PUBLIC_ROLE
-    })
-  });
-
-
-  // Law 7: Initial setup
-  // This law sets up initial role assignments for the DAO & role labelling
-  // Only the admin can use this law
-  // In the Solidity version: abi.encode(targetsRoles, valuesRoles, calldatasRoles)
-  // This would need the actual mock addresses and powers address, but for now using placeholders
-  lawInitData.push({
-    nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws. Press the refresh button to see the new labels.",
-    targetLaw: getLawAddress("PresetAction", chainId),
-    config: encodeAbiParameters(
-      [
-        { name: 'targets', type: 'address[]' },
-        { name: 'values', type: 'uint256[]' },
-        { name: 'calldatas', type: 'bytes[]' }
-      ],
-      [
-        [
-          powersAddress, powersAddress, powersAddress
-        ], // targets
-        [0n, 0n, 0n], // values
-        [
-          encodeFunctionData({
-            abi: powersAbi,
-            functionName: "labelRole",
-            args: [1n, "Members"]
-          }),
-          encodeFunctionData({
-            abi: powersAbi,
-            functionName: "labelRole",  
-            args: [2n, "Delegates"]
-          }),
-          encodeFunctionData({
-            abi: powersAbi,
-            functionName: "revokeLaw",
-            args: [7n] // revoke the initial setup law
-          })
-        ]
-      ]
-    ),
-    conditions: createConditions({
-      allowedRole: ADMIN_ROLE
     })
   });
 
@@ -400,6 +409,7 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
     conditions: createConditions({
       allowedRole: 1n,
       needCompleted: 3n,
+      needNotCompleted: 4n,
       quorum: 10n,
       votingPeriod: minutesToBlocks(5, chainId),
       succeedAt: 10n,
@@ -478,11 +488,13 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
       ],
       [
         [
-          powersAddress,
-          powersAddress,
+          powersAddress, 
+          powersAddress, 
+          getMockAddress("Erc20TaxedMock", chainId), 
+          getMockAddress("Erc20VotesMock", chainId), 
           powersAddress
         ], // targets
-        [0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n], // values
         [
           encodeFunctionData({
             abi: powersAbi,
@@ -493,6 +505,16 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
             abi: powersAbi,
             functionName: "labelRole",
             args: [2n, "Security Council"]
+          }),
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // faucet 
+          }),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [2500000000000000000n] // mint 2.5 votes to the admin
           }),
           encodeFunctionData({
             abi: powersAbi,
@@ -533,9 +555,11 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
           powersAddress,
           powersAddress,
           powersAddress,
+          getMockAddress("Erc20TaxedMock", chainId),
+          getMockAddress("Erc20VotesMock", chainId),
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           encodeFunctionData({
             abi: powersAbi,
@@ -551,6 +575,16 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
             abi: powersAbi,
             functionName: "labelRole",
             args: [3n, "Executives"]
+          }),
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // faucet 
+          }),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [2500000000000000000n] // mint 2.5 votes to the admin
           }),
           encodeFunctionData({
             abi: powersAbi,
@@ -1094,10 +1128,12 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
           powersAddress,
           powersAddress,
           powersAddress,
+          getMockAddress("Erc20TaxedMock", chainId),
+          getMockAddress("Erc20VotesMock", chainId),
           powersAddress,
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           // optional law 9: create an SoI for an action that can later be executed by Delegates. 
           encodeFunctionData({
@@ -1159,6 +1195,16 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
             functionName: "labelRole",
             args: [2n, "Delegates"]
           }), 
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // faucet 
+          }),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [2500000000000000000n] // mint 2.5 votes to the admin
+          }),
           // delete laws 1 & 2 
           encodeFunctionData({
             abi: powersAbi,
@@ -1202,10 +1248,12 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
           powersAddress,
           powersAddress,
           powersAddress,
+          getMockAddress("Erc20TaxedMock", chainId),
+          getMockAddress("Erc20VotesMock", chainId),
           powersAddress,
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           // optional law 9: create an SoI for an action. This action can be anything. 
           encodeFunctionData({
@@ -1368,6 +1416,16 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
             abi: powersAbi,
             functionName: "labelRole",
             args: [3n, "Executives"]
+          }),
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // faucet 
+          }),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [2500000000000000000n] // mint 2.5 votes to the admin
           }),
           // delete laws 1 & 2 
           encodeFunctionData({

@@ -4,14 +4,14 @@
   "description": 
     "An example implementation of an organisation that has multiple governance tracks and where selectors can decide which track to use for a specific proposal.",
   "erc20s": [
-    "0x53Fa2e3Da143d47359ecb0C0F45fcae928931dc8", 
-    "0x908B8158F2B6CC789539956E7011c3630640d237" 
+    "0x52536c4e334B57c56e36A5De4F4C3F2530a15851",
+    "0x30cd84735502A954Ba7f16C10b79F7510E32DE57"
   ],
   "erc721s": [
-    "0x6D62A5dF14619FF5477D5F74445080c4Ec5Af12e"
+    "0x9C06D27a3402BDfbCAE93c65B2F34727356c9A2b"
   ],
   "erc1155s": [{
-    "address": "0xa051c100C5a5F430a1F27D553aF70f7A3Be2D8e6",
+    "address": "0xEFE0832C1e3232F6F9c8AC188d872DE1365A31fd",
     "tokenId": 0
   } ],
   "attributes": [

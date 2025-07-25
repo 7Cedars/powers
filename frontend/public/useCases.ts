@@ -18,7 +18,7 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demo: "Split Governance",
-    address: "0x0000000000000000000000000000000000000000",
+    address: "0x8d30e1028cea5f98b3cd844acb2ecf5398d91a90",
     chainId: "11155420"
   }, 
   {
@@ -27,8 +27,8 @@ export const useCases = [
       "Granular controls over upgrades.",
       "Multi-law upgrades can be packaged as a single law and executed in one transaction."
     ],
-    demo: "Governed Upgrades",
-    address: "0x0000000000000000000000000000000000000000",
+    demo: "Packaged Upgrades",
+    address: "0xbf7f38bbce6af986c8f6ce5cdce27f6e2c803f9d",
     chainId: "11155420"
   },
   {
@@ -38,8 +38,8 @@ export const useCases = [
       "Render hostile takeovers increasingly difficult."
     ],
     demo: "Powers 101",
-    address: "0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D",
-    chainId: "11155420"
+    address: "0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36",
+    chainId: "421614"
   },  
   {
     title: "Increase transparency",
@@ -48,16 +48,16 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demo: "Powers 101",
-    address: "0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D",
-    chainId: "11155420"
+    address: "0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36",
+    chainId: "421614"
   },
   {
     title: "Create trustless on- and off-chain governance",
     details: [
       "Build on-chain systems that seamlessly integrate off- and on-chain actions."
     ],
-    demo: "Beyond Powers",
-    address: "0x072DB0B14A48D7dd4653eAB8Df40Ed8930e55f1E",
+    demo: "Bridging Governance",
+    address: "0x85c910398b1fc2c1ec5859ae5bbe8ea8b952ec00",
     chainId: "11155420"
   },
   // {
