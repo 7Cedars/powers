@@ -701,7 +701,8 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     conditions: createConditions({
       allowedRole: 3n, // EXECUTIVES
       needCompleted: 4n, // need to have created a proposal and assigned to path 2
-      needNotCompleted: 7n // need to have vetoed the proposal
+      needNotCompleted: 7n, // need to have vetoed the proposal
+      delayExecution: minutesToBlocks(10, chainId), // delay execution by 10 minutes
       // NOTE: no vote. Each and every executive can execute the proposal. 
     })
   });

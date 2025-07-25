@@ -28,7 +28,7 @@ export const deploymentForms: DeploymentForm[] = [
   {
     id: 2,
     title: "Split Governance",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiffvajcyu6ipyghzv26z7xgyyxnbsaecjtqro475kmde4h5kmfbsi",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiciziefght5urlxntfekn5au5gfaawgve6emam4fkumokjapn2q5e",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiduqnzehle3y5t47mxoxgqvbxqus7meu6gfxldzrff2r3cmzjdham",
     description: "Deploy Governance that splits decision making along type of proposal. In this example proposals are assessed on 3 different paths: low risk, repetitive tasks, mid risk and high risk, non-repetitive tasks. Each path has different voting thresholds and quorums to adjust security and efficiency according to the risk of the proposal.",
     disabled: false,

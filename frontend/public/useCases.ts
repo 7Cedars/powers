@@ -18,7 +18,7 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demo: "Split Governance",
-    address: "0x8d30e1028cea5f98b3cd844acb2ecf5398d91a90",
+    address: "0x024a19ee74c650960b8ff73659a8fa7d16450d68",
     chainId: "11155420"
   }, 
   {
