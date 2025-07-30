@@ -16,6 +16,7 @@ import {
   createPowers101LawInitData, 
   createCrossChainGovernanceLawInitData, 
   createGrantsManagerLawInitData,
+  createSingleUpgradeLawInitData,
   createLawInitDataByType 
 } from "@/public/createLawInitData";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
