@@ -76,7 +76,7 @@ export const deploymentForms: DeploymentForm[] = [
   {
     id: 6,
     title: "Single Upgrades",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreigj2wm3xpqmqhednl6wpocvqux3zqd4vdb4gndrnv4kqgyare3zka",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreih2ot6wm56pnle23ushsrhtnvo42fspnje2cbdvbpcktuderha4fq",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
     description: "Deploy a governed upgrades DAO using Powers. This example implements a governance system where the previous DAO can adopt and revoke laws one by one, while delegates can veto these actions. It includes electoral laws for delegate nomination and election processes.",
     disabled: false,

@@ -1753,7 +1753,7 @@ export function createLawInitDataByType(
       return createSplitGovernanceLawInitData(powersAddress, formData as SplitGovernanceFormData, chainId);
     case 'Packaged Upgrades':
       return createPackagedUpgradesLawInitData(powersAddress, formData as ManagedUpgradesFormData, chainId);
-    case 'Single Upgrade':
+    case 'Single Upgrades':
       return createSingleUpgradeLawInitData(powersAddress, formData as SingleUpgradeFormData, chainId);
     default:
       throw new Error(`Unknown organization type: ${type}`);
