@@ -12,7 +12,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/7Cedars/powers"> 
-    <img src="public/logo1_notext.png" alt="Logo" width="300" height="300">
+    <img src="public/powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
   </a>
 
 <h3 align="center">Powers</h3>
@@ -22,7 +22,8 @@
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·
     <a href="https://sepolia.arbiscan.io/address/0x001a6a16d2fc45248e00351314bce898b7d8578f">Proof of Concept (Arbiscan)</a> ·
-    <a href="https://powers-protocol.vercel.app/">Proof of Concept (dApp)</a>
+    <a href="https://powers-protocol.vercel.app/421614/0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36">Proof of Concept (live Demo)</a> ·
+    <a href="https://7cedars.gitbook.io/powers-protocol">Documentation</a>
   </p>
 </div>
 
@@ -39,8 +40,8 @@
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#about">About</a></li>
-    <li><a href="#advantages">Advantages</a></li>
-    <li><a href="#protocol-architecture">Protocol Architecture</a></li>
+    <li><a href="#use-cases">Use Cases</a></li>
+    <li><a href="#deploy">Deploy</a></li>
     <li><a href="#important-files-and-folders">Important files and folders</a></li>
     <li><a href="#built-with">Built With</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -49,38 +50,103 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About
-Powers restricts governance processes along access roles.
+Powers restricts governance processes along access roles. It allows a single decision to travel along multiple stakeholders through modular, asynchronous and trustless governance paths before it is executed.
 
-## Advantages
-In comparison to existing governance protocols, Powers improves the scalability, security and decentralisation of on-chain governance.
-- _Scalability._ Powers creates a governance process where DAO members only vote on proposals that concern their roles. Role specification is a battle tested approach to enable the seamless scaling of small DAOs into larger ones.  
-- _Security._ Powers allows for the creation of checks and balances between roles. The more checks and balances a DAO implements in its governance structure, the better it will be protected against hostile governance take overs. 
-- _Decentralisation._  Powers enables DAOs to divide their community in groups (such as builders, token holders, users) and give each groups different, restricted, governance powers. Using roles to separate powers in governance is a tried and true approach to safeguarding decentralisation of (social, political and economic) assets in light of their tendency to centralise around informal elites.
-- _Multipliers._ Above all else, Powers creates multipliers between decentralisation, efficiency and security. In Powers, increased decentralisation leads to more efficiency and more security. A focus on security will also increase decentralisation of DAO governance, etc.     
+## Use Cases 
 
-## Protocol Architecture 
-For now, the protocol does not have extensive documentation. Instead, you can do the following 
-- Watch the <a href="www.tella.tv/video/powers-solving-dao-governance-challenges-bis6"><b> 15 minute explanation</b></a>.
-- Read <a href="/solidity"> `/solidity/README.md`</a>. 
-- Then read through the code of `solidity/src/Powers.sol`, `solidity/src/IPowers.sol` and `solidity/src/Law.sol` and read through their code and natspecs.  
+Powers enables three key governance patterns that solve common DAO challenges:
 
-More extensive documentation will be created asap. 
+**🔐 Grant Management**: Create accountable grant programs where council members can allocate funds, but decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
+
+**⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
+
+**🔄 DAO Upgrades**: Upgrade existing DAOs gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing DAO as a role holder.     
+
+## Deploy locally
+
+### Prerequisites
+
+1. **Install Foundry** - Required for smart contract development
+   ```bash
+   curl -L https://foundry.paradigm.xyz | bash
+   foundryup
+   ```
+
+2. **Install Node.js dependencies**
+   ```bash
+   yarn install
+   cd frontend && yarn install
+   ```
+
+### Setup and Deployment
+
+1. **Clone and setup the repository**
+   ```bash
+   git clone https://github.com/7Cedars/powers.git
+   cd powers
+   ```
+
+2. **Start Anvil chain** (local Ethereum development chain)
+   ```bash
+   anvil
+   ```
+   > **Note**: For detailed Anvil configuration and usage, see the [Foundry documentation](https://getfoundry.sh/introduction/getting-started#anvil)
+
+3. **Deploy contracts and mocks**
+   ```bash
+   cd solidity
+   make anvilDeployAll
+   ```
+   This deploys all laws and mock contracts to your local Anvil chain.
+
+4. **Start the frontend application**
+   ```bash
+   cd frontend
+   yarn dev
+   ```
+
+5. **Access the application**
+   - Open your browser and navigate to `http://localhost:3000`
+   - Select "Anvil" from the chain dropdown
+   - Additional test organizations will be available for local development
+
+### Building Custom Laws and Organizations
+
+For detailed information on creating your own laws and organizations, please refer to the [GitBook documentation](https://7cedars.gitbook.io/powers-protocol):
+- [Law Development Guide](https://7cedars.gitbook.io/powers-protocol/for-developers/law.sol/)
+- [Powers Protocol Guide](https://7cedars.gitbook.io/powers-protocol/for-developers/powers.sol/)
+- [Setting up a New Law](https://7cedars.gitbook.io/powers-protocol/for-developers/setting-up-a-new-law)
 
 ## Important files and folders
 
 ```
 .
-├── frontend          # App workspace
-|    ├── README.md    # All information needed to run the dApp locally. 
-│    └── ...
+├── frontend/         # Next.js dApp workspace
+│   ├── app/          # Next.js app router pages and components
+│   ├── components/   # Reusable React components
+│   ├── context/      # React context providers and contract ABIs
+│   ├── hooks/        # Custom React hooks
+│   ├── public/       # Static assets for the dApp
+│   ├── utils/        # Utility functions
+│   └── README.md     # Frontend setup and development guide
 │
-├── public            # Images
-|
-├── solidity          # Contains all the contracts, interfaces and tests. 
-│    ├── README.md    # All information needed to run contracts locally, test and deploy contracts. It also gives more detailed information on the protocol itself. 
-│    └── ...                     
-| 
-├── LICENSE
+├── solidity/         # Smart contract development
+│   ├── src/          # Solidity contracts and interfaces
+│   ├── test/         # Foundry test files
+│   ├── script/       # Deployment scripts
+│   ├── broadcast/    # Deployment artifacts
+│   └── README.md     # Solidity development guide
+│
+├── gitbook/          # Documentation
+│   ├── for-developers/    # Developer documentation
+│   ├── example-laws/      # Example law implementations
+│   ├── deployed-laws/     # Deployed law documentation
+│   ├── integrations/      # Integration guides
+│   └── README.md          # Documentation overview
+│
+├── public/           # Project images and assets
+│
+├── package.json      # Root package configuration
 └── README.md         # This file
 ```
 

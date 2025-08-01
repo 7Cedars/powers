@@ -16,7 +16,13 @@ It combines a governance engine, **Powers**, with role restricted and modular co
 
 Crucially, Powers allows the **same action** to be send to **different laws** enabling law A to check the status of the same action at law B.
 
-Together they create a governance protocol that allows for the creation of governance chains, enabling checks and balances between roles, guard-railing specific (AI agentic) accounts and creating hybrid on- and off-chain organizations, among many other use cases.&#x20;
+Together they create a protocol that enables the following key governance patterns that solve common DAO challenges:
+
+**🔐 Grant Management**: Create accountable grant programs where council members can assign funds and allocators, but decisions are logged and can be challenged. All funds remain in community control, allocators can be replaced and grant programs revoked if they don't achieve intended impact.
+
+**⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
+
+**🔄 DAO Upgrades**: Upgrade existing DAOs gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing DAO as a role holder.
 
 ## Quick links
 
@@ -26,7 +32,7 @@ Together they create a governance protocol that allows for the creation of gover
 
 ## The protocol
 
-The Powers protocol consists of two elements: Powers and Laws. Together they manage how actions are governed.&#x20;
+The Powers protocol consists of two elements: **Powers** and **Laws**. Together they manage how **actions** are governed.;
 
 ### ⚡ Powers
 

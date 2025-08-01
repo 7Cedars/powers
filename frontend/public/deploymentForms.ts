@@ -65,12 +65,22 @@ export const deploymentForms: DeploymentForm[] = [
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicapwv75menvl7yd7p2tuizcwzfxqpokvakttou76q4fznktfdi5a",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
     description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a council to assess them and allows to distribute funds along key milestones and performance indicatorrs. It also has a mechanisms for challening decisions. Note that assessors and judges can also be (de)selected after deployment.",
-    disabled: true,
-    onlyLocalhost: false,
+    disabled: false,
+    onlyLocalhost: true,
     fields: [
       { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
       { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false },
       { name: "judges", placeholder: "Optional: Judges addresses (0x...), comma separated", type: "text", required: false }
     ]
+  },
+  {
+    id: 6,
+    title: "Single Upgrades",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreih2ot6wm56pnle23ushsrhtnvo42fspnje2cbdvbpcktuderha4fq",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
+    description: "Deploy a governed upgrades DAO using Powers. This example implements a governance system where the previous DAO can adopt and revoke laws one by one, while delegates can veto these actions. It includes electoral laws for delegate nomination and election processes.",
+    disabled: false,
+    onlyLocalhost: true,
+    fields: []
   }
 ]; 

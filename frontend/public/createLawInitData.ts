@@ -50,7 +50,11 @@ export interface GrantsManagerFormData {
 
 export interface ManagedUpgradesFormData { }
 
+export interface SingleUpgradeFormData { }
+
 export interface SplitGovernanceFormData { }
+
+
 
 // Type for deployment returns data
 export interface DeploymentReturns {
@@ -826,222 +830,15 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   const lawInitData: LawInitData[] = [];
 
   //////////////////////////////////////////////////////////////////
-  //                       Executive laws                         // 
+  //                NB: ALL COMPLETELY WIP!                       // 
   //////////////////////////////////////////////////////////////////
-  // create the input layout for the proposals that can be created. 
-  const proposalConfig = encodeAbiParameters(
-    [
-      { name: 'inputParams', type: 'string[]' },
-    ],
-    [["address[] Targets", "uint256[] Values", "bytes[] Calldatas"]]
-  ); 
-
-  // Law 1: Create a proposal
-  // This law allows creating a proposal
-  // Anyone can use this law
-  lawInitData.push({
-    nameDescription: "Create proposal: Create a proposal.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: PUBLIC_ROLE
-    })
-  });
-
-  // SELECT PATH 1 OR 2 OR 3 
-  // law 2: assign proposal to governance path 1: low risk, repetitive tasks
-  lawInitData.push({
-    nameDescription: "Assign to path A: Assign a proposal to path A.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 1n, // SELECTORS
-      needCompleted: 1n, // need to have created a proposal
-      votingPeriod: 100n, // 100 blocks
-      quorum: 50n, // 50% quorum
-      succeedAt: 50n // 50% success threshold
-    })
-  });
-
-  // law 3: assign proposal to governance path 2: mid risk
-  lawInitData.push({
-    nameDescription: "Assign to path B: Assign a proposal to path B.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 1n, // SELECTORS
-      needCompleted: 1n, // need to have created a proposal
-      votingPeriod: 100n, // 100 blocks
-      quorum: 50n, // 50% quorum
-      succeedAt: 50n // 50% success threshold
-    })
-  });
-
-  // law 4: assign proposal to governance path 3: high risk, non-repetitive tasks
-  lawInitData.push({
-    nameDescription: "Assign to path C: Assign a proposal to path C.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 1n, // SELECTORS
-      needCompleted: 1n, // need to have created a proposal
-      votingPeriod: 100n, // 100 blocks
-      quorum: 50n, // 50% quorum
-      succeedAt: 50n // 50% success threshold
-    })
-  });
-
-  // PATH 1 
-  // law 5: execute proposal: 1 member of the executive council sufficient. - no vote. 
-  lawInitData.push({
-    nameDescription: "Execute proposal: Execute a proposal assigned to path A.",
-    targetLaw: getLawAddress("OpenAction", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 3n, // EXECUTIVES
-      needCompleted: 2n // need to have created a proposal and assigned to path 1
-      // NOTE: no vote. Each and every executive can execute the proposal. 
-    })
-  });
-
-  // PATH 2
-  // law 6: veto proposal: security council votes on veto. 
-  lawInitData.push({
-    nameDescription: "Veto proposal: Veto a proposal assigned to path B.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 2n, // SECURITY COUNCIL
-      needCompleted: 3n, // need to have created a proposal and assigned to path 2
-      votingPeriod: 100n, // 100 blocks
-      quorum: 70n, // 70% quorum: high
-      succeedAt: 70n // 70% success threshold: high
-    })
-  });
   
-  // law 7: execute proposal: executive council votes on execution. 
-  lawInitData.push({
-    nameDescription: "Execute proposal: Execute a proposal assigned to path B.",
-    targetLaw: getLawAddress("OpenAction", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 3n, // EXECUTIVES
-      needCompleted: 3n, // need to have created a proposal and assigned to path 2
-      needNotCompleted: 6n // need to have vetoed the proposal
-      // NOTE: no vote. Each and every executive can execute the proposal. 
-    })
-  });
-
-  // PATH 3 
-  // law 8: executive council votes on passing proposal 
-  lawInitData.push({
-    nameDescription: "Pass proposal: Pass a proposal assigned to path C.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 3n, // EXECUTIVES
-      needCompleted: 4n, // need to have created a proposal and assigned to path 3
-      votingPeriod: 100n, // 100 blocks
-      quorum: 30n, // 30% quorum: low
-      succeedAt: 51n // 51% success threshold: low
-    })
-  }); 
-
-  // law 9: security council votes on execution. 
-  lawInitData.push({
-    nameDescription: "Execute proposal: Execute a proposal assigned to path C.",
-    targetLaw: getLawAddress("OpenAction", chainId),
-    config: proposalConfig,
-    conditions: createConditions({
-      allowedRole: 2n, // SECURITY COUNCIL
-      needCompleted: 8n, 
-      votingPeriod: 100n, // 100 blocks
-      quorum: 30n, // 30% quorum: low
-      succeedAt: 51n // 51% success threshold: low
-    })
-  });
-
   
-  //////////////////////////////////////////////////////////////////
-  //                       Electoral laws                         // 
-  //////////////////////////////////////////////////////////////////
-
-  // law 10 nominateMe for selectors council.
-  lawInitData.push({
-    nameDescription: "Nominate oneself: Nominate oneself for the Selectors role.",
-    targetLaw: getLawAddress("NominateMe", chainId),
-    config: "0x", // empty config
-    conditions: createConditions({
-      allowedRole: PUBLIC_ROLE
-    })
-  });
-
-  // law 11: token voting to elect selectors council. -- no distinct elections. Vote can happen at any time. 
-  lawInitData.push({
-    nameDescription: "Token voting to elect selectors council: Token voting to elect selectors council.",
-    targetLaw: getLawAddress("DelegateSelect", chainId),
-    config: encodeAbiParameters(
-      [
-        { name: 'tokenAddress', type: 'address' },
-        { name: 'maxRoleHolders', type: 'uint256' },
-        { name: 'roleId', type: 'uint256' }
-      ],
-      [getMockAddress("Erc20VotesMock", chainId), 5n, 1n]
-    ),
-    conditions: createConditions({
-      allowedRole: PUBLIC_ROLE,
-      readStateFrom: 10n
-    })
-  });
-
-  // law 12 nominateMe for executive council. 
-  lawInitData.push({
-    nameDescription: "Nominate oneself: Nominate oneself for the Executives role.",
-    targetLaw: getLawAddress("NominateMe", chainId),
-    config: "0x", // empty config
-    conditions: createConditions({
-      allowedRole: PUBLIC_ROLE
-    })
-  });
-
-  // law 13: token voting to elect executive council. -- no distinct elections. Vote can happen at any time. 
-  lawInitData.push({
-    nameDescription: "Token voting to elect executives council: Token voting to elect executives council.",
-    targetLaw: getLawAddress("DelegateSelect", chainId),
-    config: encodeAbiParameters(
-      [
-        { name: 'tokenAddress', type: 'address' },
-        { name: 'maxRoleHolders', type: 'uint256' },
-        { name: 'roleId', type: 'uint256' }
-      ],
-      [getMockAddress("Erc20VotesMock", chainId), 12n, 3n]
-    ),
-    conditions: createConditions({
-      allowedRole: PUBLIC_ROLE,
-      readStateFrom: 12n
-    })
-  });
-
-
-  // // law 14: Admin (de)selects members of the security council. 
-  lawInitData.push({
-    nameDescription: "Admin (de)selects members of the security council: Admin (de)selects members of the security council.",
-    targetLaw: getLawAddress("DirectSelect", chainId),
-    config: encodeAbiParameters(
-      [
-        { name: 'roleId', type: 'uint256' }
-      ],
-      [2n]
-    ),
-    conditions: createConditions({
-      allowedRole: ADMIN_ROLE
-    })
-  });
 
   //////////////////////////////////////////////////////////////////
   //                       Initiation Law                         // 
   //////////////////////////////////////////////////////////////////
-  // Law 15: Initial setup - Assign role labels
+  // Law 1: Initial setup - Assign role labels
   // This law assigns labels to roles and can only be executed once
   // Anyone can execute this law initially
   lawInitData.push({
@@ -1058,35 +855,179 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
           powersAddress,
           powersAddress,
           powersAddress,
+          powersAddress,
+          powersAddress,
+          powersAddress,
+          powersAddress,
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           encodeFunctionData({
             abi: powersAbi,
             functionName: "labelRole",
-            args: [1n, "Selectors"]
+            args: [1n, "Scope Assessors"]
           }),
           encodeFunctionData({
             abi: powersAbi,
             functionName: "labelRole",
-            args: [2n, "Security Council"]
+            args: [2n, "Technical Assessors"]
           }),
           encodeFunctionData({
             abi: powersAbi,
             functionName: "labelRole",
-            args: [3n, "Executives"]
+            args: [3n, "Financial Assessors"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [4n, "Grant Imburser"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [5n, "Judges"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [6n, "Grantees"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [7n, "Parent DAO"]
           }),
           encodeFunctionData({
             abi: powersAbi,
             functionName: "revokeLaw",
-            args: [15n] // revoke the initial setup law
+            args: [1n] // revoke the initial setup law
           })
         ]
       ]
     ),
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Executive laws                         // 
+  //////////////////////////////////////////////////////////////////
+  // create the input layout for the proposals that can be created. 
+  const proposalConfig = encodeAbiParameters(
+    [
+      { name: 'inputParams', type: 'string[]' },
+    ],
+    [["string uriProposal", "uint256[] amountMilestones", "uint256[] blockMilestones", "uint256[] prevActionId"]]
+  ); 
+
+  // Law 2: Create a proposal
+  // This law allows creating a proposal
+  // Anyone can use this law
+  lawInitData.push({
+    nameDescription: "Create proposal: Create a proposal.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE,
+      readStateFrom: 8n // read state from the complaint law
+    })
+  });
+
+  // Law 3: Assess a proposal on scope 
+  lawInitData.push({
+    nameDescription: "Scope Assessment: Assess a proposal on scope.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: 1n, // Scope Assessors
+      needCompleted: 2n // need to have created a proposal
+    })
+  });
+
+  // Law 4: Assess a proposal on technical quality
+  lawInitData.push({
+    nameDescription: "Technical Assessment: Assess a proposal on technical quality.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: 2n, // Technical Assessors
+      needCompleted: 3n // need to have created a proposal
+    })
+  });
+
+  // Law 5: Assess a proposal on financial viability
+  lawInitData.push({
+    nameDescription: "Financial Assessment: Assess a proposal on financial viability.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: 3n, // Financial Assessors
+      needCompleted: 4n // need to have created a proposal
+    })
+  });
+
+  // Law 6: Imburse a grant
+  lawInitData.push({
+    nameDescription: "Imburse a grant: Imburse a grant.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: 4n, // Grant Imburser
+      needCompleted: 5n // need to have created a proposal
+    })
+  });
+
+  // Law 7: Log a complaint about grant assessment
+  lawInitData.push({
+    nameDescription: "Log a complaint about grant assessment: Log a complaint about grant assessment.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE, // Grant Imburser
+      needCompleted: 2n, //proposal needs to have been created
+    })
+  });
+
+  // Law 8: Judge a complaint about grant assessment
+  lawInitData.push({
+    nameDescription: "Judge a complaint about grant assessment: Judge a complaint about grant assessment.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      allowedRole: 5n, // Judges
+      needCompleted: 7n // need to have created a proposal
+    })
+  });
+  
+  //////////////////////////////////////////////////////////////////
+  //                       Electoral laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 9: Assign any account to any role. 
+  // Only previous DAO (role 3) can use this law
+  lawInitData.push({
+    nameDescription: "Assign accounts to roles: Assign any account to any role. (1 = scope assessors, 2 = technical assessors, 3 = financial assessors, 4 = grant imburser, 5 = judges, 6 = grantees, 7 = parent DAO)",
+    targetLaw: getLawAddress("BespokeAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'target', type: 'address' },
+        { name: 'functionSelector', type: 'bytes4' },
+        { name: 'inputParams', type: 'string[]' }
+      ],
+        [
+          powersAddress,
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "assignRole",
+            args: [0n, "0x0000000000000000000000000000000000000000"] // placeholder argument, we only need the selector
+          }).slice(0, 10) as `0x${string}`, // Get just the 4-byte selector (0x + 8 hex chars)
+          ["uint16 RoleId", "address Account"]
+        ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE, // As this is a demo, we let the admin assign any role. 
     })
   });
 
@@ -1548,12 +1489,257 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
 }
 
 /**
+ * Creates law initialization data for Single Upgrade
+ * This is a single upgrade law that can be used to upgrade the contract. 
+ * Based on the createConstitution function from DeployGovernedUpgrades.s.sol
+ */
+export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, formData: SingleUpgradeFormData, chainId: number): LawInitData[] {
+  const lawInitData: LawInitData[] = [];
+
+  //////////////////////////////////////////////////////////////////
+  //                       Initiation Law                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 1: Initial setup - Assign labels and mint tokens
+  // Only admin (role 0) can use this law
+  lawInitData.push({
+    nameDescription: "RUN THIS LAW FIRST: It assigns labels and mint tokens. Please press the refresh button after the election has been deployed.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress,
+          powersAddress,
+          powersAddress,
+          powersAddress
+        ], // targets
+        [0n, 0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "assignRole",
+            args: [3n, getMockAddress("GovernorMock", chainId)] // assign previous DAO role as admin
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [3n, "DAO admin"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Delegates"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [1n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE // admin role
+    })
+  });
+
+
+  //////////////////////////////////////////////////////////////////
+  //                       Executive laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Create input parameters for adopt law
+  const inputParamsAdopt = [
+    "address Law",
+    "uint256 AllowedRole",
+    "uint32 VotingPeriod", 
+    "uint8 Quorum",
+    "uint8 SucceedAt",
+    "uint16 NeedCompl",
+    "uint16 NeedNotCompl", 
+    "uint16 StateFrom",
+    "uint48 DelayExec",
+    "uint48 ThrottleExec",
+    "bytes Config",
+    "string Description"
+  ];
+
+  // Law 2: Veto adopting a law
+  // Only delegates (role 1) can use this law
+  lawInitData.push({
+    nameDescription: "Veto new law: Veto the adoption of a new law.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'inputParams', type: 'string[]' }
+      ],
+      [inputParamsAdopt]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n, // delegate role
+      votingPeriod: minutesToBlocks(5, chainId),
+      quorum: 50n, // 50% quorum
+      succeedAt: 33n // 33% majority
+    })
+  });
+
+  // Law 3: Veto revoking a law
+  // Only delegates (role 1) can use this law
+  lawInitData.push({
+    nameDescription: "Veto revoking law: Veto the revocation of an existing, stopped, law.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'inputParams', type: 'string[]' }
+      ],
+      [["uint16 LawId"]]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n, // delegate role
+      votingPeriod: minutesToBlocks(5, chainId),
+      quorum: 15n, // 15% quorum
+      succeedAt: 66n // 66% majority
+    })
+  });
+
+  // Law 4: Adopt a law
+  // Only previous DAO (role 3) can use this law
+  lawInitData.push({
+    nameDescription: "Adopt a new law: Adopt a new law into Powers.",
+    targetLaw: getLawAddress("AdoptLaw", chainId),
+    config: "0x", // empty config
+    conditions: createConditions({
+      allowedRole: 3n, // previous DAO role
+      needNotCompleted: 2n // law 2 should NOT have passed
+    })
+  });
+
+  // Law 5: Revoke a law
+  // Only previous DAO (role 3) can use this law
+  lawInitData.push({
+    nameDescription: "Stop a law: Revoke a law in Powers.",
+    targetLaw: getLawAddress("BespokeAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'target', type: 'address' },
+        { name: 'functionSelector', type: 'bytes4' },
+        { name: 'inputParams', type: 'string[]' }
+      ],
+        [
+          powersAddress,
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [0n] // placeholder argument, we only need the selector
+          }).slice(0, 10) as `0x${string}`, // Get just the 4-byte selector (0x + 8 hex chars)
+          ["uint16 LawId"]
+        ]
+    ),
+    conditions: createConditions({
+      allowedRole: 3n, // previous DAO role
+      needNotCompleted: 3n // law 3 should NOT have passed
+    })
+  });
+
+  // Law 6: Veto token mint
+  // Only previous DAO (role 3) can use this law
+  lawInitData.push({
+    nameDescription: "Veto token mint: Veto minting of tokens to a delegate.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'inputParams', type: 'string[]' }
+      ],
+      [["uint256 Quantity"]]
+    ),
+    conditions: createConditions({
+      allowedRole: 3n // previous DAO role
+    })
+  });
+
+  // Law 7: Mint tokens
+  // Only delegates (role 1) can use this law
+  lawInitData.push({
+    nameDescription: "Mint tokens: Mint tokens to a delegate address.",
+    targetLaw: getLawAddress("BespokeAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'target', type: 'address' },
+        { name: 'functionSelector', type: 'bytes4' },
+        { name: 'inputParams', type: 'string[]' }
+      ],
+              [
+          getMockAddress("Erc20VotesMock", chainId),
+          encodeFunctionData({
+            abi: erc20VotesAbi,
+            functionName: "mintVotes",
+            args: [0n] // placeholder argument, we only need the selector
+          }).slice(0, 10) as `0x${string}`, // Get just the 4-byte selector (0x + 8 hex chars)
+          ["uint256 Quantity"]
+        ]
+    ),
+    conditions: createConditions({
+      allowedRole: 1n, // delegate role
+      votingPeriod: minutesToBlocks(5, chainId),
+      quorum: 30n, // 30% quorum
+      succeedAt: 51n, // 51% majority
+      needNotCompleted: 6n // law 6 needs to have passed
+    })
+  });
+
+  // //////////////////////////////////////////////////////////////////
+  // //                       Electoral laws                         // 
+  // //////////////////////////////////////////////////////////////////
+  // Law 8: Nominate me for delegate
+  // This law allows accounts to self-nominate for any role
+  // It can be used by community members
+  lawInitData.push({
+    nameDescription: "Nominate oneself for delegate role.",
+    targetLaw: getLawAddress("NominateMe", chainId),
+    config: "0x", // empty config
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE
+    })
+  });
+
+  // law 9: Call election for delegate role. 
+  lawInitData.push({
+    nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
+    targetLaw: getLawAddress("ElectionStart", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'ElectionList', type: 'address' },
+        { name: 'ElectionTally', type: 'address' },
+        { name: 'roleId', type: 'uint16' },
+        { name: 'maxToElect', type: 'uint32' }
+      ],
+      [ getLawAddress("ElectionList", chainId), 
+        getLawAddress("ElectionTally", chainId),
+        1, // roleId for delegates
+        5 // maxToElect
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE,
+      readStateFrom: 8n
+    })
+  });
+
+  return lawInitData;
+}
+
+/**
  * Generic function to create law initialization data based on organization type
  */
 export function createLawInitDataByType(
   type: OrganizationType,
   powersAddress: `0x${string}`,
-  formData: Powers101FormData | CrossChainGovernanceFormData | GrantsManagerFormData | SplitGovernanceFormData | ManagedUpgradesFormData,
+  formData: Powers101FormData | CrossChainGovernanceFormData | GrantsManagerFormData | SplitGovernanceFormData | ManagedUpgradesFormData | SingleUpgradeFormData,
   chainId: number
 ): LawInitData[] {
   switch (type) {
@@ -1567,6 +1753,8 @@ export function createLawInitDataByType(
       return createSplitGovernanceLawInitData(powersAddress, formData as SplitGovernanceFormData, chainId);
     case 'Packaged Upgrades':
       return createPackagedUpgradesLawInitData(powersAddress, formData as ManagedUpgradesFormData, chainId);
+    case 'Single Upgrades':
+      return createSingleUpgradeLawInitData(powersAddress, formData as SingleUpgradeFormData, chainId);
     default:
       throw new Error(`Unknown organization type: ${type}`);
   }
