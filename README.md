@@ -90,7 +90,7 @@ Powers enables three key governance patterns that solve common DAO challenges:
    ```bash
    anvil
    ```
-   > **Note**: For detailed Anvil configuration and usage, see the [Foundry documentation](https://book.getfoundry.sh/anvil/)
+   > **Note**: For detailed Anvil configuration and usage, see the [Foundry documentation](https://getfoundry.sh/introduction/getting-started#anvil)
 
 3. **Deploy contracts and mocks**
    ```bash
