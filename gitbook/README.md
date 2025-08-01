@@ -4,31 +4,32 @@
 
 ## What it is
 
-The Powers protocol is a role restricted governance protocol. It enables on-chain organisations to separate and distribute decision-making power by codifying power relations between stakeholders.&#x20;
+The Powers protocol is a role restricted governance protocol. It enables on-chain organisations to separate and distribute decision-making power by codifying power relations between stakeholders.
 
 Using Powers, a single decision can be guided across multiple stakeholders, conditional checks and voting mechanisms through completely modular, transparent and asynchronous governance chains.
 
 It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
 
 * **Powers** manages assigning roles to addresses and governance flows.
-* **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.&#x20;
-* **Actions** consist of calldata and a unique nonce that is send to a target law.  &#x20;
+* **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.
+* **Actions** consist of calldata and a unique nonce that is send to a target law.
 
 Crucially, Powers allows the **same action** to be send to **different laws** enabling law A to check the status of the same action at law B.
-
-Together they create a protocol that enables the following key governance patterns that solve common DAO challenges:
-
-**🔐 Grant Management**: Create accountable grant programs where council members can assign funds and allocators, but decisions are logged and can be challenged. All funds remain in community control, allocators can be replaced and grant programs revoked if they don't achieve intended impact.
-
-**⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
-
-**🔄 DAO Upgrades**: Upgrade existing DAOs gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing DAO as a role holder.
 
 ## Quick links
 
 * [The Github repository](https://github.com/7Cedars/powers)
 * [The Powers app](https://powers-protocol.vercel.app/#usecases)
-* [Use Cases](./#use-cases)
+
+## Use cases
+
+Powers allows, among others, the following key governance patterns that solve common DAO challenges:
+
+**🔐 Grant Management**: Create accountable grant programs where council members can assign funds and grant allocators, but decisions are logged and can be challenged. All funds remain in community control, allocators can be replaced and grant programs revoked if they don't achieve intended impact.
+
+**⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
+
+**🔄 DAO Upgrades**: Upgrade existing DAOs gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing DAO as a role holder.&#x20;
 
 ## The protocol
 
@@ -52,8 +53,8 @@ The governance flow is defined by the following restrictions:
 * Executing, proposing and voting can only be done in reference to a role restricted law.
 * Roles and laws can only be assigned and revoked through the execute function of the protocol itself.
 
-{% content-ref url="for-developers/powers.sol/" %}
-[powers.sol](for-developers/powers.sol/)
+{% content-ref url="for-developers/powers.sol" %}
+[powers.sol](for-developers/powers.sol)
 {% endcontent-ref %}
 
 ### 📜 Laws
@@ -87,8 +88,8 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 5. Saves any state change to the law.
 6. Returns the computed function call to the Powers deployment for execution.
 
-{% content-ref url="for-developers/law.sol/" %}
-[law.sol](for-developers/law.sol/)
+{% content-ref url="for-developers/law.sol" %}
+[law.sol](for-developers/law.sol)
 {% endcontent-ref %}
 
 ### 🏛️ Powers + Laws = Governance
@@ -103,9 +104,9 @@ This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/11155420
 
 For a detailed diagram of how Powers.sol and Law.sol structure governance flows in the Powers protocol, please see the page on [governance flow](for-developers/powers.sol/governance-flow.md).
 
-## Use Cases
+## Detailed use Cases
 
-Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. The following use cases highlight the use of checks and balances between roles, guard-rails for specific (AI agentic) accounts and hybrid on- and off-chain communities.&#x20;
+Introducing the ability to role restrict governance flows solves several common issues in on-chain governance. The following use cases highlight the use of checks and balances between roles, guard-rails for specific (AI agentic) accounts and hybrid on- and off-chain communities.
 
 Please see [https://powers-protocol.vercel.app/#deploy](https://powers-protocol.vercel.app/#deploy) for a no-code UI to deploy several of these examples.
 
@@ -131,7 +132,7 @@ Note that this also means that all decisions made by the grant council are logge
 
 <summary>Create and run a specialised executive Working Group.</summary>
 
-Coming soon!&#x20;
+Coming soon!
 
 </details>
 
