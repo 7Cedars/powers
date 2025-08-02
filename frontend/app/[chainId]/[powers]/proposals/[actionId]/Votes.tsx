@@ -70,7 +70,7 @@ export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
     if (!action?.voteStart || !action?.voteEnd || !powers?.contractAddress || !publicClient) {
       return
     }
-    console.log("@Votes: waypoint 0", {action, actionId, powers, publicClient})
+    // console.log("@Votes: waypoint 0", {action, actionId, powers, publicClient})
 
     const fetchVotes = async () => {
       setLoading(true)
@@ -87,7 +87,7 @@ export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
           toBlock: BigInt(action?.voteEnd ? action.voteEnd : 0)
         })
 
-        console.log("@Votes: waypoint 1", {logs})
+        // console.log("@Votes: waypoint 1", {logs})
 
         // Process logs and fetch ENS names
         const votePromises = logs.map(async (log: any): Promise<VoteData> => {

@@ -34,6 +34,8 @@ import { Grant } from "../src/laws/state/Grant.sol";
 import { StartGrant } from "../src/laws/executive/StartGrant.sol";
 import { GrantProposal } from "../src/laws/executive/GrantProposal.sol";
 import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
+import { NStrikesYourOut } from "../src/laws/electoral/NStrikesYourOut.sol";
+import { FlagActions } from "../src/laws/state/FlagActions.sol";
 import { DirectDeselect } from "../src/laws/electoral/DirectDeselect.sol";
 // import { Subscription } from "../src/laws/electoral/Subscription.sol";
 import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
@@ -62,10 +64,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
         
-        names = new string[](34);
-        addresses = new address[](34);
-        bytes[] memory creationCodes = new bytes[](34);
-        bytes[] memory constructorArgs = new bytes[](34);
+        names = new string[](36);
+        addresses = new address[](36);
+        bytes[] memory creationCodes = new bytes[](36);
+        bytes[] memory constructorArgs = new bytes[](36);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -202,6 +204,18 @@ contract DeployLaws is Script {
         names[32] = "ElectionTally";
         creationCodes[32] = type(ElectionTally).creationCode;
         constructorArgs[32] = abi.encode("ElectionTally");
+
+        names[33] = "NStrikesYourOut";
+        creationCodes[33] = type(NStrikesYourOut).creationCode;
+        constructorArgs[33] = abi.encode("NStrikesYourOut");
+
+        names[34] = "FlagActions";
+        creationCodes[34] = type(FlagActions).creationCode;
+        constructorArgs[34] = abi.encode("FlagActions");
+
+        names[35] = "StartGrant";
+        creationCodes[35] = type(StartGrant).creationCode;
+        constructorArgs[35] = abi.encode("StartGrant");
 
         // console2.log("router2", router);
 

@@ -34,6 +34,8 @@ import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { FlagActions } from "../state/FlagActions.sol";
 
+// import "forge-std/console2.sol"; // only for testing purposes. Comment out for production. 
+
 contract NStrikesYourOut is Law {
     struct Memory {
         address account;
@@ -43,17 +45,17 @@ contract NStrikesYourOut is Law {
         address flagActionsLaw;
         uint16 lawId;
         address caller;
-        uint256 i; 
+        uint256 revokeCounter;
     }
 
     struct Data {
-        uint256 roleId;
+        uint256[] roleIds;
         uint256 numberStrikes;
     }
     mapping(bytes32 lawHash => Data) public data;
 
     constructor() {
-        bytes memory configParams = abi.encode("uint256 NumberStrikes, uint256 RoleId");
+        bytes memory configParams = abi.encode("uint256 NumberStrikes, uint256[] RoleIds");
         emit Law__Deployed(configParams);
     }
 
@@ -64,13 +66,13 @@ contract NStrikesYourOut is Law {
         Conditions memory conditions, 
         bytes memory config
     ) public override {
-        (uint256 numberStrikes, uint256 roleId) = abi.decode(config, (uint256, uint256));
+        (uint256 numberStrikes, uint256[] memory roleIds) = abi.decode(config, (uint256, uint256[]));
         data[LawUtilities.hashLaw(msg.sender, index)] = Data({
-            roleId: roleId,
+            roleIds: roleIds,
             numberStrikes: numberStrikes
         });
 
-        inputParams = abi.encode("address Account, uint256 roleId, uint256[] ActionIds");
+        inputParams = abi.encode("address Account, uint256[] ActionIds");
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
@@ -87,33 +89,32 @@ contract NStrikesYourOut is Law {
         )
     {
         Memory memory mem;
-        (mem.account, mem.roleId, mem.actionIds) = abi.decode(lawCalldata, (address, uint256, uint256[]));
+        uint256[] memory actionIds;
+        (mem.account, actionIds) = abi.decode(lawCalldata, (address, uint256[]));
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         (mem.flagActionsLaw, , ) = Powers(payable(powers)).getActiveLaw(laws[mem.lawHash].conditions.readStateFrom);
-
-        if (Powers(payable(powers)).hasRoleSince(mem.account, mem.roleId) == 0) {
-            revert("Account does not have role.");
-        }
-
         // check: are actions fulfilled, are they from the readStateFrom law, was the caller the account? 
-        for (mem.i = 0; mem.i < mem.actionIds.length; mem.i++) {
-            (, , , mem.lawId, , , , mem.caller, , , , ) = Powers(payable(powers)).getActionData(mem.actionIds[mem.i]);
+        for (uint256 i = 0; i < actionIds.length; i++) {
+            (, , , mem.lawId, , , , mem.caller, , , , ) = Powers(payable(powers)).getActionData(actionIds[i]);
             if (mem.caller != mem.account) {
-                revert("Caller is not the account.");
+                revert("Action is not from account being revoked.");
             }
-            if (!FlagActions(mem.flagActionsLaw).isActionIdFlagged(mem.actionIds[mem.i])) {
+            if (!FlagActions(mem.flagActionsLaw).isActionIdFlagged(actionIds[i])) {
                 revert("Action is not flagged.");
             }
         }
-
-        if (mem.actionIds.length < data[mem.lawHash].numberStrikes) {
+        if (actionIds.length < data[mem.lawHash].numberStrikes) {
             revert("Not enough strikes to revoke role.");
         }
-
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, mem.roleId, mem.account); // selector = revokeRole
-        
+        // we create a slot for every roleId stored in the law, but only send the calldata for the ones that the account has. 
+        mem.revokeCounter = data[mem.lawHash].roleIds.length;
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.revokeCounter);
+        for (uint256 i = 0; i < mem.revokeCounter; i++) {
+            targets[i] = powers;
+            if (Powers(payable(powers)).hasRoleSince(mem.account, data[mem.lawHash].roleIds[i]) != 0) {
+                calldatas[i] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleIds[i], mem.account);
+            }
+        }
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         return (actionId, targets, values, calldatas, "");
     }

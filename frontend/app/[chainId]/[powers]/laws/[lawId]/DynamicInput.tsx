@@ -25,6 +25,15 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
   const error = useErrorStore()
   const inputValue = values instanceof Array ? values[index] : values
 
+  // Sync local state with global action store
+  useEffect(() => {
+    if (action.paramValues && action.paramValues.length > 0) {
+      const newValues = values instanceof Array ? values : [values || ""]
+      setInputArray(newValues)
+      setItemsArray([...Array(newValues.length).keys()])
+    }
+  }, [action.paramValues, values])
+
   // console.log("@dynamicInput: ", {error, inputArray, dataType, varName, values, itemsArray, inputValue})
 
   const inputType = 
@@ -45,7 +54,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
       setError({error: currentInput}) 
     } else if(typeof onChange === 'function'){
       setError({error: "no error"})
-      let currentArray = inputArray
+      let currentArray = [...inputArray] // Create a copy to avoid mutating state
       if (array) {  
         currentArray[item] = currentInput
         setInputArray(currentArray)
@@ -54,9 +63,12 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
         currentArray[0] = currentInput
         setInputArray(currentArray)
         onChange(currentArray[0])
-        }
-        setAction({...action, upToDate: false})   
-      }    
+      }
+      // Update global action store with new param values
+      const newParamValues = [...(action.paramValues || [])]
+      newParamValues[index] = array ? currentArray : currentArray[0]
+      setAction({...action, paramValues: newParamValues, upToDate: false})   
+    }    
   }
 
   const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, index?: number) => {
@@ -65,15 +77,21 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
     if (expand) {
       const newItemsArray = [...Array(itemsArray.length + 1).keys()]
       let newInputArray = new Array<InputType>(newItemsArray.length) 
-      // currentInput = [...inputArray] 
-      // currentInput.push() // lets see if this works.. 
       setItemsArray(newItemsArray) 
       setInputArray(newInputArray)
+      // Update global action store
+      const newParamValues = [...(action.paramValues || [])]
+      newParamValues[index] = newInputArray
+      setAction({...action, paramValues: newParamValues, upToDate: false})
     } else {
       const newItemsArray = [...Array(itemsArray.length - 1).keys()]
       const newInputArray = inputArray.slice(0, index)
       setItemsArray(newItemsArray) 
       setInputArray(newInputArray)
+      // Update global action store
+      const newParamValues = [...(action.paramValues || [])]
+      newParamValues[index] = newInputArray
+      setAction({...action, paramValues: newParamValues, upToDate: false})
     }
   }
 

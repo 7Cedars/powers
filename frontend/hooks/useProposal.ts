@@ -40,7 +40,7 @@ export const useProposal = () => {
   
   // Status //
   const getProposalsState = async (powers: Powers) => {
-    console.log("@getProposalsState: waypoint 0", {powers})
+    // console.log("@getProposalsState: waypoint 0", {powers})
     let proposal: Action
     let oldProposals: Action[] = powers.proposals || []
     let newProposals: Action[] = []
@@ -49,7 +49,7 @@ export const useProposal = () => {
       state: number
     }[] = []
 
-    console.log("@getProposalsState: waypoint 1", {oldProposals})
+    // console.log("@getProposalsState: waypoint 1", {oldProposals})
 
     if (publicClient && powers.proposals) {
       try {
@@ -67,11 +67,11 @@ export const useProposal = () => {
             }
           }
           newProposals.push(proposal)
-          console.log("@getProposalsState: waypoint 2", {proposal})
+          // console.log("@getProposalsState: waypoint 2", {proposal})
         } 
         savePowers({...powers, proposals: newProposals})
         setProposalsState(state)
-        console.log("@getProposalsState: waypoint 3", {state})
+        // console.log("@getProposalsState: waypoint 3", {state})
       } catch (error) {
         setStatus("error") 
         setError(error)

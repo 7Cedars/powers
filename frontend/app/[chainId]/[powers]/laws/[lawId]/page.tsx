@@ -61,15 +61,15 @@ const Page = () => {
 
  
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      console.log("Handle Simulate called:", {paramValues, nonce, law})
+      // console.log("Handle Simulate called:", {paramValues, nonce, law})
       setError({error: null})
       let lawCalldata: `0x${string}` | undefined
-      console.log("Handle Simulate waypoint 1")
+      // console.log("Handle Simulate waypoint 1")
       if (paramValues.length > 0 && paramValues) {
         try {
-          console.log("Handle Simulate waypoint 2a")
+          // console.log("Handle Simulate waypoint 2a")
           lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-          console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
+          // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
         } catch (error) {
           // console.log("Handle Simulate waypoint 2c")
           setError({error: error as Error})

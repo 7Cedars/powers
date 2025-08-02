@@ -64,13 +64,11 @@ export const deploymentForms: DeploymentForm[] = [
     title: "Grants Manager",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicapwv75menvl7yd7p2tuizcwzfxqpokvakttou76q4fznktfdi5a",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
-    description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a council to assess them and allows to distribute funds along key milestones and performance indicatorrs. It also has a mechanisms for challening decisions. Note that assessors and judges can also be (de)selected after deployment.",
+    description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a sequential path for assess along scope, technicality and finances, and allows to distribute funds along milestones. It also has a mechanisms for challening decisions..",
     disabled: false,
     onlyLocalhost: true,
     fields: [
-      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false },
-      { name: "assessors", placeholder: "Optional: Assessors addresses (0x...), comma separated", type: "text", required: false },
-      { name: "judges", placeholder: "Optional: Judges addresses (0x...), comma separated", type: "text", required: false }
+      { name: "parentDaoAddress", placeholder: "Optional: Parent DAO address (0x...)", type: "text", required: false }
     ]
   },
   {

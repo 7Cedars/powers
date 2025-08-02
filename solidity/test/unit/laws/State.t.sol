@@ -1077,15 +1077,27 @@ contract FlagActionsTest is TestSetupState {
     function testFlagAction() public {
         // prep
         uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
-        actionId = 123;
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         bool flag = true;
         
         lawCalldata = abi.encode(actionId, flag);
         
         // act
         vm.prank(alice);
-        daoMock.request(flagActions, lawCalldata, nonce, "Flag action");
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Flag action");
         
         // assert
         assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionId), "Action should be flagged");
@@ -1094,14 +1106,26 @@ contract FlagActionsTest is TestSetupState {
     function testUnflagAction() public {
         // prep
         uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
-        actionId = 456;
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         
         // First flag the action
         lawCalldata = abi.encode(actionId, true);
         vm.prank(alice);
-        daoMock.request(flagActions, lawCalldata, nonce, "Flag action");
-        nonce++;
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Flag action");
+        nonce += 2;
         
         // Then unflag it
         lawCalldata = abi.encode(actionId, false);
@@ -1115,14 +1139,26 @@ contract FlagActionsTest is TestSetupState {
     function testCannotFlagAlreadyFlaggedAction() public {
         // prep
         uint16 flagActions = 7;
-        actionId = 789;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         
         // Flag the action first
         lawCalldata = abi.encode(actionId, true);
         vm.prank(alice);
-        daoMock.request(flagActions, lawCalldata, nonce, "Flag action");
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Flag action");
 
-        nonce++;  
+        nonce += 2;  
         
         // Try to flag it again
         vm.prank(alice);
@@ -1133,20 +1169,44 @@ contract FlagActionsTest is TestSetupState {
     function testCannotUnflagAlreadyUnflaggedAction() public {
         // prep
         uint16 flagActions = 7;
-        actionId = 999;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         
         // Try to unflag an action that was never flagged
         lawCalldata = abi.encode(actionId, false);
         vm.prank(alice);
         vm.expectRevert("Already false.");
-        daoMock.request(flagActions, lawCalldata, nonce, "Unflag unflagged action");
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Unflag unflagged action");
     }
 
     function testHandleRequestOutput() public {
         // prep
         uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
-        actionId = 123;
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         bool flag = true;
         
         lawCalldata = abi.encode(actionId, flag);
@@ -1159,7 +1219,7 @@ contract FlagActionsTest is TestSetupState {
             values,
             calldatas,
             stateChange
-        ) = Law(flagActionsAddress).handleRequest(alice, address(daoMock), flagActions, lawCalldata, nonce);
+        ) = Law(flagActionsAddress).handleRequest(alice, address(daoMock), flagActions, lawCalldata, nonce + 1);
         
         // assert
         assertEq(targets.length, 0, "Should have no targets");
@@ -1172,7 +1232,19 @@ contract FlagActionsTest is TestSetupState {
     function testUnauthorizedAccess() public {
         // prep
         uint16 flagActions = 7;
-        actionId = 123;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
         bool flag = true;
         
         lawCalldata = abi.encode(actionId, flag);
@@ -1180,49 +1252,72 @@ contract FlagActionsTest is TestSetupState {
         // Try to flag action without proper role
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        daoMock.request(flagActions, lawCalldata, nonce, "Unauthorized flag action");
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Unauthorized flag action");
     }
 
     function testMultipleFlaggedActions() public {
         // prep
         uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create fulfilled actions
         (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
         
         vm.prank(address(daoMock));
         daoMock.assignRole(1, alice);
         
-        // Flag multiple actions
+        // Create multiple fulfilled actions and flag them
         uint256[] memory actionIds = new uint256[](3);
-        actionIds[0] = 1;
-        actionIds[1] = 2;
-        actionIds[2] = 3;
         
-        for (uint256 i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++) {
+            // Create a fulfilled action
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            vm.prank(alice);
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Create action to flag");
+            
+            // Get the action ID of the fulfilled action
+            actionIds[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+            
+            // Flag the action
             lawCalldata = abi.encode(actionIds[i], true);
             vm.prank(alice);
-            daoMock.request(flagActions, lawCalldata, nonce + i, "Flag action");
+            daoMock.request(flagActions, lawCalldata, nonce + i + 3, "Flag action");
         }
         
         // assert
-        assertTrue(FlagActions(flagActionsAddress).flaggedActions(1), "Action 1 should be flagged");
-        assertTrue(FlagActions(flagActionsAddress).flaggedActions(2), "Action 2 should be flagged");
-        assertTrue(FlagActions(flagActionsAddress).flaggedActions(3), "Action 3 should be flagged");
+        assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionIds[0]), "Action 1 should be flagged");
+        assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionIds[1]), "Action 2 should be flagged");
+        assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionIds[2]), "Action 3 should be flagged");
     }
 
     function testFlagAndUnflagCycle() public {
         // prep
         uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
-        actionId = 555;
         
         vm.prank(address(daoMock));
         daoMock.assignRole(1, alice);
         
+        // Create a fulfilled action first
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        vm.prank(alice);
+        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Create action to flag");
+        
+        // Get the action ID of the fulfilled action
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
+        
         // Flag action
         lawCalldata = abi.encode(actionId, true);
         vm.prank(alice);
-        daoMock.request(flagActions, lawCalldata, nonce, "Flag action");
-        nonce++;
+        daoMock.request(flagActions, lawCalldata, nonce + 1, "Flag action");
+        nonce += 2;
         
         // assert flagged
         assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionId), "Action should be flagged");
@@ -1243,6 +1338,52 @@ contract FlagActionsTest is TestSetupState {
         
         // assert flagged again
         assertTrue(FlagActions(flagActionsAddress).flaggedActions(actionId), "Action should be flagged again");
+    }
+
+    function testCannotFlagUnfulfilledAction() public {
+        // prep
+        uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create an action
+        
+        // Create an action but don't execute it (so it's not fulfilled)
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        // Just create the action ID without executing it
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
+        bool flag = true;
+        
+        lawCalldata = abi.encode(actionId, flag);
+        
+        // Try to flag an unfulfilled action
+        vm.prank(alice);
+        vm.expectRevert("Action not fulfilled");
+        daoMock.request(flagActions, lawCalldata, nonce, "Flag unfulfilled action");
+    }
+
+    function testCannotUnflagUnfulfilledAction() public {
+        // prep
+        uint16 flagActions = 7;
+        uint16 statementOfIntent = 9; // Use StatementOfIntent to create an action
+        
+        // Create an action but don't execute it (so it's not fulfilled)
+        targets = new address[](0);
+        values = new uint256[](0);
+        calldatas = new bytes[](0);
+        bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+        
+        // Just create the action ID without executing it
+        actionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
+        bool flag = false;
+        
+        lawCalldata = abi.encode(actionId, flag);
+        
+        // Try to unflag an unfulfilled action
+        vm.prank(alice);
+        vm.expectRevert("Action not fulfilled");
+        daoMock.request(flagActions, lawCalldata, nonce, "Unflag unfulfilled action");
     }
 }
 

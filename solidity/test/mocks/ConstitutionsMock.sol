@@ -428,6 +428,11 @@ contract ConstitutionsMock is Test  {
         delete conditions;
 
         // NStrikesYourOut
+        uint256[] memory roleIds = new uint256[](4);
+        roleIds[0] = 3;
+        roleIds[1] = 4;
+        roleIds[2] = 5;
+        roleIds[3] = 6;
         conditions.allowedRole = 1;
         conditions.readStateFrom = 13; // FlagActions law (now at index 13)
         lawInitData[14] = PowersTypes.LawInitData({
@@ -435,7 +440,7 @@ contract ConstitutionsMock is Test  {
             targetLaw: lawAddresses[30], // NStrikesYourOut
             config: abi.encode(
                 3, // numberStrikes
-                4 // roleId to be revoked
+                roleIds // roleId to be revoked
             ),
             conditions: conditions
         });

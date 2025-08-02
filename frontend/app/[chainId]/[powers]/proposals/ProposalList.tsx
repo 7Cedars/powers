@@ -42,7 +42,7 @@ export function ProposalList({powers, status, onRefresh}: {powers: Powers | unde
         return voteEndValue
       }).filter(block => block !== undefined)
       
-      console.log("@ProposalList: waypoint 1", {blocks})
+      // console.log("@ProposalList: waypoint 1", {blocks})
       if (blocks && blocks.length > 0) {
         fetchTimestamps(blocks as bigint[], chainId)
       }

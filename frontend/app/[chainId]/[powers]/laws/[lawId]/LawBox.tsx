@@ -63,10 +63,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
+  console.log("@LawBox:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
-    console.log("@handleChange: ", {input, index, action})
+    // console.log("@handleChange: ", {input, index, action})
     let currentInput = action.paramValues 
     currentInput ? currentInput[index] = input : currentInput = [input]
     
@@ -74,13 +74,13 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   }
 
   useEffect(() => {
-    console.log("useEffect triggered at LawBox")
+    // console.log("useEffect triggered at LawBox")
       try {
         const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData);
         const valuesParsed = parseParamValues(values) 
-        console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
+        // console.log("@LawBox: useEffect triggered at LawBox", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
-          console.log("@LawBox: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
+          // console.log("@LawBox: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
           setAction({...action, paramValues: dataTypes.map(dataType => {
             const isArray = dataType.indexOf('[]') > -1;
             if (dataType.indexOf('string') > -1) {
@@ -90,9 +90,9 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
             } else {
               return isArray ? [0] : 0;
             }
-          }), upToDate: false})
+          }), upToDate: true})
         } else {
-          setAction({...action, paramValues: valuesParsed, upToDate: false})
+          setAction({...action, paramValues: valuesParsed, upToDate: true})
         }
       } catch(error) { 
         console.error("Error decoding abi parameters at action calldata: ", error)
@@ -105,7 +105,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           } else {
             return isArray ? [0] : 0;
           }
-        }), upToDate: false})
+        }), upToDate: true})
       }  
   }, [ , law ])
 
@@ -146,7 +146,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       <form onSubmit={(e) => e.preventDefault()} className="w-full">
         {
           params.map((param, index) => {
-            console.log("@dynamic form", {param, index, paramValues: action.paramValues, values: action.paramValues && action.paramValues[index] !== undefined ? action.paramValues[index] : []})
+            // console.log("@dynamic form", {param, index, paramValues: action.paramValues, values: action.paramValues && action.paramValues[index] !== undefined ? action.paramValues[index] : []})
             
             return (
               <DynamicInput 
@@ -206,11 +206,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       
 
       {/* Errors */}
-      { error.error && action.upToDate &&
+      { error.error &&
         <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pt-8 pb-4 px-8">
           <div>
-            An error occurred. This is often because the law has additional checks that did not pass or there is an error in the data provided. 
-            For more details, check the console.   
+            {`Failed check${parseLawError(error.error)}`}     
           </div>
         </div>
       }
@@ -227,7 +226,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
             }} 
             statusButton={
-               action && action.description && action.description.length > 0 && action.nonce ? 'idle' : 'disabled'
+               action && action.description && action.description.length > 0 && action.nonce && action.paramValues ? 'idle' : 'disabled'
               }> 
             Check 
           </Button>

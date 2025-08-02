@@ -52,7 +52,7 @@ export const useChecks = () => {
   const checkActionStatus = useCallback(
     async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
       const actionId = hashAction(lawId, lawCalldata, nonce)
-      console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
+      // console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
 
       try {
         const state =  await readContract(wagmiConfig, {
@@ -61,7 +61,7 @@ export const useChecks = () => {
                 functionName: 'state', 
                 args: [actionId],
               })
-        console.log("@checkActionStatus: waypoint 1", {state})
+        // console.log("@checkActionStatus: waypoint 1", {state})
         const result = stateToCheck.includes(Number(state)) 
         return result 
       } catch (error) {
@@ -95,7 +95,7 @@ export const useChecks = () => {
     const blockNumber = await getBlockNumber(wagmiConfig, {
       chainId: parseChainId(chainId),
     })
-    console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law, blockNumber})
+    // console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law, blockNumber})
 
     if (fetchedExecutions && fetchedExecutions.executions?.length > 0 && blockNumber) {
       const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
@@ -106,15 +106,15 @@ export const useChecks = () => {
   }, [])
 
   const checkDelayedExecution = async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
-    console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
+    // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
-    console.log("Deadline ActionId:", actionId)
+    // console.log("Deadline ActionId:", actionId)
     const law = powers.activeLaws?.find(law => law.index === lawId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),
       })
-      console.log("BlockNumber:", blockNumber)
+      // console.log("BlockNumber:", blockNumber)
 
       const deadline = await readContract(wagmiConfig, {
         abi: powersAbi,
@@ -122,12 +122,12 @@ export const useChecks = () => {
         functionName: 'getProposedActionDeadline',
         args: [actionId]
       })
-      console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
-      console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      // console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
+      // console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
       
       if (deadline && blockNumber) {
         const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
-        console.log("Deadline Result:", result) 
+        // console.log("Deadline Result:", result) 
         return result as boolean
       } else {
         return false
@@ -216,13 +216,13 @@ export const useChecks = () => {
           const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
           const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
           const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
-          console.log("delay passed at law", law.index, {delayed})
+          // console.log("delay passed at law", law.index, {delayed})
 
           const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
           const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
           const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
 
-          console.log("notCompleted1", {notCompleted1})
+          // console.log("notCompleted1", {notCompleted1})
 
             let newChecks: Checks =  {
               delayPassed: law.conditions.delayExecution == 0n ? true : delayed,

@@ -110,6 +110,31 @@ const createConditions = (params: CreateConditionsParams): LawConditions => ({
   needNotCompleted: params.needNotCompleted ?? 0n
 });
 
+const createEncodedConditions = (params: CreateConditionsParams): `0x${string}` => encodeAbiParameters(
+  [ 
+    { name: 'allowedRole', type: 'uint256' },
+    { name: 'needCompleted', type: 'uint256' },
+    { name: 'delayExecution', type: 'uint256' },
+    { name: 'throttleExecution', type: 'uint256' },
+    { name: 'readStateFrom', type: 'uint256' },
+    { name: 'votingPeriod', type: 'uint256' },
+    { name: 'quorum', type: 'uint256' },
+    { name: 'succeedAt', type: 'uint256' },
+    { name: 'needNotCompleted', type: 'uint256' }
+  ],
+  [
+    params.allowedRole ?? 0n, 
+    params.needCompleted ?? 0n,
+    params.delayExecution ?? 0n,
+    params.throttleExecution ?? 0n,
+    params.readStateFrom ?? 0n,
+    params.votingPeriod ?? 0n,
+    params.quorum ?? 0n,
+    params.succeedAt ?? 0n,
+    params.needNotCompleted ?? 0n
+  ]
+);
+
 const minutesToBlocks = (minutes: number, chainId: number): bigint => {
   const constants = getConstants(chainId);
   return BigInt(Math.floor(minutes *  constants.BLOCKS_PER_HOUR / 60));
@@ -919,7 +944,36 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     [
       { name: 'inputParams', type: 'string[]' },
     ],
-    [["string uriProposal", "uint256[] amountMilestones", "uint256[] blockMilestones", "uint256[] prevProposalId"]]
+    [["string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursements", "uint256 PrevActionId"]]
+  ); 
+
+  const complaintConfig = encodeAbiParameters(
+    [
+      { name: 'inputParams', type: 'string[]' },
+    ],
+    [["uint256 ActionId", "bool Flag"]]
+  ); 
+
+  const nStrikesConfig = encodeAbiParameters(
+    [
+      { name: 'numberStrikes', type: 'uint256' },
+      { name: 'roleIds', type: 'uint256[]' }
+    ],
+    [3n, [1n, 2n, 3n, 4n]] // always 3 strikes. But the roleId can be changed. 
+  ); 
+
+  const startGrantConfig = encodeAbiParameters(
+    [
+      { name: 'grantLaw', type: 'address' },
+      { name: 'grantConditions', type: 'bytes' }
+    ],
+    [ 
+      getLawAddress("Grant", chainId), 
+      createEncodedConditions({
+        allowedRole: 4n,
+        needCompleted: 7n // Grantee needs to have created a proposal for payout. 
+      })
+    ]
   ); 
 
   // Law 2: Create a proposal
@@ -927,7 +981,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   // Anyone can use this law
   lawInitData.push({
     nameDescription: "Create grant proposal: Create a grant proposal.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    targetLaw: getLawAddress("GrantProposal", chainId),
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE,
@@ -959,7 +1013,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
 
   // Law 5: Assess a proposal on financial viability
   lawInitData.push({
-    nameDescription: "Financial Assessment: Assess a proposal on financial viability.",
+    nameDescription: "Financial Assessment: Assess a proposal on financial viability. When passed, the grant will be created.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: proposalConfig,
     conditions: createConditions({
@@ -968,44 +1022,70 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     })
   });
 
-  // Law 6: Imburse a grant
+  // Law 6: Assign a grant
   lawInitData.push({
-    nameDescription: "Imburse a grant: Imburse a grant.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
+    nameDescription: "Assign a grant: Assign a grant to a successful proposal.",
+    targetLaw: getLawAddress("StartGrant", chainId),
+    config: startGrantConfig,
     conditions: createConditions({
       allowedRole: 4n, // Grant Imburser
-      needCompleted: 5n // need to have created a proposal
+      needCompleted: 5n // all assessments need to be completed. 
     })
   });
 
-  // Law 7: Log a complaint about grant assessment
+  // Law 7: Request a milestone disbursement
+  lawInitData.push({
+    nameDescription: "Request payout: Request a milestone disbursement.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'inputParams', type: 'string[]' },
+      ],
+      [["uint256 MilestoneBlock", "string SupportUri", "uint256 PrevActionId"]]
+    ),
+    conditions: createConditions({
+      allowedRole: 6n, // Grantees
+    })
+  });
+
+  // Law 8: Log a complaint about grant assessment
   lawInitData.push({
     nameDescription: "Log a complaint about grant assessment: Log a complaint about grant assessment.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
+    config: complaintConfig,
     conditions: createConditions({
-      allowedRole: PUBLIC_ROLE, // Grant Imburser
-      needCompleted: 2n, //proposal needs to have been created
+      allowedRole: PUBLIC_ROLE 
     })
   });
 
-  // Law 8: Judge a complaint about grant assessment
+  // Law 9: Judge a complaint about grant assessment
   lawInitData.push({
     nameDescription: "Judge a complaint about grant assessment: Judge a complaint about grant assessment.",
-    targetLaw: getLawAddress("StatementOfIntent", chainId),
-    config: proposalConfig,
+    targetLaw: getLawAddress("FlagActions", chainId),
+    config: "0x", // empty config
     conditions: createConditions({
       allowedRole: 5n, // Judges
-      needCompleted: 7n // need to have created a proposal
+      needCompleted: 8n // need to have created a complaint
     })
   });
+
+  // Law 10: NStrikesYourOut
+  lawInitData.push({
+    nameDescription: "Three strikes your out: If any assessor has three complaints upheld against them, they can be removed from the organization.",
+    targetLaw: getLawAddress("NStrikesYourOut", chainId),
+    config: nStrikesConfig, 
+    conditions: createConditions({
+      allowedRole: PUBLIC_ROLE, // anyone is allowed to execute the law. 
+      readStateFrom: 9n // Judges
+    })
+  });
+
   
   //////////////////////////////////////////////////////////////////
   //                       Electoral laws                         // 
   //////////////////////////////////////////////////////////////////
 
-  // Law 9: Assign any account to any role. 
+  // Law 11: Assign any account to any role. 
   // Only previous DAO (role 3) can use this law
   lawInitData.push({
     nameDescription: "Assign accounts to roles: Assign any account to any role. (1 = scope assessors, 2 = technical assessors, 3 = financial assessors, 4 = grant imburser, 5 = judges, 6 = grantees, 7 = parent DAO)",

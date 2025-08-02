@@ -76,7 +76,7 @@ export function SectionDeployCarousel() {
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 
-  console.log("currentForm: ", {currentForm, currentFormIndex})
+  // console.log("currentForm: ", {currentForm, currentFormIndex})
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
@@ -89,7 +89,7 @@ export function SectionDeployCarousel() {
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
     console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
-    console.log("chainId: ", chainId)
+    // console.log("chainId: ", chainId)
     
     try {
       return createLawInitDataByType(currentForm.title as OrganizationType, powersAddress, formData, chainId);
@@ -102,6 +102,7 @@ export function SectionDeployCarousel() {
 
   // Function to check if all required fields are filled
   const areRequiredFieldsFilled = () => {
+    console.log("areRequiredFieldsFilled: ", {currentForm, formData})
     return currentForm.fields
       .filter(field => field.required)
       .every(field => formData[field.name] && formData[field.name].trim() !== '');
@@ -114,13 +115,13 @@ export function SectionDeployCarousel() {
     async (
       powersAddress: `0x${string}`
     ) => {  
-        console.log("@execute: waypoint 0", {powersAddress})
+        // console.log("@execute: waypoint 0", {powersAddress})
         setError(null)
         setStatus("pending")
         try {
           // Create dynamic law initialization data based on current form
           const lawInitData = createLawInitDataForCurrentForm(powersAddress);
-          console.log("Calling constitute with dynamic law data:", lawInitData)
+          // console.log("Calling constitute with dynamic law data:", lawInitData)
           
           const { request } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
@@ -129,21 +130,21 @@ export function SectionDeployCarousel() {
             args: [lawInitData]
           })
 
-          console.log("@execute: waypoint 1", {request})
+          // console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          console.log("@execute: waypoint 2", {client})
+          // console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            console.log("@execute: waypoint 3", {request})
+            // console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
             setConstituteCompleted(true)
-            console.log("@execute: waypoint 4", {result})
+            // console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log("@execute: waypoint 5", {error}) 
+          // console.log("@execute: waypoint 5", {error}) 
       }
   }, [currentFormIndex, formData] )
 

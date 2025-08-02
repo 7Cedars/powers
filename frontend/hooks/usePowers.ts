@@ -300,7 +300,7 @@ export const usePowers = () => {
         address: powers.contractAddress as `0x${string}`,
         functionName: 'lawCount'
       })
-      console.log("@fetchLawsAndRoles, waypoint 0", {lawCount})
+      // console.log("@fetchLawsAndRoles, waypoint 0", {lawCount})
       if (lawCount) {
         lawIds = Array.from({length: Number(lawCount) - 1}, (_, i) => BigInt(i+1))
       } else {
@@ -338,7 +338,7 @@ export const usePowers = () => {
   
   const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
     let powersUpdated: Powers | undefined;
-    console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
+    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
 
     if (!publicClient || !currentBlock || !powers) {
       setStatus("error")
@@ -518,7 +518,7 @@ export const usePowers = () => {
           fetchProposals(powersToBeUpdated, 10n, 10000n),
         ])
 
-        console.log("@refetchPowers, waypoint 0.1", {data, proposals})
+        // console.log("@refetchPowers, waypoint 0.1", {data, proposals})
 
         if (data) {
           [metaData, laws] = await Promise.all([
@@ -526,7 +526,7 @@ export const usePowers = () => {
             fetchLawsAndRoles(data)
           ])
         }
-        console.log("@refetchPowers, waypoint 0.2", {metaData, laws})
+        // console.log("@refetchPowers, waypoint 0.2", {metaData, laws})
         if (laws) {
           executedActions = await fetchExecutedActions(laws)
         }

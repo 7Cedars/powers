@@ -16,7 +16,7 @@ export const LawLink = ({lawId, powers}: {lawId: bigint, powers: Powers}) => {
   const router = useRouter()
   const { chainId } = useParams()
 
-  console.log("@LawLink: waypoint 0", {lawId, powers})
+  // console.log("@LawLink: waypoint 0", {lawId, powers})
 
   return (
   <main className="w-full min-h-fit flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

@@ -41,11 +41,11 @@ export function PWAInstallPrompt() {
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     
-    if (outcome === 'accepted') {
-      console.log('User accepted the A2HS prompt');
-    } else {
-      console.log('User dismissed the A2HS prompt');
-    }
+    // if (outcome === 'accepted') {
+    //   console.log('User accepted the A2HS prompt');
+    // } else {
+    //   console.log('User dismissed the A2HS prompt');
+    // }
     
     // Clear the deferredPrompt so it can be garbage collected
     setDeferredPrompt(null);

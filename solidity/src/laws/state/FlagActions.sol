@@ -26,6 +26,8 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
+import { Powers } from "../../Powers.sol";
+import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 // import "forge-std/console2.sol"; // only for testing
 
@@ -62,6 +64,9 @@ contract FlagActions is Law {
     {
         // retrieve the account that was revoked
         (uint256 actionId, bool flag) = abi.decode(lawCalldata, (uint256, bool));
+        if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Fulfilled) {
+            revert("Action not fulfilled");
+        }
         if (flag && flaggedActions[actionId]) {
             revert("Already true.");
         } else if (!flag && !flaggedActions[actionId]) {

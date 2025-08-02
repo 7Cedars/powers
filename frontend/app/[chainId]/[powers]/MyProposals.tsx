@@ -40,7 +40,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
 
-  console.log("@MyProposals: waypoint 0", {hasRoles, authenticated, proposals, powers, status})
+  // console.log("@MyProposals: waypoint 0", {hasRoles, authenticated, proposals, powers, status})
 
   useEffect(() => {
       // Ensure consistent block number handling - convert to bigint for both storage and lookup
@@ -69,7 +69,7 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     }
   }) 
   const activeProposals = active?.filter(item => item != undefined)
-  console.log("@MyProposals: waypoint 1", {activeProposals})
+  // console.log("@MyProposals: waypoint 1", {activeProposals})
 
   const handleSelectProposal = (item: ProposalAndLaw) => {
     setAction({

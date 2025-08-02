@@ -174,7 +174,9 @@ contract Grant is Law {
         if (mem.milestone > 0 && !disbursements[mem.lawHash][mem.milestone - 1].released) {
             revert ("Previous milestone not released yet");
         }
-
+        if (data[mem.lawHash].grantee != caller) {
+            revert ("Caller is not the grantee");
+        }
 
         // step 2: create arrays
         // NOTE: normally pushing tokens to an account is not what you want to do. Pulling is better. 

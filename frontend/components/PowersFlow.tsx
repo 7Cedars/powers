@@ -1106,7 +1106,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         if (action.lawId && action.lawId !== 0n) {
           // Zoom to the law stored in the action store
           const selectedNode = getNode(String(action.lawId))
-          console.log("@onInit: waypoint 0", {selectedNode})
+          // console.log("@onInit: waypoint 0", {selectedNode})
           if (selectedNode) {
             const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
             setCenter(centerPos.x, centerPos.y, {
@@ -1391,7 +1391,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         onInit={onInit}
         onNodeDragStop={onNodeDragStop}
       >
-        <Controls />
         <Background />
         <MiniMap 
           nodeColor={(node) => {
