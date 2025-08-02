@@ -919,14 +919,14 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     [
       { name: 'inputParams', type: 'string[]' },
     ],
-    [["string uriProposal", "uint256[] amountMilestones", "uint256[] blockMilestones", "uint256[] prevActionId"]]
+    [["string uriProposal", "uint256[] amountMilestones", "uint256[] blockMilestones", "uint256[] prevProposalId"]]
   ); 
 
   // Law 2: Create a proposal
   // This law allows creating a proposal
   // Anyone can use this law
   lawInitData.push({
-    nameDescription: "Create proposal: Create a proposal.",
+    nameDescription: "Create grant proposal: Create a grant proposal.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: proposalConfig,
     conditions: createConditions({

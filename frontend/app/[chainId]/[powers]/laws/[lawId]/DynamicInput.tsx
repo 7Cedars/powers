@@ -25,7 +25,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
   const error = useErrorStore()
   const inputValue = values instanceof Array ? values[index] : values
 
-  // console.log("@dynamicInput: ", {error, inputArray, dataType, varName, values, itemsArray})
+  // console.log("@dynamicInput: ", {error, inputArray, dataType, varName, values, itemsArray, inputValue})
 
   const inputType = 
     dataType.indexOf('int') > -1 ? "number"
@@ -80,7 +80,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
   return (
     <div className="w-full flex flex-col justify-center items-center">
       {itemsArray.map((item, i) => {
-        console.log("@inputArray", {inputArray, item, test: inputArray[item], values, index})  
+        // console.log("@inputArray", {inputArray, item, test: inputArray[item], values, index})  
         return (
           <section className="w-full mt-4 flex flex-row justify-center items-center gap-4 px-6" key = {i}>
             <div className="text-xs block min-w-16 font-medium text-slate-600">
@@ -94,7 +94,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
                     type= "text" 
                     name={`input${item}`} 
                     id={`input${item}`}
-                    value = {typeof inputValue != "boolean" && inputValue ? inputValue : ""}
+                    value = {typeof inputArray[item] != "boolean" && inputArray[item] ? String(inputArray[item]) : ""}
                     className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                     placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} here.`}
                     onChange={(event) => handleChange({event, item})}
@@ -107,7 +107,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
                   type="number" 
                   name={`input${item}`} 
                   id={`input${item}`}
-                  value = {String(inputValue)}
+                  value = {inputArray[item] ? Number(inputArray[item]) : ""}
                   className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                   placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} value here.`}
                   onChange={(event) => handleChange({event, item})}

@@ -66,12 +66,12 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   console.log("@LawBox:", {law, action, status, checks, selectedExecution, dataTypes, error, params})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
+    console.log("@handleChange: ", {input, index, action})
     let currentInput = action.paramValues 
     currentInput ? currentInput[index] = input : currentInput = [input]
     
     setAction({...action, paramValues: currentInput, upToDate: false})
   }
-
 
   useEffect(() => {
     console.log("useEffect triggered at LawBox")

@@ -12,23 +12,23 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This contract manages grants funded through ERC20 tokens.
-/// - At construction time, the following is set:
-///    - the ERC20 token address to be used for grants
-///    - the total budget available for grants
-///    - the duration of the grant program
-///    - the address from where proposals can be made
-///
-/// - The logic:
-///    - The calldata holds the grantee address, grant address, and quantity to transfer.
-///    - If the grant address matches this contract and the quantity is within budget, the transfer is executed.
-///    - The spent amount is tracked and updated after each successful transfer.
-///
-/// @dev The contract is an example of a law that
-/// - requires proposals to be made from a specific address
-/// - manages a budget of ERC20 tokens
-/// - tracks spending over time
-/// - Note: no checks on the ERC20 token type are performed, this is just an example.
+/// @notice This contract manages a disbursement of grant funds. 
+
+/// Logic: 
+/// - The grant should be adopted by those in control of the grant program. 
+///     - the grant registers all the data from the proposal at registration time. 
+///     - this includes the readStateFrom value, to allow decisions to be challenged. 
+///     - it allows the person in control of the grant program to release the funds to the grantee, or not. 
+/// - input is 
+            /// a blockNumber corresponding to one of the blockMilestones in the proposal 
+            /// a uri to support for releasing funds / proof of completion.
+            /// optional: PrevActionId
+/// - The person in control of this law can decide to release the funds to the grantee, or not. 
+/// - if a PrevActionId is provided, it will be checked if the previous submission has been passed by judges, overturning a previous decision. 
+/// - it needs a StatementOfIntent law to be linked to it with a NeedCompleted check.  
+/// - the grantee needs to be the caller of the statement of intent law. 
+/// - the grantee can only claim the funds if the proposal has been executed. 
+/// 
 
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -36,33 +36,53 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
+import { FlagActions } from "../state/FlagActions.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-// import "forge-std/console.sol"; // for testing only 
+// import "forge-std/console2.sol"; // for testing only 
 
 contract Grant is Law {
-    struct Data {
-        uint48 expiryBlock;
-        uint256 budget;
-        uint256 spent;
+    struct Disbursement { 
+        uint256 amount; 
+        bool released;
+    }
+
+    struct Memory {
+        string uriProposal;
+        address grantee;
         address tokenAddress;
+        uint256[] milestoneDisbursement;
+        uint256 milestone;
+        uint256 prevActionId;
+        address flagActionsLaw;
+        bytes32 lawHash;
+        string supportUri;
+        uint256 PrevActionId;
+        bytes proposalCalldata;
+        bytes reconstructedProposalCalldata;
+        Disbursement disbursement;
+    }
+
+    struct Data {
+        address grantee;
+        address tokenAddress;
+        string uriProposal; 
+        bytes proposalCalldata;
     }
 
     mapping(bytes32 lawHash => Data) internal data;
+    mapping(bytes32 lawHash => mapping(uint256 milestone => Disbursement)) internal disbursements;
 
+    // NB: because the configParams are the exact same as the proposal, we can use a simple BespokeAction to deploy the law. 
     constructor() {
-        bytes memory configParams = abi.encode(
-            "uint48 Duration",
-            "uint256 Budget",
-            "address TokenAddress"
-        );
+        bytes memory configParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursement", "uint256 prevActionId");
         emit Law__Deployed(configParams);
     }
 
     /// @notice Initializes the law with its configuration parameters
     /// @param index The index of the law in the DAO
     /// @param conditions The conditions for the law
-    /// @param config The configuration parameters (duration, budget, tokenAddress, proposals)
+    /// @param config The configuration parameters (proposals)
     /// @param nameDescription The description of the law
     function initializeLaw(
         uint16 index,
@@ -71,16 +91,24 @@ contract Grant is Law {
         Conditions memory conditions, 
         bytes memory config
     ) public override {
-        (uint48 duration, uint256 budget, address tokenAddress) =
-            abi.decode(config, (uint48, uint256, address));
-        
+        Memory memory mem;
+        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) = abi.decode(config, (string, address, address, uint256[], uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash].expiryBlock = duration + uint48(block.number);
-        data[lawHash].budget = budget;
-        data[lawHash].tokenAddress = tokenAddress;
-
-        inputParams = abi.encode("address Grantee", "address Grant", "uint256 Quantity");
-
+        data[lawHash] = Data({
+            grantee: mem.grantee,
+            tokenAddress: mem.tokenAddress,
+            uriProposal: mem.uriProposal,
+            proposalCalldata: config
+        });
+        for (uint256 i = 0; i < mem.milestoneDisbursement.length; i++) {
+            disbursements[lawHash][i] = Disbursement({
+                amount: mem.milestoneDisbursement[i],
+                released: false
+            });
+        }
+        
+        inputParams = abi.encode("uint256 MilestoneBlock", "string SupportUri", "uint256 PrevActionId");
+        
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
@@ -113,28 +141,55 @@ contract Grant is Law {
         )
     {
         // step 0: create actionId & decode law calldata
-        (, bytes32 lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (address grantee, address grantAddress, uint256 quantity) = abi.decode(lawCalldata, (address, address, uint256));
+        Memory memory mem;
+        (mem.milestone, mem.supportUri, mem.PrevActionId) = abi.decode(lawCalldata, (uint256, string, uint256));
+        (, mem.lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
+        // note: optional flagging of actions. 
+        if (laws[mem.lawHash].conditions.readStateFrom != 0) {
+            (mem.flagActionsLaw, , ) = Powers(payable(powers)).getActiveLaw(laws[mem.lawHash].conditions.readStateFrom);
+        }
+        
+        Data memory lawData = data[mem.lawHash];
 
         // step 1: run additional checks
-        if (grantAddress != address(this)) {
-            revert("Incorrect grant address.");
+        if (mem.PrevActionId != 0) {
+            mem.proposalCalldata = Powers(payable(powers)).getActionCalldata(mem.PrevActionId);
+            mem.reconstructedProposalCalldata = abi.encode(mem.milestone, mem.supportUri, 0);
+            if (keccak256(mem.reconstructedProposalCalldata) != keccak256(mem.proposalCalldata)) {
+                revert ("Proposal calldata mismatch");
+            }
+            if (mem.flagActionsLaw != address(0)) {
+                bool hasComplaintBeenFlagged = FlagActions(mem.flagActionsLaw).isActionIdFlagged(mem.PrevActionId);
+                if (!hasComplaintBeenFlagged) {
+                    revert ("Complaint not flagged");
+                }
+            }
         }
-        if (quantity > data[lawHash].budget - data[lawHash].spent) {
-            revert("Request amount exceeds available funds.");
+        if (disbursements[mem.lawHash][mem.milestone].amount == 0) {
+            revert ("Milestone amount is 0");
         }
-        if (block.number > data[lawHash].expiryBlock) {
-            revert("Grant program has expired.");
+        if (disbursements[mem.lawHash][mem.milestone].released) {
+            revert ("Milestone already released");
         }
+        if (mem.milestone > 0 && !disbursements[mem.lawHash][mem.milestone - 1].released) {
+            revert ("Previous milestone not released yet");
+        }
+
 
         // step 2: create arrays
+        // NOTE: normally pushing tokens to an account is not what you want to do. Pulling is better. 
+        // but because the grantee address has been extensively vetted, it is safe to do so. I think. 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = data[lawHash].tokenAddress;
-        calldatas[0] = abi.encodeWithSelector(ERC20.transfer.selector, grantee, quantity);
-        stateChange = abi.encode(quantity);
+        targets[0] = data[mem.lawHash].tokenAddress;
+        calldatas[0] = abi.encodeWithSelector(
+            ERC20.transfer.selector, 
+            data[mem.lawHash].grantee,  // transfer to the grantee
+            disbursements[mem.lawHash][mem.milestone].amount // transfer the amount at the milestone
+        );
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);    
+        stateChange = abi.encode(mem.milestone);
 
-        // step 3: return data
+        // step 3: return data  
         return (actionId, targets, values, calldatas, stateChange);
     }
 
@@ -142,19 +197,17 @@ contract Grant is Law {
     /// @param lawHash The hash of the law
     /// @param stateChange The state change data
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        (uint256 quantity) = abi.decode(stateChange, (uint256));
-        data[lawHash].spent += quantity;
+        Memory memory mem;
+        (mem.milestone) = abi.decode(stateChange, (uint256));
+        disbursements[lawHash][mem.milestone].released = true;
     }
 
-    function getTokensLeft(bytes32 lawHash) external view returns (uint256) {
-        return data[lawHash].budget - data[lawHash].spent;
+    function getDisbursement(bytes32 lawHash, uint256 milestone) external view returns (Disbursement memory) {
+        return disbursements[lawHash][milestone];
     }
 
-    function getDurationLeft(bytes32 lawHash) external view returns (uint48) {
-        if (block.number > data[lawHash].expiryBlock) {
-            return 0;
-        }
-        return data[lawHash].expiryBlock - uint48(block.number);
+    function getGrantee(bytes32 lawHash) external view returns (address) {
+        return data[lawHash].grantee;
     }
 
     function getData(bytes32 lawHash) external view returns (Data memory) {

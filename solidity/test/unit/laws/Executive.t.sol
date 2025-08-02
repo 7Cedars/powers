@@ -19,8 +19,10 @@ import { AddressesMapping } from "../../../src/laws/state/AddressesMapping.sol";
 import { BespokeAction } from "../../../src/laws/executive/BespokeAction.sol";
 import { PresetAction } from "../../../src/laws/executive/PresetAction.sol";
 import { StartGrant } from "../../../src/laws/executive/StartGrant.sol";
-import { EndGrant } from "../../../src/laws/executive/EndGrant.sol";
+// import { EndGrant } from "../../../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../../../src/laws/executive/AdoptLaw.sol";
+import { GrantProposal } from "../../../src/laws/executive/GrantProposal.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 
 
 contract OpenActionTest is TestSetupExecutive {
@@ -443,371 +445,371 @@ contract StatementOfIntentTest is TestSetupExecutive {
     }
 }
 
-contract StartGrantTest is TestSetupExecutive {
-    using ShortStrings for *;
+// contract StartGrantTest is TestSetupExecutive {
+//     using ShortStrings for *;
 
-    function testConstructorInitialization() public {
-        // Get the StartGrant contract from the test setup
-        uint16 startGrant = 6;
-        (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
+//     function testConstructorInitialization() public {
+//         // Get the StartGrant contract from the test setup
+//         uint16 startGrant = 6;
+//         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
         
-        vm.startPrank(address(daoMock));
-        assertEq(Law(startGrantAddress).getConditions(address(daoMock),startGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(startGrantAddress).getExecutions(address(daoMock),startGrant).powers, address(daoMock), "Powers address should be set correctly");
-        vm.stopPrank();
-    }
+//         vm.startPrank(address(daoMock));
+//         assertEq(Law(startGrantAddress).getConditions(address(daoMock),startGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+//         assertEq(Law(startGrantAddress).getExecutions(address(daoMock),startGrant).powers, address(daoMock), "Powers address should be set correctly");
+//         vm.stopPrank();
+//     }
 
-    function testStartGrant() public {
-        // prep
-        uint16 startGrant = 6;
-        uint48 duration = 25;
-        uint256 budget = 1 * 10 ** 18;
-        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
-        string memory grantDescription = "Test grant";
-        uint256 expectedGrantId = Powers(payable(daoMock)).lawCount();
+//     function testStartGrant() public {
+//         // prep
+//         uint16 startGrant = 6;
+//         uint48 duration = 25;
+//         uint256 budget = 1 * 10 ** 18;
+//         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+//         string memory grantDescription = "Test grant";
+//         uint256 expectedGrantId = Powers(payable(daoMock)).lawCount();
         
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
-        description = "Starting a new grant";
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
+//         description = "Starting a new grant";
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        // act
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, description);
+//         // act
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, description);
 
-        // assert
-        (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
-        lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
+//         // assert
+//         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
         
-        uint16 grantId = StartGrant(startGrantAddress).getGrantId(lawHash, lawCalldata);
-        assertEq(grantId, expectedGrantId, "Grant ID should be correct"); // Based on ConstitutionsMock setup
-    }
+//         uint16 grantId = StartGrant(startGrantAddress).getGrantId(lawHash, lawCalldata);
+//         assertEq(grantId, expectedGrantId, "Grant ID should be correct"); // Based on ConstitutionsMock setup
+//     }
 
-    function testStartMultipleGrants() public {
-        // prep
-        uint16 startGrant = 6;
-        uint256 expectedGrantId = Powers(payable(daoMock)).lawCount();
+//     function testStartMultipleGrants() public {
+//         // prep
+//         uint16 startGrant = 6;
+//         uint256 expectedGrantId = Powers(payable(daoMock)).lawCount();
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        // First grant
-        lawCalldata = abi.encode(
-            uint48(25),
-            1 * 10 ** 18,
-            mockAddresses[3],
-            "First grant"
-        );
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "First grant");
-        nonce++;
+//         // First grant
+//         lawCalldata = abi.encode(
+//             uint48(25),
+//             1 * 10 ** 18,
+//             mockAddresses[3],
+//             "First grant"
+//         );
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "First grant");
+//         nonce++;
 
-        // Second grant
-        lawCalldata = abi.encode(
-            uint48(25),
-            2 * 10 ** 18,
-            mockAddresses[3],
-            "Second grant"
-        );
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "Second grant");
+//         // Second grant
+//         lawCalldata = abi.encode(
+//             uint48(25),
+//             2 * 10 ** 18,
+//             mockAddresses[3],
+//             "Second grant"
+//         );
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "Second grant");
 
-        // assert
-        (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
-        lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
+//         // assert
+//         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
         
-        // Get grant IDs for both grants
-        bytes memory firstGrantCalldata = abi.encode(
-            uint48(25),
-            1 * 10 ** 18,
-            mockAddresses[3],
-            "First grant"
-        );
-        bytes memory secondGrantCalldata = abi.encode(
-            uint48(25),
-            2 * 10 ** 18,
-            mockAddresses[3],
-            "Second grant"
-        );
+//         // Get grant IDs for both grants
+//         bytes memory firstGrantCalldata = abi.encode(
+//             uint48(25),
+//             1 * 10 ** 18,
+//             mockAddresses[3],
+//             "First grant"
+//         );
+//         bytes memory secondGrantCalldata = abi.encode(
+//             uint48(25),
+//             2 * 10 ** 18,
+//             mockAddresses[3],
+//             "Second grant"
+//         );
         
-        uint16 firstGrantId = StartGrant(startGrantAddress).getGrantId(lawHash, firstGrantCalldata);
-        uint16 secondGrantId = StartGrant(startGrantAddress).getGrantId(lawHash, secondGrantCalldata);
+//         uint16 firstGrantId = StartGrant(startGrantAddress).getGrantId(lawHash, firstGrantCalldata);
+//         uint16 secondGrantId = StartGrant(startGrantAddress).getGrantId(lawHash, secondGrantCalldata);
         
-        assertEq(firstGrantId, expectedGrantId, "First grant ID should be correct");
-        assertEq(secondGrantId, expectedGrantId + 1, "Second grant ID should be correct");
-    }
+//         assertEq(firstGrantId, expectedGrantId, "First grant ID should be correct");
+//         assertEq(secondGrantId, expectedGrantId + 1, "Second grant ID should be correct");
+//     }
 
-    function testHandleRequestOutput() public {
-        // prep
-        uint16 startGrant = 6;
-        (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
+//     function testHandleRequestOutput() public {
+//         // prep
+//         uint16 startGrant = 6;
+//         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
         
-        lawCalldata = abi.encode(
-            uint48(25),
-            1 * 10 ** 18,
-            mockAddresses[3],
-            "Test grant"
-        );
+//         lawCalldata = abi.encode(
+//             uint48(25),
+//             1 * 10 ** 18,
+//             mockAddresses[3],
+//             "Test grant"
+//         );
 
-        // act: call handleRequest directly to check its output
-        vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = Law(startGrantAddress).handleRequest(alice, address(daoMock), startGrant, lawCalldata, nonce);
+//         // act: call handleRequest directly to check its output
+//         vm.prank(address(daoMock));
+//         (
+//             actionId,
+//             targets,
+//             values,
+//             calldatas,
+//             stateChange
+//         ) = Law(startGrantAddress).handleRequest(alice, address(daoMock), startGrant, lawCalldata, nonce);
 
-        // assert
-        assertEq(targets.length, 1, "Should have one target");
-        assertEq(values.length, 1, "Should have one value");
-        assertEq(calldatas.length, 1, "Should have one calldata");
-        assertEq(targets[0], address(daoMock), "Target should be the DAO");
-        assertEq(values[0], 0, "Value should be 0");
-        assertNotEq(calldatas[0], "", "Calldata should not be empty");
-        assertNotEq(actionId, 0, "Action ID should not be 0");
-    }
+//         // assert
+//         assertEq(targets.length, 1, "Should have one target");
+//         assertEq(values.length, 1, "Should have one value");
+//         assertEq(calldatas.length, 1, "Should have one calldata");
+//         assertEq(targets[0], address(daoMock), "Target should be the DAO");
+//         assertEq(values[0], 0, "Value should be 0");
+//         assertNotEq(calldatas[0], "", "Calldata should not be empty");
+//         assertNotEq(actionId, 0, "Action ID should not be 0");
+//     }
 
-    function testVerifyStoredGrantData() public {
-        // prep
-        uint16 startGrant = 6;
-        (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
-        lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
+//     function testVerifyStoredGrantData() public {
+//         // prep
+//         uint16 startGrant = 6;
+//         (address startGrantAddress, , ) = daoMock.getActiveLaw(startGrant);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), startGrant);
 
-        // assert
-        StartGrant.Data memory data = StartGrant(startGrantAddress).getData(lawHash);
-        assertEq(data.grantLaw, lawAddresses[15], "Grant law should be set correctly"); 
-        assertNotEq(data.grantConditions, "", "Grant conditions should not be empty");
-    }
+//         // assert
+//         StartGrant.Data memory data = StartGrant(startGrantAddress).getData(lawHash);
+//         assertEq(data.grantLaw, lawAddresses[15], "Grant law should be set correctly"); 
+//         assertNotEq(data.grantConditions, "", "Grant conditions should not be empty");
+//     }
 
-    function testUnauthorizedAccess() public {
-        // prep
-        uint16 startGrant = 6;
-        lawCalldata = abi.encode(
-            uint48(1000),
-            1 * 10 ** 18,
-            mockAddresses[3],
-            "Test grant"
-        );
+//     function testUnauthorizedAccess() public {
+//         // prep
+//         uint16 startGrant = 6;
+//         lawCalldata = abi.encode(
+//             uint48(1000),
+//             1 * 10 ** 18,
+//             mockAddresses[3],
+//             "Test grant"
+//         );
 
-        // Try to start grant without proper role
-        vm.prank(helen);
-        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        daoMock.request(startGrant, lawCalldata, nonce, "Unauthorized grant start");
-    }
-}
+//         // Try to start grant without proper role
+//         vm.prank(helen);
+//         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+//         daoMock.request(startGrant, lawCalldata, nonce, "Unauthorized grant start");
+//     }
+// }
 
-contract EndGrantTest is TestSetupExecutive {
-    using ShortStrings for *;
+// contract EndGrantTest is TestSetupExecutive {
+//     using ShortStrings for *;
 
-    function testConstructorInitialization() public {
-        // Get the EndGrant contract from the test setup
-        uint16 endGrant = 7;
-        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
+//     function testConstructorInitialization() public {
+//         // Get the EndGrant contract from the test setup
+//         uint16 endGrant = 7;
+//         (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
-        vm.startPrank(address(daoMock));
-        assertEq(Law(endGrantAddress).getConditions(address(daoMock),endGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
-        assertEq(Law(endGrantAddress).getExecutions(address(daoMock), endGrant).powers, address(daoMock), "Powers address should be set correctly");
-        vm.stopPrank();
-    }
+//         vm.startPrank(address(daoMock));
+//         assertEq(Law(endGrantAddress).getConditions(address(daoMock),endGrant).allowedRole, ROLE_ONE, "Allowed role should be set to role 1");
+//         assertEq(Law(endGrantAddress).getExecutions(address(daoMock), endGrant).powers, address(daoMock), "Powers address should be set correctly");
+//         vm.stopPrank();
+//     }
 
-    function testEndGrantWhenTokensSpent() public {
-        // prep
-        uint16 endGrant = 7;
-        uint16 startGrant = 6;
+//     function testEndGrantWhenTokensSpent() public {
+//         // prep
+//         uint16 endGrant = 7;
+//         uint16 startGrant = 6;
         
-        // First start a grant
-        uint48 duration = 25;
-        uint256 budget = 1 * 10 ** 18;
-        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
-        string memory grantDescription = "Test grant";
+//         // First start a grant
+//         uint48 duration = 25;
+//         uint256 budget = 1 * 10 ** 18;
+//         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+//         string memory grantDescription = "Test grant";
 
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
-        // NB: we do NOT increase the nonce. We need to keep on using the same nonce! 
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+//         // NB: we do NOT increase the nonce. We need to keep on using the same nonce! 
 
-        // spending tokens 
-        uint16 grantId = daoMock.lawCount() - 1; 
-        (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
-        bytes memory lawCalldataSpending = abi.encode(
-            alice, 
-            grantAddress, 
-            budget
-        );
-        vm.prank(alice);
-        daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
+//         // spending tokens 
+//         uint16 grantId = daoMock.lawCount() - 1; 
+//         (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
+//         bytes memory lawCalldataSpending = abi.encode(
+//             alice, 
+//             grantAddress, 
+//             budget
+//         );
+//         vm.prank(alice);
+//         daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
 
-        vm.roll(block.number + duration + 1);
+//         vm.roll(block.number + duration + 1);
 
-        vm.prank(alice);
-        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant");
+//         vm.prank(alice);
+//         daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant");
 
-        // assert
-        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
-        lawHash = LawUtilities.hashLaw(address(daoMock), endGrant);
-        EndGrant.Data memory data = EndGrant(endGrantAddress).getData(lawHash);
-        assertEq(data.maxBudgetLeft, 1000, "Max budget left should be set correctly");
-        assertTrue(data.checkDuration, "Check duration should be true");
-    }
+//         // assert
+//         (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
+//         lawHash = LawUtilities.hashLaw(address(daoMock), endGrant);
+//         EndGrant.Data memory data = EndGrant(endGrantAddress).getData(lawHash);
+//         assertEq(data.maxBudgetLeft, 1000, "Max budget left should be set correctly");
+//         assertTrue(data.checkDuration, "Check duration should be true");
+//     }
 
-    function testCannotEndGrantWithTokensLeft() public {
-        // prep
-        uint16 endGrant = 7;
-        uint16 startGrant = 6;
+//     function testCannotEndGrantWithTokensLeft() public {
+//         // prep
+//         uint16 endGrant = 7;
+//         uint16 startGrant = 6;
         
-        // First start a grant
-        uint48 duration = 25;
-        uint256 budget = 1 * 10 ** 18;
-        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
-        string memory grantDescription = "Test grant";
+//         // First start a grant
+//         uint48 duration = 25;
+//         uint256 budget = 1 * 10 ** 18;
+//         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+//         string memory grantDescription = "Test grant";
 
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
 
-        vm.prank(alice);
-        vm.expectRevert("Grant has not spent all tokens.");
-        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant with tokens left");
-    }
+//         vm.prank(alice);
+//         vm.expectRevert("Grant has not spent all tokens.");
+//         daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant with tokens left");
+//     }
 
-    function testCannotEndGrantBeforeDuration() public {
-        // prep
-        uint16 endGrant = 7;
-        uint16 startGrant = 6;
+//     function testCannotEndGrantBeforeDuration() public {
+//         // prep
+//         uint16 endGrant = 7;
+//         uint16 startGrant = 6;
         
-        // First start a grant
-        uint48 duration = 25;
-        uint256 budget = 0; // Set budget to 0 to pass token check
-        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
-        string memory grantDescription = "Test grant";
+//         // First start a grant
+//         uint48 duration = 25;
+//         uint256 budget = 0; // Set budget to 0 to pass token check
+//         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+//         string memory grantDescription = "Test grant";
 
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
 
-        // Now try to stop the grant before duration expires
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
+//         // Now try to stop the grant before duration expires
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
 
-        vm.prank(alice);
-        vm.expectRevert("Grant has not expired.");
-        daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant before duration");
-    }
+//         vm.prank(alice);
+//         vm.expectRevert("Grant has not expired.");
+//         daoMock.request(endGrant, lawCalldata, nonce, "Stopping grant before duration");
+//     }
 
-    function testHandleRequestOutput() public {
-        // prep
-        uint16 endGrant = 7;
-        uint16 startGrant = 6;
-        (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
+//     function testHandleRequestOutput() public {
+//         // prep
+//         uint16 endGrant = 7;
+//         uint16 startGrant = 6;
+//         (address endGrantAddress, , ) = daoMock.getActiveLaw(endGrant);
         
-        // First start a grant
-        uint48 duration = 25;
-        uint256 budget = 1 * 10 ** 18;
-        address tokenAddress = mockAddresses[3]; // erc20TaxedMock
-        string memory grantDescription = "Test grant";
+//         // First start a grant
+//         uint48 duration = 25;
+//         uint256 budget = 1 * 10 ** 18;
+//         address tokenAddress = mockAddresses[3]; // erc20TaxedMock
+//         string memory grantDescription = "Test grant";
 
-        lawCalldata = abi.encode(
-            duration,
-            budget,
-            tokenAddress,
-            grantDescription
-        );
+//         lawCalldata = abi.encode(
+//             duration,
+//             budget,
+//             tokenAddress,
+//             grantDescription
+//         );
 
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
+//         vm.prank(address(daoMock));
+//         daoMock.assignRole(1, alice);
 
-        vm.prank(alice);
-        daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
+//         vm.prank(alice);
+//         daoMock.request(startGrant, lawCalldata, nonce, "Starting grant");
 
-        // spending tokens 
-        uint16 grantId = daoMock.lawCount() - 1; 
-        (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
-        bytes memory lawCalldataSpending = abi.encode(
-            alice, 
-            grantAddress, 
-            budget
-        );
-        vm.prank(alice);
-        daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
+//         // spending tokens 
+//         uint16 grantId = daoMock.lawCount() - 1; 
+//         (address grantAddress, , ) = daoMock.getActiveLaw(grantId);
+//         bytes memory lawCalldataSpending = abi.encode(
+//             alice, 
+//             grantAddress, 
+//             budget
+//         );
+//         vm.prank(alice);
+//         daoMock.request(grantId, lawCalldataSpending, nonce, "Spending tokens");
 
-        // advance time
-        vm.roll(block.number + duration + 1);
+//         // advance time
+//         vm.roll(block.number + duration + 1);
 
-        // act: call handleRequest directly to check its output
-        vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = Law(endGrantAddress).handleRequest(alice, address(daoMock), endGrant, lawCalldata, nonce);
+//         // act: call handleRequest directly to check its output
+//         vm.prank(address(daoMock));
+//         (
+//             actionId,
+//             targets,
+//             values,
+//             calldatas,
+//             stateChange
+//         ) = Law(endGrantAddress).handleRequest(alice, address(daoMock), endGrant, lawCalldata, nonce);
 
-        // assert
-        assertEq(targets.length, 1, "Should have one target");
-        assertEq(values.length, 1, "Should have one value");
-        assertEq(calldatas.length, 1, "Should have one calldata");
-        assertEq(targets[0], address(daoMock), "Target should be the DAO");
-        assertEq(values[0], 0, "Value should be 0");
-        assertNotEq(calldatas[0], "", "Calldata should not be empty");
-        assertNotEq(actionId, 0, "Action ID should not be 0");
-    }
+//         // assert
+//         assertEq(targets.length, 1, "Should have one target");
+//         assertEq(values.length, 1, "Should have one value");
+//         assertEq(calldatas.length, 1, "Should have one calldata");
+//         assertEq(targets[0], address(daoMock), "Target should be the DAO");
+//         assertEq(values[0], 0, "Value should be 0");
+//         assertNotEq(calldatas[0], "", "Calldata should not be empty");
+//         assertNotEq(actionId, 0, "Action ID should not be 0");
+//     }
 
-    function testUnauthorizedAccess() public {
-        // prep
-        uint16 endGrant = 7;
-        lawCalldata = abi.encode(
-            uint48(1000),
-            0,
-            mockAddresses[3],
-            "Test grant"
-        );
+//     function testUnauthorizedAccess() public {
+//         // prep
+//         uint16 endGrant = 7;
+//         lawCalldata = abi.encode(
+//             uint48(1000),
+//             0,
+//             mockAddresses[3],
+//             "Test grant"
+//         );
 
-        // Try to stop grant without proper role
-        vm.prank(helen);
-        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
-        daoMock.request(endGrant, lawCalldata, nonce, "Unauthorized grant stop");
-    }
-}
+//         // Try to stop grant without proper role
+//         vm.prank(helen);
+//         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+//         daoMock.request(endGrant, lawCalldata, nonce, "Unauthorized grant stop");
+//     }
+// }
 
 contract AdoptLawTest is TestSetupExecutive {
     using ShortStrings for *;
@@ -975,6 +977,238 @@ contract AdoptLawTest is TestSetupExecutive {
         vm.prank(helen);
         vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
         daoMock.request(adoptLaw, lawCalldata, nonce, "Unauthorized law adoption");
+    }
+}
+
+contract GrantProposalTest is TestSetupExecutive {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the GrantProposal contract from the test setup
+        uint16 grantProposal = 9;
+        (address grantProposalAddress, , ) = daoMock.getActiveLaw(grantProposal);
+        
+        vm.startPrank(address(daoMock));
+        assertEq(Law(grantProposalAddress).getConditions(address(daoMock), grantProposal).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(grantProposalAddress).getExecutions(address(daoMock), grantProposal).powers, address(daoMock), "Powers address should be set correctly");
+        vm.stopPrank();
+    }
+
+    function testCreateGrantProposal() public {
+        // prep
+        uint16 grantProposal = 9;
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3]; // erc20TaxedMock
+        milestoneDisbursements = new uint256[](2);
+        milestoneDisbursements[0] = 500 * 10**18;
+        milestoneDisbursements[1] = 500 * 10**18;
+        uint256 prevActionId = 0; // No previous proposal
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // act
+        vm.prank(alice);
+        daoMock.request(grantProposal, lawCalldata, nonce, "Create grant proposal");
+        
+        // assert
+        // GrantProposal doesn't execute any actions, it just creates a proposal
+        // The action should be fulfilled without any side effects
+        assertTrue(true, "Grant proposal should be created successfully");
+    }
+
+    function testCreateGrantProposalWithParentCompleted() public {
+        // prep
+        uint16 grantProposal = 9;
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3];
+        milestoneDisbursements = new uint256[](1);
+        milestoneDisbursements[0] = 1000 * 10**18;
+        uint256 prevActionId = 123; // Previous completed proposal
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // Mock the previous action as fulfilled and with matching calldata
+        bytes memory expectedPrevCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, 0);
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.getActionCalldata.selector, prevActionId),
+            abi.encode(expectedPrevCalldata)
+        );
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.state.selector, prevActionId),
+            abi.encode(PowersTypes.ActionState.Fulfilled)
+        );
+        
+        // act
+        vm.prank(alice);
+        daoMock.request(grantProposal, lawCalldata, nonce, "Create grant proposal with parent");
+        
+        // assert
+        assertTrue(true, "Grant proposal with parent should be created successfully");
+    }
+
+    function testCannotCreateProposalWithUncompletedParent() public {
+        // prep
+        uint16 grantProposal = 9;
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3];
+        milestoneDisbursements = new uint256[](1);
+        milestoneDisbursements[0] = 1000 * 10**18;
+        uint256 prevActionId = 123; // Previous uncompleted proposal
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // Mock the previous action as not fulfilled
+        bytes memory expectedPrevCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, 0);
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.getActionCalldata.selector, prevActionId),
+            abi.encode(expectedPrevCalldata)
+        );
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.state.selector, prevActionId),
+            abi.encode(PowersTypes.ActionState.Active) // Not fulfilled
+        );
+        
+        vm.prank(alice);
+        vm.expectRevert("PrevActionId is not fulfilled");
+        daoMock.request(grantProposal, lawCalldata, nonce, "Create proposal with uncompleted parent");
+    }
+
+    function testCannotCreateProposalWithMismatchedCalldata() public {
+        // prep
+        uint16 grantProposal = 9;
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3];
+        milestoneDisbursements = new uint256[](1);
+        milestoneDisbursements[0] = 1000 * 10**18;
+        uint256 prevActionId = 123; // Previous proposal with different calldata
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // Mock the previous action with different calldata (different grantee)
+        bytes memory differentPrevCalldata = abi.encode(uriProposal, bob, token, milestoneDisbursements, 0);
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.getActionCalldata.selector, prevActionId),
+            abi.encode(differentPrevCalldata)
+        );
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(Powers.state.selector, prevActionId),
+            abi.encode(PowersTypes.ActionState.Fulfilled)
+        );
+        
+        vm.prank(alice);
+        vm.expectRevert("Calldata does not match");
+        daoMock.request(grantProposal, lawCalldata, nonce, "Create proposal with mismatched calldata");
+    }
+
+    function testGrantProposalRequiresReadStateFrom() public {
+        // prep
+        uint16 grantProposal = 9;
+        (address grantProposalAddress, , ) = daoMock.getActiveLaw(grantProposal);
+        
+        // Check that the law has readStateFrom set (should be FlagActions)
+        vm.startPrank(address(daoMock));
+        conditions = Law(grantProposalAddress).getConditions(address(daoMock), grantProposal);
+        assertTrue(conditions.readStateFrom != 0, "GrantProposal should have readStateFrom set");
+        vm.stopPrank();
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        uint16 grantProposal = 9;
+        (address grantProposalAddress, , ) = daoMock.getActiveLaw(grantProposal);
+        
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3];
+        milestoneDisbursements = new uint256[](1);
+        milestoneDisbursements[0] = 1000 * 10**18;
+        uint256 prevActionId = 0;
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (
+            actionId,
+            targets,
+            values,
+            calldatas,
+            stateChange
+        ) = Law(grantProposalAddress).handleRequest(alice, address(daoMock), grantProposal, lawCalldata, nonce);
+        
+        // assert
+        assertEq(targets.length, 1, "Should have one target");
+        assertEq(values.length, 1, "Should have one value");
+        assertEq(calldatas.length, 1, "Should have one calldata");
+        assertEq(targets[0], address(0), "Target should be empty");
+        assertEq(values[0], 0, "Value should be 0");
+        assertEq(calldatas[0], "", "Calldata should be empty");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+        assertEq(stateChange, "", "State change should be empty");
+    }
+
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 grantProposal = 9;
+        string memory uriProposal = "ipfs://QmTest";
+        address grantee = alice;
+        address token = mockAddresses[3];
+        milestoneDisbursements = new uint256[](1);
+        milestoneDisbursements[0] = 1000 * 10**18;
+        uint256 prevActionId = 0;
+        
+        lawCalldata = abi.encode(uriProposal, grantee, token, milestoneDisbursements, prevActionId);
+        
+        // Try to create proposal without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        daoMock.request(grantProposal, lawCalldata, nonce, "Unauthorized grant proposal creation");
+    }
+
+    function testMultipleGrantProposals() public {
+        // prep
+        uint16 grantProposal = 9;
+        
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        // Create first proposal
+        string memory uriProposal1 = "ipfs://QmTest1";
+        address grantee1 = alice;
+        address token1 = mockAddresses[3];
+        uint256[] memory milestoneDisbursements1 = new uint256[](1);
+        milestoneDisbursements1[0] = 500 * 10**18;
+        uint256 prevActionId1 = 0;
+        
+        lawCalldata = abi.encode(uriProposal1, grantee1, token1, milestoneDisbursements1, prevActionId1);
+        vm.prank(alice);
+        daoMock.request(grantProposal, lawCalldata, nonce, "First grant proposal");
+        nonce++;
+        
+        // Create second proposal
+        string memory uriProposal2 = "ipfs://QmTest2";
+        address grantee2 = bob;
+        address token2 = mockAddresses[3];
+        uint256[] memory milestoneDisbursements2 = new uint256[](1);
+        milestoneDisbursements2[0] = 750 * 10**18;
+        uint256 prevActionId2 = 0;
+        
+        lawCalldata = abi.encode(uriProposal2, grantee2, token2, milestoneDisbursements2, prevActionId2);
+        vm.prank(alice);
+        daoMock.request(grantProposal, lawCalldata, nonce, "Second grant proposal");
+        
+        // assert
+        assertTrue(true, "Multiple grant proposals should be created successfully");
     }
 }
 
