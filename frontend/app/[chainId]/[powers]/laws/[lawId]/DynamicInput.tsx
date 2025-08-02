@@ -72,6 +72,9 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
   }
 
   const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, index?: number) => {
+    if (index === undefined) {
+      index = itemsArray.length - 1
+    }
     event.preventDefault() 
 
     if (expand) {
