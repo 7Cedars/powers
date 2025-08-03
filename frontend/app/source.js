@@ -31,6 +31,6 @@ const result = {
   scores: countryData.proposal.scores,
   state: countryData.proposal.state
 };
-console.log("result: ", {result})
+// console.log("result: ", {result})
 // encode result 
 return Functions.encodeString(JSON.stringify(result));

@@ -299,6 +299,14 @@ export const parseLawError = (rawReply: unknown): string => {
     return "."
   }
 
+  // Handle contract revert errors with hex signature
+  if (errorString.includes("The contract function") && errorString.includes("reverted with the following signature:")) {
+    const signatureMatch = errorString.match(/reverted with the following signature:\s*(0x[a-fA-F0-9]+)/)
+    if (signatureMatch && signatureMatch[1]) {
+      return `: The error signature is ${signatureMatch[1]}. That is all I know.`
+    }
+  }
+
   // Handle contract revert errors with reason
   if (errorString.includes("reverted with the following reason:")) {
     const reasonMatch = errorString.match(/reverted with the following reason:\s*([^.\n]+)/)

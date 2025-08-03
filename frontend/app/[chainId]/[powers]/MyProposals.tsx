@@ -6,7 +6,7 @@ import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { parseRole, shorterDescription } from "@/utils/parsers";
 import { useBlocks } from "@/hooks/useBlocks";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates";
 import { Button } from "@/components/Button";
 
@@ -39,8 +39,17 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
   const myRoles = hasRoles.filter(hasRole => hasRole.role > 0).map(hasRole => hasRole.role)
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
+  const hasFetchedRef = useRef(false)
 
   // console.log("@MyProposals: waypoint 0", {hasRoles, authenticated, proposals, powers, status})
+
+  // Auto-fetch proposals on initialization
+  useEffect(() => {
+    if (powers && authenticated && !hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      onFetchProposals()
+    }
+  }, [powers, authenticated])
 
   useEffect(() => {
       // Ensure consistent block number handling - convert to bigint for both storage and lookup

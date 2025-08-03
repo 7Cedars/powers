@@ -72,7 +72,7 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  console.log("deploy: ", {status, error, deployHash, receipt})
+  // console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 
@@ -87,7 +87,7 @@ export function SectionDeployCarousel() {
 
   // Function to create law initialization data based on current form
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
-    console.log("form Title: ", currentForm.title)
+    // console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
     // console.log("chainId: ", chainId)
     
@@ -102,7 +102,7 @@ export function SectionDeployCarousel() {
 
   // Function to check if all required fields are filled
   const areRequiredFieldsFilled = () => {
-    console.log("areRequiredFieldsFilled: ", {currentForm, formData})
+    // console.log("areRequiredFieldsFilled: ", {currentForm, formData})
     return currentForm.fields
       .filter(field => field.required)
       .every(field => formData[field.name] && formData[field.name].trim() !== '');

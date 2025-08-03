@@ -238,6 +238,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     const currentLawAction = actionData.get(String(law.index))
     // console.log("currentLawAction", currentLawAction)
     
+    // Helper function to get proposal data for current law
+    const getCurrentLawProposal = () => {
+      if (!powers?.proposals) return null
+      return powers.proposals.find(proposal => proposal.lawId === law.index)
+    }
+    
     switch (itemKey) {
       case 'needCompleted':
       case 'needNotCompleted':
@@ -254,18 +260,50 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         return null
       
       case 'proposalCreated':
+        // Show proposal creation time - use voteStart from current law's action data or proposal data
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
+        }
+        // Fallback to proposal data if action data not available
+        const proposal = getCurrentLawProposal()
+        if (proposal && proposal.voteStart && proposal.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(proposal.voteStart)
+        }
+        return null
+      
       case 'voteStarted':
         // Use voteStart field - show if current law has action data with voteStart
         if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
         }
+        // Fallback to proposal data
+        const proposalForVoteStart = getCurrentLawProposal()
+        if (proposalForVoteStart && proposalForVoteStart.voteStart && proposalForVoteStart.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForVoteStart.voteStart)
+        }
         return null
       
       case 'voteEnded':
-      case 'proposalPassed':
-        // Use voteEnd field - only show if current law has action data and vote has ended
+        // Use voteEnd field - show when vote has ended
         if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
+        }
+        // Fallback to proposal data
+        const proposalForVoteEnd = getCurrentLawProposal()
+        if (proposalForVoteEnd && proposalForVoteEnd.voteEnd && proposalForVoteEnd.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForVoteEnd.voteEnd)
+        }
+        return null
+      
+      case 'proposalPassed':
+        // Use voteEnd field - show when proposal passed (vote ended successfully)
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
+        }
+        // Fallback to proposal data
+        const proposalForPassed = getCurrentLawProposal()
+        if (proposalForPassed && proposalForPassed.voteEnd && proposalForPassed.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForPassed.voteEnd)
         }
         return null
       
@@ -274,6 +312,13 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         // Only show if current law has action data with voteEnd
         if (law.conditions && law.conditions.delayExecution !== 0n && currentLawAction?.voteEnd) {
           return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
+        }
+        // Fallback to proposal data for delay calculation
+        if (law.conditions && law.conditions.delayExecution !== 0n) {
+          const proposalForDelay = getCurrentLawProposal()
+          if (proposalForDelay && proposalForDelay.voteEnd && proposalForDelay.voteEnd !== 0n) {
+            return calculateDelayPassTime(proposalForDelay.voteEnd, law.conditions.delayExecution)
+          }
         }
         // Return null if no action data or no delay condition
         return null

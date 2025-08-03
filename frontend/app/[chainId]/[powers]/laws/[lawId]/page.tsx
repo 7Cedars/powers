@@ -212,7 +212,7 @@ const Page = () => {
 
         {/* right panel: info boxes should only reads from zustand.  */}
         <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
-          {law && <Executions roleId = {law.conditions?.allowedRole as bigint} lawExecutions = {executions} powers = {powers} status = {statusLaw}/>}
+          {law && <Executions roleId = {law.conditions?.allowedRole as bigint} lawExecutions = {executions} powers = {powers} status = {statusLaw} onRefresh={() => fetchExecutions(law)}/>}
         </div>        
     </main>
   )

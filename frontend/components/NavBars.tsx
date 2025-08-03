@@ -14,6 +14,7 @@ import {
   NewspaperIcon
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
+import { BlockCounter } from './BlockCounter';
 import { usePowers } from '@/hooks/usePowers';
 import { useAccount, useSwitchChain } from 'wagmi'
 
@@ -135,7 +136,7 @@ const Header = () => {
   return (
     <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
     <section className="grow flex flex-row gap-1 justify-between pe-2">
-      <div className="flex flex-row gap-1 min-w-16"> 
+      <div className="flex flex-row gap-2 items-center"> 
         <a href="/"  
             className="flex flex-row justify-center items-center rounded-md p-1 px-2"
             >  
@@ -148,9 +149,7 @@ const Header = () => {
             >
           </Image>
         </a> 
-        <div className="">
-      
-        </div>
+        {path == `/` ? null : <BlockCounter /> }
       </div>
       
       <div className="flex flex-row gap-2 items-center">
