@@ -342,6 +342,11 @@ export const parseLawError = (rawReply: unknown): string => {
     return ": invalid account address provided."
   }
 
+  // Handle SizeExceedsPaddingSizeError
+  if (errorString.includes("SizeExceedsPaddingSizeError")) {
+    return ": Invalid calldata provide. Please make sure it follows the 0x format."
+  }
+
   // Handle contract revert errors with reason
   if (errorString.includes("reverted with the following reason:")) {
     const reasonMatch = errorString.match(/reverted with the following reason:\s*([^.\n]+)/)

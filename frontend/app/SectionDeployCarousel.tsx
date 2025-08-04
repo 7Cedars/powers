@@ -74,7 +74,7 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  // console.log("deploy: ", {status, error, deployHash, receipt})
+  console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 

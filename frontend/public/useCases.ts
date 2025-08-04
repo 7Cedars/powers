@@ -28,7 +28,7 @@ export const useCases = [
       "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demo: "Single Upgrades",
-    address: "0xe34aa50df7eda1be5caa52a96fb72dffaae0af2a",
+    address: "0x8d02c5be03515c4a6f21e13c1b5ea3ff16c0812b",
     chainId: "11155420"
   },
   {
@@ -38,8 +38,8 @@ export const useCases = [
       "Render hostile takeovers increasingly difficult."
     ],
     demo: "Powers 101",
-    address: "0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36",
-    chainId: "421614"
+    address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9",
+    chainId: "11155111"
   },  
   {
     title: "Increase transparency",
@@ -47,8 +47,8 @@ export const useCases = [
       "All votes and decisions are logged on-chain.",
       "Decisions can be traced back along governance paths."
     ],
-    demo: "Powers 101",
-    address: "0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36",
+    demo: "Managed Grants",
+    address: "0x18527d62e267dc628f8d8575f6b3c9ad4814e3b4",
     chainId: "421614"
   },
   {
