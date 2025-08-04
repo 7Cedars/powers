@@ -64,7 +64,7 @@ contract FlagActions is Law {
     {
         // retrieve the account that was revoked
         (uint256 actionId, bool flag) = abi.decode(lawCalldata, (uint256, bool));
-        if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Fulfilled) {
+        if (uint8(Powers(payable(powers)).state(actionId)) != uint8(PowersTypes.ActionState.Fulfilled)) {
             revert("Action not fulfilled");
         }
         if (flag && flaggedActions[actionId]) {

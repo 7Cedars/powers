@@ -11,7 +11,7 @@ import { powersAbi } from "@/context/abi";
 import { Law, OrganizationType, Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { 
   createPowers101LawInitData, 
   createCrossChainGovernanceLawInitData, 
@@ -34,14 +34,16 @@ export function SectionDeployCarousel() {
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [constituteCompleted, setConstituteCompleted] = useState(false)
   const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets()
   const { chain } = useAccount()
   const { switchChain } = useSwitchChain()
   const router = useRouter()
 
-  const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
-  const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
   const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  
+  const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
+  const [selectedChain, setSelectedChain] = useState(isLocalhost ? "Foundry" : "Optimism Sepolia");
 
   // Filter deployment forms based on localhost condition
   const availableDeploymentForms = deploymentForms.filter(form => 
@@ -80,9 +82,9 @@ export function SectionDeployCarousel() {
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
+        ...prev,
+        [fieldName]: value
+      }));
   };
 
   // Function to create law initialization data based on current form
@@ -369,7 +371,8 @@ export function SectionDeployCarousel() {
         <div className="text-center">
           <p className="text-sm text-slate-500 max-w-2xl">
             <strong>Important:</strong> These deployments are for testing purposes only. 
-            The Powers protocol has not been audited and should not be used for production environments.
+            The Powers protocol has not been audited and should not be used for production environments. 
+            Many of the examples lack basic security mechanisms and are for demo purposes only.
           </p>
         </div>
       </div>

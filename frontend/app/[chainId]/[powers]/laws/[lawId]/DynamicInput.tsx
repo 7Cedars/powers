@@ -71,9 +71,9 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
     }    
   }
 
-  const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, index?: number) => {
-    if (index === undefined) {
-      index = itemsArray.length - 1
+  const handleResizeArray = (event: React.MouseEvent<HTMLButtonElement>, expand: boolean, arrayIndex?: number) => {
+    if (arrayIndex === undefined) {
+      arrayIndex = itemsArray.length - 1
     }
     event.preventDefault() 
 
@@ -88,7 +88,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
       setAction({...action, paramValues: newParamValues, upToDate: false})
     } else {
       const newItemsArray = [...Array(itemsArray.length - 1).keys()]
-      const newInputArray = inputArray.slice(0, index)
+      const newInputArray = inputArray.slice(0, arrayIndex)
       setItemsArray(newItemsArray) 
       setInputArray(newInputArray)
       // Update global action store
@@ -125,10 +125,10 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
             inputType == "number" ? 
               <div className="w-full flex text-xs items-center rounded-md bg-white pl-2 outline outline-1 outline-gray-300">  
                 <input 
-                  type="number" 
+                  type="text" 
                   name={`input${item}`} 
                   id={`input${item}`}
-                  value = {inputArray[item] ? Number(inputArray[item]) : ""}
+                  value = {inputArray[item] ? String(inputArray[item]) : ""}
                   className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                   placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} value here.`}
                   onChange={(event) => handleChange({event, item})}

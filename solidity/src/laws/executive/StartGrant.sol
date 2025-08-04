@@ -25,7 +25,7 @@ import { Powers } from "../../Powers.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-// import "forge-std/console.sol"; // for testing only 
+// import "forge-std/console2.sol"; // for testing only 
 
 contract StartGrant is Law {
 
@@ -41,6 +41,7 @@ contract StartGrant is Law {
         uint16 grantsId;
         bytes32 grantHash;
         bytes lawCalldata;
+        uint16 lawCount;
     }
 
     /// @notice Constructor for the StartGrant contract
@@ -127,10 +128,11 @@ contract StartGrant is Law {
         ILaw.Conditions memory grantConditions = abi.decode(data[mem.lawHash].grantConditions, (ILaw.Conditions));
         
         // Create arrays for the adoption call
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
         
         // Set up the call to adoptLaw in Powers
         targets[0] = powers; // Powers contract
+        targets[1] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
@@ -139,6 +141,11 @@ contract StartGrant is Law {
                 config: abi.encode(mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId),
                 conditions: grantConditions
             })
+        );
+        calldatas[1] = abi.encodeWithSelector(
+            Powers.assignRole.selector,
+            6, // grantee role
+            mem.grantee // grantee address
         );
 
         // Generate action ID
@@ -150,9 +157,9 @@ contract StartGrant is Law {
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         Memory memory mem;  
-        (mem.grantsId, mem.lawCalldata) = abi.decode(stateChange, (uint16, bytes));
+        (mem.lawCount, mem.lawCalldata) = abi.decode(stateChange, (uint16, bytes));
         mem.grantHash = keccak256(mem.lawCalldata);
-        grantIds[mem.lawHash][mem.grantHash] = mem.grantsId;
+        grantIds[lawHash][mem.grantHash] = mem.lawCount;
     }
 
     function getGrantId(bytes32 lawHash, bytes memory lawCalldata) public view returns (uint16) {

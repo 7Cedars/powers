@@ -155,7 +155,32 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
   if (dataType.indexOf('uint') > -1) {
     // console.log("@parseInput UINT: waypoint 0", {event, dataType})
     try {
-      return Number(event.target.value) 
+      // For large numbers, we need to handle them as strings to avoid precision loss
+      // JavaScript Number can only safely represent integers up to 2^53 - 1
+      const value = event.target.value.trim()
+      
+      // Check if it's a valid number (only digits)
+      if (!/^\d+$/.test(value)) {
+        return errorMessage
+      }
+      
+      // For very large numbers, use BigInt to preserve precision
+      // JavaScript Number can only safely represent integers up to 2^53 - 1
+      if (value.length > 15) { // Numbers with more than 15 digits may lose precision
+        try {
+          return BigInt(value)
+        } catch {
+          return errorMessage
+        }
+      }
+      
+      // For smaller numbers, we can safely use Number
+      const numValue = Number(value)
+      if (isNaN(numValue) || !Number.isSafeInteger(numValue)) {
+        return errorMessage
+      }
+      
+      return numValue
     } catch {
       return errorMessage
     }
@@ -305,6 +330,16 @@ export const parseLawError = (rawReply: unknown): string => {
     if (signatureMatch && signatureMatch[1]) {
       return `: The error signature is ${signatureMatch[1]}. That is all I know.`
     }
+  }
+
+  // Handle FailedCall() errors
+  if (errorString.includes("FailedCall()")) {
+    return ": the call reverted. Something seems to be wrong with the calldata. Please check and try again."
+  }
+
+  // Handle invalid address errors
+  if (errorString.includes("Address") && errorString.includes("is invalid") && errorString.includes("viem@")) {
+    return ": invalid account address provided."
   }
 
   // Handle contract revert errors with reason

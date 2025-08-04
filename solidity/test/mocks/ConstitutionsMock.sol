@@ -559,7 +559,7 @@ contract ConstitutionsMock is Test  {
         });
         delete conditions;
 
-        // startGrant  -- DEPRECATED. 
+        // startGrant  
         conditions.allowedRole = 1;
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "StartGrant: A law to start a grant.",
@@ -577,7 +577,7 @@ contract ConstitutionsMock is Test  {
         conditions.needCompleted = 6;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "EndGrant: A law to stop a grant.",
-            targetLaw: lawAddresses[18], // EndGrant
+            targetLaw: lawAddresses[33], // EndGrant
             config: abi.encode(),
             conditions: conditions
         });

@@ -37,6 +37,7 @@ import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 import { NStrikesYourOut } from "../src/laws/electoral/NStrikesYourOut.sol";
 import { FlagActions } from "../src/laws/state/FlagActions.sol";
 import { DirectDeselect } from "../src/laws/electoral/DirectDeselect.sol";
+import { EndGrant } from "../src/laws/executive/EndGrant.sol";
 // import { Subscription } from "../src/laws/electoral/Subscription.sol";
 import { VoteOnAccounts } from "../src/laws/state/VoteOnAccounts.sol";
 import { StartElection } from "../src/laws/electoral/StartElection.sol";
@@ -64,10 +65,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
         
-        names = new string[](36);
-        addresses = new address[](36);
-        bytes[] memory creationCodes = new bytes[](36);
-        bytes[] memory constructorArgs = new bytes[](36);
+        names = new string[](37);
+        addresses = new address[](37);
+        bytes[] memory creationCodes = new bytes[](37);
+        bytes[] memory constructorArgs = new bytes[](37);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -216,6 +217,10 @@ contract DeployLaws is Script {
         names[35] = "StartGrant";
         creationCodes[35] = type(StartGrant).creationCode;
         constructorArgs[35] = abi.encode("StartGrant");
+
+        names[36] = "EndGrant";
+        creationCodes[36] = type(EndGrant).creationCode;
+        constructorArgs[36] = abi.encode("EndGrant");
 
         // console2.log("router2", router);
 

@@ -55,7 +55,7 @@ contract NStrikesYourOut is Law {
     mapping(bytes32 lawHash => Data) public data;
 
     constructor() {
-        bytes memory configParams = abi.encode("uint256 NumberStrikes, uint256[] RoleIds");
+        bytes memory configParams = abi.encode("uint256 NumberStrikes", "uint256[] RoleIds");
         emit Law__Deployed(configParams);
     }
 
@@ -72,7 +72,7 @@ contract NStrikesYourOut is Law {
             numberStrikes: numberStrikes
         });
 
-        inputParams = abi.encode("address Account, uint256[] ActionIds");
+        inputParams = abi.encode("address Account", "uint256[] ActionIds");
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 

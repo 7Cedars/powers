@@ -7,7 +7,7 @@ export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
 export type OrganizationType = 'Powers 101' | 'Bridging Off-Chain Governance' | 'Grants Manager' | 'Split Governance' | 'Packaged Upgrades' | 'Single Upgrades'
-export type InputType = number | boolean | string | `0x${string}`
+export type InputType = boolean | string | number | bigint | `0x${string}`
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
 export type LawSimulation = [

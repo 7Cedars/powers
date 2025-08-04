@@ -45,6 +45,7 @@ import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
 import { NStrikesYourOut } from "../../src/laws/electoral/NStrikesYourOut.sol";
 import { GrantProposal } from "../../src/laws/executive/GrantProposal.sol";
 import { FlagActions } from "../../src/laws/state/FlagActions.sol";
+import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -66,8 +67,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](33);
-        lawAddresses = new address[](33);
+        lawNames = new string[](34);
+        lawAddresses = new address[](34);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -109,6 +110,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[30] = address(new NStrikesYourOut());
         lawAddresses[31] = address(new GrantProposal());
         lawAddresses[32] = address(new FlagActions());
+        lawAddresses[33] = address(new EndGrant());
         
         vm.stopBroadcast();
 
@@ -156,7 +158,8 @@ contract DeployAnvilMocks is Script {
         lawNames[30] = "NStrikesYourOut";
         lawNames[31] = "GrantProposal";
         lawNames[32] = "FlagActions";
-
+        lawNames[33] = "EndGrant";
+        
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

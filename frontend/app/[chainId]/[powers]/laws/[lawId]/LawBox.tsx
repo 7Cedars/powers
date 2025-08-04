@@ -207,7 +207,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
 
       {/* Errors */}
       { error.error &&
-        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-sm text-red-800 pt-8 pb-4 px-8">
+        <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-center text-sm text-red-800 pt-8 pb-4 px-8">
           <div>
             {`Failed check${parseLawError(error.error)}`}     
           </div>

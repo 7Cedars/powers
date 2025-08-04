@@ -107,7 +107,7 @@ contract Grant is Law {
             });
         }
         
-        inputParams = abi.encode("uint256 MilestoneBlock", "string SupportUri", "uint256 PrevActionId");
+        inputParams = abi.encode("uint256 MilestoneBlock", "string SupportUri");
         
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
@@ -142,7 +142,7 @@ contract Grant is Law {
     {
         // step 0: create actionId & decode law calldata
         Memory memory mem;
-        (mem.milestone, mem.supportUri, mem.PrevActionId) = abi.decode(lawCalldata, (uint256, string, uint256));
+        (mem.milestone, mem.supportUri) = abi.decode(lawCalldata, (uint256, string));
         (, mem.lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
         // note: optional flagging of actions. 
         if (laws[mem.lawHash].conditions.readStateFrom != 0) {
@@ -152,19 +152,6 @@ contract Grant is Law {
         Data memory lawData = data[mem.lawHash];
 
         // step 1: run additional checks
-        if (mem.PrevActionId != 0) {
-            mem.proposalCalldata = Powers(payable(powers)).getActionCalldata(mem.PrevActionId);
-            mem.reconstructedProposalCalldata = abi.encode(mem.milestone, mem.supportUri, 0);
-            if (keccak256(mem.reconstructedProposalCalldata) != keccak256(mem.proposalCalldata)) {
-                revert ("Proposal calldata mismatch");
-            }
-            if (mem.flagActionsLaw != address(0)) {
-                bool hasComplaintBeenFlagged = FlagActions(mem.flagActionsLaw).isActionIdFlagged(mem.PrevActionId);
-                if (!hasComplaintBeenFlagged) {
-                    revert ("Complaint not flagged");
-                }
-            }
-        }
         if (disbursements[mem.lawHash][mem.milestone].amount == 0) {
             revert ("Milestone amount is 0");
         }

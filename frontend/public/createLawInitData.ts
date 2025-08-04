@@ -43,9 +43,7 @@ export interface CrossChainGovernanceFormData {
 }
 
 export interface GrantsManagerFormData {
-  parentDaoAddress?: `0x${string}`;
-  grantTokenAddress?: `0x${string}`;
-  assessors?: `0x${string}`[];
+  parentDaoAddress?: `0x${string}`; 
 }
 
 export interface ManagedUpgradesFormData { }
@@ -148,6 +146,7 @@ const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457
  * Based on the createConstitution function from DeployPowers101.s.sol
  */
 export function createPowers101LawInitData(powersAddress: `0x${string}`, formData: Powers101FormData, chainId: number): LawInitData[] {
+  
   const lawInitData: LawInitData[] = [];
   
   // Law 1: Initial setup
@@ -854,10 +853,6 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
 export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, formData: GrantsManagerFormData, chainId: number): LawInitData[] {
   const lawInitData: LawInitData[] = [];
 
-  //////////////////////////////////////////////////////////////////
-  //                NB: ALL COMPLETELY WIP!                       // 
-  //////////////////////////////////////////////////////////////////
-  
   
 
   //////////////////////////////////////////////////////////////////
@@ -866,8 +861,9 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   // Law 1: Initial setup - Assign role labels
   // This law assigns labels to roles and can only be executed once
   // Anyone can execute this law initially
+  // TODO: add minting of tokens to the program. 
   lawInitData.push({
-    nameDescription: "RUN THIS LAW FIRST: It assigns role labels. This law can only be executed once.",
+    nameDescription: "RUN THIS LAW FIRST: It assigns role labels and mints tokens to the program. This law can only be executed once. Do not forget to press the refresh button after executing this law.",
     targetLaw: getLawAddress("PresetAction", chainId),
     config: encodeAbiParameters(
       [
@@ -884,9 +880,11 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
           powersAddress,
           powersAddress,
           powersAddress,
+          getMockAddress("Erc20TaxedMock", chainId),
+          powersAddress,
           powersAddress
         ], // targets
-        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
+        [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n], // values
         [
           encodeFunctionData({
             abi: powersAbi,
@@ -922,6 +920,17 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
             abi: powersAbi,
             functionName: "labelRole",
             args: [7n, "Parent DAO"]
+          }),
+          /// TODO 
+          encodeFunctionData({
+            abi: erc20TaxedAbi,
+            functionName: "faucet",
+            args: [] // disburses 1 ETH in tokens. 
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "assignRole",
+            args: [7n, formData.parentDaoAddress || getMockAddress("GovernorMock", chainId)] // assign parent DAO role as admin
           }),
           encodeFunctionData({
             abi: powersAbi,
@@ -962,7 +971,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     [3n, [1n, 2n, 3n, 4n]] // always 3 strikes. But the roleId can be changed. 
   ); 
 
-  const startGrantConfig = encodeAbiParameters(
+  const grantConfig = encodeAbiParameters(
     [
       { name: 'grantLaw', type: 'address' },
       { name: 'grantConditions', type: 'bytes' }
@@ -971,7 +980,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
       getLawAddress("Grant", chainId), 
       createEncodedConditions({
         allowedRole: 4n,
-        needCompleted: 7n // Grantee needs to have created a proposal for payout. 
+        needCompleted: 8n // Grantee needs to have created a proposal for payout. 
       })
     ]
   ); 
@@ -980,18 +989,18 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   // This law allows creating a proposal
   // Anyone can use this law
   lawInitData.push({
-    nameDescription: "Create grant proposal: Create a grant proposal.",
+    nameDescription: "Create grant proposal: Anyone can make a grant proposal.",
     targetLaw: getLawAddress("GrantProposal", chainId),
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE,
-      readStateFrom: 8n // read state from the complaint law
+      readStateFrom: 9n // read state from the complaint law
     })
   });
 
   // Law 3: Assess a proposal on scope 
   lawInitData.push({
-    nameDescription: "Scope Assessment: Assess a proposal on scope.",
+    nameDescription: "Scope Assessment: A scope assessor can assess a proposal on scope. If ok-ed, the action is executed and send to the technical assessment.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: proposalConfig,
     conditions: createConditions({
@@ -1002,7 +1011,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
 
   // Law 4: Assess a proposal on technical quality
   lawInitData.push({
-    nameDescription: "Technical Assessment: Assess a proposal on technical quality.",
+    nameDescription: "Technical Assessment: A technical assessor can assess a proposal on technical quality. If ok-ed, the action is executed and send to the financial assessment.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: proposalConfig,
     conditions: createConditions({
@@ -1013,7 +1022,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
 
   // Law 5: Assess a proposal on financial viability
   lawInitData.push({
-    nameDescription: "Financial Assessment: Assess a proposal on financial viability. When passed, the grant will be created.",
+    nameDescription: "Financial Assessment: A financial assessor can assess a proposal on financial viability. If ok-ed, the action is executed and send to the grant assignment.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: proposalConfig,
     conditions: createConditions({
@@ -1024,33 +1033,44 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
 
   // Law 6: Assign a grant
   lawInitData.push({
-    nameDescription: "Assign a grant: Assign a grant to a successful proposal.",
+    nameDescription: "Assign a grant: A grant imburser can assign a grant to a successful proposal. This also assigns a grantee role to the original proposer. Do not forget to press the refresh button after executing this law.",
     targetLaw: getLawAddress("StartGrant", chainId),
-    config: startGrantConfig,
+    config: grantConfig,
     conditions: createConditions({
       allowedRole: 4n, // Grant Imburser
       needCompleted: 5n // all assessments need to be completed. 
     })
   });
 
-  // Law 7: Request a milestone disbursement
+  // Law 7: End a grant
   lawInitData.push({
-    nameDescription: "Request payout: Request a milestone disbursement.",
+    nameDescription: "End a grant: A grant imburser can end a grant. This also assigns a grantee role to the original proposer. Do not forget to press the refresh button after executing this law.",
+    targetLaw: getLawAddress("EndGrant", chainId),
+    config: grantConfig,
+    conditions: createConditions({
+      allowedRole: 4n, // Grant Imburser
+      needCompleted: 6n // all assessments need to be completed. 
+    })
+  });
+
+  // Law 8: Request a milestone disbursement
+  lawInitData.push({
+    nameDescription: "Request payout: A grantee can request a milestone disbursement.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: encodeAbiParameters(
       [
         { name: 'inputParams', type: 'string[]' },
       ],
-      [["uint256 MilestoneBlock", "string SupportUri", "uint256 PrevActionId"]]
+      [["uint256 MilestoneBlock", "string SupportUri"]]
     ),
     conditions: createConditions({
       allowedRole: 6n, // Grantees
     })
   });
 
-  // Law 8: Log a complaint about grant assessment
+  // Law 9: Log a complaint about grant assessment
   lawInitData.push({
-    nameDescription: "Log a complaint about grant assessment: Log a complaint about grant assessment.",
+    nameDescription: "Log a complaint about grant assessment: An applicant can log a complaint about a grant assessment. It has to be done by the applicant themselves.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: complaintConfig,
     conditions: createConditions({
@@ -1058,25 +1078,25 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     })
   });
 
-  // Law 9: Judge a complaint about grant assessment
+  // Law 10: Judge a complaint about grant assessment
   lawInitData.push({
-    nameDescription: "Judge a complaint about grant assessment: Judge a complaint about grant assessment.",
+    nameDescription: "Judge a complaint: A judge can assess a complaint about any action taken in this organisation. In case the complaint is about a proposal assessment and if it is upheld, a proposal can be resubmitted for assessment.",
     targetLaw: getLawAddress("FlagActions", chainId),
     config: "0x", // empty config
     conditions: createConditions({
       allowedRole: 5n, // Judges
-      needCompleted: 8n // need to have created a complaint
+      needCompleted: 9n // need to have created a complaint
     })
   });
 
-  // Law 10: NStrikesYourOut
+  // Law 11: NStrikesYourOut
   lawInitData.push({
     nameDescription: "Three strikes your out: If any assessor has three complaints upheld against them, they can be removed from the organization.",
     targetLaw: getLawAddress("NStrikesYourOut", chainId),
     config: nStrikesConfig, 
     conditions: createConditions({
       allowedRole: PUBLIC_ROLE, // anyone is allowed to execute the law. 
-      readStateFrom: 9n // Judges
+      readStateFrom: 10n // Judges
     })
   });
 
@@ -1085,10 +1105,10 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   //                       Electoral laws                         // 
   //////////////////////////////////////////////////////////////////
 
-  // Law 11: Assign any account to any role. 
+  // Law 12: Assign any account to any role. 
   // Only previous DAO (role 3) can use this law
   lawInitData.push({
-    nameDescription: "Assign accounts to roles: Assign any account to any role. (1 = scope assessors, 2 = technical assessors, 3 = financial assessors, 4 = grant imburser, 5 = judges, 6 = grantees, 7 = parent DAO)",
+    nameDescription: "Assign accounts: The parent DAO can assign any account to any role. (1 = scope assessors, 2 = technical assessors, 3 = financial assessors, 4 = grant imburser, 5 = judges, 6 = grantees, 7 = parent DAO)",
     targetLaw: getLawAddress("BespokeAction", chainId),
     config: encodeAbiParameters(
       [
@@ -1107,7 +1127,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
         ]
     ),
     conditions: createConditions({
-      allowedRole: ADMIN_ROLE, // As this is a demo, we let the admin assign any role. 
+      allowedRole: 7n, // Parent DAO
     })
   });
 
