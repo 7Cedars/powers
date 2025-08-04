@@ -48,7 +48,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demo: "Managed Grants",
-    address: "0x18527d62e267dc628f8d8575f6b3c9ad4814e3b4",
+    address: "0xbc7fed20eeee2369b50e3a76978693fb9f9d1c0b",
     chainId: "421614"
   },
   {

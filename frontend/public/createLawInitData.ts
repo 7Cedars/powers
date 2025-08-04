@@ -1044,7 +1044,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
 
   // Law 7: End a grant
   lawInitData.push({
-    nameDescription: "End a grant: A grant imburser can end a grant. This also assigns a grantee role to the original proposer. Do not forget to press the refresh button after executing this law.",
+    nameDescription: "End a grant: A grant imburser can end a grant. This is only possible after the final milestone of the grant has been disbursed. Do not forget to press the refresh button after executing this law.",
     targetLaw: getLawAddress("EndGrant", chainId),
     config: grantConfig,
     conditions: createConditions({

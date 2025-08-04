@@ -43,7 +43,7 @@ export function SectionDeployCarousel() {
   const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
   
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
-  const [selectedChain, setSelectedChain] = useState(isLocalhost ? "Foundry" : "Optimism Sepolia");
+  const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
   // Filter deployment forms based on localhost condition
   const availableDeploymentForms = deploymentForms.filter(form => 
