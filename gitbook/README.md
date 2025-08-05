@@ -4,17 +4,17 @@
 
 ## What it is
 
-The Powers protocol is a role restricted governance protocol. It enables on-chain organisations to separate and distribute decision-making power by codifying power relations between stakeholders.
+The Powers protocol offers a role-centric governance system for on-chain organizations. It allows for the separation and distribution of decision-making power by codifying relationships between stakeholders.
 
-Using Powers, a single decision can be guided across multiple stakeholders, conditional checks and voting mechanisms through completely modular, transparent and asynchronous governance chains.
+Using Powers, a single decision can be guided through multiple role-restricted modules, with each their own conditional checks and voting mechanisms. Together, the create completely modular, transparent and asynchronous governance paths.
 
-It combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
+The protocol combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
 
 * **Powers** manages assigning roles to addresses and governance flows.
 * **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.
 * **Actions** consist of calldata and a unique nonce that is send to a target law.
 
-Crucially, Powers allows the **same action** to be send to **different laws** enabling law A to check the status of the same action at law B.
+Crucially, Powers allows the **same action** to be send to **different laws**: the execution of law A can be conditional on the execution of the same action at law B.
 
 ## Quick links
 
@@ -53,8 +53,8 @@ The governance flow is defined by the following restrictions:
 * Executing, proposing and voting can only be done in reference to a role restricted law.
 * Roles and laws can only be assigned and revoked through the execute function of the protocol itself.
 
-{% content-ref url="for-developers/powers.sol" %}
-[powers.sol](for-developers/powers.sol)
+{% content-ref url="for-developers/powers.sol/" %}
+[powers.sol](for-developers/powers.sol/)
 {% endcontent-ref %}
 
 ### 📜 Laws
@@ -88,8 +88,8 @@ What is not flexible, is how Powers interacts with a law. This is done through t
 5. Saves any state change to the law.
 6. Returns the computed function call to the Powers deployment for execution.
 
-{% content-ref url="for-developers/law.sol" %}
-[law.sol](for-developers/law.sol)
+{% content-ref url="for-developers/law.sol/" %}
+[law.sol](for-developers/law.sol/)
 {% endcontent-ref %}
 
 ### 🏛️ Powers + Laws = Governance
