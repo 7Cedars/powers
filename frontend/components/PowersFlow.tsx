@@ -1402,6 +1402,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         <div className="text-center">
           <div className="text-gray-500 text-lg mb-2">No active laws found</div>
           <div className="text-gray-400 text-sm">Deploy some laws to see the visualization</div>
+          <div className="text-gray-400 text-sm">Or press the refresh button to load the latest laws</div>
         </div>
       </div>
     )

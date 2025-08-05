@@ -95,7 +95,7 @@ const Page = () => {
           callData: lawCalldata,
           upToDate: true
         })
-        console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
+        // console.log("Handle Simulate waypoint 3b", {action, wallets, lawCalldata, nonce, law})
         
         try {
         // simulating law. 

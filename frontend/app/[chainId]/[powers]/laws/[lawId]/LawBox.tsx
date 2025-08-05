@@ -63,7 +63,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  console.log("@LawBox:", {error})
+  // console.log("@LawBox:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
