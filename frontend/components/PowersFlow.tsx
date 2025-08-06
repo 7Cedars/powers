@@ -917,6 +917,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
   const { status: checksStatus } = useChecksStatusStore()
+  const pathname = usePathname()
 
   // console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
   
@@ -1134,6 +1135,40 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       }, 100)
     }
   }, [setViewport, fitView, getViewport, action.lawId, selectedLawId, calculateFitViewOptions, fitViewWithPanel])
+
+  // Auto-fit view when navigating to home page (no selected law)
+  React.useEffect(() => {
+    // Don't change viewport if:
+    // 1. ReactFlow isn't initialized yet
+    // 2. Checks are currently being performed (pending status)
+    // 3. User has manually interacted with the viewport recently
+    if (!isInitialized || checksStatus === "pending" || userHasInteracted) return
+    
+    // Check if we're on the home page (no law selected in URL)
+    const isHomePage = !pathname.includes('/laws/')
+    
+    // If there's no selected law (home page), fit all nodes in view
+    if ((!action.lawId && !selectedLawId) || isHomePage) {
+      const timer = setTimeout(() => {
+        fitViewWithPanel()
+        // Save the fitted viewport
+        setTimeout(() => {
+          const currentViewport = getViewport()
+          setStoredViewport(currentViewport)
+        }, 900)
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [action.lawId, selectedLawId, isInitialized, checksStatus, userHasInteracted, fitViewWithPanel, getViewport, pathname])
+
+  // Reset user interaction flag when navigating to home page
+  React.useEffect(() => {
+    const isHomePage = !pathname.includes('/laws/')
+    if (isHomePage) {
+      setUserHasInteracted(false)
+    }
+  }, [pathname])
 
   // Auto-zoom to selected law from store or restore previous viewport
   React.useEffect(() => {
