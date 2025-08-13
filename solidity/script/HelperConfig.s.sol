@@ -21,6 +21,7 @@ contract HelperConfig is Script {
     uint256 constant OPT_SEPOLIA_CHAIN_ID = 11_155_420;
     uint256 constant ARB_SEPOLIA_CHAIN_ID = 421_614;
     uint256 constant BASE_SEPOLIA_CHAIN_ID = 84_532;
+    uint256 constant MANTLE_SEPOLIA_CHAIN_ID = 5003;
 
     NetworkConfig public networkConfig;
     mapping(uint256 chainId => NetworkConfig) public networkConfigs;
@@ -31,6 +32,7 @@ contract HelperConfig is Script {
         networkConfigs[ARB_SEPOLIA_CHAIN_ID] = getArbSepoliaConfig();
         networkConfigs[OPT_SEPOLIA_CHAIN_ID] = getOptSepoliaConfig();
         networkConfigs[BASE_SEPOLIA_CHAIN_ID] = getBaseSepoliaConfig();
+        networkConfigs[MANTLE_SEPOLIA_CHAIN_ID] = getMantleSepoliaConfig();
     }
 
     function getConfig() public returns (NetworkConfig memory) {
@@ -87,6 +89,18 @@ contract HelperConfig is Script {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
 
         networkConfig.chainlinkFunctionsRouter = 0xf9B8fc078197181C841c296C876945aaa425B278;
+        networkConfig.chainlinkFunctionsSubscriptionId = 1;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
+
+        return networkConfig;
+    }
+
+    function getMantleSepoliaConfig() public returns (NetworkConfig memory) {
+        networkConfig.blocksPerHour = 360000; // new block every 2 seconds
+
+        networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;
         networkConfig.chainlinkFunctionsGasLimit = 300_000;
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
