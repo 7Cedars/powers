@@ -19,7 +19,7 @@ export const usePowers = () => {
   const {data: currentBlock} = useBlockNumber({
     chainId: parseChainId(chainId), 
   })
-  // console.log("@usePowers, MAIN", {chainId, error, powers, publicClient, status})
+  console.log("@usePowers, MAIN", {chainId, error, powers, publicClient, status})
 
   // function to save powers to local storage
   const savePowers = (powers: Powers) => {
@@ -467,32 +467,40 @@ export const usePowers = () => {
 
   const fetchPowers = useCallback(
     async (address: `0x${string}`) => {
+      // console.log("@fetchPowers, waypoint 0", {address})
       setStatus("pending")
       let powersToBeUpdated: Powers | undefined = undefined
       let localStore = localStorage.getItem("powersProtocols")
+      // console.log("@fetchPowers, waypoint 1", {localStore})
 
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
       const existing = saved.find(item => item.contractAddress == address)
+      // console.log("@fetchPowers, waypoint 2", {existing})
 
       if (existing) { 
         // Load cached data first
         powersToBeUpdated = existing
         setPowers(powersToBeUpdated)
-        
+        // console.log("@fetchPowers, waypoint 3", {powersToBeUpdated})
+
         // Then fetch metadata to ensure it's up to date
         if (powersToBeUpdated.uri) {
           try {
             const updatedMetadata = await fetchMetaData(powersToBeUpdated)
             if (updatedMetadata) {
+              // console.log("@fetchPowers, waypoint 4", {updatedMetadata})
               powersToBeUpdated = updatedMetadata
               setPowers(powersToBeUpdated)
+              // console.log("@fetchPowers, waypoint 5", {powersToBeUpdated})
             }
           } catch (error) {
             console.error("Error fetching metadata for cached protocol:", error)
           }
         }
         setStatus("success")
+        // console.log("@fetchPowers, waypoint 6", {powersToBeUpdated})
       } else {
+        // console.log("@fetchPowers, waypoint 7", {address})
         refetchPowers(address)
         setStatus("success")
       }      
@@ -501,6 +509,7 @@ export const usePowers = () => {
   
   const refetchPowers = useCallback(
     async (address: `0x${string}`) => {
+      // console.log("@refetchPowers, waypoint 0", {address})
       setStatus("pending")
 
       let powersToBeUpdated: Powers | undefined
@@ -511,13 +520,14 @@ export const usePowers = () => {
       let proposals: Powers | undefined
 
       powersToBeUpdated = { contractAddress: address }
+      // console.log("@refetchPowers, waypoint 1", {powersToBeUpdated})
 
       try {
         [data, proposals] = await Promise.all([
           fetchPowersData(powersToBeUpdated),
           fetchProposals(powersToBeUpdated, 10n, 10000n),
         ])
-
+        // console.log("@refetchPowers, waypoint 2", {data, proposals})
         // console.log("@refetchPowers, waypoint 0.1", {data, proposals})
 
         if (data) {
@@ -525,14 +535,17 @@ export const usePowers = () => {
             fetchMetaData(data),
             fetchLawsAndRoles(data)
           ])
+          // console.log("@refetchPowers, waypoint 3", {metaData, laws})
         }
-        // console.log("@refetchPowers, waypoint 0.2", {metaData, laws})
+        // console.log("@refetchPowers, waypoint 4", {metaData, laws})
         if (laws) {
           executedActions = await fetchExecutedActions(laws)
+          // console.log("@refetchPowers, waypoint 5", {executedActions})
         }
+        // console.log("@refetchPowers, waypoint 6", {data, metaData, laws, executedActions, proposals})
 
         if (data != undefined && metaData != undefined && laws != undefined && executedActions != undefined && proposals != undefined) {
-          // console.log("@fetchPowers, waypoint 0", {data, metaData, laws, executedActions, proposals})
+          // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, executedActions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             name: data.name,
@@ -548,6 +561,7 @@ export const usePowers = () => {
             deselectedRoles: laws.deselectedRoles,
             layout: powersToBeUpdated.layout
           }
+          // console.log("@refetchPowers, waypoint 8", {newPowers})
           setPowers(newPowers)
           savePowers(newPowers)
         }

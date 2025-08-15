@@ -83,6 +83,7 @@ export default function FlowPage() {
   }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
+    console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
