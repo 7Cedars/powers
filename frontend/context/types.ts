@@ -2,7 +2,7 @@ import { ConnectedWallet } from '@privy-io/react-auth';
 import { Config, GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
-export type SupportedChains = 421614 | 11155111 | 31337 | undefined
+export type SupportedChains = 421614 | 11155111 | 31337 | 5003 | undefined
 export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
