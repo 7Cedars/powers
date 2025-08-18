@@ -125,10 +125,10 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
             inputType == "number" ? 
               <div className="w-full flex text-xs items-center rounded-md bg-white pl-2 outline outline-1 outline-gray-300">  
                 <input 
-                  type="text" 
+                  type="number" 
                   name={`input${item}`} 
                   id={`input${item}`}
-                  value = {inputArray[item] ? String(inputArray[item]) : ""}
+                  value = {inputArray[item] ? Number(inputArray[item]) : 0}
                   className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                   placeholder={`Enter ${dataType.replace(/[\[\]']+/g, '')} value here.`}
                   onChange={(event) => handleChange({event, item})}

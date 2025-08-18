@@ -22,16 +22,16 @@ import {
 export default function Page() {          
     return (
         <main className="w-full h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden bg-slate-50">
-            <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-indigo-700 snap-start snap-always"> 
+            <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-indigo-9dyn00 to-indigo-700 snap-start snap-always"> 
             
                 {/* Title and subtitle */}
                 <section className="w-full flex flex-col justify-center items-center p-4 pt-20 pb-20">
-                    <div className = "w-full flex flex-col gap-2 justify-center items-center text-3xl sm:text-6xl text-slate-100 max-w-2xl text-center text-pretty">
+                    <div className = "w-full flex flex-row gap-4 justify-center items-center text-3xl sm:text-6xl text-slate-100 max-w-4xl text-center text-pretty">
                         Communities thrive with 
                         <b>Powers</b>  
                     </div>
-                    <div className = "w-full flex justify-center items-center text-xl sm:text-2xl py-4 text-slate-300 max-w-3xl text-center p-4">
-                        Increase security, transparency and efficiency by separating and distributing powers in on-chain organisations.
+                    <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
+                        Separate and distribute on-chain powers through role-based governance.
                     </div>
                 </section> 
 

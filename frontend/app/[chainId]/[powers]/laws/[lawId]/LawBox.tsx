@@ -35,26 +35,6 @@ type LawBoxProps = {
   onExecute: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-// const roleColour = [  
-//   "border-blue-600", 
-//   "border-red-600", 
-//   "border-yellow-600", 
-//   "border-purple-600",
-//   "border-green-600", 
-//   "border-orange-600", 
-//   "border-slate-600",
-// ] 
-
-const roleColor = [  
-  "#007bff",
-  "#dc3545",
-  "#ffc107",
-  "#6f42c1",
-  "#28a745",
-  "#fd7e14",
-  "#17a2b8",
-]
-
 export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute}: LawBoxProps) {
   const action = useActionStore();
   const error = useErrorStore()
@@ -63,6 +43,8 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const dataTypes = params.map(param => param.dataType) 
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+
+  console.log("@LawBox:", {checks, action})
   // console.log("@LawBox:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
@@ -256,14 +238,16 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               filled={false}
               selected={true}
               statusButton={
-                (checks?.authorised && action.upToDate) ? 'idle' :  'disabled'
+                (action.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && checks?.authorised) ? 'idle' :  'disabled'
               }
             >
-              {!checks?.authorised 
-                ? "Not authorised to make proposal"
-                : checks?.proposalExists 
-                  ? "View proposal"
-                  : `Create proposal for '${shorterDescription(law?.nameDescription, "short")}'`
+              {!action.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+                ? "Passed check needed to make proposal"
+                : !checks?.authorised 
+                  ? "Not authorised to make proposal"
+                  : checks?.proposalExists 
+                    ? "View proposal"
+                    : `Create proposal for '${shorterDescription(law?.nameDescription, "short")}'`
               }
             </Button>
           </div>
@@ -287,11 +271,17 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
             filled={false}
             selected={true}
             statusButton={
-              !checks?.authorised ? 'disabled' :
-              action.upToDate && checks.allPassed ? 
-              status : 'disabled' 
+              (action.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && 
+               (law?.conditions?.quorum == 0n || checks?.proposalPassed) && 
+               checks?.authorised) ? status : 'disabled' 
               }> 
-            {!checks?.authorised ? "Not authorised to execute" : "Execute"}
+            {!action.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+              ? "Passed check needed to execute"
+              : law?.conditions?.quorum != 0n && !checks?.proposalPassed
+                ? "Passed proposal needed for execution"
+                : !checks?.authorised 
+                  ? "Not authorised to execute"
+                  : "Execute"}
           </Button>
         </div>
       </section>
