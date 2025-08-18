@@ -42,7 +42,7 @@ export function SectionIntro() {
                   Read the documentation
                 </a>
                 <ArrowUpRightIcon
-                  className="w-6 h-6 m-1 text-slate-700 text-center font-bold"
+                  className="w-6 h-6 m-1 text-slate-700 text-center font-bold" 
                 />
               </div>
           </section>
