@@ -7,13 +7,11 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
-import { SectionRunDemo } from "./SectionRunDemo";
 import { SectionDeployCarousel } from "./SectionDeployCarousel";
 import { Footer } from "./Footer";
-import { SectionAdvantages } from "./SectionAdvantages";
 
 import { 
     ChevronDownIcon
@@ -44,9 +42,7 @@ export default function Page() {
             </section>
 
             < SectionIntro /> 
-            {/* < SectionAdvantages />  */}
             < SectionUsecases /> 
-            {/* < SectionRunDemo /> */}
             < SectionDeployCarousel />
             <div className = "min-h-48"/>  
             < Footer /> 
