@@ -12,12 +12,12 @@
 <br />
 <div align="center">
   <a href="https://github.com/7Cedars/powers"> 
-    <img src="public/powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
+    <img src="./powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
   </a>
 
 <h3 align="center">Powers</h3>
   <p align="center">
-    A role restricted governance protocol for DAOs
+    Role-based governance for on-chain organisations
     <br />
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·
@@ -56,7 +56,7 @@ Powers restricts governance processes along access roles. It allows a single dec
 
 Powers enables three key governance patterns that solve common DAO challenges:
 
-**🔐 Grant Management**: Create accountable grant programs where council members can allocate funds, but decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
+**🔐 Grant Management**: Create accountable grant programs where different roles can allocate different funds, and decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
 
 **⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
 
@@ -163,6 +163,14 @@ For detailed information on creating your own laws and organizations, please ref
 * Tailwind css
 * Wagmi / viem
 * Privy.io
+
+### Acknowledgements
+* Arnold Almeida
+* James M 
+* Paulo Fonseca
+* Andrei V  
+* Arbitrum DAO 
+* RnDAO 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
