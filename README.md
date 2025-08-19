@@ -182,6 +182,26 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
+## Contributing
+
+We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to:
+
+- Report bugs
+- Request features
+- Submit pull requests
+- Follow our coding standards
+
+### Quick Start for Contributors
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Commit your changes: `git commit -m 'feat: add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+For more detailed information, please read our [Contributing Guidelines](CONTRIBUTING.md).
+
 ## Contact
 Seven Cedars - [Github profile](https://github.com/7Cedars) - cedars7@proton.me
 

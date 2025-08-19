@@ -1,0 +1,98 @@
+labels:
+  # Issue Types
+  - name: bug
+    color: d73a4a
+    description: Something isn't working
+  - name: enhancement
+    color: a2eeef
+    description: New feature or request
+  - name: documentation
+    color: 0075ca
+    description: Improvements or additions to documentation
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+  - name: help wanted
+    color: 008672
+    description: Extra attention is needed
+  - name: question
+    color: d876e3
+    description: Further information is requested
+  - name: security
+    color: ff0000
+    description: Security-related issues
+
+  # Priority
+  - name: priority-high
+    color: ff0000
+    description: High priority issue
+  - name: priority-medium
+    color: ff8c00
+    description: Medium priority issue
+  - name: priority-low
+    color: 00ff00
+    description: Low priority issue
+
+  # Status
+  - name: needs-triage
+    color: ff0000
+    description: Needs maintainer review
+  - name: in-progress
+    color: 1d76db
+    description: Work in progress
+  - name: blocked
+    color: ff0000
+    description: Blocked by another issue
+  - name: wont-fix
+    color: 000000
+    description: Will not be fixed
+
+  # Components
+  - name: frontend
+    color: 0366d6
+    description: Frontend related changes
+  - name: solidity
+    color: 563d7c
+    description: Solidity smart contract changes
+  - name: docs
+    color: 0075ca
+    description: Documentation changes
+  - name: ci-cd
+    color: 0e8a16
+    description: CI/CD pipeline changes
+
+  # Size
+  - name: size-xs
+    color: 009900
+    description: Extra small change
+  - name: size-s
+    color: 00cc00
+    description: Small change
+  - name: size-m
+    color: ffb700
+    description: Medium change
+  - name: size-l
+    color: ff8c00
+    description: Large change
+  - name: size-xl
+    color: ff0000
+    description: Extra large change
+
+  # Breaking Changes
+  - name: breaking-change
+    color: ff0000
+    description: Breaking change
+  - name: api-change
+    color: ff8c00
+    description: API changes
+
+  # Special
+  - name: duplicate
+    color: cfd3d7
+    description: This issue or pull request already exists
+  - name: invalid
+    color: e4e669
+    description: Something is wrong
+  - name: wont-fix
+    color: 000000
+    description: This will not be worked on

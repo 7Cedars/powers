@@ -1,0 +1,113 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-size:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const total = additions + deletions;
+            
+            console.log(`PR #${context.issue.number} changes: +${additions} -${deletions} = ${total} total`);
+            
+            if (total > 1000) {
+              core.warning(`Large PR detected: ${total} lines changed. Consider breaking this into smaller PRs.`);
+            }
+
+  issue-link:
+    name: Issue Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for linked issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const body = pr.body || '';
+            const issuePattern = /(?:closes?|fixes?|resolves?)\s+#(\d+)/gi;
+            const matches = body.match(issuePattern);
+            
+            if (!matches || matches.length === 0) {
+              core.notice('No linked issues found. Consider linking this PR to an issue using "Closes #123" or "Fixes #123".');
+            } else {
+              console.log(`Linked issues: ${matches.join(', ')}`);
+            }
+
+  template-check:
+    name: PR Template Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR template usage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const body = pr.body || '';
+            const hasDescription = body.includes('## Description');
+            const hasTypeOfChange = body.includes('## Type of Change');
+            const hasTesting = body.includes('## Testing');
+            
+            if (!hasDescription || !hasTypeOfChange || !hasTesting) {
+              core.warning('PR template sections missing. Please ensure all required sections are filled out.');
+            } else {
+              console.log('PR template properly filled out.');
+            }
+
+  branch-naming:
+    name: Branch Naming Convention
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check branch naming
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const branchName = pr.head.ref;
+            const validPrefixes = ['feature/', 'fix/', 'docs/', 'refactor/', 'test/', 'chore/'];
+            const hasValidPrefix = validPrefixes.some(prefix => branchName.startsWith(prefix));
+            
+            if (!hasValidPrefix) {
+              core.notice(`Branch name "${branchName}" doesn't follow naming convention. Consider using prefixes like: ${validPrefixes.join(', ')}`);
+            } else {
+              console.log(`Branch name "${branchName}" follows naming convention.`);
+            }
