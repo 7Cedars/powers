@@ -9,7 +9,7 @@ import { GetBlockReturnType } from "@wagmi/core";
 import { parseRole, shorterDescription } from "@/utils/parsers";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/Button";
 import { useAction } from "@/hooks/useAction";
 import { usePowers } from "@/hooks/usePowers";
@@ -40,6 +40,15 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
   const { timestamps, fetchTimestamps } = useBlocks()
   const { fetchActionData, data: actionData, status: statusAction } = useAction()
   const [tempActions, setTempActions] = useState<TempAction[]>([])
+  const hasFetchedRef = useRef(false)
+  
+  // Auto-fetch executed actions on initialization
+  useEffect(() => {
+    if (powers && authenticated && !hasFetchedRef.current) {
+      hasFetchedRef.current = true
+      onRefresh()
+    }
+  }, [powers, authenticated])
   
   useEffect(() => {
     if (powers?.executedActions) {

@@ -5,6 +5,7 @@ import { getConnectorClient, readContract, simulateContract, writeContract } fro
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { usePrivy } from "@privy-io/react-auth";
+import { setError } from "../context/store";
 
 export const useLaw = () => {
   const [status, setStatus ] = useState<Status>("idle")
@@ -48,6 +49,7 @@ export const useLaw = () => {
         } catch (error) {
           setStatus("error") 
           setError(error)
+          setError(error)
           // console.log(error)
         }
         setStatus("idle")
@@ -73,6 +75,7 @@ export const useLaw = () => {
           setStatus("success")
         } catch (error) {
           setStatus("error") 
+          setError(error)
           setError(error)
           // console.log(error)
         }
@@ -109,6 +112,7 @@ export const useLaw = () => {
           }
         } catch (error) {
           setStatus("error") 
+          setError(error)
           setError(error)
           // console.log("@execute: waypoint 5", {error}) 
       }

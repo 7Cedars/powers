@@ -11,7 +11,7 @@ import { powersAbi } from "@/context/abi";
 import { Law, OrganizationType, Powers, Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { 
   createPowers101LawInitData, 
   createCrossChainGovernanceLawInitData, 
@@ -34,14 +34,16 @@ export function SectionDeployCarousel() {
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const [constituteCompleted, setConstituteCompleted] = useState(false)
   const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets()
   const { chain } = useAccount()
   const { switchChain } = useSwitchChain()
   const router = useRouter()
 
-  const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
-  const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
   const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  
+  const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
+  const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
   // Filter deployment forms based on localhost condition
   const availableDeploymentForms = deploymentForms.filter(form => 
@@ -52,6 +54,7 @@ export function SectionDeployCarousel() {
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
     { name: "Arbitrum Sepolia", id: 421614 },
+    { name: "Mantle Sepolia", id: 5003 },
     ...(isLocalhost ? [{ name: "Foundry", id: 31337 }] : [])
   ];
 
@@ -72,24 +75,24 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  console.log("deploy: ", {status, error, deployHash, receipt})
+  // console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 
-  console.log("currentForm: ", {currentForm, currentFormIndex})
+  // console.log("currentForm: ", {currentForm, currentFormIndex})
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
+        ...prev,
+        [fieldName]: value
+      }));
   };
 
   // Function to create law initialization data based on current form
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
-    console.log("form Title: ", currentForm.title)
+    // console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
-    console.log("chainId: ", chainId)
+    // console.log("chainId: ", chainId)
     
     try {
       return createLawInitDataByType(currentForm.title as OrganizationType, powersAddress, formData, chainId);
@@ -102,6 +105,7 @@ export function SectionDeployCarousel() {
 
   // Function to check if all required fields are filled
   const areRequiredFieldsFilled = () => {
+    // console.log("areRequiredFieldsFilled: ", {currentForm, formData})
     return currentForm.fields
       .filter(field => field.required)
       .every(field => formData[field.name] && formData[field.name].trim() !== '');
@@ -114,13 +118,13 @@ export function SectionDeployCarousel() {
     async (
       powersAddress: `0x${string}`
     ) => {  
-        console.log("@execute: waypoint 0", {powersAddress})
+        // console.log("@execute: waypoint 0", {powersAddress})
         setError(null)
         setStatus("pending")
         try {
           // Create dynamic law initialization data based on current form
           const lawInitData = createLawInitDataForCurrentForm(powersAddress);
-          console.log("Calling constitute with dynamic law data:", lawInitData)
+          // console.log("Calling constitute with dynamic law data:", lawInitData)
           
           const { request } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
@@ -129,21 +133,21 @@ export function SectionDeployCarousel() {
             args: [lawInitData]
           })
 
-          console.log("@execute: waypoint 1", {request})
+          // console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          console.log("@execute: waypoint 2", {client})
+          // console.log("@execute: waypoint 2", {client})
           
           if (request) {
-            console.log("@execute: waypoint 3", {request})
+            // console.log("@execute: waypoint 3", {request})
             const result = await writeContract(wagmiConfig, request)
             setTransactionHash(result)
             setConstituteCompleted(true)
-            console.log("@execute: waypoint 4", {result})
+            // console.log("@execute: waypoint 4", {result})
           }
         } catch (error) {
           setStatus("error") 
           setError(error)
-          console.log("@execute: waypoint 5", {error}) 
+          // console.log("@execute: waypoint 5", {error}) 
       }
   }, [currentFormIndex, formData] )
 
@@ -368,7 +372,8 @@ export function SectionDeployCarousel() {
         <div className="text-center">
           <p className="text-sm text-slate-500 max-w-2xl">
             <strong>Important:</strong> These deployments are for testing purposes only. 
-            The Powers protocol has not been audited and should not be used for production environments.
+            The Powers protocol has not been audited and should not be used for production environments. 
+            Many of the examples lack basic security mechanisms and are for demo purposes only.
           </p>
         </div>
       </div>

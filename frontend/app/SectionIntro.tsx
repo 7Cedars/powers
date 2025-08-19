@@ -12,10 +12,10 @@ export function SectionIntro() {
         {/* title  */}
           <section className="w-full flex flex-col justify-center items-center pt-12">
               <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
-                The next generation of on-chain governance
+              Codify stakeholder relations
               </div>
               <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-4xl text-center pt-1">
-               Powers allows a single decision to travel along multiple stakeholders through a modular, asynchronous and trustless governance path before it is executed.
+                Powers allows a single action to travel along multiple stakeholders through a modular, asynchronous and trustless governance path before it is executed.
               </div>
           </section>
 
@@ -42,7 +42,7 @@ export function SectionIntro() {
                   Read the documentation
                 </a>
                 <ArrowUpRightIcon
-                  className="w-6 h-6 m-1 text-slate-700 text-center font-bold"
+                  className="w-6 h-6 m-1 text-slate-700 text-center font-bold" 
                 />
               </div>
           </section>

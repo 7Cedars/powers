@@ -238,7 +238,7 @@ abstract contract Law is ERC165, ILaw {
     /// @dev Implements IERC165
     /// @param interfaceId Interface identifier to check
     /// @return True if interface is supported
-    function supportsInterface(bytes4 interfaceId) public view override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC165, IERC165) virtual returns (bool) {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 }

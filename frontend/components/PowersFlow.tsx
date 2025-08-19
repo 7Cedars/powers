@@ -238,6 +238,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     const currentLawAction = actionData.get(String(law.index))
     // console.log("currentLawAction", currentLawAction)
     
+    // Helper function to get proposal data for current law
+    const getCurrentLawProposal = () => {
+      if (!powers?.proposals) return null
+      return powers.proposals.find(proposal => proposal.lawId === law.index)
+    }
+    
     switch (itemKey) {
       case 'needCompleted':
       case 'needNotCompleted':
@@ -254,18 +260,50 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         return null
       
       case 'proposalCreated':
+        // Show proposal creation time - use voteStart from current law's action data or proposal data
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
+        }
+        // Fallback to proposal data if action data not available
+        const proposal = getCurrentLawProposal()
+        if (proposal && proposal.voteStart && proposal.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(proposal.voteStart)
+        }
+        return null
+      
       case 'voteStarted':
         // Use voteStart field - show if current law has action data with voteStart
         if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
         }
+        // Fallback to proposal data
+        const proposalForVoteStart = getCurrentLawProposal()
+        if (proposalForVoteStart && proposalForVoteStart.voteStart && proposalForVoteStart.voteStart !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForVoteStart.voteStart)
+        }
         return null
       
       case 'voteEnded':
-      case 'proposalPassed':
-        // Use voteEnd field - only show if current law has action data and vote has ended
+        // Use voteEnd field - show when vote has ended
         if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
+        }
+        // Fallback to proposal data
+        const proposalForVoteEnd = getCurrentLawProposal()
+        if (proposalForVoteEnd && proposalForVoteEnd.voteEnd && proposalForVoteEnd.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForVoteEnd.voteEnd)
+        }
+        return null
+      
+      case 'proposalPassed':
+        // Use voteEnd field - show when proposal passed (vote ended successfully)
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
+        }
+        // Fallback to proposal data
+        const proposalForPassed = getCurrentLawProposal()
+        if (proposalForPassed && proposalForPassed.voteEnd && proposalForPassed.voteEnd !== 0n) {
+          return formatBlockNumberOrTimestamp(proposalForPassed.voteEnd)
         }
         return null
       
@@ -274,6 +312,13 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         // Only show if current law has action data with voteEnd
         if (law.conditions && law.conditions.delayExecution !== 0n && currentLawAction?.voteEnd) {
           return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
+        }
+        // Fallback to proposal data for delay calculation
+        if (law.conditions && law.conditions.delayExecution !== 0n) {
+          const proposalForDelay = getCurrentLawProposal()
+          if (proposalForDelay && proposalForDelay.voteEnd && proposalForDelay.voteEnd !== 0n) {
+            return calculateDelayPassTime(proposalForDelay.voteEnd, law.conditions.delayExecution)
+          }
         }
         // Return null if no action data or no delay condition
         return null
@@ -872,6 +917,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
   const { status: checksStatus } = useChecksStatusStore()
+  const pathname = usePathname()
 
   // console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
   
@@ -1090,6 +1136,40 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }
   }, [setViewport, fitView, getViewport, action.lawId, selectedLawId, calculateFitViewOptions, fitViewWithPanel])
 
+  // Auto-fit view when navigating to home page (no selected law)
+  React.useEffect(() => {
+    // Don't change viewport if:
+    // 1. ReactFlow isn't initialized yet
+    // 2. Checks are currently being performed (pending status)
+    // 3. User has manually interacted with the viewport recently
+    if (!isInitialized || checksStatus === "pending" || userHasInteracted) return
+    
+    // Check if we're on the home page (no law selected in URL)
+    const isHomePage = !pathname.includes('/laws/')
+    
+    // If there's no selected law (home page), fit all nodes in view
+    if ((!action.lawId && !selectedLawId) || isHomePage) {
+      const timer = setTimeout(() => {
+        fitViewWithPanel()
+        // Save the fitted viewport
+        setTimeout(() => {
+          const currentViewport = getViewport()
+          setStoredViewport(currentViewport)
+        }, 900)
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [action.lawId, selectedLawId, isInitialized, checksStatus, userHasInteracted, fitViewWithPanel, getViewport, pathname])
+
+  // Reset user interaction flag when navigating to home page
+  React.useEffect(() => {
+    const isHomePage = !pathname.includes('/laws/')
+    if (isHomePage) {
+      setUserHasInteracted(false)
+    }
+  }, [pathname])
+
   // Auto-zoom to selected law from store or restore previous viewport
   React.useEffect(() => {
     // Don't change viewport if:
@@ -1106,7 +1186,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         if (action.lawId && action.lawId !== 0n) {
           // Zoom to the law stored in the action store
           const selectedNode = getNode(String(action.lawId))
-          console.log("@onInit: waypoint 0", {selectedNode})
+          // console.log("@onInit: waypoint 0", {selectedNode})
           if (selectedNode) {
             const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
             setCenter(centerPos.x, centerPos.y, {
@@ -1357,6 +1437,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         <div className="text-center">
           <div className="text-gray-500 text-lg mb-2">No active laws found</div>
           <div className="text-gray-400 text-sm">Deploy some laws to see the visualization</div>
+          <div className="text-gray-400 text-sm">Or press the refresh button to load the latest laws</div>
         </div>
       </div>
     )
@@ -1391,7 +1472,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         onInit={onInit}
         onNodeDragStop={onNodeDragStop}
       >
-        <Controls />
         <Background />
         <MiniMap 
           nodeColor={(node) => {

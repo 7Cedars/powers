@@ -12,15 +12,11 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A base contract that executes a open action.
-///
-/// Note As the contract allows for any action to be executed, it severely limits the functionality of the Powers protocol.
-/// - any role that has access to this law, can execute any function. It has full power of the DAO.
-/// - if this law is restricted by PUBLIC_ROLE, it means that anyone has access to it. Which means that anyone is given the right to do anything through the DAO.
-/// - The contract should always be used in combination with modifiers from {PowerModiifiers}.
+/// @notice A base contract that takes an input but does not execute any logic.
 ///
 /// The logic:
 /// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
+/// - the lawCalldata is not executed.
 ///
 /// @author 7Cedars,
 

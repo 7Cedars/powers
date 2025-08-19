@@ -24,6 +24,7 @@ import { DirectDeselect } from "../../../src/laws/electoral/DirectDeselect.sol";
 // import { Subscription } from "../../../src/laws/electoral/Subscription.sol";
 import { StartElection } from "../../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../../src/laws/electoral/EndElection.sol";
+import { NStrikesYourOut } from "../../../src/laws/electoral/NStrikesYourOut.sol";
 
 contract DelegateSelectTest is TestSetupElectoral {
     using ShortStrings for *;
@@ -984,7 +985,7 @@ contract DirectSelectTest is TestSetupElectoral {
 
         // assert
         assertNotEq(daoMock.hasRoleSince(bob, ROLE_FOUR), 0, "Bob should still have ROLE_FOUR");
-        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_FOUR), 0, "Charlotte should have ROLE_FOUR");
+        assertNotEq(daoMock.hasRoleSince(charlotte, ROLE_FOUR), 0, "Charlotte should still have ROLE_FOUR");
     }
 
     function testHandleRequestOutput() public {
@@ -1717,6 +1718,385 @@ contract EndElectionTest is TestSetupElectoral {
         assertNotEq(actionId, 0, "Action ID should not be 0");
     }
 }
+
+contract NStrikesYourOutTest is TestSetupElectoral {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the NStrikesYourOut contract from the test setup
+        uint16 nStrikesYourOut = 14;
+        (address nStrikesYourOutAddress, , ) = daoMock.getActiveLaw(nStrikesYourOut);
+        
+        vm.startPrank(address(daoMock));
+        assertEq(Law(nStrikesYourOutAddress).getConditions(address(daoMock), nStrikesYourOut).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
+        assertEq(Law(nStrikesYourOutAddress).getConditions(address(daoMock), nStrikesYourOut).readStateFrom, 13, "ReadStateFrom should be set to FlagActions law");
+        assertEq(Law(nStrikesYourOutAddress).getExecutions(address(daoMock), nStrikesYourOut).powers, address(daoMock), "Powers address should be set correctly");
+        vm.stopPrank();
+    }
+
+    function testRevokeRoleAfterEnoughStrikes() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15; // New StatementOfIntent law
+        (address nStrikesYourOutAddress, , ) = daoMock.getActiveLaw(nStrikesYourOut);
+        (address flagActionsAddress, , ) = daoMock.getActiveLaw(flagActions);
+        
+        // Assign multiple roles to bob first
+        vm.startPrank(address(daoMock));
+        daoMock.assignRole(4, bob); // roleId 4 as configured in constitution
+        daoMock.assignRole(5, bob); // roleId 5 as configured in constitution
+        vm.stopPrank();
+
+        // Create actual actions by bob using StatementOfIntent law
+        // These will be the actions that bob "executed" and then got flagged
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Bob creates 3 actions using StatementOfIntent law (these are the "bad" actions)
+        vm.startPrank(bob);
+        for (i = 0; i < 3; i++) {
+            // Create empty proposal (StatementOfIntent doesn't execute anything)
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            // Store the action ID that was just created
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions as problematic
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice); // roleId 1 as configured in constitution
+
+        vm.startPrank(alice);
+        for (i = 0; i < 3; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true); // flag the specific actionIds
+            daoMock.request(flagActions, flagCalldata, nonce + i + 3, "Flag bob's problematic actions");
+        }
+        vm.stopPrank();
+        
+        // Now try to revoke bob's roles with enough strikes (3 strikes, need 3)
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        vm.prank(alice);
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce, "Revoke role after strikes");
+        
+        // assert
+        assertFalse(daoMock.hasRoleSince(bob, 4) != 0, "Role should be revoked");
+    }
+
+    function testCannotRevokeWithInsufficientStrikes() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        
+        // Assign role to bob first
+        vm.prank(address(daoMock));
+        daoMock.assignRole(4, bob);
+        
+        // Create actual actions by bob using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](2);
+        
+        // Bob creates 2 actions using StatementOfIntent law (only 2 strikes, need 3)
+        vm.startPrank(bob);
+        for (i = 0; i < 2; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        vm.startPrank(alice);
+        for (i = 0; i < 2; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true);
+            daoMock.request(flagActions, flagCalldata, nonce + i + 10, "Flag bob's action");
+        }
+        vm.stopPrank();
+        
+        // Now try to revoke bob's role with only 2 strikes (need 3)
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        vm.prank(alice);
+        vm.expectRevert("Not enough strikes to revoke role.");
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce + 20, "Revoke with insufficient strikes");
+    }
+
+    function testCannotRevokeAccountWithoutRole() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        
+        // Create actual actions by bob using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Bob creates 3 actions using StatementOfIntent law
+        vm.startPrank(bob);
+        for (i = 0; i < 3; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        // vm.startPrank(alice);
+        // for (i = 0; i < 3; i++) {
+        //     bytes memory flagCalldata = abi.encode(helen, actionIdsToFlag[i]);
+        //     daoMock.request(flagActions, flagCalldata, nonce + i + 10, "Flag bob's action");
+        // }
+        // vm.stopPrank();
+        
+        // Try to revoke helen's role (helen doesn't have role 4)
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(helen, actionIdsToFlag);
+        
+        vm.prank(alice);
+        vm.expectRevert("Action is not from account being revoked.");
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce + 20, "Revoke account without role");
+    }
+
+    function testHandleRequestOutputNStrikesYourOut() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        (address nStrikesYourOutAddress, , ) = daoMock.getActiveLaw(nStrikesYourOut);
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        
+        // Create actual actions by bob using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Bob creates 3 actions using StatementOfIntent law
+        vm.startPrank(bob);
+        for (i = 0; i < 3; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        vm.startPrank(alice);
+        for (i = 0; i < 3; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true);
+            daoMock.request(flagActions, flagCalldata, nonce + i + 10, "Flag bob's action");
+        }
+        vm.stopPrank();
+        
+        // Assign role to bob
+        vm.prank(address(daoMock));
+        daoMock.assignRole(4, bob);
+        
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (
+            actionId,
+            targets,
+            values,
+            calldatas,
+            stateChange
+        ) = Law(nStrikesYourOutAddress).handleRequest(alice, address(daoMock), nStrikesYourOut, lawCalldata, nonce + 20);
+        
+        // assert
+        assertEq(targets.length, 4, "Should have four targets");
+        assertEq(values.length, 4, "Should have four value");
+        assertEq(calldatas.length, 4, "Should have four calldata");
+        assertEq(targets[0], address(daoMock), "Target should be the DAO");
+        assertEq(values[0], 0, "Value should be 0");
+        assertNotEq(calldatas[0], "", "Calldata should not be empty");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+    }
+
+    function testStoredData() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        (address nStrikesYourOutAddress, , ) = daoMock.getActiveLaw(nStrikesYourOut);
+        
+        lawHash = LawUtilities.hashLaw(address(daoMock), nStrikesYourOut);
+        NStrikesYourOut.Data memory data = NStrikesYourOut(nStrikesYourOutAddress).getData(lawHash);
+        
+        // assert - Data structure changed to roleIds array and numberStrikes
+        assertEq(data.roleIds.length, 4, "Should have four role ID configured");
+        assertEq(data.roleIds[0], 3, "First role ID should be set to 3");
+        assertEq(data.numberStrikes, 3, "Number of strikes should be set to 3");
+    }
+
+    function testUnauthorizedAccess() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        
+        // Create actual actions by bob using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Bob creates 3 actions using StatementOfIntent law
+        vm.startPrank(bob);
+        for (i = 0; i < 3; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        vm.startPrank(alice);
+        for (i = 0; i < 3; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true);
+            daoMock.request(flagActions, flagCalldata, nonce + i + 10, "Flag bob's action");
+        }
+        vm.stopPrank();
+        
+        // Assign role to bob
+        vm.prank(address(daoMock));
+        daoMock.assignRole(4, bob);
+        
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        // Try to revoke role without proper role
+        vm.prank(helen);
+        vm.expectRevert(abi.encodeWithSignature("Powers__AccessDenied()"));
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce + 20, "Unauthorized role revocation");
+    }
+
+    function testRevokeMultipleRolesAfterEnoughStrikes() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        (address nStrikesYourOutAddress, , ) = daoMock.getActiveLaw(nStrikesYourOut);
+        
+        // Assign multiple roles to bob first
+        vm.startPrank(address(daoMock));
+        daoMock.assignRole(4, bob); // roleId 4 as configured in constitution
+        daoMock.assignRole(5, bob); // roleId 5 as configured in constitution
+        daoMock.assignRole(6, bob); // roleId 6 as configured in constitution
+        vm.stopPrank(); 
+
+        // Create actual actions by bob using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Bob creates 3 actions using StatementOfIntent law (these are the "bad" actions)
+        vm.startPrank(bob);
+        for (i = 0; i < 3; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Bob's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions as problematic
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice); // roleId 1 as configured in constitution
+
+        vm.startPrank(alice);
+        for (i = 0; i < 3; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true); // flag the specific actionIds
+            daoMock.request(flagActions, flagCalldata, nonce + i + 3, "Flag bob's problematic actions");
+        }
+        vm.stopPrank();
+        
+        // Now try to revoke bob's roles with enough strikes (3 strikes, need 3)
+        // roleId parameter is now required in the calldata
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        vm.prank(alice);
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce, "Revoke role after strikes");
+        
+        // assert - should revoke all roles that bob has from the configured roleIds array
+        assertFalse(daoMock.hasRoleSince(bob, 4) != 0, "Role 4 should be revoked");
+        assertFalse(daoMock.hasRoleSince(bob, 5) != 0, "Role 5 should be revoked");
+        assertFalse(daoMock.hasRoleSince(bob, 6) != 0, "Role 6 should be revoked");
+    }
+
+    function testCallerMismatchRevert() public {
+        // prep
+        uint16 nStrikesYourOut = 14;
+        uint16 flagActions = 13;
+        uint16 statementOfIntent = 15;
+        
+        // Assign role to bob first
+        vm.prank(address(daoMock));
+        daoMock.assignRole(4, bob);
+        
+        // Create actual actions by charlotte using StatementOfIntent law
+        uint256[] memory actionIdsToFlag = new uint256[](3);
+        
+        // Charlotte creates 3 actions using StatementOfIntent law
+        vm.startPrank(charlotte);
+        for (i = 0; i < 3; i++) {
+            targets = new address[](0);
+            values = new uint256[](0);
+            calldatas = new bytes[](0);
+            bytes memory proposalCalldata = abi.encode(targets, values, calldatas);
+            
+            daoMock.request(statementOfIntent, proposalCalldata, nonce + i, "Charlotte's action that gets flagged");
+            actionIdsToFlag[i] = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce + i);
+        }
+        vm.stopPrank();
+        
+        // Now alice flags these specific actions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+        
+        vm.startPrank(alice);
+        for (i = 0; i < 3; i++) {
+            bytes memory flagCalldata = abi.encode(actionIdsToFlag[i], true);
+            daoMock.request(flagActions, flagCalldata, nonce + i + 10, "Flag charlotte's action");
+        }
+        vm.stopPrank();
+        
+        // Try to revoke bob's role using charlotte's flagged actions (caller mismatch)
+        lawCalldata = abi.encode(bob, actionIdsToFlag);
+        
+        vm.prank(alice);
+        vm.expectRevert("Action is not from account being revoked.");
+        daoMock.request(nStrikesYourOut, lawCalldata, nonce + 20, "Revoke with caller mismatch");
+    }
+} 
 
 
 

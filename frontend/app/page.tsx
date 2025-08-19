@@ -7,13 +7,11 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
-import { SectionRunDemo } from "./SectionRunDemo";
 import { SectionDeployCarousel } from "./SectionDeployCarousel";
 import { Footer } from "./Footer";
-import { SectionAdvantages } from "./SectionAdvantages";
 
 import { 
     ChevronDownIcon
@@ -26,12 +24,12 @@ export default function Page() {
             
                 {/* Title and subtitle */}
                 <section className="w-full flex flex-col justify-center items-center p-4 pt-20 pb-20">
-                    <div className = "w-full flex flex-col gap-2 justify-center items-center text-3xl sm:text-6xl text-slate-100 max-w-2xl text-center text-pretty">
+                    <div className = "w-full flex flex-col gap-2 justify-center items-center text-3xl sm:text-6xl text-slate-100 max-w-4xl text-center text-pretty">
                         Communities thrive with 
                         <b>Powers</b>  
                     </div>
-                    <div className = "w-full flex justify-center items-center text-xl sm:text-2xl py-4 text-slate-300 max-w-3xl text-center p-4">
-                        Increase security, transparency and efficiency by separating and distributing powers in on-chain organisations.
+                    <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
+                        Separate and distribute on-chain powers through role-based governance.
                     </div>
                 </section> 
 
@@ -44,9 +42,7 @@ export default function Page() {
             </section>
 
             < SectionIntro /> 
-            {/* < SectionAdvantages />  */}
             < SectionUsecases /> 
-            {/* < SectionRunDemo /> */}
             < SectionDeployCarousel />
             <div className = "min-h-48"/>  
             < Footer /> 

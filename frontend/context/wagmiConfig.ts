@@ -1,6 +1,6 @@
 import { createConfig, http, webSocket } from '@wagmi/core'
 import { injected, coinbaseWallet } from '@wagmi/connectors'
-import { foundry, sepolia, polygonMumbai, baseSepolia, arbitrumSepolia, mainnet, xLayerTestnet } from '@wagmi/core/chains' 
+import { foundry, sepolia, polygonMumbai, baseSepolia, arbitrumSepolia, mainnet, xLayerTestnet, mantleSepoliaTestnet } from '@wagmi/core/chains' 
 import { defineChain } from 'viem'
 
 const sourceId = 11_155_111 // sepolia
@@ -51,7 +51,6 @@ export const optimismSepolia = defineChain({
   sourceId,
 })
 
-
 // [ = preferred ]
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
@@ -60,6 +59,7 @@ export const wagmiConfig = createConfig({
     arbitrumSepolia, 
     sepolia, 
     optimismSepolia,
+    mantleSepoliaTestnet,
     ...(isLocalhost ? [foundry] : [])
   ],
   // batch: { multicall: true }, 
@@ -68,6 +68,7 @@ export const wagmiConfig = createConfig({
     [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_ARB_SEPOLIA_HTTPS), 
     [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_HTTPS), 
     [optimismSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_OPT_SEPOLIA_HTTPS),
+    [mantleSepoliaTestnet.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_MANTLE_SEPOLIA_HTTPS),
     // [baseSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_BASE_SEPOLIA_HTTPS),
     [foundry.id]: http("http://localhost:8545"),   
   },

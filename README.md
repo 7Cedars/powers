@@ -12,12 +12,12 @@
 <br />
 <div align="center">
   <a href="https://github.com/7Cedars/powers"> 
-    <img src="public/powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
+    <img src="./powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
   </a>
 
 <h3 align="center">Powers</h3>
   <p align="center">
-    A role restricted governance protocol for DAOs
+    Role-based governance for on-chain organisations
     <br />
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·
@@ -56,7 +56,7 @@ Powers restricts governance processes along access roles. It allows a single dec
 
 Powers enables three key governance patterns that solve common DAO challenges:
 
-**🔐 Grant Management**: Create accountable grant programs where council members can allocate funds, but decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
+**🔐 Grant Management**: Create accountable grant programs where different roles can allocate different funds, and decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
 
 **⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
 
@@ -164,6 +164,14 @@ For detailed information on creating your own laws and organizations, please ref
 * Wagmi / viem
 * Privy.io
 
+### Acknowledgements
+* Arnold Almeida
+* James M 
+* Paulo Fonseca
+* Andrei V  
+* Arbitrum DAO 
+* RnDAO 
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- LICENSE -->
@@ -174,6 +182,26 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
+## Contributing
+
+We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to:
+
+- Report bugs
+- Request features
+- Submit pull requests
+- Follow our coding standards
+
+### Quick Start for Contributors
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Commit your changes: `git commit -m 'feat: add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+For more detailed information, please read our [Contributing Guidelines](CONTRIBUTING.md).
+
 ## Contact
 Seven Cedars - [Github profile](https://github.com/7Cedars) - cedars7@proton.me
 

@@ -34,9 +34,10 @@ type ExecutionsProps = {
   lawExecutions: LawExecutions | undefined
   powers: Powers | undefined;
   status: Status;
+  onRefresh?: () => void;
 };
 
-export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsProps) => {
+export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: ExecutionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const { fetchActionData, data: actionData } = useAction()
@@ -81,7 +82,7 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
                })
              } catch (ensError) {
                // ENS lookup failed, continue without ENS name
-               console.log('ENS lookup failed for:', parsedActionData.caller)
+               // console.log('ENS lookup failed for:', parsedActionData.caller)
              }
              return {
                execution,
@@ -139,6 +140,9 @@ export const Executions = ({roleId, lawExecutions, powers, status}: ExecutionsPr
               className="p-1 hover:bg-slate-200 rounded transition-colors"
               onClick={() => {
                 fetchCallers()
+                if (onRefresh) {
+                  onRefresh()
+                }
               }}
             >
               {isRefreshing ? (

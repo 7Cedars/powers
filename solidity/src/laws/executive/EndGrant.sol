@@ -26,14 +26,9 @@ import { ILaw } from "../../interfaces/ILaw.sol";
 import { StartGrant } from "./StartGrant.sol";
 import { Grant } from "../state/Grant.sol";
 
-contract EndGrant is Law {
-    /// @notice Constructor for the EndGrant contract
-    /// @param name_ Name of the law
-    struct Data {
-        uint256 maxBudgetLeft;
-        bool checkDuration;
-    }
+// import "forge-std/console2.sol";
 
+contract EndGrant is Law {
     struct Mem {
         bytes32 lawHash;
         uint16 needCompleted;
@@ -41,17 +36,11 @@ contract EndGrant is Law {
         address startGrantLaw;
         bytes32 startGrantLawHash;
         address grantLaw;
-        uint256 tokensLeft;
-        uint48 durationLeft;
+        uint256[] milestoneDisbursement;
+        uint256 lastDisbursementIndex;
     }
-
-    mapping(bytes32 lawHash => Data) public data;
-
     constructor() {
-        bytes memory configParams = abi.encode(
-            "uint256 maxBudgetLeft",
-            "bool checkDuration"
-        );
+        bytes memory configParams = abi.encode();
         emit Law__Deployed(configParams);
     }
 
@@ -67,19 +56,9 @@ contract EndGrant is Law {
         Conditions memory conditions, 
         bytes memory config
     ) public override {
-        (uint256 maxBudgetLeft, bool checkDuration) = abi.decode(config, (uint256, bool));
-        data[LawUtilities.hashLaw(msg.sender, index)] = Data({
-            maxBudgetLeft: maxBudgetLeft,
-            checkDuration: checkDuration
-        });
-
-        inputParams = abi.encode(
-            "uint48 Duration",
-            "uint256 Budget",
-            "address Token", 
-            "string NameDescription"
-        );
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
+        inputParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursement", "uint256 prevActionId");
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+    }
 
     /// @notice Handles the request to adopt a new law
     /// @param caller Address initiating the request
@@ -121,24 +100,22 @@ contract EndGrant is Law {
         mem.startGrantLawHash = LawUtilities.hashLaw(powers, mem.needCompleted);
         mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.startGrantLawHash, lawCalldata);
         (mem.grantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.grantId);
-
-        // check if grant has spent all tokens
-        if (data[mem.lawHash].maxBudgetLeft > 0) {
-            mem.tokensLeft = Grant(mem.grantLaw).getTokensLeft(LawUtilities.hashLaw(powers, mem.grantId));
-            if (mem.tokensLeft > data[mem.lawHash].maxBudgetLeft) {
-                revert("Grant has not spent all tokens.");
-            }
+        
+        // Decode the law calldata to get milestoneDisbursement array
+        (,,, mem.milestoneDisbursement,) = abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
+        
+        // Calculate the index of the last disbursement
+        mem.lastDisbursementIndex = mem.milestoneDisbursement.length > 0 ? mem.milestoneDisbursement.length - 1 : 0;
+        
+        // Check if the last disbursement has been released
+        Grant.Disbursement memory lastDisbursement = Grant(mem.grantLaw).getDisbursement(
+            LawUtilities.hashLaw(powers, mem.grantId), mem.lastDisbursementIndex
+            );
+        if (!lastDisbursement.released) {
+            revert("Last disbursement has not been released yet.");
         }
-
-        // check if grant has expired
-        if (data[mem.lawHash].checkDuration) {
-            mem.durationLeft = Grant(mem.grantLaw).getDurationLeft(LawUtilities.hashLaw(powers, mem.grantId));
-            if (mem.durationLeft > 0) {
-                revert("Grant has not expired.");
-            }
-        }
-
-        // if check passed create arrays for the adoption call
+        
+        // if all checks passed create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         
         // Set up the call to revokeLaw in Powers
@@ -150,11 +127,6 @@ contract EndGrant is Law {
 
         // Generate action ID
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-
         return (actionId, targets, values, calldatas, "");
-    }
-
-    function getData(bytes32 lawHash) public view returns (Data memory) {
-        return data[lawHash];
     }
 }

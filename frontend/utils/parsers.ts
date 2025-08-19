@@ -140,7 +140,7 @@ export const parseAttributes = (attributes: unknown): Attribute[]  => {
 
 export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataType): InputType => {
   // very basic parser. Here necessary input checks can be added later.  
-  console.log("@parseInput: ", {event, dataType})
+  // console.log("@parseInput: ", {event, dataType})
 
   const errorMessage = 'Incorrect input data';
   if ( !event.target.value && typeof event.target.value !== 'string' && typeof event.target.value !== 'number' && typeof event.target.value !== 'boolean' ) {
@@ -153,16 +153,41 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   // Note that later on I can also check for maximum values by taking the power of uintxxx
   if (dataType.indexOf('uint') > -1) {
-    console.log("@parseInput UINT: waypoint 0", {event, dataType})
+    // console.log("@parseInput UINT: waypoint 0", {event, dataType})
     try {
-      return Number(event.target.value) 
+      // For large numbers, we need to handle them as strings to avoid precision loss
+      // JavaScript Number can only safely represent integers up to 2^53 - 1
+      const value = event.target.value.trim()
+      
+      // Check if it's a valid number (only digits)
+      if (!/^\d+$/.test(value)) {
+        return errorMessage
+      }
+      
+      // For very large numbers, use BigInt to preserve precision
+      // JavaScript Number can only safely represent integers up to 2^53 - 1
+      if (value.length > 15) { // Numbers with more than 15 digits may lose precision
+        try {
+          return BigInt(value)
+        } catch {
+          return errorMessage
+        }
+      }
+      
+      // For smaller numbers, we can safely use Number
+      const numValue = Number(value)
+      if (isNaN(numValue) || !Number.isSafeInteger(numValue)) {
+        return errorMessage
+      }
+      
+      return numValue
     } catch {
       return errorMessage
     }
   }
   
   if (dataType.indexOf('string') > -1) { 
-    console.log("@parseInput STRING: waypoint 0", {event, dataType})
+    // console.log("@parseInput STRING: waypoint 0", {event, dataType})
     try {
       return event.target.value as string 
     } catch {
@@ -172,7 +197,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   if (dataType.indexOf('bool') > -1) { 
     try {
-      console.log("@parseInput BOOL: waypoint 1", {event, value: event.target.value})
+      // console.log("@parseInput BOOL: waypoint 1", {event, value: event.target.value})
       return event.target.value == "true" ? true : false
     } catch {
       return errorMessage
@@ -181,7 +206,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
   
   if (dataType.indexOf('address') > -1) {
     try {
-      console.log("@parseInput ADDRESS: waypoint 0", {event, dataType})
+      // console.log("@parseInput ADDRESS: waypoint 0", {event, dataType})
       return event.target.value as `0x${string}` 
     } catch {
       return errorMessage
@@ -190,7 +215,7 @@ export const parseInput = (event: ChangeEvent<HTMLInputElement>, dataType: DataT
 
   if (dataType.indexOf('bytes') > -1)  {
     try {
-      console.log("@parseInput BYTES: waypoint 0", {event, dataType})
+      // console.log("@parseInput BYTES: waypoint 0", {event, dataType})
       return event.target.value as `0x${string}` 
     } catch {
       return errorMessage
@@ -238,7 +263,7 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
   }
   const dataTypes = data.map(item => item as UseReadContractsReturnType) 
 
-  console.log("@parseVoteData: waypoint 0", {dataTypes})
+  // console.log("@parseVoteData: waypoint 0", {dataTypes})
   
   let votes: number[]
   let holders: number 
@@ -279,30 +304,62 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
   return {votes, holders, deadline, state}
 }
   
-// direct copy for now from loyal-customer-engagement project. Adapt as needed. 
-export const parseLawError = (rawReply: unknown): boolean | string  => {
-  if (typeof rawReply == null) {
-    return false
+// Parse different types of errors and extract meaningful error messages
+export const parseLawError = (rawReply: unknown): string => {
+  // Handle null/undefined input
+  if (rawReply == null) {
+    return "."
   }
+
+  // Convert to string for processing
+  let errorString: string
   try {
-    String(rawReply)
+    errorString = String(rawReply)
   } catch {
-    throw new Error('Incorrect or missing data at rawReply');
+    return "."
   }
 
+  // Handle boolean input
   if (typeof rawReply === 'boolean') {
-    return rawReply
+    return "."
   }
 
-  if (typeof rawReply !== 'boolean') {
-    const splitString = String(rawReply).split(`\n`) 
-    // console.log(rawReply)
-    return splitString[2]
+  // Handle contract revert errors with hex signature
+  if (errorString.includes("The contract function") && errorString.includes("reverted with the following signature:")) {
+    const signatureMatch = errorString.match(/reverted with the following signature:\s*(0x[a-fA-F0-9]+)/)
+    if (signatureMatch && signatureMatch[1]) {
+      return `: The error signature is ${signatureMatch[1]}. That is all I know.`
+    }
   }
 
-  else {
-    return false 
+  // Handle FailedCall() errors
+  if (errorString.includes("FailedCall()")) {
+    return ": the call reverted. Something seems to be wrong with the calldata. Please check and try again."
   }
+
+  // Handle invalid address errors
+  if (errorString.includes("Address") && errorString.includes("is invalid") && errorString.includes("viem@")) {
+    return ": invalid account address provided."
+  }
+
+  // Handle SizeExceedsPaddingSizeError
+  if (errorString.includes("SizeExceedsPaddingSizeError")) {
+    return ": Invalid calldata provide. Please make sure it follows the 0x format."
+  }
+
+  // Handle contract revert errors with reason
+  if (errorString.includes("reverted with the following reason:")) {
+    const reasonMatch = errorString.match(/reverted with the following reason:\s*([^.\n]+)/)
+    if (reasonMatch && reasonMatch[1]) {
+      return `: ${reasonMatch[1].trim()}`
+    }
+  }
+
+  // Handle other contract errors that might have different patterns
+  // Add more patterns here as needed for different error types
+  
+  // If no recognized error pattern is found, return empty string
+  return ". Please try again."
 };
 
 export const parseUri = (uri: unknown): string => {
@@ -432,15 +489,15 @@ export const shorterDescription = (message: string | undefined, output: "short" 
 };
 
 // would be great to make this more dynamic. 
-export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | 31337 | undefined => {
+export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined => {
   // console.log("@parseChainId: waypoint 0", {chainId})
   if (!chainId) {
     return undefined
   }
-  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420" && chainId !== "31337") {
+  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420" && chainId !== "5003" && chainId !== "31337") {
     return undefined
   }
-  return parseInt(chainId) as 421614 | 11155111 | 11155420 | 31337 | undefined
+  return parseInt(chainId) as 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined
 }
 
 

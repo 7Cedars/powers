@@ -83,10 +83,24 @@ export default function FlowPage() {
   }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
+    console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [, addressPowers, fetchPowers]) // updateProposals 
+
+  // Memoize the fetch functions to prevent infinite loops
+  const handleFetchProposals = useCallback(() => {
+    if (powers) {
+      fetchProposals(powers as Powers, 10n, 9000n)
+    }
+  }, [powers, fetchProposals])
+
+  const handleFetchExecutedActions = useCallback(() => {
+    if (powers) {
+      fetchExecutedActions(powers as Powers)
+    }
+  }, [powers, fetchExecutedActions])
   
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10">
@@ -156,13 +170,9 @@ export default function FlowPage() {
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20">
-      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {() => {
-        fetchExecutedActions(powers as Powers)
-      }}/>
+      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchExecutedActions}/>
 
-      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {() => {
-        fetchProposals(powers as Powers, 10n, 9000n)
-      }}/> 
+      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {handleFetchProposals}/> 
       
       <Assets status = {statusPowers} powers = {powers}/> 
       

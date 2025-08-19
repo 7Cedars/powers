@@ -57,7 +57,7 @@ export function ProposalBox({
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
   const {data: blockNumber} = useBlockNumber();
-  console.log("@proposalBox: ", {lawId, action, checks, statusProposal, hasVoted})
+  // console.log("@proposalBox: ", {lawId, action, checks, statusProposal, hasVoted})
 
   const handleCastVote = async (action: Action, support: bigint) => { 
     if (action) {

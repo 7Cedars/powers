@@ -101,7 +101,7 @@ contract ElectionList is Law {
             mem.nominateMeHash
             ) = ElectionStart(payable(mem.startElectionAddress)).getElectionData(mem.startElectionHash);
         if (block.number > mem.startElection) {
-            revert ("Election has already started.");
+            revert ("Election start block has already passed.");
         }
         (mem.nominees) = NominateMe(payable(mem.nominateMeAddress)).getNominees(mem.nominateMeHash);
 

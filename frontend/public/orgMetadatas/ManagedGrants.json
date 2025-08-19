@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
   "description": 
-    "An example of grant management using the Powers protocol. The original DAO retains control over the grant process, while delegating day-to-day governance to a council of governors.",
+    "An example of grant management using the Powers protocol. The original DAO retains control over the grant process, while delegating day-to-day governance to a council of governors. Please note that it does not check for sufficient funds when proposals are approved. This is by design to allow for more flexibility in the grant process. It is not able to spend more funds then the grant program has.",
   "erc20s": [
     "0x52536c4e334B57c56e36A5De4F4C3F2530a15851",
     "0x30cd84735502A954Ba7f16C10b79F7510E32DE57"

@@ -66,6 +66,13 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     address newLaw;
     uint16 lawId;
     uint16 lawCount; 
+    address tokenAddress; 
+    bytes32 firstGrantCalldata;
+    bytes32 secondGrantCalldata;
+    uint16 firstGrantId;
+    uint16 secondGrantId;
+    uint256 prevActionId;
+
 
     address[] nominees;
     uint256 roleCount;
@@ -118,6 +125,27 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     mapping(address => uint256) taxPaid;
     mapping(address => uint256) votesReceived;
     mapping(address => bool) hasVoted;
+
+    // Common test variables to reduce stack usage
+    // uint256[] milestoneDisbursements;
+    uint256[] milestoneDisbursements1;
+    uint256[] milestoneDisbursements2;
+    address[] targetsIn;
+    uint256[] valuesIn;
+    bytes[] calldatasIn;
+    address[] targets1;
+    uint256[] values1;
+    bytes[] calldatas1;
+    address[] targets2;
+    uint256[] values2;
+    bytes[] calldatas2;
+    string uriProposal;
+    string uriProposal1;
+    string uriProposal2;
+    string supportUri;
+    uint256[] milestones;
+    uint256[] actionIds;
+    string[] testStrings;
 }
 
 abstract contract TestHelpers is Test, TestVariables {

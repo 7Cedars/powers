@@ -1,4 +1,4 @@
-// // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
@@ -30,7 +30,6 @@ import { TaxSelect } from "../../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../../src/laws/state/Grant.sol";
 import { StartGrant } from "../../src/laws/executive/StartGrant.sol";
-import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
 import { VoteOnAccounts } from "../../src/laws/state/VoteOnAccounts.sol";
 import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
@@ -43,6 +42,10 @@ import { SnapToGov_CheckSnapExists } from "../../src/laws/integrations/SnapToGov
 import { ElectionStart } from "../../src/laws/electoral/ElectionStart.sol";
 import { ElectionList } from "../../src/laws/electoral/ElectionList.sol";
 import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
+import { NStrikesYourOut } from "../../src/laws/electoral/NStrikesYourOut.sol";
+import { GrantProposal } from "../../src/laws/executive/GrantProposal.sol";
+import { FlagActions } from "../../src/laws/state/FlagActions.sol";
+import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 
 // Mocks 
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -64,8 +67,8 @@ contract DeployAnvilMocks is Script {
         string[] memory mockNames,
         address[] memory mockAddresses
     ) {
-        lawNames = new string[](30);
-        lawAddresses = new address[](30);
+        lawNames = new string[](34);
+        lawAddresses = new address[](34);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -87,7 +90,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[14] = address(new HolderSelect());
         lawAddresses[15] = address(new Grant());
         lawAddresses[16] = address(new StartGrant());
-        lawAddresses[17] = address(new EndGrant());
+        lawAddresses[17] = address(new GrantProposal());
         lawAddresses[18] = address(new AdoptLaw());
         lawAddresses[19] = address(new VoteOnAccounts());
         lawAddresses[20] = address(new DirectDeselect());
@@ -104,6 +107,10 @@ contract DeployAnvilMocks is Script {
         lawAddresses[27] = address(new ElectionStart());
         lawAddresses[28] = address(new ElectionList());
         lawAddresses[29] = address(new ElectionTally());
+        lawAddresses[30] = address(new NStrikesYourOut());
+        lawAddresses[31] = address(new GrantProposal());
+        lawAddresses[32] = address(new FlagActions());
+        lawAddresses[33] = address(new EndGrant());
         
         vm.stopBroadcast();
 
@@ -135,7 +142,7 @@ contract DeployAnvilMocks is Script {
         lawNames[14] = "HolderSelect";
         lawNames[15] = "Grant";
         lawNames[16] = "StartGrant";
-        lawNames[17] = "EndGrant";
+        lawNames[17] = "GrantProposal";
         lawNames[18] = "AdoptLaw";
         lawNames[19] = "VoteOnAccounts";
         lawNames[20] = "DirectDeselect";
@@ -148,7 +155,11 @@ contract DeployAnvilMocks is Script {
         lawNames[27] = "ElectionStart";
         lawNames[28] = "ElectionList";
         lawNames[29] = "ElectionTally";
-
+        lawNames[30] = "NStrikesYourOut";
+        lawNames[31] = "GrantProposal";
+        lawNames[32] = "FlagActions";
+        lawNames[33] = "EndGrant";
+        
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

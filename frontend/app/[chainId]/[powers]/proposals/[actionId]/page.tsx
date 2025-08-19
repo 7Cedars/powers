@@ -33,11 +33,11 @@ const Page = () => {
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
 
   const handleCheck = async (lawId: bigint, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
-    console.log("@Proposal page: waypoint 2", {lawId, action, wallets, powers})
+    // console.log("@Proposal page: waypoint 2", {lawId, action, wallets, powers})
     fetchChainChecks(lawId, action.callData, BigInt(action.nonce), wallets, powers)
   }
 
-  console.log("@Proposal page: waypoint 0", {actionData, action})
+  // console.log("@Proposal page: waypoint 0", {actionData, action})
 
   useEffect(() => {
     if (addressPowers) {
