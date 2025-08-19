@@ -1,0 +1,32 @@
+# Global owners
+* @7Cedars
+
+# Solidity contracts and smart contract related files
+/solidity/ @7Cedars
+*.sol @7Cedars
+
+# Frontend application
+/frontend/ @7Cedars
+*.tsx @7Cedars
+*.ts @7Cedars
+*.js @7Cedars
+*.jsx @7Cedars
+
+# Documentation
+/gitbook/ @7Cedars
+/docs/ @7Cedars
+*.md @7Cedars
+
+# GitHub workflows and configuration
+/.github/ @7Cedars
+
+# Package files
+package.json @7Cedars
+yarn.lock @7Cedars
+package-lock.json @7Cedars
+
+# Configuration files
+foundry.toml @7Cedars
+next.config.mjs @7Cedars
+tailwind.config.js @7Cedars
+tsconfig.json @7Cedars

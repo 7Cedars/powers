@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Community Support
+    url: https://github.com/7Cedars/powers/discussions
+    about: Please ask and answer questions here.
+  - name: Documentation
+    url: https://7cedars.gitbook.io/powers-protocol
+    about: Check our documentation for answers.
