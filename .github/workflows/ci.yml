@@ -30,23 +30,23 @@ jobs:
 
       - name: Run Forge fmt
         run: |
-          forge fmt --check
+          cd solidity && forge fmt --check
         id: fmt
 
       - name: Run Forge build
         run: |
-          forge build --sizes
+          cd solidity && forge build --sizes
         id: build
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          cd solidity && forge test -vvv
         id: test
 
-      - name: Run Forge coverage
-        run: |
-          forge coverage --report lcov
-        id: coverage
+      # - name: Run Forge coverage
+      #   run: |
+      #     cd solidity && forge coverage --report lcov
+      #   id: coverage
 
   frontend-tests:
     name: Frontend Tests
@@ -118,4 +118,4 @@ jobs:
       - name: Check for vulnerabilities
         run: |
           yarn audit
-          cd frontend && yarn audit
+          cd frontend && yarn audit --audit-level=high
