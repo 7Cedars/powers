@@ -49,20 +49,19 @@ contract SnapToGov_CancelGov is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        (address governorContract_) =
-            abi.decode(config, (address));
+        (address governorContract_) = abi.decode(config, (address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        
+
         inputParams = abi.encode(
-                "string ProposalId", 
-                "string Choice", 
-                "address[] Targets", 
-                "uint256[] Values", 
-                "bytes[] CallDatas",
-                "string GovDescription"
+            "string ProposalId",
+            "string Choice",
+            "address[] Targets",
+            "uint256[] Values",
+            "bytes[] CallDatas",
+            "string GovDescription"
         );
 
         governorContracts[lawHash] = governorContract_;
@@ -86,33 +85,35 @@ contract SnapToGov_CancelGov is Law {
         MemProposal memory proposal;
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (   , 
-            ,
-            proposal.targets,
-            proposal.values,
-            proposal.calldatas,
-            proposal.description
-        ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
+        (,, proposal.targets, proposal.values, proposal.calldatas, proposal.description) =
+            abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
         uint256 proposalId = Governor(payable(governorContracts[lawHash])).getProposalId(
-            proposal.targets, 
-            proposal.values, 
-            proposal.calldatas, 
-            keccak256(bytes(proposal.description))
-            );
-        if (proposalId == 0) {    
+            proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description))
+        );
+        if (proposalId == 0) {
             revert("Proposal not found");
         }
 
         IGovernor.ProposalState state = Governor(payable(governorContracts[lawHash])).state(proposalId);
-        if (state == IGovernor.ProposalState.Succeeded || state == IGovernor.ProposalState.Expired || state == IGovernor.ProposalState.Canceled || state == IGovernor.ProposalState.Defeated || state == IGovernor.ProposalState.Executed) {
+        if (
+            state == IGovernor.ProposalState.Succeeded || state == IGovernor.ProposalState.Expired
+                || state == IGovernor.ProposalState.Canceled || state == IGovernor.ProposalState.Defeated
+                || state == IGovernor.ProposalState.Executed
+        ) {
             revert("Proposal already succeeded, expired, canceled, defeated or executed");
         }
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = governorContracts[lawHash];
-        calldatas[0] = abi.encodeWithSelector(Governor.cancel.selector, proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description)));
-        
+        calldatas[0] = abi.encodeWithSelector(
+            Governor.cancel.selector,
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            keccak256(bytes(proposal.description))
+        );
+
         return (actionId, targets, values, calldatas, "");
     }
 }

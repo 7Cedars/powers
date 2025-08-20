@@ -43,7 +43,7 @@ contract PeerSelect is Law {
         bytes32 nomineesHash;
         address[] nominees;
         uint256 index;
-        bool assign; 
+        bool assign;
         uint48 hasRoleSince;
     }
 
@@ -58,7 +58,7 @@ contract PeerSelect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (uint256 maxRoleHolders_, uint256 roleId_) = abi.decode(config, (uint256, uint256));
@@ -70,7 +70,9 @@ contract PeerSelect is Law {
             electedSorted: new address[](0)
         });
 
-        super.initializeLaw(index, nameDescription, abi.encode("uint256 NomineeIndex", "bool Assign"), conditions, config);
+        super.initializeLaw(
+            index, nameDescription, abi.encode("uint256 NomineeIndex", "bool Assign"), conditions, config
+        );
     }
 
     function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
@@ -85,14 +87,14 @@ contract PeerSelect is Law {
             bytes[] memory calldatas,
             bytes memory stateChange
         )
-    {   
+    {
         Mem memory mem;
 
         // step 0: create actionId & decode the calldata
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        
+
         mem.nomineesId = laws[mem.lawHash].conditions.readStateFrom;
-        (mem.nomineesAddress, mem.nomineesHash ,) = Powers(payable(powers)).getActiveLaw(mem.nomineesId);
+        (mem.nomineesAddress, mem.nomineesHash,) = Powers(payable(powers)).getActiveLaw(mem.nomineesId);
         mem.nominees = NominateMe(mem.nomineesAddress).getNominees(mem.nomineesHash);
         (mem.index, mem.assign) = abi.decode(lawCalldata, (uint256, bool));
         mem.hasRoleSince = Powers(payable(powers)).hasRoleSince(mem.nominees[mem.index], data[mem.lawHash].roleId);
@@ -108,14 +110,14 @@ contract PeerSelect is Law {
             if (data[mem.lawHash].electedSorted.length == data[mem.lawHash].maxRoleHolders) {
                 revert("Max role holders reached.");
             }
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId,  mem.nominees[mem.index]);
+            calldatas[0] =
+                abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId, mem.nominees[mem.index]);
         } else {
             if (mem.hasRoleSince == 0) {
                 revert("Account does not have role.");
             }
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.nominees[mem.index]
-            );
+            calldatas[0] =
+                abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.nominees[mem.index]);
         }
 
         lawCalldata = abi.encode(mem.nominees[mem.index], mem.index, mem.assign);

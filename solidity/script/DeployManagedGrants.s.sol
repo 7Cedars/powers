@@ -6,7 +6,7 @@
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
 /// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         /// 
+///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
@@ -42,7 +42,7 @@ contract DeployManagedGrants is Script {
 
     function run() external returns (address payable powers_) {
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
-        // Deploy the DAO 
+        // Deploy the DAO
         vm.startBroadcast();
         Powers powers = new Powers(
             "Managed Grants",
@@ -51,7 +51,7 @@ contract DeployManagedGrants is Script {
         vm.stopBroadcast();
         powers_ = payable(address(powers));
 
-        // Deploy laws & mocks 
+        // Deploy laws & mocks
         DeployLaws deployLaws = new DeployLaws();
         (names, lawAddresses) = deployLaws.run();
         DeployMocks deployMocks = new DeployMocks();
@@ -68,69 +68,70 @@ contract DeployManagedGrants is Script {
         return (powers_);
     }
 
-    function createConstitution(
-        address payable powers_
-    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function createConstitution(address payable powers_)
+        public
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         ILaw.Conditions memory conditions;
         ILaw.Conditions memory grantConditions;
         lawInitData = new PowersTypes.LawInitData[](13);
 
         //////////////////////////////////////////////////////
-        //               Executive Laws                     // 
+        //               Executive Laws                     //
         //////////////////////////////////////////////////////
-        // This law allows community members to request a grant from a Grant program. 
+        // This law allows community members to request a grant from a Grant program.
         // Access role = members.
         conditions.allowedRole = 1; // member role
         string[] memory inputParams = new string[](3);
         inputParams[0] = "address Grantee";
         inputParams[1] = "address Grant";
         inputParams[2] = "uint256 Quantity";
-         
+
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Request a grant: Community members can request a grant from a grant program.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
-            config: abi.encode(inputParams), 
+            config: abi.encode(inputParams),
             conditions: conditions
         });
         delete conditions;
 
-        // This law allows judges to veto the deployment of a new grant program. 
+        // This law allows judges to veto the deployment of a new grant program.
         // Access role = judges.
         conditions.allowedRole = 3; // judge role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of judges need to vote for a new grant program to be deployed. 
+        conditions.quorum = 66; // 66% quorum: 66% of judges need to vote for a new grant program to be deployed.
         conditions.succeedAt = 66; // 66% majority
-        
+
         inputParams = new string[](4);
         inputParams[0] = "uint48 Duration";
         inputParams[1] = "uint256 Budget";
         inputParams[2] = "address Address";
         inputParams[3] = "string Description";
- 
+
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Veto grant program: Judges can veto the deployment of a new grant program.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
-            config: abi.encode(inputParams), 
+            config: abi.encode(inputParams),
             conditions: conditions
         });
         delete conditions;
 
-        // This law allows allocators to start a grant program. 
+        // This law allows allocators to start a grant program.
         // Access role = allocators.
         // NB: these are the conditions for grant programs that will be deployed.
         grantConditions.allowedRole = 4; // allocator role
-        grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal. 
-        grantConditions.quorum = 33; // 33% quorum need to ok a grant request. 
+        grantConditions.needCompleted = 1; // A member needs to have passed a grant request proposal.
+        grantConditions.quorum = 33; // 33% quorum need to ok a grant request.
         grantConditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        grantConditions.succeedAt = 51; // simple 51% majority 
+        grantConditions.succeedAt = 51; // simple 51% majority
 
-        // NB: these are the conditions for the deploy grants law.  
+        // NB: these are the conditions for the deploy grants law.
         conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed. 
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed.
         conditions.succeedAt = 66; // 66% majority
         conditions.delayExecution = minutesToBlocks(3); // 10 minutes
-        conditions.needNotCompleted = 2; // judges should not have vetoed the grant program. 
+        conditions.needNotCompleted = 2; // judges should not have vetoed the grant program.
 
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Deploy grant program: Governors can deploy a new grant program, as long as it has not been vetoed by judges.",
@@ -141,47 +142,47 @@ contract DeployManagedGrants is Script {
         delete conditions;
         delete grantConditions;
 
-        // This law allows governors to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired. 
+        // This law allows governors to stop a grant program. -- but only if the grant has spent nearly all its tokens or expired.
         conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed. 
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote for a new grant program to be deployed.
         conditions.succeedAt = 66; // 66% majority
-        conditions.needCompleted = 3; // a governor needs to have started a grant program. 
+        conditions.needCompleted = 3; // a governor needs to have started a grant program.
 
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "End grant program: Governors can stop a grant program when it has spent nearly all its tokens and it has expired.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
-                10, // the maximum amount of tokens left in the grant before it can be stopped. 
-                true // if true, the grant can only be stopped after it deadline has passed.  
-                ),
+                10, // the maximum amount of tokens left in the grant before it can be stopped.
+                true // if true, the grant can only be stopped after it deadline has passed.
+            ),
             conditions: conditions
         });
         delete conditions;
 
-        // Judges can stop a grant program at any time. 
+        // Judges can stop a grant program at any time.
         conditions.allowedRole = 3; // judge role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program. 
-        conditions.needCompleted = 3; // a governor needs to have started a grant program. 
-        conditions.succeedAt = 51; // 66% majority 
+        conditions.quorum = 75; // 66% quorum: 66% of judges need to vote to stop a grant program.
+        conditions.needCompleted = 3; // a governor needs to have started a grant program.
+        conditions.succeedAt = 51; // 66% majority
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "End grant program: Judges can stop a grant program at any time.",
             targetLaw: parseLawAddress(17, "EndGrant"),
             config: abi.encode(
-                0, // no checks. 
-                false // no deadline. 
-            ), 
+                0, // no checks.
+                false // no deadline.
+            ),
             conditions: conditions
         });
         delete conditions;
 
         // //////////////////////////////////////////////////////
-        // //                 Electoral Laws                   // 
+        // //                 Electoral Laws                   //
         // //////////////////////////////////////////////////////
         // This law allows accounts to self-nominate for any role
-        // It can be used by community members to self select for a governor role. 
-        conditions.allowedRole = 1; 
+        // It can be used by community members to self select for a governor role.
+        conditions.allowedRole = 1;
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Nominate for governor: Community members can use this law to nominate themselves for a governor role.",
             targetLaw: parseLawAddress(10, "NominateMe"),
@@ -206,7 +207,7 @@ contract DeployManagedGrants is Script {
         });
         delete conditions;
 
-        // This law enables anyone to select themselves as a community member. 
+        // This law enables anyone to select themselves as a community member.
         // Any one can use this law
         conditions.allowedRole = type(uint256).max;
         lawInitData[8] = PowersTypes.LawInitData({
@@ -219,7 +220,7 @@ contract DeployManagedGrants is Script {
         });
         delete conditions;
 
-        // This law allows members to nominate themselves for an allocator role. 
+        // This law allows members to nominate themselves for an allocator role.
         conditions.allowedRole = 1; // member role
         lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "Nominate for allocator: Community members can use this law to nominate themselves for an allocator role.",
@@ -229,12 +230,12 @@ contract DeployManagedGrants is Script {
         });
         delete conditions;
 
-        // This law allows governors to assign or revoke an allocator role to a nominated account. 
+        // This law allows governors to assign or revoke an allocator role to a nominated account.
         conditions.allowedRole = 2; // governor role
         conditions.votingPeriod = minutesToBlocks(5); // 5 minutes
-        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote to assign an allocator role to a nominated account. 
-        conditions.succeedAt = 66; // 66% majority  
-        
+        conditions.quorum = 66; // 66% quorum: 66% of governors need to vote to assign an allocator role to a nominated account.
+        conditions.succeedAt = 66; // 66% majority
+
         lawInitData[10] = PowersTypes.LawInitData({
             nameDescription: "Assign allocator role: Governors can assign or revoke an allocator role to a nominated account.",
             targetLaw: parseLawAddress(1, "DirectSelect"),
@@ -243,7 +244,7 @@ contract DeployManagedGrants is Script {
         });
         delete conditions;
 
-        // This law allows the admin to assign or revoke a judge role to a nominated account. 
+        // This law allows the admin to assign or revoke a judge role to a nominated account.
         conditions.allowedRole = 5;
         lawInitData[11] = PowersTypes.LawInitData({
             nameDescription: "Assign judge role: The DAO admin can assign or revoke a judge role to any account.",
@@ -254,7 +255,8 @@ contract DeployManagedGrants is Script {
         delete conditions;
 
         // this law allowd the amdin to set role labels. If will self destruct.
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 12);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(powers_, 12);
         conditions.allowedRole = 0;
         lawInitData[12] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
@@ -281,7 +283,7 @@ contract DeployManagedGrants is Script {
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Governors");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Judges");
-        calldatas[3]= abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocators");
+        calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Allocators");
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Legacy DAO");
         calldatas[5] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, parseMockAddress(1, "GovernorMock")); // assign previous DAO role as admin
         calldatas[6] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, DEV2_ADDRESS); // assign Governor role
@@ -309,5 +311,4 @@ contract DeployManagedGrants is Script {
     function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
         blocks = uint32(min * blocksPerHour / 60);
     }
-} 
-
+}

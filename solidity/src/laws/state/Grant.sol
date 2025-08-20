@@ -12,23 +12,23 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This contract manages a disbursement of grant funds. 
+/// @notice This contract manages a disbursement of grant funds.
 
-/// Logic: 
-/// - The grant should be adopted by those in control of the grant program. 
-///     - the grant registers all the data from the proposal at registration time. 
-///     - this includes the readStateFrom value, to allow decisions to be challenged. 
-///     - it allows the person in control of the grant program to release the funds to the grantee, or not. 
-/// - input is 
-            /// a blockNumber corresponding to one of the blockMilestones in the proposal 
-            /// a uri to support for releasing funds / proof of completion.
-            /// optional: PrevActionId
-/// - The person in control of this law can decide to release the funds to the grantee, or not. 
-/// - if a PrevActionId is provided, it will be checked if the previous submission has been passed by judges, overturning a previous decision. 
-/// - it needs a StatementOfIntent law to be linked to it with a NeedCompleted check.  
-/// - the grantee needs to be the caller of the statement of intent law. 
-/// - the grantee can only claim the funds if the proposal has been executed. 
-/// 
+/// Logic:
+/// - The grant should be adopted by those in control of the grant program.
+///     - the grant registers all the data from the proposal at registration time.
+///     - this includes the readStateFrom value, to allow decisions to be challenged.
+///     - it allows the person in control of the grant program to release the funds to the grantee, or not.
+/// - input is
+/// a blockNumber corresponding to one of the blockMilestones in the proposal
+/// a uri to support for releasing funds / proof of completion.
+/// optional: PrevActionId
+/// - The person in control of this law can decide to release the funds to the grantee, or not.
+/// - if a PrevActionId is provided, it will be checked if the previous submission has been passed by judges, overturning a previous decision.
+/// - it needs a StatementOfIntent law to be linked to it with a NeedCompleted check.
+/// - the grantee needs to be the caller of the statement of intent law.
+/// - the grantee can only claim the funds if the proposal has been executed.
+///
 
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -39,11 +39,11 @@ import { LawUtilities } from "../../LawUtilities.sol";
 import { FlagActions } from "../state/FlagActions.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-// import "forge-std/console2.sol"; // for testing only 
+// import "forge-std/console2.sol"; // for testing only
 
 contract Grant is Law {
-    struct Disbursement { 
-        uint256 amount; 
+    struct Disbursement {
+        uint256 amount;
         bool released;
     }
 
@@ -66,16 +66,22 @@ contract Grant is Law {
     struct Data {
         address grantee;
         address tokenAddress;
-        string uriProposal; 
+        string uriProposal;
         bytes proposalCalldata;
     }
 
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 lawHash => mapping(uint256 milestone => Disbursement)) internal disbursements;
 
-    // NB: because the configParams are the exact same as the proposal, we can use a simple BespokeAction to deploy the law. 
+    // NB: because the configParams are the exact same as the proposal, we can use a simple BespokeAction to deploy the law.
     constructor() {
-        bytes memory configParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursement", "uint256 prevActionId");
+        bytes memory configParams = abi.encode(
+            "string uriProposal",
+            "address Grantee",
+            "address Token",
+            "uint256[] milestoneDisbursement",
+            "uint256 prevActionId"
+        );
         emit Law__Deployed(configParams);
     }
 
@@ -88,11 +94,12 @@ contract Grant is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         Memory memory mem;
-        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) = abi.decode(config, (string, address, address, uint256[], uint256));
+        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) =
+            abi.decode(config, (string, address, address, uint256[], uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash] = Data({
             grantee: mem.grantee,
@@ -101,14 +108,11 @@ contract Grant is Law {
             proposalCalldata: config
         });
         for (uint256 i = 0; i < mem.milestoneDisbursement.length; i++) {
-            disbursements[lawHash][i] = Disbursement({
-                amount: mem.milestoneDisbursement[i],
-                released: false
-            });
+            disbursements[lawHash][i] = Disbursement({ amount: mem.milestoneDisbursement[i], released: false });
         }
-        
+
         inputParams = abi.encode("uint256 MilestoneBlock", "string SupportUri");
-        
+
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
@@ -122,13 +126,7 @@ contract Grant is Law {
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
     /// @return stateChange The state change data
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -144,41 +142,41 @@ contract Grant is Law {
         Memory memory mem;
         (mem.milestone, mem.supportUri) = abi.decode(lawCalldata, (uint256, string));
         (, mem.lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
-        // note: optional flagging of actions. 
+        // note: optional flagging of actions.
         if (laws[mem.lawHash].conditions.readStateFrom != 0) {
-            (mem.flagActionsLaw, , ) = Powers(payable(powers)).getActiveLaw(laws[mem.lawHash].conditions.readStateFrom);
+            (mem.flagActionsLaw,,) = Powers(payable(powers)).getActiveLaw(laws[mem.lawHash].conditions.readStateFrom);
         }
-        
+
         Data memory lawData = data[mem.lawHash];
 
         // step 1: run additional checks
         if (disbursements[mem.lawHash][mem.milestone].amount == 0) {
-            revert ("Milestone amount is 0");
+            revert("Milestone amount is 0");
         }
         if (disbursements[mem.lawHash][mem.milestone].released) {
-            revert ("Milestone already released");
+            revert("Milestone already released");
         }
         if (mem.milestone > 0 && !disbursements[mem.lawHash][mem.milestone - 1].released) {
-            revert ("Previous milestone not released yet");
+            revert("Previous milestone not released yet");
         }
         if (data[mem.lawHash].grantee != caller) {
-            revert ("Caller is not the grantee");
+            revert("Caller is not the grantee");
         }
 
         // step 2: create arrays
-        // NOTE: normally pushing tokens to an account is not what you want to do. Pulling is better. 
-        // but because the grantee address has been extensively vetted, it is safe to do so. I think. 
+        // NOTE: normally pushing tokens to an account is not what you want to do. Pulling is better.
+        // but because the grantee address has been extensively vetted, it is safe to do so. I think.
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = data[mem.lawHash].tokenAddress;
         calldatas[0] = abi.encodeWithSelector(
-            ERC20.transfer.selector, 
-            data[mem.lawHash].grantee,  // transfer to the grantee
+            ERC20.transfer.selector,
+            data[mem.lawHash].grantee, // transfer to the grantee
             disbursements[mem.lawHash][mem.milestone].amount // transfer the amount at the milestone
         );
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);    
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         stateChange = abi.encode(mem.milestone);
 
-        // step 3: return data  
+        // step 3: return data
         return (actionId, targets, values, calldatas, stateChange);
     }
 

@@ -47,8 +47,8 @@
 //     }
 
 //     /// @notice constructor of the law
-//     constructor() { 
-//         // No config params, but NB! The SnapshotRegisterProposal should be set as readStateFrom. 
+//     constructor() {
+//         // No config params, but NB! The SnapshotRegisterProposal should be set as readStateFrom.
 //         emit Law__Deployed("");
 //     }
 
@@ -84,7 +84,7 @@
 
 //         Mem memory mem_;
 
-//         // Loading the data from the SnapshotRegisterProposal. 
+//         // Loading the data from the SnapshotRegisterProposal.
 //         ( , , , , address readStateFrom, , , , ) = laws[lawHash].conditions.readStateFrom;
 
 //         if (readStateFrom != address(0)) {
@@ -96,10 +96,10 @@
 //         mem_.snapshotRegisterProposalAddress = snapshotRegisterProposalAddress;
 //         mem_.snapshotRegisterProposalHash = snapshotRegisterProposalHash;
 
-//         // call SnapshotRegisterProposal to check if the targets, values and calldatas are the same as in the proposal. 
+//         // call SnapshotRegisterProposal to check if the targets, values and calldatas are the same as in the proposal.
 //         (SnapshotProposal memory proposal) = SnapshotRegisterProposal(mem_.snapshotRegisterProposalAddress).getProposalData(actionId);
 
-//         // check if the targets, values and calldatas are the same as in the proposal. 
+//         // check if the targets, values and calldatas are the same as in the proposal.
 //         for (uint256 i = 0; i < proposal.targetsProposal.length; i++) {
 //             if (proposal.targetsProposal[i] != targetsProposal[i]) {
 //                 revert("Targets are not the same");
@@ -111,9 +111,9 @@
 //                 revert("Calldatas are not the same");
 //             }
 //         }
-        
+
 //         address snapshotVotesOracleAddress = SnapshotRegisterProposal(mem_.snapshotRegisterProposalAddress).getData(lawHash).snapshotOracle;
-//         // if this check passes, we can proceed to check if the vote was successful. 
+//         // if this check passes, we can proceed to check if the vote was successful.
 //         (bool success) = SnapshotOracleMock(snapshotVotesOracleAddress).request(proposal.proposalId);
 //         if (!success) {
 //             revert("Proposal not found");

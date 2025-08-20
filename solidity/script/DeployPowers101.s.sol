@@ -12,9 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Deploy script Powers 101 
-/// @notice Powers 101 is a simple example of a DAO. It acts as an introductory example of the Powers protocol. 
-/// 
+/// @title Deploy script Powers 101
+/// @notice Powers 101 is a simple example of a DAO. It acts as an introductory example of the Powers protocol.
+///
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
@@ -23,7 +23,7 @@ import { Script } from "forge-std/Script.sol";
 // import { console2 } from "forge-std/console2.sol";
 
 // core protocol
-import { Powers} from "../src/Powers.sol";
+import { Powers } from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
@@ -32,7 +32,6 @@ import { DeployMocks } from "./DeployMocks.s.sol";
 import { Erc20VotesMock } from "../test/mocks/Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "../test/mocks/Erc20TaxedMock.sol";
 import { HelperConfig } from "./HelperConfig.s.sol";
-
 
 /// @notice core script to deploy a dao
 /// Note the {run} function for deploying the dao can be used without changes.
@@ -45,7 +44,10 @@ contract DeployPowers101 is Script {
     address[] mockAddresses;
     uint256 blocksPerHour;
 
-    function run() external returns (address payable powers_, string[] memory mockNames_, address[] memory mockAddresses_) {
+    function run()
+        external
+        returns (address payable powers_, string[] memory mockNames_, address[] memory mockAddresses_)
+    {
         HelperConfig helperConfig = new HelperConfig();
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
 
@@ -76,18 +78,19 @@ contract DeployPowers101 is Script {
         return (powers_, mockNames, mockAddresses);
     }
 
-    function createConstitution(
-        address payable powers_
-    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function createConstitution(address payable powers_)
+        public
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](8);
-        
+
         //////////////////////////////////////////////////////////////////
-        //                       Electoral laws                         // 
+        //                       Electoral laws                         //
         //////////////////////////////////////////////////////////////////
         // This law allows accounts to self-nominate for any role
         // It can be used by community members
-        conditions.allowedRole = 1; 
+        conditions.allowedRole = 1;
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Nominate me for delegate: Nominate yourself for a delegate role. You need to be a community member to use this law.",
             targetLaw: parseLawAddress(10, "NominateMe"),
@@ -112,9 +115,9 @@ contract DeployPowers101 is Script {
         });
         delete conditions;
 
-        // This law enables anyone to select themselves as a community member. 
+        // This law enables anyone to select themselves as a community member.
         // Any one can use this law
-        conditions.throttleExecution = 25; // this law can be called once every 25 blocks. 
+        conditions.throttleExecution = 25; // this law can be called once every 25 blocks.
         conditions.allowedRole = type(uint256).max;
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
@@ -127,18 +130,18 @@ contract DeployPowers101 is Script {
         delete conditions;
 
         //////////////////////////////////////////////////////////////////
-        //                       Executive laws                         // 
+        //                       Executive laws                         //
         //////////////////////////////////////////////////////////////////
 
         // This law allows proposing changes to core values of the DAO
-        // Only community members can use this law. It is subject to a vote. 
+        // Only community members can use this law. It is subject to a vote.
         string[] memory inputParams = new string[](3);
         inputParams[0] = "address[] Targets";
         inputParams[1] = "uint256[] Values";
         inputParams[2] = "bytes[] Calldatas";
 
         conditions.allowedRole = 1;
-        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes. 
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks = about 5 minutes.
         conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members
         conditions.quorum = 20; // = 20% quorum needed
         lawInitData[4] = PowersTypes.LawInitData({
@@ -149,8 +152,8 @@ contract DeployPowers101 is Script {
         });
         delete conditions;
 
-        // This law allows a proposed action to be vetoed. 
-        // Only the admin can use this law // not subhject to a vote, but the proposal needs to have passed by the community members. 
+        // This law allows a proposed action to be vetoed.
+        // Only the admin can use this law // not subhject to a vote, but the proposal needs to have passed by the community members.
         conditions.allowedRole = 0;
         conditions.needCompleted = 4;
         lawInitData[5] = PowersTypes.LawInitData({
@@ -167,22 +170,23 @@ contract DeployPowers101 is Script {
         conditions.allowedRole = 2;
         conditions.quorum = 50; // = 50% quorum needed
         conditions.succeedAt = 77; // = 77% simple majority needed for executing an action
-        conditions.votingPeriod = minutesToBlocks(5); 
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.needCompleted = 4;
         conditions.needNotCompleted = 5;
-        conditions.delayExecution = minutesToBlocks(3); // = 15 blocks = about 3 minutes. This gives admin time to veto the action.  
+        conditions.delayExecution = minutesToBlocks(3); // = 15 blocks = about 3 minutes. This gives admin time to veto the action.
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
             targetLaw: parseLawAddress(6, "OpenAction"),
-            config: abi.encode(), // empty config, an open action takes address[], uint256[], bytes[] as input.             
+            config: abi.encode(), // empty config, an open action takes address[], uint256[], bytes[] as input.
             conditions: conditions
         });
         delete conditions;
 
         // PresetAction for roles
-        // This law sets up initial role assignments for the DAO & role labelling. It is a law that self destructs when executed. 
+        // This law sets up initial role assignments for the DAO & role labelling. It is a law that self destructs when executed.
         // Only the admin can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, mockAddresses, 7);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(powers_, mockAddresses, 7);
         conditions.allowedRole = 0;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
@@ -194,7 +198,7 @@ contract DeployPowers101 is Script {
     }
 
     //////////////////////////////////////////////////////////////
-    //                  HELPER FUNCTIONS                        // 
+    //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
 
     function _getActions(address payable powers_, address[] memory mocks, uint16 lawId)
@@ -202,7 +206,7 @@ contract DeployPowers101 is Script {
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // call to set initial roles
-        // NB! NEW ACTIONS ADDED HERE! 
+        // NB! NEW ACTIONS ADDED HERE!
         targets = new address[](5);
         values = new uint256[](5);
         calldatas = new bytes[](5);
@@ -212,19 +216,19 @@ contract DeployPowers101 is Script {
 
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegates");
-        
-        targets[2] =  mocks[2];
-        calldatas[2] = abi.encodeWithSelector(Erc20VotesMock.mintVotes.selector, 1000000000000000000);
+
+        targets[2] = mocks[2];
+        calldatas[2] = abi.encodeWithSelector(Erc20VotesMock.mintVotes.selector, 1_000_000_000_000_000_000);
 
         targets[3] = mocks[3];
         calldatas[3] = abi.encodeWithSelector(Erc20TaxedMock.faucet.selector);
 
         targets[4] = powers_;
         calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-        
+
         return (targets, values, calldatas);
     }
-    
+
     function parseLawAddress(uint256 index, string memory lawName) public view returns (address lawAddress) {
         if (keccak256(abi.encodePacked(lawName)) != keccak256(abi.encodePacked(names[index]))) {
             revert("Law name does not match");
@@ -242,4 +246,4 @@ contract DeployPowers101 is Script {
     function minutesToBlocks(uint256 min) public view returns (uint32 blocks) {
         blocks = uint32(min * blocksPerHour / 60);
     }
-} 
+}

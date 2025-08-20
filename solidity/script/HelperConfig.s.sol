@@ -47,7 +47,7 @@ contract HelperConfig is Script {
         }
     }
 
-        function getEthSepoliaConfig() public returns (NetworkConfig memory) {
+    function getEthSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 300; // new block every 12 seconds
 
         networkConfig.chainlinkFunctionsRouter = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
@@ -58,7 +58,6 @@ contract HelperConfig is Script {
 
         return networkConfig;
     }
-
 
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 300; // new block every 12 seconds
@@ -71,7 +70,6 @@ contract HelperConfig is Script {
 
         return networkConfig;
     }
-
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
@@ -98,7 +96,7 @@ contract HelperConfig is Script {
     }
 
     function getMantleSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 360000; // new block every 2 seconds
+        networkConfig.blocksPerHour = 360_000; // new block every 2 seconds
 
         networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;

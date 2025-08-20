@@ -38,6 +38,7 @@ contract VoteOnAccounts is Law {
         uint48 startVote;
         uint48 endVote;
     }
+
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 lawHash => mapping(address nominee => uint256 votes)) internal votes;
     mapping(bytes32 lawHash => mapping(address caller => bool hasVoted)) internal hasVoted;
@@ -53,14 +54,15 @@ contract VoteOnAccounts is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (uint48 startVote_, uint48 endVote_) = abi.decode(config, (uint48, uint48));
-        data[LawUtilities.hashLaw(msg.sender, index)] = Data({startVote: startVote_, endVote: endVote_});
+        data[LawUtilities.hashLaw(msg.sender, index)] = Data({ startVote: startVote_, endVote: endVote_ });
 
         inputParams = abi.encode("address VoteFor");
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
@@ -115,7 +117,7 @@ contract VoteOnAccounts is Law {
         return data[lawHash];
     }
 
-    function getVotes(bytes32 lawHash, address nominee) external view returns (uint256) {   
+    function getVotes(bytes32 lawHash, address nominee) external view returns (uint256) {
         return votes[lawHash][nominee];
     }
 

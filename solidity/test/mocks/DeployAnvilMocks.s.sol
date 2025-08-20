@@ -47,7 +47,7 @@ import { GrantProposal } from "../../src/laws/executive/GrantProposal.sol";
 import { FlagActions } from "../../src/laws/state/FlagActions.sol";
 import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
 
-// Mocks 
+// Mocks
 import { Erc1155Mock } from "./Erc1155Mock.sol";
 import { Erc20VotesMock } from "./Erc20VotesMock.sol";
 import { Erc20TaxedMock } from "./Erc20TaxedMock.sol";
@@ -60,13 +60,15 @@ import { FunctionsRouterMock } from "./FunctionsRouterMock.sol";
 // Note: we do not return addresses of the deployed laws.
 // addresses should be computed on basis of deployment data using create2.
 contract DeployAnvilMocks is Script {
-    
-    function run(address daoMock) external returns (
-        string[] memory lawNames, 
-        address[] memory lawAddresses,
-        string[] memory mockNames,
-        address[] memory mockAddresses
-    ) {
+    function run(address daoMock)
+        external
+        returns (
+            string[] memory lawNames,
+            address[] memory lawAddresses,
+            string[] memory mockNames,
+            address[] memory mockAddresses
+        )
+    {
         lawNames = new string[](34);
         lawAddresses = new address[](34);
         mockNames = new string[](7);
@@ -111,7 +113,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[31] = address(new GrantProposal());
         lawAddresses[32] = address(new FlagActions());
         lawAddresses[33] = address(new EndGrant());
-        
+
         vm.stopBroadcast();
 
         vm.startBroadcast(daoMock);
@@ -120,11 +122,11 @@ contract DeployAnvilMocks is Script {
         mockAddresses[4] = address(new Erc721Mock());
         mockAddresses[5] = address(new Erc1155Mock());
         mockAddresses[1] = address(new GovernorMock(mockAddresses[2]));
-        
+
         // Deploy SnapToGov_CheckSnapExists with the FunctionsRouterMock
-        
+
         vm.stopBroadcast();
-        
+
         lawNames[0] = "DelegateSelect";
         lawNames[1] = "DirectSelect";
         lawNames[2] = "PeerSelect";
@@ -159,7 +161,7 @@ contract DeployAnvilMocks is Script {
         lawNames[31] = "GrantProposal";
         lawNames[32] = "FlagActions";
         lawNames[33] = "EndGrant";
-        
+
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

@@ -22,7 +22,7 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 // import { console2 } from "forge-std/console2.sol";
 
-// core protocol 
+// core protocol
 import { Powers } from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
@@ -53,7 +53,7 @@ contract DeployBeyondPowers is Script {
         subscriptionId = helperConfig.getConfig().chainlinkFunctionsSubscriptionId;
         gasLimit = helperConfig.getConfig().chainlinkFunctionsGasLimit;
         donID = helperConfig.getConfig().chainlinkFunctionsDonId;
-        
+
         vm.startBroadcast();
         Powers powers = new Powers(
             "Beyond Powers",
@@ -84,14 +84,15 @@ contract DeployBeyondPowers is Script {
         return (powers_);
     }
 
-    function createConstitution(
-        address payable powers_
-    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function createConstitution(address payable powers_)
+        public
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](10);
 
         //////////////////////////////////////////////////////
-        //               Executive Laws                     // 
+        //               Executive Laws                     //
         //////////////////////////////////////////////////////
 
         // A Law to check if a proposal and choice exists, and linking it to targets[], values[], calldatas[].
@@ -139,7 +140,7 @@ contract DeployBeyondPowers is Script {
         conditions.needCompleted = 3;
         conditions.quorum = 77; // 77% of the Security Council members must vote to cancel a proposal.
         conditions.votingPeriod = minutesToBlocks(5); // 10 minutes.
-        conditions.succeedAt = 51; // 51% majority. 
+        conditions.succeedAt = 51; // 51% majority.
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "Cancel Governor.sol proposal: Cancel a Governor.sol proposal.",
             targetLaw: parseLawAddress(29, "SnapToGov_CancelGov"),
@@ -163,7 +164,7 @@ contract DeployBeyondPowers is Script {
         delete conditions;
 
         //////////////////////////////////////////////////////
-        //               Electoral Laws                     // 
+        //               Electoral Laws                     //
         //////////////////////////////////////////////////////
 
         // A Law to nominate oneself for Executioner role
@@ -176,7 +177,7 @@ contract DeployBeyondPowers is Script {
         });
         delete conditions;
 
-        // a law to elect executioners by delegated tokens. 
+        // a law to elect executioners by delegated tokens.
         conditions.allowedRole = type(uint256).max; // anyone can use this law
         conditions.readStateFrom = 6;
         lawInitData[7] = PowersTypes.LawInitData({
@@ -187,7 +188,7 @@ contract DeployBeyondPowers is Script {
         });
         delete conditions;
 
-        // a law that allows the admin to (de)select members for the security council. 
+        // a law that allows the admin to (de)select members for the security council.
         conditions.allowedRole = 0; // admin can use this law
         lawInitData[8] = PowersTypes.LawInitData({
             nameDescription: "Select Security Council: Select members for the Security Council.",
@@ -198,13 +199,14 @@ contract DeployBeyondPowers is Script {
         delete conditions;
 
         //////////////////////////////////////////////////////
-        //               Initiation Law                     // 
+        //               Initiation Law                     //
         //////////////////////////////////////////////////////
-        
+
         // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
-        conditions.allowedRole = type(uint256).max; // anyone can use execute this law. 
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(powers_, 9);
+        conditions.allowedRole = type(uint256).max; // anyone can use execute this law.
         lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign role labels. This law can only be executed once.",
             targetLaw: parseLawAddress(7, "PresetAction"),
@@ -215,7 +217,7 @@ contract DeployBeyondPowers is Script {
     }
 
     //////////////////////////////////////////////////////////////
-    //                  HELPER FUNCTIONS                        // 
+    //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
     function _getActions(address payable powers_, uint16 lawId)
         internal
@@ -253,4 +255,3 @@ contract DeployBeyondPowers is Script {
         blocks = uint32(min * blocksPerHour / 60);
     }
 }
-

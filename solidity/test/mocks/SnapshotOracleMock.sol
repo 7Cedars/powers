@@ -43,25 +43,25 @@
 //     mapping(uint256 actionId => SnapshotProposal) public snapshotProposal;
 
 //     SnapshotProposal placeholderProposal = SnapshotProposal(
-//         "We will do this", 
-//         "We will not do this", 
-//         "We will abstain", 
-//         500, 
-//         300, 
-//         200, 
-//         true, 
+//         "We will do this",
+//         "We will not do this",
+//         "We will abstain",
+//         500,
+//         300,
+//         200,
+//         true,
 //         address(0)
 //         );
 
 //     constructor() {}
 
 //     function request(uint256 actionId) public returns (bool success) {
-//         // calling the response function. 
+//         // calling the response function.
 //         snapshotProposal[actionId] = placeholderProposal;
 //         snapshotProposal[actionId].caller = msg.sender;
 //         (success, actionId) = response(actionId);
-        
-//         // as this is a fake implementation, we always true; 
+
+//         // as this is a fake implementation, we always true;
 //         return true;
 //     }
 

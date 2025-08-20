@@ -16,5 +16,4 @@ contract DeployMockVotes is Script {
         mockVotes = address(new Erc20VotesMock());
         vm.stopBroadcast();
     }
-    
 }

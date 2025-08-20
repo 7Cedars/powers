@@ -48,12 +48,13 @@ abstract contract Law is ERC165, ILaw {
         Conditions conditions;
         Executions executions;
     }
+
     mapping(bytes32 lawHash => LawData) public laws;
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
-    // note this is an unrestricted function. Anyone can initialize a law. 
+    // note this is an unrestricted function. Anyone can initialize a law.
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
@@ -64,15 +65,15 @@ abstract contract Law is ERC165, ILaw {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         LawUtilities.checkStringLength(nameDescription, 1, 255);
 
-        laws[lawHash] = LawData({ 
+        laws[lawHash] = LawData({
             nameDescription: nameDescription,
             inputParams: inputParams,
-            conditions: conditions,     
-            executions: Executions({ 
-                powers: msg.sender, 
-                config: config, 
-                actionsIds: new uint256[](0), 
-                executions: new uint48[](0) 
+            conditions: conditions,
+            executions: Executions({
+                powers: msg.sender,
+                config: config,
+                actionsIds: new uint256[](0),
+                executions: new uint48[](0)
             })
         });
 
@@ -95,8 +96,7 @@ abstract contract Law is ERC165, ILaw {
         }
 
         // Run all validation checks
-        checksAtPropose(
-            caller, laws[lawHash].conditions, lawCalldata, nonce, msg.sender);
+        checksAtPropose(caller, laws[lawHash].conditions, lawCalldata, nonce, msg.sender);
         checksAtExecute(
             caller, laws[lawHash].conditions, lawCalldata, nonce, laws[lawHash].executions.executions, msg.sender, lawId
         );
@@ -118,7 +118,7 @@ abstract contract Law is ERC165, ILaw {
             _replyPowers(lawId, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right?
         }
         // save execution data
-        laws[lawHash].executions.executions.push(uint48(block.number)); //  
+        laws[lawHash].executions.executions.push(uint48(block.number)); //
         laws[lawHash].executions.actionsIds.push(actionId);
 
         return true;
@@ -158,7 +158,7 @@ abstract contract Law is ERC165, ILaw {
     }
 
     /// @notice Sends execution data back to Powers protocol
-    /// @dev cannot be overridden by implementing contracts. 
+    /// @dev cannot be overridden by implementing contracts.
     /// @param lawId The law id of the proposal
     /// @param actionId The action id of the proposal
     /// @param targets Target contract addresses for calls
@@ -212,7 +212,7 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
-    // Place these in lawUtilities library? 
+    // Place these in lawUtilities library?
     function getConditions(address powers, uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[LawUtilities.hashLaw(powers, lawId)].conditions;
     }
@@ -229,8 +229,6 @@ abstract contract Law is ERC165, ILaw {
         return laws[LawUtilities.hashLaw(powers, lawId)].nameDescription;
     }
 
-
-
     //////////////////////////////////////////////////////////////
     //                      UTILITIES                           //
     //////////////////////////////////////////////////////////////
@@ -238,7 +236,7 @@ abstract contract Law is ERC165, ILaw {
     /// @dev Implements IERC165
     /// @param interfaceId Interface identifier to check
     /// @return True if interface is supported
-    function supportsInterface(bytes4 interfaceId) public view override(ERC165, IERC165) virtual returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 }

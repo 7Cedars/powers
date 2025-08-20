@@ -12,22 +12,22 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This law is a work in progress. 
+/// @notice This law is a work in progress.
 ///
 /// @author 7Cedars
 
-/// @notice This contract that tallies the votes for an election. 
+/// @notice This contract that tallies the votes for an election.
 /// - When the law is adopted the following config params are set:
 ///    - the ElectionList law address used to get the list of nominees.
-///    - the roleId to be assigned. 
-///    - the max number of nominees to be assigned. 
+///    - the roleId to be assigned.
+///    - the max number of nominees to be assigned.
 
-/// - the InputParams are the following: 
-///    - none. 
+/// - the InputParams are the following:
+///    - none.
 
-/// the logic of the law: 
-/// - If the election has not ended yet, the law will revert. 
-/// - the law counts the votes, and assigns the top N nominees to the roleId. 
+/// the logic of the law:
+/// - If the election has not ended yet, the law will revert.
+/// - the law counts the votes, and assigns the top N nominees to the roleId.
 
 pragma solidity 0.8.26;
 
@@ -52,27 +52,27 @@ contract ElectionTally is Law {
     struct MemoryData {
         bytes32 lawHash;
         Conditions conditions;
-        // 
+        //
         uint16 electionListId;
         address electionListAddress;
         bytes32 electionListHash;
         bool electionListActive;
-        // 
+        //
         uint16 electionStartId;
         address electionStartAddress;
         bytes32 electionStartHash;
         bool electionStartActive;
-        // 
+        //
         address nominateMeAddress;
         bytes32 nominateMeHash;
-        // 
+        //
         uint256 roleId;
         uint32 maxToElect;
         address[] nominees;
         uint256[] votes;
         uint48 startElection;
         uint48 endElection;
-        // 
+        //
         uint256 arrayLength;
         uint256 numberRevokees;
         address[] electedAccounts;
@@ -88,7 +88,7 @@ contract ElectionTally is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         MemoryData memory mem;
@@ -96,34 +96,32 @@ contract ElectionTally is Law {
         mem.conditions = conditions;
         // get the election list address.
         mem.electionListId = mem.conditions.readStateFrom;
-        (mem.electionListAddress, mem.electionListHash, mem.electionListActive) = Powers(payable(msg.sender)).getActiveLaw(mem.electionListId);
-         
+        (mem.electionListAddress, mem.electionListHash, mem.electionListActive) =
+            Powers(payable(msg.sender)).getActiveLaw(mem.electionListId);
+
         // get the election start address.
-        mem.electionStartId = ElectionList(mem.electionListAddress).getConditions(msg.sender, mem.electionListId).readStateFrom;
-        (mem.electionStartAddress, mem.electionStartHash, mem.electionStartActive) = Powers(payable(msg.sender)).getActiveLaw(mem.electionStartId);
+        mem.electionStartId =
+            ElectionList(mem.electionListAddress).getConditions(msg.sender, mem.electionListId).readStateFrom;
+        (mem.electionStartAddress, mem.electionStartHash, mem.electionStartActive) =
+            Powers(payable(msg.sender)).getActiveLaw(mem.electionStartId);
         if (!mem.electionStartActive) {
-            revert ("No valid ElectionStart law provided.");
+            revert("No valid ElectionStart law provided.");
         }
         // retrieve the election data.
-        (
-            mem.startElection, 
-            mem.endElection, 
-            mem.roleId, 
-            mem.maxToElect, 
-            mem.nominateMeAddress, 
-            mem.nominateMeHash
-            ) = ElectionStart(mem.electionStartAddress).getElectionData(mem.electionStartHash);
+        (mem.startElection, mem.endElection, mem.roleId, mem.maxToElect, mem.nominateMeAddress, mem.nominateMeHash) =
+            ElectionStart(mem.electionStartAddress).getElectionData(mem.electionStartHash);
         mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
         mem.electedAccounts = new address[](0);
-        
+
         data[mem.lawHash] = Data({
             roleId: mem.roleId,
             maxToElect: mem.maxToElect,
             nominees: mem.nominees,
             electedAccounts: mem.electedAccounts,
             endElection: mem.endElection
-        }); 
-        super.initializeLaw(index, nameDescription, abi.encode(), conditions, config);    }
+        });
+        super.initializeLaw(index, nameDescription, abi.encode(), conditions, config);
+    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
@@ -142,27 +140,28 @@ contract ElectionTally is Law {
 
         // step 1: decode the calldata & create hashes .
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        mem.conditions = laws[mem.lawHash].conditions;        
+        mem.conditions = laws[mem.lawHash].conditions;
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        
+
         // step 2: check if the election has ended.
         mem.electionListId = mem.conditions.readStateFrom;
         if (block.number < data[mem.lawHash].endElection) {
-            revert ("Election has not ended.");
+            revert("Election has not ended.");
         }
 
         // step 3: get the nominees and votes tally.
-        (mem.electionListAddress, mem.electionListHash, ) = Powers(payable(powers)).getActiveLaw(mem.electionListId);
-        (mem.nominees, mem.votes) = ElectionList(payable(mem.electionListAddress)).getElectionTally(mem.electionListHash);
+        (mem.electionListAddress, mem.electionListHash,) = Powers(payable(powers)).getActiveLaw(mem.electionListId);
+        (mem.nominees, mem.votes) =
+            ElectionList(payable(mem.electionListAddress)).getElectionTally(mem.electionListHash);
 
         ///////////////////////////////////////////////
-        //              ELECT ACCOUNTS               //   
-        /////////////////////////////////////////////// 
+        //              ELECT ACCOUNTS               //
+        ///////////////////////////////////////////////
         // step 1: setting up array for revoking & assigning roles.
         mem.numberRevokees = data[mem.lawHash].electedAccounts.length;
         mem.arrayLength = mem.nominees.length < data[mem.lawHash].maxToElect
-            ? mem.numberRevokees + mem.nominees.length + 2 // have to add calls to remove election tally and list laws. 
-            : mem.numberRevokees + data[mem.lawHash].maxToElect + 2; // have to add calls to remove election tally and list laws. 
+            ? mem.numberRevokees + mem.nominees.length + 2 // have to add calls to remove election tally and list laws.
+            : mem.numberRevokees + data[mem.lawHash].maxToElect + 2; // have to add calls to remove election tally and list laws.
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
@@ -177,7 +176,7 @@ contract ElectionTally is Law {
 
         // step 3a: calls to add nominees if fewer than MAX_ROLE_HOLDERS
         if (mem.nominees.length < data[mem.lawHash].maxToElect) {
-            mem.electedAccounts = new address[](mem.nominees.length); 
+            mem.electedAccounts = new address[](mem.nominees.length);
             for (uint256 i; i < mem.nominees.length; i++) {
                 address accountElect = mem.nominees[i];
                 calldatas[i + mem.numberRevokees] =
@@ -185,10 +184,10 @@ contract ElectionTally is Law {
                 mem.electedAccounts[i] = accountElect;
             }
 
-         // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
+            // step 3b: calls to add nominees if more than MAX_ROLE_HOLDERS
         } else {
             // retrieve balances of delegated votes of nominees.
-            mem.electedAccounts = new address[](data[mem.lawHash].maxToElect); 
+            mem.electedAccounts = new address[](data[mem.lawHash].maxToElect);
 
             // note how the following mechanism works:
             // a. we add 1 to each nominee's position, if we found a account that holds more tokens.

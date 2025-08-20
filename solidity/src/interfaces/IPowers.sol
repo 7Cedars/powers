@@ -142,7 +142,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return deadline the block number at which voting ends
     function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
-    /// @notice gets the data of an actionId that are not an array. 
+    /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
     /// @return cancelled - whether the action has been cancelled
     /// @return requested - whether the action has been requested
@@ -156,23 +156,23 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return forVotes - the number of votes for the action
     /// @return abstainVotes - the number of abstain votes
     /// @return nonce - the nonce of the action
-    function getActionData(uint256 actionId) 
-        external 
-        view 
+    function getActionData(uint256 actionId)
+        external
+        view
         returns (
-            bool cancelled, 
-            bool requested, 
-            bool fulfilled, 
-            uint16 lawId, 
-            uint48 voteStart, 
-            uint32 voteDuration, 
+            bool cancelled,
+            bool requested,
+            bool fulfilled,
+            uint16 lawId,
+            uint48 voteStart,
+            uint32 voteDuration,
             uint256 voteEnd,
-            address caller, 
-            uint32 againstVotes, 
-            uint32 forVotes, 
-            uint32 abstainVotes, 
+            address caller,
+            uint32 againstVotes,
+            uint32 forVotes,
+            uint32 abstainVotes,
             uint256 nonce
-            );
+        );
 
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
@@ -195,10 +195,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return law The address of the law
     /// @return lawHash The hash of the law
     /// @return active The active status of the law
-    function getActiveLaw(uint16 lawId)
-        external
-        view
-        returns (address law, bytes32 lawHash, bool active);
+    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

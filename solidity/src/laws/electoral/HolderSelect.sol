@@ -63,7 +63,7 @@ contract HolderSelect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (address erc20Token_, uint256 minimumTokens_, uint256 roleIdToSet_) =
@@ -86,13 +86,7 @@ contract HolderSelect is Law {
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
     /// @return stateChange The state change data
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -120,19 +114,11 @@ contract HolderSelect is Law {
         if (hasRole && tokenBalance < data[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.revokeRole.selector,
-                data[lawHash].roleIdToSet,
-                account
-            );
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data[lawHash].roleIdToSet, account);
         } else if (!hasRole && tokenBalance >= data[lawHash].minimumTokens) {
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.assignRole.selector,
-                data[lawHash].roleIdToSet,
-                account
-            );
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[lawHash].roleIdToSet, account);
         }
 
         // step 4: return data
@@ -146,5 +132,3 @@ contract HolderSelect is Law {
         // No state changes needed for this law
     }
 }
-
-

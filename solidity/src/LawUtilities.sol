@@ -19,7 +19,7 @@
 /// @dev Provides common functionality for law implementation and validation
 /// @author 7Cedars
 
-// Regarding decoding calldata. 
+// Regarding decoding calldata.
 // Note that validating calldata is not possible at the moment.
 // See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
 // The feature request has been open for almost five years(!) at time of writing.
@@ -65,8 +65,6 @@ library LawUtilities {
             revert LawUtilities__StringTooLong();
         }
     }
-
-
 
     /// @notice Checks if a parent law has been completed
     /// @dev Checks if a parent law has been completed
@@ -114,7 +112,7 @@ library LawUtilities {
         uint16 lawId
     ) external view {
         // Check execution throttling
-        if (conditions.throttleExecution != 0) { 
+        if (conditions.throttleExecution != 0) {
             if (
                 executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
             ) {

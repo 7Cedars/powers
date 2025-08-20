@@ -20,14 +20,11 @@ contract Erc20TaxedMock is ERC20, Ownable {
     uint48 public immutable epochDuration;
     mapping(uint48 epoch => mapping(address account => uint256 taxPaid)) public taxLogs;
 
-    constructor()
-        ERC20("mockTaxed", "MTXD")
-        Ownable(msg.sender)
-    {
+    constructor() ERC20("mockTaxed", "MTXD") Ownable(msg.sender) {
         // Note: hard coded values for testing.
         taxRate = 10;
         DENOMINATOR = 100;
-        epochDuration = 900; // 900 blocks, about 30 minutes on optimism sepolia, about 3 hours on arbitrum and mainnet sepolia. 
+        epochDuration = 900; // 900 blocks, about 30 minutes on optimism sepolia, about 3 hours on arbitrum and mainnet sepolia.
         _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens.
     }
 

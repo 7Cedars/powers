@@ -38,7 +38,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     function testBaseChecksAtProposeWithNoParentRequirements() public {
         // Setup: Create conditions with no parent requirements
         lawCalldata = abi.encode(true);
-        
+
         // Should not revert when no parent requirements
         LawUtilities.baseChecksAtPropose(conditions, lawCalldata, address(daoMock), nonce);
     }
@@ -51,7 +51,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create and execute parent proposal
         vm.prank(alice);
         uint256 parentActionId = daoMock.propose(1, lawCalldata, nonce, "Parent proposal");
-        
+
         // Vote for parent proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(1);
         conditions = Law(lawAddress).getConditions(address(daoMock), 1);
@@ -91,7 +91,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     }
 
     function testBaseChecksAtProposeRevertsWhenParentBlocks() public {
-        // Setup: Create conditions requiring parent not to be completed        
+        // Setup: Create conditions requiring parent not to be completed
         conditions.needNotCompleted = 5;
         lawCalldata = abi.encode(true);
 
@@ -115,7 +115,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create conditions with no requirements
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
-        
+
         // Should not revert when no requirements
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
     }
@@ -126,18 +126,18 @@ contract LawUtilitiesTest is TestSetupLaw {
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
         executions[0] = uint48(block.number - 200); // Last execution was 200 blocks ago
-        
+
         // Should not revert when throttle period has passed
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
     }
 
     function testBaseChecksAtExecuteRevertsWithThrottle() public {
-        // Setup: Create conditions with throttle        
+        // Setup: Create conditions with throttle
         conditions.throttleExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
         executions[0] = uint48(block.number - 50); // Last execution was only 50 blocks ago
-        
+
         // Should revert when throttle period hasn't passed
         vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
@@ -152,7 +152,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create and vote for proposal
         vm.prank(alice);
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
-        
+
         // Vote for proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
         conditions = Law(lawAddress).getConditions(address(daoMock), 4);
@@ -179,7 +179,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create and vote against proposal
         vm.prank(alice);
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
-        
+
         // Vote against proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
         conditions = Law(lawAddress).getConditions(address(daoMock), 4);
@@ -207,7 +207,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create proposal
         vm.prank(alice);
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
-        
+
         // Vote for proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
         conditions = Law(lawAddress).getConditions(address(daoMock), 4);
@@ -226,7 +226,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     }
 
     function testBaseChecksAtExecuteRevertsWithDelay() public {
-        // Setup: Create conditions with execution delay        
+        // Setup: Create conditions with execution delay
         conditions.delayExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
@@ -234,7 +234,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create proposal
         vm.prank(alice);
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
-        
+
         // Vote for proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
         conditions = Law(lawAddress).getConditions(address(daoMock), 4);
@@ -258,19 +258,19 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.throttleExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](3);
-        
+
         // Set up execution history
         executions[0] = uint48(block.number - 300); // First execution
         executions[1] = uint48(block.number - 200); // Second execution
-        executions[2] = uint48(block.number - 50);  // Third execution (too recent)
-        
+        executions[2] = uint48(block.number - 50); // Third execution (too recent)
+
         // Should revert when last execution is too recent
         vm.expectRevert(LawUtilities.LawUtilities__ExecutionGapTooSmall.selector);
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
-        
+
         // Advance time past throttle period
         vm.roll(block.number + 100);
-        
+
         // Should not revert when throttle period has passed
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
     }
@@ -281,7 +281,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](1);
         executions[0] = uint48(block.number - 1); // Very recent execution
-        
+
         // Should not revert when throttle is zero
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
     }
@@ -291,7 +291,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         conditions.throttleExecution = 100;
         lawCalldata = abi.encode(true);
         uint48[] memory executions = new uint48[](0);
-        
+
         // Should not revert when no previous executions
         LawUtilities.baseChecksAtExecute(conditions, lawCalldata, address(daoMock), nonce, executions, 1);
     }
@@ -307,7 +307,7 @@ contract LawUtilitiesTest is TestSetupLaw {
         // Setup: Create and vote for proposal
         vm.prank(alice);
         actionId = daoMock.propose(4, lawCalldata, nonce, "Test proposal");
-        
+
         // Vote for proposal
         (lawAddress, lawHash, active) = daoMock.getActiveLaw(4);
         conditions = Law(lawAddress).getConditions(address(daoMock), 4);
@@ -386,7 +386,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     function testCheckNumberOfTransactions() public {
         address account = alice;
         uint48 start = uint48(block.number);
-        
+
         // Log some transactions
         transactions.logTransaction(account, start);
         transactions.logTransaction(account, start + 1);
@@ -396,4 +396,4 @@ contract LawUtilitiesTest is TestSetupLaw {
         uint256 count = transactions.checkNumberOfTransactions(account, start, end);
         assertEq(count, 3);
     }
-} 
+}
