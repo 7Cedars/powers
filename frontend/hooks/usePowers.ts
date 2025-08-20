@@ -19,7 +19,7 @@ export const usePowers = () => {
   const {data: currentBlock} = useBlockNumber({
     chainId: parseChainId(chainId), 
   })
-  console.log("@usePowers, MAIN", {chainId, error, powers, publicClient, status})
+  // console.log("@usePowers, MAIN", {chainId, error, powers, publicClient, status})
 
   // function to save powers to local storage
   const savePowers = (powers: Powers) => {

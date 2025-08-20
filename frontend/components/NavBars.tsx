@@ -3,7 +3,7 @@
 import { useParams, usePathname } from 'next/navigation';
 import type { PropsWithChildren } from "react";
 import { useRouter } from 'next/navigation'
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from 'next/image'
 import { 
   HomeIcon, 
@@ -11,10 +11,12 @@ import {
   IdentificationIcon,
   ChatBubbleBottomCenterIcon,
   BuildingLibraryIcon,
-  NewspaperIcon
+  NewspaperIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
 import { BlockCounter } from './BlockCounter';
+import { OnboardingModal } from './OnboardingModal';
 import { usePowers } from '@/hooks/usePowers';
 import { useAccount, useSwitchChain } from 'wagmi'
 
@@ -30,6 +32,7 @@ const NavigationBar = () => {
   const path = usePathname()
   const { status: statusUpdate, fetchPowers } = usePowers()  
   const { switchChain } = useSwitchChain()
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
 
   useEffect(() => {
     // console.log("@navigationBar, useEffect chain: waypoint 1", {chainId, chain})
@@ -45,11 +48,13 @@ const NavigationBar = () => {
     }, [addressPowers, fetchPowers]) // updateProposals 
 
   return (
-    <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden"> 
+    <>
+      <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden navigation-bar" help-nav-item="navigation-pages"> 
             <button 
               onClick={() => router.push(`/${chainId}/${addressPowers}`)}
               aria-selected={path == `/${chainId}/${addressPowers}`} 
               className={layoutButton}
+              help-nav-item="home"
               >
                 <div className={layoutIconBox}> 
                   <HomeIcon
@@ -76,6 +81,7 @@ const NavigationBar = () => {
               onClick={() => router.push(`/${chainId}/${addressPowers}/proposals`)}
               aria-selected={path == `/${chainId}/${addressPowers}/proposals`} 
               className={layoutButton}
+              help-nav-item="proposals"
               >
                 <div className={layoutIconBox}> 
                   <ChatBubbleBottomCenterIcon
@@ -89,6 +95,7 @@ const NavigationBar = () => {
               onClick={() => router.push(`/${chainId}/${addressPowers}/logs`)}
               aria-selected={path == `/${chainId}/${addressPowers}/logs`} 
               className={layoutButton}
+              help-nav-item="logs"
               >
                 <div className={layoutIconBox}> 
                   <NewspaperIcon
@@ -115,6 +122,7 @@ const NavigationBar = () => {
               onClick={() => router.push(`/${chainId}/${addressPowers}/treasury`)}
               aria-selected={path == `/${chainId}/${addressPowers}/treasury`} 
               className={layoutButton}
+              help-nav-item="treasury"
               >
                 <div className={layoutIconBox}> 
                   <BuildingLibraryIcon
@@ -124,8 +132,27 @@ const NavigationBar = () => {
                 </div> 
             </button>
 
+            <button 
+              onClick={() => setIsOnboardingOpen(true)}
+              className={`${layoutButton} hidden md:flex`}
+              >
+                <div className={layoutIconBox}> 
+                  <QuestionMarkCircleIcon
+                  className={layoutIcons} 
+                  />
+                  <p className={layoutText}> Help </p>
+                </div> 
+            </button>
+
 
           </div>
+      
+      <OnboardingModal 
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onRequestOpen={() => setIsOnboardingOpen(true)}
+      />
+    </>
   )
 }
 
@@ -134,7 +161,7 @@ const Header = () => {
   const path = usePathname()
 
   return (
-    <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden">
+    <div className="absolute top-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">
     <section className="grow flex flex-row gap-1 justify-between pe-2">
       <div className="flex flex-row gap-2 items-center"> 
         <a href="/"  
@@ -179,7 +206,7 @@ export const NavBars = (props: PropsWithChildren<{}>) => {
     <>
       {
       path == '/' ? 
-      <div className="w-full h-full grid grid-cols-1 overflow-y-scroll">
+      <div className="w-full h-full grid grid-cols-1 overflow-y-scroll" id="navigation-bar">
         <main className="w-full h-full grid grid-cols-1 overflow-y-scroll">
           {props.children}
         </main>

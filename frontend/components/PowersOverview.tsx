@@ -79,6 +79,7 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
           width: isCollapsed ? '32px' : 'min(640px, 100vw)',
           height: '100vh',
         }}
+        help-nav-item="left-panel"
       >
         {/* Panel Content */}
         <div className={`h-full flex flex-col transition-opacity duration-200 ${

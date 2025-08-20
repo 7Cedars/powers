@@ -103,7 +103,7 @@ export default function FlowPage() {
   }, [powers, fetchExecutedActions])
   
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10">
+    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10" >
     {/* hero banner  */}
     <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
       {/* Gradient background (always present) */}
@@ -169,7 +169,7 @@ export default function FlowPage() {
     </section>
     
     {/* main body  */}
-    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20">
+    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20" help-nav-item="home-screen">
       <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchExecutedActions}/>
 
       <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {handleFetchProposals}/> 

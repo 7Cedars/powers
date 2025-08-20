@@ -500,6 +500,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     <NodeStatusIndicator status={ loadingChains.includes(String(law.index)) ? checksStatus as "loading" | "success" | "error" | "initial" : "success"}>
       <div 
         className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
+        help-nav-item="flow-node"
         onClick={handleClick}
       >        
         {/* Law Header - replaced with HeaderLaw */}
