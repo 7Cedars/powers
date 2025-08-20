@@ -23,7 +23,7 @@ export const usePowers = () => {
 
   // function to save powers to local storage
   const savePowers = (powers: Powers) => {
-    let localStore = localStorage.getItem("powersProtocols")
+    const localStore = localStorage.getItem("powersProtocols")
     const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
     const existing = saved.find(item => item.contractAddress == address)
     if (existing) {
@@ -37,7 +37,7 @@ export const usePowers = () => {
 
   // Everytime powers is fetched these functions are called. 
   const fetchPowersData = async(powers: Powers): Promise<Powers | undefined> => {
-    let powersPopulated: Powers | undefined = powers
+    const powersPopulated: Powers | undefined = powers
     try {
       const namePowers = await publicClient.readContract({
         address: powers.contractAddress as `0x${string}`,
@@ -147,7 +147,7 @@ export const usePowers = () => {
       })
       // console.log("@checkSingleLaw, waypoint 3", {laws})
       const powersUpdated = { ...powers, 
-        laws: laws,
+        laws,
         activeLaws: laws.filter((law: Law) => law.active)
       }
       setPowers(powersUpdated)
@@ -159,7 +159,7 @@ export const usePowers = () => {
   const checkLaws = async (lawIds: bigint[]) => {
     // console.log("@checkLaws, waypoint 0", {lawIds})
     let lawId: bigint
-    let fetchedLaws: Law[] = []
+    const fetchedLaws: Law[] = []
 
     setStatus("pending")
 
@@ -320,10 +320,10 @@ export const usePowers = () => {
     if (laws && roles && roleLabels) {
       // console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
-        laws: laws, 
+        laws, 
         activeLaws: laws.filter((law: Law) => law.active),
-        roles: roles, 
-        roleLabels: roleLabels
+        roles, 
+        roleLabels
       }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
@@ -436,8 +436,8 @@ export const usePowers = () => {
     setStatus("pending")
     let powersUpdated: Powers | undefined;
     let law: Law
-    let laws = powers.laws || []
-    let executedActions: LawExecutions[] = []
+    const laws = powers.laws || []
+    const executedActions: LawExecutions[] = []
 
     try {
       for (law of laws) {
@@ -453,7 +453,7 @@ export const usePowers = () => {
         executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
       // console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
-      powersUpdated = { ...powers, executedActions: executedActions }
+      powersUpdated = { ...powers, executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
@@ -470,7 +470,7 @@ export const usePowers = () => {
       // console.log("@fetchPowers, waypoint 0", {address})
       setStatus("pending")
       let powersToBeUpdated: Powers | undefined = undefined
-      let localStore = localStorage.getItem("powersProtocols")
+      const localStore = localStorage.getItem("powersProtocols")
       // console.log("@fetchPowers, waypoint 1", {localStore})
 
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []

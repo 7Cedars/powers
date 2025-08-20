@@ -58,7 +58,7 @@ export default function FlowPage() {
   const fetchMyRoles = useCallback(
     async (account: `0x${string}`, roles: bigint[]) => {
       let role: bigint; 
-      let fetchedHasRole: {role: bigint; since: bigint}[] = []; 
+      const fetchedHasRole: {role: bigint; since: bigint}[] = []; 
 
       try {
         for await (role of roles) {

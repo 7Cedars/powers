@@ -72,8 +72,8 @@ export function MyProposals({ hasRoles, authenticated, proposals, powers, status
     const law = powers?.laws?.find(law => law.index == proposal.lawId)
     if (law && law.conditions && law.conditions.allowedRole != undefined && myRoles.includes(law.conditions.allowedRole) && proposal.state == 0) {
       return {
-        proposal: proposal, 
-        law: law
+        proposal, 
+        law
       } as ProposalAndLaw
     }
   }) 

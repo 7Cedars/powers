@@ -21,12 +21,12 @@ export function LogsList({powers, status, onRefresh}: {powers: Powers | undefine
 
   // console.log("@LogsList: waypoint 0", {powers, status, onRefresh})
 
-  let tempActions: (Action | undefined)[] = powers?.executedActions?.map((lawActions: LawExecutions, i) => {
+  const tempActions: (Action | undefined)[] = powers?.executedActions?.map((lawActions: LawExecutions, i) => {
     const law = powers?.laws?.find(law => law.index == BigInt(i + 1))
     const executions = lawActions.actionsIds.map((actionId, i) => {
       return {
         lawId: law?.index,
-        actionId: actionId,
+        actionId,
         executedAt: lawActions.executions[i],
         role: law?.conditions?.allowedRole
       }

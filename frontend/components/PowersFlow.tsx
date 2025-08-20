@@ -928,7 +928,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   // Function to load saved layout from localStorage
   const loadSavedLayout = React.useCallback((): Record<string, { x: number; y: number }> | undefined => {
     try {
-      let localStore = localStorage.getItem("powersProtocols")
+      const localStore = localStorage.getItem("powersProtocols")
       if (!localStore || localStore === "undefined") return undefined
       
       const saved: Powers[] = JSON.parse(localStore)
@@ -948,7 +948,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   // Function to save powers object to localStorage (similar to usePowers.ts)
   const savePowersToLocalStorage = React.useCallback((updatedPowers: Powers) => {
     try {
-      let localStore = localStorage.getItem("powersProtocols")
+      const localStore = localStorage.getItem("powersProtocols")
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
       const existing = saved.find(item => item.contractAddress === updatedPowers.contractAddress)
       if (existing) {
