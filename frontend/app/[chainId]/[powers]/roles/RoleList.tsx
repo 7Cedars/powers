@@ -30,7 +30,7 @@ export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Pow
     async (roleIds: bigint[]) => {
       // console.log("fetch role triggered", {roleIds})
       let roleId: bigint; 
-      let rolesFetched: Roles[] = []; 
+      const rolesFetched: Roles[] = []; 
 
       setError(null)
       setStatus("pending")

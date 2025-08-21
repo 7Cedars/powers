@@ -127,7 +127,7 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
   }, [actionData])
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden" help-nav-item="latest-executions">
       <div
         className="w-full border-b border-slate-300 p-2 bg-slate-100"
       >

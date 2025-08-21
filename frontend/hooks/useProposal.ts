@@ -26,7 +26,7 @@ export const useProposal = () => {
 
     // function to save powers to local storage
   const savePowers = (powers: Powers) => {
-    let localStore = localStorage.getItem("powersProtocols")
+    const localStore = localStorage.getItem("powersProtocols")
     const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
     const existing = saved.find(item => item.contractAddress == address)
     if (existing) {
@@ -42,9 +42,9 @@ export const useProposal = () => {
   const getProposalsState = async (powers: Powers) => {
     // console.log("@getProposalsState: waypoint 0", {powers})
     let proposal: Action
-    let oldProposals: Action[] = powers.proposals || []
-    let newProposals: Action[] = []
-    let state: {
+    const oldProposals: Action[] = powers.proposals || []
+    const newProposals: Action[] = []
+    const state: {
       actionId: string,
       state: number
     }[] = []

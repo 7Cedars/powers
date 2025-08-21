@@ -36,12 +36,12 @@ contract StatementOfIntent is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = config;
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     // note that we are returning empty arrays as we are not executing any logic.

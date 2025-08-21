@@ -39,6 +39,7 @@ contract EndGrant is Law {
         uint256[] milestoneDisbursement;
         uint256 lastDisbursementIndex;
     }
+
     constructor() {
         bytes memory configParams = abi.encode();
         emit Law__Deployed(configParams);
@@ -53,10 +54,16 @@ contract EndGrant is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        inputParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursement", "uint256 prevActionId");
+        inputParams = abi.encode(
+            "string uriProposal",
+            "address Grantee",
+            "address Token",
+            "uint256[] milestoneDisbursement",
+            "uint256 prevActionId"
+        );
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
@@ -70,13 +77,7 @@ contract EndGrant is Law {
     /// @return values Array of values to send
     /// @return calldatas Array of calldata for the calls
     /// @return stateChange State changes to apply
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -96,34 +97,30 @@ contract EndGrant is Law {
         if (mem.needCompleted == 0) {
             revert("NeedCompleted condition not set.");
         }
-        (mem.startGrantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
+        (mem.startGrantLaw,,) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
         mem.startGrantLawHash = LawUtilities.hashLaw(powers, mem.needCompleted);
         mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.startGrantLawHash, lawCalldata);
-        (mem.grantLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.grantId);
-        
+        (mem.grantLaw,,) = Powers(payable(powers)).getActiveLaw(mem.grantId);
+
         // Decode the law calldata to get milestoneDisbursement array
         (,,, mem.milestoneDisbursement,) = abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
-        
+
         // Calculate the index of the last disbursement
         mem.lastDisbursementIndex = mem.milestoneDisbursement.length > 0 ? mem.milestoneDisbursement.length - 1 : 0;
-        
+
         // Check if the last disbursement has been released
-        Grant.Disbursement memory lastDisbursement = Grant(mem.grantLaw).getDisbursement(
-            LawUtilities.hashLaw(powers, mem.grantId), mem.lastDisbursementIndex
-            );
+        Grant.Disbursement memory lastDisbursement =
+            Grant(mem.grantLaw).getDisbursement(LawUtilities.hashLaw(powers, mem.grantId), mem.lastDisbursementIndex);
         if (!lastDisbursement.released) {
             revert("Last disbursement has not been released yet.");
         }
-        
+
         // if all checks passed create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        
+
         // Set up the call to revokeLaw in Powers
         targets[0] = powers; // Powers contract
-        calldatas[0] = abi.encodeWithSelector(
-            Powers.revokeLaw.selector,
-            mem.grantId
-        );
+        calldatas[0] = abi.encodeWithSelector(Powers.revokeLaw.selector, mem.grantId);
 
         // Generate action ID
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);

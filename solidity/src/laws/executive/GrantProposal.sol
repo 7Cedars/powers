@@ -12,14 +12,14 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A base to create a grant proposal. 
+/// @notice A base to create a grant proposal.
 ///
 /// The logic:
 /// - Creates a grant proposal
 /// - If PrevProposalId is set, it checks if the proposal has been executed at the readStateFrom law. - this should be in instance of FlagActions.sol
 /// - If not, it reverts.
 /// - If it has been executed, it does not revert.
-/// 
+///
 ///
 /// @author 7Cedars,
 
@@ -30,7 +30,7 @@ import { Powers } from "../../Powers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-import { console2 } from "forge-std/console2.sol"; // for debugging purposes -- comment out for production 
+import { console2 } from "forge-std/console2.sol"; // for debugging purposes -- comment out for production
 
 contract GrantProposal is Law {
     struct Memory {
@@ -45,7 +45,7 @@ contract GrantProposal is Law {
     }
 
     /// @notice Constructor function for Open contract.
-    constructor() { 
+    constructor() {
         emit Law__Deployed("");
     }
 
@@ -53,17 +53,23 @@ contract GrantProposal is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        inputParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursements", "uint256 PrevActionId");
+        inputParams = abi.encode(
+            "string uriProposal",
+            "address Grantee",
+            "address Token",
+            "uint256[] milestoneDisbursements",
+            "uint256 PrevActionId"
+        );
 
         // if readStateFrom is not set, we revert. ReadStateFrom should be a law that can flag actions.
         if (conditions.readStateFrom == 0) {
-            revert ("ReadStateFrom not set"); 
+            revert("ReadStateFrom not set");
         }
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     // note that we are returning empty arrays as we are not executing any logic.
@@ -81,21 +87,23 @@ contract GrantProposal is Law {
         )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        Memory memory mem; 
-        (mem.uriProposal, mem.grantee, mem.token, mem.milestoneDisbursements, mem.prevActionId) = abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
+        Memory memory mem;
+        (mem.uriProposal, mem.grantee, mem.token, mem.milestoneDisbursements, mem.prevActionId) =
+            abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-    
+
         // if PrevProposalId is set, we need to check if the proposal has been executed at the readStateFrom law.
         // if not, we revert.
         if (mem.prevActionId != 0) {
             mem.prevActionCalldata = Powers(payable(powers)).getActionCalldata(mem.prevActionId);
-            mem.reconstructedActionCalldata = abi.encode(mem.uriProposal, mem.grantee, mem.token, mem.milestoneDisbursements, 0);
+            mem.reconstructedActionCalldata =
+                abi.encode(mem.uriProposal, mem.grantee, mem.token, mem.milestoneDisbursements, 0);
             if (keccak256(mem.prevActionCalldata) != keccak256(mem.reconstructedActionCalldata)) {
                 revert("Calldata does not match");
             }
             PowersTypes.ActionState prevActionState = Powers(payable(powers)).state(mem.prevActionId);
             if (Powers(payable(powers)).state(mem.prevActionId) != PowersTypes.ActionState.Fulfilled) {
-                revert ("PrevActionId is not fulfilled");
+                revert("PrevActionId is not fulfilled");
             }
         }
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1); // if we send an array of length 0, the actionId will not be set as fulfilled.

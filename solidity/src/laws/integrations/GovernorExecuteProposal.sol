@@ -36,10 +36,11 @@ contract GovernorExecuteProposal is Law {
         string description;
     }
     /// the targets, values and calldatas to be used in the calls: set at construction.
+
     mapping(bytes32 lawHash => address governorContract) public governorContracts;
 
     /// @notice constructor of the law
-    constructor() { 
+    constructor() {
         bytes memory configParams = abi.encode("address GovernorContract");
         emit Law__Deployed(configParams);
     }
@@ -48,13 +49,13 @@ contract GovernorExecuteProposal is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        (address governorContract_) =
-            abi.decode(config, (address));
+        (address governorContract_) = abi.decode(config, (address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        bytes memory inputParams_ = abi.encode("address[] Targets", "uint256[] Values", "bytes[] Calldatas", "string Description");
+        bytes memory inputParams_ =
+            abi.encode("address[] Targets", "uint256[] Values", "bytes[] Calldatas", "string Description");
 
         governorContracts[lawHash] = governorContract_;
         super.initializeLaw(index, nameDescription, inputParams_, conditions, config);
@@ -73,23 +74,16 @@ contract GovernorExecuteProposal is Law {
             bytes[] memory calldatas,
             bytes memory stateChange
         )
-    {   
+    {
         MemProposal memory proposal;
-        (
-            proposal.targets,
-            proposal.values,
-            proposal.calldatas,
-            proposal.description
-        ) = abi.decode(lawCalldata, (address[], uint256[], bytes[], string));
+        (proposal.targets, proposal.values, proposal.calldatas, proposal.description) =
+            abi.decode(lawCalldata, (address[], uint256[], bytes[], string));
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         uint256 proposalId = Governor(payable(governorContracts[lawHash])).getProposalId(
-            proposal.targets, 
-            proposal.values, 
-            proposal.calldatas, 
-            keccak256(bytes(proposal.description))
-            );
+            proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description))
+        );
         if (proposalId == 0) {
             revert("Proposal not found");
         }

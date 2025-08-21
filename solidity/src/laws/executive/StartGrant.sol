@@ -25,10 +25,9 @@ import { Powers } from "../../Powers.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-// import "forge-std/console2.sol"; // for testing only 
+// import "forge-std/console2.sol"; // for testing only
 
 contract StartGrant is Law {
-
     struct Memory {
         string uriProposal;
         address grantee;
@@ -56,7 +55,7 @@ contract StartGrant is Law {
     constructor() {
         bytes memory configParams = abi.encode(
             "address grantLaw", // Address of grant law
-            "bytes grantConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the start grant law is adopted.  
+            "bytes grantConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the start grant law is adopted.
         );
         emit Law__Deployed(configParams);
     }
@@ -70,25 +69,22 @@ contract StartGrant is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         (address grantLaw, bytes memory grantConditions) = abi.decode(config, (address, bytes));
-        data[lawHash] = Data({
-            grantLaw: grantLaw,
-            grantConditions: grantConditions
-        });
+        data[lawHash] = Data({ grantLaw: grantLaw, grantConditions: grantConditions });
 
-        inputParams = abi.encode("string uriProposal", "address Grantee", "address Token", "uint256[] milestoneDisbursement", "uint256 prevActionId");
-
-        super.initializeLaw(
-            index, 
-            nameDescription,
-            inputParams,
-            conditions, 
-            config
+        inputParams = abi.encode(
+            "string uriProposal",
+            "address Grantee",
+            "address Token",
+            "uint256[] milestoneDisbursement",
+            "uint256 prevActionId"
         );
+
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to adopt a new law
@@ -101,13 +97,7 @@ contract StartGrant is Law {
     /// @return values Array of values to send
     /// @return calldatas Array of calldata for the calls
     /// @return stateChange State changes to apply
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -121,24 +111,26 @@ contract StartGrant is Law {
     {
         // Decode the law adoption data
         Memory memory mem;
-        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) = 
+        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) =
             abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
-        
+
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         ILaw.Conditions memory grantConditions = abi.decode(data[mem.lawHash].grantConditions, (ILaw.Conditions));
-        
+
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
-        
+
         // Set up the call to adoptLaw in Powers
         targets[0] = powers; // Powers contract
         targets[1] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
-                nameDescription: mem.uriProposal, // we use the uriProposal as the nameDescription. 
+                nameDescription: mem.uriProposal, // we use the uriProposal as the nameDescription.
                 targetLaw: data[mem.lawHash].grantLaw,
-                config: abi.encode(mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId),
+                config: abi.encode(
+                    mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId
+                ),
                 conditions: grantConditions
             })
         );
@@ -156,7 +148,7 @@ contract StartGrant is Law {
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        Memory memory mem;  
+        Memory memory mem;
         (mem.lawCount, mem.lawCalldata) = abi.decode(stateChange, (uint16, bytes));
         mem.grantHash = keccak256(mem.lawCalldata);
         grantIds[lawHash][mem.grantHash] = mem.lawCount;
@@ -168,6 +160,5 @@ contract StartGrant is Law {
 
     function getData(bytes32 lawHash) public view returns (Data memory) {
         return data[lawHash];
-    }   
-
+    }
 }

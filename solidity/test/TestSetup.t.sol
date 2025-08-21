@@ -65,21 +65,20 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes32 lawHash;
     address newLaw;
     uint16 lawId;
-    uint16 lawCount; 
-    address tokenAddress; 
+    uint16 lawCount;
+    address tokenAddress;
     bytes32 firstGrantCalldata;
     bytes32 secondGrantCalldata;
     uint16 firstGrantId;
     uint16 secondGrantId;
     uint256 prevActionId;
 
-
     address[] nominees;
     uint256 roleCount;
     uint256 againstVote;
     uint256 forVote;
     uint256 abstainVote;
-    
+
     address lawAddress;
     uint8 quorum;
     uint8 succeedAt;
@@ -297,7 +296,6 @@ abstract contract BaseSetup is TestVariables, TestHelpers {
         daoMock = new PowersMock();
         (lawNames, lawAddresses, mockNames, mockAddresses) = deployAnvilMocks.run(address(daoMock));
         constitutionsMock = new ConstitutionsMock();
-
     }
 }
 
@@ -311,11 +309,7 @@ abstract contract TestSetupPowers is BaseSetup, ConstitutionsMock {
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiatePowersConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
@@ -338,11 +332,7 @@ abstract contract TestSetupLaw is BaseSetup, ConstitutionsMock {
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateLawTestConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
@@ -365,11 +355,7 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateElectoralTestConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
         daoMock.constitute(lawInitData_);
 
@@ -378,7 +364,7 @@ abstract contract TestSetupElectoral is BaseSetup, ConstitutionsMock {
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
-            nonce,// empty calldata
+            nonce, // empty calldata
             "assigning roles"
         );
     }
@@ -388,13 +374,9 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
 
-       // initiate constitution & get founders' roles list
+        // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateExecutiveTestConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
         daoMock.constitute(lawInitData_);
 
@@ -403,7 +385,7 @@ abstract contract TestSetupExecutive is BaseSetup, ConstitutionsMock {
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
-            nonce,// empty calldata
+            nonce, // empty calldata
             "assigning roles"
         );
     }
@@ -415,11 +397,7 @@ abstract contract TestSetupIntegrations is BaseSetup, ConstitutionsMock {
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateIntegrationsTestConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
         daoMock.constitute(lawInitData_);
 
@@ -434,18 +412,13 @@ abstract contract TestSetupIntegrations is BaseSetup, ConstitutionsMock {
     }
 }
 
-
 abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
     function setUpVariables() public override {
         super.setUpVariables();
 
         // initiate constitution & get founders' roles list
         (PowersTypes.LawInitData[] memory lawInitData_) = constitutionsMock.initiateStateTestConstitution(
-            lawNames,
-            lawAddresses,
-            mockNames,
-            mockAddresses,
-            payable(address(daoMock))
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
         daoMock.constitute(lawInitData_);
 
@@ -454,7 +427,7 @@ abstract contract TestSetupState is BaseSetup, ConstitutionsMock {
         daoMock.request(
             uint16(lawInitData_.length - 1),
             abi.encode(),
-            nonce,// empty calldata
+            nonce, // empty calldata
             "assigning roles"
         );
     }

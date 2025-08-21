@@ -26,11 +26,8 @@ contract ElectionStartTest is TestSetupElectoral {
         uint16 electionStartId = 12;
         (address electionStartAddress,,) = daoMock.getActiveLaw(electionStartId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionStartId);
-        (
-            address electionListAddress, 
-            address electionTallyAddress,
-            , , , , , 
-            ) = ElectionStart(electionStartAddress).data(lawHash);
+        (address electionListAddress, address electionTallyAddress,,,,,,) =
+            ElectionStart(electionStartAddress).data(lawHash);
         assertTrue(electionListAddress != address(0), "ElectionList address should be set");
         assertTrue(electionTallyAddress != address(0), "ElectionTally address should be set");
     }
@@ -44,8 +41,9 @@ contract ElectionStartTest is TestSetupElectoral {
         lawCalldata = abi.encode(startElection, endElection);
         uint256 nonceLocal = nonce;
         // Should not revert
-        (actionId, targets, values, calldatas, stateChange) =
-            Law(electionStartAddress).handleRequest(address(this), address(daoMock), electionStartId, lawCalldata, nonceLocal);
+        (actionId, targets, values, calldatas, stateChange) = Law(electionStartAddress).handleRequest(
+            address(this), address(daoMock), electionStartId, lawCalldata, nonceLocal
+        );
         assertTrue(actionId != 0, "ActionId should not be zero");
         assertEq(targets.length, 2, "Should have two targets");
         assertEq(values.length, 2, "Should have two values");
@@ -75,16 +73,17 @@ contract ElectionStartTest is TestSetupElectoral {
         // since we cannot call _changeState directly.
         uint16 electionStartId = 12;
         (address electionStartAddress,,) = daoMock.getActiveLaw(electionStartId);
-        
+
         uint48 startElection = uint48(block.number + 10);
         uint48 endElection = uint48(block.number + 20);
         lawCalldata = abi.encode(startElection, endElection);
-        
+
         daoMock.request(electionStartId, lawCalldata, nonce, "Start Election");
 
         lawHash = LawUtilities.hashLaw(address(daoMock), electionStartId);
-        (uint48 s, uint48 e, uint16 r, uint32 m, address n, bytes32 h) = ElectionStart(electionStartAddress).getElectionData(lawHash);
-        
+        (uint48 s, uint48 e, uint16 r, uint32 m, address n, bytes32 h) =
+            ElectionStart(electionStartAddress).getElectionData(lawHash);
+
         // We can't set these values directly, so just check that they are set (nonzero or non-default)
         assertTrue(s > 0, "startElection should be set");
         assertTrue(e > 0, "endElection should be set");
@@ -119,10 +118,11 @@ contract ElectionListTest is TestSetupElectoral {
         uint16 electionListId = daoMock.lawCount() - 2;
         (address electionListAddress,,) = daoMock.getActiveLaw(electionListId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionListId);
-        (address[] memory nominees, uint48 startElection, uint48 endElection) = ElectionList(electionListAddress).getElectionData(lawHash);
+        (address[] memory nominees, uint48 startElection, uint48 endElection) =
+            ElectionList(electionListAddress).getElectionData(lawHash);
         assertTrue(nominees.length >= 0, "Nominees array should exist");
         assertTrue(startElection > 0, "startElection should be set");
-        assertTrue(endElection > 0, "endElection should be set"); 
+        assertTrue(endElection > 0, "endElection should be set");
     }
 
     function testHandleRequestValidVote() public {
@@ -136,7 +136,8 @@ contract ElectionListTest is TestSetupElectoral {
         lawCalldata = abi.encode(vote);
         vm.roll(s + 1); // ensure election is started
         // Use handleRequest to check output, but note: handleRequest is view and does not update state
-        (actionId,,,,stateChange) = Law(electionListAddress).handleRequest(alice, address(daoMock), electionListId, lawCalldata, nonce);
+        (actionId,,,, stateChange) =
+            Law(electionListAddress).handleRequest(alice, address(daoMock), electionListId, lawCalldata, nonce);
         assertTrue(actionId != 0, "ActionId should not be zero");
         assertTrue(stateChange.length > 0, "StateChange should not be empty");
         // To actually update state, use daoMock.request:
@@ -188,18 +189,23 @@ contract ElectionListTest is TestSetupElectoral {
         // Not started
         vm.roll(s - 10);
         vm.expectRevert();
-        Law(electionListAddress).handleRequest(bob, address(daoMock), electionListId, abi.encode(new bool[](vote.length)), nonce + 3);
+        Law(electionListAddress).handleRequest(
+            bob, address(daoMock), electionListId, abi.encode(new bool[](vote.length)), nonce + 3
+        );
         // Ended
         vm.roll(e + 1);
         vm.expectRevert();
-        Law(electionListAddress).handleRequest(bob, address(daoMock), electionListId, abi.encode(new bool[](vote.length)), nonce + 4);
+        Law(electionListAddress).handleRequest(
+            bob, address(daoMock), electionListId, abi.encode(new bool[](vote.length)), nonce + 4
+        );
     }
 
     function testGetElectionDataAndTally() public {
         uint16 electionListId = daoMock.lawCount() - 2;
         (address electionListAddress,,) = daoMock.getActiveLaw(electionListId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionListId);
-        (address[] memory nominees, uint48 startElection, uint48 endElection) = ElectionList(electionListAddress).getElectionData(lawHash);
+        (address[] memory nominees, uint48 startElection, uint48 endElection) =
+            ElectionList(electionListAddress).getElectionData(lawHash);
         (address[] memory n, uint256[] memory votes) = ElectionList(electionListAddress).getElectionTally(lawHash);
         assertEq(n.length, nominees.length, "Nominees and tally length should match");
         assertTrue(startElection > 0 && endElection > 0, "Start and end should be set");
@@ -223,20 +229,16 @@ contract ElectionTallyTest is TestSetupElectoral {
         uint48 startElection = uint48(block.number + 10);
         uint48 endElection = uint48(block.number + 20);
         lawCalldata = abi.encode(startElection, endElection);
-        
+
         daoMock.request(electionStartId, lawCalldata, nonce, "Start Election");
         nonce++;
     }
 
     function testInitializeLawSetsCorrectData() public {
-        uint16 electionTallyId = daoMock.lawCount() - 1;    
+        uint16 electionTallyId = daoMock.lawCount() - 1;
         (address electionTallyAddress,,) = daoMock.getActiveLaw(electionTallyId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionTallyId);
-        (
-            uint256 roleId,
-            uint32 maxToElect,
-            uint48 endElection
-        ) = ElectionTally(electionTallyAddress).data(lawHash);
+        (uint256 roleId, uint32 maxToElect, uint48 endElection) = ElectionTally(electionTallyAddress).data(lawHash);
         assertTrue(roleId > 0, "roleId should be set");
         assertTrue(maxToElect > 0, "maxToElect should be set");
         assertTrue(endElection > 0, "endElection should be set");
@@ -246,16 +248,13 @@ contract ElectionTallyTest is TestSetupElectoral {
         uint16 electionTallyId = daoMock.lawCount() - 1;
         (address electionTallyAddress,,) = daoMock.getActiveLaw(electionTallyId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionTallyId);
-        (
-            ,
-            ,
-            uint48 eEnd
-        ) = ElectionTally(electionTallyAddress).data(lawHash);
+        (,, uint48 eEnd) = ElectionTally(electionTallyAddress).data(lawHash);
         // Simulate election ended
         vm.roll(eEnd + 1);
         // Should not revert
-        (actionId, targets, values, calldatas, stateChange) =
-            Law(electionTallyAddress).handleRequest(address(this), address(daoMock), electionTallyId, abi.encode(), nonce);
+        (actionId, targets, values, calldatas, stateChange) = Law(electionTallyAddress).handleRequest(
+            address(this), address(daoMock), electionTallyId, abi.encode(), nonce
+        );
         assertTrue(actionId != 0, "ActionId should not be zero");
         assertTrue(targets.length > 0, "Targets should not be empty");
         assertTrue(calldatas.length > 0, "Calldatas should not be empty");
@@ -266,11 +265,7 @@ contract ElectionTallyTest is TestSetupElectoral {
         uint16 electionTallyId = daoMock.lawCount() - 1;
         (address electionTallyAddress,,) = daoMock.getActiveLaw(electionTallyId);
         lawHash = LawUtilities.hashLaw(address(daoMock), electionTallyId);
-        (
-            ,
-            ,
-            uint48 eEnd
-        ) = ElectionTally(electionTallyAddress).data(lawHash);
+        (,, uint48 eEnd) = ElectionTally(electionTallyAddress).data(lawHash);
         // Simulate election not ended
         vm.roll(eEnd - 1);
         vm.expectRevert();
@@ -284,4 +279,4 @@ contract ElectionTallyTest is TestSetupElectoral {
         (address[] memory electedAccounts) = ElectionTally(electionTallyAddress).getElectedAccounts(lawHash);
         assertTrue(electedAccounts.length >= 0, "Elected accounts array should exist");
     }
-} 
+}

@@ -75,7 +75,7 @@ contract DelegateSelect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (address erc20Token_, uint256 maxRoleHolders_, uint256 roleId_) =
@@ -104,14 +104,14 @@ contract DelegateSelect is Law {
         MemoryData memory mem;
 
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        mem.conditions = laws[mem.lawHash].conditions;        
+        mem.conditions = laws[mem.lawHash].conditions;
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 1: setting up array for revoking & assigning roles.
         mem.nominateMeId = mem.conditions.readStateFrom; // readStateFrom is the nominateMe law.
         (mem.nominateMeAddress,,) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
         mem.nominateMeHash = LawUtilities.hashLaw(powers, mem.nominateMeId);
-        
+
         // mem.numberNominees = NominateMe(mem.nominateMeAddress).getNomineesCount(mem.nominateMeId);
         mem.nominees = NominateMe(mem.nominateMeAddress).getNominees(mem.nominateMeHash);
         mem.numberRevokees = data[mem.lawHash].electedAccounts.length;

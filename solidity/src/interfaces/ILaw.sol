@@ -61,7 +61,12 @@ interface ILaw is IERC165, LawErrors {
     /// @param conditions Conditions for the law
     /// @param inputParams Input parameters for the law
     event Law__Initialized(
-        address indexed powers, uint16 indexed index, string nameDescription, bytes inputParams, Conditions conditions, bytes config
+        address indexed powers,
+        uint16 indexed index,
+        string nameDescription,
+        bytes inputParams,
+        Conditions conditions,
+        bytes config
     );
 
     //////////////////////////////////////////////////////////////
@@ -76,7 +81,7 @@ interface ILaw is IERC165, LawErrors {
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
-        bytes memory inputParams, 
+        bytes memory inputParams,
         Conditions memory conditions,
         bytes memory config
     ) external;

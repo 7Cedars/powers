@@ -1,5 +1,6 @@
 'use client';
 
+import React from "react";
 import { PrivyClientConfig, PrivyProvider } from '@privy-io/react-auth';
 import { arbitrumSepolia, baseSepolia, foundry, optimismSepolia, sepolia } from '@wagmi/core/chains'
 import { wagmiConfig } from './wagmiConfig'  

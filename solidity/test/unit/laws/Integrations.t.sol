@@ -36,19 +36,27 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testConstructorInitialization() public {
         // Get the GovernorCreateProposal contract from the test setup
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         vm.startPrank(address(daoMock));
-        assertEq(Law(governorCreateProposalAddress).getConditions(address(daoMock), governorCreateProposal).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(governorCreateProposalAddress).getExecutions(address(daoMock), governorCreateProposal).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(
+            Law(governorCreateProposalAddress).getConditions(address(daoMock), governorCreateProposal).allowedRole,
+            ROLE_ONE,
+            "Allowed role should be set to ROLE_ONE"
+        );
+        assertEq(
+            Law(governorCreateProposalAddress).getExecutions(address(daoMock), governorCreateProposal).powers,
+            address(daoMock),
+            "Powers address should be set correctly"
+        );
         vm.stopPrank();
     }
 
     function testCreateProposalBasic() public {
         // prep
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -78,8 +86,8 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testCreateAndVoteOnProposal() public {
         // prep
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -100,12 +108,7 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
 
         // Get proposal ID
         lawHash = LawUtilities.hashLaw(address(daoMock), governorCreateProposal);
-        uint256 proposalId = governor.hashProposal(
-            targetsIn,
-            valuesIn,
-            calldatasIn,
-            keccak256(bytes(description))
-        );
+        uint256 proposalId = governor.hashProposal(targetsIn, valuesIn, calldatasIn, keccak256(bytes(description)));
 
         // Mint voting tokens to alice
         vm.prank(alice);
@@ -133,8 +136,8 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testCreateMultipleProposals() public {
         // prep
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
 
@@ -177,8 +180,8 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testHandleRequestOutput() public {
         // prep
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -192,13 +195,9 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = Law(governorCreateProposalAddress).handleRequest(alice, address(daoMock), governorCreateProposal, lawCalldata, nonce);
+        (actionId, targets, values, calldatas, stateChange) = Law(governorCreateProposalAddress).handleRequest(
+            alice, address(daoMock), governorCreateProposal, lawCalldata, nonce
+        );
 
         // assert
         assertEq(targets.length, 1, "Should have one target");
@@ -214,7 +213,7 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testUnauthorizedAccess() public {
         // prep
         uint16 governorCreateProposal = 1;
-        
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -235,8 +234,8 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
     function testProposalDescriptionFormat() public {
         // prep
         uint16 governorCreateProposal = 1;
-        (address governorCreateProposalAddress, , ) = daoMock.getActiveLaw(governorCreateProposal);
-        
+        (address governorCreateProposalAddress,,) = daoMock.getActiveLaw(governorCreateProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -250,16 +249,12 @@ contract GovernorCreateProposalTest is TestSetupIntegrations {
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = Law(governorCreateProposalAddress).handleRequest(alice, address(daoMock), governorCreateProposal, lawCalldata, nonce);
+        (actionId, targets, values, calldatas, stateChange) = Law(governorCreateProposalAddress).handleRequest(
+            alice, address(daoMock), governorCreateProposal, lawCalldata, nonce
+        );
 
         // assert
-        // Need to deconstruct abi.encodeWITHSELECTOR. -- I have a solution for this. Somewhere.. 
+        // Need to deconstruct abi.encodeWITHSELECTOR. -- I have a solution for this. Somewhere..
         // bytes memory expectedDescription = abi.encodePacked(
         //     "This is a proposal created in the Powers protocol.\n",
         //     "To see the proposal, please visit: https://powers-protocol.vercel.app/",
@@ -296,20 +291,28 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
     function testConstructorInitialization() public {
         // Get the GovernorExecuteProposal contract from the test setup
         uint16 governorExecuteProposal = 2;
-        (address governorExecuteProposalAddress, , ) = daoMock.getActiveLaw(governorExecuteProposal);
-        
+        (address governorExecuteProposalAddress,,) = daoMock.getActiveLaw(governorExecuteProposal);
+
         vm.startPrank(address(daoMock));
-        assertEq(Law(governorExecuteProposalAddress).getConditions(address(daoMock), governorExecuteProposal).allowedRole, type(uint256).max, "Allowed role should be set to PUBLIC_ROLE");
+        assertEq(
+            Law(governorExecuteProposalAddress).getConditions(address(daoMock), governorExecuteProposal).allowedRole,
+            type(uint256).max,
+            "Allowed role should be set to PUBLIC_ROLE"
+        );
         // assertEq(Law(governorExecuteProposalAddress).getConditions(address(daoMock), governorExecuteProposal).needCompleted, 1, "Need completed should be set to 1");
-        assertEq(Law(governorExecuteProposalAddress).getExecutions(address(daoMock), governorExecuteProposal).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(
+            Law(governorExecuteProposalAddress).getExecutions(address(daoMock), governorExecuteProposal).powers,
+            address(daoMock),
+            "Powers address should be set correctly"
+        );
         vm.stopPrank();
     }
 
     function testCheckVoteBasic() public {
         // prep
         uint16 governorExecuteProposal = 2;
-        (address governorExecuteProposalAddress, , ) = daoMock.getActiveLaw(governorExecuteProposal);
-        
+        (address governorExecuteProposalAddress,,) = daoMock.getActiveLaw(governorExecuteProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -329,12 +332,7 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
 
         // Get proposal ID
         lawHash = LawUtilities.hashLaw(address(daoMock), governorCreateProposal);
-        uint256 proposalId = governor.hashProposal(
-            targetsIn,
-            valuesIn,
-            calldatasIn,
-            keccak256(bytes(description))
-        );
+        uint256 proposalId = governor.hashProposal(targetsIn, valuesIn, calldatasIn, keccak256(bytes(description)));
 
         // Mint voting tokens to alice
         for (i = 0; i < users.length; i++) {
@@ -372,8 +370,8 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
     function testCheckVoteProposalNotFound() public {
         // prep
         uint16 governorExecuteProposal = 2;
-        (address governorExecuteProposalAddress, , ) = daoMock.getActiveLaw(governorExecuteProposal);
-        
+        (address governorExecuteProposalAddress,,) = daoMock.getActiveLaw(governorExecuteProposal);
+
         // Create proposal data with non-existent proposal
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -384,13 +382,8 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
         calldatasIn[0] = abi.encodeWithSelector(Erc20VotesMock.mintVotes.selector, 5 * 10 ** 18);
         lawCalldata = abi.encode(targetsIn, valuesIn, calldatasIn, description);
 
-        // proposal Id 
-        uint256 proposalId = governor.hashProposal(
-            targetsIn,
-            valuesIn,
-            calldatasIn,
-            keccak256(bytes(description))
-        );
+        // proposal Id
+        uint256 proposalId = governor.hashProposal(targetsIn, valuesIn, calldatasIn, keccak256(bytes(description)));
 
         // Try to check non-existent proposal
         vm.prank(alice);
@@ -401,8 +394,8 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
     function testCheckVoteProposalNotSucceeded() public {
         // prep
         uint16 governorExecuteProposal = 2;
-        (address governorExecuteProposalAddress, , ) = daoMock.getActiveLaw(governorExecuteProposal);
-        
+        (address governorExecuteProposalAddress,,) = daoMock.getActiveLaw(governorExecuteProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -422,12 +415,7 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
 
         // Get proposal ID
         lawHash = LawUtilities.hashLaw(address(daoMock), governorCreateProposal);
-        uint256 proposalId = governor.hashProposal(
-            targetsIn,
-            valuesIn,
-            calldatasIn,
-            keccak256(bytes(description))
-        );
+        uint256 proposalId = governor.hashProposal(targetsIn, valuesIn, calldatasIn, keccak256(bytes(description)));
 
         // Try to check proposal before it has succeeded
         vm.prank(alice);
@@ -438,8 +426,8 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
     function testHandleRequestOutput() public {
         // prep
         uint16 governorExecuteProposal = 2;
-        (address governorExecuteProposalAddress, , ) = daoMock.getActiveLaw(governorExecuteProposal);
-        
+        (address governorExecuteProposalAddress,,) = daoMock.getActiveLaw(governorExecuteProposal);
+
         // Create proposal data
         address[] memory targetsIn = new address[](1);
         uint256[] memory valuesIn = new uint256[](1);
@@ -460,12 +448,7 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
 
         // Get proposal ID
         lawHash = LawUtilities.hashLaw(address(daoMock), governorCreateProposal);
-        uint256 proposalId = governor.hashProposal(
-            targetsIn,
-            valuesIn,
-            calldatasIn,
-            keccak256(bytes(description))
-        );
+        uint256 proposalId = governor.hashProposal(targetsIn, valuesIn, calldatasIn, keccak256(bytes(description)));
 
         // Mint voting tokens to alice
         vm.prank(alice);
@@ -485,13 +468,9 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            
-        ) = Law(governorExecuteProposalAddress).handleRequest(alice, address(daoMock), governorExecuteProposal, lawCalldata, nonce);
+        (actionId, targets, values, calldatas,) = Law(governorExecuteProposalAddress).handleRequest(
+            alice, address(daoMock), governorExecuteProposal, lawCalldata, nonce
+        );
 
         // assert
         assertEq(targets.length, 1, "Should have one target");
@@ -505,7 +484,6 @@ contract GovernorExecuteProposalTest is TestSetupIntegrations {
     }
 }
 
-
 contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
     using ShortStrings for *;
 
@@ -513,29 +491,37 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
     SnapToGov_CheckSnapExists public snapToGovLaw;
     bytes32 public constant DON_ID = bytes32(uint256(1));
     uint64 public constant SUBSCRIPTION_ID = 1;
-    uint32 public constant GAS_LIMIT = 300000;
+    uint32 public constant GAS_LIMIT = 300_000;
     string public constant SPACE_ID = "test.eth";
 
     function setUp() public virtual override {
         super.setUp();
-        
+
         // Get the Functions Router mock from the test setup
         functionsRouter = FunctionsRouterMock(mockAddresses[6]);
-        
+
         // Get the SnapToGov_CheckSnapExists law from the test setup
         uint16 snapToGovLawId = 3;
-        (address snapToGovAddress, , ) = daoMock.getActiveLaw(snapToGovLawId);
+        (address snapToGovAddress,,) = daoMock.getActiveLaw(snapToGovLawId);
         snapToGovLaw = SnapToGov_CheckSnapExists(snapToGovAddress);
     }
 
     function testLawSetupFromConstitution() public {
         // Test that the law is properly set up from the constitution
         uint16 snapToGovLawId = 3;
-        (address snapToGovAddress, , ) = daoMock.getActiveLaw(snapToGovLawId);
-        
+        (address snapToGovAddress,,) = daoMock.getActiveLaw(snapToGovLawId);
+
         vm.startPrank(address(daoMock));
-        assertEq(Law(snapToGovAddress).getConditions(address(daoMock), snapToGovLawId).allowedRole, ROLE_ONE, "Allowed role should be set to ROLE_ONE");
-        assertEq(Law(snapToGovAddress).getExecutions(address(daoMock), snapToGovLawId).powers, address(daoMock), "Powers address should be set correctly");
+        assertEq(
+            Law(snapToGovAddress).getConditions(address(daoMock), snapToGovLawId).allowedRole,
+            ROLE_ONE,
+            "Allowed role should be set to ROLE_ONE"
+        );
+        assertEq(
+            Law(snapToGovAddress).getExecutions(address(daoMock), snapToGovLawId).powers,
+            address(daoMock),
+            "Powers address should be set correctly"
+        );
         vm.stopPrank();
     }
 
@@ -548,7 +534,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5]; // erc1155Mock
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -557,30 +543,32 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
-        (
-            actionId,
-            targets,
-            values,
-            calldatas,
-            stateChange
-        ) = snapToGovLaw.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce);
+        (actionId, targets, values, calldatas, stateChange) =
+            snapToGovLaw.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce);
 
         // assert
         assertEq(targets.length, 1, "Should have one target");
         assertEq(values.length, 1, "Should have one value");
         assertEq(calldatas.length, 1, "Should have one calldata");
         assertNotEq(calldatas[0], "", "Calldata should not be empty");
-        assertNotEq(actionId, 0, "Action ID should not be 0"); 
+        assertNotEq(actionId, 0, "Action ID should not be 0");
         assertNotEq(stateChange, "", "State change should not be empty");
-        
+
         // Verify the calldata contains the proposal ID, powers address, and choice
-        (string memory decodedProposalId, address decodedPowers, string memory decodedChoice) = abi.decode(calldatas[0], (string, address, string));
+        (string memory decodedProposalId, address decodedPowers, string memory decodedChoice) =
+            abi.decode(calldatas[0], (string, address, string));
         assertEq(decodedProposalId, proposalId, "Proposal ID should be encoded correctly");
         assertEq(decodedPowers, address(daoMock), "Powers address should be encoded correctly");
         assertEq(decodedChoice, choice, "Choice should be encoded correctly");
-        
+
         // Verify the stateChange contains the expected data
-        (string memory stateProposalId, address statePowers, uint16 stateLawId, uint256 stateActionId, string memory stateChoice) = abi.decode(stateChange, (string, address, uint16, uint256, string));
+        (
+            string memory stateProposalId,
+            address statePowers,
+            uint16 stateLawId,
+            uint256 stateActionId,
+            string memory stateChoice
+        ) = abi.decode(stateChange, (string, address, uint16, uint256, string));
         assertEq(stateProposalId, proposalId, "State change should contain correct proposal ID");
         assertEq(statePowers, address(daoMock), "State change should contain correct powers address");
         assertEq(stateLawId, lawId, "State change should contain correct law ID");
@@ -612,7 +600,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5]; // erc1155Mock
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -631,9 +619,10 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         // The law should have sent a request to the oracle
         // We can verify this by checking that the last request ID is set
         assertNotEq(snapToGovLaw.s_lastRequestId(), bytes32(0), "Request should have been sent to oracle");
-        
+
         // Verify that the proposal request was stored
-        (bytes32 lawHash, string memory choice2, address powers2, uint16 lawId2, uint256 actionId2) = snapToGovLaw.requests(proposalId);
+        (bytes32 lawHash, string memory choice2, address powers2, uint16 lawId2, uint256 actionId2) =
+            snapToGovLaw.requests(proposalId);
         assertEq(powers2, address(daoMock), "Proposal request should store correct powers address");
         assertEq(lawId2, lawId, "Proposal request should store correct law ID");
         assertEq(choice2, choice, "Proposal request should store correct choice");
@@ -642,7 +631,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
     function testMultipleRequests() public {
         // prep
         lawId = 3; // Law ID 3 in integrations test constitution
-        
+
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
 
@@ -653,7 +642,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory values1 = new uint256[](1);
         bytes[] memory calldatas1 = new bytes[](1);
         string memory govDescription1 = "First governance description";
-        
+
         targets1[0] = mockAddresses[5];
         values1[0] = 0;
         calldatas1[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -670,7 +659,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory values2 = new uint256[](1);
         bytes[] memory calldatas2 = new bytes[](1);
         string memory govDescription2 = "Second governance description";
-        
+
         targets2[0] = mockAddresses[5];
         values2[0] = 0;
         calldatas2[0] = abi.encodeWithSelector(0x12345678, 456);
@@ -682,10 +671,10 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         // assert
         // Both requests should have been sent to the oracle
         assertNotEq(snapToGovLaw.s_lastRequestId(), bytes32(0), "Second request should have been sent to oracle");
-        
+
         // Verify that both proposal requests were stored
-        (, string memory choice1_, , , ) = snapToGovLaw.requests(proposalId1);
-        (, string memory choice2_, , , ) = snapToGovLaw.requests(proposalId2);
+        (, string memory choice1_,,,) = snapToGovLaw.requests(proposalId1);
+        (, string memory choice2_,,,) = snapToGovLaw.requests(proposalId2);
         assertEq(choice1_, choice1, "First proposal request should store correct choice");
         assertEq(choice2_, choice2, "Second proposal request should store correct choice");
     }
@@ -699,7 +688,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5];
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -721,7 +710,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5];
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -754,7 +743,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5];
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -787,7 +776,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         uint256[] memory valuesIn = new uint256[](1);
         bytes[] memory calldatasIn = new bytes[](1);
         string memory govDescription = "Test governance description";
-        
+
         targetsIn[0] = mockAddresses[5];
         valuesIn[0] = 0;
         calldatasIn[0] = abi.encodeWithSelector(0x12345678, 123);
@@ -811,7 +800,7 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         assertEq(snapToGovLaw.s_lastProposalId(), proposalId, "Proposal ID should be stored correctly");
     }
 
-    function testWithRouterResponse() public { 
+    function testWithRouterResponse() public {
         // prep
         lawId = 3; // Law ID 3 in integrations test constitution
         string memory proposalId = "0x1234567890abcdef";
@@ -830,36 +819,31 @@ contract SnapToGov_CheckSnapExistsTest is TestSetupIntegrations {
         vm.mockCall(
             address(functionsRouter),
             abi.encodeWithSelector(FunctionsRouterMock.fulfillRequest.selector),
-            abi.encode('true')
+            abi.encode("true")
         );
 
-        // assign alice role one 
+        // assign alice role one
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
 
-        // Execute the law to send request to functionsRouter - should send 'true' as response. 
+        // Execute the law to send request to functionsRouter - should send 'true' as response.
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, "Test proposal check");
 
         // Get the request ID
         bytes32 requestId = snapToGovLaw.s_lastRequestId();
-        assertNotEq(requestId, bytes32(0), "Request should have been sent");  
-
-
-
+        assertNotEq(requestId, bytes32(0), "Request should have been sent");
     }
 
     // function testEncodeAndDecode() public {
     //     string memory choice = "[ 'YAE', 'NAY' ]";
     //     bytes memory response = abi.encode(choice);
     //     bytes memory response2 = abi.encode(hex"50726f706f73616c206e6f742070656e64696e672e");
-        
+
     //     console.logBytes(response);
     //     console.logBytes(response2);
 
     //     (string memory choice2) = abi.decode(response2, (string));
     //     console.log(choice2);
     // }
-
-} 
-
+}

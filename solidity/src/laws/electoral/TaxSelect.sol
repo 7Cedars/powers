@@ -59,7 +59,8 @@ contract TaxSelect is Law {
     mapping(bytes32 lawHash => Data) internal data;
 
     constructor() {
-        bytes memory configParams = abi.encode("address erc20TaxedMock", "uint256 thresholdTaxPaid", "uint256 roleIdToSet");
+        bytes memory configParams =
+            abi.encode("address erc20TaxedMock", "uint256 thresholdTaxPaid", "uint256 roleIdToSet");
         emit Law__Deployed(configParams);
     }
 
@@ -72,7 +73,7 @@ contract TaxSelect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (address erc20TaxedMock_, uint256 thresholdTaxPaid_, uint256 roleIdToSet_) =
@@ -97,13 +98,7 @@ contract TaxSelect is Law {
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
     /// @return stateChange The state change data
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -122,7 +117,7 @@ contract TaxSelect is Law {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         (address account) = abi.decode(lawCalldata, (address));
 
-        // step 1: retrieve data 
+        // step 1: retrieve data
         mem.epochDuration = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).epochDuration();
         mem.currentEpoch = uint48(block.number) / mem.epochDuration;
 
@@ -134,8 +129,7 @@ contract TaxSelect is Law {
         mem.hasRole = Powers(payable(powers)).hasRoleSince(caller, data[mem.lawHash].roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
         mem.taxPaid = Erc20TaxedMock(data[mem.lawHash].erc20TaxedMock).getTaxLogs(
-            uint48(block.number) - mem.epochDuration,
-            account
+            uint48(block.number) - mem.epochDuration, account
         );
         // console.log("mem.taxPaid", mem.taxPaid);
 
@@ -145,18 +139,10 @@ contract TaxSelect is Law {
         // step 3: create arrays
         if (mem.hasRole && mem.taxPaid < data[mem.lawHash].thresholdTaxPaid) {
             // console.log("revoking role");
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.revokeRole.selector,
-                data[mem.lawHash].roleIdToSet,
-                account
-            );
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleIdToSet, account);
         } else if (!mem.hasRole && mem.taxPaid >= data[mem.lawHash].thresholdTaxPaid) {
             // console.log("assigning role");
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.assignRole.selector,
-                data[mem.lawHash].roleIdToSet,
-                account
-            );
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleIdToSet, account);
         }
 
         // step 4: return data

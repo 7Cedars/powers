@@ -13,12 +13,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Deploy script Governed Upgrades
-/// @notice Governed Upgrades is a simple example of a DAO. It acts as an introductory example of governed upgrades using the Powers protocol. 
-/// 
+/// @notice Governed Upgrades is a simple example of a DAO. It acts as an introductory example of governed upgrades using the Powers protocol.
+///
 /// This example implements:
-/// Executive laws: 
-/// - A law to adopt a law. Access role = previous DAO 
-/// - A law to revoke a law. Access role = previous DAO 
+/// Executive laws:
+/// - A law to adopt a law. Access role = previous DAO
+/// - A law to revoke a law. Access role = previous DAO
 /// - A law to veto adopting a law. Access role = delegates
 /// - A law to veto revoking a law. Access role = delegates
 /// - A preset law to Exchange tokens at uniswap or sth similar chain. Access role = delegates
@@ -27,7 +27,7 @@
 /// Electoral laws: (possible roles: previous DAO, delegates)
 /// - a law to nominate oneself for a delegate role. Access role: public.
 /// - a law to assign a delegate role to a nominated account. Access role: delegate, using delegate election vote. Simple majority vote.
-/// - a preset self destruct law to assign role to previous DAO. Access role = admin. 
+/// - a preset self destruct law to assign role to previous DAO. Access role = admin.
 
 /// @author 7Cedars
 
@@ -36,7 +36,7 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 // import { console2 } from "forge-std/console2.sol";
 
-// core protocol 
+// core protocol
 import { Powers } from "../src/Powers.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
@@ -85,14 +85,15 @@ contract DeployGovernedUpgrades is Script {
         return (powers_);
     }
 
-    function createConstitution(
-        address payable powers_
-    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function createConstitution(address payable powers_)
+        public
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](12);
 
         //////////////////////////////////////////////////////
-        //               Executive Laws                     // 
+        //               Executive Laws                     //
         //////////////////////////////////////////////////////
         inputParamsAdopt = new string[](12);
 
@@ -102,7 +103,7 @@ contract DeployGovernedUpgrades is Script {
         inputParamsAdopt[2] = "uint32 VotingPeriod";
         inputParamsAdopt[3] = "uint8 Quorum";
         inputParamsAdopt[4] = "uint8 SucceedAt";
-        
+
         inputParamsAdopt[5] = "uint16 NeedCompl";
         inputParamsAdopt[6] = "uint16 NeedNotCompl";
         inputParamsAdopt[7] = "uint16 StateFrom";
@@ -113,7 +114,7 @@ contract DeployGovernedUpgrades is Script {
 
         // Law to veto adopting a law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5);  
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 50; // 30% quorum
         conditions.succeedAt = 33; // 51% majority
         lawInitData[1] = PowersTypes.LawInitData({
@@ -127,7 +128,7 @@ contract DeployGovernedUpgrades is Script {
         // Law to veto revoking a law
         // Only delegates (role 2) can use this law
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5);  
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 15; // 15% quorum
         conditions.succeedAt = 66; // 66% majority
         lawInitData[2] = PowersTypes.LawInitData({
@@ -159,11 +160,7 @@ contract DeployGovernedUpgrades is Script {
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "Stop a law: Revoke a law in Powers.",
             targetLaw: parseLawAddress(5, "BespokeAction"),
-            config: abi.encode(
-                powers_, 
-                IPowers.revokeLaw.selector, 
-                inputParamsRevoke
-            ),
+            config: abi.encode(powers_, IPowers.revokeLaw.selector, inputParamsRevoke),
             conditions: conditions
         });
         delete conditions;
@@ -180,7 +177,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         conditions.allowedRole = 1; // delegate role
-        conditions.votingPeriod = minutesToBlocks(5);  
+        conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 30; // 30% quorum
         conditions.succeedAt = 51; // 51% majority
         conditions.needNotCompleted = 5; // law 5 needs to have passed
@@ -189,17 +186,13 @@ contract DeployGovernedUpgrades is Script {
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Mint tokens: Mint tokens to a delegate address.",
             targetLaw: parseLawAddress(5, "BespokeAction"),
-            config: abi.encode(
-                parseMockAddress(2, "Erc20VotesMock"), 
-                Erc20VotesMock.mintVotes.selector, 
-                inputParamsMint
-            ),
+            config: abi.encode(parseMockAddress(2, "Erc20VotesMock"), Erc20VotesMock.mintVotes.selector, inputParamsMint),
             conditions: conditions
         });
         delete conditions;
 
         //////////////////////////////////////////////////////
-        //                 Electoral Laws                   // 
+        //                 Electoral Laws                   //
         //////////////////////////////////////////////////////
         // Law to nominate oneself for delegate role
         // No role restrictions, anyone can use this law
@@ -213,7 +206,7 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         // startElection
-        // DAO admin has the right to start an election.  
+        // DAO admin has the right to start an election.
         conditions.allowedRole = 3;
         ILaw.Conditions memory electionConditions;
         electionConditions.allowedRole = type(uint256).max; // anybody can vote
@@ -230,9 +223,9 @@ contract DeployGovernedUpgrades is Script {
         delete conditions;
 
         // EndElection
-        // DAO admin has the right to stop an election and count votes. 
+        // DAO admin has the right to stop an election and count votes.
         conditions.allowedRole = 3;
-        conditions.needCompleted = 8; 
+        conditions.needCompleted = 8;
         conditions.readStateFrom = 7;
         lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "End election: The DAO admin can stop an election and have votes counted.",
@@ -244,7 +237,8 @@ contract DeployGovernedUpgrades is Script {
 
         // Preset law to assign previous DAO role
         // Only admin (role 0) can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 10);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(powers_, 10);
         conditions.allowedRole = 0; // admin role
         lawInitData[10] = PowersTypes.LawInitData({
             nameDescription: "Initial setup: Assign labels and mint tokens. This law can only be executed once.",
@@ -253,11 +247,10 @@ contract DeployGovernedUpgrades is Script {
             conditions: conditions
         });
         delete conditions;
-
     }
 
     //////////////////////////////////////////////////////////////
-    //                  HELPER FUNCTIONS                        // 
+    //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
     function _getActions(address payable powers_, uint16 lawId)
         internal
@@ -277,7 +270,7 @@ contract DeployGovernedUpgrades is Script {
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "DAO admin");
         calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Delegates");
         calldatas[4] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-        
+
         return (targets, values, calldatas);
     }
 
@@ -299,4 +292,3 @@ contract DeployGovernedUpgrades is Script {
         blocks = uint32(min * blocksPerHour / 60);
     }
 }
-

@@ -16,7 +16,7 @@ const isNumber = (number: unknown): number is number => {
   return typeof number === 'number' || number instanceof Number;
 };
 
-const isBigInt = (number: unknown): number is BigInt => {
+const isBigInt = (number: unknown): number is bigint => {
   return typeof number === 'bigint';
 };
 
@@ -409,7 +409,7 @@ export const parse1155Metadata = (metadata: unknown): Token => {
   }
 
   // I can always add more to this logic if I think it is needed... 
-  let result: Token = {
+  const result: Token = {
     name: "unknown",
     symbol: "unknown", 
     balance: 0n

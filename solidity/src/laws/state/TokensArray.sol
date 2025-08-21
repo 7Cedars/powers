@@ -41,13 +41,15 @@ contract TokensArray is Law {
     event TokensArray__TokenAdded(address indexed tokenAddress, TokenType tokenType);
     event TokensArray__TokenRemoved(address indexed tokenAddress, TokenType tokenType);
 
-    constructor() { emit Law__Deployed(""); }
+    constructor() {
+        emit Law__Deployed("");
+    }
 
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = abi.encode("address TokenAddress", "uint256 TokenType", "bool Add");

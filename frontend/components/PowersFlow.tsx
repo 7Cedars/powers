@@ -500,6 +500,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     <NodeStatusIndicator status={ loadingChains.includes(String(law.index)) ? checksStatus as "loading" | "success" | "error" | "initial" : "success"}>
       <div 
         className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
+        help-nav-item="flow-node"
         onClick={handleClick}
       >        
         {/* Law Header - replaced with HeaderLaw */}
@@ -927,7 +928,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   // Function to load saved layout from localStorage
   const loadSavedLayout = React.useCallback((): Record<string, { x: number; y: number }> | undefined => {
     try {
-      let localStore = localStorage.getItem("powersProtocols")
+      const localStore = localStorage.getItem("powersProtocols")
       if (!localStore || localStore === "undefined") return undefined
       
       const saved: Powers[] = JSON.parse(localStore)
@@ -947,7 +948,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   // Function to save powers object to localStorage (similar to usePowers.ts)
   const savePowersToLocalStorage = React.useCallback((updatedPowers: Powers) => {
     try {
-      let localStore = localStorage.getItem("powersProtocols")
+      const localStore = localStorage.getItem("powersProtocols")
       const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
       const existing = saved.find(item => item.contractAddress === updatedPowers.contractAddress)
       if (existing) {

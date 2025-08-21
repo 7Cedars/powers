@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { parseInput } from "@/utils/parsers";
 import { DataType, InputType } from "@/context/types";
 import { 
@@ -54,7 +54,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
       setError({error: currentInput}) 
     } else if(typeof onChange === 'function'){
       setError({error: "no error"})
-      let currentArray = [...inputArray] // Create a copy to avoid mutating state
+      const currentArray = [...inputArray] // Create a copy to avoid mutating state
       if (array) {  
         currentArray[item] = currentInput
         setInputArray(currentArray)
@@ -79,7 +79,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
 
     if (expand) {
       const newItemsArray = [...Array(itemsArray.length + 1).keys()]
-      let newInputArray = new Array<InputType>(newItemsArray.length) 
+      const newInputArray = new Array<InputType>(newItemsArray.length) 
       setItemsArray(newItemsArray) 
       setInputArray(newInputArray)
       // Update global action store
@@ -105,7 +105,7 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
         return (
           <section className="w-full mt-4 flex flex-row justify-center items-center gap-4 px-6" key = {i}>
             <div className="text-xs block min-w-16 font-medium text-slate-600">
-              {`${varName.length > 10 ? varName.slice(0, 10) + ".." : varName}`}
+              {`${varName.length > 10 ? `${varName.slice(0, 10)  }..` : varName}`}
             </div>
 
             {

@@ -43,7 +43,7 @@ export const orgToGovernanceTracks = (powers: Powers): {tracks: Law[][] | undefi
 
   const result = {
     tracks: tracks2,
-    orphans: orphans 
+    orphans 
   }
 
   // console.log("@orgToGovernanceTracks, result: ", result)

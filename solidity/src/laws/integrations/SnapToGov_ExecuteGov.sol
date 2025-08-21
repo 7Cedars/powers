@@ -28,7 +28,7 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract SnapToGov_ExecuteGov  is Law {
+contract SnapToGov_ExecuteGov is Law {
     struct MemProposal {
         address[] targets;
         uint256[] values;
@@ -49,20 +49,19 @@ contract SnapToGov_ExecuteGov  is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        (address governorContract_) =
-            abi.decode(config, (address));
+        (address governorContract_) = abi.decode(config, (address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        
+
         inputParams = abi.encode(
-                "string ProposalId", 
-                "string Choice", 
-                "address[] Targets", 
-                "uint256[] Values", 
-                "bytes[] CallDatas",
-                "string GovDescription"
+            "string ProposalId",
+            "string Choice",
+            "address[] Targets",
+            "uint256[] Values",
+            "bytes[] CallDatas",
+            "string GovDescription"
         );
 
         governorContracts[lawHash] = governorContract_;
@@ -86,21 +85,13 @@ contract SnapToGov_ExecuteGov  is Law {
         MemProposal memory proposal;
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (   , 
-            ,
-            proposal.targets,
-            proposal.values,
-            proposal.calldatas,
-            proposal.description
-        ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
+        (,, proposal.targets, proposal.values, proposal.calldatas, proposal.description) =
+            abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
         uint256 proposalId = Governor(payable(governorContracts[lawHash])).getProposalId(
-            proposal.targets, 
-            proposal.values, 
-            proposal.calldatas, 
-            keccak256(bytes(proposal.description))
-            );
-        if (proposalId == 0) {    
+            proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description))
+        );
+        if (proposalId == 0) {
             revert("Proposal not found");
         }
 
@@ -111,8 +102,14 @@ contract SnapToGov_ExecuteGov  is Law {
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = governorContracts[lawHash];
-        calldatas[0] = abi.encodeWithSelector(Governor.execute.selector, proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description)));
-        
+        calldatas[0] = abi.encodeWithSelector(
+            Governor.execute.selector,
+            proposal.targets,
+            proposal.values,
+            proposal.calldatas,
+            keccak256(bytes(proposal.description))
+        );
+
         return (actionId, targets, values, calldatas, "");
     }
 }

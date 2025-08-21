@@ -25,7 +25,7 @@ export const useAssets = (powers: Powers | undefined) => {
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`
-     let tokens: Token[] = [] 
+     const tokens: Token[] = [] 
  
     //  if (publicClient) {
          for await (token of tokenAddresses) {
@@ -77,7 +77,7 @@ export const useAssets = (powers: Powers | undefined) => {
                 symbol: symbolParsed, 
                 balance: balanceParsed,
                 address: token,
-                type: type
+                type
               })
             }
 
@@ -88,7 +88,7 @@ export const useAssets = (powers: Powers | undefined) => {
                 balance: balanceParsed,
                 decimals: decimalParsed, 
                 address: token,
-                type: type
+                type
               })
             }
 
@@ -126,10 +126,10 @@ export const useAssets = (powers: Powers | undefined) => {
            
            // console.log({balancesRaw, balancesParsed})
 
-           let erc1155 = balancesParsed.map((balance, index) => {
+           const erc1155 = balancesParsed.map((balance, index) => {
             if (Number(balance) > 0) return ({
               tokenId: index, 
-              balance: balance,
+              balance,
               address: token
             })
            })
@@ -147,7 +147,7 @@ export const useAssets = (powers: Powers | undefined) => {
 
   const fetch1155Metadata = async (erc1155s: Token[]) => {
     let token: Token
-    let erc1155sMetadata: Token[] = []
+    const erc1155sMetadata: Token[] = []
 
     // if (publicClient) {
       try {

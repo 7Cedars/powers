@@ -44,7 +44,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
 
-  console.log("@LawBox:", {checks, action})
+  // console.log("@LawBox:", {checks, action})
   // console.log("@LawBox:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
@@ -92,7 +92,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   }, [ , law ])
 
   return (
-    <main className="w-full h-full">
+    <main className="w-full h-full" help-nav-item="law-input">
       <section className={`w-full h-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`} >
       {/* title - replaced with HeaderLaw */}
       <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
@@ -175,7 +175,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               <input 
                 type="text"
                 name="uri" 
-                id="uri" 
+                id="uri"
                 value={action.description}
                 className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
                 placeholder="Enter URI to file with notes on the action here."
@@ -196,7 +196,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
         </div>
       }
 
-        <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6">
+        <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
             size={0} 
             showBorder={true} 
@@ -218,7 +218,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
 
       {/* Proposal Section - only show when quorum > 0 */}
       {law?.conditions?.quorum != 0n && (
-        <div className="w-full px-6 py-2 ">          
+        <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">          
           <div className="w-full">
             <Button 
               size={0} 
@@ -258,7 +258,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       {simulation && <SimulationBox law = {law} simulation = {simulation} />}
 
       {/* execute button */}
-        <div className="w-full h-fit px-6 py-2 pb-6">
+        <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
           <Button 
             size={0} 
             role={6}
