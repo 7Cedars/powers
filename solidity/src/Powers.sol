@@ -139,7 +139,7 @@ contract Powers is EIP712, IPowers {
         _actions[actionId].lawCalldata = lawCalldata;
         _actions[actionId].uri = uriAction;
         _actions[actionId].nonce = nonce;
-        
+
         // execute law.
         (bool success) = ILaw(law.targetLaw).executeLaw(msg.sender, lawId, lawCalldata, nonce);
         if (!success) revert Powers__LawDidNotPassChecks();
@@ -206,13 +206,11 @@ contract Powers is EIP712, IPowers {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(
-        address caller,
-        uint16 lawId,
-        bytes calldata lawCalldata,
-        uint256 nonce,
-        string memory uriAction
-    ) internal virtual returns (uint256 actionId) {
+    function _propose(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
+        internal
+        virtual
+        returns (uint256 actionId)
+    {
         ActiveLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
         ILaw.Conditions memory conditions = Law(law.targetLaw).getConditions(address(this), lawId);
@@ -236,7 +234,7 @@ contract Powers is EIP712, IPowers {
         proposedAction.caller = caller;
         proposedAction.uri = uriAction;
         proposedAction.nonce = nonce;
-        
+
         emit ProposedActionCreated(
             actionId,
             caller,
@@ -322,13 +320,13 @@ contract Powers is EIP712, IPowers {
     function constitute(LawInitData[] memory constituentLaws) external virtual {
         // check 1: only admin can call this function
         if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__AccessDenied();
-        
+
         // check 2: this function can only be called once.
         if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
 
         // if checks pass, set _constituentLawsExecuted to true...
         _constituteExecuted = true;
-        
+
         // ...and set laws as active.
         for (uint256 i = 0; i < constituentLaws.length; i++) {
             // note: ignore empty slots in LawInitData array.
@@ -367,11 +365,7 @@ contract Powers is EIP712, IPowers {
         lawCount++;
 
         Law(lawInitData.targetLaw).initializeLaw(
-            lawCount - 1, 
-            lawInitData.nameDescription,
-            "", 
-            lawInitData.conditions, 
-            lawInitData.config
+            lawCount - 1, lawInitData.nameDescription, "", lawInitData.conditions, lawInitData.config
         );
 
         // emit event.
@@ -568,65 +562,49 @@ contract Powers is EIP712, IPowers {
         view
         virtual
         returns (
-            bool cancelled, 
-            bool requested, 
-            bool fulfilled, 
-            uint16 lawId, 
-            uint48 voteStart, 
-            uint32 voteDuration, 
+            bool cancelled,
+            bool requested,
+            bool fulfilled,
+            uint16 lawId,
+            uint48 voteStart,
+            uint32 voteDuration,
             uint256 voteEnd,
-            address caller, 
-            uint32 againstVotes, 
-            uint32 forVotes, 
-            uint32 abstainVotes, 
+            address caller,
+            uint32 againstVotes,
+            uint32 forVotes,
+            uint32 abstainVotes,
             uint256 nonce
-            )
+        )
     {
         Action storage action = _actions[actionId];
         return (
-            action.cancelled, 
-            action.requested, 
-            action.fulfilled, 
-            action.lawId, 
-            action.voteStart, 
+            action.cancelled,
+            action.requested,
+            action.fulfilled,
+            action.lawId,
+            action.voteStart,
             action.voteDuration,
             action.voteStart + action.voteDuration,
-            action.caller, 
-            action.againstVotes, 
-            action.forVotes, 
-            action.abstainVotes, 
+            action.caller,
+            action.againstVotes,
+            action.forVotes,
+            action.abstainVotes,
             action.nonce
         );
     }
 
-    function getActionCalldata(uint256 actionId)
-        public
-        view
-        virtual
-        returns (bytes memory callData)
-    {
+    function getActionCalldata(uint256 actionId) public view virtual returns (bytes memory callData) {
         return _actions[actionId].lawCalldata;
     }
 
-    function getActionUri(uint256 actionId)
-        public
-        view
-        virtual
-        returns (string memory _uri)
-    {
+    function getActionUri(uint256 actionId) public view virtual returns (string memory _uri) {
         _uri = _actions[actionId].uri;
     }
 
-    function getActionNonce(uint256 actionId)
-        public
-        view
-        virtual
-        returns (uint256 nonce)
-    {
+    function getActionNonce(uint256 actionId) public view virtual returns (uint256 nonce) {
         return _actions[actionId].nonce;
     }
 
-    
     /// @inheritdoc IPowers
     function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].amountMembers;
@@ -643,11 +621,7 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getActiveLaw(uint16 lawId)
-        external
-        view
-        returns (address law, bytes32 lawHash, bool active)
-    {
+    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active) {
         law = laws[lawId].targetLaw;
         active = laws[lawId].active;
         lawHash = keccak256(abi.encode(address(this), lawId));

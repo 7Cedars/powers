@@ -2,7 +2,7 @@
 const proposalId = args[0];
 const url = "https://hub.snapshot.org/graphql/";
 const gqlRequest = Functions.makeHttpRequest({
-  url: url,
+  url,
   method: "POST",
   headers: {
     "Content-Type": "application/json",

@@ -54,7 +54,7 @@ export function SectionDeployCarousel() {
     { name: "Ethereum Sepolia", id: 11155111 },
     { name: "Optimism Sepolia", id: 11155420 },
     { name: "Arbitrum Sepolia", id: 421614 },
-    { name: "Mantle Sepolia", id: 5003 },
+    // { name: "Mantle Sepolia", id: 5003 },
     ...(isLocalhost ? [{ name: "Foundry", id: 31337 }] : [])
   ];
 

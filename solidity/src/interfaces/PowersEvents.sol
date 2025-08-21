@@ -47,7 +47,9 @@ interface PowersEvents {
     /// @param targets the targets of the action
     /// @param values the values of the action
     /// @param calldatas the calldatas of the action
-    event ActionExecuted(uint16 indexed lawId, uint256 indexed actionId, address[] targets, uint256[] values, bytes[] calldatas);
+    event ActionExecuted(
+        uint16 indexed lawId, uint256 indexed actionId, address[] targets, uint256[] values, bytes[] calldatas
+    );
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal

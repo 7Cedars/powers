@@ -12,8 +12,7 @@
 // /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 // ///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice This contract assigns accounts to roles based on payment to the powers protocol during an epoch. 
-
+// /// @notice This contract assigns accounts to roles based on payment to the powers protocol during an epoch.
 
 // /// @author 7Cedars
 // pragma solidity 0.8.26;
@@ -38,7 +37,7 @@
 //         uint48 epochDuration;
 //         uint48 currentEpoch;
 //         bool hasRole;
-//         PowersTypes.Deposit[] deposits; 
+//         PowersTypes.Deposit[] deposits;
 //         uint256 amountPaidLastEpoch;
 //     }
 
@@ -47,14 +46,13 @@
 //     constructor() {
 //         bytes memory configParams = abi.encode("uint48 EpochDuration", "uint256 SubscriptionAmount", "uint256 RoleId");
 //         emit Law__Deployed(configParams);
-//     }   
-
+//     }
 
 //     function initializeLaw(
 //         uint16 index,
 //         string memory nameDescription,
 //         bytes memory inputParams,
-//         Conditions memory conditions, 
+//         Conditions memory conditions,
 //         bytes memory config
 //     ) public override {
 //         (uint48 epochDuration_, uint256 subscriptionAmount_, uint256 roleIdToSet_) =
@@ -104,7 +102,7 @@
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 //         (address account) = abi.decode(lawCalldata, (address));
 
-//         // step 1: retrieve data 
+//         // step 1: retrieve data
 //         mem.epochDuration = data[mem.lawHash].epochDuration;
 //         mem.currentEpoch = uint48(block.number) / mem.epochDuration;
 
@@ -114,9 +112,9 @@
 
 //         // step 2: retrieve data on tax paid and role
 //         mem.hasRole = Powers(payable(powers)).hasRoleSince(caller, data[mem.lawHash].roleIdToSet) > 0;
-//         // mem.deposits = Powers(payable(powers)).getDeposits(account); -- deposits removed from powers.sol. 
-//         // NB! Need to refactor how deposits work. TODO. 
-//         mem.deposits = new PowersTypes.Deposit[](0); 
+//         // mem.deposits = Powers(payable(powers)).getDeposits(account); -- deposits removed from powers.sol.
+//         // NB! Need to refactor how deposits work. TODO.
+//         mem.deposits = new PowersTypes.Deposit[](0);
 //         mem.amountPaidLastEpoch = 0;
 
 //         for (uint256 i = 0; i < mem.deposits.length; i++) {
@@ -127,7 +125,7 @@
 
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 //         // step 3: create arrays
-        
+
 //         if (mem.hasRole && mem.amountPaidLastEpoch < data[mem.lawHash].subscriptionAmount) {
 //             targets[0] = powers;
 //             calldatas[0] = abi.encodeWithSelector(

@@ -22,7 +22,10 @@ import { Erc721Mock } from "../mocks/Erc721Mock.sol";
 contract DeployTest is TestSetupPowers {
     function testDeployPowersMock() public {
         assertEq(daoMock.name(), "This is a test DAO");
-        assertEq(daoMock.uri(), "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq");
+        assertEq(
+            daoMock.uri(),
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
+        );
         assertEq(daoMock.version(), "0.3");
         assertNotEq(daoMock.lawCount(), 0);
 
@@ -180,7 +183,7 @@ contract ProposeTest is TestSetupPowers {
 
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         assertEq(daoMock.getProposedActionDeadline(actionId), block.number + conditions.votingPeriod);
@@ -261,7 +264,7 @@ contract CancelTest is TestSetupPowers {
         lawCalldata = abi.encode(targets, values, calldatas);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: execute the proposal
@@ -325,7 +328,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: go forward in time without votes
@@ -344,7 +347,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: defeat proposal by going beyond voting period
@@ -364,7 +367,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote with authorized users
@@ -391,7 +394,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote with reasons
@@ -418,7 +421,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote against
@@ -463,7 +466,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote against
@@ -476,11 +479,9 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (, , , , , , , , uint256 againstVotes, , , ) = daoMock.getActionData(actionId);
+        (,,,,,,,, uint256 againstVotes,,,) = daoMock.getActionData(actionId);
         assertEq(againstVotes, numberAgainstVotes);
     }
-
-            
 
     function testForVoteIsCorrectlyCounted() public {
         // prep: create a proposal
@@ -491,7 +492,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: vote for
@@ -504,7 +505,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (, , , , , , , , , uint256 forVotes , , ) = daoMock.getActionData(actionId);
+        (,,,,,,,,, uint256 forVotes,,) = daoMock.getActionData(actionId);
         assertEq(forVotes, numberForVotes);
     }
 
@@ -517,7 +518,7 @@ contract VoteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // act: abstain
@@ -530,7 +531,7 @@ contract VoteTest is TestSetupPowers {
         }
 
         // assert
-        (, , , , , , , , , , uint256 abstainVotes, ) = daoMock.getActionData(actionId);
+        (,,,,,,,,,, uint256 abstainVotes,) = daoMock.getActionData(actionId);
         assertEq(abstainVotes, numberAbstainVotes);
     }
 
@@ -547,7 +548,7 @@ contract VoteTest is TestSetupPowers {
         daoMock.castVote(actionId, 4); // invalid vote type
 
         // assert
-        (, , , , , , , , uint256 againstVotes, uint256 forVotes, uint256 abstainVotes, ) = daoMock.getActionData(actionId);
+        (,,,,,,,, uint256 againstVotes, uint256 forVotes, uint256 abstainVotes,) = daoMock.getActionData(actionId);
         assertEq(againstVotes, 0);
         assertEq(forVotes, 0);
         assertEq(abstainVotes, 0);
@@ -573,7 +574,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteCanChangeState() public {
         // prep: create proposal data
         lawId = 1;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -592,7 +593,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteSuccessSetsStateToFulfilled() public {
         // prep: create proposal data
         lawId = 1;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -609,7 +610,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteEmitsEvent() public {
         // prep: create proposal data
         lawId = 1;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -632,7 +633,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteRevertsIfNotAuthorised() public {
         // prep: create proposal data
         lawId = 3;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -648,7 +649,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteRevertsIfActionAlreadyExecuted() public {
         // prep: create proposal data
         lawId = 1;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -665,7 +666,7 @@ contract ExecuteTest is TestSetupPowers {
     function testExecuteRevertsIfLawNotActive() public {
         // prep: create proposal data
         lawId = 1;
-        address[] memory addresses = new address[](1); 
+        address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
         lawCalldata = abi.encode(addresses);
 
@@ -698,7 +699,7 @@ contract ExecuteTest is TestSetupPowers {
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
 
         // prep: get conditions for voting
-                (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
+        (lawAddress, lawHash, active) = daoMock.getActiveLaw(lawId);
         conditions = Law(lawAddress).getConditions(address(daoMock), lawId);
 
         // prep: vote against proposal
@@ -1058,7 +1059,9 @@ contract ComplianceTest is TestSetupPowers {
         Erc1155Mock(mockAddresses[5]).mintCoins(numberOfCoinsToMint);
 
         // assert
-        assertEq(Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting");
+        assertEq(
+            Erc1155Mock(mockAddresses[5]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting"
+        );
     }
 
     function testOnERC1155BatchReceived() public {

@@ -64,7 +64,7 @@ contract DeployLaws is Script {
         helperConfig = new HelperConfig();
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
-        
+
         names = new string[](37);
         addresses = new address[](37);
         bytes[] memory creationCodes = new bytes[](37);
@@ -225,11 +225,10 @@ contract DeployLaws is Script {
         // console2.log("router2", router);
 
         for (uint256 i = 0; i < creationCodes.length; i++) {
-        //    console2.log("router", router);
-           addresses[i] = deployLaw(creationCodes[i], constructorArgs[i]);
+            //    console2.log("router", router);
+            addresses[i] = deployLaw(creationCodes[i], constructorArgs[i]);
         }
     }
-
 
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //

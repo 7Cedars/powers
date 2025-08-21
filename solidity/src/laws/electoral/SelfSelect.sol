@@ -45,7 +45,7 @@ contract SelfSelect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         uint256 roleId_ = abi.decode(config, (uint256));

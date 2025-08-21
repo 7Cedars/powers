@@ -89,9 +89,9 @@ const Page = () => {
           lawId: law.index,
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
-          paramValues: paramValues,
+          paramValues,
           nonce: nonce.toString(),
-          description: description,
+          description,
           callData: lawCalldata,
           upToDate: true
         })

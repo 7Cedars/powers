@@ -22,7 +22,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol"; 
+import { LawUtilities } from "../../LawUtilities.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
@@ -35,22 +35,18 @@ contract AdoptLaw is Law {
         string nameDescription;
         address law;
         uint256 allowedRole;
-
         uint32 votingPeriod;
         uint8 quorum;
         uint8 succeedAt;
-
         uint16 needCompleted;
         uint16 needNotCompleted;
         uint16 readStateFrom;
         uint48 delayExecution;
         uint48 throttleExecution;
-        
         bytes config;
-       
     }
 
-    constructor() { 
+    constructor() {
         emit Law__Deployed("");
     }
 
@@ -58,25 +54,26 @@ contract AdoptLaw is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = abi.encode(
-            "string NameDescription", 
-            "address Law", 
-            "uint256 AllowedRole", 
-            "uint32 VotingPeriod", 
-            "uint8 Quorum", 
-            "uint8 SucceedAt", 
-            "uint16 NeedCompl", 
-            "uint16 NeedNotCompl", 
-            "uint16 StateFrom", 
-            "uint48 DelayExec", 
-            "uint48 ThrottleExec", 
+            "string NameDescription",
+            "address Law",
+            "uint256 AllowedRole",
+            "uint32 VotingPeriod",
+            "uint8 Quorum",
+            "uint8 SucceedAt",
+            "uint16 NeedCompl",
+            "uint16 NeedNotCompl",
+            "uint16 StateFrom",
+            "uint48 DelayExec",
+            "uint48 ThrottleExec",
             "bytes Config"
-            );
+        );
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+    }
 
     /// @notice execute the law.
     /// @param lawCalldata the calldata _without function signature_ to send to the function.
@@ -96,7 +93,7 @@ contract AdoptLaw is Law {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         (AdoptLawConfig memory config) = abi.decode(lawCalldata, (AdoptLawConfig));
-   
+
         ILaw.Conditions memory conditions = ILaw.Conditions({
             allowedRole: config.allowedRole,
             needCompleted: config.needCompleted,

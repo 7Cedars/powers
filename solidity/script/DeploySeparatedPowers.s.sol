@@ -12,20 +12,20 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Deploy script Separated Powers 
-/// @notice Separated Powers is an example of a DAO. It acts as an example of separaing powers between roles in a DAO. 
-/// 
-/// @dev this example has not been fully implemented. 
-/// 
-/// In this example: 
-/// - 'Users' have the power to propose an action, 
-/// - 'holders' the power to execute a (previously proposed) action 
-/// - and 'developers' the power to veto an action. 
+/// @title Deploy script Separated Powers
+/// @notice Separated Powers is an example of a DAO. It acts as an example of separaing powers between roles in a DAO.
+///
+/// @dev this example has not been fully implemented.
+///
+/// In this example:
+/// - 'Users' have the power to propose an action,
+/// - 'holders' the power to execute a (previously proposed) action
+/// - and 'developers' the power to veto an action.
 
 /// - Accounts can self select for a 'user' role if they paid more that 100 gwei in tax during the last 1000 blocks
-/// - Accounts can self select for a 'holder' position if they hold more than 1*10^18 in tokens. 
-/// - The 'developer' role is assigned and revoked by developers themselves. 
-/// - Note: there is no mechanism to avoid double roles for one account. This can be added in the future.  
+/// - Accounts can self select for a 'holder' position if they hold more than 1*10^18 in tokens.
+/// - The 'developer' role is assigned and revoked by developers themselves.
+/// - Note: there is no mechanism to avoid double roles for one account. This can be added in the future.
 
 /// @author 7Cedars
 
@@ -36,7 +36,7 @@ import { Script } from "forge-std/Script.sol";
 
 // core protocol
 import { Powers } from "../src/Powers.sol";
-import { IPowers } from "../src/interfaces/IPowers.sol"; 
+import { IPowers } from "../src/interfaces/IPowers.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { DeployLaws } from "./DeployLaws.s.sol";
@@ -50,6 +50,7 @@ contract DeploySeparatedPowers is Script {
     string[] mockNames;
     address[] mockAddresses;
     uint256 blocksPerHour;
+
     function run() external returns (address payable powers_) {
         blocksPerHour = helperConfig.getConfig().blocksPerHour;
         // Deploy the DAO and the taxed ERC20 token
@@ -79,14 +80,15 @@ contract DeploySeparatedPowers is Script {
         return (powers_);
     }
 
-    function createConstitution(
-        address payable powers_
-    ) public returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function createConstitution(address payable powers_)
+        public
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         ILaw.Conditions memory conditions;
         lawInitData = new PowersTypes.LawInitData[](10);
 
         //////////////////////////////////////////////////////
-        //               Executive Laws                     // 
+        //               Executive Laws                     //
         //////////////////////////////////////////////////////
 
         // This law allows users to propose actions
@@ -100,8 +102,8 @@ contract DeploySeparatedPowers is Script {
         conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
-        conditions.delayExecution = minutesToBlocks(5);  
-        conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks 
+        conditions.delayExecution = minutesToBlocks(5);
+        conditions.throttleExecution = minutesToBlocks(4); // can only be executed once every twenty blocks
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Propose new actions: Propose a new action to the DAO that can later be executed by holders.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
@@ -113,7 +115,7 @@ contract DeploySeparatedPowers is Script {
         // This law allows developers to veto proposed actions
         // Only developers can use this law
         conditions.allowedRole = 3; // developer role
-        conditions.needCompleted = 1; // law 1 needs to have passed. 
+        conditions.needCompleted = 1; // law 1 needs to have passed.
         conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 10; // 10% quorum
         conditions.succeedAt = 50; // 50% majority
@@ -129,11 +131,11 @@ contract DeploySeparatedPowers is Script {
         // This law allows subscribers to veto proposed actions
         // Only subscribers can use this law
         conditions.allowedRole = 4; // subscriber role
-        conditions.needCompleted = 1; // law 2 needs to have passed. 
+        conditions.needCompleted = 1; // law 2 needs to have passed.
         conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 20; // 20% quorum
-        conditions.succeedAt = 66; // 66% majority 
-        conditions.delayExecution = minutesToBlocks(6);  
+        conditions.succeedAt = 66; // 66% majority
+        conditions.delayExecution = minutesToBlocks(6);
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Ok an action: Ok an action that was proposed by users.",
             targetLaw: parseLawAddress(8, "StatementOfIntent"),
@@ -145,8 +147,8 @@ contract DeploySeparatedPowers is Script {
         // This law allows holders to execute previously proposed actions
         // Only holders can use this law
         conditions.allowedRole = 2; // holder role
-        conditions.needCompleted = 3; // law 3 needs to have passed. 
-        conditions.needNotCompleted = 2; // law 2 needs to have not passed. 
+        conditions.needCompleted = 3; // law 3 needs to have passed.
+        conditions.needNotCompleted = 2; // law 2 needs to have not passed.
         conditions.votingPeriod = minutesToBlocks(5);
         conditions.quorum = 80; // 80% quorum
         conditions.succeedAt = 50; // 50% majority
@@ -159,7 +161,7 @@ contract DeploySeparatedPowers is Script {
         delete conditions;
 
         //////////////////////////////////////////////////////
-        //                 Electoral Laws                   // 
+        //                 Electoral Laws                   //
         //////////////////////////////////////////////////////
 
         // Law for users to self-select based on tax payments
@@ -190,13 +192,13 @@ contract DeploySeparatedPowers is Script {
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "Assign subscriber role: Assign an account as subscriber. The account will need to pay 1000 gwei in Eth to Powers.",
             targetLaw: parseLawAddress(21, "Subscription"),
-            config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour 
+            config: abi.encode(300, 1000, 4), // 1000 subscription amount, role 4 (subscriber), 300 epoch duration = 1 hour
             conditions: conditions
         });
         delete conditions;
 
-        // Here add a law that is base don subscription. 
-        // to do. 
+        // Here add a law that is base don subscription.
+        // to do.
 
         // Law for developers to manage their own role
         // Only developers can use this law
@@ -215,7 +217,8 @@ contract DeploySeparatedPowers is Script {
         // PresetAction for roles
         // This law sets up initial role assignments for the DAO
         // Only role 0 can use this law
-        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) = _getActions(powers_, 9);
+        (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
+            _getActions(powers_, 9);
         conditions.allowedRole = 0;
         lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "Assign initial roles and labels: This law can only be used once. It self-destructs after use.",
@@ -227,7 +230,7 @@ contract DeploySeparatedPowers is Script {
     }
 
     //////////////////////////////////////////////////////////////
-    //                  HELPER FUNCTIONS                        // 
+    //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
 
     function _getActions(address payable powers_, uint16 lawId)
@@ -252,7 +255,7 @@ contract DeploySeparatedPowers is Script {
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Holders");
         calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Developers");
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Subscribers");
-        // possibly add: subscribers. 
+        // possibly add: subscribers.
         // revoke law after use
         if (lawId != 0) {
             calldatas[5] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
@@ -279,13 +282,3 @@ contract DeploySeparatedPowers is Script {
         blocks = uint32(min * blocksPerHour / 60);
     }
 }
-
-
-
-
-
-
-
-
-
-

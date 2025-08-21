@@ -18,10 +18,10 @@
 /// @author 7Cedars
 
 /// @notice The logic of this law is to flag an action.
-/// An actionId is mapped against a bool. 
-/// This allows actionIds to be 'flagged'. 
+/// An actionId is mapped against a bool.
+/// This allows actionIds to be 'flagged'.
 /// Can be used to flag actions as malicious, etc.
-// 
+//
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
@@ -37,18 +37,21 @@ contract FlagActions is Law {
     event FlagActions__Flagged(uint256 actionId);
     event FlagActions__Unflagged(uint256 actionId);
 
-    constructor() { emit Law__Deployed(""); }
+    constructor() {
+        emit Law__Deployed("");
+    }
 
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = abi.encode("uint256 ActionId", "bool Flag");
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public

@@ -35,8 +35,8 @@ contract EndElection is Law {
         uint256 roleId;
         address[] electedAccounts;
     }
-    mapping(bytes32 lawHash => Data) internal data;
 
+    mapping(bytes32 lawHash => Data) internal data;
 
     struct Mem {
         bytes32 lawHash;
@@ -75,18 +75,12 @@ contract EndElection is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = abi.encode("uint48 startVote", "uint48 endVote", "string Description");
 
-        super.initializeLaw(
-            index, 
-            nameDescription,
-            inputParams,
-            conditions,
-            config
-        );
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to adopt a new law
@@ -99,13 +93,7 @@ contract EndElection is Law {
     /// @return values Array of values to send
     /// @return calldatas Array of calldata for the calls
     /// @return stateChange State changes to apply
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -119,7 +107,7 @@ contract EndElection is Law {
     {
         Mem memory mem;
 
-        // load data to memory & do checks 
+        // load data to memory & do checks
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         mem.startElectionId = laws[mem.lawHash].conditions.needCompleted; // needCompleted is the startElection law.
         mem.nominateMeId = laws[mem.lawHash].conditions.readStateFrom; // readStateFrom is the nominateMe law.
@@ -130,7 +118,8 @@ contract EndElection is Law {
             revert("readStateFrom condition not set.");
         }
 
-        (mem.startElection, mem.endElection, mem.electionDescription) = abi.decode(lawCalldata, (uint48, uint48, string));
+        (mem.startElection, mem.endElection, mem.electionDescription) =
+            abi.decode(lawCalldata, (uint48, uint48, string));
         // check if election has started
         if (block.number < mem.startElection) {
             revert("Election not open.");
@@ -140,25 +129,25 @@ contract EndElection is Law {
             revert("Election has not ended.");
         }
 
-        // Retrieving & calculating law id, addresses and hashes.  
-        (mem.startElectionLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.startElectionId);
-        (mem.nominateMeLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
+        // Retrieving & calculating law id, addresses and hashes.
+        (mem.startElectionLaw,,) = Powers(payable(powers)).getActiveLaw(mem.startElectionId);
+        (mem.nominateMeLaw,,) = Powers(payable(powers)).getActiveLaw(mem.nominateMeId);
 
         mem.startElectionLawHash = LawUtilities.hashLaw(powers, mem.startElectionId);
         mem.nominateMeHash = LawUtilities.hashLaw(powers, mem.nominateMeId);
 
         mem.VoteOnAccountsId = StartElection(mem.startElectionLaw).getElectionId(mem.startElectionLawHash, lawCalldata);
-        (mem.VoteOnAccountsLaw, , ) = Powers(payable(powers)).getActiveLaw(mem.VoteOnAccountsId);
+        (mem.VoteOnAccountsLaw,,) = Powers(payable(powers)).getActiveLaw(mem.VoteOnAccountsId);
         mem.VoteOnAccountsHash = LawUtilities.hashLaw(powers, mem.VoteOnAccountsId);
 
-        // Executing electoral Tally: calculating number of calls to make. 
+        // Executing electoral Tally: calculating number of calls to make.
         mem.nominees = NominateMe(mem.nominateMeLaw).getNominees(mem.nominateMeHash);
         mem.numberRevokees = data[mem.lawHash].electedAccounts.length;
         mem.arrayLength = mem.nominees.length < data[mem.lawHash].maxRoleHolders
             ? mem.numberRevokees + mem.nominees.length + 1
             : mem.numberRevokees + data[mem.lawHash].maxRoleHolders + 1;
 
-        // Setting up the empty arrays to be filled out for call back to powers. 
+        // Setting up the empty arrays to be filled out for call back to powers.
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.arrayLength);
         for (uint256 i; i < mem.arrayLength; i++) {
             targets[i] = powers;
@@ -218,10 +207,7 @@ contract EndElection is Law {
         stateChange = abi.encode(mem.accountElects);
 
         // Set up the call to revoke the election law in Powers contract
-        calldatas[mem.arrayLength - 1] = abi.encodeWithSelector(
-            Powers.revokeLaw.selector,
-            mem.VoteOnAccountsId
-        );
+        calldatas[mem.arrayLength - 1] = abi.encodeWithSelector(Powers.revokeLaw.selector, mem.VoteOnAccountsId);
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 

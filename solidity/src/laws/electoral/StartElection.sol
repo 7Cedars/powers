@@ -25,12 +25,12 @@ import { Powers } from "../../Powers.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-// import "forge-std/console.sol"; // for testing only 
+// import "forge-std/console.sol"; // for testing only
 
 contract StartElection is Law {
     /// @notice Constructor for the CallElection contract
     struct Data {
-        address electionLaw; 
+        address electionLaw;
         bytes electionConditions;
     }
 
@@ -40,7 +40,7 @@ contract StartElection is Law {
     constructor() {
         bytes memory configParams = abi.encode(
             "address ElectionLaw", // Address of VoteOnAccounts law
-            "bytes ElectionConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent elections are set when the call election law is adopted.  
+            "bytes ElectionConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent elections are set when the call election law is adopted.
         );
         emit Law__Deployed(configParams);
     }
@@ -54,24 +54,17 @@ contract StartElection is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        (address electionLaw, bytes memory electionConditions) =
-            abi.decode(config, (address, bytes));
-        
+        (address electionLaw, bytes memory electionConditions) = abi.decode(config, (address, bytes));
+
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash].electionLaw = electionLaw;
         data[lawHash].electionConditions = electionConditions;
         inputParams = abi.encode("uint48 startVote", "uint48 endVote", "string Description");
 
-        super.initializeLaw(
-            index, 
-            nameDescription,
-            inputParams,
-            conditions, 
-            config
-        );
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     /// @notice Handles the request to adopt a new law
@@ -84,13 +77,7 @@ contract StartElection is Law {
     /// @return values Array of values to send
     /// @return calldatas Array of calldata for the calls
     /// @return stateChange State changes to apply
-    function handleRequest(
-        address caller,
-        address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
-        uint256 nonce
-    )
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
@@ -103,15 +90,15 @@ contract StartElection is Law {
         )
     {
         // Decode the law call data
-        (uint48 startVote, uint48 endVote, string memory electionDescription) = 
+        (uint48 startVote, uint48 endVote, string memory electionDescription) =
             abi.decode(lawCalldata, (uint48, uint48, string));
-        
+
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         ILaw.Conditions memory electionConditions = abi.decode(data[lawHash].electionConditions, (ILaw.Conditions));
-        
+
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        
+
         // Set up the call to adoptLaw in Powers
         targets[0] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
@@ -143,6 +130,5 @@ contract StartElection is Law {
 
     function getData(bytes32 lawHash) public view returns (Data memory) {
         return data[lawHash];
-    }   
-
+    }
 }

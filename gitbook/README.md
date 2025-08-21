@@ -4,7 +4,7 @@
 
 ## What it is
 
-The Powers protocol offers a role-centric governance system for on-chain organizations. It allows for the separation and distribution of decision-making power by codifying relationships between stakeholders.
+The Powers protocol offers a role-based governance system for on-chain organizations. It allows for the separation and distribution of decision-making power by codifying relationships between stakeholders.
 
 Using Powers, a single decision can be guided through multiple role-restricted modules, with each their own conditional checks and voting mechanisms. Together, the create completely modular, transparent and asynchronous governance paths.
 

@@ -24,7 +24,8 @@ import { Erc1155Mock } from "../test/mocks/Erc1155Mock.sol";
 // Note: we do not return addresses of the deployed mocks. -- I am thinking about scrapping it. It is more trouble than its worth
 // addresses should be computed on basis of deployment data using create2.
 contract DeployMocks is Script {
-    address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.    
+    address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
+
     function run() external returns (string[] memory names, address[] memory addresses) {
         names = new string[](6);
         addresses = new address[](6);
@@ -33,11 +34,11 @@ contract DeployMocks is Script {
         names[0] = "PowersMock";
         creationCodes[0] = type(PowersMock).creationCode;
         addresses[0] = deployMock(creationCodes[0], names[0]);
-    
+
         names[2] = "Erc20VotesMock";
         creationCodes[2] = type(Erc20VotesMock).creationCode;
         addresses[2] = deployMock(creationCodes[2], names[2]);
-        
+
         names[3] = "Erc20TaxedMock";
         creationCodes[3] = type(Erc20TaxedMock).creationCode;
         addresses[3] = deployMock(creationCodes[3], names[3]);

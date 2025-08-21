@@ -53,7 +53,7 @@ contract NominateMe is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         inputParams = abi.encode("bool NominateMe");
@@ -104,7 +104,8 @@ contract NominateMe is Law {
             data[lawHash].nominations[caller] = 0;
             for (uint256 i; i < data[lawHash].nomineesSorted.length; i++) {
                 if (data[lawHash].nomineesSorted[i] == caller) {
-                    data[lawHash].nomineesSorted[i] = data[lawHash].nomineesSorted[data[lawHash].nomineesSorted.length - 1];
+                    data[lawHash].nomineesSorted[i] =
+                        data[lawHash].nomineesSorted[data[lawHash].nomineesSorted.length - 1];
                     data[lawHash].nomineesSorted.pop();
                     data[lawHash].nomineesCount--;
                     break;

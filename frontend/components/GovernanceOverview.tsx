@@ -63,8 +63,9 @@ const lawToColourCode = (law: Law) => {
 export function GovernanceOverview({law, powers}: GovernanceOverviewProps) {
   const { deselectedRoles } = useRoleStore()
   const roleIdsParsed = deselectedRoles?.map(id => Number(id))
-  let governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
-  const bgItem = usePathname().includes(`/laws`) || usePathname().includes(`/proposals`) ? 0 : 1
+  const governanceTracks = powers ? orgToGovernanceTracks(powers) : {tracks: [], orphans: []} 
+  const pathname = usePathname()
+  const bgItem = pathname.includes(`/laws`) || pathname.includes(`/proposals`) ? 0 : 1
 
   if (law != undefined ) {
     governanceTracks.orphans = governanceTracks.orphans ? governanceTracks.orphans.filter(law2 => law2.index == law.index) : []

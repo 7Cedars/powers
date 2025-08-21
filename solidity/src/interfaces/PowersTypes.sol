@@ -55,9 +55,9 @@ interface PowersTypes {
         uint32 abstainVotes; // 4
         // slots 3.. £check: have to check this out.
         mapping(address voter => bool) hasVoted; // 20 ?
-        // note: We save lawCalldata ONCHAIN when executed. -- this will be mroe expensive, but it decreases dependence on external services. 
-        bytes lawCalldata; // 32 ... and more. 
-        string uri; // 32 bytes ... and more. uri to metadata (description, etc) of action. Markdown file supported by frontend, but in theory can be anything. 
+        // note: We save lawCalldata ONCHAIN when executed. -- this will be mroe expensive, but it decreases dependence on external services.
+        bytes lawCalldata; // 32 ... and more.
+        string uri; // 32 bytes ... and more. uri to metadata (description, etc) of action. Markdown file supported by frontend, but in theory can be anything.
         uint256 nonce; // 32 bytes
     }
 

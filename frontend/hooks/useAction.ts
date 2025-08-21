@@ -62,7 +62,7 @@ export const useAction = () => {
               const executedAt = executionsParsed.executions[index]
               // console.log("@useAction: waypoint 5", {executedAt})
 
-              let dataTypes = law?.params?.map(param => param.dataType)
+              const dataTypes = law?.params?.map(param => param.dataType)
               let valuesParsed = undefined
               if (dataTypes != undefined && dataTypes.length > 0) {
                 const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), lawCalldata as `0x${string}`);
@@ -75,7 +75,7 @@ export const useAction = () => {
                   actionId: String(actionId),
                   lawId: parsedActionData.lawId,
                   caller: parsedActionData.caller,
-                  dataTypes: dataTypes,
+                  dataTypes,
                   paramValues: valuesParsed,
                   nonce: String(parsedActionData.nonce),
                   description: actionUri as string,
@@ -86,7 +86,7 @@ export const useAction = () => {
                   voteDuration: parsedActionData.voteDuration,
                   voteEnd: parsedActionData.voteEnd,
                   againstVotes: parsedActionData.againstVotes,
-                  executedAt: executedAt,
+                  executedAt,
                   forVotes: parsedActionData.forVotes,
                   abstainVotes: parsedActionData.abstainVotes,
                   cancelled: parsedActionData.cancelled,

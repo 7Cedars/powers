@@ -48,20 +48,19 @@ contract SnapToGov_CreateGov is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
-        (address governorContract_) =
-            abi.decode(config, (address));
+        (address governorContract_) = abi.decode(config, (address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        
+
         inputParams = abi.encode(
-                "string ProposalId", 
-                "string Choice", 
-                "address[] Targets", 
-                "uint256[] Values", 
-                "bytes[] CallDatas",
-                "string GovDescription"
+            "string ProposalId",
+            "string Choice",
+            "address[] Targets",
+            "uint256[] Values",
+            "bytes[] CallDatas",
+            "string GovDescription"
         );
 
         governorContracts[lawHash] = governorContract_;
@@ -85,17 +84,14 @@ contract SnapToGov_CreateGov is Law {
         MemProposal memory proposal;
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (   , 
-            ,
-            proposal.targets,
-            proposal.values,
-            proposal.calldatas,
-            proposal.description
-        ) = abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
+        (,, proposal.targets, proposal.values, proposal.calldatas, proposal.description) =
+            abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = governorContracts[lawHash];
-        calldatas[0] = abi.encodeWithSelector(Governor.propose.selector, proposal.targets, proposal.values, proposal.calldatas, proposal.description);
+        calldatas[0] = abi.encodeWithSelector(
+            Governor.propose.selector, proposal.targets, proposal.values, proposal.calldatas, proposal.description
+        );
 
         return (actionId, targets, values, calldatas, "");
     }

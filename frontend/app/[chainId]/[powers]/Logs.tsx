@@ -56,7 +56,7 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
         return lawActions.actionsIds.map((actionId, j) => {
           return {
             lawId: BigInt(i + 1),
-            actionId: actionId,
+            actionId,
             executedAt: lawActions.executions[j],
             role: powers?.laws?.[i]?.conditions?.allowedRole
           }

@@ -12,22 +12,22 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This law is a work in progress. 
+/// @notice This law is a work in progress.
 ///
 /// @author 7Cedars
 
-/// @notice This contract that lists the nominees for an election and allows voters to vote on them. 
+/// @notice This contract that lists the nominees for an election and allows voters to vote on them.
 /// - When the law is adopted the following config params are set:
 ///    - the ElectionVetting law address used to get nominees.
 
-/// - the InputParams are the following: 
+/// - the InputParams are the following:
 ///    - the list of nominees taken from the ElectionVetting law. This is ReadStateFrom!
 
-/// the logic of the law: 
-/// - The inputParams are _Dynamic_. As many bool options will appear as there are nominees. 
-/// - when a voter selects more than one nominee, the law will revert. 
-/// - when a vote is cast, the law will register the vote + that the voter has voted. 
-/// - only one vote per voter is allowed. 
+/// the logic of the law:
+/// - The inputParams are _Dynamic_. As many bool options will appear as there are nominees.
+/// - when a voter selects more than one nominee, the law will revert.
+/// - when a vote is cast, the law will register the vote + that the voter has voted.
+/// - only one vote per voter is allowed.
 
 pragma solidity 0.8.26;
 
@@ -49,7 +49,7 @@ contract ElectionList is Law {
         address startElectionAddress;
         bytes32 startElectionHash;
         bool active;
-        // 
+        //
         uint48 startElection;
         uint48 endElection;
         uint16 roleId;
@@ -58,12 +58,12 @@ contract ElectionList is Law {
         //
         address[] nominees;
         string[] nomineeList;
-        // 
+        //
         bool[] vote;
         uint256 numVotes;
         uint256 i;
     }
-    
+
     struct Data {
         mapping(address nominee => uint256 votes) votes;
         mapping(address voter => bool voted) voted;
@@ -72,6 +72,7 @@ contract ElectionList is Law {
         uint48 endElection;
         uint16 roleId;
     }
+
     mapping(bytes32 lawHash => Data) public data;
 
     constructor() {
@@ -82,37 +83,32 @@ contract ElectionList is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         MemoryData memory mem;
-        (mem.startElectionAddress, mem.startElectionHash, mem.active) = Powers(payable(msg.sender)).getActiveLaw(conditions.readStateFrom);
-        // checking if StartElection law is set correctly. 
+        (mem.startElectionAddress, mem.startElectionHash, mem.active) =
+            Powers(payable(msg.sender)).getActiveLaw(conditions.readStateFrom);
+        // checking if StartElection law is set correctly.
         if (!mem.active) {
-            revert ("No valid StartElection law provided.");
+            revert("No valid StartElection law provided.");
         }
-        // loading data from StartElection law. 
-        (
-            mem.startElection, 
-            mem.endElection, 
-            mem.roleId, 
-            , 
-            mem.nominateMeAddress, 
-            mem.nominateMeHash
-            ) = ElectionStart(payable(mem.startElectionAddress)).getElectionData(mem.startElectionHash);
+        // loading data from StartElection law.
+        (mem.startElection, mem.endElection, mem.roleId,, mem.nominateMeAddress, mem.nominateMeHash) =
+            ElectionStart(payable(mem.startElectionAddress)).getElectionData(mem.startElectionHash);
         if (block.number > mem.startElection) {
-            revert ("Election start block has already passed.");
+            revert("Election start block has already passed.");
         }
         (mem.nominees) = NominateMe(payable(mem.nominateMeAddress)).getNominees(mem.nominateMeHash);
 
-        // saving data to state. 
+        // saving data to state.
         mem.lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[mem.lawHash].nominees = mem.nominees;
         data[mem.lawHash].startElection = mem.startElection;
         data[mem.lawHash].endElection = mem.endElection;
         data[mem.lawHash].roleId = mem.roleId;
 
-        // creating inputParams. 
+        // creating inputParams.
         // string memory description = string.concat("request payment at block: ", Strings.toString(block.number));
         mem.nomineeList = new string[](mem.nominees.length);
         for (uint256 i = 0; i < mem.nominees.length; i++) {
@@ -120,7 +116,7 @@ contract ElectionList is Law {
         }
         inputParams = abi.encode(mem.nomineeList);
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
@@ -140,19 +136,19 @@ contract ElectionList is Law {
         MemoryData memory mem;
 
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        // note that this 
+        // note that this
         (mem.vote) = LawUtilities.arrayifyBools(data[mem.lawHash].nominees.length);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // step 2: check if the voter has already voted.
         if (data[mem.lawHash].voted[caller]) {
-            revert ("Voter has already voted.");
+            revert("Voter has already voted.");
         }
         if (block.number < data[mem.lawHash].startElection) {
-            revert ("Election has not started yet.");
+            revert("Election has not started yet.");
         }
         if (block.number > data[mem.lawHash].endElection) {
-            revert ("Election has ended.");
+            revert("Election has ended.");
         }
 
         // step 3: check if the voter has voted for more than one nominee.
@@ -161,7 +157,7 @@ contract ElectionList is Law {
             if (mem.vote[mem.i]) {
                 mem.numVotes++;
                 if (mem.numVotes > 1) {
-                    revert ("Voter has voted for more than one nominee.");
+                    revert("Voter has voted for more than one nominee.");
                 }
             }
         }
@@ -183,11 +179,19 @@ contract ElectionList is Law {
         }
     }
 
-    function getElectionData(bytes32 lawHash) public view returns (address[] memory nominees, uint48 startElection, uint48 endElection) {
+    function getElectionData(bytes32 lawHash)
+        public
+        view
+        returns (address[] memory nominees, uint48 startElection, uint48 endElection)
+    {
         return (data[lawHash].nominees, data[lawHash].startElection, data[lawHash].endElection);
     }
 
-    function getElectionTally(bytes32 lawHash) public view returns (address[] memory nominees, uint256[] memory votes) {
+    function getElectionTally(bytes32 lawHash)
+        public
+        view
+        returns (address[] memory nominees, uint256[] memory votes)
+    {
         MemoryData memory mem;
 
         nominees = new address[](data[lawHash].nominees.length);

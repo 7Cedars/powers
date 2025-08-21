@@ -140,7 +140,7 @@ export const useChecks = () => {
 
   const calculateDependencies = (lawId: bigint, powers: Powers) => {
     const selectedLawId = String(lawId)
-    let connectedNodes: Set<string> = new Set()
+    const connectedNodes: Set<string> = new Set()
     
     if (powers.activeLaws) {
       // Build dependency maps
@@ -224,10 +224,10 @@ export const useChecks = () => {
 
           // console.log("notCompleted1", {notCompleted1})
 
-            let newChecks: Checks =  {
+            const newChecks: Checks =  {
               delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
               throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
-              authorised: authorised,
+              authorised,
               proposalExists: law.conditions.quorum == 0n ? true : proposalExists == false,
               voteActive: law.conditions.quorum == 0n ? true : voteActive,
               proposalPassed: law.conditions.quorum == 0n ? true : proposalStatus,

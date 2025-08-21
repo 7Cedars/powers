@@ -44,12 +44,12 @@
 //         string space;
 //         address snapshotOracle;
 //     }
-    
+
 //     mapping(bytes32 lawHash => Data) public data;
 //     mapping(uint256 actionId => SnapshotProposal proposal) public snapshotProposal;
 
 //     /// @notice constructor of the law.
-//     constructor( ) { 
+//     constructor( ) {
 //         bytes memory configParams = abi.encode("string Space", "address SnapshotOracle");
 //         emit Law__Deployed(configParams);
 //     }
@@ -64,15 +64,15 @@
 //         (string memory space_, address snapshotOracle_) = abi.decode(config, (string, address));
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 //         data[lawHash] = Data(space_, snapshotOracle_);
-        
+
 //         inputParams = abi.encodePacked(
 //             abi.encode(
-//                 "bytes32 ProposalId", 
-//                 "string ForText", 
-//                 "string AgainstText", 
-//                 "string AbstainText", 
-//                 "address[] Targets", 
-//                 "uint256[] Values", 
+//                 "bytes32 ProposalId",
+//                 "string ForText",
+//                 "string AgainstText",
+//                 "string AbstainText",
+//                 "address[] Targets",
+//                 "uint256[] Values",
 //                 "bytes[] CallDatas"
 //                 )
 //         );
@@ -100,7 +100,7 @@
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
 
 //         (bytes32 proposalId, string memory forText, string memory againstText, string memory abstainText, address[] memory targetsProposal, uint256[] memory valuesProposal, bytes[] memory calldatasProposal) = abi.decode(lawCalldata, (bytes32, string, string, string, address[], uint256[], bytes[]));
-//         // check if arrays are the same length. 
+//         // check if arrays are the same length.
 //         if (targetsProposal.length != valuesProposal.length || targetsProposal.length != calldatasProposal.length) {
 //             revert("Targets, values and calldatas are not set correctly");
 //         }
@@ -121,7 +121,7 @@
 //         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
 //         uint16 lawId_ = snapshotProposal[actionId].lawId;
 
-//         // cal the Powers contract to mark the law as fulfilled. 
+//         // cal the Powers contract to mark the law as fulfilled.
 //         _replyPowers(lawId_, actionId, targets, values, calldatas); // this is where the law's logic is executed. I should check if call is successful. It will revert if not succesful, right?
 //     }
 

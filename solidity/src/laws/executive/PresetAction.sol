@@ -31,6 +31,7 @@ contract PresetAction is Law {
         bytes[] calldatas;
     }
     /// the targets, values and calldatas to be used in the calls: set at construction.
+
     mapping(bytes32 lawHash => Data data) internal data;
 
     /// @notice constructor of the law
@@ -43,18 +44,14 @@ contract PresetAction is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
             abi.decode(config, (address[], uint256[], bytes[]));
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash] = Data({
-            targets: targets_,
-            values: values_,
-            calldatas: calldatas_
-        });
+        data[lawHash] = Data({ targets: targets_, values: values_, calldatas: calldatas_ });
 
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
@@ -64,11 +61,17 @@ contract PresetAction is Law {
         public
         view
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes memory stateChange)
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas,
+            bytes memory stateChange
+        )
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        
+
         return (actionId, data[lawHash].targets, data[lawHash].values, data[lawHash].calldatas, "");
     }
 

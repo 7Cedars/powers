@@ -47,7 +47,7 @@ contract DirectDeselect is Law {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        Conditions memory conditions, 
+        Conditions memory conditions,
         bytes memory config
     ) public override {
         (uint256 roleId_) = abi.decode(config, (uint256));
@@ -56,7 +56,8 @@ contract DirectDeselect is Law {
 
         inputParams = abi.encode("address[] Accounts");
 
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);    }
+        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+    }
 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
@@ -76,7 +77,7 @@ contract DirectDeselect is Law {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        // step 2 :check if addresses already have the role. If not, they will not be added to targets. 
+        // step 2 :check if addresses already have the role. If not, they will not be added to targets.
         uint256 target = 0;
         for (uint256 i = 0; i < accounts.length; i++) {
             if (Powers(payable(powers)).hasRoleSince(accounts[i], roleId[lawHash]) != 0) {
@@ -93,9 +94,9 @@ contract DirectDeselect is Law {
             if (Powers(payable(powers)).hasRoleSince(account, roleId[lawHash]) != 0) {
                 targets[target] = powers;
                 values[target] = 0;
-                calldatas[target] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId[lawHash], account); 
+                calldatas[target] = abi.encodeWithSelector(Powers.revokeRole.selector, roleId[lawHash], account);
                 target++;
-            } 
+            }
         }
 
         return (actionId, targets, values, calldatas, "");
