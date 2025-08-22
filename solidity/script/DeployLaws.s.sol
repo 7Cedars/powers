@@ -51,6 +51,11 @@ import { SnapToGov_ExecuteGov } from "../src/laws/integrations/SnapToGov_Execute
 import { ElectionList } from "../src/laws/electoral/ElectionList.sol";
 import { ElectionStart } from "../src/laws/electoral/ElectionStart.sol";
 import { ElectionTally } from "../src/laws/electoral/ElectionTally.sol";
+import { RoleByGitCommit } from "../src/laws/offchain/RoleByGitCommit.sol";
+import { StringToAddress } from "../src/laws/state/StringToAddress.sol";
+import { Erc20Budget } from "../src/laws/state/Erc20Budget.sol";
+import { AdoptLawPackage } from "../src/laws/executive/AdoptLawPackage.sol";
+import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -64,10 +69,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
 
-        names = new string[](36);
-        addresses = new address[](36);
-        bytes[] memory creationCodes = new bytes[](36);
-        bytes[] memory constructorArgs = new bytes[](36);
+        names = new string[](41);
+        addresses = new address[](41);
+        bytes[] memory creationCodes = new bytes[](41);
+        bytes[] memory constructorArgs = new bytes[](41);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -216,6 +221,26 @@ contract DeployLaws is Script {
         names[35] = "EndGrant";
         creationCodes[35] = type(EndGrant).creationCode;
         constructorArgs[35] = abi.encode("EndGrant");
+
+        names[36] = "RoleByGitCommit";
+        creationCodes[36] = type(RoleByGitCommit).creationCode;
+        constructorArgs[36] = abi.encode(router);
+
+        names[37] = "StringToAddress";
+        creationCodes[37] = type(StringToAddress).creationCode;
+        constructorArgs[37] = abi.encode("StringToAddress");
+
+        names[38] = "Erc20Budget";
+        creationCodes[38] = type(Erc20Budget).creationCode;
+        constructorArgs[38] = abi.encode("Erc20Budget");
+
+        names[39] = "AdoptLawPackage";
+        creationCodes[39] = type(AdoptLawPackage).creationCode;
+        constructorArgs[39] = abi.encode("AdoptLawPackage");
+
+        names[40] = "RoleByRoles";
+        creationCodes[40] = type(RoleByRoles).creationCode;
+        constructorArgs[40] = abi.encode("RoleByRoles");
 
         // console2.log("router2", router);
 

@@ -35,16 +35,18 @@ contract GrantProgram is Law {
         string uriProposal;
         address grantee;
         address tokenAddress;
-        uint256[] remainingBudgetPerToken;
         uint256[] milestoneDisbursements;
         uint256 totalDisbursements;
-        address grantLaw;
-        bytes grantConditions;
         bytes32 lawHash;
-        uint16 grantsId;
         bytes32 grantHash;
-        bytes lawCalldata;
         uint16 lawCount;
+        bytes lawCalldata;
+        address grantLaw;
+        uint16 grantsId;
+        bytes grantConditions;
+        address budgetLaw;
+        bytes32 budgetLawHash;
+        bool budgetActive;
     }
 
     /// @notice Constructor for the GrantProgram contract
@@ -141,9 +143,9 @@ contract GrantProgram is Law {
 
         // if a readState is set, check if the budget is sufficient. 
         if (conditions.readStateFrom != 0) {
-            (address budgetLaw, bytes32 budgetLawHash, bool active) = Powers(payable(powers)).getActiveLaw(conditions.readStateFrom);
-            Erc20Budget budget = Erc20Budget(budgetLaw);
-            if (active && budget.getBudget(budgetLawHash, conditions.readStateFrom, mem.tokenAddress) < mem.totalDisbursements + spent[mem.lawHash][mem.tokenAddress]) {
+            (mem.budgetLaw, mem.budgetLawHash, mem.budgetActive) = Powers(payable(powers)).getActiveLaw(conditions.readStateFrom);
+            Erc20Budget budget = Erc20Budget(mem.budgetLaw);
+            if (mem.budgetActive && budget.getBudget(mem.budgetLawHash, conditions.readStateFrom, mem.tokenAddress) < mem.totalDisbursements + spent[mem.lawHash][mem.tokenAddress]) {
                 revert("Insufficient funds");
             }
         }

@@ -45,6 +45,11 @@ import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
 import { NStrikesYourOut } from "../../src/laws/electoral/NStrikesYourOut.sol";
 import { FlagActions } from "../../src/laws/state/FlagActions.sol";
 import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
+import { RoleByGitCommit } from "../../src/laws/offchain/RoleByGitCommit.sol";
+import { StringToAddress } from "../../src/laws/state/StringToAddress.sol";
+import { Erc20Budget } from "../../src/laws/state/Erc20Budget.sol";
+import { AdoptLawPackage } from "../../src/laws/executive/AdoptLawPackage.sol";
+import { RoleByRoles } from "../../src/laws/electoral/RoleByRoles.sol";
 
 // Mocks
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -68,8 +73,8 @@ contract DeployAnvilMocks is Script {
             address[] memory mockAddresses
         )
     {
-        lawNames = new string[](34);
-        lawAddresses = new address[](34);
+        lawNames = new string[](36);
+        lawAddresses = new address[](36);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -94,7 +99,6 @@ contract DeployAnvilMocks is Script {
         lawAddresses[17] = address(new AdoptLaw());
         lawAddresses[18] = address(new VoteOnAccounts());
         lawAddresses[19] = address(new DirectDeselect());
-        // lawAddresses[21] = address(new Subscription());
         lawAddresses[20] = address(new StartElection());
         lawAddresses[21] = address(new EndElection());
         lawAddresses[22] = address(new GovernorCreateProposal());
@@ -110,6 +114,11 @@ contract DeployAnvilMocks is Script {
         lawAddresses[28] = address(new NStrikesYourOut());
         lawAddresses[29] = address(new FlagActions());
         lawAddresses[30] = address(new EndGrant());
+        lawAddresses[31] = address(new RoleByGitCommit(address(mockAddresses[6])));
+        lawAddresses[32] = address(new StringToAddress());
+        lawAddresses[33] = address(new Erc20Budget());
+        lawAddresses[34] = address(new AdoptLawPackage());
+        lawAddresses[35] = address(new RoleByRoles());
 
         vm.stopBroadcast();
 
@@ -145,7 +154,7 @@ contract DeployAnvilMocks is Script {
         lawNames[18] = "VoteOnAccounts";
         lawNames[19] = "DirectDeselect";
         // lawNames[21] = "Subscription";
-        lawNames[20] = "StartElection";
+        lawNames[20] = "StartElection"; 
         lawNames[21] = "EndElection";
         lawNames[22] = "GovernorCreateProposal";
         lawNames[23] = "GovernorExecuteProposal";
@@ -156,7 +165,12 @@ contract DeployAnvilMocks is Script {
         lawNames[28] = "NStrikesYourOut";
         lawNames[29] = "FlagActions";
         lawNames[30] = "EndGrant";
-
+        lawNames[31] = "RoleByGitCommit";
+        lawNames[32] = "StringToAddress";
+        lawNames[33] = "Erc20Budget";
+        lawNames[34] = "AdoptLawPackage";
+        lawNames[35] = "RoleByRoles";
+        
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";

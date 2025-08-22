@@ -27,11 +27,19 @@ import { LawUtilities } from "../../LawUtilities.sol";
 // import "forge-std/Test.sol"; // only for testing
 
 contract StringToAddress is Law {
+    struct Memory {
+        string name;
+        address account;
+        bytes32 lawHash;
+        address caller;
+        bytes callData;
+    }
+
     mapping(bytes32 lawHash => mapping(string name => address account)) public stringToAddress;
 
     event StringToAddress__Added(string name, address account); 
 
-    constructor(address powers) {
+    constructor() {
         emit Law__Deployed("");
     }
 
@@ -42,7 +50,7 @@ contract StringToAddress is Law {
         Conditions memory conditions,
         bytes memory config
     ) public override {
-        inputParams = abi.encode("string Name", "address Account");
+        inputParams = abi.encode("string Name");
 
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
@@ -59,18 +67,19 @@ contract StringToAddress is Law {
             bytes memory stateChange
         )
     {
-        // retrieve the account that was revoked
-        (string memory name, address account) = abi.decode(lawCalldata, (string, address));
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-
+        stateChange = abi.encode(caller, lawCalldata);
+        
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        return (actionId, targets, values, calldatas, lawCalldata);
+        return (actionId, targets, values, calldatas, stateChange);
     }
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-        (string memory name, address account) = abi.decode(stateChange, (string, address));
-        stringToAddress[lawHash][name] = account;
-        emit StringToAddress__Added(name, account);
+        Memory memory mem;
+        (mem.caller, mem.callData) = abi.decode(stateChange, (address, bytes));
+        (mem.name) = abi.decode(mem.callData, (string));
+
+        stringToAddress[lawHash][mem.name] = mem.caller;
+        emit StringToAddress__Added(mem.name, mem.caller);
     }
 
     function getAddressByString(bytes32 lawHash, string memory name) public view returns (address account) {

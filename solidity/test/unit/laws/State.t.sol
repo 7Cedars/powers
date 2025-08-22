@@ -1049,7 +1049,7 @@ contract FlagActionsTest is TestSetupState {
     function testFlagAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress,,) = daoMock.getActiveLaw(flagActions);
 
         // Create a fulfilled action first
@@ -1078,7 +1078,7 @@ contract FlagActionsTest is TestSetupState {
     function testUnflagAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress,,) = daoMock.getActiveLaw(flagActions);
 
         // Create a fulfilled action first
@@ -1111,7 +1111,7 @@ contract FlagActionsTest is TestSetupState {
     function testCannotFlagAlreadyFlaggedAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
 
         // Create a fulfilled action first
         targets = new address[](0);
@@ -1141,7 +1141,7 @@ contract FlagActionsTest is TestSetupState {
     function testCannotUnflagAlreadyUnflaggedAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
 
         // Create a fulfilled action first
         targets = new address[](0);
@@ -1165,7 +1165,7 @@ contract FlagActionsTest is TestSetupState {
     function testHandleRequestOutput() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress,,) = daoMock.getActiveLaw(flagActions);
 
         // Create a fulfilled action first
@@ -1199,7 +1199,7 @@ contract FlagActionsTest is TestSetupState {
     function testUnauthorizedAccess() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
 
         // Create a fulfilled action first
         targets = new address[](0);
@@ -1225,7 +1225,7 @@ contract FlagActionsTest is TestSetupState {
     function testMultipleFlaggedActions() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create fulfilled actions
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create fulfilled actions
         (address flagActionsAddress,,) = daoMock.getActiveLaw(flagActions);
 
         vm.prank(address(daoMock));
@@ -1262,7 +1262,7 @@ contract FlagActionsTest is TestSetupState {
     function testFlagAndUnflagCycle() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create a fulfilled action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create a fulfilled action
         (address flagActionsAddress,,) = daoMock.getActiveLaw(flagActions);
 
         vm.prank(address(daoMock));
@@ -1310,7 +1310,7 @@ contract FlagActionsTest is TestSetupState {
     function testCannotFlagUnfulfilledAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create an action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create an action
 
         // Create an action but don't execute it (so it's not fulfilled)
         targets = new address[](0);
@@ -1333,7 +1333,7 @@ contract FlagActionsTest is TestSetupState {
     function testCannotUnflagUnfulfilledAction() public {
         // prep
         uint16 flagActions = 7;
-        uint16 statementOfIntent = 9; // Use StatementOfIntent to create an action
+        uint16 statementOfIntent = 8; // Use StatementOfIntent to create an action
 
         // Create an action but don't execute it (so it's not fulfilled)
         targets = new address[](0);

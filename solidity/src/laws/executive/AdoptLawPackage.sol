@@ -27,6 +27,11 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract AdoptLawPackage is Law {
+    struct Memory {
+        address[] newLaws;
+        bytes[] lawInitDatas;
+    }
+
     /// @notice constructor of the law
     constructor() {
         emit Law__Deployed("");
@@ -63,12 +68,13 @@ contract AdoptLawPackage is Law {
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (address[] memory newLaws, bytes[] memory lawInitDatas) = abi.decode(lawCalldata, (address[], bytes[]));
+        Memory memory mem;
+        (mem.newLaws, mem.lawInitDatas) = abi.decode(lawCalldata, (address[], bytes[]));
 
         // send the calldata to the target function
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(newLaws.length);
-        for (uint256 i = 0; i < newLaws.length; i++) {
-            PowersTypes.LawInitData memory lawInitData = abi.decode(lawInitDatas[i], (PowersTypes.LawInitData));
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.newLaws.length);
+        for (uint256 i = 0; i < mem.newLaws.length; i++) {
+            PowersTypes.LawInitData memory lawInitData = abi.decode(mem.lawInitDatas[i], (PowersTypes.LawInitData));
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
         }

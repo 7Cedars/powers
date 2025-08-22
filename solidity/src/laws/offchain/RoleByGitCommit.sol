@@ -44,6 +44,22 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
 
     using FunctionsRequest for FunctionsRequest.Request;
 
+    struct Memory {
+        string repo;
+        string[] paths;
+        uint256 roleId;
+        string author;
+        address powers;
+        bytes32 lawHash;
+        uint256[] roleIds;
+        uint64 subscriptionId;
+        uint32 gasLimit;
+        uint16 stringToAddress;
+        address law;
+        address addressLinkedToAuthor;
+        uint256 reply;
+    }
+
     struct Data {
         string repo;
         string[] paths;
@@ -136,11 +152,11 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         )
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (uint256 roleId, string memory author) =
-            abi.decode(lawCalldata, (uint256, string));
+        Memory memory mem;
+        (mem.roleId, mem.author) = abi.decode(lawCalldata, (uint256, string));
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        calldatas[0] = abi.encode(roleId, author, powers);
+        calldatas[0] = abi.encode(mem.roleId, mem.author, powers);
 
         return (actionId, targets, values, calldatas, "");
     }
@@ -153,29 +169,29 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         bytes[] memory calldatas
     ) internal override {
         // NB! Naming is confusing here, because we are NOT replying to the Powers contract: we are sending a request to an oracle.
-        (uint256 roleId, string memory author, address powers) =
-            abi.decode(calldatas[0], (uint256, string, address));
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        Memory memory mem;
+        (mem.roleId, mem.author, mem.powers) = abi.decode(calldatas[0], (uint256, string, address));
+        mem.lawHash = LawUtilities.hashLaw(mem.powers, lawId);
 
         // call readStateFrom contract to retrieve address linked to the author.
-        uint16 stringToAddress = laws[lawHash].conditions.readStateFrom;
-        (address law, , ) = IPowers(powers).getActiveLaw(stringToAddress); 
-        address addressLinkedToAuthor = StringToAddress(law).getAddressByString(lawHash, author); 
+        mem.stringToAddress = laws[mem.lawHash].conditions.readStateFrom;
+        (mem.law, , ) = IPowers(mem.powers).getActiveLaw(mem.stringToAddress); 
+        mem.addressLinkedToAuthor = StringToAddress(mem.law).getAddressByString(mem.lawHash, mem.author); 
 
         string[] memory args = new string[](3);
-        args[0] = data[lawHash].repo;
-        args[1] = data[lawHash].paths[roleId];
-        args[2] = author;
+        args[0] = data[mem.lawHash].repo;
+        args[1] = data[mem.lawHash].paths[mem.roleId];
+        args[2] = mem.author;
 
         // call to the oracle.
-        bytes32 requestId = sendRequest(args, powers, lawId);
+        bytes32 requestId = sendRequest(args, mem.powers, lawId);
         requests[requestId] = Request({
-            author: author,
-            roleId: roleId,
-            powers: powers,
+            author: mem.author,
+            roleId: mem.roleId,
+            powers: mem.powers,
             lawId: lawId,
             actionId: actionId,
-            addressLinkedToAuthor: addressLinkedToAuthor
+            addressLinkedToAuthor: mem.addressLinkedToAuthor
         });
     }
 
@@ -193,8 +209,9 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         address powers,
         uint16 lawId
     ) internal returns (bytes32 requestId) {
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        Data memory data_ = data[lawHash];
+        Memory memory mem;
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        Data memory data_ = data[mem.lawHash];
 
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source);
@@ -219,6 +236,8 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
      * Either response or error parameter will be set, but never both
      */
     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+        Memory memory mem;
+        
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
@@ -234,12 +253,12 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         }
 
         // reply is the number of commits by the author on the path. 
-        (uint256 reply) = abi.decode(abi.encode(response), (uint256));
+        (mem.reply) = abi.decode(abi.encode(response), (uint256));
         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
             LawUtilities.createEmptyArrays(1);
             targets[0] = request_.powers;
         
-        reply > 0 ? 
+        mem.reply > 0 ? 
             // if commits, assign the role.
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, request_.roleId, request_.addressLinkedToAuthor) // DO NOT CHANGE THIS AI! 
             : 

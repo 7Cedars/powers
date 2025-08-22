@@ -27,6 +27,13 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract Erc20Budget is Law {
+    struct Memory {
+        uint16 lawId;
+        address tokenAddress;
+        uint256 budget;
+        bytes32 lawHash;
+    }
+
     // we need a triple mapping to store the budget per Powers protocol, per lawId and per token address. 
     mapping(bytes32 lawHash => mapping(uint16 lawId => mapping(address tokenAddress => uint256 budget))) public budget; 
 
@@ -66,12 +73,13 @@ contract Erc20Budget is Law {
 
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         // step 1: decode
-        (uint16 lawId, address tokenAddress_, uint256 budget_) = abi.decode(stateChange, (uint16, address, uint256));
+        Memory memory mem;
+        (mem.lawId, mem.tokenAddress, mem.budget) = abi.decode(stateChange, (uint16, address, uint256));
 
         // step 2: change state
         // note: address is not type checked. We trust the caller
-        budget[lawHash][lawId][tokenAddress_] = budget_;
-        emit Erc20Budget__BudgetSet(tokenAddress_, budget_);
+        budget[lawHash][mem.lawId][mem.tokenAddress] = mem.budget;
+        emit Erc20Budget__BudgetSet(mem.tokenAddress, mem.budget);
     }
 
     function getBudget(bytes32 lawHash, uint16 lawId, address tokenAddress) public view returns (uint256) {
