@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const repo = searchParams.get('repo')
     const path = searchParams.get('path')
     const author = searchParams.get('author')
-    const githubApiKey = process.env.NEXT_PUBLIC_GITHUB_API_KEY
+    const githubApiKey = process.env.GITHUB_API_KEY
 
     // Validate inputs
     if (!repo || !path || !author || !githubApiKey) {
@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         commitCount: matchingCommits.length,
+        commits: matchingCommits,
         searchParams: {
           repo,
           path,
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { repo, path, author } = body
-    const githubApiKey = process.env.NEXT_PUBLIC_GITHUB_API_KEY
+    const githubApiKey = process.env.GITHUB_API_KEY
 
     // Validate inputs
     if (!repo || !path || !author || !githubApiKey) {
