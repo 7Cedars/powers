@@ -53,11 +53,9 @@ contract Grant is Law {
         address tokenAddress;
         uint256[] milestoneDisbursement;
         uint256 milestone;
-        uint256 prevActionId;
         address flagActionsLaw;
         bytes32 lawHash;
         string supportUri;
-        uint256 PrevActionId;
         bytes proposalCalldata;
         bytes reconstructedProposalCalldata;
         Disbursement disbursement;
@@ -79,8 +77,7 @@ contract Grant is Law {
             "string uriProposal",
             "address Grantee",
             "address Token",
-            "uint256[] milestoneDisbursement",
-            "uint256 prevActionId"
+            "uint256[] milestoneDisbursement"
         );
         emit Law__Deployed(configParams);
     }
@@ -98,8 +95,8 @@ contract Grant is Law {
         bytes memory config
     ) public override {
         Memory memory mem;
-        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) =
-            abi.decode(config, (string, address, address, uint256[], uint256));
+        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement) =
+            abi.decode(config, (string, address, address, uint256[]));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash] = Data({
             grantee: mem.grantee,
@@ -142,12 +139,6 @@ contract Grant is Law {
         Memory memory mem;
         (mem.milestone, mem.supportUri) = abi.decode(lawCalldata, (uint256, string));
         (, mem.lawHash,) = Powers(payable(powers)).getActiveLaw(lawId);
-        // note: optional flagging of actions.
-        if (laws[mem.lawHash].conditions.readStateFrom != 0) {
-            (mem.flagActionsLaw,,) = Powers(payable(powers)).getActiveLaw(laws[mem.lawHash].conditions.readStateFrom);
-        }
-
-        Data memory lawData = data[mem.lawHash];
 
         // step 1: run additional checks
         if (disbursements[mem.lawHash][mem.milestone].amount == 0) {

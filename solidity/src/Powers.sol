@@ -53,7 +53,7 @@ contract Powers is EIP712, IPowers {
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
     mapping(uint256 actionId => Action) internal _actions; // mapping actionId to Action struct
-    mapping(uint16 lawId => ActiveLaw) internal laws; // mapping law address to Law struct
+    mapping(uint16 lawId => ActiveLaw) internal laws; //mapping law address to Law struct
     mapping(uint256 roleId => Role) internal roles; // mapping roleId to Role struct
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint256).max.
@@ -392,6 +392,7 @@ contract Powers is EIP712, IPowers {
     /// @notice Internal version of {setRole} without access control.
     /// @dev This function is used to set a role for a given account. Public role is locked as everyone has it.
     /// @dev Note that it does allow Admin role to be assigned and revoked.
+    /// @dev Note that the function does not revert if trying to remove a role someone does not have, or add a role someone already has. 
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
     function _setRole(uint256 roleId, address account, bool access) internal virtual {

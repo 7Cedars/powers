@@ -65,7 +65,7 @@ export const deploymentForms: DeploymentForm[] = [
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiawj6j4fkudjj6kr54ygn3j55cw3cvapuwqiib3uwfonoyyrr2q7i",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
     description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a sequential path for assess along scope, technicality and finances, and allows to distribute funds along milestones. It also has a mechanisms for challening decisions.",
-    disabled: false,
+    disabled: true,
     onlyLocalhost: false,
     fields: [
       { name: "parentDaoAddress", placeholder: "Parent DAO or your own address (0x...)", type: "text", required: true }

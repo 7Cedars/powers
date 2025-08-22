@@ -152,9 +152,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 0; // First milestone
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0; // No previous submission
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // act
         vm.prank(charlotte);
@@ -168,25 +167,21 @@ contract GrantTest is TestSetupState {
     function testRequestGrantWithPreviousSubmission() public {
         // prep
         uint16 grant = 1;
-        uint16 statementOfIntent = 9; // Assuming this is the GrantProposal law ID
-        uint256 milestone = 0; // Second milestone
+        uint256 milestone = 1; // Second milestone
         supportUri = "ipfs://QmSupport";
 
-        bytes memory proposalCalldata = abi.encode(milestone, supportUri, 0);
-
-        // Create the grant proposal
+        // First, request milestone 0 to establish the sequence
+        lawCalldata = abi.encode(0, supportUri);
         vm.prank(charlotte);
-        daoMock.request(statementOfIntent, proposalCalldata, nonce, "Mock request grant");
+        daoMock.request(grant, lawCalldata, nonce, "Request first milestone");
+        nonce++;
 
-        // Get the actual action ID of the proposal
-        uint256 actualPrevActionId = LawUtilities.hashActionId(statementOfIntent, proposalCalldata, nonce);
-
-        // Now request grant with the real previous submission ID
-        lawCalldata = abi.encode(milestone, supportUri, actualPrevActionId);
+        // Now request milestone 1
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // act
         vm.prank(charlotte);
-        daoMock.request(grant, lawCalldata, nonce + 1, "Request grant with previous submission");
+        daoMock.request(grant, lawCalldata, nonce, "Request grant with previous submission");
 
         // assert
         assertTrue(true, "Grant request with previous submission should be processed");
@@ -197,9 +192,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 0;
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // First request
         vm.prank(charlotte);
@@ -218,9 +212,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 999; // Use a milestone with 0 amount (non-existent)
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         vm.prank(charlotte);
         vm.expectRevert("Milestone amount is 0");
@@ -232,9 +225,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 2; // Try to request milestone 2 before milestone 1
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         vm.prank(charlotte);
         vm.expectRevert("Previous milestone not released yet");
@@ -246,9 +238,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 0;
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // Try to request grant as someone who is not the grantee
         vm.prank(bob);
@@ -262,9 +253,8 @@ contract GrantTest is TestSetupState {
         (address grantAddress,,) = daoMock.getActiveLaw(grant);
         uint256 milestone = 0;
         supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // act: call handleRequest directly to check its output
         vm.prank(address(daoMock));
@@ -287,9 +277,8 @@ contract GrantTest is TestSetupState {
         uint16 grant = 1;
         uint256 milestone = 0;
         string memory supportUri = "ipfs://QmSupport";
-        PrevActionId = 0;
 
-        lawCalldata = abi.encode(milestone, supportUri, PrevActionId);
+        lawCalldata = abi.encode(milestone, supportUri);
 
         // Try to request grant without proper role
         vm.prank(helen);
@@ -311,7 +300,7 @@ contract GrantTest is TestSetupState {
         milestones[2] = 2;
 
         for (i = 0; i < 3; i++) {
-            lawCalldata = abi.encode(milestones[i], "ipfs://QmSupport", 0);
+            lawCalldata = abi.encode(milestones[i], "ipfs://QmSupport");
             vm.prank(charlotte);
             daoMock.request(grant, lawCalldata, nonce + i, "Grant request");
         }

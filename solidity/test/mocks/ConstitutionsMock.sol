@@ -479,7 +479,7 @@ contract ConstitutionsMock is Test {
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](12);
+        lawInitData = new PowersTypes.LawInitData[](11);
 
         // proposalOnly
         conditions.allowedRole = type(uint256).max;
@@ -545,12 +545,18 @@ contract ConstitutionsMock is Test {
         });
         delete conditions;
 
-        // startGrant
+        // GrantProgram
         conditions.allowedRole = 1;
         lawInitData[6] = PowersTypes.LawInitData({
-            nameDescription: "StartGrant: A law to start a grant.",
-            targetLaw: lawAddresses[16], // startGrant
-            config: abi.encode(lawInitData[5].targetLaw, abi.encode(conditions)),
+            nameDescription: "GrantProgram: A law to start a grant.",
+            targetLaw: lawAddresses[16], // GrantProgram
+            config: abi.encode(
+                new address[](1), // allowedTokens
+                new uint256[](1), // budgetTokens
+                lawAddresses[15], // grantLaw
+                6, // granteeRoleId
+                abi.encode(conditions) // grantConditions
+            ),
             conditions: conditions
         });
         delete conditions;
@@ -560,7 +566,7 @@ contract ConstitutionsMock is Test {
         conditions.needCompleted = 6;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "EndGrant: A law to stop a grant.",
-            targetLaw: lawAddresses[33], // EndGrant
+            targetLaw: lawAddresses[30], // EndGrant
             config: abi.encode(),
             conditions: conditions
         });
@@ -570,26 +576,15 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         lawInitData[8] = PowersTypes.LawInitData({
             nameDescription: "AdoptLaw: A law to adopt a law.",
-            targetLaw: lawAddresses[18], // adoptLaw
+            targetLaw: lawAddresses[17], // adoptLaw
             config: abi.encode(),
             conditions: conditions
         });
         delete conditions;
 
-        // GrantProposal
-        conditions.allowedRole = 1;
-        conditions.readStateFrom = 10; // FlagActions law (now at index 10)
         lawInitData[9] = PowersTypes.LawInitData({
-            nameDescription: "GrantProposal: A law to create grant proposals.",
-            targetLaw: lawAddresses[31], // GrantProposal
-            config: abi.encode(),
-            conditions: conditions
-        });
-        delete conditions;
-
-        lawInitData[10] = PowersTypes.LawInitData({
             nameDescription: "FlagActions: A law to flag actions.",
-            targetLaw: lawAddresses[32], // FlagActions
+            targetLaw: lawAddresses[29], // FlagActions
             config: abi.encode(),
             conditions: conditions
         });
@@ -597,9 +592,9 @@ contract ConstitutionsMock is Test {
 
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getActions(daoMock, 11); // powersMock
+            _getActions(daoMock, 10); // powersMock
         conditions.allowedRole = 0;
-        lawInitData[11] = PowersTypes.LawInitData({
+        lawInitData[10] = PowersTypes.LawInitData({
             nameDescription: "PresetAction: A law to execute a preset action.",
             targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles),
@@ -619,7 +614,7 @@ contract ConstitutionsMock is Test {
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](11);
+        lawInitData = new PowersTypes.LawInitData[](10);
 
         // Grant
         milestoneDisbursements = new uint256[](3);
@@ -694,28 +689,17 @@ contract ConstitutionsMock is Test {
         conditions.allowedRole = 1;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "FlagActions: A law to flag actions.",
-            targetLaw: lawAddresses[32], // FlagActions
+            targetLaw: lawAddresses[29], // FlagActions
             config: abi.encode(),
             conditions: conditions
         });
         delete conditions;
 
         conditions.allowedRole = 1;
-        conditions.readStateFrom = 7; // FlagActions law (now at index 10)
-        lawInitData[8] = PowersTypes.LawInitData({
-            nameDescription: "GrantProposal: A law to create grant proposals.",
-            targetLaw: lawAddresses[31], // GrantProposal
-            config: abi.encode(),
-            conditions: conditions
-        });
-        delete conditions;
-
-        conditions.allowedRole = 1;
-        string[] memory inputParams = new string[](3);
+        string[] memory inputParams = new string[](2);
         inputParams[0] = "uint256 MilestoneBlock";
         inputParams[1] = "string SupportUri";
-        inputParams[2] = "uint256 PrevActionId";
-        lawInitData[9] = PowersTypes.LawInitData({
+        lawInitData[8] = PowersTypes.LawInitData({
             nameDescription: "Statement of Intent: A law to create proposals without execution.",
             targetLaw: lawAddresses[8], // Statement of Intent
             config: abi.encode(inputParams),
@@ -725,9 +709,9 @@ contract ConstitutionsMock is Test {
 
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getActions(daoMock, 10); // powersMock
+            _getActions(daoMock, 9); // powersMock
         conditions.allowedRole = 0;
-        lawInitData[10] = PowersTypes.LawInitData({
+        lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "PresetAction: A law to execute a preset action.",
             targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.

@@ -21,7 +21,7 @@ export const getConstants = (chainId: number): Constants => {
         "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
         "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
         "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-        "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+        "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
       ], 
       LAW_ADDRESSES: [
         "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -53,7 +53,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -85,7 +85,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -118,7 +118,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant", "AddressAnalysis"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant", "AddressAnalysis"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -152,7 +152,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",

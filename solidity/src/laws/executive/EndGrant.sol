@@ -23,7 +23,7 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { ILaw } from "../../interfaces/ILaw.sol";
-import { StartGrant } from "./StartGrant.sol";
+import { GrantProgram } from "./GrantProgram.sol";
 import { Grant } from "../state/Grant.sol";
 
 // import "forge-std/console2.sol";
@@ -33,8 +33,8 @@ contract EndGrant is Law {
         bytes32 lawHash;
         uint16 needCompleted;
         uint16 grantId;
-        address startGrantLaw;
-        bytes32 startGrantLawHash;
+        address GrantProgramLaw;
+        bytes32 GrantProgramLawHash;
         address grantLaw;
         uint256[] milestoneDisbursement;
         uint256 lastDisbursementIndex;
@@ -48,7 +48,7 @@ contract EndGrant is Law {
     /// @notice Initializes the law with its configuration
     /// @param index Index of the law
     /// @param nameDescription Name of the law
-    /// @param conditions Conditions for the law. NOTE: in this case the 'NeedCompleted' condition needs to be the 'StartGrant' law.
+    /// @param conditions Conditions for the law. NOTE: in this case the 'NeedCompleted' condition needs to be the 'GrantProgram' law.
     /// @param config Configuration data
     function initializeLaw(
         uint16 index,
@@ -61,8 +61,7 @@ contract EndGrant is Law {
             "string uriProposal",
             "address Grantee",
             "address Token",
-            "uint256[] milestoneDisbursement",
-            "uint256 prevActionId"
+            "uint256[] milestoneDisbursement"
         );
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
     }
@@ -97,9 +96,9 @@ contract EndGrant is Law {
         if (mem.needCompleted == 0) {
             revert("NeedCompleted condition not set.");
         }
-        (mem.startGrantLaw,,) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
-        mem.startGrantLawHash = LawUtilities.hashLaw(powers, mem.needCompleted);
-        mem.grantId = StartGrant(mem.startGrantLaw).getGrantId(mem.startGrantLawHash, lawCalldata);
+        (mem.GrantProgramLaw,,) = Powers(payable(powers)).getActiveLaw(mem.needCompleted);
+        mem.GrantProgramLawHash = LawUtilities.hashLaw(powers, mem.needCompleted);
+        mem.grantId = GrantProgram(mem.GrantProgramLaw).getGrantId(mem.GrantProgramLawHash, lawCalldata);
         (mem.grantLaw,,) = Powers(payable(powers)).getActiveLaw(mem.grantId);
 
         // Decode the law calldata to get milestoneDisbursement array

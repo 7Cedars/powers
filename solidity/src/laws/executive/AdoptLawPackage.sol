@@ -12,8 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A law that adopts a single law, it includes the conditions for the law to be adopted. 
-/// It is a showcase law that is not very practical to use in real life. 
+/// @notice Adopts a single law that can be executed by a preset role Id. - no other conditions are added.   
+/// It is best combined with a 'presetAction' law that deploys multiple new laws and then self destructs. 
+/// See the "RUN THIS LAW FIRST: ..." laws in createLawInitData.ts for an example.
 ///
 /// @author 7Cedars,
 
@@ -25,26 +26,20 @@ import { ILaw } from "../../interfaces/ILaw.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-contract AdoptLaw is Law {
+contract AdoptLawPackage is Law {
     /// @notice constructor of the law
     /// @param name_ the name of the law.
 
-    struct AdoptLawConfig {
-        string nameDescription;
-        address law;
-        uint256 allowedRole;
-        uint32 votingPeriod;
-        uint8 quorum;
-        uint8 succeedAt;
-        uint16 needCompleted;
-        uint16 needNotCompleted;
-        uint16 readStateFrom;
-        uint48 delayExecution;
-        uint48 throttleExecution;
-        bytes config;
+    struct Data {
+        uint256 roleId;
     }
+    mapping(bytes32 lawHash => Data) public data;
 
     constructor() {
+        config = abi.encode(
+            "uint256 roleId"
+        );
+
         emit Law__Deployed("");
     }
 
@@ -55,19 +50,15 @@ contract AdoptLaw is Law {
         Conditions memory conditions,
         bytes memory config
     ) public override {
+        (uint256 roleId) = abi.decode(config, (uint256));
+
+        data[lawHash] = Data({
+            roleId: roleId
+        });
+
         inputParams = abi.encode(
-            "string NameDescription",
-            "address Law",
-            "uint256 AllowedRole",
-            "uint32 VotingPeriod",
-            "uint8 Quorum",
-            "uint8 SucceedAt",
-            "uint16 NeedCompl",
-            "uint16 NeedNotCompl",
-            "uint16 StateFrom",
-            "uint48 DelayExec",
-            "uint48 ThrottleExec",
-            "bytes Config"
+            "address[] laws"
+            "bytes[] lawInitDatas"
         );
 
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
@@ -87,34 +78,16 @@ contract AdoptLaw is Law {
             bytes memory stateChange
         )
     {
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (AdoptLawConfig memory config) = abi.decode(lawCalldata, (AdoptLawConfig));
-
-        ILaw.Conditions memory conditions = ILaw.Conditions({
-            allowedRole: config.allowedRole,
-            needCompleted: config.needCompleted,
-            delayExecution: config.delayExecution,
-            throttleExecution: config.throttleExecution,
-            readStateFrom: config.readStateFrom,
-            votingPeriod: config.votingPeriod,
-            quorum: config.quorum,
-            succeedAt: config.succeedAt,
-            needNotCompleted: config.needNotCompleted
-        });
-
-        PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            nameDescription: config.nameDescription,
-            targetLaw: config.law,
-            conditions: conditions,
-            config: config.config
-        });
+        (address[] memory newLaws, PowersTypes.LawInitData[] memory lawInitDatas) = abi.decode(lawCalldata, (address[], PowersTypes.LawInitData[]));
 
         // send the calldata to the target function
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(newLaws.length);
+        for (uint256 i = 0; i < newLaws.length; i++) {
+            targets[i] = powers;
+            calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitDatas[i]);
+        }
 
         return (actionId, targets, values, calldatas, "");
     }

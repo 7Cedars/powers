@@ -71,7 +71,6 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     bytes32 secondGrantCalldata;
     uint16 firstGrantId;
     uint16 secondGrantId;
-    uint256 prevActionId;
 
     address[] nominees;
     uint256 roleCount;

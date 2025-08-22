@@ -52,7 +52,7 @@ export interface SingleUpgradeFormData { }
 
 export interface SplitGovernanceFormData { }
 
-
+export interface PowersDaoFormData { }
 
 // Type for deployment returns data
 export interface DeploymentReturns {
@@ -1034,7 +1034,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
   // Law 6: Assign a grant
   lawInitData.push({
     nameDescription: "Assign a grant: A grant imburser can assign a grant to a successful proposal. This also assigns a grantee role to the original proposer. Do not forget to press the refresh button after executing this law.",
-    targetLaw: getLawAddress("StartGrant", chainId),
+    targetLaw: getLawAddress("GrantProgram", chainId),
     config: grantConfig,
     conditions: createConditions({
       allowedRole: 4n, // Grant Imburser
@@ -1829,6 +1829,80 @@ export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, for
       readStateFrom: 8n
     })
   });
+
+  return lawInitData;
+}
+
+/**
+ * Creates law initialization data for Powers DAO - the DAO that governs development of the Powers protocol. 
+ * It builds on many of the laws deployed in previous examples, in addition to adding several new laws. 
+ */
+export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formData: PowersDaoFormData, chainId: number): LawInitData[] {
+  const lawInitData: LawInitData[] = [];
+
+  //////////////////////////////////////////////////////////////////
+  //                       Initiation Law                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 1: Initial setup - Assign labels and mint tokens
+  // for now a direct copy-paste of the Single Upgrade law 1 - we will change this later. 
+  lawInitData.push({
+    nameDescription: "RUN THIS LAW FIRST: It assigns labels and mint tokens. Please press the refresh button after the election has been deployed.",
+    targetLaw: getLawAddress("PresetAction", chainId),
+    config: encodeAbiParameters(
+      [
+        { name: 'targets', type: 'address[]' },
+        { name: 'values', type: 'uint256[]' },
+        { name: 'calldatas', type: 'bytes[]' }
+      ],
+      [
+        [
+          powersAddress,
+          powersAddress,
+          powersAddress,
+          powersAddress
+        ], // targets
+        [0n, 0n, 0n, 0n], // values
+        [
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "assignRole",
+            args: [3n, getMockAddress("GovernorMock", chainId)] // assign previous DAO role as admin
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [3n, "DAO admin"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "labelRole",
+            args: [1n, "Delegates"]
+          }),
+          encodeFunctionData({
+            abi: powersAbi,
+            functionName: "revokeLaw",
+            args: [1n] // revoke the initial setup law
+          })
+        ]
+      ]
+    ),
+    conditions: createConditions({
+      allowedRole: ADMIN_ROLE // admin role
+    })
+  });
+
+  //////////////////////////////////////////////////////////////////
+  //                       Executive laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+  // Law 2: Adopt a law
+
+  //////////////////////////////////////////////////////////////////
+  //                       Electoral laws                         // 
+  //////////////////////////////////////////////////////////////////
+
+
 
   return lawInitData;
 }

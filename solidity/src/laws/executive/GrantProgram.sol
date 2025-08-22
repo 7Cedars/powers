@@ -12,9 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title StartGrant - Law for Starting Grants in the Powers Protocol
-/// @notice This law allows the starting of grants in the Powers protocol
-/// @dev Handles the dynamic configuration and starting of grants
+/// @title GrantProgram - Law for managing a grant program in the Powers Protocol
+/// @notice This law allows the management of a grant program in the Powers protocol
+/// @dev Handles the dynamic configuration and management of a grant program
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
@@ -27,13 +27,14 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 // import "forge-std/console2.sol"; // for testing only
 
-contract StartGrant is Law {
+contract GrantProgram is Law {
     struct Memory {
         string uriProposal;
         address grantee;
         address tokenAddress;
-        uint256[] milestoneDisbursement;
-        uint256 prevActionId;
+        uint256[] remainingBudgetPerToken;
+        uint256[] milestoneDisbursements;
+        uint256 totalDisbursements;
         address grantLaw;
         bytes grantConditions;
         bytes32 lawHash;
@@ -43,19 +44,24 @@ contract StartGrant is Law {
         uint16 lawCount;
     }
 
-    /// @notice Constructor for the StartGrant contract
+    /// @notice Constructor for the GrantProgram contract
     struct Data {
         address grantLaw;
+        uint256 granteeRoleId;
         bytes grantConditions;
     }
 
     mapping(bytes32 lawHash => Data) internal data;
+    mapping(bytes32 lawHash => mapping (address allowedToken => uint256)) internal remainingBudgetPerToken;
     mapping(bytes32 lawHash => mapping(bytes32 grantHash => uint16)) internal grantIds;
 
     constructor() {
         bytes memory configParams = abi.encode(
+            "address[] allowedTokens",  // Addresses of ERC20 tokens that can be used to fund grants.
+            "uint256[] budgetTokens", // Total funds in the grant program, in each allowed token.
             "address grantLaw", // Address of grant law
-            "bytes grantConditions" // NB: an bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the start grant law is adopted.
+            "uint256 granteeRoleId", // Role ID for the grantee
+            "bytes grantConditions" // NB: a bytes encoded ILaw.Conditions struct. Conditions for all subsequent grants are set when the grant program law is adopted.
         );
         emit Law__Deployed(configParams);
     }
@@ -73,15 +79,30 @@ contract StartGrant is Law {
         bytes memory config
     ) public override {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        (address grantLaw, bytes memory grantConditions) = abi.decode(config, (address, bytes));
-        data[lawHash] = Data({ grantLaw: grantLaw, grantConditions: grantConditions });
+        (
+            address[] memory allowedTokens, 
+            uint256[] memory totalBudgetPerToken, 
+            address grantLaw, 
+            uint256 granteeRoleId, 
+            bytes memory grantConditions
+            ) = abi.decode(config, (address[], uint256[], address, uint256, bytes));
+
+        data[lawHash] = Data({ 
+            grantLaw: grantLaw, 
+            granteeRoleId: granteeRoleId, 
+            grantConditions: grantConditions
+            });
+
+        for (uint256 i = 0; i < allowedTokens.length; i++) {
+            address tokenAddress = allowedTokens[i];
+            remainingBudgetPerToken[lawHash][tokenAddress] = totalBudgetPerToken[i];
+        }
 
         inputParams = abi.encode(
             "string uriProposal",
             "address Grantee",
-            "address Token",
-            "uint256[] milestoneDisbursement",
-            "uint256 prevActionId"
+            "address TokenAddress",
+            "uint256[] milestoneDisbursements"
         );
 
         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
@@ -111,11 +132,22 @@ contract StartGrant is Law {
     {
         // Decode the law adoption data
         Memory memory mem;
-        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId) =
-            abi.decode(lawCalldata, (string, address, address, uint256[], uint256));
+        (mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursements) =
+            abi.decode(lawCalldata, (string, address, address, uint256[]));
 
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        ILaw.Conditions memory grantConditions = abi.decode(data[mem.lawHash].grantConditions, (ILaw.Conditions));
+        Data memory grantProgramData = getData(mem.lawHash);
+        ILaw.Conditions memory grantConditions = abi.decode(grantProgramData.grantConditions, (ILaw.Conditions));
+
+        // calculate the total disbursements requested 
+        for (uint256 i = 0; i < mem.milestoneDisbursements.length; i++) {
+            mem.totalDisbursements += mem.milestoneDisbursements[i];
+        }
+
+        // check if requested token is allowed + has sufficient funds
+        if (remainingBudgetPerToken[mem.lawHash][mem.tokenAddress] < mem.totalDisbursements) {
+            revert("Insufficient funds");
+        }
 
         // Create arrays for the adoption call
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
@@ -124,19 +156,21 @@ contract StartGrant is Law {
         targets[0] = powers; // Powers contract
         targets[1] = powers; // Powers contract
         calldatas[0] = abi.encodeWithSelector(
+            // adopt the grant as a law, with the relevant conditions
             Powers.adoptLaw.selector,
             PowersTypes.LawInitData({
                 nameDescription: mem.uriProposal, // we use the uriProposal as the nameDescription.
                 targetLaw: data[mem.lawHash].grantLaw,
                 config: abi.encode(
-                    mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursement, mem.prevActionId
+                    mem.uriProposal, mem.grantee, mem.tokenAddress, mem.milestoneDisbursements
                 ),
                 conditions: grantConditions
             })
         );
+        // assign the grantee role to the grantee
         calldatas[1] = abi.encodeWithSelector(
             Powers.assignRole.selector,
-            6, // grantee role
+            data[mem.lawHash].granteeRoleId, // grantee role
             mem.grantee // grantee address
         );
 
@@ -150,6 +184,15 @@ contract StartGrant is Law {
     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
         Memory memory mem;
         (mem.lawCount, mem.lawCalldata) = abi.decode(stateChange, (uint16, bytes));
+        (, , mem.tokenAddress, mem.milestoneDisbursements) = abi.decode(mem.lawCalldata, (string, address, address, uint256[]));
+
+        // update the remaining budget per token
+        // NOTE: If the grant is revoked before all its allocated funds are disbursed, the remaining budget will not be updated.
+        // this means the grantProgram will not be able to disburse the remaining funds.
+        // The funds will not be lost to the overall Powers protocol though. 
+        for (uint256 i = 0; i < mem.milestoneDisbursements.length; i++) {
+            remainingBudgetPerToken[lawHash][mem.tokenAddress] -= mem.milestoneDisbursements[i];
+        }
         mem.grantHash = keccak256(mem.lawCalldata);
         grantIds[lawHash][mem.grantHash] = mem.lawCount;
     }
@@ -160,5 +203,9 @@ contract StartGrant is Law {
 
     function getData(bytes32 lawHash) public view returns (Data memory) {
         return data[lawHash];
+    }
+
+    function getRemainingBudgetPerToken(bytes32 lawHash, address tokenAddress) public view returns (uint256) {
+        return remainingBudgetPerToken[lawHash][tokenAddress];
     }
 }
