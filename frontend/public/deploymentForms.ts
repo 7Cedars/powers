@@ -80,5 +80,15 @@ export const deploymentForms: DeploymentForm[] = [
     disabled: false,
     onlyLocalhost: true,
     fields: []
+  },
+  {
+    id: 7,
+    title: "PowersDAO",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicd6td3zkwxjqgrkkdgyibnzdwwbyjz5rmiy6gzny4q7myavwc53q",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeicrdgm4kgz5jg6zan2bsq2da6jqlzg6vxz6pmtlnseblfl5r3nglm",
+    description: "The DAO that governs development of the Powers protocol. This form is only available locally.",
+    disabled: false,
+    onlyLocalhost: true,
+    fields: []
   }
 ]; 

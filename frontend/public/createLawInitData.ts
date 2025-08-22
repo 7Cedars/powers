@@ -1913,7 +1913,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
 export function createLawInitDataByType(
   type: OrganizationType,
   powersAddress: `0x${string}`,
-  formData: Powers101FormData | CrossChainGovernanceFormData | GrantsManagerFormData | SplitGovernanceFormData | ManagedUpgradesFormData | SingleUpgradeFormData,
+  formData: Powers101FormData | CrossChainGovernanceFormData | GrantsManagerFormData | SplitGovernanceFormData | ManagedUpgradesFormData | SingleUpgradeFormData | PowersDaoFormData,
   chainId: number
 ): LawInitData[] {
   switch (type) {
@@ -1929,6 +1929,8 @@ export function createLawInitDataByType(
       return createPackagedUpgradesLawInitData(powersAddress, formData as ManagedUpgradesFormData, chainId);
     case 'Single Upgrades':
       return createSingleUpgradeLawInitData(powersAddress, formData as SingleUpgradeFormData, chainId);
+    case 'PowersDAO':
+      return createPowersDaoLawInitData(powersAddress, formData as PowersDaoFormData, chainId);
     default:
       throw new Error(`Unknown organization type: ${type}`);
   }

@@ -28,18 +28,7 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract AdoptLawPackage is Law {
     /// @notice constructor of the law
-    /// @param name_ the name of the law.
-
-    struct Data {
-        uint256 roleId;
-    }
-    mapping(bytes32 lawHash => Data) public data;
-
     constructor() {
-        config = abi.encode(
-            "uint256 roleId"
-        );
-
         emit Law__Deployed("");
     }
 
@@ -50,12 +39,6 @@ contract AdoptLawPackage is Law {
         Conditions memory conditions,
         bytes memory config
     ) public override {
-        (uint256 roleId) = abi.decode(config, (uint256));
-
-        data[lawHash] = Data({
-            roleId: roleId
-        });
-
         inputParams = abi.encode(
             "address[] laws"
             "bytes[] lawInitDatas"
@@ -80,13 +63,14 @@ contract AdoptLawPackage is Law {
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (address[] memory newLaws, PowersTypes.LawInitData[] memory lawInitDatas) = abi.decode(lawCalldata, (address[], PowersTypes.LawInitData[]));
+        (address[] memory newLaws, bytes[] memory lawInitDatas) = abi.decode(lawCalldata, (address[], bytes[]));
 
         // send the calldata to the target function
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(newLaws.length);
         for (uint256 i = 0; i < newLaws.length; i++) {
+            PowersTypes.LawInitData memory lawInitData = abi.decode(lawInitDatas[i], (PowersTypes.LawInitData));
             targets[i] = powers;
-            calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitDatas[i]);
+            calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
         }
 
         return (actionId, targets, values, calldatas, "");
