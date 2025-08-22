@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         commitCount: matchingCommits.length,
-        commits: matchingCommits,
         searchParams: {
           repo,
           path,
