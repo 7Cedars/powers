@@ -6,6 +6,7 @@
 
 ## For Developers
 
+* [Architecture](for-developers/architecture.md)
 * [Powers.sol](for-developers/powers.sol/README.md)
   * [Executing actions](for-developers/powers.sol/executing-actions.md)
   * [Proposing and voting on actions](for-developers/powers.sol/proposing-actions.md)
@@ -22,6 +23,7 @@
   * [Specs](for-developers/law.sol/specs.md)
 * [Deploy your own Powers](for-developers/deploy-community-governance.md)
 * [Deploy your own Law](for-developers/setting-up-a-new-law.md)
+* [Detailed use cases](for-developers/detailed-use-cases.md)
 
 ## Deployed Laws
 
