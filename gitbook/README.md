@@ -8,6 +8,8 @@ The Powers protocol offers a role-based governance system for on-chain organizat
 
 Using Powers, a single decision can be guided through multiple role-restricted modules, with each their own conditional checks and voting mechanisms. Together, the create completely modular, transparent and asynchronous governance paths.
 
+## Components
+
 The protocol combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
 
 * **Powers** manages assigning roles to addresses and governance flows.
