@@ -23,6 +23,7 @@
   * [Specs](for-developers/law.sol/specs.md)
 * [Deploy your own Powers](for-developers/deploy-community-governance.md)
 * [Deploy your own Law](for-developers/setting-up-a-new-law.md)
+* [Integrations](for-developers/integrations.md)
 * [Detailed use cases](for-developers/detailed-use-cases.md)
 
 ## Deployed Laws
