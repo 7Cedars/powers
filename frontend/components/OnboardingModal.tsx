@@ -147,7 +147,7 @@ export const OnboardingModal = ({ isOpen, onClose, onRequestOpen }: OnboardingMo
   // Navigate to the appropriate page when step changes
   useEffect(() => {
     if (currentStepData.url && currentStepData.url !== '') {
-      const fullUrl = `/${chainId}/${addressPowers}${currentStepData.url}`;
+      const fullUrl = `/protocol/${chainId}/${addressPowers}${currentStepData.url}`;
       router.push(fullUrl);
     }
   }, [currentStep, currentStepData.url, chainId, addressPowers, router]);

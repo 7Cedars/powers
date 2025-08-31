@@ -154,7 +154,7 @@ function GovernanceTrack({track, roleIds, lawSelected, bgItem}: TrackProps) {
                   :
                   law?.conditions?.allowedRole != undefined ? !roleIds?.includes(Number(law?.conditions?.allowedRole)) : false
                 }
-                onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
+                onClick = {() => router.push(`/protocol/${chainId}/${law.powers}/laws/${law.index}`)}
                 >
             </button>
           )
@@ -184,7 +184,7 @@ function GovernanceOrphans({orphans, roleIds, lawSelected, bgItem}: TrackProps) 
                 :
                 law?.conditions?.allowedRole != undefined ? !roleIds?.includes(Number(law?.conditions?.allowedRole)) : false
               }
-              onClick = {() => router.push(`/${chainId}/${law.powers}/laws/${law.index}`)}
+              onClick = {() => router.push(`/protocol/${chainId}/${law.powers}/laws/${law.index}`)}
             >
               <div className = "flex flex-col w-full h-full justify-center items-center gap-1">
                 <div className = "text-sm text-pretty p-1 px-4 text-center text-slate-700">

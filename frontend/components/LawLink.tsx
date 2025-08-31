@@ -33,7 +33,7 @@ export const LawLink = ({lawId, powers}: {lawId: bigint, powers: Powers}) => {
                   <Button
                       showBorder={true}
                       role={6}
-                      onClick={() => router.push(`/${chainId}/${powers.contractAddress}/laws/${lawId}`)}
+                      onClick={() => router.push(`/protocol/${chainId}/${powers.contractAddress}/laws/${lawId}`)}
                       align={0}
                       selected={false}
                       >  

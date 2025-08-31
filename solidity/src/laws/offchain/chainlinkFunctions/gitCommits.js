@@ -18,15 +18,7 @@ const githubRequest = Functions.makeHttpRequest({
 
 try {
     const [githubResponse] = await Promise.all([githubRequest])
-    
-    if (githubResponse.status !== 200) {
-        console.log("GitHub API error:", githubResponse.status, githubResponse.data)
-        throw Error(`GitHub API returned status ${githubResponse.status}`)
-    }
-    
     const commitCount = githubResponse.data.commitCount
-    
-    console.log(`Found ${commitCount} commits by ${author} in path "${path}" in the last 90 days`)
     
     return Functions.encodeUint256(commitCount)
     
