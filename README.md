@@ -17,7 +17,7 @@
 
 <h3 align="center">Powers</h3>
   <p align="center">
-    Role-based governance for on-chain organisations
+    Role-based governance for on-chain organisations  
     <br />
     <!--NB: TO DO -->  
     <a href="/solidity">Solidity protocol</a> ·

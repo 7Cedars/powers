@@ -135,7 +135,7 @@ contract DeployManagedGrants is Script {
 
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Deploy grant program: Governors can deploy a new grant program, as long as it has not been vetoed by judges.",
-            targetLaw: parseLawAddress(16, "StartGrant"),
+            targetLaw: parseLawAddress(16, "GrantProgram"),
             config: abi.encode(parseLawAddress(15, "Grant"), abi.encode(grantConditions)),
             conditions: conditions
         });

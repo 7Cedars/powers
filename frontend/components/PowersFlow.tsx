@@ -1108,7 +1108,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       lawId: BigInt(lawId),
       upToDate: false
     })
-    router.push(`/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
+    router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
     // console.log("@handleNodeClick: waypoint 1", {action})
   }, [router, chainId, powers?.contractAddress, action, getViewport, setAction])
 

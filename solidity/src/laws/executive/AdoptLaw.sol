@@ -12,10 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A base contract that executes a bespoke action.
-///
-/// Note 1: as of now, it only allows for a single function to be called.
-/// Note 2: as of now, it does not allow sending of ether values to the target function.
+/// @notice A law that adopts a single law, it includes the conditions for the law to be adopted. 
+/// It is a showcase law that is not very practical to use in real life. 
 ///
 /// @author 7Cedars,
 

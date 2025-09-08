@@ -1,7 +1,6 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Providers } from "../context/Providers"
-import { NavBars } from "../components/NavBars";
 import { PWAInstallPrompt } from "../components/PWAInstallPrompt";
 import "./globals.css";
 import { Inter } from 'next/font/google'
@@ -46,9 +45,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="h-dvh w-screen relative bg-slate-100 overflow-hidden">
         <Providers>
           {/* <ThemeProvider> */}
-            <NavBars > 
+            {/* <ProtocolNavigation >  */}
               {children}
-            </NavBars > 
+            {/* </ProtocolNavigation >  */}
             <PWAInstallPrompt />
           {/* </ThemeProvider> */}
         </Providers>

@@ -31,8 +31,7 @@ import { AddressesMapping } from "../src/laws/state/AddressesMapping.sol";
 import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../src/laws/state/Grant.sol";
-import { StartGrant } from "../src/laws/executive/StartGrant.sol";
-import { GrantProposal } from "../src/laws/executive/GrantProposal.sol";
+import { GrantProgram } from "../src/laws/executive/GrantProgram.sol";
 import { AdoptLaw } from "../src/laws/executive/AdoptLaw.sol";
 import { NStrikesYourOut } from "../src/laws/electoral/NStrikesYourOut.sol";
 import { FlagActions } from "../src/laws/state/FlagActions.sol";
@@ -52,6 +51,11 @@ import { SnapToGov_ExecuteGov } from "../src/laws/integrations/SnapToGov_Execute
 import { ElectionList } from "../src/laws/electoral/ElectionList.sol";
 import { ElectionStart } from "../src/laws/electoral/ElectionStart.sol";
 import { ElectionTally } from "../src/laws/electoral/ElectionTally.sol";
+import { RoleByGitCommit } from "../src/laws/offchain/RoleByGitCommit.sol";
+import { StringToAddress } from "../src/laws/state/StringToAddress.sol";
+import { Erc20Budget } from "../src/laws/state/Erc20Budget.sol";
+import { AdoptLawPackage } from "../src/laws/executive/AdoptLawPackage.sol";
+import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -65,10 +69,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
 
-        names = new string[](37);
-        addresses = new address[](37);
-        bytes[] memory creationCodes = new bytes[](37);
-        bytes[] memory constructorArgs = new bytes[](37);
+        names = new string[](41);
+        addresses = new address[](41);
+        bytes[] memory creationCodes = new bytes[](41);
+        bytes[] memory constructorArgs = new bytes[](41);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -134,93 +138,109 @@ contract DeployLaws is Script {
         creationCodes[15] = type(Grant).creationCode;
         constructorArgs[15] = abi.encode("Grant");
 
-        names[16] = "GrantProposal";
-        creationCodes[16] = type(GrantProposal).creationCode;
-        constructorArgs[16] = abi.encode("GrantProposal");
+        names[16] = "AdoptLaw";
+        creationCodes[16] = type(AdoptLaw).creationCode;
+        constructorArgs[16] = abi.encode("AdoptLaw");
 
-        names[17] = "AdoptLaw";
-        creationCodes[17] = type(AdoptLaw).creationCode;
-        constructorArgs[17] = abi.encode("AdoptLaw");
+        names[17] = "VoteOnAccounts";
+        creationCodes[17] = type(VoteOnAccounts).creationCode;
+        constructorArgs[17] = abi.encode("VoteOnAccounts");
 
-        names[18] = "VoteOnAccounts";
-        creationCodes[18] = type(VoteOnAccounts).creationCode;
-        constructorArgs[18] = abi.encode("VoteOnAccounts");
-
-        names[19] = "DirectDeselect";
-        creationCodes[19] = type(DirectDeselect).creationCode;
-        constructorArgs[19] = abi.encode("DirectDeselect");
+        names[18] = "DirectDeselect";
+        creationCodes[18] = type(DirectDeselect).creationCode;
+        constructorArgs[18] = abi.encode("DirectDeselect");
 
         // names[21] = "Subscription";
         // creationCodes[21] = type(Subscription).creationCode;
         // constructorArgs[21] = abi.encode("Subscription");
 
-        names[20] = "DirectDeselect";
-        creationCodes[20] = type(DirectDeselect).creationCode;
-        constructorArgs[20] = abi.encode("DirectDeselect");
+        names[19] = "DirectDeselect";
+        creationCodes[19] = type(DirectDeselect).creationCode;
+        constructorArgs[19] = abi.encode("DirectDeselect");
 
-        names[21] = "StartElection";
-        creationCodes[21] = type(StartElection).creationCode;
-        constructorArgs[21] = abi.encode("StartElection");
+        names[20] = "StartElection";
+        creationCodes[20] = type(StartElection).creationCode;
+        constructorArgs[20] = abi.encode("StartElection");
 
-        names[22] = "EndElection";
-        creationCodes[22] = type(EndElection).creationCode;
-        constructorArgs[22] = abi.encode("EndElection");
+        names[21] = "EndElection";
+        creationCodes[21] = type(EndElection).creationCode;
+        constructorArgs[21] = abi.encode("EndElection");
 
-        names[23] = "GovernorCreateProposal";
-        creationCodes[23] = type(GovernorCreateProposal).creationCode;
-        constructorArgs[23] = abi.encode("GovernorCreateProposal");
+        names[22] = "GovernorCreateProposal";
+        creationCodes[22] = type(GovernorCreateProposal).creationCode;
+        constructorArgs[22] = abi.encode("GovernorCreateProposal");
 
-        names[24] = "GovernorExecuteProposal";
-        creationCodes[24] = type(GovernorExecuteProposal).creationCode;
-        constructorArgs[24] = abi.encode("GovernorExecuteProposal");
+        names[23] = "GovernorExecuteProposal";
+        creationCodes[23] = type(GovernorExecuteProposal).creationCode;
+        constructorArgs[23] = abi.encode("GovernorExecuteProposal");
 
-        names[25] = "SnapToGov_CheckSnapExists";
-        creationCodes[25] = type(SnapToGov_CheckSnapExists).creationCode;
+        names[24] = "SnapToGov_CheckSnapExists";
+        creationCodes[24] = type(SnapToGov_CheckSnapExists).creationCode;
+        constructorArgs[24] = abi.encode(router);
+
+        names[25] = "SnapToGov_CheckSnapPassed";
+        creationCodes[25] = type(SnapToGov_CheckSnapPassed).creationCode;
         constructorArgs[25] = abi.encode(router);
 
-        names[26] = "SnapToGov_CheckSnapPassed";
-        creationCodes[26] = type(SnapToGov_CheckSnapPassed).creationCode;
-        constructorArgs[26] = abi.encode(router);
+        names[26] = "SnapToGov_CreateGov";
+        creationCodes[26] = type(SnapToGov_CreateGov).creationCode;
+        constructorArgs[26] = abi.encode("SnapToGov_CreateGov");
 
-        names[27] = "SnapToGov_CreateGov";
-        creationCodes[27] = type(SnapToGov_CreateGov).creationCode;
-        constructorArgs[27] = abi.encode("SnapToGov_CreateGov");
+        names[27] = "SnapToGov_CancelGov";
+        creationCodes[27] = type(SnapToGov_CancelGov).creationCode;
+        constructorArgs[27] = abi.encode("SnapToGov_CancelGov");
 
-        names[28] = "SnapToGov_CancelGov";
-        creationCodes[28] = type(SnapToGov_CancelGov).creationCode;
-        constructorArgs[28] = abi.encode("SnapToGov_CancelGov");
+        names[28] = "SnapToGov_ExecuteGov";
+        creationCodes[28] = type(SnapToGov_ExecuteGov).creationCode;
+        constructorArgs[28] = abi.encode("SnapToGov_ExecuteGov");
 
-        names[29] = "SnapToGov_ExecuteGov";
-        creationCodes[29] = type(SnapToGov_ExecuteGov).creationCode;
-        constructorArgs[29] = abi.encode("SnapToGov_ExecuteGov");
+        names[29] = "ElectionList";
+        creationCodes[29] = type(ElectionList).creationCode;
+        constructorArgs[29] = abi.encode("ElectionList");
 
-        names[30] = "ElectionList";
-        creationCodes[30] = type(ElectionList).creationCode;
-        constructorArgs[30] = abi.encode("ElectionList");
+        names[30] = "ElectionStart";
+        creationCodes[30] = type(ElectionStart).creationCode;
+        constructorArgs[30] = abi.encode("ElectionStart");
 
-        names[31] = "ElectionStart";
-        creationCodes[31] = type(ElectionStart).creationCode;
-        constructorArgs[31] = abi.encode("ElectionStart");
+        names[31] = "ElectionTally";
+        creationCodes[31] = type(ElectionTally).creationCode;
+        constructorArgs[31] = abi.encode("ElectionTally");
 
-        names[32] = "ElectionTally";
-        creationCodes[32] = type(ElectionTally).creationCode;
-        constructorArgs[32] = abi.encode("ElectionTally");
+        names[32] = "NStrikesYourOut";
+        creationCodes[32] = type(NStrikesYourOut).creationCode;
+        constructorArgs[32] = abi.encode("NStrikesYourOut");
 
-        names[33] = "NStrikesYourOut";
-        creationCodes[33] = type(NStrikesYourOut).creationCode;
-        constructorArgs[33] = abi.encode("NStrikesYourOut");
+        names[33] = "FlagActions";
+        creationCodes[33] = type(FlagActions).creationCode;
+        constructorArgs[33] = abi.encode("FlagActions");
 
-        names[34] = "FlagActions";
-        creationCodes[34] = type(FlagActions).creationCode;
-        constructorArgs[34] = abi.encode("FlagActions");
+        names[34] = "GrantProgram";
+        creationCodes[34] = type(GrantProgram).creationCode;
+        constructorArgs[34] = abi.encode("GrantProgram");
 
-        names[35] = "StartGrant";
-        creationCodes[35] = type(StartGrant).creationCode;
-        constructorArgs[35] = abi.encode("StartGrant");
+        names[35] = "EndGrant";
+        creationCodes[35] = type(EndGrant).creationCode;
+        constructorArgs[35] = abi.encode("EndGrant");
 
-        names[36] = "EndGrant";
-        creationCodes[36] = type(EndGrant).creationCode;
-        constructorArgs[36] = abi.encode("EndGrant");
+        names[36] = "RoleByGitCommit";
+        creationCodes[36] = type(RoleByGitCommit).creationCode;
+        constructorArgs[36] = abi.encode(router);
+
+        names[37] = "StringToAddress";
+        creationCodes[37] = type(StringToAddress).creationCode;
+        constructorArgs[37] = abi.encode("StringToAddress");
+
+        names[38] = "Erc20Budget";
+        creationCodes[38] = type(Erc20Budget).creationCode;
+        constructorArgs[38] = abi.encode("Erc20Budget");
+
+        names[39] = "AdoptLawPackage";
+        creationCodes[39] = type(AdoptLawPackage).creationCode;
+        constructorArgs[39] = abi.encode("AdoptLawPackage");
+
+        names[40] = "RoleByRoles";
+        creationCodes[40] = type(RoleByRoles).creationCode;
+        constructorArgs[40] = abi.encode("RoleByRoles");
 
         // console2.log("router2", router);
 

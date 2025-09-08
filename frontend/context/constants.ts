@@ -21,7 +21,7 @@ export const getConstants = (chainId: number): Constants => {
         "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
         "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
         "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-        "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+        "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
       ], 
       LAW_ADDRESSES: [
         "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -53,7 +53,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -85,7 +85,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -118,7 +118,7 @@ export const getConstants = (chainId: number): Constants => {
           "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant", "AddressAnalysis"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant", "AddressAnalysis"
         ], 
         LAW_ADDRESSES: [
           "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
@@ -149,19 +149,20 @@ export const getConstants = (chainId: number): Constants => {
           "DelegateSelect", "DirectSelect", "PeerSelect", "RenounceRole", "SelfSelect", 
           "BespokeAction", "OpenAction", "PresetAction", "StatementOfIntent", "AddressesMapping", 
           "NominateMe", "StringsArray", "TokensArray", "TaxSelect", "HolderSelect", 
-          "Grant", "GrantProposal", "AdoptLaw", "VoteOnAccounts", 
+          "Grant", "AdoptLaw", "VoteOnAccounts", 
           "DirectDeselect", "DirectDeselect", "StartElection", "EndElection", "GovernorCreateProposal", 
           "GovernorExecuteProposal", "SnapToGov_CheckSnapExists", "SnapToGov_CheckSnapPassed", "SnapToGov_CreateGov", "SnapToGov_CancelGov", 
-          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "StartGrant", "EndGrant"
+          "SnapToGov_ExecuteGov", "ElectionList", "ElectionStart", "ElectionTally", "NStrikesYourOut", "FlagActions", "GrantProgram", "EndGrant", "RoleByGitCommit", "StringToAddress", "Erc20Budget", "AdoptLawPackage", "RoleByRoles"
         ], 
         LAW_ADDRESSES: [
-          "0x4cba41C3D34A6177659126517b9806ACeFA0F83C", "0xa797799EE0C6FA7d9b76eF52e993288a04982267", "0x9f31dcac5429716128D667850d9c704af811f430", "0x7f8B337464540444e2cFEB58ec85084804f5a91B", "0x1C1dbed377bafA71CA935B40102Ea7A2C1D6ec8d",
-          "0xac5fec8992EC477a1921EEBe13bb962FDf41a197", "0xbe7F998c9d5BAe3AF7bD5Fc2CadB8ABaCeDf1379", "0x81Bb430DF6ab37466270ECFE6f7c29B3D3e44A35", "0x0F209e9f393c551930aE47bfEA838a6278aa698D", "0xD5Dd8bdd731b23b4c14b1e111151C5d2C46f565D",
-          "0x53Fa2e3Da143d47359ecb0C0F45fcae928931dc8", "0x908B8158F2B6CC789539956E7011c3630640d237", "0x6D62A5dF14619FF5477D5F74445080c4Ec5Af12e", "0xa051c100C5a5F430a1F27D553aF70f7A3Be2D8e6", "0x6562A3a9DB34394106879571E6b75F66DEE87c9d",
-          "0x8E2ce67686f671fE9DAf98Bb12D08195c240940c", "0xD35f15A4dd8656D10959ded7687C3ABFD021f963", "0xd018f645e1deAd1e4187040186B9dBCb08E7B1b4", "0x1BD970f7B7aa8B4A9faBAe16D9857A9F5d7c2798",
-          "0x2036Ae49BC2ee2809Ef0421e6734574119c9e36C", "0x2036Ae49BC2ee2809Ef0421e6734574119c9e36C", "0xc3A7dF5268B409e4E83c06B171847899Dd7E4AA9", "0xE60B976086E63f3ef5Ca28c7D650804313284e63", "0xcdCF9608b851e5C8031561b1A74e78Aed041B1a6",
-          "0x0638A42231f05405D3c5af49807a541A3a3425c0", "0x8a2443aEa92B0b6262E090030a790366c3560048", "0x2F63494DB0f9663cD1479Dd4B591e64075a037C3", "0xD5001dc8A82ee6B24909539A3aB0247522228BDB", "0xA55530E676D2598DEE92Fb54C244dF567A3F99C5",
-          "0xBcEc97437DE037F11602f1C02FC40973dCC679a6", "0x7f7BAf4a56f86Bfbd6D4E509C9B83188Cd302FdF", "0x6847aCe7222BB830A2C81BB2CFE23ea686B654a9", "0x3B8F9b8c2CA7AB3c5e4dd0abd738c80C9003fb1c", "0x0a492fd50D89732D057283047d75eDeB851d9199", "0x09A2D5186C131Ba79A235CcAB943e1F8F6493375", "0xAdd8a1f02d6d14EA0C64D87d9308D7d3aaa68cB8", "0x08BE8dd0f67662003645B41Eb8d65bd9847F9abC"
+          "0x27b370957C1e94b9DDEf6392A819244ea960365D", "0x47F2ED2074B1fBD718Bc649DF5D2Eac7C91b2fB3", "0x09702B052Fa02CF61F80895a89d8855b5f3Fcb16", "0x24d66a8A97f7Fde1f184B973fE69B807B8b4f615", "0x5006A5FEd39d2b20C9c1D97222A65D3e49551A98", 
+          "0xBd92ebd7e83B350Cd230c6F430c41eCCe977F6aE", "0xb1F8860523De00ad9682cc656d05b689e5eAb677", "0x5B6D7e7Ddc95cebFc28572A31396877Fbd7d727d", "0x85396dF04EaD5ba8F55379A4d2c10569A36b87e6", "0x7444a2AB8D9458F18f242F1855C6A1445429a9f4", 
+          "0xC49b4d39e916BD2c2F49008E807F7f782523D877", "0xBffca8e4Bd3B8F688B9974749f2Cf2D627a97b81", "0x05BC4a7d82891df46a4F0cBcFDb8068FbDbE541E", "0xEaDC496183C30A70D284751f37966c753240AD29", "0x64017fb2d788543522c92fE9b7837cF95B213ccc", 
+          "0xD39Af9c575A8F506298e5582433dF505ca3f85a9", "0x71F7fdDde144Daa5e6a2B1Ab20b095A43D70C650", "0x68e87f01898aCFAFC79e3EA7dbbd896952ea7B48", 
+          "0xb043BbBD9699d2B6b9f8Fa39116663899e044B82", "0xb043BbBD9699d2B6b9f8Fa39116663899e044B82", "0x0538d9F5d9a9e8be802664211AD23a49C2488567", "0xaD9be442f0446Dbd6026b93dF8Cb0be236c2A085", "0x7430B54C5e3E4a488ebeD0275F717554AFaFebF1", 
+          "0xFAEd5c90fAdff3de48fe7aCD4769D34409F4A5f0", "0x5D66E5C3E21E3b1467B21352980A388F9F614CBc", "0x15B6c4ce08Ae676383c3A73c176dbaAC59A75BbD", "0xaef2c1CEB1FD0a99c1D7d3Ee964A2C3FaEec10Bf", "0x60572C18B0d5586c42fFd384C72dd6103bf1FFB3", 
+          "0xe3cB68F5F1098c7FcBb98fdC319F74D5fE956ea9", "0x197ceF5f1Cd2FfEaBE26939473EC317b0A6B0e3A", "0xf7577e73f4F0e31f527299C9038Cc81B31a38372", "0xf0A63520EC849a612677b6Dc9D6581E3074FfF22", "0xE9F704c69E59abD1f30d4496d7753564079cA5d1", 
+          "0xDFB8B4ea4a551B33a7Fc84B0459e38b50Fcba958", "0x4D464271F97D24aC8459A1A190D2d0E7b45f4422", "0xb0cD8163E4da6a3F6F28425A1C63264A49A0826f", "0xf954E22dd690a55105A2880883295298f0ce7e06", "0x837E5E18dF599e063c489b3296f9Df5B71B8817b", "0xc5dBF88aC4C5d9cb034503bE05e5468a58C8c2E1", "0x859c97E186ACD5eF38e1ad6E8D08ddBb39C8900C", "0x14BA431F8E2DcE783df3F5f5Cd4Eb7d31fFA2456"
         ],
         MOCK_NAMES: [
           "PowersMock", "GovernorMock", "Erc20VotesMock", 

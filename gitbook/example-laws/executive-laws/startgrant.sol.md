@@ -1,6 +1,6 @@
-# StartGrant.sol
+# GrantProgram.sol
 
-StartGrant.sol is an executive law that enables the initiation of grant programs. It provides a mechanism to set up and start new grant distributions with specific parameters and conditions.
+GrantProgram.sol is an executive law that enables the initiation of grant programs. It provides a mechanism to set up and start new grant distributions with specific parameters and conditions.
 
 ## Overview
 
@@ -13,7 +13,7 @@ This law provides a mechanism to:
 
 ## Configuration
 
-When adopting a StartGrant instance, four parameters must be provided:
+When adopting a GrantProgram instance, four parameters must be provided:
 
 1. `grantToken` (address): The token to be distributed as grants
 2. `totalAmount` (uint256): Total amount of tokens to be distributed

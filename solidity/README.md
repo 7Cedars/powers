@@ -108,7 +108,7 @@ solidity/
 │    │    │    ├── diversifiedRoles/           # Diversified roles laws
 │    │    │    └── governYourTax/              # Tax-based governance laws
 │    │    │        ├── RoleByTaxPaid.sol       # Role assignment based on tax
-│    │    │        ├── StartGrant.sol          # Grant initiation
+│    │    │        ├── GrantProgram.sol          # Grant initiation
 │    │    │        └── StopGrant.sol           # Grant termination
 │    │    │
 │    │    ├── electoral/                       # Electoral laws

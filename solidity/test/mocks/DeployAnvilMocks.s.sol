@@ -29,7 +29,7 @@ import { TokensArray } from "../../src/laws/state/TokensArray.sol";
 import { TaxSelect } from "../../src/laws/electoral/TaxSelect.sol";
 import { HolderSelect } from "../../src/laws/electoral/HolderSelect.sol";
 import { Grant } from "../../src/laws/state/Grant.sol";
-import { StartGrant } from "../../src/laws/executive/StartGrant.sol";
+import { GrantProgram } from "../../src/laws/executive/GrantProgram.sol";
 import { AdoptLaw } from "../../src/laws/executive/AdoptLaw.sol";
 import { VoteOnAccounts } from "../../src/laws/state/VoteOnAccounts.sol";
 import { DirectDeselect } from "../../src/laws/electoral/DirectDeselect.sol";
@@ -43,9 +43,13 @@ import { ElectionStart } from "../../src/laws/electoral/ElectionStart.sol";
 import { ElectionList } from "../../src/laws/electoral/ElectionList.sol";
 import { ElectionTally } from "../../src/laws/electoral/ElectionTally.sol";
 import { NStrikesYourOut } from "../../src/laws/electoral/NStrikesYourOut.sol";
-import { GrantProposal } from "../../src/laws/executive/GrantProposal.sol";
 import { FlagActions } from "../../src/laws/state/FlagActions.sol";
 import { EndGrant } from "../../src/laws/executive/EndGrant.sol";
+import { RoleByGitCommit } from "../../src/laws/offchain/RoleByGitCommit.sol";
+import { StringToAddress } from "../../src/laws/state/StringToAddress.sol";
+import { Erc20Budget } from "../../src/laws/state/Erc20Budget.sol";
+import { AdoptLawPackage } from "../../src/laws/executive/AdoptLawPackage.sol";
+import { RoleByRoles } from "../../src/laws/electoral/RoleByRoles.sol";
 
 // Mocks
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -69,8 +73,8 @@ contract DeployAnvilMocks is Script {
             address[] memory mockAddresses
         )
     {
-        lawNames = new string[](34);
-        lawAddresses = new address[](34);
+        lawNames = new string[](36);
+        lawAddresses = new address[](36);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -91,28 +95,30 @@ contract DeployAnvilMocks is Script {
         lawAddresses[13] = address(new TaxSelect());
         lawAddresses[14] = address(new HolderSelect());
         lawAddresses[15] = address(new Grant());
-        lawAddresses[16] = address(new StartGrant());
-        lawAddresses[17] = address(new GrantProposal());
-        lawAddresses[18] = address(new AdoptLaw());
-        lawAddresses[19] = address(new VoteOnAccounts());
-        lawAddresses[20] = address(new DirectDeselect());
-        // lawAddresses[21] = address(new Subscription());
-        lawAddresses[22] = address(new StartElection());
-        lawAddresses[23] = address(new EndElection());
-        lawAddresses[24] = address(new GovernorCreateProposal());
-        lawAddresses[25] = address(new GovernorExecuteProposal());
+        lawAddresses[16] = address(new GrantProgram());
+        lawAddresses[17] = address(new AdoptLaw());
+        lawAddresses[18] = address(new VoteOnAccounts());
+        lawAddresses[19] = address(new DirectDeselect());
+        lawAddresses[20] = address(new StartElection());
+        lawAddresses[21] = address(new EndElection());
+        lawAddresses[22] = address(new GovernorCreateProposal());
+        lawAddresses[23] = address(new GovernorExecuteProposal());
 
         mockAddresses[0] = address(new PowersMock());
         mockAddresses[6] = address(new FunctionsRouterMock());
 
-        lawAddresses[26] = address(new SnapToGov_CheckSnapExists(mockAddresses[6]));
-        lawAddresses[27] = address(new ElectionStart());
-        lawAddresses[28] = address(new ElectionList());
-        lawAddresses[29] = address(new ElectionTally());
-        lawAddresses[30] = address(new NStrikesYourOut());
-        lawAddresses[31] = address(new GrantProposal());
-        lawAddresses[32] = address(new FlagActions());
-        lawAddresses[33] = address(new EndGrant());
+        lawAddresses[24] = address(new SnapToGov_CheckSnapExists(mockAddresses[6]));
+        lawAddresses[25] = address(new ElectionStart());
+        lawAddresses[26] = address(new ElectionList());
+        lawAddresses[27] = address(new ElectionTally());
+        lawAddresses[28] = address(new NStrikesYourOut());
+        lawAddresses[29] = address(new FlagActions());
+        lawAddresses[30] = address(new EndGrant());
+        lawAddresses[31] = address(new RoleByGitCommit(address(mockAddresses[6])));
+        lawAddresses[32] = address(new StringToAddress());
+        lawAddresses[33] = address(new Erc20Budget());
+        lawAddresses[34] = address(new AdoptLawPackage());
+        lawAddresses[35] = address(new RoleByRoles());
 
         vm.stopBroadcast();
 
@@ -143,25 +149,28 @@ contract DeployAnvilMocks is Script {
         lawNames[13] = "TaxSelect";
         lawNames[14] = "HolderSelect";
         lawNames[15] = "Grant";
-        lawNames[16] = "StartGrant";
-        lawNames[17] = "GrantProposal";
-        lawNames[18] = "AdoptLaw";
-        lawNames[19] = "VoteOnAccounts";
-        lawNames[20] = "DirectDeselect";
+        lawNames[16] = "GrantProgram";
+        lawNames[17] = "AdoptLaw";
+        lawNames[18] = "VoteOnAccounts";
+        lawNames[19] = "DirectDeselect";
         // lawNames[21] = "Subscription";
-        lawNames[22] = "StartElection";
-        lawNames[23] = "EndElection";
-        lawNames[24] = "GovernorCreateProposal";
-        lawNames[25] = "GovernorExecuteProposal";
-        lawNames[26] = "SnapToGov_CheckSnapExists";
-        lawNames[27] = "ElectionStart";
-        lawNames[28] = "ElectionList";
-        lawNames[29] = "ElectionTally";
-        lawNames[30] = "NStrikesYourOut";
-        lawNames[31] = "GrantProposal";
-        lawNames[32] = "FlagActions";
-        lawNames[33] = "EndGrant";
-
+        lawNames[20] = "StartElection"; 
+        lawNames[21] = "EndElection";
+        lawNames[22] = "GovernorCreateProposal";
+        lawNames[23] = "GovernorExecuteProposal";
+        lawNames[24] = "SnapToGov_CheckSnapExists";
+        lawNames[25] = "ElectionStart";
+        lawNames[26] = "ElectionList";
+        lawNames[27] = "ElectionTally";
+        lawNames[28] = "NStrikesYourOut";
+        lawNames[29] = "FlagActions";
+        lawNames[30] = "EndGrant";
+        lawNames[31] = "RoleByGitCommit";
+        lawNames[32] = "StringToAddress";
+        lawNames[33] = "Erc20Budget";
+        lawNames[34] = "AdoptLawPackage";
+        lawNames[35] = "RoleByRoles";
+        
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";
         mockNames[2] = "Erc20VotesMock";
