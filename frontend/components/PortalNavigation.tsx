@@ -7,8 +7,7 @@ import {
   HomeIcon,
   IdentificationIcon,
   NewspaperIcon,
-  BookOpenIcon,
-  UserIcon
+  BookOpenIcon
 } from '@heroicons/react/24/outline'
 import { ConnectButton } from './ConnectButton'
 import { BlockCounter } from './BlockCounter'
@@ -23,15 +22,9 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 const portalNavigationConfig = [
   {
     id: 'home',
-    label: 'Home',
+    label: 'Profile',
     icon: HomeIcon,
     path: '/portal',
-  },
-  {
-    id: 'profile',
-    label: 'Profile',
-    icon: UserIcon,
-    path: '/portal/profile',
   },
   {
     id: 'settings',
@@ -126,9 +119,9 @@ interface PortalNavigationProps {
 
 export const PortalNavigation = ({ children }: PortalNavigationProps) => {
   return (
-    <div className="w-full h-full flex flex-col justify-start items-center">
+    <div className="w-full h-full flex flex-col justify-center items-center">
       <PortalHeader /> 
-      <main className="w-screen h-full flex flex-col justify-start items-center">
+      <main className="w-screen h-full flex flex-col justify-center items-center">
         {children}   
       </main>
       <PortalFooter /> 

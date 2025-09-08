@@ -9,7 +9,7 @@ import { useChainId, useChains } from 'wagmi'
 import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
 import { parseChainId, parseLawError, parseParamValues, parseRole, parseTrueFalse, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers } from "@/context/types";
-import { DynamicInput } from "@/app/protocol/[chainId]/[powers]/laws/[lawId]/DynamicInput";
+import { DynamicInput } from "@/components/DynamicInput";
 import { SimulationBox } from "@/components/SimulationBox";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
@@ -92,8 +92,8 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   }, [ , law ])
 
   return (
-    <main className="w-full h-full" help-nav-item="law-input">
-      <section className={`w-full h-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`} >
+    <main className="w-full" help-nav-item="law-input">
+      <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`} >
       {/* title - replaced with HeaderLaw */}
       <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
         <HeaderLaw

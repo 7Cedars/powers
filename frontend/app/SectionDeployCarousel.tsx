@@ -159,7 +159,7 @@ export function SectionDeployCarousel() {
 
   const handleSeeYourPowers = () => {
     if (receipt?.contractAddress && selectedChainId) {
-      router.push(`/${selectedChainId}/${receipt.contractAddress}`)
+      router.push(`/protocol/${selectedChainId}/${receipt.contractAddress}`)
     }
   }
 

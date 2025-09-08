@@ -1,7 +1,7 @@
 "use client";
 
-import React, { Children, useEffect } from "react";
-import { LawBox } from "@/app/protocol/[chainId]/[powers]/laws/[lawId]/LawBox";
+import React, { useEffect } from "react";
+import { LawBox } from "@/components/LawBox";
 import { setAction, setError, useActionStore, useErrorStore, useChecksStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
@@ -12,9 +12,7 @@ import { useParams } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
 import { Executions } from "./Executions";
 import { useChecks } from "@/hooks/useChecks";
-import { LawLink } from "@/components/LawLink";
 import { TitleText } from "@/components/StandardFonts";
-import { parseTrueFalse } from "@/utils/parsers";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
