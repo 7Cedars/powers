@@ -39,20 +39,14 @@ export default function ProfilePage() {
     loadSelectedProtocols()
   }, [connectedAddress])
 
-  const getChainName = (chainId: string) => {
-    const parsedChainId = parseChainId(chainId)
+  const getChainName = (chainId: bigint) => {
+    const parsedChainId = Number(chainId)
     const chain = chains.find(chain => chain.id === parsedChainId)
     return chain?.name || 'Unknown Chain'
   }
 
-  const getChainIdFromAddress = (address: string) => {
-    // Extract chainId from the first few characters of the address
-    // This is a simplified approach - in a real implementation you might want to store chainId with each protocol
-    return '11155111' // Default to Ethereum Sepolia for now
-  }
-
   const handleProtocolClick = (protocol: Powers) => {
-    const chainId = getChainIdFromAddress(protocol.contractAddress)
+    const chainId = protocol.chainId ? Number(protocol.chainId).toString() : '11155111'
     router.push(`/portal/${chainId}/${protocol.contractAddress}`)
   }
 
@@ -112,7 +106,7 @@ export default function ProfilePage() {
     <div className="w-full h-full flex flex-col justify-start items-center p-4 pt-20 overflow-y-auto">
       <div className="max-w-6xl w-full">
         <h1 className="text-3xl font-bold text-slate-800 mb-3 text-center">
-          Profile
+          Home
         </h1>
         <p className="text-lg text-slate-600 text-center mb-8">
           Your selected Powers Protocols
@@ -121,8 +115,7 @@ export default function ProfilePage() {
         {/* Protocol Banners Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {selectedProtocols.map((protocol, index) => {
-            const chainId = getChainIdFromAddress(protocol.contractAddress)
-            const chainName = getChainName(chainId)
+            const chainName = getChainName(protocol.chainId)
             
             return (
               <button
@@ -159,6 +152,16 @@ export default function ProfilePage() {
               </button>
             )
           })}
+          
+          {/* Add Protocol Button */}
+          <button
+            onClick={() => router.push('/portal/settings')}
+            className="rounded-lg border border-transparent hover:border-slate-300 shadow-sm hover:shadow-md transition-all overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
+          >
+            <div className="relative min-h-48 flex flex-col justify-center items-center text-slate-400 group-hover:text-slate-600">
+              <div className="text-6xl font-light">+</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>

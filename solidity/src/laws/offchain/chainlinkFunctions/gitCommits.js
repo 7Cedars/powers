@@ -6,16 +6,11 @@ if (!repo || !path || !author) {
     throw Error("Missing required arguments: repo, path or author")
 }
 
-const githubRequest = Functions.makeHttpRequest({
-    url: `https://powers-git-develop-7cedars-projects.vercel.app/api/github-commits?repo=${repo}&path=${path}&author=${author}`,
-    method: "GET",
-    timeout: 7000
-})
+const url = `https://powers-protocol.vercel.app/api/github-commits?repo=${repo}&path=${path}&author=${author}` 
 
-try {
-    const [githubResponse] = await Promise.all([githubRequest])
-    const commitCount = githubResponse.data.commitCount
-    return Functions.encodeUint256(commitCount)    
-} catch (error) {
-    throw Error(`Failed to check GitHub commits: ${error.message}`)
+const resp = await Functions.makeHttpRequest({url}) 
+if (resp.error) {
+  throw Error("Request failed")
 }
+
+return Functions.encodeUint256(resp.data.data.commitCount)

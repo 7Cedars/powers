@@ -15,12 +15,14 @@ import Image from 'next/image'
 import { 
   PlusIcon,
   ArrowDownTrayIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import DynamicThumbnail from '@/components/DynamicThumbnail'
 import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
+import About from './About'
 
 export default function PortalPage() {
   const [activeTab, setActiveTab] = useState('New')
@@ -31,7 +33,8 @@ export default function PortalPage() {
   const tabs = [
     { id: 'New', label: 'New', icon: PlusIcon },
     { id: 'Incoming', label: 'Incoming', icon: ArrowDownTrayIcon },
-    { id: 'Fulfilled', label: 'Fulfilled', icon: CheckCircleIcon }
+    { id: 'Fulfilled', label: 'Fulfilled', icon: CheckCircleIcon },
+    { id: 'About', label: 'About', icon: InformationCircleIcon }
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
@@ -193,7 +196,7 @@ export default function PortalPage() {
           </div>
           
           {/* Horizontal Slider below banner */}
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-4/5 sm:w-2/3 bg-slate-100/90 backdrop-blur-sm border border-slate-200 rounded-lg z-20">
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-4/5 sm:w-2/3 bg-slate-200 backdrop-blur-sm border border-slate-200 rounded-lg z-20">
             <div className="px-4 sm:px-8 py-2">
               <div className="relative rounded-lg p-1">
                 {/* Sliding background indicator */}
@@ -236,6 +239,7 @@ export default function PortalPage() {
           {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers}/>}
           {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers}/>}
           {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers}/>}
+          {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>
       </div>
     </div>

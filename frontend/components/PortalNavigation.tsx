@@ -22,16 +22,16 @@ const layoutButton: string = `w-full h-full flex flex-row justify-center items-c
 const portalNavigationConfig = [
   {
     id: 'home',
-    label: 'Profile',
+    label: 'Home',
     icon: HomeIcon,
     path: '/portal',
   },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: BookOpenIcon,
-    path: '/portal/settings',
-  }
+  // {
+  //   id: 'settings',
+  //   label: 'Settings',
+  //   icon: BookOpenIcon,
+  //   path: '/portal/settings',
+  // }
 ]
 
 const PortalNavigationBar = () => {

@@ -8,18 +8,22 @@ import Image from 'next/image'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
+import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
   const [savedProtocols, setSavedProtocols] = useState<Powers[]>([])
   const [selectedProtocols, setSelectedProtocols] = useState<Record<string, Powers[]>>({})
+  const [combinedProtocols, setCombinedProtocols] = useState<Powers[]>([])
   const chains = useChains()
   const { authenticated } = usePrivy()
   const { wallets } = useWallets()
   const connectedAddress = wallets?.[0]?.address
+  const router = useRouter()
 
   // Default Powers 101 protocol
   const defaultPowers101 = {
     contractAddress: '0x0000000000000000000000000000000000000001' as `0x${string}`,
+    chainId: 11155111n,
     name: 'Powers 101',
     uri: 'https://powers-protocol.com/metadata/powers101.json',
     metadatas: {
@@ -91,6 +95,32 @@ export default function SettingsPage() {
     loadSelectedProtocols()
   }, [])
 
+  // Function to combine saved protocols and selected protocols, removing duplicates
+  const combineProtocols = (saved: Powers[], selected: Record<string, Powers[]>) => {
+    const combined: Powers[] = [...saved]
+    
+    // Add selected protocols for the current wallet
+    if (connectedAddress && selected[connectedAddress]) {
+      selected[connectedAddress].forEach(selectedProtocol => {
+        // Check if this protocol already exists in saved protocols
+        const exists = combined.some(savedProtocol => 
+          savedProtocol.contractAddress === selectedProtocol.contractAddress
+        )
+        if (!exists) {
+          combined.push(selectedProtocol)
+        }
+      })
+    }
+    
+    return combined
+  }
+
+  // Update combined protocols whenever saved or selected protocols change
+  useEffect(() => {
+    const combined = combineProtocols(savedProtocols, selectedProtocols)
+    setCombinedProtocols(combined)
+  }, [savedProtocols, selectedProtocols, connectedAddress])
+
   const handleAddToProfile = (protocol: Powers) => {
     if (!connectedAddress) return
 
@@ -158,41 +188,48 @@ export default function SettingsPage() {
     ) || false
   }
 
-  const getChainName = (chainId: string) => {
-    const parsedChainId = parseChainId(chainId)
+  const getChainName = (chainId: bigint) => {
+    const parsedChainId = Number(chainId)
     const chain = chains.find(chain => chain.id === parsedChainId)
     return chain?.name || 'Unknown Chain'
-  }
-
-  const getChainIdFromAddress = (address: string) => {
-    // Extract chainId from the first few characters of the address
-    // This is a simplified approach - in a real implementation you might want to store chainId with each protocol
-    return '11155111' // Default to Ethereum Sepolia for now
   }
 
   return (
     <div className="w-full h-full flex flex-col justify-start items-center p-4 pt-20 overflow-y-auto">
       <div className="max-w-6xl w-full">
-        <h1 className="text-3xl font-bold text-slate-800 mb-3 text-center">
-          Settings
-        </h1>
-        <p className="text-lg text-slate-600 text-center mb-8">
-          Manage your saved Powers Protocols and preferences.
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-bold text-slate-800">
+              Settings
+            </h1>
+            <p className="text-lg text-slate-600">
+              Select your favorite Powers Protocols or add new ones.
+            </p>
+          </div>
+          <div className="w-20"></div> {/* Spacer for centering */}
+        </div>
 
-        {/* Saved Protocols Section */}
+        {/* Combined Protocols Section */}
         <section className="w-full mb-8">
-          {savedProtocols.length === 0 ? (
+          {combinedProtocols.length === 0 ? (
             <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
               <p className="text-slate-500 text-lg">
-                No protocols saved yet. Visit a protocol page to save it here.
+                No protocols available. Visit a protocol page to save it here or add protocols to your profile.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              {savedProtocols.map((protocol, index) => {
-                const chainId = getChainIdFromAddress(protocol.contractAddress)
-                const chainName = getChainName(chainId)
+              {combinedProtocols.map((protocol, index) => {
+                const chainName = getChainName(protocol.chainId)
                 
                 return (
                   <div 
@@ -246,7 +283,7 @@ export default function SettingsPage() {
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-slate-500">Contract Address</span>
                             <a
-                              href={`/protocol/${chainId}/${protocol.contractAddress}`}
+                              href={`/protocol/${Number(protocol.chainId)}/${protocol.contractAddress}`}
                               className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
                             >
                               <span className="truncate max-w-28">

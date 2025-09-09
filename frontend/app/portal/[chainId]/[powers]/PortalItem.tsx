@@ -3,7 +3,6 @@
 import React from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains } from 'wagmi';
-import { parseChainId } from "@/utils/parsers";
 import { Law, Powers } from "@/context/types";
 import HeaderLaw from '@/components/HeaderLaw';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
@@ -30,7 +29,7 @@ export function PortalItem({
   children 
 }: PortalItemProps) {
   const chains = useChains();
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId));
+  const supportedChain = chains.find(chain => chain.id === Number(powers.chainId));
 
   return (
     <div className="w-full">

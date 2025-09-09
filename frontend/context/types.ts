@@ -134,6 +134,7 @@ export type BlockRange = {
 
 export type Powers = {
   contractAddress: `0x${string}`;
+  chainId: bigint;
   name?: string;
   uri?: string;
   metadatas?: Metadata; 

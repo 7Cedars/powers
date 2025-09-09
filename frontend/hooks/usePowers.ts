@@ -519,7 +519,7 @@ export const usePowers = () => {
       let executedActions: Powers | undefined
       let proposals: Powers | undefined
 
-      powersToBeUpdated = { contractAddress: address }
+      powersToBeUpdated = { contractAddress: address, chainId: BigInt(chainId) }
       // console.log("@refetchPowers, waypoint 1", {powersToBeUpdated})
 
       try {
@@ -548,6 +548,7 @@ export const usePowers = () => {
           // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, executedActions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
+            chainId: BigInt(chainId),
             name: data.name,
             metadatas: metaData.metadatas,
             uri: data.uri,

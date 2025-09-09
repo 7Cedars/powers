@@ -1986,7 +1986,21 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // law 6: StatementOfIntent => Request payout: A grantee can request a milestone disbursement. 
+  // law 6: StatementOfIntent => Veto a grant proposal: Veto a grant proposal. 
+  lawInitData.push({
+    nameDescription: "Veto a grant proposal: Veto a grant proposal.",
+    targetLaw: getLawAddress("StatementOfIntent", chainId),
+    config: proposalConfig,
+    conditions: createConditions({
+      votingPeriod: daysToBlocks(3, chainId),
+      succeedAt: 66n,
+      quorum: 25n, // 25% quorum. 
+      needCompleted: 5n, // need to have created a proposal. 
+      allowedRole: 5n  // community members can veto a grant proposal, subject to a vote. 
+    })
+  });
+
+  // law 7: StatementOfIntent => Request payout: A grantee can request a milestone disbursement. 
   lawInitData.push({
     nameDescription: "Request payout: A grantee can request a milestone disbursement.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
@@ -2001,7 +2015,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
   
-  // Law 7: GrantProgram => Have role 2 (Documentation Contributors) decide who gets grants for documentation related work. 
+  // Law 8: GrantProgram => Have role 2 (Documentation Contributors) decide who gets grants for documentation related work. 
   // readStateFrom => law 4. 
   let grantConditions = createEncodedConditions({
     allowedRole: 2n,
@@ -2017,7 +2031,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   ); 
   // 
   lawInitData.push({
-    nameDescription: "Grants for Documentation: Allocate a grant for documentation related work.",
+    nameDescription: "Documentation Grants: Allocate a grant for documentation related work.",
     targetLaw: getLawAddress("GrantProgram", chainId),
     config: grantConfig,
     conditions: createConditions({
@@ -2025,11 +2039,13 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       readStateFrom: 4n,
       quorum: 50n,
       succeedAt: 51n,
-      needCompleted: 5n // a grant proposals needs to have been made.  
+      votingPeriod: daysToBlocks(7, chainId),
+      needCompleted: 5n, // a grant proposals needs to have been made.  
+      needNotCompleted: 6n // a grant proposal should not have been vetoed.  
     })
   }); 
 
-  // law 8: EndGrant => End a grant created through law 6. 
+  // law 9: EndGrant => End a grant created through law 6. 
   // needCompleted => law 6. 
   lawInitData.push({
     nameDescription: "End a grant: End a documentations grant .",
@@ -2037,11 +2053,11 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x",
     conditions: createConditions({
       allowedRole: 2n,
-      needCompleted: 7n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
+      needCompleted: 8n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
     })
   }); 
 
-  // Law 9: GrantProgram => Have role 3 (Frontend Contributors) decide who gets grants for frontend related work. 
+  // Law 10: GrantProgram => Have role 3 (Frontend Contributors) decide who gets grants for frontend related work. 
   // readStateFrom => law 4. 
   grantConditions = createEncodedConditions({
     allowedRole: 3n,
@@ -2057,7 +2073,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   ); 
   // 
   lawInitData.push({
-    nameDescription: "Grants for Frontend: Allocate a grant for frontend related work.",
+    nameDescription: "Frontend Grants: Allocate a grant for frontend related work.",
     targetLaw: getLawAddress("GrantProgram", chainId),
     config: grantConfig,
     conditions: createConditions({
@@ -2065,12 +2081,14 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       readStateFrom: 4n,
       quorum: 50n,
       succeedAt: 51n,
-      needCompleted: 5n // a grant proposals needs to have been made.  
+      votingPeriod: daysToBlocks(7, chainId),
+      needCompleted: 5n, // a grant proposals needs to have been made.  
+      needNotCompleted: 6n // a grant proposal should not have been vetoed.  
     })
   }); 
 
 
-  // law 10: EndGrant => End a grant created through law 9. 
+  // law 11: EndGrant => End a grant created through law 9. 
   // needCompleted => law 9. 
   lawInitData.push({
     nameDescription: "End a grant: End a frontend grant .",
@@ -2078,11 +2096,11 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x",
     conditions: createConditions({
       allowedRole: 3n,
-      needCompleted: 9n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
+      needCompleted: 10n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
     })
   }); 
 
-  // Law 11: GrantProgram => Have role 4 (Protocol Contributors) decide who gets grants for protocol related work. 
+  // Law 12: GrantProgram => Have role 4 (Protocol Contributors) decide who gets grants for protocol related work. 
   // readStateFrom => law 4. 
   grantConditions = createEncodedConditions({
     allowedRole: 4n,
@@ -2098,7 +2116,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   ); 
   // 
   lawInitData.push({
-    nameDescription: "Grants for Protocol: Allocate a grant for protocol related work.",
+    nameDescription: "Protocol Grants: Allocate a grant for protocol related work.",
     targetLaw: getLawAddress("GrantProgram", chainId),
     config: grantConfig,
     conditions: createConditions({
@@ -2106,11 +2124,13 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       readStateFrom: 4n,
       quorum: 50n,
       succeedAt: 51n,
-      needCompleted: 5n // a grant proposals needs to have been made.  
+      votingPeriod: daysToBlocks(7, chainId),
+      needCompleted: 5n, // a grant proposals needs to have been made.  
+      needNotCompleted: 6n // a grant proposal should not have been vetoed.  
     })
   }); 
 
-  // law 12: EndGrant => End a grant created through law 10. 
+  // law 13: EndGrant => End a grant created through law 10. 
   // needCompleted => law 11. 
   lawInitData.push({
     nameDescription: "End a grant: End a protocol grant .",
@@ -2118,12 +2138,12 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x",
     conditions: createConditions({
       allowedRole: 4n,
-      needCompleted: 11n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
+      needCompleted: 12n // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
     })
   }); 
 
   /// ADOPTING NEW LAWS /// 
-  // law 13: StatementOfIntent => Intent to adopt new package of Laws. Subject to vote, role 5 (Members) high thresholds. 
+  // law 14: StatementOfIntent => Intent to adopt new package of Laws. Subject to vote, role 5 (Members) high thresholds. 
   const adoptLawPackageConfig = encodeAbiParameters(
     [
       { name: 'inputParams', type: 'string[]' },
@@ -2142,13 +2162,13 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });  
 
-  // law 14: StatementOfIntent => veto a package of Laws. Subject to vote, role 1 (Funders) Normal thresholds?  
+  // law 15: StatementOfIntent => veto a package of Laws. Subject to vote, role 1 (Funders) Normal thresholds?  
   lawInitData.push({
     nameDescription: "Intent to adopt new package of Laws: Intent to adopt a new package of laws.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: adoptLawPackageConfig,
     conditions: createConditions({
-      needCompleted: 13n,
+      needCompleted: 14n,
       allowedRole: 1n,
       votingPeriod: daysToBlocks(3, chainId),
       succeedAt: 33n,
@@ -2156,7 +2176,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });  
 
-  // law 15: AdoptLawPackage => Adopt a new package of laws. 
+  // law 16: AdoptLawPackage => Adopt a new package of laws. 
   // needCompleted => law 13.
   // needNotCompleted => law 14. 
   lawInitData.push({
@@ -2165,8 +2185,8 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x",
     conditions: createConditions({
       allowedRole: ADMIN_ROLE, // the admin in the end has the power to accept new laws. 
-      needCompleted: 13n,
-      needNotCompleted: 14n
+      needCompleted: 14n,
+      needNotCompleted: 15n
     })
   });  
 
@@ -2174,7 +2194,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   //                       Electoral laws                         // 
   //////////////////////////////////////////////////////////////////
 
-  // Law 16: StringToAddress => Assign a github profile name to an EVM address. -- Public.
+  // Law 17: StringToAddress => Assign a github profile name to an EVM address. -- Public.
   // assigns a github profile name to the caller address.  
   lawInitData.push({
     nameDescription: "Github to EVM: Assign a github profile name to your EVM address.",
@@ -2185,7 +2205,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // law 17: RoleByGitCommit => Assign (or revoke!) a role to an EVM address based on their github commit history during last 90 days. -- Public. 
+  // law 18: RoleByGitCommit => Assign (or revoke!) a role to an EVM address based on their github commit history during last 90 days. -- Public. 
   // reads from Law 14. 
   let roleByGitCommitConfig = encodeAbiParameters(
     [
@@ -2194,23 +2214,28 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       { name: 'roleIds', type: 'uint256[]' },
       { name: 'subscriptionId', type: 'uint64' },
       { name: 'gasLimit', type: 'uint32' },
-      { name: 'donID', type: 'bytes32' },
-      { name: 'encryptedSecretsUrls', type: 'bytes' },
-      { name: 'donHostedSecretsVersion', type: 'uint64' },
-      { name: 'donHostedSecretsSlotID', type: 'uint8' },
+      { name: 'donID', type: 'bytes32' }
     ],
-    ["7Cedars/powers", ["/gitbook", "/frontend", "/solidity"], [2n, 3n, 4n], 1n, 1000000, "0x0000000000000000000000000000000000000000000000000000000000000000", "0x", 1n, 1]
+    [
+      "7Cedars/powers", 
+      ["/gitbook", "/frontend", "/solidity"], 
+      [2n, 3n, 4n], 
+      384n, 
+      200000, 
+      "0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000"
+    ]
   ); 
   lawInitData.push({
     nameDescription: "Github to Role: Assign a role to an EVM address based on their github commit history. (2 = docs, 3 = frontend, 4 = protocol)",
     targetLaw: getLawAddress("RoleByGitCommit", chainId),
     config: roleByGitCommitConfig,
     conditions: createConditions({
-      allowedRole: PUBLIC_ROLE
+      allowedRole: PUBLIC_ROLE,
+      readStateFrom: 17n
     })
   });
 
-  // law 18: RoleByFunding => Assigns (or revokes!) a role to an EVM address based on their funding history during last 90 days. -- Public. 
+  // law 19: RoleByFunding => Assigns (or revokes!) a role to an EVM address based on their funding history during last 90 days. -- Public. 
   // TBI. 
   // Note: the governance flow will work, but funders just do not have veto power yet on how their funds are spent. 
   lawInitData.push({
@@ -2227,7 +2252,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // law 19: RoleByRoles => Assigns (or revokes!) a role on the condition that they have other roles in the organization. 
+  // law 20: RoleByRoles => Assigns (or revokes!) a role on the condition that they have other roles in the organization. 
   let roleByRolesConfig = encodeAbiParameters(
     [
       { name: 'newRoleId', type: 'uint256' },

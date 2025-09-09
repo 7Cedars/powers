@@ -20,6 +20,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
+import { ILaw } from "../../interfaces/ILaw.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
@@ -67,9 +68,6 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         uint64 subscriptionId;
         uint32 gasLimit;
         bytes32 donID;
-        bytes encryptedSecretsUrls;
-        uint64 donHostedSecretsVersion;
-        uint8 donHostedSecretsSlotID;
     }
 
     struct Request {
@@ -92,13 +90,13 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
     // see the script in chainlinkFunctionScript.js. It can be tried at https://functions.chain.link/playground. It works at time of writing.
     // I used this website https://www.espruino.com/File%20Converter to convert the source code to a string.
     string internal constant source =
-        "const repo = args[0]\nconst path = args[1]\nconst author = args[2]\n\nif (!repo || !path || !author) {\n    throw Error(\"Missing required arguments: repo, path or author\")\n}\n\nconst githubRequest = Functions.makeHttpRequest({\n    url: `https://powers-git-develop-7cedars-projects.vercel.app/api/github-commits?repo=${repo}&path=${path}&author=${author}`,\n    method: \"GET\",\n    timeout: 7000\n})\n\ntry {\n    const [githubResponse] = await Promise.all([githubRequest])\n    const commitCount = githubResponse.data.commitCount\n    return Functions.encodeUint256(commitCount)    \n} catch (error) {\n    throw Error(`Failed to check GitHub commits: ${error.message}`)\n}"
-        
+        "const repo = args[0]\nconst path = args[1]\nconst author = args[2]\n\nif (!repo || !path || !author) {\n    throw Error(\"Missing required arguments: repo, path or author\")\n}\n\nconst url = `https://powers-protocol.vercel.app/api/github-commits?repo=${repo}&path=${path}&author=${author}` \n\nconst resp = await Functions.makeHttpRequest({url}) \nif (resp.error) {\n  throw Error(\"Request failed\")\n}\n\nreturn Functions.encodeUint256(resp.data.data.commitCount)";
+
     /// @notice constructor of the law.
     constructor(address router) FunctionsClient(router) ConfirmedOwner(msg.sender) {
         // if I can take owner out - do so. checks are handled through the Powers protocol.
         bytes memory configParams =
-            abi.encode("string repo", "string[] paths", "uint256[] roleIds", "uint64 subscriptionId", "uint32 gasLimit", "bytes32 donID", "string encryptedSecretsUrls", "uint64 donHostedSecretsVersion", "uint256 donHostedSecretsSlotID");
+            abi.encode("string repo", "string[] paths", "uint256[] roleIds", "uint64 subscriptionId", "uint32 gasLimit", "bytes32 donID");
         emit Law__Deployed(configParams);
     }
 
@@ -117,18 +115,12 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
             uint256[] memory roleIds, 
             uint64 subscriptionId, 
             uint32 gasLimit, 
-            bytes32 donID, 
-            bytes memory encryptedSecretsUrls,
-            uint64 donHostedSecretsVersion, 
-            uint8 donHostedSecretsSlotID
-            ) = abi.decode(config, (string, string[], uint256[], uint64, uint32, bytes32, bytes, uint64, uint8));
+            bytes32 donID 
+            ) = abi.decode(config, (string, string[], uint256[], uint64, uint32, bytes32));
         data[lawHash] = Data({ 
-            repo: repo, paths: paths, roleIds: roleIds, subscriptionId: subscriptionId, gasLimit: gasLimit, 
-            donID: donID, 
-            encryptedSecretsUrls: encryptedSecretsUrls, 
-            donHostedSecretsVersion: donHostedSecretsVersion, 
-            donHostedSecretsSlotID: donHostedSecretsSlotID 
+            repo: repo, paths: paths, roleIds: roleIds, subscriptionId: subscriptionId, gasLimit: gasLimit, donID: donID
         });
+        
 
         inputParams = abi.encode(
             "uint256 RoleId",
@@ -215,14 +207,7 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
 
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source);
-        if (data_.encryptedSecretsUrls.length > 0)
-            req.addSecretsReference(data_.encryptedSecretsUrls);
-        else if (data_.donHostedSecretsVersion > 0) {
-            req.addDONHostedSecrets(
-                data_.donHostedSecretsSlotID, 
-                data_.donHostedSecretsVersion
-            );
-        }
+
         if (args.length > 0) req.setArgs(args);
         s_lastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donID);
         return s_lastRequestId;
@@ -279,5 +264,16 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
 
     function getRouter() public view returns (address) {
         return address(i_router);
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                      UTILITIES                           //
+    //////////////////////////////////////////////////////////////
+    /// @notice Needs to be re-implemented to resolve conflict between Law and FunctionsClient.
+    /// @dev Implements IERC165
+    /// @param interfaceId Interface identifier to check
+    /// @return True if interface is supported
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }
 }
