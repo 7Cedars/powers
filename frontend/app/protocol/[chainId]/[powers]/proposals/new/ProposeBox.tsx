@@ -6,7 +6,6 @@ import { Button } from "@/components/Button";
 import { useParams, useRouter } from "next/navigation";
 import { useLaw } from "@/hooks/useLaw";
 import { Law, Powers, Action, Status } from "@/context/types";
-import { StaticInput } from "@/components/StaticInput";
 import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
@@ -16,6 +15,7 @@ import { useChains } from 'wagmi';
 import { parseChainId } from '@/utils/parsers';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { TitleText } from "@/components/StandardFonts";
+import { StaticForm } from "@/components/StaticForm";
 
 export function ProposeBox({law, powers, proposalExists, authorised, onCheck, status}: {law?: Law, powers: Powers, status: Status, proposalExists: boolean, authorised: boolean, onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void}) {
   const action = useActionStore(); 
@@ -61,47 +61,7 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
       </div>
 
       {/* static form */}
-      <form action="" method="get" className="w-full">
-        {
-          law?.params?.map((param, index) => 
-            <StaticInput 
-              dataType = {param.dataType} 
-              varName = {param.varName} 
-              values = {action.paramValues && action.paramValues[index] ? action.paramValues[index] : []} 
-              key = {index}
-              />)
-        }
-        {/* nonce */}
-        <div className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3">
-          <label htmlFor="nonce" className="text-xs text-slate-600 ps-3 min-w-20">Nonce</label>
-          <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">
-          <input 
-              type="text" 
-              name="nonce"
-              className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0"  
-              id="nonce" 
-              value={action.nonce.toString()}
-              disabled={true}
-              />
-          </div>
-        </div>
-        {/* reason */}
-        <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3 min-h-24">
-          <label htmlFor="reason" className="text-xs text-slate-600 ps-3 min-w-20 pt-1">Description</label>
-          <div className="w-full flex items-center rounded-md bg-white outline outline-1 outline-slate-300">
-              <textarea 
-                name="reason" 
-                id="reason" 
-                rows={5} 
-                cols ={25} 
-                value={action.description}
-                className="w-full py-1.5 ps-2 pe-3 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
-                placeholder="Enter URI to file with notes on the action here."
-                disabled={true} 
-                />
-            </div>
-        </div>
-      </form>
+      <StaticForm law={law} />
 
       <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6">
         <Button 

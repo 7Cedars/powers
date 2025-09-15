@@ -4,11 +4,16 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { PortalItem } from './PortalItem'
-import { Law, Powers, LawExecutions } from '@/context/types'
+import { Law, Powers, LawExecutions, Action } from '@/context/types'
 import { useLaw } from '@/hooks/useLaw'
 import { readContract } from 'wagmi/actions'
 import { lawAbi } from '@/context/abi'
 import { wagmiConfig } from '@/context/wagmiConfig'
+import { usePowers } from '@/hooks/usePowers'
+import { useAction } from '@/hooks/useAction'
+import { StaticForm } from '@/components/StaticForm'
+import { setAction } from '@/context/store'
+import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 type ExecutionWithLaw = {
   law: Law
@@ -19,75 +24,113 @@ type ExecutionWithLaw = {
 export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers}) {
   const { chainId } = useParams<{ chainId: string }>()
   const { authenticated } = usePrivy()
-  const { fetchExecutions } = useLaw()
+  const { fetchPowers, checkLaws, status: statusPowers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
+  const { fetchActionData } = useAction()
   const [executionsWithLaws, setExecutionsWithLaws] = useState<ExecutionWithLaw[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState<ExecutionWithLaw | null>(null)
+  const [actionData, setActionData] = useState<Action | null>(null)
+  const [loadingActionData, setLoadingActionData] = useState(false)
 
-  // Filter laws based on user roles (same logic as New.tsx) - memoized to prevent infinite loops
-  const filteredLaws = useMemo(() => {
-    return powers?.laws?.filter(
-      law => law.conditions?.needCompleted !== 0n && hasRoles.some(role => role.role == law.conditions?.allowedRole)
-    )
-  }, [powers?.laws, hasRoles])
+  console.log("@Fulfilled, powers", powers)
 
-  // Fetch executions for all filtered laws
-  const fetchAllExecutions = useCallback(async () => {
-    if (!filteredLaws || filteredLaws.length === 0) {
-      setExecutionsWithLaws([])
-      return
-    }
-
-    setLoading(true)
-    setError(null)
+  // Handle item click and fetch action data
+  const handleItemClick = useCallback(async (executionData: ExecutionWithLaw) => {
+    setSelectedItem(executionData)
+    setLoadingActionData(true)
+    setActionData(null)
     
     try {
-      const allExecutions: ExecutionWithLaw[] = []
-      
-      // Fetch executions for each law
-      for (const law of filteredLaws) {
-        try {
-          const lawExecutions = await readContract(wagmiConfig, {
-            abi: lawAbi,
-            address: law.lawAddress as `0x${string}`,
-            functionName: 'getExecutions',
-            args: [law.powers, law.index]
-          }) as LawExecutions
+      const action = await fetchActionData(executionData.actionId, powers)
+      if (action) {
+        setActionData(action)
+        // Set the action in the store so StaticForm can access it
+        setAction(action)
+      }
+    } catch (error) {
+      console.error("Error fetching action data:", error)
+      setError("Failed to load action details")
+    } finally {
+      setLoadingActionData(false)
+    }
+  }, [fetchActionData, powers])
 
-          // Add each execution with its corresponding law
-          if (lawExecutions.executions && lawExecutions.actionsIds) {
-            for (let i = 0; i < lawExecutions.executions.length; i++) {
-              allExecutions.push({
-                law,
-                execution: lawExecutions.executions[i],
-                actionId: lawExecutions.actionsIds[i]
-              })
+  // Process executed actions similar to Logs.tsx
+  useEffect(() => {
+    if (powers?.executedActions && powers?.laws) {
+      const actionArray = powers.executedActions.map((lawActions: LawExecutions, i) => {
+        return lawActions.actionsIds.map((actionId, j) => {
+          const law = powers.laws?.[i]
+          if (law) {
+            return {
+              law,
+              execution: lawActions.executions[j],
+              actionId
             }
           }
-        } catch (lawError) {
-          console.error(`Error fetching executions for law ${law.index}:`, lawError)
-          // Continue with other laws even if one fails
-        }
-      }
-
-      // Sort by execution block number (most recent first)
-      allExecutions.sort((a, b) => Number(b.execution) - Number(a.execution))
+          return null
+        })
+      }).flat().filter((item): item is ExecutionWithLaw => item !== null)
       
-      setExecutionsWithLaws(allExecutions)
-    } catch (err) {
-      console.error('Error fetching executions:', err)
-      setError('Failed to fetch executions')
-    } finally {
-      setLoading(false)
+      // Sort by execution time (most recent first)
+      const sortedExecutions = actionArray.sort((a, b) => Number(b.execution) - Number(a.execution))
+      setExecutionsWithLaws(sortedExecutions)
     }
-  }, [filteredLaws])
+  }, [powers?.executedActions, powers?.laws])
 
-  // Fetch executions when component mounts or when filtered laws change
-  useEffect(() => {
-    if (authenticated && filteredLaws) {
-      fetchAllExecutions()
-    }
-  }, [authenticated, filteredLaws])
+  // If an item is selected, show the details inline
+  if (selectedItem) {
+    return (
+      <div className="w-full mx-auto">
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+          <div className="p-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setSelectedItem(null)
+                  setActionData(null)
+                }}
+                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                <ArrowLeftIcon className="w-4 h-4" />
+                Back to fulfilled actions
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {/* Static Form with Action Data - Matching DynamicForm layout */}
+            <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`}>
+              {/* Header section with PortalItem - matching DynamicForm */}
+              <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+                <PortalItem
+                  powers={powers as Powers}
+                  law={selectedItem.law}
+                  chainId={chainId as string}
+                  actionId={selectedItem.actionId}
+                  showLowerSection={false}
+                />
+              </div>
+
+              {/* Form content */}
+              <div className="p-6">
+                {loadingActionData ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-slate-500">Loading action data...</div>
+                  </div>
+                ) : actionData ? (
+                  <StaticForm law={selectedItem.law} />
+                ) : (
+                  <div className="text-slate-500 italic">No action data available</div>
+                )}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!authenticated) {
     return (
@@ -165,27 +208,31 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
     <div className="w-full mx-auto">
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
         <div className="p-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
-          <p className="text-sm text-slate-600">Completed actions and proposals</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
+              <p className="text-sm text-slate-600">Completed actions and proposals</p>
+            </div>
+            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors">
+              <ArrowPathIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         
         {/* Render PortalItem components for each execution */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
           {executionsWithLaws.map((executionData, index) => (
             <div 
-              key={`${executionData.law.lawAddress}-${executionData.law.index}-${executionData.execution}-${index}`}
+              key={`${executionData.law.lawAddress}-${executionData.law.index}-${executionData.actionId}-${index}`}
               className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
+              onClick={() => handleItemClick(executionData)}
             >
               <PortalItem
                 powers={powers as Powers}
                 law={executionData.law}
                 chainId={chainId as string}
+                actionId={executionData.actionId}
                 showLowerSection={false}
-                selectedExecution={{
-                  log: {
-                    transactionHash: executionData.actionId.toString() // Using actionId as transaction hash for now
-                  }
-                }}
               />
             </div>
           ))}

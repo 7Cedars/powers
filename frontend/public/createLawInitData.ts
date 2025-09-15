@@ -52,7 +52,9 @@ export interface SingleUpgradeFormData { }
 
 export interface SplitGovernanceFormData { }
 
-export interface PowersDaoFormData { }
+export interface PowersDaoFormData { 
+  chainlinkSubscriptionId: number;
+}
 
 // Type for deployment returns data
 export interface DeploymentReturns {
@@ -1844,6 +1846,8 @@ export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, for
  */
 export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formData: PowersDaoFormData, chainId: number): LawInitData[] {
   const lawInitData: LawInitData[] = [];
+  const constants = getConstants(chainId);
+  const subscriptionId = formData.chainlinkSubscriptionId ?? 0;
 
   //////////////////////////////////////////////////////////////////
   //                       Initiation Law                         // 
@@ -1976,6 +1980,10 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       { name: 'inputParams', type: 'string[]' },
     ],
     [["string UriProposal", "address Grantee", "address TokenAddress", "uint256[] MilestoneDisbursements"]]
+    // [
+    //   { name: 'inputParams', type: 'string[]' },
+    // ],
+    // [["uint16 lawId", "address TokenAddress", "uint256 Budget"]]
   ); 
   lawInitData.push({
     nameDescription: "Propose a grant: Propose a grant for a grantee.",
@@ -1986,7 +1994,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
-  // law 6: StatementOfIntent => Veto a grant proposal: Veto a grant proposal. 
+  // // law 6: StatementOfIntent => Veto a grant proposal: Veto a grant proposal. 
   lawInitData.push({
     nameDescription: "Veto a grant proposal: Veto a grant proposal.",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
@@ -2168,7 +2176,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: adoptLawPackageConfig,
     conditions: createConditions({
-      needCompleted: 14n,
+      needCompleted: 14n, 
       allowedRole: 1n,
       votingPeriod: daysToBlocks(3, chainId),
       succeedAt: 33n,
@@ -2185,8 +2193,8 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x",
     conditions: createConditions({
       allowedRole: ADMIN_ROLE, // the admin in the end has the power to accept new laws. 
-      needCompleted: 14n,
-      needNotCompleted: 15n
+      needCompleted: 14n, // 14n,
+      needNotCompleted: 15n, // 15n
     })
   });  
 
@@ -2205,8 +2213,14 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     })
   });
 
+  console.log("RoleByGitcommit Init:", {
+    subscriptionId,
+    constants,
+    lawInitData
+  })
+
   // law 18: RoleByGitCommit => Assign (or revoke!) a role to an EVM address based on their github commit history during last 90 days. -- Public. 
-  // reads from Law 14. 
+  // reads from Law 17. 
   let roleByGitCommitConfig = encodeAbiParameters(
     [
       { name: 'repo', type: 'string' },
@@ -2220,9 +2234,9 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       "7Cedars/powers", 
       ["/gitbook", "/frontend", "/solidity"], 
       [2n, 3n, 4n], 
-      384n, 
-      200000, 
-      "0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000"
+      BigInt(subscriptionId),
+      300_000, // this is max gaslimit that chainlink allows. 
+      "0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000"
     ]
   ); 
   lawInitData.push({

@@ -5,23 +5,32 @@ import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
 import { PortalItem } from './PortalItem'
-import { LawBox } from '@/components/LawBox'
 import { InputType, Law, Powers, Checks } from '@/context/types'
 import { useErrorStore, useActionStore, useChecksStore, setError, setAction } from '@/context/store'
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
 import { usePowers } from '@/hooks/usePowers'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { useProposal } from '@/hooks/useProposal'
+import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { LawBox } from './LawBox'
+import HeaderLaw from '@/components/HeaderLaw'
+import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
+import { useChains } from 'wagmi'
 
 export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { authenticated } = usePrivy()
   const {wallets, ready} = useWallets();
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
   const { chainChecks } = useChecksStore();
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
+  const { status: statusProposals, propose } = useProposal();
+
+  console.log("@New, statusProposals", {statusProposals})
   
   // State to track selected law
   const [selectedLaw, setSelectedLaw] = useState<Law | null>(null)
@@ -31,12 +40,31 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
 
   // Filter laws based on criteria
   console.log("@New, powers", powers)
-  console.log("@New, hasRoles", hasRoles)
+  // console.log("@New, hasRoles", hasRoles)
   const finalFilteredLaws = powers?.laws?.filter(
-    law => law.conditions?.needCompleted !== 0n && hasRoles.some(role => role.role == law.conditions?.allowedRole))
+    law => law.conditions?.needCompleted == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
+  )
   console.log("@New, filteredLaws", finalFilteredLaws)
 
-  // Reset lawBox and fetch executions when switching laws
+  // Get laws that will be enabled by executing the selected law
+  const enabledLaws = selectedLaw && powers?.laws ? 
+    powers.laws.filter(law => 
+      law.active && 
+      law.conditions?.needCompleted == selectedLaw.index
+    ) : []
+
+  // Get laws that will be blocked by executing the selected law
+  const blockedLaws = selectedLaw && powers?.laws ? 
+    powers.laws.filter(law => 
+      law.active && 
+      law.conditions?.needNotCompleted == selectedLaw.index
+    ) : []
+
+  console.log("@New, selectedLaw", selectedLaw)
+  console.log("@New, enabledLaws", enabledLaws)
+  console.log("@New, blockedLaws", blockedLaws)
+
+  // Reset DynamicForm and fetch executions when switching laws
   useEffect(() => {
     if (selectedLaw) {
       const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != selectedLaw.params?.[index]?.dataType) : [true] 
@@ -112,6 +140,33 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
     }
   };
 
+  const handlePropose = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    if (!selectedLaw) return
+    
+    setError({error: null})
+    let lawCalldata: `0x${string}` | undefined
+    
+    if (paramValues.length > 0 && paramValues) {
+      try {
+        lawCalldata = encodeAbiParameters(parseAbiParameters(selectedLaw.params?.map(param => param.dataType).toString() || ""), paramValues); 
+      } catch (error) {
+        setError({error: error as Error})
+      }
+    } else {
+      lawCalldata = '0x0'
+    }
+
+    if (lawCalldata && ready && wallets && powers?.contractAddress) {
+      propose(
+        selectedLaw.index as bigint,
+        lawCalldata,
+        nonce,
+        description,
+        powers as Powers
+      )
+    }
+  };
+
   const handleExecute = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
     if (!selectedLaw) return
     
@@ -137,7 +192,7 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
   };
 
 
-  // If a law is selected, show the LawBox
+  // If a law is selected, show the DynamicForm
   if (selectedLaw) {
     return (
       <div className="w-full mx-auto">
@@ -167,7 +222,62 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
               }}
               onSimulate={handleSimulate}
               onExecute={handleExecute}
+              onPropose={handlePropose}
             />
+            
+            {/* Enables section */}
+            {enabledLaws.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Execution <b>enables</b> the following laws: </h3>
+                <div className="space-y-2">
+                  {enabledLaws.map((law: Law) => (
+                    <div 
+                      key={`enabled-${law.lawAddress}-${law.index}`}
+                      className="w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 opacity-50"
+                    >
+                      <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+                        <HeaderLaw
+                          powers={powers as Powers}
+                          lawName={law?.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`}
+                          roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
+                          numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
+                          description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
+                          contractAddress={law.lawAddress}
+                          blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Blocks section */}
+            {blockedLaws.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Execution <b>blocks</b> the following laws: </h3>
+                <div className="space-y-2">
+                  {blockedLaws.map((law: Law) => (
+                    <div 
+                      key={`blocked-${law.lawAddress}-${law.index}`}
+                      className="w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 opacity-50"
+                    >
+                      <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+                        <HeaderLaw
+                          powers={powers as Powers}
+                          lawName={law?.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`}
+                          roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
+                          numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
+                          description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
+                          contractAddress={law.lawAddress}
+                          blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -214,8 +324,15 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
     <div className="w-full mx-auto">
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
         <div className="p-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-800">New</h2>
-          <p className="text-sm text-slate-600">Available laws for your roles</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800">New</h2>
+              <p className="text-sm text-slate-600">Available laws for your roles</p>
+            </div>
+            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors">
+              <ArrowPathIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         
         {/* Render PortalItem components for each filtered law */}

@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { useChains } from 'wagmi'
+import { useChains, useAccount, useSwitchChain } from 'wagmi'
 import { parseChainId } from '@/utils/parsers'
 import { Powers } from '@/context/types'
 import { usePowers } from '@/hooks/usePowers'
@@ -30,6 +30,9 @@ export default function PortalPage() {
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [proposals, setProposals] = useState<any[]>([])
+  const [proposalsLoading, setProposalsLoading] = useState(false)
+  const proposalsFetchedRef = useRef(false)
   const tabs = [
     { id: 'New', label: 'New', icon: PlusIcon },
     { id: 'Incoming', label: 'Incoming', icon: ArrowDownTrayIcon },
@@ -37,12 +40,16 @@ export default function PortalPage() {
     { id: 'About', label: 'About', icon: InformationCircleIcon }
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
-  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
+  const { refetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
+  const { chain } = useAccount()
+  const { switchChain } = useSwitchChain()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
+
+  // console.log("@PortalPage, main", {chainId, powers, wallets: wallets[0].address})
 
   // Banner validation function
   const validateBannerImage = useCallback(async (url: string | undefined) => {
@@ -69,32 +76,54 @@ export default function PortalPage() {
     async (account: `0x${string}`, roles: bigint[]) => {
       let role: bigint; 
       const fetchedHasRole: {role: bigint; since: bigint}[] = [{role: PUBLIC_ROLE, since: 1n}]; 
+      const rolesFiltered = roles.filter(role => role != PUBLIC_ROLE)
 
-      try {
-        for await (role of roles) {
-          const fetchedSince = await readContract(wagmiConfig, {
-              abi: powersAbi,
-              address: addressPowers as `0x${string}`,
-              functionName: 'hasRoleSince', 
-              args: [account, role]
-              })
-            // Only include roles where since > 0 (user actually has the role)
-            if ((fetchedSince as bigint) > 0n) {
-              fetchedHasRole.push({role, since: fetchedSince as bigint})
-            }
+      console.log("@fetchMyRoles, waypoint 0", {roles, addressPowers})
+
+      if (addressPowers) {
+        try {
+          for await (role of rolesFiltered) {
+            const fetchedSince = await readContract(wagmiConfig, {
+                abi: powersAbi,
+                address: addressPowers as `0x${string}`,
+                functionName: 'hasRoleSince', 
+                args: [account, role]
+                })
+              // Only include roles where since > 0 (user actually has the role)
+              if ((fetchedSince as bigint) > 0n) {
+                fetchedHasRole.push({role, since: fetchedSince as bigint})
+              }
             }
             setHasRoles(fetchedHasRole)
-        } catch (error) {
-        console.error(error)
+          } catch (error) {
+          console.error(error)
+        }
       }
-    }, [addressPowers])
+    }, [])
 
   // Memoize the fetch functions to prevent infinite loops
-  const handleFetchProposals = useCallback(() => {
+  const handleFetchProposals = useCallback(async () => {
     if (powers) {
-      fetchProposals(powers as Powers, 10n, 9000n)
+      setProposalsLoading(true)
+      try {
+        const updatedPowers = await fetchProposals(powers as Powers, 10n, 9000n)
+        if (updatedPowers?.proposals) {
+          setProposals(updatedPowers.proposals)
+        }
+        console.log("@handleFetchProposals, waypoint 0", {updatedPowers})
+      } catch (error) {
+        console.error('Error fetching proposals:', error)
+      } finally {
+        setProposalsLoading(false)
+      }
     }
   }, [powers, fetchProposals])
+
+  // Manual refresh function that resets the ref
+  const handleRefreshProposals = useCallback(() => {
+    proposalsFetchedRef.current = false
+    handleFetchProposals()
+  }, [handleFetchProposals])
 
   const handleFetchExecutedActions = useCallback(() => {
     if (powers) {
@@ -125,17 +154,46 @@ export default function PortalPage() {
   }, [powers?.metadatas?.banner, validateBannerImage])
 
   useEffect(() => {
-    if (wallets && wallets[0]) {
+    if (wallets && powers?.roles) {
+      console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
       fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
     }
-  }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
+  }, [, wallets?.[0]?.address, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
     console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
+      // Reset proposals ref when switching protocols
+      proposalsFetchedRef.current = false
+      setProposals([])
+      refetchPowers(addressPowers as `0x${string}`)
     }
-  }, [addressPowers, fetchPowers])
+  }, [, addressPowers, refetchPowers])
+
+  // Fetch proposals when powers are available
+  useEffect(() => {
+    if (powers && authenticated && !proposalsFetchedRef.current) {
+      proposalsFetchedRef.current = true
+      handleFetchProposals()
+    }
+  }, [powers, authenticated]) // Removed handleFetchProposals from dependencies
+
+  // Force chain switch to the selected chain
+  useEffect(() => {
+    const targetChainId = parseChainId(chainId)
+    if (authenticated && chainId && supportedChain && targetChainId && chain?.id !== targetChainId) {
+      console.log("@useEffect, switching chain", { 
+        currentChain: chain?.id, 
+        targetChain: targetChainId,
+        supportedChain: supportedChain.name 
+      })
+      try {
+        switchChain({ chainId: targetChainId })
+      } catch (error) {
+        console.error('Error switching chain:', error)
+      }
+    }
+  }, [authenticated, chainId, supportedChain, chain?.id, switchChain])
 
   return (
     <div className="w-full h-full flex flex-col items-center pb-12 md:pb-0">
@@ -196,7 +254,7 @@ export default function PortalPage() {
           </div>
           
           {/* Horizontal Slider below banner */}
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-4/5 sm:w-2/3 bg-slate-200 backdrop-blur-sm border border-slate-200 rounded-lg z-20">
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-4/5 sm:w-2/3 bg-slate-100/90 backdrop-blur-sm border border-slate-300 rounded-lg z-20">
             <div className="px-4 sm:px-8 py-2">
               <div className="relative rounded-lg p-1">
                 {/* Sliding background indicator */}
@@ -237,7 +295,7 @@ export default function PortalPage() {
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
           {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers}/>}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={proposalsLoading} onRefresh={handleRefreshProposals}/>}
           {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>

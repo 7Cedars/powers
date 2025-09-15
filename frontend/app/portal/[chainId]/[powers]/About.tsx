@@ -22,7 +22,7 @@ export default function About({ powers }: AboutProps) {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto">
       {/* Protocol Header */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm mb-6 overflow-hidden">
         {/* Protocol Details */}

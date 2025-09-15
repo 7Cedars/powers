@@ -89,6 +89,8 @@ export const deploymentForms: DeploymentForm[] = [
     description: "The DAO that governs development of the Powers protocol. This form is only available locally.",
     disabled: false,
     onlyLocalhost: true,
-    fields: []
+    fields: [
+      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions", type: "number", required: true }
+    ]
   }
 ]; 

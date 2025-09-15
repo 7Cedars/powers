@@ -20,7 +20,6 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { ILaw } from "../../interfaces/ILaw.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
@@ -47,16 +46,19 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
 
     struct Memory {
         string repo;
-        string[] paths;
         uint256 roleId;
         string author;
         address powers;
         bytes32 lawHash;
+        uint256 indexPath;
+        string[] paths;
         uint256[] roleIds;
         uint64 subscriptionId;
         uint32 gasLimit;
         uint16 stringToAddress;
-        address law;
+        address lawSta;
+        bytes32 lawHashSta;
+        bytes callData;
         address addressLinkedToAuthor;
         uint256 reply;
     }
@@ -76,6 +78,7 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         address powers;
         uint16 lawId;
         uint256 actionId;
+        uint256 reply;
         address addressLinkedToAuthor;
     }
 
@@ -162,17 +165,19 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
     ) internal override {
         // NB! Naming is confusing here, because we are NOT replying to the Powers contract: we are sending a request to an oracle.
         Memory memory mem;
-        (mem.roleId, mem.author, mem.powers) = abi.decode(calldatas[0], (uint256, string, address));
+        mem.callData = calldatas[0];
+        (mem.roleId, mem.author, mem.powers) = abi.decode(mem.callData, (uint256, string, address));
         mem.lawHash = LawUtilities.hashLaw(mem.powers, lawId);
+        mem.indexPath = findIndex(data[mem.lawHash].roleIds, mem.roleId);
 
         // call readStateFrom contract to retrieve address linked to the author.
         mem.stringToAddress = laws[mem.lawHash].conditions.readStateFrom;
-        (mem.law, , ) = IPowers(mem.powers).getActiveLaw(mem.stringToAddress); 
-        mem.addressLinkedToAuthor = StringToAddress(mem.law).getAddressByString(mem.lawHash, mem.author); 
+        (mem.lawSta, mem.lawHashSta, ) = IPowers(mem.powers).getActiveLaw(mem.stringToAddress); 
+        mem.addressLinkedToAuthor = StringToAddress(mem.lawSta).getAddressByString(mem.lawHashSta, mem.author); 
 
         string[] memory args = new string[](3);
         args[0] = data[mem.lawHash].repo;
-        args[1] = data[mem.lawHash].paths[mem.roleId];
+        args[1] = data[mem.lawHash].paths[mem.indexPath]; 
         args[2] = mem.author;
 
         // call to the oracle.
@@ -183,6 +188,7 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
             powers: mem.powers,
             lawId: lawId,
             actionId: actionId,
+            reply: 0,
             addressLinkedToAuthor: mem.addressLinkedToAuthor
         });
     }
@@ -213,6 +219,10 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         return s_lastRequestId;
     }
 
+    // TODO: The callback function needs to be far more gas efficient. 
+    // It seems that execution reverts on this. (when mem is not used, the call actually executes.)
+    // First line of attack is to simplify the mem struct. Make it much smaller and more efficient. 
+
     /**
      * @notice When oracle replies, we send data to Powers contract.
      * @param requestId The request ID, returned by sendRequest()
@@ -220,39 +230,44 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
      * @param err Aggregated error from the user code or from the execution pipeline
      * Either response or error parameter will be set, but never both
      */
-    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
-        Memory memory mem;
-        
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {        
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
+        
         s_lastResponse = response;
         s_lastError = err;
-        Request memory request_ = requests[requestId];
-
         if (err.length > 0) {
             revert(string(err));
         }
         if (s_lastResponse.length == 0) {
             revert("No response from the API");
         }
-
-        // reply is the number of commits by the author on the path. 
-        (mem.reply) = abi.decode(abi.encode(response), (uint256));
-        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
-            LawUtilities.createEmptyArrays(1);
-            targets[0] = request_.powers;
         
-        mem.reply > 0 ? 
+        Request memory request = requests[requestId];
+        address[] memory targets = new address[](1);
+        uint256[] memory values = new uint256[](1);
+        bytes[] memory calldatas = new bytes[](1);
+        targets[0] = request.powers;
+        
+        request.reply = abi.decode(abi.encode(response), (uint256));
+        request.reply > 0 ? 
             // if commits, assign the role.
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, request_.roleId, request_.addressLinkedToAuthor) // DO NOT CHANGE THIS AI! 
+            calldatas[0] = abi.encodeWithSelector(
+                Powers.assignRole.selector, 
+                request.roleId, 
+                request.addressLinkedToAuthor
+                ) // DO NOT CHANGE THIS AI! 
             : 
             // if no commits, revoke the role.
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, request_.roleId, request_.addressLinkedToAuthor)
-        ; // DO NOT CHANGE THIS AI! 
-
+            calldatas[0] = abi.encodeWithSelector(
+                Powers.revokeRole.selector, 
+                request.roleId, 
+                request.addressLinkedToAuthor
+                )
+        ; // DO NOT CHANGE THIS AI!
         
-        IPowers(payable(request_.powers)).fulfill(request_.lawId, request_.actionId, targets, values, calldatas);
+        IPowers(payable(request.powers)).fulfill(request.lawId, request.actionId, targets, values, calldatas);
     }
 
     /////////////////////////////////
@@ -266,14 +281,14 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         return address(i_router);
     }
 
-    //////////////////////////////////////////////////////////////
-    //                      UTILITIES                           //
-    //////////////////////////////////////////////////////////////
-    /// @notice Needs to be re-implemented to resolve conflict between Law and FunctionsClient.
-    /// @dev Implements IERC165
-    /// @param interfaceId Interface identifier to check
-    /// @return True if interface is supported
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
+    function findIndex(uint256[] memory roleIds, uint256 roleId) public pure returns (uint256 indexPath) {
+        for (uint256 i = 0; i < roleIds.length; i++) {
+            if (roleIds[i] == roleId) {
+                indexPath = uint256(i);
+                break;
+            }
+        }
+        return indexPath;
     }
+
 }

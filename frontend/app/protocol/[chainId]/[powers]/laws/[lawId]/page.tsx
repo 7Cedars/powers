@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { LawBox } from "@/components/LawBox";
+import { LawBox } from "./LawBox";
 import { setAction, setError, useActionStore, useErrorStore, useChecksStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
@@ -137,7 +137,7 @@ const Page = () => {
       )
   };
 
-  // resetting lawBox and fetching executions when switching laws: 
+  // resetting DynamicForm and fetching executions when switching laws: 
   useEffect(() => {
     if (law) {
       // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)

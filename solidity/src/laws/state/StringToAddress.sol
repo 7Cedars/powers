@@ -35,7 +35,7 @@ contract StringToAddress is Law {
         bytes callData;
     }
 
-    mapping(bytes32 lawHash => mapping(string name => address account)) public stringToAddress;
+    mapping(bytes32 lawHash => mapping(bytes32 nameHash => address account)) public stringToAddress;
 
     event StringToAddress__Added(string name, address account); 
 
@@ -77,12 +77,14 @@ contract StringToAddress is Law {
         Memory memory mem;
         (mem.caller, mem.callData) = abi.decode(stateChange, (address, bytes));
         (mem.name) = abi.decode(mem.callData, (string));
+        bytes32 nameHash = keccak256(bytes(mem.name));
 
-        stringToAddress[lawHash][mem.name] = mem.caller;
+        stringToAddress[lawHash][nameHash] = mem.caller;
         emit StringToAddress__Added(mem.name, mem.caller);
     }
 
     function getAddressByString(bytes32 lawHash, string memory name) public view returns (address account) {
-        return stringToAddress[lawHash][name];
+        bytes32 nameHash = keccak256(bytes(name));
+        return stringToAddress[lawHash][nameHash];
     }
 }
