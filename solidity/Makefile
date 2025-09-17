@@ -336,5 +336,7 @@ mantleSepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(
 mantleSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 mantleSepoliaDeployVanillaPowers :; forge script script/DeployVanillaPowers.sol:DeployVanillaPowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 
+
+optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --verifier etherscan 0x53CB3281823Ea08439Cf9Ac9F403c08FBF94d490 test/mocks/Erc20VotesMock.sol:Erc20VotesMock --watch
 sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch
 mantleSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 5003 --verifier etherscan 0x4cba41c3d34a6177659126517b9806acefa0f83c --compiler-version 0.8.26 src/laws/electoral/DelegateSelect.sol:DelegateSelect --watch

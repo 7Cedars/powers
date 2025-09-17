@@ -2,6 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
 import "@openzeppelin/contracts/utils/ShortStrings.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import { Powers } from "../../../src/Powers.sol";
@@ -25,6 +26,7 @@ import { DirectDeselect } from "../../../src/laws/electoral/DirectDeselect.sol";
 import { StartElection } from "../../../src/laws/electoral/StartElection.sol";
 import { EndElection } from "../../../src/laws/electoral/EndElection.sol";
 import { NStrikesYourOut } from "../../../src/laws/electoral/NStrikesYourOut.sol";
+import { BuyAccess } from "../../../src/laws/electoral/BuyAccess.sol";
 
 contract DelegateSelectTest is TestSetupElectoral {
     using ShortStrings for *;
@@ -2060,5 +2062,445 @@ contract NStrikesYourOutTest is TestSetupElectoral {
         vm.prank(alice);
         vm.expectRevert("Action is not from account being revoked.");
         daoMock.request(nStrikesYourOut, lawCalldata, nonce + 20, "Revoke with caller mismatch");
+    }
+}
+
+contract BuyAccessTest is TestSetupElectoral {
+    using ShortStrings for *;
+
+    function testConstructorInitialization() public {
+        // Get the BuyAccess contract from the test setup
+        uint16 buyAccess = 16; // BuyAccess is now at index 16
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+
+        vm.startPrank(address(daoMock));
+        assertEq(
+            Law(buyAccessAddress).getConditions(address(daoMock), buyAccess).allowedRole,
+            type(uint256).max, // PUBLIC_ROLE
+            "Allowed role should be set to public access"
+        );
+        assertEq(
+            Law(buyAccessAddress).getExecutions(address(daoMock), buyAccess).powers,
+            address(daoMock),
+            "Powers address should be set correctly"
+        );
+        vm.stopPrank();
+    }
+
+    function testBuyAccessWithSufficientTokens() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens to buy access
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet(); // Get some tokens
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 10); // Approve enough tokens
+        vm.stopPrank();
+
+        // Request access for bob (alice buys access for bob)
+        lawCalldata = abi.encode(bob, tokensPerBlock * 10); // Buy 10 blocks worth of access
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Buying access for bob");
+
+        // assert
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should have the role after buying access");
+    }
+
+    function testBuyAccessForSelf() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens to buy access
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet(); // Get some tokens
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 5); // Approve the BuyAccess contract
+        vm.stopPrank();
+
+        // Debug: Check balances and allowances
+        uint256 aliceBalance = Erc20TaxedMock(mockAddresses[3]).balanceOf(alice);
+        uint256 aliceAllowance = Erc20TaxedMock(mockAddresses[3]).allowance(alice, buyAccessAddress);
+        console.log("Alice balance:", aliceBalance);
+        console.log("Alice allowance for BuyAccess:", aliceAllowance);
+        console.log("Tokens per block:", tokensPerBlock);
+        console.log("Amount to transfer:", tokensPerBlock * 5);
+
+        // Request access for alice (buying access for self)
+        lawCalldata = abi.encode(alice, tokensPerBlock * 5); // Buy 5 blocks worth of access
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Buying access for self");
+
+        // assert
+        assertTrue(daoMock.hasRoleSince(alice, roleIdToSet) > 0, "Alice should have the role after buying access");
+    }
+
+    function testExtendExistingAccess() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 20);
+        vm.stopPrank();
+
+        // First purchase
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase");
+        nonce++;
+
+        // Extend access
+        lawCalldata = abi.encode(bob, tokensPerBlock * 10);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Extending access");
+
+        // assert
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should still have the role after extending access");
+    }
+
+    function testReassignRoleWhenAccessStillValid() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 20);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 10);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+        nonce++; 
+
+        // Reassign to charlotte (transfer 0 tokens to check if access is still valid)
+        // Note: This should work because bob's access is still valid
+        vm.roll(block.number + 10); 
+
+        lawCalldata = abi.encode(bob, 0);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Reaffirming bob's role");
+
+        // assert
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should still the role after reaffirming role");
+    }
+
+    function testNoActionWhenAccessExpired() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 5);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+        nonce++;
+
+        // Move forward in time beyond the access period (5 blocks + some buffer)
+        vm.roll(block.number + 10);
+
+        // Try to reassign after access has expired (0 tokens means check existing access)
+        lawCalldata = abi.encode(charlotte, 0);
+        vm.prank(alice);
+        vm.expectRevert("No access bought or already expired.");
+        daoMock.request(buyAccess, lawCalldata, nonce, "Reassigning after expiration");
+    }
+
+    function testLapseBlockFunctionality() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 20);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+        nonce++;
+
+        // Check that bob has the role
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should have the role initially");
+
+        // Move forward in time beyond the access period
+        vm.roll(block.number + 10);
+
+        // Try to reassign with 0 tokens (should check if access is still valid)
+        lawCalldata = abi.encode(charlotte, 0);
+        vm.prank(alice);
+        vm.expectRevert("No access bought or already expired.");
+        daoMock.request(buyAccess, lawCalldata, nonce, "Reassigning after access expired");
+    }
+
+    function testHandleRequestOutput() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+
+        // act: call handleRequest directly to check its output
+        vm.prank(address(daoMock));
+        (actionId, targets, values, calldatas, stateChange) =
+            Law(buyAccessAddress).handleRequest(alice, address(daoMock), buyAccess, lawCalldata, nonce);
+
+        // assert
+        assertEq(targets.length, 1, "Should have one target");
+        assertEq(values.length, 1, "Should have one value");
+        assertEq(calldatas.length, 1, "Should have one calldata");
+        assertEq(targets[0], address(daoMock), "Target should be the DAO");
+        assertEq(values[0], 0, "Value should be 0");
+        assertNotEq(calldatas[0], "", "Calldata should not be empty");
+        assertNotEq(stateChange, "", "State change should not be empty");
+        assertNotEq(actionId, 0, "Action ID should not be 0");
+
+        // Verify the calldata contains the expected parameters for _replyPowers
+        (address caller, address account, uint48 newLapseBlock, uint256 amountTokens, uint16 roleIdtoSet) = 
+            abi.decode(calldatas[0], (address, address, uint48, uint256, uint16));
+        
+        assertEq(caller, alice, "Caller should be alice");
+        assertEq(account, bob, "Account should be bob");
+        assertEq(amountTokens, tokensPerBlock * 5, "Amount tokens should match");
+    }
+
+    function testVerifyStoredData() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // assert
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        assertEq(data.erc20Token, mockAddresses[3], "ERC20 token address should be set correctly");
+        assertEq(data.tokensPerBlock, 1000, "Tokens per block should be set correctly");
+        assertEq(data.roleIdToSet, 4, "Role ID to set should be set correctly");
+    }
+
+    function testLapseBlockMapping() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 10);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+
+        // Check that the lapse block was set correctly
+        uint48 expectedLapseBlock = uint48(block.number + 5);
+        uint48 actualLapseBlock = BuyAccess(buyAccessAddress).lapseBlock(lawHash, bob);
+        assertEq(actualLapseBlock, expectedLapseBlock, "Lapse block should be set correctly");
+
+        // Extend access
+        lawCalldata = abi.encode(bob, tokensPerBlock * 3);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce + 1, "Extending access");
+
+        // Check that the lapse block was extended
+        uint48 expectedExtendedLapseBlock = expectedLapseBlock + 3;
+        uint48 actualExtendedLapseBlock = BuyAccess(buyAccessAddress).lapseBlock(lawHash, bob);
+        assertEq(actualExtendedLapseBlock, expectedExtendedLapseBlock, "Lapse block should be extended correctly");
+    }
+
+
+    function testZeroTokenAmount() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+
+        // Try to buy access with 0 tokens (should check existing access)
+        // This should revert because bob has no existing access
+        lawCalldata = abi.encode(bob, 0);
+        vm.prank(alice);
+        vm.expectRevert("No access bought or already expired.");
+        daoMock.request(buyAccess, lawCalldata, nonce, "Checking access with 0 tokens");
+    }
+
+    function testZeroTokenAmountWithExistingAccess() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 10);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+        nonce++;
+
+        // Now try with 0 tokens (should work because bob has existing access)
+        lawCalldata = abi.encode(bob, 0);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Checking existing access with 0 tokens");
+
+        // assert - bob should still have the role
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should still have the role after 0 token check");
+    }
+
+    function testMultipleAccountsBuyAccess() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens for multiple purchases
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 20);
+        vm.stopPrank();
+
+        // Buy access for multiple accounts
+        address[] memory accounts = new address[](3);
+        accounts[0] = bob;
+        accounts[1] = charlotte;
+        accounts[2] = david;
+
+        for (i = 0; i < accounts.length; i++) {
+            lawCalldata = abi.encode(accounts[i], tokensPerBlock * 5);
+            vm.prank(alice);
+            daoMock.request(buyAccess, lawCalldata, nonce + i, string.concat("Buying access for account ", Strings.toString(i)));
+        }
+
+        // assert
+        for (i = 0; i < accounts.length; i++) {
+            assertTrue(daoMock.hasRoleSince(accounts[i], roleIdToSet) > 0, string.concat("Account should have the role after buying access"));
+        }
+    }
+
+    function testTransferFailure() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+
+        // Setup: Give alice tokens but don't approve enough (this will cause transfer failure)
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock / 2); // Approve only half
+        vm.stopPrank();
+
+        // Try to buy access with insufficient approval
+        lawCalldata = abi.encode(bob, tokensPerBlock);
+        vm.prank(alice);
+        vm.expectRevert();
+        daoMock.request(buyAccess, lawCalldata, nonce, "Buying access with insufficient approval");
+    }
+
+    function testZeroTokenTransfer() public {
+        // prep
+        uint16 buyAccess = 16;
+        (address buyAccessAddress,,) = daoMock.getActiveLaw(buyAccess);
+        lawHash = LawUtilities.hashLaw(address(daoMock), buyAccess);
+
+        // Get the configured data from the law
+        BuyAccess.Data memory data = BuyAccess(buyAccessAddress).getData(lawHash);
+        uint256 tokensPerBlock = data.tokensPerBlock;
+        uint16 roleIdToSet = data.roleIdToSet;
+
+        // Setup: Give alice enough tokens
+        vm.startPrank(alice);
+        Erc20TaxedMock(mockAddresses[3]).faucet();
+        Erc20TaxedMock(mockAddresses[3]).approve(buyAccessAddress, tokensPerBlock * 10);
+        vm.stopPrank();
+
+        // First purchase for bob
+        lawCalldata = abi.encode(bob, tokensPerBlock * 5);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "First purchase for bob");
+        nonce++;
+
+        // Now try with 0 tokens (should work because bob has existing access)
+        lawCalldata = abi.encode(bob, 0);
+        vm.prank(alice);
+        daoMock.request(buyAccess, lawCalldata, nonce, "Checking existing access with 0 tokens");
+
+        // assert - bob should still have the role
+        assertTrue(daoMock.hasRoleSince(bob, roleIdToSet) > 0, "Bob should still have the role after 0 token check");
     }
 }

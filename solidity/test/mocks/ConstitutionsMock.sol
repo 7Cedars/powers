@@ -239,7 +239,7 @@ contract ConstitutionsMock is Test {
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         ILaw.Conditions memory conditions;
-        lawInitData = new PowersTypes.LawInitData[](17);
+        lawInitData = new PowersTypes.LawInitData[](18);
 
         // nominateMe
         conditions.allowedRole = type(uint256).max;
@@ -454,11 +454,25 @@ contract ConstitutionsMock is Test {
         });
         delete conditions;
 
+        // BuyAccess
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[16] = PowersTypes.LawInitData({
+            nameDescription: "BuyAccess: A law to buy access to a role with ERC20 tokens.",
+            targetLaw: lawAddresses[36], // BuyAccess
+            config: abi.encode(
+                mockAddresses[3], // erc20TaxedMock
+                1000, // tokensPerBlock
+                4 // roleIdToSet
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
         // get calldata
         (address[] memory targetsRoles, uint256[] memory valuesRoles, bytes[] memory calldatasRoles) =
-            _getActions(daoMock, 16); // powersMock
+            _getActions(daoMock, 17); // powersMock
         conditions.allowedRole = 0;
-        lawInitData[16] = PowersTypes.LawInitData({
+        lawInitData[17] = PowersTypes.LawInitData({
             nameDescription: "PresetAction: A law to execute a preset action.",
             targetLaw: lawAddresses[7],
             config: abi.encode(targetsRoles, valuesRoles, calldatasRoles), // empty config.

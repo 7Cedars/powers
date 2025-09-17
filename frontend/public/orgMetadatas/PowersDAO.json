@@ -1,17 +1,17 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeicrdgm4kgz5jg6zan2bsq2da6jqlzg6vxz6pmtlnseblfl5r3nglm",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibs64ol5hjnsqwyx4uzveougdkkyqaqoisqnmd6c2wpp36lwnqp7i",
   "description": 
-    "The DAO that governs development of the Powers protocol. Powers in the protocol are assigned based on funding and contributions and include decisions on how to assign funds to development areas.",
+    "The DAO that governs development of the Powers protocol. Accounts can buy time-limited access to the Funders role. Anyone that has PRs accepted in the documentation, frontend or protocol folders of Powers repository can claim a Documentation, Frontend or Protocol contributor role, respectively. All contributers decide, together, on how to divide funds for development of each of these areas. Each role then has the power to fund specific funding requests for their respective development areas.",
   "erc20s": [
-    "0x52536c4e334B57c56e36A5De4F4C3F2530a15851",
-    "0x30cd84735502A954Ba7f16C10b79F7510E32DE57"
+    "0x46D24e83712aEC5BFa7789eFF427B7E8B5b553f9",
+    "0x62df5b806975afAF3bbDf2f73671D86BF9cfE4fd"
   ],
   "erc721s": [
-    "0x9C06D27a3402BDfbCAE93c65B2F34727356c9A2b"
+    "0x6C0Af07eFE128F92Ac6F7199F707F59D89EC3Ee8"
   ],
   "erc1155s": [{
-    "address": "0xEFE0832C1e3232F6F9c8AC188d872DE1365A31fd",
+    "address": "0x66C3964C9AE7B2966F50C1df04E182AD360b46C2",
     "tokenId": 0
   } ],
   "attributes": [

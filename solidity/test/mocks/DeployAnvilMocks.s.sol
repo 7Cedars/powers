@@ -50,6 +50,7 @@ import { StringToAddress } from "../../src/laws/state/StringToAddress.sol";
 import { Erc20Budget } from "../../src/laws/state/Erc20Budget.sol";
 import { AdoptLawPackage } from "../../src/laws/executive/AdoptLawPackage.sol";
 import { RoleByRoles } from "../../src/laws/electoral/RoleByRoles.sol";
+import { BuyAccess } from "../../src/laws/electoral/BuyAccess.sol";
 
 // Mocks
 import { Erc1155Mock } from "./Erc1155Mock.sol";
@@ -73,8 +74,8 @@ contract DeployAnvilMocks is Script {
             address[] memory mockAddresses
         )
     {
-        lawNames = new string[](36);
-        lawAddresses = new address[](36);
+        lawNames = new string[](37);
+        lawAddresses = new address[](37);
         mockNames = new string[](7);
         mockAddresses = new address[](7);
 
@@ -119,6 +120,7 @@ contract DeployAnvilMocks is Script {
         lawAddresses[33] = address(new Erc20Budget());
         lawAddresses[34] = address(new AdoptLawPackage());
         lawAddresses[35] = address(new RoleByRoles());
+        lawAddresses[36] = address(new BuyAccess());
 
         vm.stopBroadcast();
 
@@ -170,6 +172,7 @@ contract DeployAnvilMocks is Script {
         lawNames[33] = "Erc20Budget";
         lawNames[34] = "AdoptLawPackage";
         lawNames[35] = "RoleByRoles";
+        lawNames[36] = "BuyAccess";
         
         mockNames[0] = "PowersMock";
         mockNames[1] = "GovernorMock";

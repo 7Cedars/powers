@@ -111,6 +111,7 @@ abstract contract Law is ERC165, ILaw {
         ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
         // execute the law's logic conditional on data returned by handleRequest
+        // £Bug! _changeState and _replyPowers should switch places. changeState can be conditional on _replyPowers passing! 
         if (stateChange.length > 0) {
             _changeState(lawHash, stateChange);
         }

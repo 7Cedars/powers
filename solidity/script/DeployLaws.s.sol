@@ -56,6 +56,7 @@ import { StringToAddress } from "../src/laws/state/StringToAddress.sol";
 import { Erc20Budget } from "../src/laws/state/Erc20Budget.sol";
 import { AdoptLawPackage } from "../src/laws/executive/AdoptLawPackage.sol";
 import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
+import { BuyAccess } from "../src/laws/electoral/BuyAccess.sol";
 
 // @dev this script is used to deploy the laws to the chain.
 // Note: we do not return addresses of the deployed laws.
@@ -69,10 +70,10 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
 
-        names = new string[](41);
-        addresses = new address[](41);
-        bytes[] memory creationCodes = new bytes[](41);
-        bytes[] memory constructorArgs = new bytes[](41);
+        names = new string[](42);
+        addresses = new address[](42);
+        bytes[] memory creationCodes = new bytes[](42);
+        bytes[] memory constructorArgs = new bytes[](42);
 
         names[0] = "DelegateSelect";
         creationCodes[0] = type(DelegateSelect).creationCode;
@@ -241,6 +242,10 @@ contract DeployLaws is Script {
         names[40] = "RoleByRoles";
         creationCodes[40] = type(RoleByRoles).creationCode;
         constructorArgs[40] = abi.encode("RoleByRoles");
+
+        names[41] = "BuyAccess";
+        creationCodes[41] = type(BuyAccess).creationCode;
+        constructorArgs[41] = abi.encode("BuyAccess");
 
         // console2.log("router2", router);
 

@@ -245,29 +245,20 @@ contract RoleByGitCommit is Law, FunctionsClient, ConfirmedOwner {
         }
         
         Request memory request = requests[requestId];
-        address[] memory targets = new address[](1);
-        uint256[] memory values = new uint256[](1);
-        bytes[] memory calldatas = new bytes[](1);
-        targets[0] = request.powers;
-        
         request.reply = abi.decode(abi.encode(response), (uint256));
-        request.reply > 0 ? 
-            // if commits, assign the role.
+
+        if (request.reply > 0) {
+            address[] memory targets = new address[](1);
+            uint256[] memory values = new uint256[](1);
+            bytes[] memory calldatas = new bytes[](1);
+            targets[0] = request.powers;
             calldatas[0] = abi.encodeWithSelector(
                 Powers.assignRole.selector, 
                 request.roleId, 
                 request.addressLinkedToAuthor
-                ) // DO NOT CHANGE THIS AI! 
-            : 
-            // if no commits, revoke the role.
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.revokeRole.selector, 
-                request.roleId, 
-                request.addressLinkedToAuthor
-                )
-        ; // DO NOT CHANGE THIS AI!
-        
-        IPowers(payable(request.powers)).fulfill(request.lawId, request.actionId, targets, values, calldatas);
+                ); 
+            IPowers(payable(request.powers)).fulfill(request.lawId, request.actionId, targets, values, calldatas);
+        }
     }
 
     /////////////////////////////////
