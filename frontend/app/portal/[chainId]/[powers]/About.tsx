@@ -1,12 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Powers } from '@/context/types'
 import { useChains } from 'wagmi'
 import { parseChainId } from '@/utils/parsers'
-import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
+import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { PortalItem } from './PortalItem'
+import { bigintToRole } from '@/utils/bigintTo'
+import { default as DynamicThumbnail } from '@/components/DynamicThumbnail'
 
 interface AboutProps {
   powers: Powers
@@ -16,6 +19,7 @@ export default function About({ powers }: AboutProps) {
   const chains = useChains()
   const router = useRouter()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
+  const [isLawsExpanded, setIsLawsExpanded] = useState(false)
 
   const handleGovernanceClick = () => {
     router.push(`/protocol/${Number(powers.chainId)}/${powers.contractAddress}`)
@@ -38,7 +42,7 @@ export default function About({ powers }: AboutProps) {
           )}
 
           {/* Contract Information */}
-          <div className="mb-6">
+          <div className="mb-3">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">Contract Information</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -66,35 +70,10 @@ export default function About({ powers }: AboutProps) {
             </div>
           </div>
 
-          {/* Protocol Stats */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-3">Protocol Statistics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center bg-slate-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-slate-800">
-                  {powers.roles ? powers.roles.length : 0}
-                </div>
-                <div className="text-sm text-slate-500">Roles</div>
-              </div>
-              <div className="text-center bg-slate-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-slate-800">
-                  {powers.activeLaws ? powers.activeLaws.length : 0}
-                </div>
-                <div className="text-sm text-slate-500">Active Laws</div>
-              </div>
-              <div className="text-center bg-slate-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-slate-800">
-                  {powers.proposals ? powers.proposals.length : 0}
-                </div>
-                <div className="text-sm text-slate-500">Proposals</div>
-              </div>
-            </div>
-          </div>
-
+          
           {/* Metadata URI */}
           {powers.uri && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">Metadata</h3>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">URI</span>
                 <a
@@ -116,7 +95,7 @@ export default function About({ powers }: AboutProps) {
           {(powers.metadatas?.erc20s?.length || powers.metadatas?.erc721s?.length || powers.metadatas?.erc1155s?.length) && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-3">Supported Tokens</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {powers.metadatas?.erc20s?.length > 0 && (
                   <div className="text-sm text-slate-600">
                     <span className="font-medium">ERC-20:</span> {powers.metadatas.erc20s.length} tokens
@@ -135,6 +114,78 @@ export default function About({ powers }: AboutProps) {
               </div>
             </div>
           )}
+
+          {/* Protocol Stats */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-slate-800 mb-3">Governance System</h3>
+            
+            {/* Roles Section */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium text-slate-700 mb-3">Roles</h4>
+              <div className="flex flex-wrap gap-3">
+                {powers.roles?.map((role: bigint, index: number) => {
+                  const roleName = bigintToRole(role, powers)
+                  return (
+                    <div
+                      key={index}
+                      className="relative group"
+                    >
+                      <div className="w-18 h-18 bg-slate-50/30 backdrop-blur-sm rounded-lg hover:bg-slate-100/50 transition-colors cursor-pointer p-1">
+                        <DynamicThumbnail
+                          roleId={role}
+                          powers={powers}
+                          size={72}
+                          className="object-cover rounded-md"
+                        />
+                      </div>
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                        {roleName}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Laws Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-md font-medium text-slate-700">
+                  Laws ({powers.laws?.length || 0})
+                </h4>
+                <button
+                  onClick={() => setIsLawsExpanded(!isLawsExpanded)}
+                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  {isLawsExpanded ? 'Hide' : 'Show'}
+                  {isLawsExpanded ? (
+                    <ChevronUpIcon className="w-4 h-4" />
+                  ) : (
+                    <ChevronDownIcon className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              
+              {isLawsExpanded && powers.laws && (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {powers.laws.map((law) => (
+                    <div key={`${law.lawAddress}-${law.index}`} className="border border-slate-200 rounded-md">
+                      <PortalItem
+                        powers={powers}
+                        law={law}
+                        chainId={powers.chainId.toString()}
+                        showLowerSection={false}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+      
+          
 
           {/* Governance System Button */}
           <div className="w-full mt-6">

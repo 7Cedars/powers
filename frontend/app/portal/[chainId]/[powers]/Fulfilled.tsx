@@ -21,19 +21,45 @@ type ExecutionWithLaw = {
   actionId: bigint
 }
 
-export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers}) {
+export default function Fulfilled({hasRoles, powers: powersProp}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers}) {
   const { chainId } = useParams<{ chainId: string }>()
   const { authenticated } = usePrivy()
-  const { fetchPowers, checkLaws, status: statusPowers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
+  const { fetchPowers, checkLaws, status: statusPowers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals, powers } = usePowers()
   const { fetchActionData } = useAction()
+  
+  // Use powers from hook if available, otherwise fall back to prop
+  const currentPowers = powers || powersProp
   const [executionsWithLaws, setExecutionsWithLaws] = useState<ExecutionWithLaw[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<ExecutionWithLaw | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
+  const [reloading, setReloading] = useState(false)
 
-  console.log("@Fulfilled, powers", powers)
+  console.log("@Fulfilled, powers", currentPowers)
+
+  // Handle reload button click
+  const handleReload = useCallback(async () => {
+    if (!currentPowers) return
+    
+    setReloading(true)
+    setError(null)
+    
+    try {
+      console.log("@Fulfilled: Starting reload of executed actions")
+      // Fetch the latest executed actions
+      const updatedPowers = await fetchExecutedActions(currentPowers)
+      if (updatedPowers) {
+        console.log("@Fulfilled: Successfully reloaded executed actions", {executedActionsCount: updatedPowers.executedActions?.length})
+      }
+    } catch (error) {
+      console.error("Error reloading fulfilled actions:", error)
+      setError("Failed to reload fulfilled actions")
+    } finally {
+      setReloading(false)
+    }
+  }, [currentPowers, fetchExecutedActions])
 
   // Handle item click and fetch action data
   const handleItemClick = useCallback(async (executionData: ExecutionWithLaw) => {
@@ -42,7 +68,7 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
     setActionData(null)
     
     try {
-      const action = await fetchActionData(executionData.actionId, powers)
+      const action = await fetchActionData(executionData.actionId, currentPowers)
       if (action) {
         setActionData(action)
         // Set the action in the store so StaticForm can access it
@@ -54,14 +80,16 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
     } finally {
       setLoadingActionData(false)
     }
-  }, [fetchActionData, powers])
+  }, [fetchActionData, currentPowers])
 
   // Process executed actions similar to Logs.tsx
   useEffect(() => {
-    if (powers?.executedActions && powers?.laws) {
-      const actionArray = powers.executedActions.map((lawActions: LawExecutions, i) => {
+    console.log("@Fulfilled: Processing executed actions", {executedActions: currentPowers?.executedActions?.length, laws: currentPowers?.laws?.length})
+    
+    if (currentPowers?.executedActions && currentPowers?.laws) {
+      const actionArray = currentPowers.executedActions.map((lawActions: LawExecutions, i) => {
         return lawActions.actionsIds.map((actionId, j) => {
-          const law = powers.laws?.[i]
+          const law = currentPowers.laws?.[i]
           if (law) {
             return {
               law,
@@ -75,9 +103,10 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
       
       // Sort by execution time (most recent first)
       const sortedExecutions = actionArray.sort((a, b) => Number(b.execution) - Number(a.execution))
+      console.log("@Fulfilled: Setting executions with laws", {count: sortedExecutions.length})
       setExecutionsWithLaws(sortedExecutions)
     }
-  }, [powers?.executedActions, powers?.laws])
+  }, [currentPowers?.executedActions, currentPowers?.laws])
 
   // If an item is selected, show the details inline
   if (selectedItem) {
@@ -105,7 +134,7 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
               {/* Header section with PortalItem - matching DynamicForm */}
               <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
                 <PortalItem
-                  powers={powers as Powers}
+                  powers={currentPowers as Powers}
                   law={selectedItem.law}
                   chainId={chainId as string}
                   actionId={selectedItem.actionId}
@@ -213,29 +242,41 @@ export default function Fulfilled({hasRoles, powers}: {hasRoles: {role: bigint, 
               <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
               <p className="text-sm text-slate-600">Completed actions and proposals</p>
             </div>
-            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors">
-              <ArrowPathIcon className="w-5 h-5" />
+            <button 
+              onClick={handleReload}
+              disabled={reloading}
+              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+            >
+              <ArrowPathIcon className={`w-5 h-5 ${reloading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
         
         {/* Render PortalItem components for each execution */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
-          {executionsWithLaws.map((executionData, index) => (
-            <div 
-              key={`${executionData.law.lawAddress}-${executionData.law.index}-${executionData.actionId}-${index}`}
-              className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
-              onClick={() => handleItemClick(executionData)}
-            >
-              <PortalItem
-                powers={powers as Powers}
-                law={executionData.law}
-                chainId={chainId as string}
-                actionId={executionData.actionId}
-                showLowerSection={false}
-              />
+          {reloading ? (
+            <div className="p-4">
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-slate-500">Reloading fulfilled actions...</div>
+              </div>
             </div>
-          ))}
+          ) : (
+            executionsWithLaws.map((executionData, index) => (
+              <div 
+                key={`${executionData.law.lawAddress}-${executionData.law.index}-${executionData.actionId}-${index}`}
+                className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
+                onClick={() => handleItemClick(executionData)}
+              >
+                <PortalItem
+                  powers={currentPowers as Powers}
+                  law={executionData.law}
+                  chainId={chainId as string}
+                  actionId={executionData.actionId}
+                  showLowerSection={false}
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

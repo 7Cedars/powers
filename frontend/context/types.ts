@@ -201,6 +201,8 @@ export type Action = {
   cancelled?: boolean;
   requested?: boolean;
   fulfilled?: boolean;
+  originalFulfilledAction?: Action; // For enabled actions, stores the original fulfilled action data
+  needCompletedLaw?: Law; // For enabled actions, stores the needCompleted law that enabled this action
 }
 
 export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">

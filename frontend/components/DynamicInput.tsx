@@ -104,8 +104,8 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
         // console.log("@inputArray", {inputArray, item, test: inputArray[item], values, index})  
         return (
           <section className="w-full mt-4 flex flex-row justify-center items-center gap-4 px-6" key = {i}>
-            <div className="text-xs block min-w-16 font-medium text-slate-600">
-              {`${varName.length > 10 ? `${varName.slice(0, 10)  }..` : varName}`}
+            <div className="text-xs block min-w-24 font-medium text-slate-600">
+              {`${varName.length > 16 ? `${varName.slice(0, 16)  }..` : varName}`}
             </div>
 
             {

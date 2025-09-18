@@ -113,7 +113,7 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
           })
         }
       <div className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3">
-        <label htmlFor="nonce" className="text-xs text-slate-600 ps-3 min-w-20 ">Nonce</label>
+        <label htmlFor="nonce" className="text-xs text-slate-600 ps-3 min-w-28 ">Nonce</label>
         <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">
             <input 
               type="number"   
@@ -140,7 +140,7 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
         </div>
 
         <div className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3">
-        <label htmlFor="uri" className="text-xs text-slate-600 ps-3 min-w-20 ">Description</label>
+        <label htmlFor="uri" className="text-xs text-slate-600 ps-3 min-w-28 ">Description</label>
           <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">
               <input 
                 type="text"
