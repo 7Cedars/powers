@@ -24,7 +24,7 @@ import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
 import About from './About'
 
-export default function PortalPage() {
+export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
   const [protocol, setProtocol] = useState<Powers | null>(null)
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
@@ -33,6 +33,11 @@ export default function PortalPage() {
   const [proposals, setProposals] = useState<any[]>([])
   const [proposalsLoading, setProposalsLoading] = useState(false)
   const proposalsFetchedRef = useRef(false)
+  
+  // Refs to store reset functions from child components
+  const newResetRef = useRef<(() => void) | null>(null)
+  const incomingResetRef = useRef<(() => void) | null>(null)
+  const fulfilledResetRef = useRef<(() => void) | null>(null)
   const tabs = [
     { id: 'New', label: 'New', icon: PlusIcon },
     { id: 'Incoming', label: 'Incoming', icon: ArrowDownTrayIcon },
@@ -49,7 +54,24 @@ export default function PortalPage() {
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
-  // console.log("@PortalPage, main", {chainId, powers, wallets: wallets[0].address})
+  // Handle tab click - reset selection if clicking on active tab
+  const handleTabClick = useCallback((tabId: string) => {
+    if (tabId === activeTab) {
+      // If clicking on the currently active tab, try to reset selection
+      if (tabId === 'New' && newResetRef.current) {
+        newResetRef.current()
+      } else if (tabId === 'Incoming' && incomingResetRef.current) {
+        incomingResetRef.current()
+      } else if (tabId === 'Fulfilled' && fulfilledResetRef.current) {
+        fulfilledResetRef.current()
+      }
+    } else {
+      // Normal tab switching
+      setActiveTab(tabId)
+    }
+  }, [activeTab])
+
+  // console.log("@UserPage, main", {chainId, powers, wallets: wallets[0].address})
 
   // Banner validation function
   const validateBannerImage = useCallback(async (url: string | undefined) => {
@@ -78,7 +100,7 @@ export default function PortalPage() {
       const fetchedHasRole: {role: bigint; since: bigint}[] = [{role: PUBLIC_ROLE, since: 1n}]; 
       const rolesFiltered = roles.filter(role => role != PUBLIC_ROLE)
 
-      console.log("@fetchMyRoles, waypoint 0", {roles, addressPowers})
+      // console.log("@fetchMyRoles, waypoint 0", {roles, addressPowers})
 
       if (addressPowers) {
         try {
@@ -110,7 +132,7 @@ export default function PortalPage() {
         if (updatedPowers?.proposals) {
           setProposals(updatedPowers.proposals)
         }
-        console.log("@handleFetchProposals, waypoint 0", {updatedPowers})
+        // console.log("@handleFetchProposals, waypoint 0", {updatedPowers})
       } catch (error) {
         console.error('Error fetching proposals:', error)
       } finally {
@@ -155,13 +177,13 @@ export default function PortalPage() {
 
   useEffect(() => {
     if (wallets && powers?.roles) {
-      console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
+      // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
       fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
     }
   }, [, wallets?.[0]?.address, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
-    console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
+    // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
       // Reset proposals ref when switching protocols
       proposalsFetchedRef.current = false
@@ -182,11 +204,11 @@ export default function PortalPage() {
   useEffect(() => {
     const targetChainId = parseChainId(chainId)
     if (authenticated && chainId && supportedChain && targetChainId && chain?.id !== targetChainId) {
-      console.log("@useEffect, switching chain", { 
-        currentChain: chain?.id, 
-        targetChain: targetChainId,
-        supportedChain: supportedChain.name 
-      })
+      // console.log("@useEffect, switching chain", { 
+      //   currentChain: chain?.id, 
+      //   targetChain: targetChainId,
+      //   supportedChain: supportedChain.name 
+      // })
       try {
         switchChain({ chainId: targetChainId })
       } catch (error) {
@@ -271,7 +293,7 @@ export default function PortalPage() {
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => handleTabClick(tab.id)}
                       className={`flex-1 px-4 py-2 text-center font-medium transition-colors duration-200 rounded-md relative z-10 flex items-center justify-center gap-2 ${
                         activeTab === tab.id 
                           ? 'text-slate-900' 
@@ -294,9 +316,9 @@ export default function PortalPage() {
       {/* Tab Content */}
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
-          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers}/>}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={proposalsLoading} onRefresh={handleRefreshProposals}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers}/>}
+          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={proposalsLoading} onRefresh={handleRefreshProposals} resetRef={incomingResetRef}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>
       </div>

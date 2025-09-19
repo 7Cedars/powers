@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
-import { PortalItem } from './PortalItem'
+import { UserItem } from './UserItem'
 import { InputType, Law, Powers, Checks } from '@/context/types'
 import { useErrorStore, useActionStore, useChecksStore, setError, setAction } from '@/context/store'
 import { encodeAbiParameters, parseAbiParameters } from "viem";
@@ -18,7 +18,7 @@ import HeaderLaw from '@/components/HeaderLaw'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { useChains } from 'wagmi'
 
-export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers}) {
+export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { authenticated } = usePrivy()
   const {wallets, ready} = useWallets();
@@ -29,22 +29,37 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
   const { status: statusProposals, propose } = useProposal();
+  const { refetchPowers, status: statusPowers } = usePowers();
 
-  console.log("@New, statusProposals", {statusProposals})
+  // console.log("@New, statusProposals", {statusProposals})
   
   // State to track selected law
   const [selectedLaw, setSelectedLaw] = useState<Law | null>(null)
+  const [reloading, setReloading] = useState(false)
+
+  // Reset function to go back to list view
+  const resetSelection = useCallback(() => {
+    setSelectedLaw(null)
+  }, [])
+
+  // Assign reset function to ref
+  React.useEffect(() => {
+    resetRef.current = resetSelection
+    return () => {
+      resetRef.current = null
+    }
+  }, [resetSelection, resetRef])
   
   // Get checks for the selected law from Zustand store
   const checks = selectedLaw && chainChecks ? chainChecks.get(String(selectedLaw.index)) : undefined
 
   // Filter laws based on criteria
-  console.log("@New, powers", powers)
+  // console.log("@New, powers", powers)
   // console.log("@New, hasRoles", hasRoles)
   const finalFilteredLaws = powers?.laws?.filter(
     law => law.conditions?.needCompleted == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
   )
-  console.log("@New, filteredLaws", finalFilteredLaws)
+  // console.log("@New, filteredLaws", finalFilteredLaws)
 
   // Get laws that will be enabled by executing the selected law
   const enabledLaws = selectedLaw && powers?.laws ? 
@@ -60,9 +75,9 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
       law.conditions?.needNotCompleted == selectedLaw.index
     ) : []
 
-  console.log("@New, selectedLaw", selectedLaw)
-  console.log("@New, enabledLaws", enabledLaws)
-  console.log("@New, blockedLaws", blockedLaws)
+  // console.log("@New, selectedLaw", selectedLaw)
+  // console.log("@New, enabledLaws", enabledLaws)
+  // console.log("@New, blockedLaws", blockedLaws)
 
   // Reset DynamicForm and fetch executions when switching laws
   useEffect(() => {
@@ -95,6 +110,25 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
       setError({error: errorUseLaw})
     }
   }, [errorUseLaw])
+
+  // Handle reload button click
+  const handleReload = async () => {
+    if (!addressPowers) return
+    
+    setReloading(true)
+    setError({error: null})
+    
+    try {
+      // console.log("@New: Starting reload of laws")
+      await refetchPowers(addressPowers as `0x${string}`)
+      //  console.log("@New: Successfully reloaded laws")
+    } catch (error) {
+      console.error("Error reloading laws:", error)
+      setError({error: error as Error})
+    } finally {
+      setReloading(false)
+    }
+  }
 
   const handleSimulate = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
     if (!selectedLaw) return
@@ -329,28 +363,40 @@ export default function New({hasRoles, powers}: {hasRoles: {role: bigint, since:
               <h2 className="text-lg font-semibold text-slate-800">New</h2>
               <p className="text-sm text-slate-600">Available laws for your roles</p>
             </div>
-            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors">
-              <ArrowPathIcon className="w-5 h-5" />
+            <button 
+              onClick={handleReload}
+              disabled={reloading}
+              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+            >
+              <ArrowPathIcon className={`w-5 h-5 ${reloading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
         
-        {/* Render PortalItem components for each filtered law */}
+        {/* Render UserItem components for each filtered law */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
-          {finalFilteredLaws && finalFilteredLaws.map((law: Law, index: number) => (
-            <div 
-              key={`${law.lawAddress}-${law.index}`}
-              className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
-              onClick={() => setSelectedLaw(law)}
-            >
-              <PortalItem
-                powers={powers as Powers}
-                law={law}
-                chainId={chainId as string}
-                showLowerSection={false}
-              />
+          {reloading ? (
+            <div className="p-4">
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-slate-500">Loading laws...</div>
+              </div>
             </div>
-          ))}
+          ) : (
+            finalFilteredLaws && finalFilteredLaws.map((law: Law, index: number) => (
+              <div 
+                key={`${law.lawAddress}-${law.index}`}
+                className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
+                onClick={() => setSelectedLaw(law)}
+              >
+                <UserItem
+                  powers={powers as Powers}
+                  law={law}
+                  chainId={chainId as string}
+                  showLowerSection={false}
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export const onboardingSteps: OnboardingStep[] = [
       target: ""
     },
     upperText: "This introduction will help you get started with governance through the Powers dApp. You can close this window at any time. You can restart the onboarding by clicking the help button in the top right corner.",
-    bottomText: "This dApp provides an interactive overview of a deployed Powers protocol. A user portal with a better user UX is coming soon!",
+    bottomText: "This dApp provides an interactive overview of a deployed Powers protocol. A user user with a better user UX is coming soon!",
     image: "",
     url: "/"
   },

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Powers, Action, Law, Status, InputType } from '@/context/types'
 import { ArrowPathIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { PortalItem } from './PortalItem'
+import { UserItem } from './UserItem'
 import { useParams } from 'next/navigation'
 import { useProposal } from '@/hooks/useProposal'
 import { ProposalBox } from '@/components/ProposalBox'
@@ -36,12 +36,12 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
     law.conditions && userRoleIds.includes(law.conditions.allowedRole)
   )
   
-  console.log("@getEnabledActions: User roles and laws", {userRoleIds, userLaws: userLaws.length})
+  // console.log("@getEnabledActions: User roles and laws", {userRoleIds, userLaws: userLaws.length})
 
   // 2. Check each law for needCompleted requirement
   for (const law of userLaws) {
     if (law.conditions?.needCompleted && law.conditions.needCompleted > 0) {
-      console.log("@getEnabledActions: Found law with needCompleted", {lawIndex: law.index, needCompleted: law.conditions.needCompleted})
+      // console.log("@getEnabledActions: Found law with needCompleted", {lawIndex: law.index, needCompleted: law.conditions.needCompleted})
       
       // 3. Find the needCompleted law
       const needCompletedLaw = powers.laws.find(l => 
@@ -49,7 +49,7 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
       )
       
       if (needCompletedLaw) {
-        console.log("@getEnabledActions: Found needCompleted law", {needCompletedLawIndex: needCompletedLaw.index})
+        // console.log("@getEnabledActions: Found needCompleted law", {needCompletedLawIndex: needCompletedLaw.index})
         
         // 4. Get fulfilled actions from the needCompleted law
         // Find the executed actions for the needCompleted law by matching the law index
@@ -58,21 +58,21 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
           return lawForExecution?.index === needCompletedLaw.index
         })
         
-        console.log("@getEnabledActions: NeedCompleted law executions", {needCompletedLawExecutions, actionsCount: needCompletedLawExecutions?.actionsIds.length})
+        // console.log("@getEnabledActions: NeedCompleted law executions", {needCompletedLawExecutions, actionsCount: needCompletedLawExecutions?.actionsIds.length})
         
         if (needCompletedLawExecutions && needCompletedLawExecutions.actionsIds.length > 0) {
           // 5. For each fulfilled action, we need to get its data to calculate the corresponding action ID for the original law
           for (const fulfilledActionId of needCompletedLawExecutions.actionsIds) {
             try {
               // Fetch the complete action data for the fulfilled action
-              console.log("@getEnabledActions: Fetching fulfilled action data", {fulfilledActionId})
+              // console.log("@getEnabledActions: Fetching fulfilled action data", {fulfilledActionId})
               
               const fulfilledActionData = await fetchActionData(fulfilledActionId, powers)
 
-              console.log("@getEnabledActions A: Fetched fulfilled action data", {fulfilledActionData})
+              // console.log("@getEnabledActions A: Fetched fulfilled action data", {fulfilledActionData})
 
               if (fulfilledActionData) {
-                console.log("@getEnabledActions B: Fetched fulfilled action data", {fulfilledActionData})
+                // console.log("@getEnabledActions B: Fetched fulfilled action data", {fulfilledActionData})
                 
                 // Now we need to calculate what the action ID would be for the original law
                 // We'll use the same nonce and callData but with the original law's index
@@ -82,7 +82,7 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
                   BigInt(fulfilledActionData.nonce) // Use the same nonce
                 )
                 
-                console.log("@getEnabledActions: Calculated action ID", {calculatedActionId, lawIndex: law.index, callData: fulfilledActionData.callData, nonce: fulfilledActionData.nonce})
+                // console.log("@getEnabledActions: Calculated action ID", {calculatedActionId, lawIndex: law.index, callData: fulfilledActionData.callData, nonce: fulfilledActionData.nonce})
                 
                 // Check if this action exists in the original law's proposals
                 const existingAction = powers.proposals?.find(action => 
@@ -90,7 +90,7 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
                   action.lawId === law.index
                 )
                 
-                console.log("@getEnabledActions: Checking if action exists", {calculatedActionId, existingAction: !!existingAction})
+                // console.log("@getEnabledActions: Checking if action exists", {calculatedActionId, existingAction: !!existingAction})
                 
                 // 6. If action is undefined (doesn't exist in proposals), add to enabledActions
                 if (!existingAction) {
@@ -113,7 +113,7 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
                     needCompletedLaw: needCompletedLaw
                   }
                   enabledActions.push(enabledAction)
-                  console.log("@getEnabledActions: Added enabled action", {enabledAction})
+                  // console.log("@getEnabledActions: Added enabled action", {enabledAction})
                 }
               }
             } catch (error) {
@@ -125,7 +125,7 @@ const getEnabledActions = async (powers: Powers, hasRoles: {role: bigint, since:
     }
   }
   
-  console.log("@getEnabledActions: Final enabled actions", {enabledActionsCount: enabledActions.length, enabledActions})
+  // console.log("@getEnabledActions: Final enabled actions", {enabledActionsCount: enabledActions.length, enabledActions: enabledActions.length})
   return enabledActions
 }
 
@@ -135,11 +135,12 @@ type IncomingProps = {
   proposals: Action[]
   loading: boolean
   onRefresh: () => void
+  resetRef: React.MutableRefObject<(() => void) | null>
 }
 
-export default function Incoming({hasRoles, powers, proposals, loading, onRefresh}: IncomingProps) {
+export default function Incoming({hasRoles, powers, proposals, loading, onRefresh, resetRef}: IncomingProps) {
   const { chainId } = useParams<{ chainId: string }>()
-  const { getProposalsState } = useProposal()
+  const { getProposalsState, propose } = useProposal()
   const { fetchChainChecks, status: statusChecks } = useChecks()
   const { fetchActionData } = useAction()
   const { status: statusLaw, execute } = useLaw()
@@ -152,8 +153,40 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
   const [selectedItem, setSelectedItem] = useState<Action | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
+  const [dynamicDescription, setDynamicDescription] = useState<string>('')
 
-  console.log("@Incoming, waypoint 0", {proposals, powers, enabledActions, enabledActionsCount: enabledActions.length})
+  // Reset function to go back to list view
+  const resetSelection = useCallback(() => {
+    setSelectedProposal(null)
+    setSelectedItem(null)
+    setActionData(null)
+    setDynamicDescription('')
+  }, [])
+
+  // Assign reset function to ref
+  React.useEffect(() => {
+    resetRef.current = resetSelection
+    return () => {
+      resetRef.current = null
+    }
+  }, [resetSelection, resetRef])
+
+  // console.log("@Incoming, waypoint 0", {proposals, powers, enabledActions, enabledActionsCount: enabledActions.length})
+
+  // Filter out enabled actions that already have active or succeeded proposals
+  const filteredEnabledActions = useMemo(() => {
+    if (!enabledActions.length || !powers?.proposals) return enabledActions
+    
+    return enabledActions.filter(enabledAction => {
+      // Check if there's a proposal with the same actionId and lawId
+      const hasProposal = powers.proposals!.some(proposal => 
+        proposal.actionId === enabledAction.actionId && 
+        (proposal.state == 0 || proposal.state == 3) // Active (0) or Succeeded (3)
+      )
+      
+      return !hasProposal
+    })
+  }, [enabledActions, powers?.proposals])
 
   // Get laws that will be enabled by executing the selected item's law
   const enabledLaws = selectedItem && powers?.laws ? 
@@ -184,30 +217,30 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
   // Fetch enabled actions when powers or hasRoles change
   useEffect(() => {
     const fetchEnabledActions = async () => {
-      console.log("@Incoming: useEffect triggered", {powers: !!powers, hasRoles: hasRoles.length, fetchActionData: !!fetchActionData})
+      // console.log("@Incoming: useEffect triggered", {powers: !!powers, hasRoles: hasRoles.length, fetchActionData: !!fetchActionData})
       
       if (powers && hasRoles.length > 0 && fetchActionData) {
         try {
-          console.log("@Incoming: Starting to fetch enabled actions", {
-            powers: !!powers, 
-            hasRoles: hasRoles.length,
-            laws: powers.laws?.length,
-            executedActions: powers.executedActions?.length,
-            proposals: powers.proposals?.length
-          })
+          // console.log("@Incoming: Starting to fetch enabled actions", {
+          //   powers: !!powers, 
+          //   hasRoles: hasRoles.length,
+          //   laws: powers.laws?.length,
+          //   executedActions: powers.executedActions?.length,
+          //   proposals: powers.proposals?.length
+          // })
           const enabled = await getEnabledActions(powers, hasRoles, fetchActionData)
           setEnabledActions(enabled)
-          console.log("@Incoming: Successfully fetched enabled actions", {enabledCount: enabled.length, enabled})
+          // console.log("@Incoming: Successfully fetched enabled actions", {enabledCount: enabled.length, enabled})
         } catch (error) {
           console.error("Error fetching enabled actions:", error)
           setEnabledActions([]) // Reset on error
         }
       } else {
-        console.log("@Incoming: Conditions not met for fetching enabled actions", {
-          powers: !!powers,
-          hasRoles: hasRoles.length,
-          fetchActionData: !!fetchActionData
-        })
+        // console.log("@Incoming: Conditions not met for fetching enabled actions", {
+        //   powers: !!powers,
+        //   hasRoles: hasRoles.length,
+        //   fetchActionData: !!fetchActionData
+        // })
         setEnabledActions([]) // Reset if conditions not met
       }
     }
@@ -230,19 +263,23 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
     
     try {
       // Check if this is an enabled action with stored original fulfilled action data
-      const isEnabledAction = enabledActions.some(enabled => enabled.actionId === action.actionId)
+      const isEnabledAction = filteredEnabledActions.some(enabled => enabled.actionId === action.actionId)
       
       if (isEnabledAction && action.originalFulfilledAction) {
         // For enabled actions, use the stored original fulfilled action data
-        console.log("@handleItemClick: Using stored original fulfilled action data", {originalFulfilledAction: action.originalFulfilledAction})
+        // console.log("@handleItemClick: Using stored original fulfilled action data", {originalFulfilledAction: action.originalFulfilledAction})
         setActionData(action.originalFulfilledAction)
         setAction(action.originalFulfilledAction)
+        // Initialize dynamic description for enabled actions
+        setDynamicDescription(action.originalFulfilledAction.description || '')
       } else {
         // For succeeded proposals, fetch the action data normally
         const actionData = await fetchActionData(BigInt(action.actionId), powers)
         if (actionData) {
           setActionData(actionData)
           setAction(actionData)
+          // For succeeded proposals, use the existing description
+          setDynamicDescription(actionData.description || '')
         }
       }
     } catch (error) {
@@ -250,7 +287,7 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
     } finally {
       setLoadingActionData(false)
     }
-  }, [fetchActionData, powers, enabledActions])
+  }, [fetchActionData, powers, filteredEnabledActions])
 
   // Wrapper for fetchChainChecks to match the expected signature
   const handleCheck = async (law: Law, action: Action, wallets: any[], powers: Powers) => {
@@ -285,11 +322,48 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
       lawCalldata = '0x0'
     }
 
+    // Use dynamic description for enabled actions, otherwise use the provided description
+    const isEnabledAction = filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId)
+    const finalDescription = isEnabledAction ? dynamicDescription : description
+
     execute(
       law, 
       lawCalldata as `0x${string}`,
       nonce,
-      description
+      finalDescription
+    )
+  }
+
+  // Handle propose for static form view
+  const handlePropose = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    if (!selectedItem) return
+    
+    const law = powers.laws?.find(law => law.index === BigInt(selectedItem.lawId)) as Law
+    if (!law) return
+    
+    let lawCalldata: `0x${string}` | undefined
+    
+    if (paramValues.length > 0 && paramValues) {
+      try {
+        lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+      } catch (error) {
+        console.error("Error encoding parameters:", error)
+        return
+      }
+    } else {
+      lawCalldata = '0x0'
+    }
+
+    // Use dynamic description for enabled actions, otherwise use the provided description
+    const isEnabledAction = filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId)
+    const finalDescription = isEnabledAction ? dynamicDescription : description
+
+    propose(
+      law.index as bigint,
+      lawCalldata,
+      nonce,
+      finalDescription,
+      powers as Powers
     )
   }
 
@@ -321,7 +395,7 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Action <b>coming</b> from: </h3>
                 <div className="w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 opacity-50">
-                  <PortalItem
+                  <UserItem
                     powers={powers as Powers}
                     law={selectedItem.needCompletedLaw}
                     chainId={chainId as string}
@@ -334,15 +408,15 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
 
             {/* Static Form with Action Data - Matching DynamicForm layout */}
             <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`}>
-              {/* Header section with PortalItem - matching DynamicForm */}
+              {/* Header section with UserItem - matching DynamicForm */}
               <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-                <PortalItem
+                <UserItem
                   powers={powers as Powers}
                   law={law}
                   chainId={chainId as string}
                   actionId={BigInt(selectedItem.actionId)}
                   showLowerSection={false}
-                  isEnabledAction={enabledActions.some(enabled => enabled.actionId === selectedItem.actionId)}
+                  isEnabledAction={filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId)}
                 />
               </div>
 
@@ -353,7 +427,31 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
                     <div className="text-slate-500">Loading action data...</div>
                   </div>
                 ) : actionData ? (
-                  <StaticForm law={law} />
+                  <>
+                    <StaticForm 
+                      law={law} 
+                      staticDescription={!filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId)}
+                    />
+                    
+                    {/* Dynamic reason box for enabled actions */}
+                    {filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId) && (
+                      <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3 min-h-24">
+                        <label htmlFor="dynamicReason" className="text-xs text-slate-600 ps-3 min-w-28 pt-1">Description</label>
+                        <div className="w-full flex items-center rounded-md outline outline-1 outline-slate-300">
+                          <textarea 
+                            name="dynamicReason" 
+                            id="dynamicReason" 
+                            rows={5} 
+                            cols={25} 
+                            value={dynamicDescription}
+                            onChange={(e) => setDynamicDescription(e.target.value)}
+                            className="w-full py-1.5 ps-2 pe-3 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0" 
+                            placeholder="Enter your description for this action here."
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-slate-500 italic">No action data available</div>
                 )}
@@ -374,31 +472,49 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
                       }}
                       filled={false}
                       selected={true}
-                      statusButton="idle"
+                      statusButton={
+                        // For enabled actions, check if we have action data and description
+                        filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId) 
+                          ? (actionData && dynamicDescription && dynamicDescription.length > 0 ? statusChecks : 'disabled')
+                          : statusChecks
+                      }
                     >
                       Check
                     </Button>
                   </div>
 
-                  {/* Execute button */}
+                  {/* Execute or Propose button */}
                   <div className="w-full h-fit px-6 py-2 pb-6">
                     <Button 
                       size={0} 
                       role={6}
                       onClick={() => {
                         if (actionData) {
-                          handleExecute(
-                            actionData.paramValues ? actionData.paramValues : [], 
-                            BigInt(actionData.nonce), 
-                            actionData.description
-                          )
+                          if (law?.conditions?.quorum != 0n) {
+                            handlePropose(
+                              actionData.paramValues ? actionData.paramValues : [], 
+                              BigInt(actionData.nonce), 
+                              actionData.description
+                            )
+                          } else {
+                            handleExecute(
+                              actionData.paramValues ? actionData.paramValues : [], 
+                              BigInt(actionData.nonce), 
+                              actionData.description
+                            )
+                          }
                         }
                       }} 
                       filled={false}
                       selected={true}
-                      statusButton={statusLaw}
+                      statusButton={
+                        // For enabled actions, check if we have action data and description
+                        filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId) 
+                          ? (actionData && dynamicDescription && dynamicDescription.length > 0 ? statusLaw : 'disabled')
+                          : statusLaw
+                      }
                     > 
-                      Execute
+                      {law?.conditions?.quorum != 0n ? 'Create proposal' : 'Execute'}
                     </Button>
                   </div>
                 </>
@@ -545,10 +661,10 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
         {loading ? (
           <div className="p-4">
             <div className="flex items-center justify-center py-8">
-              <div className="text-sm text-slate-500">Loading active proposals...</div>
+              <div className="text-sm text-slate-500">Loading active proposals and enabled actions...</div>
             </div>
           </div>
-        ) : (proposals.length === 0 && enabledActions.length === 0) ? (
+        ) : (proposals.length === 0 && filteredEnabledActions.length === 0) ? (
           <div className="p-4">
             <div className="text-center py-8">
               <p className="text-sm text-slate-500 italic">
@@ -566,7 +682,7 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => proposal.state === 3 ? handleItemClick(proposal) : handleProposalClick(proposal)}
               >
-                <PortalItem
+                <UserItem
                   powers={powers}
                   law={powers.laws?.find(law => law.index === BigInt(proposal.lawId)) as Law}
                   chainId={chainId as string}
@@ -578,13 +694,13 @@ export default function Incoming({hasRoles, powers, proposals, loading, onRefres
             ))}
             
             {/* Enabled actions */}
-            {enabledActions.map((action: Action) => (
+            {filteredEnabledActions.map((action: Action) => (
               <div 
                 key={`enabled-${action.actionId}-${action.lawId}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => handleItemClick(action)}
               >
-                <PortalItem
+                <UserItem
                   powers={powers}
                   law={powers.laws?.find(law => law.index === BigInt(action.lawId)) as Law}
                   chainId={chainId as string}

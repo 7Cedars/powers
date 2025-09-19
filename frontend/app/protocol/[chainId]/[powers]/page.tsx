@@ -103,8 +103,8 @@ export default function FlowPage() {
     }
   }, [powers, fetchExecutedActions])
 
-  const navigateToUserPortal = () => {
-    router.push(`/portal/${chainId}/${addressPowers}`)
+  const navigateToUserUser = () => {
+    router.push(`/user/${chainId}/${addressPowers}`)
   }
   
   return (
@@ -194,7 +194,7 @@ export default function FlowPage() {
           role={6}
           filled={false}
           selected={true}
-          onClick={navigateToUserPortal}
+          onClick={navigateToUserUser}
           statusButton="idle"
         > 
           <div className="flex flex-row gap-1 items-center justify-center">

@@ -441,7 +441,7 @@ export const usePowers = () => {
 
     try {
       for (law of laws) {
-        // console.log("@fetchExecutedActions, waypoint 0", {law})
+        console.log("@fetchExecutedActions, waypoint 0", {law})
 
         const executedActionsFetched = await readContract(wagmiConfig, {
           abi: lawAbi,
@@ -449,10 +449,10 @@ export const usePowers = () => {
           functionName: 'getExecutions',
           args: [law.powers, law.index]
         })
-        // console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
+        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
         executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
-      // console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
+      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
       powersUpdated = { ...powers, executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)

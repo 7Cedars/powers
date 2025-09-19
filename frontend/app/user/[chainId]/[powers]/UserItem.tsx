@@ -9,7 +9,7 @@ import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { useBlocks } from '@/hooks/useBlocks';
 import { toEurTimeFormat, toFullDateFormat } from '@/utils/toDates';
 
-type PortalItemProps = {
+type UserItemProps = {
   powers: Powers;
   law: Law;
   actionId?: bigint;
@@ -19,7 +19,7 @@ type PortalItemProps = {
   children?: React.ReactNode;
 };
 
-export function PortalItem({
+export function UserItem({
   powers, 
   law, 
   actionId,
@@ -27,7 +27,7 @@ export function PortalItem({
   showLowerSection = false,
   isEnabledAction = false,
   children 
-}: PortalItemProps) {
+}: UserItemProps) {
   const chains = useChains();
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId));
   const { timestamps, fetchTimestamps } = useBlocks();

@@ -47,7 +47,7 @@ export default function ProfilePage() {
 
   const handleProtocolClick = (protocol: Powers) => {
     const chainId = protocol.chainId ? Number(protocol.chainId).toString() : '11155111'
-    router.push(`/portal/${chainId}/${protocol.contractAddress}`)
+    router.push(`/user/${chainId}/${protocol.contractAddress}`)
   }
 
   if (!authenticated) {
@@ -92,7 +92,7 @@ export default function ProfilePage() {
             You haven't selected any protocols yet.
           </p>
           <Link 
-            href="/portal/settings"
+            href="/user/settings"
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
           >
             Go to Settings to Add Protocols
@@ -155,7 +155,7 @@ export default function ProfilePage() {
           
           {/* Add Protocol Button */}
           <button
-            onClick={() => router.push('/portal/settings')}
+            onClick={() => router.push('/user/settings')}
             className="rounded-lg border border-transparent hover:border-slate-300 shadow-sm hover:shadow-md transition-all overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
           >
             <div className="relative min-h-48 flex flex-col justify-center items-center text-slate-400 group-hover:text-slate-600">

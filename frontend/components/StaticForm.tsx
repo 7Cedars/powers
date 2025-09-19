@@ -7,9 +7,10 @@ import { Law } from "@/context/types";
 
 type StaticFormProps = {
   law?: Law;
+  staticDescription?: boolean;
 };
 
-export function StaticForm({ law }: StaticFormProps) {
+export function StaticForm({ law, staticDescription = true }: StaticFormProps) {
   const action = useActionStore();
 
   return (
@@ -39,6 +40,7 @@ export function StaticForm({ law }: StaticFormProps) {
       </div>
 
       {/* reason */}
+      {staticDescription && 
       <div className="w-full mt-4 flex flex-row justify-center items-start ps-3 pe-6 gap-3 min-h-24">
         <label htmlFor="reason" className="text-xs text-slate-600 ps-3 min-w-28 pt-1">Description</label>
         <div className="w-full flex items-center rounded-md outline outline-1 outline-slate-300">
@@ -54,6 +56,7 @@ export function StaticForm({ law }: StaticFormProps) {
           />
         </div>
       </div>
+      }
     </form>
   );
 }

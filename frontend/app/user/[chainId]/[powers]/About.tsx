@@ -7,7 +7,7 @@ import { parseChainId } from '@/utils/parsers'
 import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { PortalItem } from './PortalItem'
+import { UserItem } from './UserItem'
 import { bigintToRole } from '@/utils/bigintTo'
 import { default as DynamicThumbnail } from '@/components/DynamicThumbnail'
 
@@ -171,7 +171,7 @@ export default function About({ powers }: AboutProps) {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {powers.laws.map((law) => (
                     <div key={`${law.lawAddress}-${law.index}`} className="border border-slate-200 rounded-md">
-                      <PortalItem
+                      <UserItem
                         powers={powers}
                         law={law}
                         chainId={powers.chainId.toString()}

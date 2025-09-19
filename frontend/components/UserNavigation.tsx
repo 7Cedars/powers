@@ -18,33 +18,33 @@ const layoutIcons: string = 'h-6 w-6'
 const layoutText: string = 'lg:opacity-100 lg:text-sm text-[0px] lg:w-fit w-0 opacity-0'
 const layoutButton: string = `w-full h-full flex flex-row justify-center items-center rounded-md border aria-selected:bg-slate-200 md:hover:border-slate-600 text-sm aria-selected:text-slate-700 text-slate-500 border-transparent`
 
-// Portal navigation configuration
-const portalNavigationConfig = [
+// User navigation configuration
+const userNavigationConfig = [
   {
     id: 'home',
     label: 'Home',
     icon: HomeIcon,
-    path: '/portal',
+    path: '/user',
   },
   // {
   //   id: 'settings',
   //   label: 'Settings',
   //   icon: BookOpenIcon,
-  //   path: '/portal/settings',
+  //   path: '/user/settings',
   // }
 ]
 
-const PortalNavigationBar = () => {
+const UserNavigationBar = () => {
   const router = useRouter()
   const path = usePathname()
 
-  const handleNavigation = (item: typeof portalNavigationConfig[0]) => {
+  const handleNavigation = (item: typeof userNavigationConfig[0]) => {
     router.push(item.path)
   }
 
-  const isSelected = (item: typeof portalNavigationConfig[0]) => {
+  const isSelected = (item: typeof userNavigationConfig[0]) => {
     if (item.id === 'home') {
-      return path === '/portal' || path === '/portal/'
+      return path === '/user' || path === '/user/'
     }
     return path === item.path
   }
@@ -52,7 +52,7 @@ const PortalNavigationBar = () => {
   return (
     <>
       <div className="w-full h-full flex flex-row gap-2 justify-center items-center px-2 overflow-hidden navigation-bar" help-nav-item="navigation-pages"> 
-        {portalNavigationConfig.map((item) => (
+        {userNavigationConfig.map((item) => (
           <button 
             key={item.id}
             onClick={() => handleNavigation(item)}
@@ -72,7 +72,7 @@ const PortalNavigationBar = () => {
   )
 }
 
-const PortalHeader = () => {
+const UserHeader = () => {
   const path = usePathname()
 
   return (
@@ -95,7 +95,7 @@ const PortalHeader = () => {
         
         <div className="flex flex-row gap-2 items-center">
           <div className="w-fit min-w-44 md:min-w-2xl flex flex-row opacity-0 md:opacity-100">
-            <PortalNavigationBar />
+            <UserNavigationBar />
           </div>
           
           <ConnectButton />
@@ -105,26 +105,26 @@ const PortalHeader = () => {
   )
 }
 
-const PortalFooter = () => {  
+const UserFooter = () => {  
   return (
      <div className="absolute bottom-0 z-20 pt-1 bg-slate-100 flex justify-between border-t border-slate-300 h-12 items-center md:collapse w-full text-sm overflow-hidden">
-        <PortalNavigationBar />
+        <UserNavigationBar />
     </div>
   )
 }
 
-interface PortalNavigationProps {
+interface UserNavigationProps {
   children: React.ReactNode
 }
 
-export const PortalNavigation = ({ children }: PortalNavigationProps) => {
+export const UserNavigation = ({ children }: UserNavigationProps) => {
   return (
     <div className="w-full h-full flex flex-col justify-center items-center">
-      <PortalHeader /> 
+      <UserHeader /> 
       <main className="w-screen h-full flex flex-col justify-center items-center">
         {children}   
       </main>
-      <PortalFooter /> 
+      <UserFooter /> 
     </div>
   )
 }
