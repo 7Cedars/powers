@@ -81,4 +81,13 @@ interface PowersErrors {
 
     /// @notice Emitted when a law does not exist.
     error Powers__LawDoesNotExist();
+
+    /// @notice Emitted when a role has no members.
+    error Powers__NoMembersInRole();
+
+    /// @notice Emitted when an action is already fulfilled.
+    error Powers__ActionAlreadyFulfilled();
+
+    /// @notice Emitted when a law request fails.
+    error Powers__LawRequestFailed();
 }

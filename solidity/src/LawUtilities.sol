@@ -12,17 +12,11 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// NB: This library will soon be depricated.
-
 /// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
-/// @dev Provides common functionality for law implementation and validation
+/// @dev Provides common functionality for Law implementation and validation
 /// @author 7Cedars
 
-// Regarding decoding calldata.
-// Note that validating calldata is not possible at the moment.
-// See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
-// The feature request has been open for almost five years(!) at time of writing.
 pragma solidity 0.8.26;
 
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
@@ -33,17 +27,6 @@ import { PowersTypes } from "./interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library LawUtilities {
-    //////////////////////////////////////////////////////////////
-    //                        ERRORS                            //
-    //////////////////////////////////////////////////////////////
-    error LawUtilities__ParentNotCompleted();
-    error LawUtilities__ParentBlocksCompletion();
-    error LawUtilities__ExecutionGapTooSmall();
-    error LawUtilities__ProposalNotSucceeded();
-    error LawUtilities__DeadlineNotPassed();
-    error LawUtilities__StringTooShort();
-    error LawUtilities__StringTooLong();
-
     //////////////////////////////////////////////////////////////
     //                  STORAGE POINTERS                        //
     //////////////////////////////////////////////////////////////
@@ -59,84 +42,13 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     function checkStringLength(string memory name_, uint256 minLength, uint256 maxLength) external pure {
         if (bytes(name_).length < minLength) {
-            revert LawUtilities__StringTooShort();
+            revert ("String too short");
         }
         if (bytes(name_).length > maxLength) {
-            revert LawUtilities__StringTooLong();
+            revert ("String too long");
         }
     }
 
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
-    /// @param conditions The conditionsuration parameters for the law
-    /// @param lawCalldata The calldata of the law
-    /// @param nonce The nonce of the law
-    function baseChecksAtPropose(
-        ILaw.Conditions memory conditions,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce
-    ) external view {
-        // Check if parent law completion is required
-        if (conditions.needCompleted != 0) {
-            uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-            // console2.log("parentActionId", parentActionId);
-            uint8 stateLog = uint8(Powers(payable(powers)).state(parentActionId));
-            // console2.log("state", stateLog);
-            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
-                revert LawUtilities__ParentNotCompleted();
-            }
-        }
-
-        // Check if parent law must not be completed
-        if (conditions.needNotCompleted != 0) {
-            uint256 parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
-                revert LawUtilities__ParentBlocksCompletion();
-            }
-        }
-    }
-
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
-    /// @param conditions The conditionsuration parameters for the law
-    /// @param lawCalldata The calldata of the law
-    /// @param nonce The nonce of the law
-    function baseChecksAtExecute(
-        ILaw.Conditions memory conditions,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce,
-        uint48[] memory executions,
-        uint16 lawId
-    ) external view {
-        // Check execution throttling
-        if (conditions.throttleExecution != 0) {
-            if (
-                executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
-            ) {
-                revert LawUtilities__ExecutionGapTooSmall();
-            }
-        }
-
-        // Check if proposal vote succeeded
-        if (conditions.quorum != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
-                revert LawUtilities__ProposalNotSucceeded();
-            }
-        }
-
-        // Check execution delay after proposal
-        if (conditions.delayExecution != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
-            if (deadline + conditions.delayExecution > block.number) {
-                revert LawUtilities__DeadlineNotPassed();
-            }
-        }
-    }
 
     /////////////////////////////////////////////////////////////
     //                  FUNCTIONS                              //

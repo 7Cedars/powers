@@ -118,7 +118,7 @@ pragma solidity 0.8.26;
 
 //         // step 1: create proposal to request funds.
 //         i = 0;
-//         while (Powers(governYourTax).getActiveLaw(grantAddress) == true) {
+//         while (Powers(governYourTax).getAdoptedLaw(grantAddress) == true) {
 //             i++;
 //             console.log("Begin run: ", i);
 //             description = string.concat("Request grant, request number ", Strings.toString(i));

@@ -140,7 +140,7 @@ export type Powers = {
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  activeLaws?: Law[];
+  AdoptedLaws?: Law[];
   proposals?: Action[];
   proposalsBlocksFetched?: BlockRange;
   executedActions?: LawExecutions[]; // executions per law. 

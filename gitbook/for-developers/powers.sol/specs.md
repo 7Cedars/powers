@@ -28,10 +28,10 @@ mapping(uint256 actionId => Action) internal _actions;
 
 ### \_laws
 
-An internal mapping of `ActiveLaw` structs that tracks all active laws in the protocol.
+An internal mapping of `AdoptedLaw` structs that tracks all active laws in the protocol.
 
 ```solidity
-mapping(uint16 lawId => ActiveLaw) internal laws;
+mapping(uint16 lawId => AdoptedLaw) internal laws;
 ```
 
 ### \_roles
@@ -169,12 +169,12 @@ struct Action {
 }
 ```
 
-### ActiveLaw
+### AdoptedLaw
 
 Tracks an active law's address and status.
 
 ```solidity
-struct ActiveLaw {
+struct AdoptedLaw {
     address targetLaw;
     bool active;
 }

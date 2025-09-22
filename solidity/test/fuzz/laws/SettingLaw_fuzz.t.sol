@@ -172,7 +172,7 @@ pragma solidity 0.8.26;
 
 //     // check if law has been set to active.
 //     console2.log("NEW LAW SET!");
-//     bool active = agDao.activeLaws(newLaw);
+//     bool active = agDao.AdoptedLaws(newLaw);
 //     assert (active == true);
 //   }
 

@@ -129,7 +129,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
     /// @return state the current state of the proposal
-    function state(uint256 actionId) external view returns (ActionState state);
+    function getActionState(uint256 actionId) external view returns (ActionState state);
 
     /// @notice Checks if an account has voted on a specific proposal
     /// @param actionId The unique identifier of the proposal
@@ -140,13 +140,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Gets the deadline for voting on a proposal
     /// @param actionId The unique identifier of the proposal
     /// @return deadline the block number at which voting ends
-    function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
+    function getActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
     /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
-    /// @return cancelled - whether the action has been cancelled
-    /// @return requested - whether the action has been requested
-    /// @return fulfilled - whether the action has been fulfilled
     /// @return lawId - the id of the law that the action is associated with
     /// @return voteStart - the block number at which voting starts
     /// @return voteDuration - the duration of the voting period
@@ -160,9 +157,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
         external
         view
         returns (
-            bool cancelled,
-            bool requested,
-            bool fulfilled,
             uint16 lawId,
             uint48 voteStart,
             uint32 voteDuration,
@@ -173,6 +167,21 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
             uint32 abstainVotes,
             uint256 nonce
         );
+
+    /// @notice Gets the calldata for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return callData The calldata for the action
+    function getActionCalldata(uint256 actionId) external view returns (bytes memory callData);
+
+    /// @notice Gets the URI for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return _uri The URI for the action
+    function getActionUri(uint256 actionId) external view returns (string memory _uri);
+
+    /// @notice Gets the nonce for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return nonce The nonce for the action
+    function getActionNonce(uint256 actionId) external view returns (uint256 nonce);
 
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
@@ -195,7 +204,12 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return law The address of the law
     /// @return lawHash The hash of the law
     /// @return active The active status of the law
-    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
+    function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
+
+    /// @notice Gets the conditions of a law
+    /// @param lawId The id of the law
+    /// @return conditions The conditions of the law
+    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

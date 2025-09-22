@@ -109,7 +109,7 @@ export const useChecks = () => {
     // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     // console.log("Deadline ActionId:", actionId)
-    const law = powers.activeLaws?.find(law => law.index === lawId)
+    const law = powers.AdoptedLaws?.find(law => law.index === lawId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),
@@ -142,19 +142,19 @@ export const useChecks = () => {
     const selectedLawId = String(lawId)
     const connectedNodes: Set<string> = new Set()
     
-    if (powers.activeLaws) {
+    if (powers.AdoptedLaws) {
       // Build dependency maps
       const dependencies = new Map<string, Set<string>>()
       const dependents = new Map<string, Set<string>>()
       
-      powers.activeLaws.forEach(law => {
+      powers.AdoptedLaws.forEach(law => {
         const lawId = String(law.index)
         dependencies.set(lawId, new Set())
         dependents.set(lawId, new Set())
       })
       
       // Populate dependency relationships
-      powers.activeLaws.forEach(law => {
+      powers.AdoptedLaws.forEach(law => {
         const lawId = String(law.index)
         if (law.conditions) {
           if (law.conditions.needCompleted !== 0n) {
@@ -255,7 +255,7 @@ export const useChecks = () => {
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
-      const law: Law | undefined = powers.activeLaws?.find(law => law.index === lawId)
+      const law: Law | undefined = powers.AdoptedLaws?.find(law => law.index === lawId)
 
       const checksMap = new Map<string, Checks>()
       const actionDataMap = new Map<string, Action>()
@@ -263,7 +263,7 @@ export const useChecks = () => {
         try {
           // For each active law, calculate basic checks
           for (const lawStrId of chainLaws) {
-            const targetLaw = powers.activeLaws?.find(law => String(law.index) === lawStrId)
+            const targetLaw = powers.AdoptedLaws?.find(law => String(law.index) === lawStrId)
             if (!targetLaw?.conditions) continue
             const singleChecks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
             checksMap.set(lawStrId, singleChecks as Checks)

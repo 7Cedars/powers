@@ -38,15 +38,4 @@ interface LawErrors {
     /// @notice Emitted when a powers contract address is invalid.
     error Law__InvalidPowersContractAddress();
 
-    /// @notice Emitted when a parent law is not completed.
-    error Law__ParentNotCompleted();
-
-    /// @notice Emitted when a parent law is not completed.
-    error Law__ParentBlocksCompletion();
-
-    /// @notice Emitted when a execution gap is too small.
-    error Law__ExecutionGapTooSmall();
-
-    /// @notice Emitted when a deadline is not passed.
-    error Law__DeadlineNotPassed();
 }

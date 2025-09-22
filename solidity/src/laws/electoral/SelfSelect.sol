@@ -1,82 +1,82 @@
-// SPDX-License-Identifier: MIT
+// // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /// This program is free software: you can redistribute it and/or modify    ///
+// /// it under the terms of the MIT Public License.                           ///
+// ///                                                                         ///
+// /// This is a Proof Of Concept and is not intended for production use.      ///
+// /// Tests are incomplete and it contracts have not been audited.            ///
+// ///                                                                         ///
+// /// It is distributed in the hope that it will be useful and insightful,    ///
+// /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
+// /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
+// ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
-///
-/// @author 7Cedars
+// /// @notice Natspecs are tbi.
+// ///
+// /// @author 7Cedars
 
-/// @notice This contract that assigns or revokes a roleId to the person that called the law.
-/// - At construction time, the following is set:
-///    - the role Id that the contract will be assigned or revoked.
-///
-/// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
-///
-/// - The logic:
-///
-/// @dev The contract is an example of a law that
-/// - an open role elect law.
+// /// @notice This contract that assigns or revokes a roleId to the person that called the law.
+// /// - At construction time, the following is set:
+// ///    - the role Id that the contract will be assigned or revoked.
+// ///
+// /// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
+// ///
+// /// - The logic:
+// ///
+// /// @dev The contract is an example of a law that
+// /// - an open role elect law.
 
-pragma solidity 0.8.26;
+// pragma solidity 0.8.26;
 
-import { Law } from "../../Law.sol";
-import { Powers } from "../../Powers.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+// import { Law } from "../../Law.sol";
+// import { Powers } from "../../Powers.sol";
+// import { LawUtilities } from "../../LawUtilities.sol";
 
-contract SelfSelect is Law {
-    mapping(bytes32 lawHash => uint256 roleId) public roleIds;
+// contract SelfSelect is Law {
+//     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
-    constructor() {
-        bytes memory configParams = abi.encode("uint256 RoleId");
-        emit Law__Deployed(configParams);
-    }
+//     constructor() {
+//         bytes memory configParams = abi.encode("uint256 RoleId");
+//         emit Law__Deployed(configParams);
+//     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        Conditions memory conditions,
-        bytes memory config
-    ) public override {
-        uint256 roleId_ = abi.decode(config, (uint256));
-        roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
+//     function initializeLaw(
+//         uint16 index,
+//         string memory nameDescription,
+//         bytes memory inputParams,
+//         Conditions memory conditions,
+//         bytes memory config
+//     ) public override {
+//         uint256 roleId_ = abi.decode(config, (uint256));
+//         roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
-        inputParams = abi.encode();
-        super.initializeLaw(index, nameDescription, inputParams, conditions, config);
-    }
+//         inputParams = abi.encode();
+//         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+//     }
 
-    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
-        public
-        view
-        override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            bytes memory stateChange
-        )
-    {
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+//     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+//         public
+//         view
+//         override
+//         returns (
+//             uint256 actionId,
+//             address[] memory targets,
+//             uint256[] memory values,
+//             bytes[] memory calldatas,
+//             bytes memory stateChange
+//         )
+//     {
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+//         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        targets[0] = powers;
-        if (Powers(payable(powers)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
-            revert("Account already has role.");
-        }
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
+//         targets[0] = powers;
+//         if (Powers(payable(powers)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
+//             revert("Account already has role.");
+//         }
+//         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
 
-        return (actionId, targets, values, calldatas, "");
-    }
-}
+//         return (actionId, targets, values, calldatas, "");
+//     }
+// }

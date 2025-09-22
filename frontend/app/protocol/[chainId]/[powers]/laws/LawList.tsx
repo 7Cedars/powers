@@ -70,7 +70,7 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
           <LoadingBox /> 
         </div>
         :
-        powers?.activeLaws && powers?.activeLaws.length > 0 ?
+        powers?.AdoptedLaws && powers?.AdoptedLaws.length > 0 ?
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
@@ -84,7 +84,7 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
                 </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
-                    powers?.activeLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
+                    powers?.AdoptedLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
                       <tr
                         key={i}
                         className="text-xs text-left text-slate-800"

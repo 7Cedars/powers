@@ -1129,22 +1129,22 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
-    if (!powers.activeLaws) return { initialNodes: [], initialEdges: [] }
+    if (!powers.AdoptedLaws) return { initialNodes: [], initialEdges: [] }
     
     const nodes: Node[] = []
     const edges: Edge[] = []
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    const positions = createHierarchicalLayout(powers.activeLaws, savedLayout)
+    const positions = createHierarchicalLayout(powers.AdoptedLaws, savedLayout)
     
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
     const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(selectedLawIdFromStore, powers.activeLaws!)
+      ? findConnectedNodes(selectedLawIdFromStore, powers.AdoptedLaws!)
       : undefined
     
-    powers.activeLaws.forEach((law, lawIndex) => {
+    powers.AdoptedLaws.forEach((law, lawIndex) => {
       const roleColor = DEFAULT_NODE_COLOR
       
       // Get checks for this law
@@ -1263,7 +1263,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     return { initialNodes: nodes, initialEdges: edges }
   }, [
-    powers.activeLaws, 
+    powers.AdoptedLaws, 
     powers.contractAddress,
     chainChecks, 
     handleNodeClick, 
@@ -1332,7 +1332,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }
   }, [onNodesChange, debouncedSaveLayout])
 
-  if (!powers.activeLaws || powers.activeLaws.length === 0) {
+  if (!powers.AdoptedLaws || powers.AdoptedLaws.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">

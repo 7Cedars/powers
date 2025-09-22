@@ -465,8 +465,8 @@ DA:518,4
 FN:522,Powers.proposalDeadline
 FNDA:2,Powers.proposalDeadline
 DA:524,111
-FN:528,Powers.getActiveLaw
-FNDA:2,Powers.getActiveLaw
+FN:528,Powers.getAdoptedLaw
+FNDA:2,Powers.getAdoptedLaw
 DA:529,2
 FN:536,Powers.onERC721Received
 FNDA:1,Powers.onERC721Received

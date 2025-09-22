@@ -5,7 +5,7 @@ The Powers protocol uses laws as modular, role-restricted governance actions. La
 ## Law System Overview
 
 ### Law Structure
-Each law is represented by an `ActiveLaw` struct containing:
+Each law is represented by an `AdoptedLaw` struct containing:
 - `targetLaw`: The address of the law contract
 - `active`: Boolean indicating if the law is currently active
 
@@ -59,9 +59,9 @@ The function:
 ## Law Queries
 
 ### Checking Law Status
-The `getActiveLaw` function returns information about a law:
+The `getAdoptedLaw` function returns information about a law:
 ```solidity
-function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active)
+function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active)
 ```
 
 ### Law Conditions

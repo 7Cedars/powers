@@ -514,7 +514,7 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "getActiveLaw",
+    "name": "getAdoptedLaw",
     "inputs": [
       { "name": "lawId", "type": "uint16", "internalType": "uint16" }
     ],

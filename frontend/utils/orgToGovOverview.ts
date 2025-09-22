@@ -3,15 +3,15 @@ import { Law, Powers } from "@/context/types";
 
 export const orgToGovernanceTracks = (powers: Powers): {tracks: Law[][] | undefined , orphans: Law[] | undefined}  => {
 
-  const childLawIds = powers.activeLaws?.map(law => Number(law.conditions?.needCompleted))
-      .concat(powers.activeLaws?.map(law => Number(law.conditions?.needNotCompleted)))
-      .concat(powers.activeLaws?.map(law => Number(law.conditions?.readStateFrom)))
+  const childLawIds = powers.AdoptedLaws?.map(law => Number(law.conditions?.needCompleted))
+      .concat(powers.AdoptedLaws?.map(law => Number(law.conditions?.needNotCompleted)))
+      .concat(powers.AdoptedLaws?.map(law => Number(law.conditions?.readStateFrom)))
 
   // console.log("@orgToGovernanceTracks, childLawIds: ", childLawIds)
 
-  const childLaws = powers.activeLaws?.filter(law => childLawIds?.includes(Number(law.index)))
+  const childLaws = powers.AdoptedLaws?.filter(law => childLawIds?.includes(Number(law.index)))
   // console.log("@orgToGovernanceTracks, childLaws: ", childLaws)
-  const parentLaws = powers.activeLaws?.filter(law => law.conditions?.needCompleted != 0n || law.conditions?.needNotCompleted != 0n || law.conditions?.readStateFrom != 0n ) 
+  const parentLaws = powers.AdoptedLaws?.filter(law => law.conditions?.needCompleted != 0n || law.conditions?.needNotCompleted != 0n || law.conditions?.readStateFrom != 0n ) 
   // console.log("@orgToGovernanceTracks, parentLaws: ", parentLaws)
   
   const start: Law[] | undefined = childLaws?.filter(law => parentLaws?.includes(law) == false)
@@ -20,7 +20,7 @@ export const orgToGovernanceTracks = (powers: Powers): {tracks: Law[][] | undefi
   // console.log("@orgToGovernanceTracks, middle: ", middle)
   const end: Law[] | undefined = parentLaws?.filter(law => childLaws?.includes(law) == false)
   // console.log("@orgToGovernanceTracks, end: ", end)
-  const orphans = powers.activeLaws?.filter(law => childLaws?.includes(law) == false && parentLaws?.includes(law) == false)
+  const orphans = powers.AdoptedLaws?.filter(law => childLaws?.includes(law) == false && parentLaws?.includes(law) == false)
   // console.log("@orgToGovernanceTracks, orphans: ", orphans)
 
   const tracks1 = end?.map(law => {
