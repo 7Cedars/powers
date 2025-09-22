@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract NominateMe is Law {
+contract NominateMe is Law { 
     struct Data {
         mapping(address nominee => uint48 nominationTime) nominations;
         address[] nomineesSorted;
