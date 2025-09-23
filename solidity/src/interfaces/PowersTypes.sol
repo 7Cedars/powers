@@ -45,6 +45,7 @@ interface PowersTypes {
         address targetLaw; // 20 bytes
         bytes config; // 32 bytes
         Conditions conditions; // 104 bytes
+        address[] externalContracts; // 20 bytes
     }
 
     /// @notice struct to keep track of a proposal.
@@ -55,17 +56,24 @@ interface PowersTypes {
     /// @dev in contrast to other Governance protocols, votes are not weighted and can hence be a uint32, not a uint256.
     /// @dev votes are logged at the proposal. In on struct. This is in contrast to other governance protocols where ProposalVote is a separate struct.
     struct Action {
-        // slot 1. -- just does not fit, optmise later. £todo/
-        ActionState state; // 1
+        // slot 1 
         uint16 lawId; // 2
-        uint48 voteStart; // 6
+        uint48 proposedAt; // 6
+        uint48 requestedAt; // 6
+        uint48 cancelledAt; // 6
+        uint48 fulfilledAt; // 6
+        uint48 voteStart; // 6  
+
+        // slot 2 
         uint32 voteDuration; // 4
-        // slot 2
         address caller; // 20
         uint32 againstVotes; // 4 as votes are not weighted, uint32 is sufficient to count number of votes.  -- this is a big gas saver. As such, combining the proposalCore and ProposalVote is (I think) okay
         uint32 forVotes; // 4
+        
+        // slot 3 
         uint32 abstainVotes; // 4
-        // slots 3.. £check: have to check this out.
+
+        // ... and more slots.
         mapping(address voter => bool) hasVoted; // 20 ?
         // note: We save lawCalldata ONCHAIN when executed. -- this will be mroe expensive, but it decreases dependence on external services.
         bytes lawCalldata; // 32 ... and more.
@@ -79,13 +87,13 @@ interface PowersTypes {
     /// This is because execution logic in {Powers} is separated from the proposal logic.
     enum ActionState {
         NonExistent, 
-        Proposed,
-        Active,
-        Cancelled,
-        Defeated,
-        Succeeded,
-        Requested,
-        Fulfilled
+        Proposed, // - log this 
+        Cancelled, // - log this 
+        Active, // - calculate this
+        Defeated, // - calculate this
+        Succeeded, // - calculate this
+        Requested, // - log this 
+        Fulfilled // - log this 
     }
 
     /// @notice Supported vote types. Matches Governor Bravo ordering.

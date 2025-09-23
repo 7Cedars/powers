@@ -105,4 +105,9 @@ interface PowersEvents {
     /// @notice Emitted when a law is revived.
     /// @param lawId the id of the law
     event LawRevived(uint16 indexed lawId);
+
+    /// @notice Emitted when a address is blacklisted.
+    /// @param account the address of the account
+    /// @param blacklisted the blacklisted status of the account
+    event BlacklistSet(address indexed account, bool indexed blacklisted);
 }

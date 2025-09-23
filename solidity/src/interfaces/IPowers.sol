@@ -122,6 +122,22 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param label The human-readable label for the role
     function labelRole(uint256 roleId, string calldata label) external;
 
+    /// @notice Updates the protocol's metadata URI
+    /// @dev Can only be called through the protocol itself
+    /// @param newUri The new URI string
+    function setUri(string memory newUri) external;
+
+    /// @notice Blacklists an account
+    /// @dev Can only be called through the protocol itself
+    /// @param account The address to blacklist
+    /// @param blacklisted The blacklisted status of the account
+    function blacklistAddress(address account, bool blacklisted) external;
+
+    /// @notice Sets the payable enabled status
+    /// @dev IMPORTANT: When payable is enabled, ether can be sent to the protocol. If there is no function to retrieve the funds, the funds will be locked in the protocol.
+    /// @param payableEnabled The payable enabled status
+    function setPayableEnabled(bool payableEnabled) external;
+
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
     //////////////////////////////////////////////////////////////
@@ -145,28 +161,34 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
     /// @return lawId - the id of the law that the action is associated with
-    /// @return voteStart - the block number at which voting starts
-    /// @return voteDuration - the duration of the voting period
-    /// @return voteEnd - the block number at which voting ends
+    /// @return proposedAt - the block number at which the action was proposed
+    /// @return requestedAt - the block number at which the action was requested
+    /// @return fulfilledAt - the block number at which the action was fulfilled
+    /// @return cancelledAt - the block number at which the action was cancelled
     /// @return caller - the address of the caller
-    /// @return againstVotes - the number of votes against the action
-    /// @return forVotes - the number of votes for the action
-    /// @return abstainVotes - the number of abstain votes
     /// @return nonce - the nonce of the action
     function getActionData(uint256 actionId)
         external
         view
         returns (
             uint16 lawId,
-            uint48 voteStart,
-            uint32 voteDuration,
-            uint256 voteEnd,
+            uint48 proposedAt,
+            uint48 requestedAt,
+            uint48 fulfilledAt,
+            uint48 cancelledAt,
             address caller,
-            uint32 againstVotes,
-            uint32 forVotes,
-            uint32 abstainVotes,
             uint256 nonce
         );
+
+    /// @notice gets the vote data of an actionId that are not an array.
+    /// @param actionId The unique identifier of the proposal
+    /// @return voteStart - the block number at which voting starts
+    /// @return voteDuration - the duration of the voting period
+    /// @return voteEnd - the block number at which voting ends
+    /// @return againstVotes - the number of votes against the action
+    /// @return forVotes - the number of votes for the action
+    /// @return abstainVotes - the number of abstain votes
+    function getActionVoteData(uint256 actionId) external view returns (uint48 voteStart, uint32 voteDuration, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes);
 
     /// @notice Gets the calldata for a specific action
     /// @param actionId The unique identifier of the action
@@ -221,10 +243,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return version the version string
     function version() external pure returns (string memory version);
 
-    /// @notice Updates the protocol's metadata URI
-    /// @dev Can only be called through the protocol itself
-    /// @param newUri The new URI string
-    function setUri(string memory newUri) external;
+    /// @notice Checks if an account is blacklisted
+    /// @param account The address to check
+    /// @return blacklisted The blacklisted status of the account
+    function isBlacklisted(address account) external view returns (bool blacklisted);
 
     //////////////////////////////////////////////////////////////
     //                      TOKEN HANDLING                      //

@@ -56,15 +56,20 @@ contract Powers is EIP712, IPowers {
     mapping(uint256 actionId => Action) internal _actions; // mapping actionId to Action struct
     mapping(uint16 lawId => AdoptedLaw) internal laws; //mapping law address to Law struct
     mapping(uint256 roleId => Role) internal roles; // mapping roleId to Role struct)
+    mapping(address account => bool blacklisted) internal _blacklist; // mapping accounts to blacklisted status
 
     // two roles are preset: ADMIN_ROLE == 0 and PUBLIC_ROLE == type(uint256).max.
     uint256 public constant ADMIN_ROLE = type(uint256).min; // == 0
     uint256 public constant PUBLIC_ROLE = type(uint256).max; // == a lot
     uint256 public constant DENOMINATOR = 100; // == 100%
 
+    uint256 public immutable MAX_CALLDATA_LENGTH;  
+    uint256 public immutable MAX_EXECUTIONS_LENGTH; 
+
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO.
     bool private _constituteExecuted; // has the constitute function been called before?
+    bool private _payableEnabled; // is payable enabled?
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCount = 1; // number of laws that have been initiated throughout the life of the organisation.
 
@@ -91,10 +96,12 @@ contract Powers is EIP712, IPowers {
     /// @param name_ name of the contract
 
     // TODO: add validation params here. 
-    constructor(string memory name_, string memory uri_) EIP712(name_, version()) {
+    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength, uint256 maxExecutionsLength) EIP712(name_, version()) {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
+        MAX_CALLDATA_LENGTH = maxCallDataLength;
+        MAX_EXECUTIONS_LENGTH = maxExecutionsLength;
 
         _setRole(ADMIN_ROLE, msg.sender, true); // the account that initiates a Powerscontract is set to its admin.
 
@@ -104,8 +111,10 @@ contract Powers is EIP712, IPowers {
     /// @notice receive function enabling ETH deposits.
     ///
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
-    /// @dev No access control on this function: anyone can send funds in native currency into the contract.
+    /// @dev If payable is enabled, anyone can send funds in native currency into the contract.
+    /// @dev No access control on this function. 
     receive() external payable virtual {
+        if (!_payableEnabled) revert Powers__PayableNotEnabled();
         emit FundsReceived(msg.value, msg.sender);
     }
 
@@ -113,7 +122,7 @@ contract Powers is EIP712, IPowers {
     //                  GOVERNANCE LOGIC                        //
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
-    /// @dev The execute function follows a call-and-return mechanism. This allows for async execution of laws.
+    /// @dev The request -> fulfill functions follow a call-and-return mechanism. This allows for async execution of laws.
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         payable
@@ -123,23 +132,29 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
         AdoptedLaw memory law = laws[lawId];
 
-        // check 1: does executioner have access to law being executed?
-        if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
+        // check 0 is calldata length is too long
+        if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
-        // check 2: has action already been set as requested?
+        // check 1: is msg.sender blacklisted?
+        if (isBlacklisted(msg.sender)) revert Powers__AddressBlacklisted();
+
+        // check 2: does caller have access to law being executed?
+        if (!canCallLaw(msg.sender, lawId)) revert Powers__CannotCallLaw();
+
+        // check 3: has action already been set as requested?
         if (_hasBeenRequested(actionId)) revert Powers__ActionAlreadyInitiated();
 
-        // check 3: is proposedAction cancelled?
-        if (_actions[actionId].state == ActionState.Cancelled) revert Powers__ActionCancelled();
+        // check 4: is proposedAction cancelled?
+        if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
-        // check 4: do checks pass? 
+        // check 5: do checks pass? 
        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.fulfilledAt);
 
-        // If checks passed, set action as requested.
+        // If everything passed, set action as requested.
         Action storage action = _actions[actionId];
         action.caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
         action.lawId = lawId;
-        action.state = ActionState.Requested;
+        action.requestedAt = uint48(block.number);
         action.lawCalldata = lawCalldata;
         action.uri = uriAction;
         action.nonce = nonce;
@@ -161,21 +176,33 @@ contract Powers is EIP712, IPowers {
         bytes[] calldata calldatas
     ) external payable virtual onlyAdoptedLaw(lawId) {
         AdoptedLaw memory law = laws[lawId];
-        // check 1: is msg.sender a targetLaw?
+
+        // check 1: is law active?
         if (!law.active) revert Powers__LawNotActive();
 
         // check 2: is msg.sender the targetLaw?
-        if (law.targetLaw != msg.sender) revert Powers__AccessDenied();
+        if (law.targetLaw != msg.sender) revert Powers__CallerNotTargetLaw();
 
         // check 3: has action already been set as requested?
         if (!_hasBeenRequested(actionId)) revert Powers__ActionNotRequested();
-        if (_actions[actionId].state == ActionState.Fulfilled) revert Powers__ActionAlreadyFulfilled();
 
-        // check 4: are the lengths of targets, values and calldatas equal?
+        // check 4: has action already been fulfilled?
+        if (_actions[actionId].fulfilledAt > 0) revert Powers__ActionAlreadyFulfilled();
+
+        // check 5: are the lengths of targets, values and calldatas equal?
         if (targets.length != values.length || targets.length != calldatas.length) revert Powers__InvalidCallData();
 
+        // check 6: check array length is too long
+        if (targets.length > MAX_EXECUTIONS_LENGTH) revert Powers__ExecutionArrayTooLong();
+
+        // check 7: for each target, check if calldata does not exceed MAX_CALLDATA_LENGTH + targets have not been blacklisted. 
+        for (uint256 i = 0; i < targets.length; ++i) {
+            if (calldatas[i].length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
+            if (isBlacklisted(targets[i])) revert Powers__AddressBlacklisted();
+        }
+
         // set action as fulfilled
-        _actions[actionId].state = ActionState.Fulfilled;
+        _actions[actionId].fulfilledAt = uint48(block.number);
 
         // execute targets[], values[], calldatas[] received from law.
         for (uint256 i = 0; i < targets.length; ++i) {
@@ -204,7 +231,13 @@ contract Powers is EIP712, IPowers {
         if (!law.active) revert Powers__LawNotActive();
 
         // check 2: does msg.sender have access to targetLaw?
-        if (!canCallLaw(msg.sender, lawId)) revert Powers__AccessDenied();
+        if (!canCallLaw(msg.sender, lawId)) revert Powers__CannotCallLaw();
+
+        // check 3: is caller blacklisted?
+        if (isBlacklisted(msg.sender)) revert Powers__AddressBlacklisted();
+
+        // check 4: is caller too long?
+        if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
         // if checks pass: propose.
         return _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
@@ -220,7 +253,6 @@ contract Powers is EIP712, IPowers {
         virtual
         returns (uint256 actionId)
     {
-        AdoptedLaw memory law = laws[lawId];
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
         Conditions memory conditions = PowersUtilities.getConditions(address(this), lawId);
         actionId = _hashAction(lawId, lawCalldata, nonce);
@@ -237,7 +269,7 @@ contract Powers is EIP712, IPowers {
         // if checks pass: create proposedAction
         Action storage action = _actions[actionId];
         action.lawCalldata = lawCalldata;
-        action.state = ActionState.Proposed;
+        action.proposedAt = uint48(block.number);
         action.lawId = lawId;
         action.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
         action.voteDuration = conditions.votingPeriod;
@@ -267,9 +299,10 @@ contract Powers is EIP712, IPowers {
         returns (uint256)
     {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
-        // only caller can cancel a proposedAction, also checks if proposedAction exists (otherwise _actions[actionId].caller == address(0))
-        if (msg.sender != _actions[actionId].caller) revert Powers__AccessDenied();
-
+        
+        // check: is caller the caller of the proposedAction?
+        if (msg.sender != _actions[actionId].caller) revert Powers__NotProposerAction();
+ 
         return _cancel(lawId, lawCalldata, nonce);
     }
 
@@ -279,11 +312,14 @@ contract Powers is EIP712, IPowers {
     function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal virtual returns (uint256) {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
 
-        // check 1: is action already fulfilled or cancelled?
-        if (_actions[actionId].state == ActionState.Fulfilled || _actions[actionId].state == ActionState.Cancelled) revert Powers__UnexpectedActionState();
+        // check 1: does action exist? 
+        if (_actions[actionId].proposedAt == 0) revert Powers__ActionNotProposed();
+
+        // check 2: is action already fulfilled or cancelled?
+        if (_actions[actionId].fulfilledAt > 0 || _actions[actionId].cancelledAt > 0) revert Powers__UnexpectedActionState();  
 
         // set action as cancelled.
-        _actions[actionId].state = ActionState.Cancelled;
+        _actions[actionId].cancelledAt = uint48(block.number);
 
         // emit event.
         emit ProposedActionCancelled(actionId);
@@ -293,14 +329,12 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function castVote(uint256 actionId, uint8 support) external virtual {
-        address voter = msg.sender;
-        return _castVote(actionId, voter, support, "");
+        return _castVote(actionId, msg.sender, support, "");
     }
 
     /// @inheritdoc IPowers
     function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) public virtual {
-        address voter = msg.sender;
-        return _castVote(actionId, voter, support, reason);
+        return _castVote(actionId, msg.sender, support, reason);
     }
 
     /// @notice Internal vote casting mechanism.
@@ -309,14 +343,14 @@ contract Powers is EIP712, IPowers {
     /// Emits a {SeperatedPowersEvents::VoteCast} event.
     function _castVote(uint256 actionId, address account, uint8 support, string memory reason) internal virtual {
         // Check that the proposedAction is active, that it has not been paused, cancelled or ended yet.
-        if (_actions[actionId].state != ActionState.Active) {
+        if (getActionState(actionId) != ActionState.Active) {
             revert Powers__ProposedActionNotActive();
         }
 
         // Note that we check if account has access to the law targetted in the proposedAction.
         uint16 lawId = _actions[actionId].lawId;
-        if (!canCallLaw(account, lawId)) revert Powers__AccessDenied();
-
+        if (!canCallLaw(account, lawId)) revert Powers__CannotCallLaw();
+ 
         // if all this passes: cast vote.
         _countVote(actionId, account, support);
 
@@ -329,7 +363,7 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function constitute(LawInitData[] memory constituentLaws) external virtual {
         // check 1: only admin can call this function
-        if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__AccessDenied();
+        if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__NotAdmin();
 
         // check 2: this function can only be called once.
         if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
@@ -370,13 +404,31 @@ contract Powers is EIP712, IPowers {
             revert Powers__IncorrectInterface();
         }
 
+        // check if targetLaw and external contracts are blacklisted
+        if (isBlacklisted(lawInitData.targetLaw)) revert Powers__AddressBlacklisted();
+
+        // checks for listed external contracts
+        if (lawInitData.externalContracts.length > 0) {
+            for (uint256 i = 0; i < lawInitData.externalContracts.length; i++) {
+                // check if external contract is not zero address 
+                if (lawInitData.externalContracts[i] == address(0)) revert Powers__CannotAddZeroAddress();
+
+                // check if external contract is a contract
+                if (lawInitData.externalContracts[i].code.length == 0) revert Powers__NotAContract();
+
+                // check if external contract is not blacklisted 
+                if (isBlacklisted(lawInitData.externalContracts[i])) revert Powers__ExternalContractBlacklisted();
+            }
+        }
+
+        // if checks pass, set law as active.
         laws[lawCount].active = true;
         laws[lawCount].targetLaw = lawInitData.targetLaw;
         laws[lawCount].conditions = lawInitData.conditions;
         lawCount++;
 
         Law(lawInitData.targetLaw).initializeLaw(
-            lawCount - 1, lawInitData.nameDescription, "", lawInitData.config
+            lawCount - 1, lawInitData.nameDescription, "", lawInitData.config, lawInitData.externalContracts
         );
 
         // emit event.
@@ -385,6 +437,8 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function assignRole(uint256 roleId, address account) public onlyPowers {
+        if (isBlacklisted(account)) revert Powers__AddressBlacklisted();
+
         _setRole(roleId, account, true);
     }
 
@@ -409,7 +463,7 @@ contract Powers is EIP712, IPowers {
     function _setRole(uint256 roleId, address account, bool access) internal virtual {
         bool newMember = roles[roleId].members[account] == 0;
         // check 1: Public role is locked.
-        if (roleId == PUBLIC_ROLE) revert Powers__CannotAddToPublicRole();
+        if (roleId == PUBLIC_ROLE) revert Powers__CannotSetPublicRole();
         // check 2: Zero address is not allowed.
         if (account == address(0)) revert Powers__CannotAddZeroAddress();
 
@@ -431,6 +485,17 @@ contract Powers is EIP712, IPowers {
         emit RoleSet(roleId, account, access);
     }
 
+    /// @inheritdoc IPowers
+    function blacklistAddress(address account, bool blacklisted) public virtual onlyPowers {
+        _blacklist[account] = blacklisted;
+        emit BlacklistSet(account, blacklisted);
+    }
+
+    /// @inheritdoc IPowers
+    function setPayableEnabled(bool payableEnabled) public virtual onlyPowers {
+        _payableEnabled = payableEnabled;
+    } 
+
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
@@ -450,7 +515,6 @@ contract Powers is EIP712, IPowers {
     function _quorumReached(uint256 actionId) internal view virtual returns (bool) {
         // retrieve quorum and allowedRole from law.
         Action storage proposedAction = _actions[actionId];
-        AdoptedLaw memory law = laws[proposedAction.lawId];
         Conditions memory conditions = PowersUtilities.getConditions(address(this), proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
@@ -468,7 +532,7 @@ contract Powers is EIP712, IPowers {
     ///
     /// @return bool true if the action has been requested, false otherwise.
     function _hasBeenRequested(uint256 actionId) internal view virtual returns (bool) {
-        ActionState state = _actions[actionId].state;
+        ActionState state = getActionState(actionId);
         if (state == ActionState.Requested || state == ActionState.Fulfilled) {
             return true;
         }
@@ -481,7 +545,7 @@ contract Powers is EIP712, IPowers {
     ///
     /// @return bool true if the action has been proposed, false otherwise.
     function _hasBeenProposed(uint256 actionId) internal view virtual returns (bool) {
-        ActionState state = _actions[actionId].state;
+        ActionState state = getActionState(actionId);
         if (
             state != ActionState.NonExistent
             ) {
@@ -496,7 +560,6 @@ contract Powers is EIP712, IPowers {
     function _voteSucceeded(uint256 actionId) internal view virtual returns (bool) {
         // retrieve quorum and success threshold from law.
         Action storage proposedAction = _actions[actionId];
-        AdoptedLaw memory law = laws[proposedAction.lawId];
         Conditions memory conditions = PowersUtilities.getConditions(address(this), proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
@@ -552,7 +615,7 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @notice saves the version of the Powersimplementation.
     function version() public pure returns (string memory) {
-        return "0.3";
+        return "0.4";
     }
 
     /// @inheritdoc IPowers
@@ -580,18 +643,19 @@ contract Powers is EIP712, IPowers {
     function getRoleLabel(uint256 roleId) public view returns (string memory label) {
         return roles[roleId].label;
     }
-        /// @inheritdoc IPowers
+    
+    /// @inheritdoc IPowers
     function getActionState(uint256 actionId) public view virtual returns (ActionState) {
         // We read the struct fields into the stack at once so Solidity emits a single SLOAD
         Action storage action = _actions[actionId];
 
-        if (action.state == ActionState.NonExistent) {
+        if (action.proposedAt == 0 && action.requestedAt == 0 && action.fulfilledAt == 0 && action.cancelledAt == 0) {
             return ActionState.NonExistent;
         }
-        if (action.state == ActionState.Fulfilled) {
+        if (action.fulfilledAt > 0) {
             return ActionState.Fulfilled;
         }
-        if (action.state == ActionState.Cancelled) {
+        if (action.cancelledAt > 0) {
             return ActionState.Cancelled;
         }
 
@@ -613,27 +677,49 @@ contract Powers is EIP712, IPowers {
         virtual
         returns (
             uint16 lawId,
-            uint48 voteStart,
-            uint32 voteDuration,
-            uint256 voteEnd,
+            uint48 proposedAt,
+            uint48 requestedAt,
+            uint48 fulfilledAt,
+            uint48 cancelledAt,
             address caller,
-            uint32 againstVotes,
-            uint32 forVotes,
-            uint32 abstainVotes,
             uint256 nonce
         )
     {
         Action storage action = _actions[actionId];
+
         return (
             action.lawId,
+            action.proposedAt,
+            action.requestedAt,
+            action.fulfilledAt,
+            action.cancelledAt,
+            action.caller,
+            action.nonce
+        );
+    }
+
+    function getActionVoteData(uint256 actionId) 
+        public 
+        view 
+        virtual 
+        returns (
+            uint48 voteStart,
+            uint32 voteDuration,
+            uint256 voteEnd,
+            uint32 againstVotes, 
+            uint32 forVotes, 
+            uint32 abstainVotes
+            ) 
+        {
+        Action storage action = _actions[actionId];
+
+        return (
             action.voteStart,
             action.voteDuration,
             action.voteStart + action.voteDuration,
-            action.caller,
             action.againstVotes,
             action.forVotes,
-            action.abstainVotes,
-            action.nonce
+            action.abstainVotes
         );
     }
 
@@ -671,8 +757,12 @@ contract Powers is EIP712, IPowers {
 
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[lawId].conditions;
-    }
+    } 
 
+    function isBlacklisted(address account) public view returns (bool) {
+        return _blacklist[account];
+    }
+    
     //////////////////////////////////////////////////////////////
     //                       COMPLIANCE                         //
     //////////////////////////////////////////////////////////////

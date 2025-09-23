@@ -34,12 +34,14 @@ interface ILaw is IERC165, LawErrors {
     /// @param index Index of the law
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
+    /// @param externalContracts External contracts that are used by the law
     event Law__Initialized(
         address indexed powers,
         uint16 indexed index,
         string nameDescription,
         bytes inputParams,
-        bytes config
+        bytes config,
+        address[] externalContracts
     );
 
     //////////////////////////////////////////////////////////////
@@ -50,11 +52,13 @@ interface ILaw is IERC165, LawErrors {
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
     /// @param config Configuration parameters for the law
+    /// @param externalContracts External contracts that are used by the law
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        bytes memory config
+        bytes memory config,
+        address[] memory externalContracts
     ) external;
 
     /// @notice Executes the law's logic after validation
@@ -78,7 +82,6 @@ interface ILaw is IERC165, LawErrors {
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
     /// @return calldatas Encoded function calls
-    /// @return stateChange Encoded state changes to apply
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         external
         view
@@ -86,8 +89,7 @@ interface ILaw is IERC165, LawErrors {
             uint256 actionId,
             address[] memory targets,
             uint256[] memory values,
-            bytes[] memory calldatas,
-            bytes memory stateChange
+            bytes[] memory calldatas
         );
 
 }

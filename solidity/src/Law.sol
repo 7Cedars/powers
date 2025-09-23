@@ -47,8 +47,8 @@ abstract contract Law is ERC165, ILaw {
         bytes inputParams;
         bytes config;
         address powers;
+        address[] externalContracts; // external contracts that are used by the law.
     }
-
     mapping(bytes32 lawHash => LawData) public laws;
 
     //////////////////////////////////////////////////////////////
@@ -59,7 +59,8 @@ abstract contract Law is ERC165, ILaw {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        bytes memory config
+        bytes memory config,
+        address[] memory externalContracts
     ) public virtual {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         LawUtilities.checkStringLength(nameDescription, 1, 255);
@@ -68,10 +69,11 @@ abstract contract Law is ERC165, ILaw {
             nameDescription: nameDescription,
             inputParams: inputParams,
             config: config,
-            powers: msg.sender
+            powers: msg.sender,
+            externalContracts: externalContracts
         });
 
-        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config);
+        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config, externalContracts);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
@@ -82,6 +84,7 @@ abstract contract Law is ERC165, ILaw {
     /// @return success True if execution succeeded
     function executeLaw(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
         public
+        virtual
         returns (bool success)
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
@@ -94,8 +97,7 @@ abstract contract Law is ERC165, ILaw {
             uint256 actionId,
             address[] memory targets,
             uint256[] memory values,
-            bytes[] memory calldatas,
-            bytes memory stateChange
+            bytes[] memory calldatas
         ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
         // execute the law's logic conditional on data returned by handleRequest
@@ -115,8 +117,7 @@ abstract contract Law is ERC165, ILaw {
     /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
-    /// @return calldatas Encoded function calls
-    /// @return stateChange Encoded state changes to apply
+    /// @return calldatas Encoded function calls 
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
@@ -125,8 +126,7 @@ abstract contract Law is ERC165, ILaw {
             uint256 actionId,
             address[] memory targets,
             uint256[] memory values,
-            bytes[] memory calldatas,
-            bytes memory stateChange
+            bytes[] memory calldatas
         )
     {
         // Empty implementation - must be overridden
@@ -135,6 +135,8 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
+    // todo? add getConfig function
+
     function getInputParams(address powers, uint16 lawId) public view returns (bytes memory inputParams) {
         return laws[LawUtilities.hashLaw(powers, lawId)].inputParams;
     }
