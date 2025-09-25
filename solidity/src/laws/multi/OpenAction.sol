@@ -12,33 +12,29 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
+/// @notice A base contract that executes a open action.
 ///
-/// @author 7Cedars
-
-/// @notice This contract that assigns or revokes a roleId to the person that called the law.
-/// - At construction time, the following is set:
-///    - the role Id that the contract will be assigned or revoked.
+/// Note As the contract allows for any action to be executed, it severely limits the functionality of the Powers protocol.
+/// - any role that has access to this law, can execute any function. It has full power of the DAO.
+/// - if this law is restricted by PUBLIC_ROLE, it means that anyone has access to it. Which means that anyone is given the right to do anything through the DAO.
+/// - The contract should always be used in combination with modifiers from {PowerModiifiers}.
 ///
-/// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
+/// The logic:
+/// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
 ///
-/// - The logic:
-///
-/// @dev The contract is an example of a law that
-/// - an open role elect law.
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract SelfSelect is Law {
-    mapping(bytes32 lawHash => uint256 roleId) public roleIds;
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
+contract OpenAction is Law {
+    /// @notice Constructor function for OpenAction contract.
     constructor() {
-        bytes memory configParams = abi.encode("uint256 RoleId");
-        emit Law__Deployed(configParams);
+        emit Law__Deployed("");
     }
 
     function initializeLaw(
@@ -47,16 +43,16 @@ contract SelfSelect is Law {
         bytes memory inputParams,
         bytes memory config
     ) public override {
-        uint256 roleId_ = abi.decode(config, (uint256));
-        roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
-
-        inputParams = abi.encode();
+        // Set UI-exposed input parameters: targets, values, calldatas
+        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Execute the open action.
+    /// @param lawCalldata the calldata of the law
+    function handleRequest(address /*caller*/, address /*powers*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
-        view
+        pure
         override
         returns (
             uint256 actionId,
@@ -65,17 +61,9 @@ contract SelfSelect is Law {
             bytes[] memory calldatas
         )
     {
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-
-        if (Powers(payable(powers)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
-            revert("Account already has role.");
-        }
-
-        targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
-
+        // note: no check on decoded call data. If needed, this can be added.
+        (targets, values, calldatas) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
         return (actionId, targets, values, calldatas);
     }
 }

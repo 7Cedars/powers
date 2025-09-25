@@ -12,32 +12,25 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
+/// @notice A base contract that takes an input but does not execute any logic.
 ///
-/// @author 7Cedars
-
-/// @notice This contract that assigns or revokes a roleId to the person that called the law.
-/// - At construction time, the following is set:
-///    - the role Id that the contract will be assigned or revoked.
+/// The logic:
+/// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
+/// - the lawCalldata is not executed.
 ///
-/// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
-///
-/// - The logic:
-///
-/// @dev The contract is an example of a law that
-/// - an open role elect law.
+/// @author 7Cedars,
 
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
-contract SelfSelect is Law {
-    mapping(bytes32 lawHash => uint256 roleId) public roleIds;
-
+contract StatementOfIntent is Law {
+    /// @notice Constructor function for StatementOfIntent law.
     constructor() {
-        bytes memory configParams = abi.encode("uint256 RoleId");
+        // This law does not require config; it forwards user-provided calls.
+        // Expose expected input parameters for UIs.
+        bytes memory configParams = abi.encode("string[] inputParams");
         emit Law__Deployed(configParams);
     }
 
@@ -47,16 +40,15 @@ contract SelfSelect is Law {
         bytes memory inputParams,
         bytes memory config
     ) public override {
-        uint256 roleId_ = abi.decode(config, (uint256));
-        roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
-
-        inputParams = abi.encode();
+        // Set UI-exposed input parameters: targets, values, calldatas
+        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Return calls provided by the user without modification.
+    function handleRequest(address /*caller*/, address /*powers*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
-        view
+        pure
         override
         returns (
             uint256 actionId,
@@ -65,17 +57,8 @@ contract SelfSelect is Law {
             bytes[] memory calldatas
         )
     {
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-
-        if (Powers(payable(powers)).hasRoleSince(caller, roleIds[lawHash]) != 0) {
-            revert("Account already has role.");
-        }
-
-        targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[lawHash], caller); // selector = assignRole
-
+        (targets, values, calldatas) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
         return (actionId, targets, values, calldatas);
     }
 }

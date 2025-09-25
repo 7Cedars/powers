@@ -24,7 +24,7 @@
 // import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 // import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 // import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-// import { SnapshotRegisterProposal } from "../../../src/laws/integrations/SnapshotRegisterProposal.sol";
+// import { SnapshotRegisterProposal } from "../../../src/laws/async/SnapshotRegisterProposal.sol";
 
 // contract SnapshotOracleMock {
 //     /// the targets, values and calldatas to be used in the calls: set at construction.

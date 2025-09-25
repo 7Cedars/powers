@@ -25,7 +25,6 @@ interface PowersTypes {
         uint16 needCompleted; // 2 bytes - index of law that must be completed before this one
         uint48 delayExecution; // 6 bytes  - Blocks to wait after proposal success before execution
         uint48 throttleExecution; // 6 bytes  - Minimum blocks between executions
-        uint16 readStateFrom; // 2 bytes - index of law to read state from (for law dependencies)
         uint32 votingPeriod; // 4 bytes  - Number of blocks for voting period
         uint8 quorum; // 1 byte   - Required participation percentage
         uint8 succeedAt; // 1 byte   - Required success percentage
@@ -45,7 +44,6 @@ interface PowersTypes {
         address targetLaw; // 20 bytes
         bytes config; // 32 bytes
         Conditions conditions; // 104 bytes
-        address[] externalContracts; // 20 bytes
     }
 
     /// @notice struct to keep track of a proposal.

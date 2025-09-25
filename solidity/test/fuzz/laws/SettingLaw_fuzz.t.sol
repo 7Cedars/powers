@@ -177,7 +177,7 @@ pragma solidity 0.8.26;
 //   }
 
 //   ///////////////////////////////////////////////
-//   ///                   Helpers               ///
+//   ///                   Standalone               ///
 //   ///////////////////////////////////////////////
 //  function _deployLaws(address payable agDaoAddress_, address agCoinsAddress_) internal returns (address[] memory lawsArray) {
 //       address[] memory laws = new address[](12);

@@ -47,7 +47,6 @@ abstract contract Law is ERC165, ILaw {
         bytes inputParams;
         bytes config;
         address powers;
-        address[] externalContracts; // external contracts that are used by the law.
     }
     mapping(bytes32 lawHash => LawData) public laws;
 
@@ -59,21 +58,22 @@ abstract contract Law is ERC165, ILaw {
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        bytes memory config,
-        address[] memory externalContracts
+        bytes memory config
     ) public virtual {
+        // console2.log("waypoint 1");
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         LawUtilities.checkStringLength(nameDescription, 1, 255);
+        // console2.log("waypoint 2");
 
         laws[lawHash] = LawData({
             nameDescription: nameDescription,
             inputParams: inputParams,
             config: config,
-            powers: msg.sender,
-            externalContracts: externalContracts
+            powers: msg.sender
         });
+        // console2.log("waypoint 3");
 
-        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config, externalContracts);
+        emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config);
     }
 
     /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
@@ -100,10 +100,9 @@ abstract contract Law is ERC165, ILaw {
             bytes[] memory calldatas
         ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
-        // execute the law's logic conditional on data returned by handleRequest
-        if (targets.length > 0) {
-            IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
-        }
+        _externalCall(actionId, targets, values, calldatas);
+
+        _replyPowers(lawId, actionId, targets, values, calldatas);
     
         return true;
     }
@@ -132,17 +131,30 @@ abstract contract Law is ERC165, ILaw {
         // Empty implementation - must be overridden
     }
 
+    function _externalCall(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+        // optional override by implementing contracts 
+    }
+
+    function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+        // execute the law's logic conditional on data returned by handleRequest
+        if (targets.length > 0) {
+            IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
+        } 
+    }
+
     //////////////////////////////////////////////////////////////
     //                      HELPER FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
-    // todo? add getConfig function
+    function getNameDescription(address powers, uint16 lawId) public view returns (string memory nameDescription) {
+        return laws[LawUtilities.hashLaw(powers, lawId)].nameDescription;
+    }
 
     function getInputParams(address powers, uint16 lawId) public view returns (bytes memory inputParams) {
         return laws[LawUtilities.hashLaw(powers, lawId)].inputParams;
     }
 
-    function getNameDescription(address powers, uint16 lawId) public view returns (string memory nameDescription) {
-        return laws[LawUtilities.hashLaw(powers, lawId)].nameDescription;
+    function getConfig(address powers, uint16 lawId) public view returns (bytes memory config) {
+        return laws[LawUtilities.hashLaw(powers, lawId)].config;
     }
 
     //////////////////////////////////////////////////////////////

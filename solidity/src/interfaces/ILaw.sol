@@ -34,14 +34,12 @@ interface ILaw is IERC165, LawErrors {
     /// @param index Index of the law
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
-    /// @param externalContracts External contracts that are used by the law
     event Law__Initialized(
         address indexed powers,
         uint16 indexed index,
         string nameDescription,
         bytes inputParams,
-        bytes config,
-        address[] externalContracts
+        bytes config
     );
 
     //////////////////////////////////////////////////////////////
@@ -52,13 +50,11 @@ interface ILaw is IERC165, LawErrors {
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
     /// @param config Configuration parameters for the law
-    /// @param externalContracts External contracts that are used by the law
     function initializeLaw(
         uint16 index,
         string memory nameDescription,
         bytes memory inputParams,
-        bytes memory config,
-        address[] memory externalContracts
+        bytes memory config
     ) external;
 
     /// @notice Executes the law's logic after validation

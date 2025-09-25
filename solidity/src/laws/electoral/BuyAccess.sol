@@ -33,7 +33,6 @@
 //         address erc20Token; // erc20 token address.
 //         uint256 tokensPerBlock; // tokens per block.
 //         uint16 roleIdToSet; // role id to set.
-//         bool success; 
 //     }
 
 //     struct Mem {
@@ -46,12 +45,10 @@
 //         uint48 amountBlocksBought;
 //         uint48 lapseBlock;
 //         uint48 newLapseBlock;
-
-        
 //     }
 
 //     mapping(bytes32 lawHash => Data) internal data;
-//      // lapse block is the block number when the access will lapse and it will not be possible to regain access to role if revoked.
+//     // lapse block is the block number when the access will lapse and it will not be possible to regain access to role if revoked.
 //     mapping(bytes32 lawHash => mapping(address account => uint48 lapseBlock)) public lapseBlock;
 
 //     constructor() {
@@ -63,7 +60,6 @@
 //         uint16 index,
 //         string memory nameDescription,
 //         bytes memory inputParams,
-//         Conditions memory conditions,
 //         bytes memory config
 //     ) public override {
 //         (address erc20Token_, uint256 tokensPerBlock_, uint16 roleIdToSet_) =
@@ -75,19 +71,19 @@
 
 //         inputParams = abi.encode("address Account", "uint256 AmountTokens"); // note: you can buy someone else access. 
 
-//         super.initializeLaw(index, nameDescription, inputParams, conditions, config);
+//         super.initializeLaw(index, nameDescription, inputParams, config);
 //     }
 
-//     /// @notice Handles the request to assign or revoke a role based on tax payments
+//     /// @notice Handles the request to assign or revoke a role based on buying access
 //     /// @param caller The address of the caller
+//     /// @param powers The address of the Powers contract
 //     /// @param lawId The ID of the law
-//     /// @param lawCalldata The calldata containing the account to assess
+//     /// @param lawCalldata The calldata containing the account and amount
 //     /// @param nonce The nonce for the action
 //     /// @return actionId The ID of the action
 //     /// @return targets The target addresses for the action
 //     /// @return values The values for the action
 //     /// @return calldatas The calldatas for the action
-//     /// @return stateChange The state change data
 //     function handleRequest(
 //         address caller,
 //         address powers,
@@ -103,8 +99,7 @@
 //             uint256 actionId,
 //             address[] memory targets,
 //             uint256[] memory values,
-//             bytes[] memory calldatas,
-//             bytes memory stateChange
+//             bytes[] memory calldatas
 //         )
 //     {
 //         Mem memory mem;
@@ -127,55 +122,55 @@
 //             : 
 //             mem.lapseBlock + mem.amountBlocksBought;
 
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-//         targets[0] = powers;
-//         calldatas[0] = abi.encode(
-//             caller, 
-//             mem.account,
-//             mem.newLapseBlock,
-//             mem.amountTokens,
-//             mem.data.roleIdToSet
-//         );
-//         stateChange = abi.encode(mem.account, mem.newLapseBlock);
+//         // Create arrays for execution
 
-//         // step 4: return data
-//         return (actionId, targets, values, calldatas, stateChange);
+
+//         // Update lapse block in state
+//         lapseBlock[mem.lawHash][mem.account] = mem.newLapseBlock;
+
+//         return (actionId, targets, values, calldatas);
+//     }
+
+//     function _externalCall(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal override {
+//         // call transferFrom from caller to Powers contract
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+//         targets[0] = mem.data.erc20Token;
+//         values[0] = 0;
+//         calldatas[0] = abi.encodeWithSelector(
+//             ERC20.transferFrom.selector,
+//             caller,
+//             powers,
+//             mem.amountTokens
+//         );
+
+
 //     }
 
 //     function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal override {
-//         Mem memory mem;
-//         (mem.caller, mem.account, mem.newLapseBlock, mem.amountTokens, mem.data.roleIdToSet) = abi.decode(calldatas[0], (address, address, uint48, uint256, uint16));
-//         mem.currentBlock = uint48(block.number);
-//         mem.lawHash = LawUtilities.hashLaw(targets[0], lawId);
-//         mem.data = data[mem.lawHash];
-
-//         // Note: when access is bought, it is added to the block already bought. 
-//         if (mem.amountTokens > 0) {
-//             bool success = ERC20(mem.data.erc20Token).transferFrom(mem.caller, targets[0], mem.amountTokens);
-//             if (!success) {
-//                 revert("Transfer failed.");
-//             }
-//         }
-
+//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
+        
+//         // First call: transfer tokens from caller to Powers contract
+//         targets[0] = mem.data.erc20Token;
+//         values[0] = 0;
 //         calldatas[0] = abi.encodeWithSelector(
+//             ERC20.transferFrom.selector,
+//             caller,
+//             powers,
+//             mem.amountTokens
+//         );
+        
+//         // Second call: assign role to account
+//         targets[1] = powers;
+//         values[1] = 0;
+//         calldatas[1] = abi.encodeWithSelector(
 //             Powers.assignRole.selector,
 //             mem.data.roleIdToSet,
 //             mem.account
 //         );
-//         data[mem.lawHash].success = true;
 
 //         super._replyPowers(lawId, actionId, targets, values, calldatas);
 //     }
 
-//     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
-//         Mem memory mem;
-//         (mem.account, mem.newLapseBlock) = abi.decode(stateChange, (address, uint48));
-
-//         // implement this check AFTER fixing bug in law.sol. 
-//         // if (data[lawHash].success) {
-//             lapseBlock[lawHash][mem.account] = mem.newLapseBlock;
-//         // }
-//     }
 //     function getData(bytes32 lawHash) public view returns (Data memory) {
 //         return data[lawHash];
 //     }

@@ -111,5 +111,6 @@ interface PowersErrors {
 
     /// @notice Emitted when an external contract is not a contract.
     error Powers__NotAContract();
+
 }
     

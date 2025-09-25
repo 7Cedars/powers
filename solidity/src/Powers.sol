@@ -12,8 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Powers Protocol v.0.3
-/// @notice Powers is a Role Restricted Governance Protocol. It provides a modular, flexible, decentralised and efficient governance engine for DAOs.
+/// @title Powers Protocol v.0.4
+/// @notice Powers is a Role Based Governance Protocol. It provides a modular, flexible,  DAOs.
 ///
 /// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Law.sol}. The contract should be used as is, making changes to this contract should be avoided.
 /// @dev Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol.
@@ -148,7 +148,7 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
         // check 5: do checks pass? 
-       PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.fulfilledAt);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.fulfilledAt);
 
         // If everything passed, set action as requested.
         Action storage action = _actions[actionId];
@@ -404,22 +404,8 @@ contract Powers is EIP712, IPowers {
             revert Powers__IncorrectInterface();
         }
 
-        // check if targetLaw and external contracts are blacklisted
+        // check if targetLaw is blacklisted
         if (isBlacklisted(lawInitData.targetLaw)) revert Powers__AddressBlacklisted();
-
-        // checks for listed external contracts
-        if (lawInitData.externalContracts.length > 0) {
-            for (uint256 i = 0; i < lawInitData.externalContracts.length; i++) {
-                // check if external contract is not zero address 
-                if (lawInitData.externalContracts[i] == address(0)) revert Powers__CannotAddZeroAddress();
-
-                // check if external contract is a contract
-                if (lawInitData.externalContracts[i].code.length == 0) revert Powers__NotAContract();
-
-                // check if external contract is not blacklisted 
-                if (isBlacklisted(lawInitData.externalContracts[i])) revert Powers__ExternalContractBlacklisted();
-            }
-        }
 
         // if checks pass, set law as active.
         laws[lawCount].active = true;
@@ -428,7 +414,7 @@ contract Powers is EIP712, IPowers {
         lawCount++;
 
         Law(lawInitData.targetLaw).initializeLaw(
-            lawCount - 1, lawInitData.nameDescription, "", lawInitData.config, lawInitData.externalContracts
+            lawCount - 1, lawInitData.nameDescription, "", lawInitData.config
         );
 
         // emit event.
@@ -461,24 +447,29 @@ contract Powers is EIP712, IPowers {
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
     function _setRole(uint256 roleId, address account, bool access) internal virtual {
-        bool newMember = roles[roleId].members[account] == 0;
         // check 1: Public role is locked.
         if (roleId == PUBLIC_ROLE) revert Powers__CannotSetPublicRole();
         // check 2: Zero address is not allowed.
         if (account == address(0)) revert Powers__CannotAddZeroAddress();
-
-        // add role if role requested and account does not already have role. 
+        
+        bool newMember = roles[roleId].members[account] == 0;
+        // add role if role requested and account does not already have role.         
         if (access && newMember) {
-            if (roles[roleId].membersArray.length == 0) {  
-                roles[roleId].membersArray.push(Member(address(0), 0)); // add 0 to membersArray to start at 1. 0 needs to remain empty. 
-            }
-            roles[roleId].members[account] = roles[roleId].membersArray.length; // 'index of new member is length of array. 
+            roles[roleId].members[account] = roles[roleId].membersArray.length + 1; // 'index of new member is length of array + 1. index = 0 is used a 'undefined' value.. 
             roles[roleId].membersArray.push(Member(account, uint48(block.number)));
         // remove role if access set to false and account has role. 
         } else if (!access && !newMember) {
-            roles[roleId].members[account] = 0; // 'index of removed member is 0.
-            roles[roleId].membersArray[roles[roleId].members[account]] = roles[roleId].membersArray[roles[roleId].membersArray.length - 1]; // replace with last member.
+            uint256 indexEnd = roles[roleId].membersArray.length - 1;
+            Member memory memberEnd = roles[roleId].membersArray[indexEnd];
+            uint256 indexAccount = roles[roleId].members[account];  
+
+            // updating array. Note that 1 is added to the index to avoid 0 index of first member in array. We here have to subtract it. 
+            roles[roleId].membersArray[indexAccount - 1] = memberEnd; // replace account with last member account.
             roles[roleId].membersArray.pop(); // remove last member.
+            
+            // updating indices in mapping. 
+            roles[roleId].members[memberEnd.account] = indexAccount; // update index of last member in list
+            roles[roleId].members[account] = 0; // 'index of removed member is set to 0.
         }
         // note: nothing happens when 1: access is requested and not a new member 2: access is false and account does not have role. No revert. 
 
@@ -495,6 +486,11 @@ contract Powers is EIP712, IPowers {
     function setPayableEnabled(bool payableEnabled) public virtual onlyPowers {
         _payableEnabled = payableEnabled;
     } 
+
+    /// @inheritdoc IPowers
+    function setUri(string memory newUri) public virtual onlyPowers {
+        uri = newUri;
+    }
 
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
@@ -599,15 +595,7 @@ contract Powers is EIP712, IPowers {
     ///
     /// @return amountMembers number of members in the role.
     function _countMembersRole(uint256 roleId) internal view virtual returns (uint256 amountMembers) {
-        if (roles[roleId].membersArray.length == 0) {
-            revert Powers__NoMembersInRole();
-        }
         return roles[roleId].membersArray.length;
-    }
-
-    /// @inheritdoc IPowers
-    function setUri(string memory newUri) public virtual onlyPowers {
-        uri = newUri;
     }
 
     //////////////////////////////////////////////////////////////
@@ -632,12 +620,23 @@ contract Powers is EIP712, IPowers {
         if (index == 0) {
             return 0;
         }
-        return roles[roleId].membersArray[index].since;
+        return roles[roleId].membersArray[index - 1].since;
     }
 
     /// @inheritdoc IPowers
     function getAmountRoleHolders(uint256 roleId) public view returns (uint256 amountMembers) {
         return roles[roleId].membersArray.length;
+    }
+
+    function getRoleHolders(uint256 roleId) public view returns (address[] memory members) {
+        members = new address[](roles[roleId].membersArray.length);
+        if (roles[roleId].membersArray.length == 0) {
+            return new address[](0);
+        }
+        for (uint256 i = 0; i < roles[roleId].membersArray.length; i++) {
+            members[i] = roles[roleId].membersArray[i].account;
+        }
+        return members;
     }
 
     function getRoleLabel(uint256 roleId) public view returns (string memory label) {
@@ -657,6 +656,9 @@ contract Powers is EIP712, IPowers {
         }
         if (action.cancelledAt > 0) {
             return ActionState.Cancelled;
+        }
+        if (action.requestedAt > 0) {
+            return ActionState.Requested;
         }
 
         uint256 deadline = getActionDeadline(actionId);
