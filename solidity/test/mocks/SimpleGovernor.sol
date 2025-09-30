@@ -26,6 +26,9 @@ contract SimpleGovernor is
 
     // The following functions are overrides required by Solidity.
 
+    // NB: Note that this a vanilla implementation of the Governor contract. Powers does not own this contract and its functions are not restricted to Powers.
+    // this means that other third parties can ALSO interact with this contract! 
+
     function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
         return super.proposalThreshold();
     }

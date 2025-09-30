@@ -11,8 +11,8 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
 
-import { SimpleErc1155 } from "../mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "../mocks/SoulboundErc721.sol";
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
 
 /// @notice Unit tests for the core Powers protocol (updated v0.4)
 
@@ -50,6 +50,8 @@ contract DeployTest is TestSetupPowers {
 
     function testReceiveRevertsWhenNotEnabled() public { 
         vm.deal(alice, 1 ether);
+        vm.prank(address(daoMock)); 
+        daoMock.setPayableEnabled(false); 
         
         vm.prank(alice);
         vm.expectRevert(Powers__PayableNotEnabled.selector);

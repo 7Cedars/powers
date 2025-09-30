@@ -37,7 +37,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
-import { Erc20Taxed } from "../../../test/mocks/Erc20Taxed.sol";
+import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 
 // import "forge-std/Test.sol"; // only for testing
 

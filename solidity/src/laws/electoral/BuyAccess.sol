@@ -1,177 +1,227 @@
-// // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
-// ///////////////////////////////////////////////////////////////////////////////
-// /// This program is free software: you can redistribute it and/or modify    ///
-// /// it under the terms of the MIT Public License.                           ///
-// ///                                                                         ///
-// /// This is a Proof Of Concept and is not intended for production use.      ///
-// /// Tests are incomplete and it contracts have not been audited.            ///
-// ///                                                                         ///
-// /// It is distributed in the hope that it will be useful and insightful,    ///
-// /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-// /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-// ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// This program is free software: you can redistribute it and/or modify    ///
+/// it under the terms of the MIT Public License.                           ///
+///                                                                         ///
+/// This is a Proof Of Concept and is not intended for production use.      ///
+/// Tests are incomplete and it contracts have not been audited.            ///
+///                                                                         ///
+/// It is distributed in the hope that it will be useful and insightful,    ///
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
+///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice This contract assigns accounts to roles based on buying access. 
-// /// at setup a token is set, and amount per block is set.
-// /// when an account buys access, it can assigned a role to an account of choice. A lapse block for the chosen account is set at the same time.
-// /// when an account transfers 0, the contract checks if there is still access for the account. If it is, it is (re)assigned the role.
-// /// There is no revoke functionality, this should be implemented through another law.
+/// @notice This contract assigns accounts to roles based on the latest donation an account made to the Donations contract.
+/// At setup, a role ID is set, the donations contract address, and multiple tokens with their respective amounts per block.
+/// When an account claims a role, it checks their donation history and assigns/revokes the role based on whether
+/// they have sufficient donations to maintain access beyond the current block.
+/// Donations do not add up - only the most recent donation determines access duration.
+/// Different tokens have different rates for access duration calculation.
 
-// /// @author 7Cedars
-// pragma solidity 0.8.26;
+/// @author 7Cedars
+pragma solidity 0.8.26;
 
-// import { Law } from "../../Law.sol";
-// import { ERC20 } from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-// import { Powers } from "../../Powers.sol";
-// import { LawUtilities } from "../../LawUtilities.sol";
+import { Law } from "../../Law.sol";
+import { Powers } from "../../Powers.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
+import { Donations } from "@mocks/Donations.sol";
 
-// // import "forge-std/Test.sol"; // only for testing
+// import "forge-std/Test.sol"; // only for testing
 
-// contract BuyAccess is Law {
-//     struct Data {
-//         address erc20Token; // erc20 token address.
-//         uint256 tokensPerBlock; // tokens per block.
-//         uint16 roleIdToSet; // role id to set.
-//     }
+contract BuyAccess is Law {
+    struct TokenConfig {
+        address token; // Token address (address(0) for native currency)
+        uint256 tokensPerBlock; // tokens per block for access duration
+    }
 
-//     struct Mem {
-//         bytes32 lawHash;
-//         Data data;
-//         address caller;
-//         address account;
-//         uint256 amountTokens;
-//         uint48 currentBlock;    
-//         uint48 amountBlocksBought;
-//         uint48 lapseBlock;
-//         uint48 newLapseBlock;
-//     }
+    struct Data {
+        address donationsContract; // Donations contract address
+        TokenConfig[] tokenConfigs; // Array of token configurations
+        uint16 roleIdToSet; // role id to assign/revoke
+    }
 
-//     mapping(bytes32 lawHash => Data) internal data;
-//     // lapse block is the block number when the access will lapse and it will not be possible to regain access to role if revoked.
-//     mapping(bytes32 lawHash => mapping(address account => uint48 lapseBlock)) public lapseBlock;
+    struct Mem {
+        bytes32 lawHash;
+        Data data;
+        address caller;
+        address account;
+        uint256 totalDonated;
+        uint48 currentBlock;    
+        uint48 amountBlocksBought;
+        uint48 accessUntilBlock;
+        bool shouldAssignRole;
+    }
 
-//     constructor() {
-//         bytes memory configParams = abi.encode("address Erc20Token", "uint256 TokensPerBlock", "uint16 RoleId");
-//         emit Law__Deployed(configParams);
-//     }
+    mapping(bytes32 lawHash => Data) internal data;
 
-//     function initializeLaw(
-//         uint16 index,
-//         string memory nameDescription,
-//         bytes memory inputParams,
-//         bytes memory config
-//     ) public override {
-//         (address erc20Token_, uint256 tokensPerBlock_, uint16 roleIdToSet_) =
-//             abi.decode(config, (address, uint256, uint16));
-//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-//         data[lawHash].erc20Token = erc20Token_;
-//         data[lawHash].tokensPerBlock = tokensPerBlock_;
-//         data[lawHash].roleIdToSet = roleIdToSet_;
+    constructor() {
+        bytes memory configParams = abi.encode("address DonationsContract", "address[] Tokens", "uint256[] TokensPerBlock", "uint16 RoleId");
+        emit Law__Deployed(configParams);
+    }
 
-//         inputParams = abi.encode("address Account", "uint256 AmountTokens"); // note: you can buy someone else access. 
+    function initializeLaw(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (address donationsContract_, address[] memory tokens_, uint256[] memory tokensPerBlock_, uint16 roleIdToSet_) =
+            abi.decode(config, (address, address[], uint256[], uint16));
+        
+        // Validate that arrays have the same length
+        if (tokens_.length != tokensPerBlock_.length) {
+            revert("Tokens and TokensPerBlock arrays must have the same length");
+        }
+        if (tokens_.length == 0) {
+            revert("At least one token configuration is required");
+        }
+        
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        data[lawHash].donationsContract = donationsContract_;
+        data[lawHash].roleIdToSet = roleIdToSet_;
+        
+        // Store token configurations
+        for (uint256 i = 0; i < tokens_.length; i++) {
+            data[lawHash].tokenConfigs.push(TokenConfig({
+                token: tokens_[i],
+                tokensPerBlock: tokensPerBlock_[i]
+            }));
+        }
 
-//         super.initializeLaw(index, nameDescription, inputParams, config);
-//     }
+        inputParams = abi.encode("address Account"); // account to claim role for
 
-//     /// @notice Handles the request to assign or revoke a role based on buying access
-//     /// @param caller The address of the caller
-//     /// @param powers The address of the Powers contract
-//     /// @param lawId The ID of the law
-//     /// @param lawCalldata The calldata containing the account and amount
-//     /// @param nonce The nonce for the action
-//     /// @return actionId The ID of the action
-//     /// @return targets The target addresses for the action
-//     /// @return values The values for the action
-//     /// @return calldatas The calldatas for the action
-//     function handleRequest(
-//         address caller,
-//         address powers,
-//         uint16 lawId,
-//         bytes memory lawCalldata,
-//         uint256 nonce
-//     )
-//         public
-//         view
-//         virtual
-//         override
-//         returns (
-//             uint256 actionId,
-//             address[] memory targets,
-//             uint256[] memory values,
-//             bytes[] memory calldatas
-//         )
-//     {
-//         Mem memory mem;
-//         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-//         mem.data = data[mem.lawHash];
+        super.initializeLaw(index, nameDescription, inputParams, config);
+    }
+
+    /// @notice Handles the request to claim a role based on donations
+    /// @param powers The address of the Powers contract
+    /// @param lawId The ID of the law
+    /// @param lawCalldata The calldata containing the account to claim role for
+    /// @param nonce The nonce for the action
+    /// @return actionId The ID of the action
+    /// @return targets The target addresses for the action
+    /// @return values The values for the action
+    /// @return calldatas The calldatas for the action
+    function handleRequest(
+        address /* caller */,
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
+        public
+        view
+        virtual
+        override
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas
+        )
+    {
+        Mem memory mem;
+        mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.data = data[mem.lawHash];
        
-//         // step 0: create actionId & decode the calldata
-//         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-//         (mem.account, mem.amountTokens) = abi.decode(lawCalldata, (address, uint256));
-//         mem.lapseBlock = lapseBlock[mem.lawHash][mem.account];
-//         mem.amountBlocksBought = uint48(mem.amountTokens / mem.data.tokensPerBlock); // note: I am dividing here. Change if possible.
-//         mem.currentBlock = uint48(block.number);
+        // Decode the calldata to get the account to claim role for
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        mem.account = abi.decode(lawCalldata, (address));
+        mem.currentBlock = uint48(block.number);
 
-//         if (mem.amountBlocksBought == 0 && mem.lapseBlock < mem.currentBlock) {
-//             revert("No access bought or already expired.");
-//         }
+        // Check donations and determine if role should be assigned or revoked
+        mem.shouldAssignRole = _checkDonationAccess(mem.account, mem.data.donationsContract, mem.data.tokenConfigs, mem.currentBlock);
 
-//         mem.newLapseBlock = mem.lapseBlock < mem.currentBlock ? 
-//             mem.currentBlock + mem.amountBlocksBought 
-//             : 
-//             mem.lapseBlock + mem.amountBlocksBought;
-
-//         // Create arrays for execution
-
-
-//         // Update lapse block in state
-//         lapseBlock[mem.lawHash][mem.account] = mem.newLapseBlock;
-
-//         return (actionId, targets, values, calldatas);
-//     }
-
-//     function _externalCall(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal override {
-//         // call transferFrom from caller to Powers contract
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-//         targets[0] = mem.data.erc20Token;
-//         values[0] = 0;
-//         calldatas[0] = abi.encodeWithSelector(
-//             ERC20.transferFrom.selector,
-//             caller,
-//             powers,
-//             mem.amountTokens
-//         );
-
-
-//     }
-
-//     function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal override {
-//         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
+        // Create arrays for execution
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         
-//         // First call: transfer tokens from caller to Powers contract
-//         targets[0] = mem.data.erc20Token;
-//         values[0] = 0;
-//         calldatas[0] = abi.encodeWithSelector(
-//             ERC20.transferFrom.selector,
-//             caller,
-//             powers,
-//             mem.amountTokens
-//         );
+        if (mem.shouldAssignRole) {
+            // Assign role
+            targets[0] = powers;
+            values[0] = 0;
+            calldatas[0] = abi.encodeWithSelector(
+                Powers.assignRole.selector,
+                mem.data.roleIdToSet,
+                mem.account
+            );
+        } else {
+            // Revoke role
+            targets[0] = powers;
+            values[0] = 0;
+            calldatas[0] = abi.encodeWithSelector(
+                Powers.revokeRole.selector,
+                mem.data.roleIdToSet,
+                mem.account
+            );
+        }
+
+        return (actionId, targets, values, calldatas);
+    }
+
+    /// @notice Checks if an account has sufficient donations to maintain role access
+    /// @param account The account to check donations for
+    /// @param donationsContract The address of the Donations contract
+    /// @param tokenConfigs Array of token configurations with their respective rates
+    /// @param currentBlock The current block number
+    /// @return shouldAssign True if the account should have the role assigned
+    function _checkDonationAccess(
+        address account,
+        address donationsContract,
+        TokenConfig[] memory tokenConfigs,
+        uint48 currentBlock
+    ) internal view returns (bool shouldAssign) {
+        // Get all donations for the account
+        uint256[] memory donationIndices = Donations(payable(donationsContract)).getDonorDonations(account);
         
-//         // Second call: assign role to account
-//         targets[1] = powers;
-//         values[1] = 0;
-//         calldatas[1] = abi.encodeWithSelector(
-//             Powers.assignRole.selector,
-//             mem.data.roleIdToSet,
-//             mem.account
-//         );
+        if (donationIndices.length == 0) {
+            return false; // No donations, no access
+        }
+        
+        // Find the most recent donation (donations don't add up)
+        uint256 mostRecentDonationIndex = donationIndices[donationIndices.length - 1];
+        Donations.Donation memory mostRecentDonation = Donations(payable(donationsContract)).getDonation(mostRecentDonationIndex);
+        
+        // Find the token configuration for the most recent donation
+        TokenConfig memory tokenConfig = _findTokenConfig(mostRecentDonation.token, tokenConfigs);
+        
+        // If token is not configured, no access
+        if (tokenConfig.token == address(0) && mostRecentDonation.token != address(0)) {
+            return false; // Token not configured
+        }
+        
+        // Calculate how many blocks of access this donation provides
+        uint48 blocksOfAccess = uint48(mostRecentDonation.amount / tokenConfig.tokensPerBlock);
+        
+        if (blocksOfAccess == 0) {
+            return false; // Donation too small for any access
+        }
+        
+        // Calculate when access expires
+        uint48 accessUntilBlock = uint48(mostRecentDonation.blockNumber) + blocksOfAccess;
+        
+        // Check if access is still valid
+        return currentBlock < accessUntilBlock;
+    }
 
-//         super._replyPowers(lawId, actionId, targets, values, calldatas);
-//     }
+    /// @notice Finds the token configuration for a given token address
+    /// @param token The token address to find configuration for
+    /// @param tokenConfigs Array of token configurations
+    /// @return config The token configuration, or empty config if not found
+    function _findTokenConfig(
+        address token,
+        TokenConfig[] memory tokenConfigs
+    ) internal pure returns (TokenConfig memory config) {
+        for (uint256 i = 0; i < tokenConfigs.length; i++) {
+            if (tokenConfigs[i].token == token) {
+                return tokenConfigs[i];
+            }
+        }
+        // Return empty config if token not found
+        return TokenConfig({token: address(0), tokensPerBlock: 0});
+    }
 
-//     function getData(bytes32 lawHash) public view returns (Data memory) {
-//         return data[lawHash];
-//     }
-// }
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
+    }
+}

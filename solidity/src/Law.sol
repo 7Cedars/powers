@@ -92,7 +92,7 @@ abstract contract Law is ERC165, ILaw {
             revert Law__OnlyPowers();
         }
 
-        // Simulate and execute the law's logic
+        // Simulate and execute the law's logic. This might include additional conditional checks. 
         (
             uint256 actionId,
             address[] memory targets,
@@ -100,7 +100,7 @@ abstract contract Law is ERC165, ILaw {
             bytes[] memory calldatas
         ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
-        _externalCall(actionId, targets, values, calldatas);
+        _externalCall(lawId, actionId, targets, values, calldatas);
 
         _replyPowers(lawId, actionId, targets, values, calldatas);
     
@@ -131,12 +131,14 @@ abstract contract Law is ERC165, ILaw {
         // Empty implementation - must be overridden
     }
 
-    function _externalCall(uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+    function _externalCall(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
         // optional override by implementing contracts 
     }
 
     function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
         // execute the law's logic conditional on data returned by handleRequest
+        // this function can be overridden with custom logic by law implementations.
+
         if (targets.length > 0) {
             IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
         } 

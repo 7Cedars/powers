@@ -10,6 +10,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * Note Natspecs WIP.
  */
 contract SoulboundErc721 is ERC721, Ownable {
+
     constructor() ERC721("Soulbound", "SB") Ownable(msg.sender) { }
 
     function mintNFT(uint256 tokenId, address account) public onlyOwner {
@@ -24,6 +25,20 @@ contract SoulboundErc721 is ERC721, Ownable {
             revert ("Incorrect account token pair");
         }
         _burn(tokenId);
+    }
+
+    function _approve(address to, uint256 tokenId, address auth, bool emitEvent) internal override {
+        if (auth != address(0) && to != address(0)) {
+            revert ("Non transferable");
+        }
+        super._approve(to, tokenId, auth, emitEvent);
+    }
+
+    function _setApprovalForAll(address owner, address operator, bool approved) internal override {
+        if (owner != address(0) && operator != address(0)) {
+            revert ("Non transferable");
+        }
+        super._setApprovalForAll(owner, operator, approved);
     }
 
     function _update(address to, uint256 tokenId, address auth) internal override returns (address) {

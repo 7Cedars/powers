@@ -72,15 +72,17 @@ contract AdoptLaws is Law {
         Data memory data_ = data[LawUtilities.hashLaw(powers, lawId)];
 
         // Create arrays for the calls to adoptLaw
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(data_.laws.length);
-        for (uint256 i = 0; i < data_.laws.length; i++) {
+        uint256 length = data_.laws.length;
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
+        for (uint256 i; i < length; i++) {
             PowersTypes.LawInitData memory lawInitData = abi.decode(data_.lawInitDatas[i], (PowersTypes.LawInitData));
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
         }
-        targets[data_.laws.length] = powers;
-        calldatas[data_.laws.length] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
-
         return (actionId, targets, values, calldatas);
+    }
+
+    function getData(bytes32 lawHash) public view returns (Data memory) {
+        return data[lawHash];
     }
 }

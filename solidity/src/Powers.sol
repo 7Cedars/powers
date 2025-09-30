@@ -65,13 +65,13 @@ contract Powers is EIP712, IPowers {
 
     uint256 public immutable MAX_CALLDATA_LENGTH;  
     uint256 public immutable MAX_EXECUTIONS_LENGTH; 
-
-    string public name; // name of the DAO.
-    string public uri; // a uri to metadata of the DAO.
-    bool private _constituteExecuted; // has the constitute function been called before?
-    bool private _payableEnabled; // is payable enabled?
+    
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCount = 1; // number of laws that have been initiated throughout the life of the organisation.
+    string public name; // name of the DAO.  
+    string public uri; // a uri to metadata of the DAO. // note can be altered 
+    bool public payableEnabled; // is payable enabled?
+    bool private _constituteExecuted; // has the constitute function been called before?
 
     //////////////////////////////////////////////////////////////
     //                          MODIFIERS                       //
@@ -114,7 +114,7 @@ contract Powers is EIP712, IPowers {
     /// @dev If payable is enabled, anyone can send funds in native currency into the contract.
     /// @dev No access control on this function. 
     receive() external payable virtual {
-        if (!_payableEnabled) revert Powers__PayableNotEnabled();
+        if (!payableEnabled) revert Powers__PayableNotEnabled();
         emit FundsReceived(msg.value, msg.sender);
     }
 
@@ -254,7 +254,7 @@ contract Powers is EIP712, IPowers {
         returns (uint256 actionId)
     {
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
-        Conditions memory conditions = PowersUtilities.getConditions(address(this), lawId);
+        Conditions memory conditions = getConditions(lawId);
         actionId = _hashAction(lawId, lawCalldata, nonce);
 
         // check 1: does target law need proposedAction vote to pass?
@@ -436,6 +436,9 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function labelRole(uint256 roleId, string memory label) public virtual onlyPowers {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) revert Powers__LockedRole();
+        if (bytes(label).length == 0) revert Powers__InvalidLabel();
+        if (bytes(label).length > 255) revert Powers__LabelTooLong();
+
         roles[roleId].label = label;
         emit RoleLabel(roleId, label);
     }
@@ -483,8 +486,8 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function setPayableEnabled(bool payableEnabled) public virtual onlyPowers {
-        _payableEnabled = payableEnabled;
+    function setPayableEnabled(bool payableEnabled_) public virtual onlyPowers {
+        payableEnabled = payableEnabled_;
     } 
 
     /// @inheritdoc IPowers
@@ -511,7 +514,7 @@ contract Powers is EIP712, IPowers {
     function _quorumReached(uint256 actionId) internal view virtual returns (bool) {
         // retrieve quorum and allowedRole from law.
         Action storage proposedAction = _actions[actionId];
-        Conditions memory conditions = PowersUtilities.getConditions(address(this), proposedAction.lawId);
+        Conditions memory conditions = getConditions(proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // check if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if quorum has been reached.
@@ -556,7 +559,7 @@ contract Powers is EIP712, IPowers {
     function _voteSucceeded(uint256 actionId) internal view virtual returns (bool) {
         // retrieve quorum and success threshold from law.
         Action storage proposedAction = _actions[actionId];
-        Conditions memory conditions = PowersUtilities.getConditions(address(this), proposedAction.lawId);
+        Conditions memory conditions = getConditions(proposedAction.lawId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // note if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if success threshold has been reached.

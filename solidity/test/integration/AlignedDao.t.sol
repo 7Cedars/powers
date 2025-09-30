@@ -10,10 +10,10 @@
 // import { Law } from "../../../src/Law.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
 
-// import { Erc721Mock } from "../../../test/mocks/Erc721Mock.sol";
-// import { Erc1155Mock } from "../../../test/mocks/Erc1155Mock.sol";
-// import { Erc20VotesMock } from "../../../test/mocks/Erc20VotesMock.sol";
-// import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
+// import { SoulboundErc721 } from "../@mocks/SoulboundErc721.sol";
+// import { SimpleErc1155 } from "../@mocks/SimpleErc1155.sol";
+// import { SimpleErc20Votes } from "../@mocks/SimpleErc20Votes.sol";
+// import { Erc20Taxed } from "../@mocks/Erc20Taxed.sol";
 // import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 
 // import { TestSetupAlignedDao_fuzzIntegration } from "../../../test/TestSetup.t.sol";

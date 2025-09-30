@@ -83,6 +83,8 @@ contract PresetMultipleActions is Law {
         )
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        
         bool[] memory bools = abi.decode(lawCalldata, (bool[]));
         uint256 length = 0;
         for (uint256 i = 0; i < bools.length; i++) {
@@ -91,6 +93,7 @@ contract PresetMultipleActions is Law {
             }
         }
         if (length == 0) {
+            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             return (actionId, targets, values, calldatas);
         }
         
@@ -104,7 +107,6 @@ contract PresetMultipleActions is Law {
                 j++;
             }
         }
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         return (actionId, targets, values, calldatas);
     }

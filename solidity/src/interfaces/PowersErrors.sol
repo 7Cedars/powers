@@ -112,5 +112,11 @@ interface PowersErrors {
     /// @notice Emitted when an external contract is not a contract.
     error Powers__NotAContract();
 
+    /// @notice Emitted when a label is invalid.
+    error Powers__InvalidLabel();
+    
+    /// @notice Emitted when a label is too long.
+    error Powers__LabelTooLong();
+
 }
     

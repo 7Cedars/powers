@@ -10,8 +10,8 @@
 // import { Law } from "../../../src/Law.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
 
-// import { Erc1155Mock } from "../../../test/mocks/Erc1155Mock.sol";
-// import { Erc20VotesMock } from "../../../test/mocks/Erc20VotesMock.sol";
+// import { SimpleErc1155 } from "../@mocks/SimpleErc1155.sol";
+// import { SimpleErc20Votes } from "../@mocks/SimpleErc20Votes.sol";
 
 // import { TestSetupBasicDao_fuzzIntegration } from "../../../test/TestSetup.t.sol";
 // import { HelperConfig } from "../../../script/HelperConfig.s.sol";

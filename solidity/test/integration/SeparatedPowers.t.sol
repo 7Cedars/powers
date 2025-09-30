@@ -9,8 +9,8 @@
 // import { PowersEvents } from "../../../src/interfaces/PowersEvents.sol";
 // import { Law } from "../../../src/Law.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
-// import { Erc20VotesMock } from "../../../test/mocks/Erc20VotesMock.sol";
-// import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
+// import { SimpleErc20Votes } from "../@mocks/SimpleErc20Votes.sol";
+// import { Erc20Taxed } from "../@mocks/Erc20Taxed.sol";
 
 // import { TestSetupSeparatedPowers } from "../../../test/TestSetup.t.sol";
 

@@ -11,14 +11,29 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { HelperConfig } from "./HelperConfig.s.sol";
 
 // laws to be deployed 
+// Multi laws
 import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
 import { PresetMultipleActions } from "../src/laws/multi/PresetMultipleActions.sol";
 import { OpenAction } from "../src/laws/multi/OpenAction.sol";
 import { StatementOfIntent } from "../src/laws/multi/StatementOfIntent.sol";
 import { BespokeActionAdvanced } from "../src/laws/multi/BespokeActionAdvanced.sol";
 import { BespokeActionSimple } from "../src/laws/multi/BespokeActionSimple.sol";
+
+// Executive laws
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
+import { GovernorCreateProposal } from "../src/laws/executive/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/laws/executive/GovernorExecuteProposal.sol";
+
+// Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
+import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
+import { VoteInOpenElection } from "../src/laws/electoral/VoteInOpenElection.sol";
+import { NStrikesRevokesRoles } from "../src/laws/electoral/NStrikesRevokesRoles.sol";
+import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
+import { BuyAccess } from "../src/laws/electoral/BuyAccess.sol";
+import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
+import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
+import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 
 contract DeployLaws is Script {
     HelperConfig public helperConfig;
@@ -29,11 +44,12 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
 
-        names = new string[](8);
-        addresses = new address[](8);
-        bytes[] memory creationCodes = new bytes[](8);
-        bytes[] memory constructorArgs = new bytes[](8);
+        names = new string[](18);
+        addresses = new address[](18);
+        bytes[] memory creationCodes = new bytes[](18);
+        bytes[] memory constructorArgs = new bytes[](18);
 
+        // Multi laws (0-5)
         names[0] = "PresetSingleAction";
         creationCodes[0] = type(PresetSingleAction).creationCode;
         constructorArgs[0] = abi.encode("PresetSingleAction");
@@ -58,13 +74,55 @@ contract DeployLaws is Script {
         creationCodes[5] = type(BespokeActionSimple).creationCode;
         constructorArgs[5] = abi.encode("BespokeActionSimple");
 
+        // Executive laws (6-8)
         names[6] = "AdoptLaws";
         creationCodes[6] = type(AdoptLaws).creationCode;
         constructorArgs[6] = abi.encode("AdoptLaws");
 
-        names[7] = "ElectionSelect";
-        creationCodes[7] = type(ElectionSelect).creationCode;
-        constructorArgs[7] = abi.encode("ElectionSelect");
+        names[7] = "GovernorCreateProposal";
+        creationCodes[7] = type(GovernorCreateProposal).creationCode;
+        constructorArgs[7] = abi.encode("GovernorCreateProposal");
+
+        names[8] = "GovernorExecuteProposal";
+        creationCodes[8] = type(GovernorExecuteProposal).creationCode;
+        constructorArgs[8] = abi.encode("GovernorExecuteProposal");
+
+        // Electoral laws (9-18)
+        names[9] = "ElectionSelect";
+        creationCodes[9] = type(ElectionSelect).creationCode;
+        constructorArgs[9] = abi.encode("ElectionSelect");
+
+        names[10] = "PeerSelect";
+        creationCodes[10] = type(PeerSelect).creationCode;
+        constructorArgs[10] = abi.encode("PeerSelect");
+
+        names[11] = "VoteInOpenElection";
+        creationCodes[11] = type(VoteInOpenElection).creationCode;
+        constructorArgs[11] = abi.encode("VoteInOpenElection");
+
+        names[12] = "NStrikesRevokesRoles";
+        creationCodes[12] = type(NStrikesRevokesRoles).creationCode;
+        constructorArgs[12] = abi.encode("NStrikesRevokesRoles");
+
+        names[13] = "TaxSelect";
+        creationCodes[13] = type(TaxSelect).creationCode;
+        constructorArgs[13] = abi.encode("TaxSelect");
+
+        names[14] = "BuyAccess";
+        creationCodes[14] = type(BuyAccess).creationCode;
+        constructorArgs[14] = abi.encode("BuyAccess");
+
+        names[15] = "RoleByRoles";
+        creationCodes[15] = type(RoleByRoles).creationCode;
+        constructorArgs[15] = abi.encode("RoleByRoles");
+
+        names[16] = "SelfSelect";
+        creationCodes[16] = type(SelfSelect).creationCode;
+        constructorArgs[16] = abi.encode("SelfSelect");
+
+        names[17] = "RenounceRole";
+        creationCodes[17] = type(RenounceRole).creationCode;
+        constructorArgs[17] = abi.encode("RenounceRole");
 
         for (uint256 i = 0; i < creationCodes.length; i++) {
             //    console2.log("router", router);

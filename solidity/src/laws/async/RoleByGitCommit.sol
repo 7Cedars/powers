@@ -58,6 +58,20 @@
 //         address addressLinkedToAuthor;
 //     }
 
+//     struct Mem {
+//         bytes32 lawHash;
+//         Data data;
+//         uint256 roleId;
+//         string author;
+//         uint256 indexPath;
+//         uint16 stringToAddressLawId;
+//         address lawSta;
+//         bytes32 lawHashSta;
+//         address addressLinkedToAuthor;
+//         string[] args;
+//         bytes32 requestId;
+//     }
+
 //     bytes32 public s_lastRequestId;
 //     bytes32 public s_lastRequestHash;
 //     bytes public s_lastResponse;
@@ -88,8 +102,6 @@
 //         bytes memory inputParams,
 //         bytes memory config
 //     ) public override {
-//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-
 //         (
 //             string memory repo, 
 //             string[] memory paths, 
@@ -99,6 +111,7 @@
 //             bytes32 donID 
 //         ) = abi.decode(config, (string, string[], uint256[], uint64, uint32, bytes32));
         
+//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 //         data[lawHash] = Data({ 
 //             repo: repo, 
 //             paths: paths, 
@@ -122,21 +135,38 @@
 //             uint256 actionId,
 //             address[] memory targets,
 //             uint256[] memory values,
-//             bytes[] memory calldatas,
-//             bytes memory stateChange
+//             bytes[] memory calldatas
 //         )
 //     {
+//         Mem memory mem;
+//         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
+//         mem.data = data[mem.lawHash];
+        
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-//         (uint256 roleId, string memory author) = abi.decode(lawCalldata, (uint256, string));
+//         (mem.roleId, mem.author) = abi.decode(lawCalldata, (uint256, string));
 
-//         // Create empty arrays - actual execution happens in fulfillRequest
+//         // Find the index for the roleId
+//         mem.indexPath = findIndex(mem.data.roleIds, mem.roleId);
+
+//         // Get address linked to author from StringToAddress law
+//         mem.stringToAddressLawId = laws[mem.lawHash].conditions.readStateFrom;
+//         (mem.lawSta, mem.lawHashSta, ) = IPowers(powers).getAdoptedLaw(mem.stringToAddressLawId); 
+//         mem.addressLinkedToAuthor = StringToAddress(mem.lawSta).getAddressByString(mem.lawHashSta, mem.author); 
+
+//         // Prepare arguments for Chainlink Functions
+//         mem.args = new string[](3);
+//         mem.args[0] = mem.data.repo;
+//         mem.args[1] = mem.data.paths[mem.indexPath]; 
+//         mem.args[2] = mem.author;
+
+//         // Create arrays for execution - actual Chainlink Functions call happens in _externalCall
 //         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-//         calldatas[0] = abi.encode(roleId, author, powers);
+//         calldatas[0] = abi.encode(mem.roleId, mem.author, powers, mem.addressLinkedToAuthor, mem.args);
 
-//         return (actionId, targets, values, calldatas, "");
+//         return (actionId, targets, values, calldatas);
 //     }
 
-//     function _replyPowers(
+//     function _externalCall(
 //         uint16 lawId,
 //         uint256 actionId,
 //         address[] memory targets,
@@ -145,19 +175,8 @@
 //     ) internal override {
 //         // Initiate Chainlink Functions request
 //         bytes memory callData = calldatas[0];
-//         (uint256 roleId, string memory author, address powers) = abi.decode(callData, (uint256, string, address));
-//         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-//         uint256 indexPath = findIndex(data[lawHash].roleIds, roleId);
-
-//         // Get address linked to author from StringToAddress law
-//         uint16 stringToAddressLawId = laws[lawHash].conditions.readStateFrom;
-//         (address lawSta, bytes32 lawHashSta, ) = IPowers(powers).getAdoptedLaw(stringToAddressLawId); 
-//         address addressLinkedToAuthor = StringToAddress(lawSta).getAddressByString(lawHashSta, author); 
-
-//         string[] memory args = new string[](3);
-//         args[0] = data[lawHash].repo;
-//         args[1] = data[lawHash].paths[indexPath]; 
-//         args[2] = author;
+//         (uint256 roleId, string memory author, address powers, address addressLinkedToAuthor, string[] memory args) = 
+//             abi.decode(callData, (uint256, string, address, address, string[]));
 
 //         // Call Chainlink Functions oracle
 //         bytes32 requestId = sendRequest(args, powers, lawId);

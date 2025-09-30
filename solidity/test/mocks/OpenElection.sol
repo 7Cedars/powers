@@ -34,20 +34,35 @@ contract OpenElection is Nominees {
     event ElectionClosed(uint256 indexed electionId);
     event ElectionTallied(address[] rankedNominees, uint256[] votes);
 
-    constructor(address powers) Nominees(powers) {}
+    constructor() Nominees() {}
+
+    // --- Nomination API (override from Nominees) ---
+
+    function nominate(address nominee, bool shouldNominate) public override onlyOwner {
+        if(currentElection.isOpen) revert("cannot nominate during active election");
+        super.nominate(nominee, shouldNominate);
+    }
 
     // --- Voting API ---
 
-    function vote(address caller, address nominee) external onlyOwner {
+    function vote(address caller, bool[] calldata votes) external onlyOwner {
         if(!currentElection.isOpen) revert("election not open");
         if(block.number > currentElection.endBlock) revert("election closed");
-        if(nominations[nominee] == false) revert("nominee not nominated");
         if(hasVoted[currentElectionId][caller]) revert("already voted");
+        
+        address[] memory nomineesForElection = nomineesByElection[currentElectionId];
+        if(votes.length != nomineesForElection.length) revert("votes array length mismatch");
 
         hasVoted[currentElectionId][caller] = true;
-        voteCounts[currentElectionId][nominee] += 1;
-
-        emit VoteCast(caller, nominee, currentElectionId);
+        
+        // Cast votes for each nominee where the corresponding boolean is true
+        for (uint256 i; i < votes.length; i++) {
+            if (votes[i]) {
+                address nominee = nomineesForElection[i];
+                voteCounts[currentElectionId][nominee] += 1;
+                emit VoteCast(caller, nominee, currentElectionId);
+            }
+        }
     }
 
     // --- Nominees Management ---

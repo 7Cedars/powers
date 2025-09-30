@@ -16,7 +16,7 @@
 ///
 /// This law:
 /// - Fetches current role holders from Powers
-/// - Runs an election using a DelegateElection contract
+/// - Runs an election using a Erc20DelegateElection contract
 /// - Revokes roles from all current holders
 /// - Assigns roles to newly elected accounts
 ///
@@ -27,12 +27,12 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
-import { DelegateElection } from "../../standalone/DelegateElection.sol";
+import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 
 contract ElectionSelect is Law {
     struct Data {
         address powersContract;
-        address delegateElectionContract;
+        address ElectionContract;
         uint256 roleId;
         uint256 maxRoleHolders;
     }
@@ -40,7 +40,7 @@ contract ElectionSelect is Law {
 
     /// @notice constructor of the law
     constructor() {
-        bytes memory configParams = abi.encode("address DelegateElectionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
+        bytes memory configParams = abi.encode("address ElectionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
         emit Law__Deployed(configParams);
     }
 
@@ -50,14 +50,14 @@ contract ElectionSelect is Law {
         bytes memory inputParams,
         bytes memory config
     ) public override {
-        (address delegateElectionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
+        (address ElectionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
             abi.decode(config, (address, uint256, uint256));
         
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         
         _data[lawHash] = Data({
             powersContract: msg.sender,
-            delegateElectionContract: delegateElectionContract_,
+            ElectionContract: ElectionContract_,
             roleId: roleId_,
             maxRoleHolders: maxRoleHolders_
         });
@@ -90,7 +90,7 @@ contract ElectionSelect is Law {
         address[] memory currentRoleHolders = Powers(payable(data.powersContract)).getRoleHolders(data.roleId);
         
         // Step 2: Get nominee ranking and select top candidates
-        (address[] memory rankedNominees, ) = DelegateElection(data.delegateElectionContract).getNomineeRanking();
+        (address[] memory rankedNominees, ) = Erc20DelegateElection(data.ElectionContract).getNomineeRanking();
         
         // Select top candidates based on maxRoleHolders
         uint256 numNominees = rankedNominees.length;
@@ -108,8 +108,8 @@ contract ElectionSelect is Law {
         uint256 totalOperations = currentRoleHolders.length + elected.length;
         
         if (totalOperations == 0) {
-            // No operations needed
-            (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
+            // No operations needed, but we still need to create an empty array otherwise action will not be set as fulfilled..
+            (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
             return (actionId, targets, values, calldatas);
         }
 

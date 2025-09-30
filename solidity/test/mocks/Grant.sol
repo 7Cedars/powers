@@ -53,7 +53,7 @@ contract Grant is Ownable {
     event TokenWhitelisted(address indexed token);
     event TokenDewhitelisted(address indexed token);
     
-    constructor(address powers) Ownable(powers) { }
+    constructor() Ownable(msg.sender) { }
 
     // --- Budget Management ---
     function updateNativeBudget(uint256 _budget) external onlyOwner {

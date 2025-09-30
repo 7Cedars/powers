@@ -7,22 +7,22 @@ import {Nominees} from "./Nominees.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
-/// @title DelegateElection (standalone)
+/// @title Erc20Erc20DelegateElection (standalone)
 /// @notice Simple, standalone contract combining self-nomination and delegate-based selection.
 /// - Accounts can nominate or revoke themselves as candidates.
 /// - An election selects up to `maxRoleHolders` nominees with highest delegated votes (`ERC20Votes.getVotes`).
 /// - No Powers/Law integration. Pure storage and helper utilities.
-contract DelegateElection is Nominees {
+contract Erc20DelegateElection is Nominees {
     struct Config {
         ERC20Votes token; // token used for delegated voting power lookups
     }
     Config public config;
-    constructor(address tokenAddress, address powers) Nominees(powers) {
+    constructor(address tokenAddress) Nominees() {
         if(tokenAddress == address(0)) revert("token required");
         config = Config({token: ERC20Votes(tokenAddress)});
     }
 
-    // --- DelegateElection specific ranking ---
+    // --- Erc20DelegateElection specific ranking ---
     function getNomineeRanking() external view returns (address[] memory nominees, uint256[] memory votes) {
         uint256 numNominees = nomineesSorted.length;
         if (numNominees == 0) return (new address[](0), new uint256[](0));

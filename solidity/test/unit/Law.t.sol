@@ -11,6 +11,7 @@ import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
 import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
 import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
+import { EmptyTargetsLaw, MockTargetsLaw } from "../mocks/LawMocks.sol";
 
 /// @notice Comprehensive unit tests for Law.sol contract
 /// @dev Tests all functionality of the Law base contract including initialization, execution, and helper functions
@@ -511,59 +512,5 @@ contract LawEdgeCaseTest is TestSetupLaw {
         // assert: verify laws are stored separately with different law IDs
         assertEq(testLaw1.getNameDescription(address(daoMock), lawId), "Law for DAO");
         assertEq(testLaw2.getNameDescription(address(daoMock), lawId + 1), "Law for Another DAO");
-    }
-}
-
-//////////////////////////////////////////////////
-//              MOCK CONTRACTS                 //
-//////////////////////////////////////////////////
-
-/// @notice Mock law contract that returns empty targets for testing
-contract EmptyTargetsLaw is Law {
-    function handleRequest(address, address, uint16, bytes memory, uint256)
-        public
-        pure
-        override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
-    {
-        // Return empty arrays
-        actionId = 1;
-        targets = new address[](0);
-        values = new uint256[](0);
-        calldatas = new bytes[](0);
-    }
-}
-
-/// @notice Mock law contract that returns specific targets for testing
-contract MockTargetsLaw is Law {
-    function handleRequest(address, address, uint16, bytes memory, uint256)
-        public
-        pure
-        override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
-    {
-        // Return specific test data
-        actionId = 1;
-        targets = new address[](2);
-        targets[0] = address(0x1);
-        targets[1] = address(0x2);
-        
-        values = new uint256[](2);
-        values[0] = 1 ether;
-        values[1] = 2 ether;
-        
-        calldatas = new bytes[](2);
-        calldatas[0] = abi.encodeWithSignature("test1()");
-        calldatas[1] = abi.encodeWithSignature("test2()");
     }
 }

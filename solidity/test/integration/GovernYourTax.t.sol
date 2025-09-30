@@ -10,9 +10,9 @@ pragma solidity 0.8.26;
 // import { Law } from "../../../src/Law.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
 
-// import { Erc721Mock } from "../../../test/mocks/Erc721Mock.sol";
-// import { Erc1155Mock } from "../../../test/mocks/Erc1155Mock.sol";
-// import { Erc20TaxedMock } from "../../../test/mocks/Erc20TaxedMock.sol";
+// import { SoulboundErc721 } from "../@mocks/SoulboundErc721.sol";
+// import { SimpleErc1155 } from "../@mocks/SimpleErc1155.sol";
+// import { Erc20Taxed } from "../@mocks/Erc20Taxed.sol";
 // import { StringsArray } from "../../../src/laws/state/StringsArray.sol";
 // import { Grant } from "../../../src/laws/bespoke/governYourTax/Grant.sol";
 // import { VoteOnAccounts } from "../../../src/laws/state/VoteOnAccounts.sol";

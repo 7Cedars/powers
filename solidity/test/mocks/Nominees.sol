@@ -7,7 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
-/// @title DelegateElection (standalone)
+/// @title Erc20DelegateElection (standalone)
 /// @notice Simple, standalone contract combining self-nomination and delegate-based selection.
 /// - Accounts can nominate or revoke themselves as candidates.
 /// - An election selects up to `maxRoleHolders` nominees with highest delegated votes (`ERC20Votes.getVotes`).
@@ -22,11 +22,11 @@ contract Nominees is Ownable {
     event NominationReceived(address indexed nominee);
     event NominationRevoked(address indexed nominee);
 
-    constructor(address powers) Ownable(powers) {}
+    constructor() Ownable(msg.sender) {}
 
     // --- Nomination API ---
 
-    function nominate(address nominee, bool shouldNominate) external onlyOwner {
+    function nominate(address nominee, bool shouldNominate) public virtual onlyOwner {
         if (shouldNominate) {
             if (nominations[nominee] == true) revert("already nominated");
             nominations[nominee] = true;

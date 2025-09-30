@@ -1,98 +1,102 @@
-// // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
-// ///////////////////////////////////////////////////////////////////////////////
-// /// This program is free software: you can redistribute it and/or modify    ///
-// /// it under the terms of the MIT Public License.                           ///
-// ///                                                                         ///
-// /// This is a Proof Of Concept and is not intended for production use.      ///
-// /// Tests are incomplete and it contracts have not been audited.            ///
-// ///                                                                         ///
-// /// It is distributed in the hope that it will be useful and insightful,    ///
-// /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-// /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-// ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// This program is free software: you can redistribute it and/or modify    ///
+/// it under the terms of the MIT Public License.                           ///
+///                                                                         ///
+/// This is a Proof Of Concept and is not intended for production use.      ///
+/// Tests are incomplete and it contracts have not been audited.            ///
+///                                                                         ///
+/// It is distributed in the hope that it will be useful and insightful,    ///
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
+///////////////////////////////////////////////////////////////////////////////
 
-// /// @notice A base contract that executes a bespoke action.
-// ///
-// /// Note 1: as of now, it only allows for a single function to be called.
-// /// Note 2: as of now, it does not allow sending of ether values to the target function.
-// ///
-// /// @author 7Cedars,
+/// @notice A law that executes proposals on a Governor contract.
+///
+/// This law allows executing governance proposals by validating their state
+/// and then executing the proposal actions directly.
+///
+/// @author 7Cedars,
 
-// pragma solidity 0.8.26;
+pragma solidity 0.8.26;
 
-// import { Law } from "../../Law.sol";
-// import { LawUtilities } from "../../LawUtilities.sol";
-// import { Powers } from "../../Powers.sol";
-// import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
-// import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
-// import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Law } from "../../Law.sol";
+import { LawUtilities } from "../../LawUtilities.sol";
+import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
+import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 
-// contract GovernorExecuteProposal is Law {
-//     struct MemProposal {
-//         address[] targets;
-//         uint256[] values;
-//         bytes[] calldatas;
-//         string description;
-//     }
-//     /// the targets, values and calldatas to be used in the calls: set at construction.
+contract GovernorExecuteProposal is Law {
+    /// @notice Mapping from law hash to the governor contract address
+    mapping(bytes32 lawHash => address governorContract) public governorContracts;
 
-//     mapping(bytes32 lawHash => address governorContract) public governorContracts;
+    /// @notice Constructor function for GovernorExecuteProposal contract.
+    constructor() {
+        bytes memory configParams = abi.encode("address GovernorContract");
+        emit Law__Deployed(configParams);
+    }
 
-//     /// @notice constructor of the law
-//     constructor() {
-//         bytes memory configParams = abi.encode("address GovernorContract");
-//         emit Law__Deployed(configParams);
-//     }
+    function initializeLaw(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (address governorContract_) = abi.decode(config, (address));
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        
+        governorContracts[lawHash] = governorContract_;
+        
+        // Set UI-exposed input parameters: targets, values, calldatas, description
+        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description");
+        super.initializeLaw(index, nameDescription, inputParams, config);
+    }
 
-//     function initializeLaw(
-//         uint16 index,
-//         string memory nameDescription,
-//         bytes memory inputParams,
-//         Conditions memory conditions,
-//         bytes memory config
-//     ) public override {
-//         (address governorContract_) = abi.decode(config, (address));
-//         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-//         bytes memory inputParams_ =
-//             abi.encode("address[] Targets", "uint256[] Values", "bytes[] Calldatas", "string Description");
+    /// @notice Execute the governor proposal.
+    /// @param lawCalldata the calldata containing proposal parameters
+    function handleRequest(address /*caller*/, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+        public
+        view
+        override
+        returns (
+            uint256 actionId,
+            address[] memory targets,
+            uint256[] memory values,
+            bytes[] memory calldatas
+        )
+    {
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        
+        // Validate that governor contract is configured
+        address payable governorContract = payable(governorContracts[lawHash]);
+        if (governorContract == address(0)) revert("GovernorExecuteProposal: Governor contract not configured");
+        
+        // Decode proposal parameters
+        (address[] memory proposalTargets, uint256[] memory proposalValues, bytes[] memory proposalCalldatas, string memory description) =
+            abi.decode(lawCalldata, (address[], uint256[], bytes[], string));
+        
+        // Validate proposal parameters
+        if (proposalTargets.length == 0) revert("GovernorExecuteProposal: No targets provided");
+        if (proposalTargets.length != proposalValues.length) revert("GovernorExecuteProposal: Targets and values length mismatch");
+        if (proposalTargets.length != proposalCalldatas.length) revert("GovernorExecuteProposal: Targets and calldatas length mismatch");
+        if (bytes(description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
 
-//         governorContracts[lawHash] = governorContract_;
-//         super.initializeLaw(index, nameDescription, inputParams_, conditions, config);
-//     }
+        // Get proposal ID from governor contract
+        uint256 proposalId = Governor(governorContract).getProposalId(
+            proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
+        );
+        
+        // Validate proposal exists
+        if (proposalId == 0) revert("GovernorExecuteProposal: Proposal not found");
+        
+        // Check proposal state
+        IGovernor.ProposalState state = Governor(governorContract).state(proposalId);
+        if (state != IGovernor.ProposalState.Succeeded) {
+            revert("GovernorExecuteProposal: Proposal not succeeded");
+        }
 
-//     /// @notice execute the law.
-//     /// @param lawCalldata the calldata _without function signature_ to send to the function.
-//     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
-//         public
-//         view
-//         override
-//         returns (
-//             uint256 actionId,
-//             address[] memory targets,
-//             uint256[] memory values,
-//             bytes[] memory calldatas,
-//             bytes memory stateChange
-//         )
-//     {
-//         MemProposal memory proposal;
-//         (proposal.targets, proposal.values, proposal.calldatas, proposal.description) =
-//             abi.decode(lawCalldata, (address[], uint256[], bytes[], string));
-//         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
-//         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-
-//         uint256 proposalId = Governor(payable(governorContracts[lawHash])).getProposalId(
-//             proposal.targets, proposal.values, proposal.calldatas, keccak256(bytes(proposal.description))
-//         );
-//         if (proposalId == 0) {
-//             revert("Proposal not found");
-//         }
-//         IGovernor.ProposalState state = Governor(payable(governorContracts[lawHash])).state(proposalId);
-//         if (state != IGovernor.ProposalState.Succeeded) {
-//             revert("Proposal not succeeded");
-//         }
-
-//         // if checks passed, send the proposal to the Powers contract to be executed.
-//         return (actionId, proposal.targets, proposal.values, proposal.calldatas, "");
-//     }
-// }
+        // Return the proposal actions for execution
+        return (actionId, proposalTargets, proposalValues, proposalCalldatas);
+    }
+}

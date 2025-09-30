@@ -11,9 +11,7 @@ contract SimpleErc20Votes is ERC20Votes {
 
     uint256 constant MAX_AMOUNT_VOTES_TO_MINT = 100 * 10 ** 18;
 
-    constructor() ERC20("Votes", "VTS") EIP712("Votes", "0.2") {
-        _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens for DAO.
-    }
+    constructor() ERC20("Votes", "VTS") EIP712("Votes", "0.2") {  }
 
     // a public non-restricted function that allows anyone to mint coins. Only restricted by max allowed coins to mint.
     function mintVotes(uint256 amount) public {
