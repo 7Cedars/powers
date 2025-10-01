@@ -189,18 +189,18 @@ abstract contract TestStandalone is Test, TestVariables {
         return keccak256(abi.encode(targetLaw, lawId));
     }
 
-    function distributeERC20VoteTokens(address[] memory accounts, uint256 randomiser) public {
+    function distributeERC20VoteTokens(address[] memory accountsWithVotes, uint256 randomiser) public {
         uint256 currentRandomiser;
-        for (i = 0; i < accounts.length; i++) {
+        for (i = 0; i < accountsWithVotes.length; i++) {
             if (currentRandomiser < 10) {
                 currentRandomiser = randomiser;
             } else {
                 currentRandomiser = currentRandomiser / 10;
             }
             uint256 amount = (currentRandomiser % 10_000) + 1;
-            vm.startPrank(accounts[i]);
-            SimpleErc20Votes(mockAddresses[2]).mintVotes(amount);
-            SimpleErc20Votes(mockAddresses[2]).delegate(accounts[i]); // delegate votes to themselves
+            vm.startPrank(accountsWithVotes[i]);
+            SimpleErc20Votes(mockAddresses[0]).mintVotes(amount);
+            SimpleErc20Votes(mockAddresses[0]).delegate(accountsWithVotes[i]); // delegate votes to themselves
             vm.stopPrank();
         }
     }
@@ -332,6 +332,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());
+        Erc20Taxed(mockAddresses[1]).transferOwnership(address(daoMock));
         SoulboundErc721(mockAddresses[2]).transferOwnership(address(daoMock));
         FlagActions(mockAddresses[6]).transferOwnership(address(daoMock));
         Grant(mockAddresses[7]).transferOwnership(address(daoMock));
@@ -515,3 +516,29 @@ abstract contract TestSetupMulti is BaseSetup {
 //                 TEST SETUPS ORGANISATIONS                       //
 /////////////////////////////////////////////////////////////////////
 
+abstract contract TestSetupPowers101 is BaseSetup {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate multi constitution  
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powers101Constitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
+
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_); 
+
+        vm.startPrank(address(daoMock));
+        daoMock.setPayableEnabled(true);
+        daoMock.assignRole(ADMIN_ROLE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, charlotte);
+        daoMock.assignRole(ROLE_ONE, david);
+        daoMock.assignRole(ROLE_ONE, eve);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        daoMock.assignRole(ROLE_TWO, eve);
+        daoMock.assignRole(ROLE_TWO, frank);
+        vm.stopPrank();
+    }
+}

@@ -712,25 +712,6 @@ contract TestConstitutions is Test {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](8);
 
-        // dummy call: mint tokens at erc20VTaxedMock contract.
-        targets = new address[](1);
-        values = new uint256[](1);
-        calldatas = new bytes[](1);
-        targets[0] = mockAddresses[3]; // Erc20Taxed mock
-        calldatas[0] = abi.encodeWithSelector(Erc20Taxed.mint.selector, 123 * 10**18);
-
-        // Note: I leave the first slot empty, so that numbering is equal to how laws are registered in IPowers.sol.
-        // Counting starts at 1, so the first law is lawId = 1.
-
-        staticParams = new bytes[](1);
-        staticParams[0] = abi.encode(1);
-        dynamicParams = new string[](1);
-        dynamicParams[0] = "address Account";
-        indexDynamicParams = new uint8[](1);
-        indexDynamicParams[0] = 1;
-
-        // should be self assign. 
-
         conditions.allowedRole = type(uint256).max; // anyone can call this law.
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "SelfSelect: A law to self-assign a role 1.",
@@ -762,7 +743,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max; // = role that can call this law. 
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
-            targetLaw: lawAddresses[7], // delegateSelect
+            targetLaw: lawAddresses[9], // ElectionSelect
             config: abi.encode(
                 mockAddresses[10], // = Erc20DelegateElection
                 2, // role to be elected. 
@@ -801,6 +782,9 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 2; // = role that can call this law. 
+        conditions.votingPeriod = 1200; // = number of blocks
+        conditions.succeedAt = 66; // = 51% simple majority needed for executing an action.
+        conditions.quorum = 20; // = 30% quorum needed
         conditions.needCompleted = 4; // = law that must be completed before this one.
         conditions.needNotCompleted = 5; // = law that must not be completed before this one.
         lawInitData[6] = PowersTypes.LawInitData({

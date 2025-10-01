@@ -2483,17 +2483,20 @@ contract Erc20TaxedTest is TestSetupPowers {
         assertEq(token.epochDuration(), 900);
         assertEq(token.AMOUNT_FAUCET(), 1 * 10**18);
         assertFalse(token.faucetPaused());
-        assertEq(token.balanceOf(token.owner()), 1 * 10**18);
     }
 
     function testMint() public {
         uint256 amount = 1000;
-        
+        uint256 balanceBefore = token.balanceOf(token.owner()); 
+        uint256 totalSupplyBefore = token.totalSupply(); 
+
         vm.prank(token.owner());
         token.mint(amount);
+        uint256 balanceAfter = token.balanceOf(token.owner()); 
+        uint256 totalSupplyAfter = token.totalSupply(); 
 
-        assertEq(token.balanceOf(token.owner()), 1 * 10**18 + amount);
-        assertEq(token.totalSupply(), 1 * 10**18 + amount);
+        assertEq(balanceBefore + amount, balanceAfter);
+        assertEq(totalSupplyBefore + amount, totalSupplyAfter);
     }
 
     function testMintRevertsWithZeroAmount() public {
@@ -2510,12 +2513,19 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testBurn() public {
         uint256 amount = 500;
-        
+        vm.prank(token.owner());
+        token.faucet();
+
+        uint256 balanceBefore = token.balanceOf(token.owner()); 
+        uint256 totalSupplyBefore = token.totalSupply(); 
+
         vm.prank(token.owner());
         token.burn(amount);
+        uint256 balanceAfter = token.balanceOf(token.owner()); 
+        uint256 totalSupplyAfter = token.totalSupply(); 
 
-        assertEq(token.balanceOf(token.owner()), 1 * 10**18 - amount);
-        assertEq(token.totalSupply(), 1 * 10**18 - amount);
+        assertEq(balanceBefore - amount, balanceAfter);
+        assertEq(totalSupplyBefore - amount, totalSupplyAfter);
     }
 
     function testBurnRevertsWithZeroAmount() public {
@@ -2623,6 +2633,9 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testTransferFromOwnerNoTax() public {
         uint256 transferAmount = 100;
+        vm.prank(token.owner()); 
+        token.faucet(); 
+
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.prank(token.owner());
