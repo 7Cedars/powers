@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupExecutiveFuzz } from "../../TestSetup.t.sol";
+import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
 import { GovernorCreateProposal } from "../../../src/laws/executive/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../../../src/laws/executive/GovernorExecuteProposal.sol";
@@ -16,13 +16,13 @@ import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 
 /// @title Executive Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for all executive law implementations using pre-initialized laws
-/// @dev Tests use laws from initiateExecutiveTestConstitution:
+/// @dev Tests use laws from executiveTestConstitution:
 ///      lawId 1: StatementOfIntent
 ///      lawId 2: GovernorCreateProposal
 ///      lawId 3: GovernorExecuteProposal  
 ///      lawId 4: AdoptLaws
 ///      lawId 5: PresetSingleAction
-contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
+contract ExecutiveFuzzTest is TestSetupExecutive {
     
     // Law instances for testing
     StatementOfIntent statementOfIntent;
@@ -200,28 +200,41 @@ contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
         string memory descriptionFuzzed,
         uint256 nonceFuzzed
     ) public {
-        vm.assume(bytes(descriptionFuzzed).length > 0);
+        vm.assume(bytes(descriptionFuzzed).length > 0 && bytes(descriptionFuzzed).length < 10_000);
+        targetsLength = bound(targetsLength, 1, MAX_FUZZ_TARGETS);
+        valuesLength = bound(valuesLength, 1, MAX_FUZZ_TARGETS);
+        calldatasLength = bound(calldatasLength, 1, MAX_FUZZ_TARGETS);
         vm.assume(targetsLength != valuesLength || valuesLength != calldatasLength);
-        vm.assume(targetsLength > 0);
-        
-        targets = new address[](targetsLength);
-        values = new uint256[](valuesLength);
-        calldatas = new bytes[](calldatasLength);
+
+        console.log("WAYPOINT 0");
+        console.log(targetsLength);
+        console.log(valuesLength);
+        console.log(calldatasLength);
+
+        address[] memory targetsFuzzed = new address[](targetsLength);
+        uint256[] memory valuesFuzzed = new uint256[](valuesLength);
+        bytes[] memory calldatasFuzzed = new bytes[](calldatasLength); 
+
+        console.log("WAYPOINT 1");
         
         for (i = 0; i < targetsLength; i++) {
-            targets[i] = address(daoMock);
+            targetsFuzzed[i] = address(daoMock);
         }
+        console.log("WAYPOINT 2");
         
         for (i = 0; i < valuesLength; i++) {
-            values[i] = 0;
+            valuesFuzzed[i] = 0;
         }
+        console.log("WAYPOINT 3");
         
         for (i = 0; i < calldatasLength; i++) {
-            calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
+            calldatasFuzzed[i] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
         }
+        console.log("WAYPOINT 4");
         
-        lawCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
-        
+        lawCalldata = abi.encode(targetsFuzzed, valuesFuzzed, calldatasFuzzed, descriptionFuzzed);
+        console.log("WAYPOINT 5");
+
         // Should revert due to mismatched array lengths
         vm.expectRevert();
         governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
@@ -350,24 +363,26 @@ contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
         // Get preset data for lawId 4
         lawHash = keccak256(abi.encode(address(daoMock), uint16(4)));
         adoptData = adoptLaws.getData(lawHash);
-        
+
         // Call with different inputs - should return same preset data
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) = 
             adoptLaws.handleRequest(alice, address(daoMock), 4, inputCalldataFuzzed, nonceFuzzed);
-        
+
+
         // Store first call results
         address[] memory firstTargets = returnedTargets;
         uint256[] memory firstValues = returnedValues;
         bytes[] memory firstCalldatas = returnedCalldatas;
-        
+
         bytes memory differentInput = abi.encode("completely different");
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) = 
-            adoptLaws.handleRequest(alice, address(daoMock), 4, differentInput, nonceFuzzed + 1);
+            adoptLaws.handleRequest(alice, address(daoMock), 4, differentInput, nonceFuzzed);
+
         
         // Both should return same preset data
         assertEq(firstTargets.length, returnedTargets.length);
         assertEq(firstTargets.length, adoptData.laws.length);
-        
+
         for (i = 0; i < firstTargets.length; i++) {
             assertEq(firstTargets[i], returnedTargets[i]);
             assertEq(firstTargets[i], address(daoMock)); // Should target the daoMock
@@ -403,21 +418,6 @@ contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
             assertEq(firstTargets[i], returnedTargets[i]);
         }
     }
-    
-    /// @notice Fuzz test AdoptLaws data retrieval
-    function testFuzzAdoptLawsDataRetrieval() public {
-        // Get preset data for lawId 4
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(4)));
-        adoptData = adoptLaws.getData(lawHash);
-        
-        // Verify data structure
-        assertTrue(adoptData.laws.length > 0);
-        assertTrue(adoptData.lawInitDatas.length > 0);
-        assertEq(adoptData.laws.length, adoptData.lawInitDatas.length);
-        
-        // Verify the law to be adopted is PresetSingleAction
-        assertEq(adoptData.laws[0], lawAddresses[0]); // PresetSingleAction
-    }
 
     //////////////////////////////////////////////////////////////
     //               PRESET SINGLE ACTION FUZZ                  //
@@ -439,7 +439,7 @@ contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
         // Call with different inputs
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) = 
             presetSingleAction.handleRequest(alice, address(daoMock), 5, inputCalldataFuzzed, nonceFuzzed);
-        
+
         // Store first call results
         address[] memory firstTargets = returnedTargets;
         uint256[] memory firstValues = returnedValues;
@@ -447,7 +447,7 @@ contract ExecutiveFuzzTest is TestSetupExecutiveFuzz {
         
         bytes memory differentInput = abi.encode("completely different");
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) = 
-            presetSingleAction.handleRequest(alice, address(daoMock), 5, differentInput, nonceFuzzed + 1);
+            presetSingleAction.handleRequest(alice, address(daoMock), 5, differentInput, nonceFuzzed);
         
         // Both should return same preset data
         assertEq(firstTargets.length, returnedTargets.length);

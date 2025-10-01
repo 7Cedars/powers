@@ -19,6 +19,8 @@
 
 pragma solidity 0.8.26;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { IPowers } from "../../src/interfaces/IPowers.sol";
+import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 
 contract FlagActions is Ownable {
     // Storage
@@ -59,6 +61,7 @@ contract FlagActions is Ownable {
     /// @param lawId The law ID associated with the action
     function flag(uint256 actionId, uint16 roleId, address account, uint16 lawId) external onlyOwner {
         if (flaggedActions[actionId]) revert("Already true");
+        if (IPowers(msg.sender).getActionState(actionId) != PowersTypes.ActionState.Fulfilled) revert("Action not fulfilled");
         
         flaggedActions[actionId] = true;
         

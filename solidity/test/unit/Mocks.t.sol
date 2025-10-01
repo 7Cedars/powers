@@ -172,6 +172,13 @@ contract FlagActionsTest is TestSetupPowers {
     function setUp() public override {
         super.setUp();
         flagActions = FlagActions(mockAddresses[6]);
+
+        // Mock getActionState to always return Fulfilled
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(daoMock.getActionState.selector),
+            abi.encode(ActionState.Fulfilled)
+        );
     }
 
     function testConstructor() public view {
@@ -1760,7 +1767,8 @@ contract DonationsTest is TestSetupPowers {
         // Alice donates native currency
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        (bool success,) = payable(address(donations)).call{value: 0.5 ether}("");
+        assertTrue(success);
 
         // Check donation was recorded
         assertEq(donations.getTotalDonations(), 1);

@@ -7,7 +7,7 @@ import {Nominees} from "./Nominees.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
-/// @title Erc20Erc20DelegateElection (standalone)
+/// @title Erc20DelegateElection (standalone)
 /// @notice Simple, standalone contract combining self-nomination and delegate-based selection.
 /// - Accounts can nominate or revoke themselves as candidates.
 /// - An election selects up to `maxRoleHolders` nominees with highest delegated votes (`ERC20Votes.getVotes`).

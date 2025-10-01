@@ -2,23 +2,23 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupElectoral } from "../TestSetup.t.sol";
-import { ElectionSelect } from "../../src/laws/electoral/ElectionSelect.sol";
-import { PeerSelect } from "../../src/laws/electoral/PeerSelect.sol";
-import { VoteInOpenElection } from "../../src/laws/electoral/VoteInOpenElection.sol";
-import { NStrikesRevokesRoles } from "../../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { TaxSelect } from "../../src/laws/electoral/TaxSelect.sol";
-import { BuyAccess } from "../../src/laws/electoral/BuyAccess.sol";
-import { RoleByRoles } from "../../src/laws/electoral/RoleByRoles.sol";
-import { SelfSelect } from "../../src/laws/electoral/SelfSelect.sol";
-import { RenounceRole } from "../../src/laws/electoral/RenounceRole.sol";
+import { TestSetupElectoral } from "../../TestSetup.t.sol";
+import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
+import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
+import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
+import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
+import { BuyAccess } from "../../../src/laws/electoral/BuyAccess.sol";
+import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
+import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
+import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "@mocks/OpenElection.sol";
 import { Donations } from "@mocks/Donations.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Nominees } from "@mocks/Nominees.sol";
 import { FlagActions } from "@mocks/FlagActions.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 
 /// @notice Comprehensive unit tests for all electoral laws
 /// @dev Tests all functionality of electoral laws including initialization, execution, and edge cases
@@ -204,14 +204,15 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
-        configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
         conditions.allowedRole = type(uint256).max;
-
         vm.prank(address(daoMock));
         daoMock.adoptLaw(PowersTypes.LawInitData({
             nameDescription: "Vote In Open Election",
             targetLaw: lawAddresses[11],
-            config: configBytes,
+            config: abi.encode(
+                mockAddresses[9], // openElection address
+                1 // 1 vote allowed
+            ), 
             conditions: conditions
         }));
 
@@ -227,9 +228,9 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vote[0] = true;  // Vote for alice
         vote[1] = true;  // Vote for bob
 
-        // try to vote again... 
-        vm.prank(charlotte);
+        // try to vote on tw0 people. 
         vm.expectRevert("Voter tries to vote for more than maxVotes nominees.");
+        vm.prank(charlotte);
         daoMock.request(lawId, abi.encode(vote), nonce, "Test vote");
     }
 }
@@ -246,6 +247,13 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
         nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[12]);
         flagActions = FlagActions(mockAddresses[6]); // FlagActions
         lawId = 8; 
+
+        // Mock getActionState to always return Fulfilled
+        vm.mockCall(
+            address(daoMock),
+            abi.encodeWithSelector(daoMock.getActionState.selector),
+            abi.encode(ActionState.Fulfilled)
+        );
     }
 
     function testNStrikesRevokesRolesInitialization() public {

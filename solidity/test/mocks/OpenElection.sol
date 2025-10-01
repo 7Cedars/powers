@@ -78,7 +78,7 @@ contract OpenElection is Nominees {
         nomineesByElection[currentElectionId] = new address[](nomineesSorted.length);
         for (uint256 i; i < nomineesSorted.length; i++) {
             nomineesByElection[currentElectionId][i] = nomineesSorted[i];
-        }
+        } 
 
         currentElection = ElectionData({
             isOpen: true,

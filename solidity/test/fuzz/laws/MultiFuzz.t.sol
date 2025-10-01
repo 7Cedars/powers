@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupMultiFuzz } from "../../TestSetup.t.sol";
+import { TestSetupMulti } from "../../TestSetup.t.sol";
 import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
 import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
 import { BespokeActionSimple } from "../../../src/laws/multi/BespokeActionSimple.sol";
@@ -15,7 +15,7 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 /// @title Multi Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for all multi law implementations using pre-initialized laws
-/// @dev Tests use laws from initiateMultiTestConstitution:
+/// @dev Tests use laws from multiTestConstitution:
 ///      lawId 1: OpenAction
 ///      lawId 2: StatementOfIntent
 ///      lawId 3: BespokeActionSimple (mintCoins)
@@ -23,7 +23,7 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 ///      lawId 5: PresetSingleAction (label roles)
 ///      lawId 6: PresetMultipleActions (multiple label actions)
 ///      lawId 7: PresetSingleAction (another preset action)
-contract MultiFuzzTest is TestSetupMultiFuzz {
+contract MultiFuzzTest is TestSetupMulti {
     
     // Law instances for testing
     OpenAction openAction;

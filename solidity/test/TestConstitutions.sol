@@ -50,7 +50,7 @@ contract TestConstitutions is Test {
     //                 POWERS CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
     /// @notice initiate the powers constitution. Follows the Powers101 governance structure.  
-    function initiatePowersConstitution(
+    function powersTestConstitution(
         string[] memory /*lawNames*/,
         address[] memory lawAddresses,
         string[] memory /*mockNames*/,
@@ -186,7 +186,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                  LAW CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateLawTestConstitution(
+    function lawTestConstitution(
         string[] memory /*lawNames*/,
         address[] memory lawAddresses,
         string[] memory /*mockNames*/,
@@ -294,7 +294,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                  LAW CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function initiateUtilitiesTestConstitution(
+    function utilitiesTestConstitution(
         string[] memory lawNames,
         address[] memory lawAddresses,
         string[] memory mockNames,
@@ -302,14 +302,14 @@ contract TestConstitutions is Test {
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         // for now, utilities test relies on law test constitution.
-        (PowersTypes.LawInitData[] memory lawInitData_) = initiateLawTestConstitution(lawNames, lawAddresses, mockNames, mockAddresses, daoMock);
+        (PowersTypes.LawInitData[] memory lawInitData_) = lawTestConstitution(lawNames, lawAddresses, mockNames, mockAddresses, daoMock);
         lawInitData = lawInitData_;
     }
 
     ////////////////////////////////////////////////////////////
     //                ELECTORAL CONSTITUTION                  //
     ////////////////////////////////////////////////////////////
-    function initiateElectoralTestConstitution(
+    function electoralTestConstitution(
         string[] memory /* lawNames */,
         address[] memory lawAddresses,
         string[] memory /* mockNames */,
@@ -471,7 +471,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                  EXECUTIVE CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function initiateExecutiveTestConstitution(
+    function executiveTestConstitution(
         string[] memory /* lawNames */,
         address[] memory lawAddresses,
         string[] memory /* mockNames */,
@@ -573,7 +573,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                    MULTI CONSTITUTION                    //
     //////////////////////////////////////////////////////////////
-    function initiateMultiTestConstitution(
+    function multiTestConstitution(
         string[] memory /* lawNames */,
         address[] memory lawAddresses,
         string[] memory /* mockNames */,
@@ -702,17 +702,225 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                 POWERS101 CONSTITUTION                   //
     //////////////////////////////////////////////////////////////
-    
+    // very similar to the PowersConstitution. Only difference is the use of SelfSelect. 
+    function powers101Constitution(
+        string[] memory /*lawNames*/,
+        address[] memory lawAddresses,
+        string[] memory /*mockNames*/,
+        address[] memory mockAddresses,
+        address payable daoMock
+    ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
+        lawInitData = new PowersTypes.LawInitData[](8);
+
+        // dummy call: mint tokens at erc20VTaxedMock contract.
+        targets = new address[](1);
+        values = new uint256[](1);
+        calldatas = new bytes[](1);
+        targets[0] = mockAddresses[3]; // Erc20Taxed mock
+        calldatas[0] = abi.encodeWithSelector(Erc20Taxed.mint.selector, 123 * 10**18);
+
+        // Note: I leave the first slot empty, so that numbering is equal to how laws are registered in IPowers.sol.
+        // Counting starts at 1, so the first law is lawId = 1.
+
+        staticParams = new bytes[](1);
+        staticParams[0] = abi.encode(1);
+        dynamicParams = new string[](1);
+        dynamicParams[0] = "address Account";
+        indexDynamicParams = new uint8[](1);
+        indexDynamicParams[0] = 1;
+
+        // should be self assign. 
+
+        conditions.allowedRole = type(uint256).max; // anyone can call this law.
+        lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "SelfSelect: A law to self-assign a role 1.",
+            targetLaw: lawAddresses[16], // SelfSelect
+            config: abi.encode(
+                1 // roleId = 1
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
+        dynamicParamsSimple = new string[](1);
+        dynamicParamsSimple[0] = "bool NominateMe";
+
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Nominate Me: Nominate yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
+            targetLaw: lawAddresses[5], // bespokeActionSimple
+            config: abi.encode(
+                mockAddresses[10], // = Erc20DelegateElection
+                Nominees.nominate.selector,
+                dynamicParamsSimple 
+            ),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // delegateSelect
+        conditions.allowedRole = type(uint256).max; // = role that can call this law. 
+        lawInitData[3] = PowersTypes.LawInitData({
+            nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
+            targetLaw: lawAddresses[7], // delegateSelect
+            config: abi.encode(
+                mockAddresses[10], // = Erc20DelegateElection
+                2, // role to be elected. 
+                3 // max number role holders
+            ),  
+            conditions: conditions
+        });
+        delete conditions;
+
+        // proposalOnly
+        inputParams = new string[](3);
+        inputParams[0] = "targets address[]";
+        inputParams[1] = "values uint256[]";
+        inputParams[2] = "calldatas bytes[]";
+
+        conditions.allowedRole = 1; // = role that can call this law. 
+        conditions.quorum = 20; // = 30% quorum needed
+        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        conditions.votingPeriod = 1200; // = number of blocks
+        lawInitData[4] = PowersTypes.LawInitData({
+            nameDescription: "StatementOfIntent: Propose any kind of action.",
+            targetLaw: lawAddresses[3], // statementOfIntent
+            config: abi.encode(inputParams),
+            conditions: conditions
+        });
+        delete conditions;
+
+        conditions.allowedRole = 0; // = admin. 
+        conditions.needCompleted = 4; // = law that must be completed before this one.
+        lawInitData[5] = PowersTypes.LawInitData({
+            nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
+            targetLaw: lawAddresses[3], // statementOfIntent
+            config: abi.encode(inputParams),
+            conditions: conditions
+        });
+        delete conditions;
+
+        conditions.allowedRole = 2; // = role that can call this law. 
+        conditions.needCompleted = 4; // = law that must be completed before this one.
+        conditions.needNotCompleted = 5; // = law that must not be completed before this one.
+        lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
+            targetLaw: lawAddresses[2], // openAction. 
+            config: abi.encode(), // empty config.
+            conditions: conditions
+        });
+        delete conditions;
+
+        // PresetSingleAction
+        // Set config 
+        targets = new address[](3);
+        values = new uint256[](3);
+        calldatas = new bytes[](3);
+        for (uint256 i = 0; i < targets.length; i++) {
+            targets[i] = daoMock; // = Powers contract. 
+        }
+        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
+        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate"); 
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 7); // revoke law after use. 
+
+        // set conditions
+        conditions.allowedRole = type(uint256).max; // = public role. . 
+        lawInitData[7] = PowersTypes.LawInitData({
+            nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
+            targetLaw: lawAddresses[0], // presetSingleAction
+            config: abi.encode(targets, values, calldatas), 
+            conditions: conditions
+        });
+        delete conditions;
+    }
 
 
     //////////////////////////////////////////////////////////////
-    //                 POWERS101 CONSTITUTION                   //
+    //             SPLIT GOVERNANCE CONSTITUTION                //
     //////////////////////////////////////////////////////////////
 
+    // Will be implemented later.  
+
+    // law 1: CREATE PROPOSAL 
+
+    // law 2: ASSIGN TO PATH A (SELECTORS)
+    // needCompleted: law 1
+    // needNotCompleted: law 5
+
+    // law 3: ASSIGN TO PATH B (SELECTORS)
+    // needCompleted: law 1
+    // needNotCompleted: law 5
+
+    // law 4: ASSIGN TO PATH C (SELECTORS)
+    // needCompleted: law 1
+    // needNotCompleted: law 5
+
+    // law 5: ALLOCATION CLOSED (SELECTORS)
+    // needCompleted: law 1
+
+    // law 6: (PATH A) EXECUTE PROPOSAL (EXECUTIVES)
+    // needCompleted: law 2
+
+    // law 7: (PATH B) VETO PROPOSAL (SECURITY COUNCIL)
+    // needCompleted: law 3
+
+    // law 8: (PATH B) EXECUTE PROPOSAL (EXECUTIVES)
+    // needCompleted: law 3
+    // needNotCompleted: law 7
+
+    // law 9: (PATH C) PASS PROPOSAL (SECURITY COUNCIL)
+    // needCompleted: law 4
+
+    // law 10: (PATH C) EXECUTE PROPOSAL (SECURITY COUNCIL)
+    // needCompleted: law 9
 
 
     //////////////////////////////////////////////////////////////
-    //                 POWERS101 CONSTITUTION                   //
+    //               MANAGED GRANTS CONSTITUTION                //
     //////////////////////////////////////////////////////////////
+
+    // Will be implemented later.  
+
+    // law 1: CREATE GRANT PROPOSAL (PUBLIC) 
+
+    // law 2: SCOPE ASSESSMENT (SCOPE ASSESSOR)
+    // assigns applicant role 
+    // needCompleted: law 1
+
+    // Law 3: TECHNICAL ASSESSMENT (TECHNICAL ASSESSOR)
+    // needCompleted: law 2
+
+    // Law 4: FINANCIAL ASSESSMENT (FINANCIAL ASSESSOR)
+    // needCompleted: law 3
+
+    // Law 5: ASSIGN GRANT (GRANT IMBURSER)
+    // assigns grantee role
+    // needCompleted: law 4
+
+    // Law 6: END GRANT (GRANT IMBURSER)
+    // needCompleted: law 5
+
+    // Law 7: LOG COMPLAINT (APPLICANT)
+    // needCompleted: law 1
+
+    // Law 8: JUDGE COMPLAINT (JUDGE)
+    // flags action 
+    // needCompleted: law 7
+
+    // Law 9: N STRIKES YOUR OUT (PUBLIC)
+    // removes ALL role holders from role.  
+
+    // Law 10: ASSIGN ANY ACCOUNT TO ANY ROLE (PARENT DAO)
+
+    // Law 11: REQUEST PAYOUT (GRANTEE)
+
+    // Law 12: ASSESS PAYOUT (GRANT IMBURSER)
+    // sends payout to grantee 
+    // needCompleted: law 11
+
+    //////////////////////////////////////////////////////////////
+    //                      MORE ORGS TBI                       //
+    //////////////////////////////////////////////////////////////
+    // ... 
 
 }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupFuzz } from "../TestSetup.t.sol";
+import { TestSetupLaw } from "../TestSetup.t.sol";
 import { Law } from "../../src/Law.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
@@ -17,7 +17,7 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 /// @title Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for the Law.sol contract and its implementations
 /// @dev Tests various edge cases and random inputs for law functionality
-contract LawFuzzTest is TestSetupFuzz {
+contract LawFuzzTest is TestSetupLaw {
     
     // Law instances for testing
     PresetSingleAction presetSingleAction;
@@ -55,7 +55,7 @@ contract LawFuzzTest is TestSetupFuzz {
     ) public {
         // Bound inputs
         vm.assume(indexFuzzed > 0);
-        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= MAX_FUZZ_STRING_LENGTH);
+        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
         
         // Test law initialization
         vm.prank(address(daoMock));
@@ -73,7 +73,7 @@ contract LawFuzzTest is TestSetupFuzz {
     ) public {
         // Bound inputs
         vm.assume(indexFuzzed > 0);
-        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= MAX_FUZZ_STRING_LENGTH);
+        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
         
         // Test with various string lengths
         inputParamsBytes = new bytes(0);
@@ -98,7 +98,7 @@ contract LawFuzzTest is TestSetupFuzz {
     ) public {
         // Bound inputs 
         vm.assume(lawIdFuzzed > 0);
-        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= MAX_FUZZ_STRING_LENGTH);
+        vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
         vm.assume(configFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
         
         // Initialize law

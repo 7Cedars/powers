@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupFuzz  } from "../TestSetup.t.sol";
+import { TestSetupPowers  } from "../TestSetup.t.sol";
 import { Powers } from "../../src/Powers.sol";
 import { IPowers } from "../../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
@@ -13,26 +13,8 @@ import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
 /// @title Powers Core Fuzz Tests
 /// @notice Deep fuzz testing for core Powers.sol functionality
 /// @dev Tests core governance mechanisms with random inputs
-contract PowersCoreFuzzTest is TestSetupFuzz {
+contract PowersFuzzTest is TestSetupPowers {
     // Test state
-    mapping(address => bool) testAccounts;
-    mapping(uint256 => bool) testRoles;
-    mapping(uint16 => bool) testLaws;
-    
-    function setUp() public override {
-        super.setUp();
-        
-        // Initialize test state
-        testAccounts[alice] = true;
-        testAccounts[bob] = true;
-        testAccounts[charlotte] = true;
-        testAccounts[david] = true;
-        
-        testRoles[ROLE_ONE] = true;
-        testRoles[ROLE_TWO] = true;
-        testRoles[ROLE_THREE] = true;
-        testRoles[ROLE_FOUR] = true;
-    }
 
     //////////////////////////////////////////////////////////////
     //                  VOTING MECHANISM FUZZ                   //
@@ -67,18 +49,15 @@ contract PowersCoreFuzzTest is TestSetupFuzz {
         uint256 validActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test action");
         
         // Test voting
-        // NB: no one has role - everyoen fails to vote?! 
         if (hasRole) {
             vm.prank(address(daoMock));
             daoMock.assignRole(ROLE_ONE, voter);
         }
+        if (!hasRole) vm.expectRevert(Powers__CannotCallLaw.selector);
         vm.prank(voter);
-        try daoMock.castVoteWithReason(validActionId, support, reason) {
-            // Verify vote was cast
-            assertTrue(daoMock.hasVoted(validActionId, voter));
-        } catch {
-            assertEq(daoMock.hasVoted(validActionId, voter), false); 
-        }
+        daoMock.castVoteWithReason(validActionId, support, reason);
+        // Verify vote was cast
+        if (hasRole) assertTrue(daoMock.hasVoted(validActionId, voter));
     }
     
     /// @notice Fuzz test quorum calculation
@@ -89,8 +68,10 @@ contract PowersCoreFuzzTest is TestSetupFuzz {
     ) public { 
         // Bound inputs
         vm.assume(roleIdFuzzed != ADMIN_ROLE && roleIdFuzzed != PUBLIC_ROLE);
-        vm.assume(numMembers <= MAX_FUZZ_ACCOUNTS);
+        vm.assume(numMembers <= 15);
         vm.assume(quorumFuzzed <= 100); 
+
+        uint256 numberOfMembersBefore =  daoMock.getAmountRoleHolders(roleIdFuzzed);
         
         // Add members to role
         for (i = 0; i < numMembers; i++) {
@@ -102,7 +83,7 @@ contract PowersCoreFuzzTest is TestSetupFuzz {
         }
 
         // Verify role member count
-        assertEq(daoMock.getAmountRoleHolders(roleIdFuzzed), numMembers);
+        assertEq(daoMock.getAmountRoleHolders(roleIdFuzzed), numMembers + numberOfMembersBefore);
         
         // Test quorum calculation
         uint256 expectedQuorum = (numMembers * quorumFuzzed) / 100;
@@ -404,7 +385,7 @@ contract PowersCoreFuzzTest is TestSetupFuzz {
         // Bound inputs
         vm.assume(accountsFuzzed.length > numberOfAccounts);
         vm.assume(blacklistedFuzzed.length > numberOfAccounts);
-        vm.assume(numberOfAccounts > 0 && numberOfAccounts <= MAX_FUZZ_ACCOUNTS);
+        vm.assume(numberOfAccounts > 0 && numberOfAccounts <= 15);
         
         for (i = 0; i < numberOfAccounts; i++) {
             vm.assume(accountsFuzzed[i] != address(0));

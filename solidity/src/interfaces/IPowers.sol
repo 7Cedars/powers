@@ -36,7 +36,8 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param nonce The nonce for the action
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
-        payable;
+        payable
+        returns (uint256 actionId);
 
     /// @notice Completes an action by executing the actual calls
     /// @dev Can only be called by an active law contract
@@ -59,18 +60,18 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action
     /// @param uriDescription A human-readable description of the proposal
-    /// @return The unique identifier of the created proposal
+    /// @return actionId The unique identifier of the created proposal
     function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
-        returns (uint256);
+        returns (uint256 actionId);
 
     /// @notice Cancels an existing proposal
     /// @dev Can only be called by the original proposer
     /// @param lawId The id of the law
     /// @param lawCalldata The original encoded function call data
     /// @param nonce The nonce for the action
-    /// @return The unique identifier of the cancelled proposal
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256);
+    /// @return actionId The unique identifier of the cancelled proposal
+    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256 actionId);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain
@@ -97,7 +98,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Activates a new law in the protocol
     /// @dev Can only be called through the protocol itself
     /// @param lawInitData The data of the law
-    function adoptLaw(LawInitData calldata lawInitData) external;
+    function adoptLaw(LawInitData calldata lawInitData) external returns (uint256 lawId);
 
     /// @notice Deactivates an existing law
     /// @dev Can only be called through the protocol itself

@@ -2,15 +2,15 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupExecutive } from "../TestSetup.t.sol";
-import { AdoptLaws } from "../../src/laws/executive/AdoptLaws.sol";
-import { GovernorCreateProposal } from "../../src/laws/executive/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../../src/laws/executive/GovernorExecuteProposal.sol";
+import { TestSetupExecutive } from "../../TestSetup.t.sol";
+import { AdoptLaws } from "../../../src/laws/executive/AdoptLaws.sol";
+import { GovernorCreateProposal } from "../../../src/laws/executive/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../../../src/laws/executive/GovernorExecuteProposal.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
-import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
+import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
+import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 

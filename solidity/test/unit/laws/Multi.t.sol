@@ -2,16 +2,16 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { TestSetupMulti } from "../TestSetup.t.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
-import { StatementOfIntent } from "../../src/laws/multi/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../src/laws/multi/BespokeActionSimple.sol";
-import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../../src/laws/multi/PresetMultipleActions.sol";
-import { BespokeActionAdvanced } from "../../src/laws/multi/BespokeActionAdvanced.sol";
+import { TestSetupMulti } from "../../TestSetup.t.sol";
+import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
+import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
+import { BespokeActionSimple } from "../../../src/laws/multi/BespokeActionSimple.sol";
+import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../../../src/laws/multi/PresetMultipleActions.sol";
+import { BespokeActionAdvanced } from "../../../src/laws/multi/BespokeActionAdvanced.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 
 /// @notice Comprehensive unit tests for all multi laws
 /// @dev Tests all functionality of multi laws including initialization, execution, and edge cases

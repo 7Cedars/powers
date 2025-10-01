@@ -128,8 +128,9 @@ contract Powers is EIP712, IPowers {
         payable
         virtual
         onlyAdoptedLaw(lawId)
+        returns (uint256 actionId)
     {
-        uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
+        actionId = _hashAction(lawId, lawCalldata, nonce);
         AdoptedLaw memory law = laws[lawId];
 
         // check 0 is calldata length is too long
@@ -165,6 +166,8 @@ contract Powers is EIP712, IPowers {
 
         // emit event.
         emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, uriAction);
+
+        return actionId;
     }
 
     /// @inheritdoc IPowers
@@ -223,7 +226,7 @@ contract Powers is EIP712, IPowers {
         external
         virtual
         onlyAdoptedLaw(lawId)
-        returns (uint256)
+        returns (uint256 actionId)
     {
         AdoptedLaw memory law = laws[lawId];
 
@@ -240,7 +243,9 @@ contract Powers is EIP712, IPowers {
         if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
         // if checks pass: propose.
-        return _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
+        actionId = _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
+
+        return actionId;
     }
 
     /// @notice Internal propose mechanism. Can be overridden to add more logic on proposedAction creation.
@@ -381,8 +386,10 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function adoptLaw(LawInitData memory lawInitData) public onlyPowers {
-        _adoptLaw(lawInitData);
+    function adoptLaw(LawInitData memory lawInitData) public onlyPowers returns (uint256 lawId) {
+        lawId = _adoptLaw(lawInitData);
+
+        return lawId;
     }
 
     /// @inheritdoc IPowers
@@ -398,7 +405,7 @@ contract Powers is EIP712, IPowers {
     /// @param lawInitData data of the law.
     ///
     /// Emits a {SeperatedPowersEvents::LawAdopted} event.
-    function _adoptLaw(LawInitData memory lawInitData) internal virtual {
+    function _adoptLaw(LawInitData memory lawInitData) internal virtual returns (uint256 lawId) {
         // check if added address is indeed a law. Note that this will also revert with address(0).
         if (!ERC165Checker.supportsInterface(lawInitData.targetLaw, type(ILaw).interfaceId)) {
             revert Powers__IncorrectInterface();
@@ -419,6 +426,8 @@ contract Powers is EIP712, IPowers {
 
         // emit event.
         emit LawAdopted(lawCount - 1);
+
+        return lawCount - 1;
     }
 
     /// @inheritdoc IPowers

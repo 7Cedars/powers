@@ -169,13 +169,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     string[] testStrings;
 
     // Fuzz test variables
-    uint256 MAX_FUZZ_ACCOUNTS;
-    uint256 MAX_FUZZ_ROLES;
-    uint256 MAX_FUZZ_LAWS;
-    uint256 MAX_FUZZ_ACTIONS;
     uint256 MAX_FUZZ_TARGETS;
     uint256 MAX_FUZZ_CALLDATA_LENGTH;
-    uint256 MAX_FUZZ_STRING_LENGTH;
 }
 
 abstract contract TestStandalone is Test, TestVariables {
@@ -291,6 +286,8 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         ROLE_FOUR = 4;
 
         nonce = 123;
+        MAX_FUZZ_TARGETS = 20;
+        MAX_FUZZ_CALLDATA_LENGTH = 2000;
 
         // users
         alice = makeAddr("alice");
@@ -357,7 +354,7 @@ abstract contract TestSetupPowers is BaseSetup {
         super.setUpVariables();
 
         // initiate constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiatePowersConstitution(
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powersTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
@@ -379,7 +376,7 @@ abstract contract TestSetupLaw is BaseSetup {
         super.setUpVariables();
 
         // initiate constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateLawTestConstitution(
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.lawTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
@@ -401,7 +398,7 @@ abstract contract TestSetupUtilities is BaseSetup {
         super.setUpVariables();
 
         // initiate constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateUtilitiesTestConstitution(
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.utilitiesTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
@@ -418,32 +415,73 @@ abstract contract TestSetupUtilities is BaseSetup {
     }
 }
 
-abstract contract TestSetupFuzz is BaseSetup {
-
+abstract contract TestSetupElectoral is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        MAX_FUZZ_ACCOUNTS = 100;
-        MAX_FUZZ_ROLES = 50;
-        MAX_FUZZ_LAWS = 10;
-        MAX_FUZZ_ACTIONS = 20;
-        MAX_FUZZ_TARGETS = 20;
-        MAX_FUZZ_CALLDATA_LENGTH = 2000;
-        MAX_FUZZ_STRING_LENGTH = 255;
+        // initiate electoral constitution  
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.electoralTestConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
 
-        // initiate constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiatePowersConstitution(
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_); 
+
+        vm.startPrank(address(daoMock));
+        daoMock.setPayableEnabled(true);
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    }
+}
+
+abstract contract TestSetupExecutive is BaseSetup {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate executive constitution  
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.executiveTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
-    }  
+
+        vm.startPrank(address(daoMock));
+        daoMock.setPayableEnabled(true);
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    }
 }
 
+abstract contract TestSetupMulti is BaseSetup {
+    function setUpVariables() public override {
+        super.setUpVariables();
 
+        // initiate multi constitution  
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.multiTestConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
 
-/// NB STILL NEED TO ADAPT THE CONFIGS BELOW ///  
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_); 
+
+        vm.startPrank(address(daoMock));
+        daoMock.setPayableEnabled(true);
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    }
+}
+
+/// NB ASYNC LAWS UNIT TESTING TO BE IMPLEMENTED
 
 // abstract contract TestSetupAsync is BaseSetup {
 //     function setUpVariables() public override {
@@ -455,7 +493,7 @@ abstract contract TestSetupFuzz is BaseSetup {
 //         vm.stopPrank();
 
 //         // initiate constitution  
-//         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateUtilitiesTestConstitution(
+//         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.utilitiesTestConstitution(
 //             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
 //         );
 
@@ -472,136 +510,6 @@ abstract contract TestSetupFuzz is BaseSetup {
 //     }
 // }
 
-abstract contract TestSetupElectoral is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        // initiate electoral constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateElectoralTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_); 
-
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
-        daoMock.assignRole(ROLE_ONE, alice);
-        daoMock.assignRole(ROLE_ONE, bob);
-        daoMock.assignRole(ROLE_TWO, charlotte);
-        daoMock.assignRole(ROLE_TWO, david);
-        vm.stopPrank();
-    }
-}
-
-abstract contract TestSetupElectoralFuzz is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        MAX_FUZZ_ACCOUNTS = 100;
-        MAX_FUZZ_ROLES = 50;
-        MAX_FUZZ_LAWS = 10;
-        MAX_FUZZ_ACTIONS = 20;
-        MAX_FUZZ_TARGETS = 20;
-        MAX_FUZZ_CALLDATA_LENGTH = 2000;
-        MAX_FUZZ_STRING_LENGTH = 255;
-
-      (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateElectoralTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_);
-    }
-}
-
-abstract contract TestSetupExecutive is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        // initiate executive constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateExecutiveTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_);
-
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
-        daoMock.assignRole(ROLE_ONE, alice);
-        daoMock.assignRole(ROLE_ONE, bob);
-        daoMock.assignRole(ROLE_TWO, charlotte);
-        daoMock.assignRole(ROLE_TWO, david);
-        vm.stopPrank();
-    }
-}
-
-abstract contract TestSetupExecutiveFuzz is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        MAX_FUZZ_ACCOUNTS = 100;
-        MAX_FUZZ_ROLES = 50;
-        MAX_FUZZ_LAWS = 10;
-        MAX_FUZZ_ACTIONS = 20;
-        MAX_FUZZ_TARGETS = 20;
-        MAX_FUZZ_CALLDATA_LENGTH = 2000;
-        MAX_FUZZ_STRING_LENGTH = 255;
-
-        // initiate executive constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateExecutiveTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_);
-    }
-}
-
-abstract contract TestSetupMulti is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        // initiate multi constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateMultiTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_); 
-
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
-        daoMock.assignRole(ROLE_ONE, alice);
-        daoMock.assignRole(ROLE_ONE, bob);
-        daoMock.assignRole(ROLE_TWO, charlotte);
-        daoMock.assignRole(ROLE_TWO, david);
-        vm.stopPrank();
-    }
-}
-
-abstract contract TestSetupMultiFuzz is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        MAX_FUZZ_ACCOUNTS = 100;
-        MAX_FUZZ_ROLES = 50;
-        MAX_FUZZ_LAWS = 10;
-        MAX_FUZZ_ACTIONS = 20;
-        MAX_FUZZ_TARGETS = 20;
-        MAX_FUZZ_CALLDATA_LENGTH = 2000;
-        MAX_FUZZ_STRING_LENGTH = 255;
-
-        // initiate multi constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.initiateMultiTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_);
-    }
-}
 
 /////////////////////////////////////////////////////////////////////
 //                 TEST SETUPS ORGANISATIONS                       //
