@@ -1,2 +1,0 @@
-# Governor.sol (Tally.xyz)
-
