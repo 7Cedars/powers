@@ -65,7 +65,7 @@ export const deploymentForms: DeploymentForm[] = [
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiawj6j4fkudjj6kr54ygn3j55cw3cvapuwqiib3uwfonoyyrr2q7i",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibglg2jk56676ugqtarjzseiq6mpptuapal6xlkt5avm3gtxcwgcy",
     description: "Deploy a grant program using Powers. This program allows the general public to make proposals, has a sequential path for assess along scope, technicality and finances, and allows to distribute funds along milestones. It also has a mechanisms for challening decisions.",
-    disabled: false,
+    disabled: true,
     onlyLocalhost: false,
     fields: [
       { name: "parentDaoAddress", placeholder: "Parent DAO or your own address (0x...)", type: "text", required: true }
@@ -80,5 +80,17 @@ export const deploymentForms: DeploymentForm[] = [
     disabled: false,
     onlyLocalhost: true,
     fields: []
+  },
+  {
+    id: 7,
+    title: "PowersDAO",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreic2h45qpaafk7zesvyfuzh6dve2mzydtvdwoyuwp72spocvzifl5u",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibs64ol5hjnsqwyx4uzveougdkkyqaqoisqnmd6c2wpp36lwnqp7i",
+    description: "The DAO that governs development of the Powers protocol. This is an example of a fully fledged DAO governed by Powers. You will need to add a Chainlink subscription ID to the form below. Do not forget to add the address of the RoleByGitCommit law as a consumer to your chainlink subscription.",
+    disabled: false,
+    onlyLocalhost: true,
+    fields: [
+      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions.", type: "number", required: true }
+    ]
   }
 ]; 

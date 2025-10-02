@@ -5,24 +5,18 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// NB: This library will soon be depricated.
-
 /// @title LawUtilities - Utility Functions for Powers Protocol Laws
 /// @notice A library of helper functions used across Law contracts
-/// @dev Provides common functionality for law implementation and validation
+/// @dev Provides common functionality for Law implementation and validation
 /// @author 7Cedars
 
-// Regarding decoding calldata.
-// Note that validating calldata is not possible at the moment.
-// See this feature request: https://github.com/ethereum/solidity/issues/10381#issuecomment-1285986476
-// The feature request has been open for almost five years(!) at time of writing.
 pragma solidity 0.8.26;
 
 import { ERC721 } from "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
@@ -33,114 +27,18 @@ import { PowersTypes } from "./interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library LawUtilities {
-    //////////////////////////////////////////////////////////////
-    //                        ERRORS                            //
-    //////////////////////////////////////////////////////////////
-    error LawUtilities__ParentNotCompleted();
-    error LawUtilities__ParentBlocksCompletion();
-    error LawUtilities__ExecutionGapTooSmall();
-    error LawUtilities__ProposalNotSucceeded();
-    error LawUtilities__DeadlineNotPassed();
-    error LawUtilities__StringTooShort();
-    error LawUtilities__StringTooLong();
-
-    //////////////////////////////////////////////////////////////
-    //                  STORAGE POINTERS                        //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Structure to track transactions by account address
-    /// @dev Uses a mapping to store arrays of block numbers for each account
-    struct TransactionsByAccount {
-        mapping(address account => uint48[] blockNumber) transactions;
-    }
-
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
     function checkStringLength(string memory name_, uint256 minLength, uint256 maxLength) external pure {
         if (bytes(name_).length < minLength) {
-            revert LawUtilities__StringTooShort();
+            revert("String too short");
         }
         if (bytes(name_).length > maxLength) {
-            revert LawUtilities__StringTooLong();
+            revert("String too long");
         }
     }
 
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
-    /// @param conditions The conditionsuration parameters for the law
-    /// @param lawCalldata The calldata of the law
-    /// @param nonce The nonce of the law
-    function baseChecksAtPropose(
-        ILaw.Conditions memory conditions,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce
-    ) external view {
-        // Check if parent law completion is required
-        if (conditions.needCompleted != 0) {
-            uint256 parentActionId = hashActionId(conditions.needCompleted, lawCalldata, nonce);
-            // console2.log("parentActionId", parentActionId);
-            uint8 stateLog = uint8(Powers(payable(powers)).state(parentActionId));
-            // console2.log("state", stateLog);
-            if (Powers(payable(powers)).state(parentActionId) != PowersTypes.ActionState.Fulfilled) {
-                revert LawUtilities__ParentNotCompleted();
-            }
-        }
-
-        // Check if parent law must not be completed
-        if (conditions.needNotCompleted != 0) {
-            uint256 parentActionId = hashActionId(conditions.needNotCompleted, lawCalldata, nonce);
-
-            if (Powers(payable(powers)).state(parentActionId) == PowersTypes.ActionState.Fulfilled) {
-                revert LawUtilities__ParentBlocksCompletion();
-            }
-        }
-    }
-
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
-    /// @param conditions The conditionsuration parameters for the law
-    /// @param lawCalldata The calldata of the law
-    /// @param nonce The nonce of the law
-    function baseChecksAtExecute(
-        ILaw.Conditions memory conditions,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce,
-        uint48[] memory executions,
-        uint16 lawId
-    ) external view {
-        // Check execution throttling
-        if (conditions.throttleExecution != 0) {
-            if (
-                executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
-            ) {
-                revert LawUtilities__ExecutionGapTooSmall();
-            }
-        }
-
-        // Check if proposal vote succeeded
-        if (conditions.quorum != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            if (Powers(payable(powers)).state(actionId) != PowersTypes.ActionState.Succeeded) {
-                revert LawUtilities__ProposalNotSucceeded();
-            }
-        }
-
-        // Check execution delay after proposal
-        if (conditions.delayExecution != 0) {
-            uint256 actionId = hashActionId(lawId, lawCalldata, nonce);
-            uint256 deadline = Powers(payable(powers)).getProposedActionDeadline(actionId);
-            if (deadline + conditions.delayExecution > block.number) {
-                revert LawUtilities__DeadlineNotPassed();
-            }
-        }
-    }
-
-    /////////////////////////////////////////////////////////////
-    //                  FUNCTIONS                              //
-    /////////////////////////////////////////////////////////////
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for
@@ -152,23 +50,6 @@ library LawUtilities {
             revert("Does not own token.");
         }
     }
-
-    /// @notice Checks if an address is blacklisted
-    /// @dev Queries a mapping contract to check if the address is blacklisted
-    /// @param caller Address to check blacklist status for
-    /// @param blacklistAddress Address of the blacklist contract
-    /// @return isBlacklisted True if the address is blacklisted
-    // function blacklistCheck(address caller, address blacklistAddress)
-    //     internal
-    //     pure
-    //     returns (bool isBlacklisted)
-    // {
-    //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(caller);
-
-    //     if (isBlacklisted) {
-    //         revert ("Is blacklisted.");
-    //     }
-    // }
 
     /// @notice Verifies if an address has all specified roles
     /// @dev Checks each role against the Powers contract's role system
@@ -194,62 +75,6 @@ library LawUtilities {
                 revert("Has role.");
             }
         }
-    }
-
-    /// @notice Logs a transaction for an account at a specific block
-    /// @dev Adds a block number to the account's transaction history
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param blockNumber The block number to log
-    /// @return True if the transaction was successfully logged
-    /// see for explanation: https://docs.soliditylang.org/en/v0.8.29/contracts.html#libraries
-    function logTransaction(TransactionsByAccount storage self, address account, uint48 blockNumber)
-        external
-        returns (bool)
-    {
-        self.transactions[account].push(blockNumber);
-        return true;
-    }
-
-    /// @notice Checks if enough time has passed since the last transaction
-    /// @dev Verifies if the delay between transactions meets the minimum requirement
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param delay The minimum number of blocks required between transactions
-    /// @return True if the delay requirement is met
-    function checkThrottle(TransactionsByAccount storage self, address account, uint48 delay)
-        external
-        view
-        returns (bool)
-    {
-        if (self.transactions[account].length == 0) {
-            return true;
-        }
-        uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
-        if (uint48(block.number) - lastTransaction < delay) {
-            revert("Delay not passed");
-        }
-        return true;
-    }
-
-    /// @notice Counts the number of transactions within a block range
-    /// @dev Iterates through transaction history to count transactions in the specified range
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param start The starting block number
-    /// @param end The ending block number
-    /// @return numberOfTransactions The count of transactions within the range
-    function checkNumberOfTransactions(TransactionsByAccount storage self, address account, uint48 start, uint48 end)
-        external
-        view
-        returns (uint256 numberOfTransactions)
-    {
-        for (uint256 i = 0; i < self.transactions[account].length; i++) {
-            if (self.transactions[account][i] >= start && self.transactions[account][i] <= end) {
-                numberOfTransactions++;
-            }
-        }
-        return numberOfTransactions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -300,6 +125,9 @@ library LawUtilities {
     /// @return boolArray The decoded boolean array
     /// Note: written by Cursor AI.
     function arrayifyBools(uint256 numBools) public pure returns (bool[] memory boolArray) {
+        if (numBools == 0) return new bool[](0);
+        if (numBools > 1000) revert("Num bools too large");
+
         assembly {
             // Allocate memory for the array
             boolArray := mload(0x40)

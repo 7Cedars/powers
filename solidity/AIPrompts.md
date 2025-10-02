@@ -1,5 +1,14 @@
 # AI Prompts 
 
+## create role thumbnails. 
+You are helping me to build a frontend UI for a role based protocol that governs on-chain (blockchain based) organisations. 
+
+I need thumbnails for various roles. They need to be colorful, simple, usable at small scale and reflect the type of role they are assigned to. 
+
+Can you give me a thumbnail for the following role: documentation contributor
+
+Thank you very much! 
+
 ## Update constants.ts after deployment new laws. 
 [ the ref needs to be broadcast/DeployLaws/31337/run-latest.json]
 Can you check the @run-latest.json for chains 31337, 421614, 11155111 and 11155420 and update the LAW_NAMES and LAW_ADDRESSES accordingly in @constants.ts ? You can the necessary data in "returns" in the file.  

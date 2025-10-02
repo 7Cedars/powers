@@ -53,7 +53,7 @@
   * [PresetAction.sol](example-laws/executive-laws/presetaction.sol.md)
   * [StatementOfIntent.sol](example-laws/executive-laws/proposalonly.sol.md)
   * [AdoptLaw.sol](example-laws/executive-laws/adoptlaw.sol.md)
-  * [StartGrant.sol](example-laws/executive-laws/startgrant.sol.md)
+  * [GrantProgram.sol](example-laws/executive-laws/GrantProgram.sol.md)
   * [EndGrant.sol](example-laws/executive-laws/endgrant.sol.md)
 * [State laws](example-laws/state-laws/README.md)
   * [AddressesMapping.sol](example-laws/state-laws/addressesmapping.sol.md)

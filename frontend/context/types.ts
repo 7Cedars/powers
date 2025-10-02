@@ -6,7 +6,7 @@ export type SupportedChains = 421614 | 11155111 | 31337 | 5003 | undefined
 export type Status = "idle" | "pending" | "error" | "success"
 export type Vote = 0n | 1n | 2n  // = against, for, abstain  
 // 'string | number | bigint | boolean | ByteArray 
-export type OrganizationType = 'Powers 101' | 'Bridging Off-Chain Governance' | 'Grants Manager' | 'Split Governance' | 'Packaged Upgrades' | 'Single Upgrades'
+export type OrganizationType = 'Powers 101' | 'Bridging Off-Chain Governance' | 'Grants Manager' | 'Split Governance' | 'Packaged Upgrades' | 'Single Upgrades' | 'PowersDAO'
 export type InputType = boolean | string | number | bigint | `0x${string}`
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
@@ -134,12 +134,13 @@ export type BlockRange = {
 
 export type Powers = {
   contractAddress: `0x${string}`;
+  chainId: bigint;
   name?: string;
   uri?: string;
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  activeLaws?: Law[];
+  AdoptedLaws?: Law[];
   proposals?: Action[];
   proposalsBlocksFetched?: BlockRange;
   executedActions?: LawExecutions[]; // executions per law. 
@@ -200,6 +201,8 @@ export type Action = {
   cancelled?: boolean;
   requested?: boolean;
   fulfilled?: boolean;
+  originalFulfilledAction?: Action; // For enabled actions, stores the original fulfilled action data
+  needCompletedLaw?: Law; // For enabled actions, stores the needCompleted law that enabled this action
 }
 
 export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">

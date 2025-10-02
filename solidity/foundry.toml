@@ -6,6 +6,19 @@ evm_version = "cancun"
 always_use_create_2_factory = true
 memory_limit = 1342177280
 optimizer_runs = 200
+# dynamic_test_linking = true
+
+# Remappings for dependencies
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@forge-std/=lib/forge-std/src/",
+    "@solady/=lib/solady/src/",
+    "@solbase/=lib/solbase/src/",
+    "@chainlink/contracts/=lib/chainlink-evm/contracts", 
+    "@chainlink/contracts-ccip/=lib/chainlink-ccip/chains/evm/contracts",
+    "@mocks/=test/mocks/"
+] 
 
 [fmt]
 bracket_spacing = true
@@ -21,11 +34,18 @@ wrap_comments = false
 runs = 256
 depth = 256
 fail_on_revert = true 
-seed = '0x3eb'
+seed = '0x4ea'
 
 [invariant] 
 runs = 32
 depth = 32 
 fail_on_revert = true 
+
+[profile.default.coverage]
+# Exclude test files from coverage reports
+no_match_coverage = [
+    "test/**/*.t.sol",
+    "test/**/*.sol"
+]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

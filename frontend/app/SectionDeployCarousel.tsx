@@ -75,11 +75,11 @@ export function SectionDeployCarousel() {
     }
   }, [currentFormIndex, availableDeploymentForms.length]);
 
-  // console.log("deploy: ", {status, error, deployHash, receipt})
+  console.log("deploy: ", {status, error, deployHash, receipt})
 
   const currentForm = availableDeploymentForms[currentFormIndex];
 
-  // console.log("currentForm: ", {currentForm, currentFormIndex})
+  console.log("currentForm: ", {currentForm, currentFormIndex})
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData(prev => ({
@@ -90,7 +90,7 @@ export function SectionDeployCarousel() {
 
   // Function to create law initialization data based on current form
   const createLawInitDataForCurrentForm = (powersAddress: `0x${string}`) => {
-    // console.log("form Title: ", currentForm.title)
+    console.log("form Title: ", currentForm.title)
     const chainId = selectedChainId || 11155111;
     // console.log("chainId: ", chainId)
     
@@ -118,13 +118,13 @@ export function SectionDeployCarousel() {
     async (
       powersAddress: `0x${string}`
     ) => {  
-        // console.log("@execute: waypoint 0", {powersAddress})
+        console.log("@execute: waypoint 0", {powersAddress})
         setError(null)
         setStatus("pending")
         try {
           // Create dynamic law initialization data based on current form
           const lawInitData = createLawInitDataForCurrentForm(powersAddress);
-          // console.log("Calling constitute with dynamic law data:", lawInitData)
+          console.log("Calling constitute with dynamic law data:", lawInitData)
           
           const { request } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
@@ -133,9 +133,9 @@ export function SectionDeployCarousel() {
             args: [lawInitData]
           })
 
-          // console.log("@execute: waypoint 1", {request})
+          console.log("@execute: waypoint 1", {request})
           const client = await getConnectorClient(wagmiConfig)
-          // console.log("@execute: waypoint 2", {client})
+          console.log("@execute: waypoint 2", {client})
           
           if (request) {
             // console.log("@execute: waypoint 3", {request})
@@ -159,7 +159,7 @@ export function SectionDeployCarousel() {
 
   const handleSeeYourPowers = () => {
     if (receipt?.contractAddress && selectedChainId) {
-      router.push(`/${selectedChainId}/${receipt.contractAddress}`)
+      router.push(`/protocol/${selectedChainId}/${receipt.contractAddress}`)
     }
   }
 
@@ -186,7 +186,7 @@ export function SectionDeployCarousel() {
       <div className="w-full flex flex-col gap-4 justify-start items-center">
         <section className="flex flex-col justify-center items-center"> 
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
-            Deploy Your Own Powers
+            Deploy a Demo
           </div>
           <div className="w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-400 max-w-3xl text-center text-pretty py-2 px-4">
             Choose a template to try out the Powers protocol

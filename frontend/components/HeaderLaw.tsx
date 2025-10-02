@@ -1,6 +1,5 @@
 import React from 'react';
 import Image from 'next/image';
-import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import DynamicThumbnail from './DynamicThumbnail';
 import { Powers } from '@/context/types';
 
@@ -28,7 +27,7 @@ export const HeaderLaw: React.FC<HeaderLawProps> = ({
   return (
     <div className={`flex flex-row items-center gap-4 w-full ${className}`}>
       {/* Thumbnail */}
-      <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-300">
+      <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden">
         <DynamicThumbnail
           roleId={roleName}
           powers={powers as Powers}
@@ -54,7 +53,6 @@ export const HeaderLaw: React.FC<HeaderLawProps> = ({
             title={contractAddress}
           >
             Law: {contractAddress.slice(0,8)}...{contractAddress.slice(-6)}
-            <ArrowUpRightIcon className="w-4 h-4 text-slate-400" />
           </a>
         )}
       </div>

@@ -18,7 +18,7 @@ export const smallScreenOnboardingSteps: OnboardingStep[] = [
       target: ""
     },
     upperText: "This dApp is usable on mobile devices, but we recommend using a desktop for the best experience.",
-    bottomText: "Also, the desktop version has a bettern onboarding experience.",
+    bottomText: "Also, the desktop version has a much better onboarding experience!",
     image: "",
     url: "/"
   }
@@ -31,8 +31,8 @@ export const onboardingSteps: OnboardingStep[] = [
     highlight: {
       target: ""
     },
-    upperText: "This introduction will help you get started with governance through the Powers dApp. You can close this window at any time.",
-    bottomText: "You can restart the onboarding by clicking the help button in the top right corner.",
+    upperText: "This introduction will help you get started with governance through the Powers dApp. You can close this window at any time. You can restart the onboarding by clicking the help button in the top right corner.",
+    bottomText: "This dApp provides an interactive overview of a deployed Powers protocol. A user user with a better user UX is coming soon!",
     image: "",
     url: "/"
   },
