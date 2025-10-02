@@ -29,7 +29,6 @@ import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 contract LawUtilitiesTest is TestSetupLaw {
-
     //////////////////////////////////////////////////////////////
     //                  STRING VALIDATION                       //
     //////////////////////////////////////////////////////////////
@@ -134,19 +133,18 @@ contract LawUtilitiesTest is TestSetupLaw {
         assertEq(calldatas.length, length);
     }
 
-
     //////////////////////////////////////////////////////////////
     //                  ARRAY UTILITIES                         //
     //////////////////////////////////////////////////////////////
-    
+
     function testArrayifyBoolsEmptyArrayPasses(uint256 numBools) public {
         numBools = bound(numBools, 0, 1000);
         // Test with zero booleans
         bool[] memory result = LawUtilities.arrayifyBools(numBools);
-        
+
         assertEq(result.length, numBools);
     }
-    
+
     function testArrayifyBoolsFailsWhenTooLarge(uint256 numBools) public {
         vm.assume(numBools > 1000);
 
@@ -160,6 +158,5 @@ contract LawUtilitiesTest is TestSetupLaw {
             bool[] memory result = LawUtilities.arrayifyBools(i);
             assertEq(result.length, i);
         }
-        
     }
 }

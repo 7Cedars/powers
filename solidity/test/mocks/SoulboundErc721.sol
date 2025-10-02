@@ -10,33 +10,32 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * Note Natspecs WIP.
  */
 contract SoulboundErc721 is ERC721, Ownable {
-
     constructor() ERC721("Soulbound", "SB") Ownable(msg.sender) { }
 
     function mintNFT(uint256 tokenId, address account) public onlyOwner {
         if (_ownerOf(tokenId) != address(0)) {
-            revert ("Nft already exists");
+            revert("Nft already exists");
         }
         _safeMint(account, tokenId);
     }
 
     function burnNFT(uint256 tokenId, address account) public onlyOwner {
         if (_ownerOf(tokenId) != account) {
-            revert ("Incorrect account token pair");
+            revert("Incorrect account token pair");
         }
         _burn(tokenId);
     }
 
     function _approve(address to, uint256 tokenId, address auth, bool emitEvent) internal override {
         if (auth != address(0) && to != address(0)) {
-            revert ("Non transferable");
+            revert("Non transferable");
         }
         super._approve(to, tokenId, auth, emitEvent);
     }
 
     function _setApprovalForAll(address owner, address operator, bool approved) internal override {
         if (owner != address(0) && operator != address(0)) {
-            revert ("Non transferable");
+            revert("Non transferable");
         }
         super._setApprovalForAll(owner, operator, approved);
     }
@@ -46,7 +45,7 @@ contract SoulboundErc721 is ERC721, Ownable {
 
         // Execute the update. Note only address(0) can transfer. Meaning that the NFT can only be minted to an address and is non-transferable.
         if (from != address(0) && to != address(0)) {
-            revert ("Non transferable");
+            revert("Non transferable");
         }
 
         return super._update(to, tokenId, auth);

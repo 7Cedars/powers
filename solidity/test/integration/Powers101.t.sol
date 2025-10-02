@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Powers} from "../../src/Powers.sol";
+import { Powers } from "../../src/Powers.sol";
 import { IPowers } from "../../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
@@ -22,19 +22,15 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
     //         GOVERNANCE PATH 1: EXECUTE AN ACTION             //
     //////////////////////////////////////////////////////////////
 
-    function testFuzzPowers101_ExecuteAction(
-        uint256 step0Chance,
-        uint256 step1Chance,
-        uint256 step2Chance
-    ) public {
+    function testFuzzPowers101_ExecuteAction(uint256 step0Chance, uint256 step1Chance, uint256 step2Chance) public {
         console.log("WAYPOINT 0");
 
         step0Chance = bound(step0Chance, 0, 100);
         step1Chance = bound(step1Chance, 0, 100);
         step2Chance = bound(step2Chance, 0, 100);
         uint256 balanceBefore = Erc20Taxed(mockAddresses[1]).balanceOf(address(daoMock));
-        uint256 seed = 9034273427;
-        uint256 amountToMint = 123 * 10**18;
+        uint256 seed = 9_034_273_427;
+        uint256 amountToMint = 123 * 10 ** 18;
         PowersTypes.ActionState actionState;
 
         bool[] memory stepsPassed = new bool[](3);
@@ -50,27 +46,21 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
 
         console.log("WAYPOINT 2");
 
-        lawId = 4; // statement of intent.  = roleId 1 
-        lawCalldata = abi.encode(targets, values, calldatas); // 
+        lawId = 4; // statement of intent.  = roleId 1
+        lawCalldata = abi.encode(targets, values, calldatas); //
         description = string.concat("Propose minting ", Strings.toString(amountToMint), "ETH in coins to the daoMock");
-        
+
         console.log("WAYPOINT 3");
 
-        console.log("step 0 action: BOB EXECUTES!"); // alice == admin.         
+        console.log("step 0 action: BOB EXECUTES!"); // alice == admin.
         vm.prank(bob); // has role 1.
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
         conditions = daoMock.getConditions(lawId);
 
         console.log("WAYPOINT 4");
 
-        (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
-            payable(address(daoMock)),
-            lawId,
-            actionId,
-            users,
-            seed,
-            step0Chance
-        );
+        (roleCount, againstVote, forVote, abstainVote) =
+            voteOnProposal(payable(address(daoMock)), lawId, actionId, users, seed, step0Chance);
 
         console.log("WAYPOINT 5");
 
@@ -79,7 +69,7 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
         actionState = daoMock.getActionState(actionId);
         stepsPassed[0] = actionState == PowersTypes.ActionState.Succeeded;
         if (stepsPassed[0]) {
-            console.log("step 1 action: BOB EXECUTES!"); // bob == role 1. 
+            console.log("step 1 action: BOB EXECUTES!"); // bob == role 1.
             vm.expectEmit(true, false, false, false);
             emit PowersEvents.ActionRequested(bob, lawId, lawCalldata, nonce, description);
             vm.prank(bob);
@@ -88,12 +78,13 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
         actionState = daoMock.getActionState(actionId);
         stepsPassed[0] = actionState == PowersTypes.ActionState.Fulfilled;
 
-        console.log("WAYPOINT 6"); 
+        console.log("WAYPOINT 6");
 
         // step 1 action: cast veto?.
         lawId = 5; // veto law.  = roleId 2
-        if (stepsPassed[0] && step1Chance > 50) { // 50% chance of veto.
-            console.log("step 2 action: ALICE CASTS VETO!"); // alice == admin. 
+        if (stepsPassed[0] && step1Chance > 50) {
+            // 50% chance of veto.
+            console.log("step 2 action: ALICE CASTS VETO!"); // alice == admin.
             vm.expectEmit(true, false, false, false);
             emit PowersEvents.ActionRequested(alice, lawId, lawCalldata, nonce, description);
             vm.prank(alice); // has admin role. Note: no voting.
@@ -118,16 +109,10 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
 
             console.log("WAYPOINT 9");
 
-            (roleCount, againstVote, forVote, abstainVote) = voteOnProposal(
-                payable(address(daoMock)),
-                lawId,
-                actionId,
-                users,
-                seed,
-                step2Chance
-            );
+            (roleCount, againstVote, forVote, abstainVote) =
+                voteOnProposal(payable(address(daoMock)), lawId, actionId, users, seed, step2Chance);
 
-            console.log("WAYPOINT 10"); 
+            console.log("WAYPOINT 10");
 
             // step 2 results.
             vm.roll(block.number + conditions.votingPeriod + 1);
@@ -168,8 +153,8 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
         // Get law addresses from the powers101Constitution
         // Law 2: Nominate Me (nomination for delegate election)
         // Law 3: Delegate Nominees (run delegate election)
-        uint16 nominateMeLaw = 2;  // Law 2 in powers101Constitution
-        uint16 delegateSelectLaw = 3;  // Law 3 in powers101Constitution
+        uint16 nominateMeLaw = 2; // Law 2 in powers101Constitution
+        uint16 delegateSelectLaw = 3; // Law 3 in powers101Constitution
 
         // step 0: distribute tokens. Tokens are distributed randomly.
         distributeERC20VoteTokens(users, voteTokensRandomiser);
@@ -179,10 +164,13 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
             lawCalldataNominate = abi.encode(users[i], true); // nominateMe = true
             vm.prank(users[i]);
             daoMock.request(
-                nominateMeLaw, lawCalldataNominate, nonce, string.concat("Account nominates themselves: ", Strings.toString(i))
+                nominateMeLaw,
+                lawCalldataNominate,
+                nonce,
+                string.concat("Account nominates themselves: ", Strings.toString(i))
             );
         }
-        
+
         // step 2: run election using Law 3 (Delegate Nominees)
         lawCalldataElect = abi.encode(); // empty calldata
         address executioner = users[voteTokensRandomiser % users.length];
@@ -208,5 +196,4 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
             }
         }
     }
-
 }

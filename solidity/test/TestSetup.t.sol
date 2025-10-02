@@ -37,7 +37,6 @@ import { DeployMocks } from "../script/DeployMocks.s.sol";
 import { DeployLaws } from "../script/DeployLaws.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawErrors {
-
     // protocol and mocks
     Powers powers;
     HelperConfig helperConfig;
@@ -71,7 +70,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     uint256 nonce;
     bool active;
     uint256 actionId;
-    uint16 lawId; 
+    uint16 lawId;
     bytes32 lawHash;
     address newLaw;
     uint16 lawCounter;
@@ -84,8 +83,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     uint16 secondGrantId;
     uint16 roleId;
     address account;
-    uint16[] lawIds; 
-    address[] accounts; 
+    uint16[] lawIds;
+    address[] accounts;
     address requester;
     address executor;
 
@@ -174,7 +173,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
 }
 
 abstract contract TestStandalone is Test, TestVariables {
-    function test() public {}
+    function test() public { }
 
     function hashProposal(address targetLaw, bytes memory lawCalldataLocal, uint256 nonceLocal)
         public
@@ -205,9 +204,13 @@ abstract contract TestStandalone is Test, TestVariables {
         }
     }
 
-    function distributeNFTs(address powersContract, address erc721MockLocal, address[] memory accounts, uint256 randomiser, uint256 density)
-        public
-    {
+    function distributeNFTs(
+        address powersContract,
+        address erc721MockLocal,
+        address[] memory accounts,
+        uint256 randomiser,
+        uint256 density
+    ) public {
         uint256 currentRandomiser;
         randomiser = bound(randomiser, 10, 100 * 10 ** 18);
         for (i = 0; i < accounts.length; i++) {
@@ -340,7 +343,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         Nominees(mockAddresses[8]).transferOwnership(address(daoMock));
         OpenElection(mockAddresses[9]).transferOwnership(address(daoMock));
         Erc20DelegateElection(mockAddresses[10]).transferOwnership(address(daoMock));
-        vm.stopPrank();        
+        vm.stopPrank();
 
         // deploy constitutions mock
         testConstitutions = new TestConstitutions();
@@ -355,7 +358,7 @@ abstract contract TestSetupPowers is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate constitution  
+        // initiate constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powersTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
@@ -371,14 +374,14 @@ abstract contract TestSetupPowers is BaseSetup {
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
         vm.stopPrank();
-    }  
+    }
 }
 
 abstract contract TestSetupLaw is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate constitution  
+        // initiate constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.lawTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
@@ -388,7 +391,7 @@ abstract contract TestSetupLaw is BaseSetup {
 
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);
-        daoMock.assignRole(ROLE_ONE, alice); 
+        daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
@@ -400,13 +403,13 @@ abstract contract TestSetupElectoral is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate electoral constitution  
+        // initiate electoral constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.electoralTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_); 
+        daoMock.constitute(lawInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);
@@ -422,7 +425,7 @@ abstract contract TestSetupExecutive is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate executive constitution  
+        // initiate executive constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.executiveTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
@@ -444,13 +447,13 @@ abstract contract TestSetupMulti is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate multi constitution  
+        // initiate multi constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.multiTestConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_); 
+        daoMock.constitute(lawInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);
@@ -473,7 +476,7 @@ abstract contract TestSetupMulti is BaseSetup {
 //         SoulboundErc721(mockAddresses[2]).transferOwnership(address(daoMock));
 //         vm.stopPrank();
 
-//         // initiate constitution  
+//         // initiate constitution
 //         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.utilitiesTestConstitution(
 //             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
 //         );
@@ -491,7 +494,6 @@ abstract contract TestSetupMulti is BaseSetup {
 //     }
 // }
 
-
 /////////////////////////////////////////////////////////////////////
 //                 TEST SETUPS ORGANISATIONS                       //
 /////////////////////////////////////////////////////////////////////
@@ -500,13 +502,13 @@ abstract contract TestSetupPowers101 is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        // initiate multi constitution  
+        // initiate multi constitution
         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powers101Constitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_); 
+        daoMock.constitute(lawInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);

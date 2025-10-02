@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and its contracts have not been audited.           ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -13,14 +13,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Law Interface - Contract Interface for Powers Protocol Laws
-/// @notice Defines the interface for implementing role-restricted governance actions
-/// @dev Interface for the Law contract, which provides core functionality for governance laws
+/// @notice Interface for the Law contract, which provides core functionality for institutional laws.
+/// @dev Defines the interface for implementing role restricted conditional powers to transform input data into executable calldata.
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
 import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import { LawErrors } from "./LawErrors.sol";
-interface ILaw is IERC165, LawErrors {
+
+interface ILaw is IERC165 {
     //////////////////////////////////////////////////////////////
     //                        EVENTS                            //
     //////////////////////////////////////////////////////////////
@@ -35,11 +35,7 @@ interface ILaw is IERC165, LawErrors {
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
     event Law__Initialized(
-        address indexed powers,
-        uint16 indexed index,
-        string nameDescription,
-        bytes inputParams,
-        bytes config
+        address indexed powers, uint16 indexed index, string nameDescription, bytes inputParams, bytes config
     );
 
     //////////////////////////////////////////////////////////////
@@ -50,12 +46,8 @@ interface ILaw is IERC165, LawErrors {
     /// @param nameDescription Name of the law
     /// @param inputParams Input parameters for the law
     /// @param config Configuration parameters for the law
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) external;
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        external;
 
     /// @notice Executes the law's logic after validation
     /// @dev Called by the Powers protocol during action execution
@@ -81,11 +73,5 @@ interface ILaw is IERC165, LawErrors {
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         external
         view
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        );
-
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas);
 }

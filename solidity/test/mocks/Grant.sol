@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.26;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
@@ -52,7 +52,7 @@ contract Grant is Ownable {
     event TokenBudgetUpdated(address indexed token, uint256 budget);
     event TokenWhitelisted(address indexed token);
     event TokenDewhitelisted(address indexed token);
-    
+
     constructor() Ownable(msg.sender) { }
 
     // --- Budget Management ---
@@ -108,19 +108,19 @@ contract Grant is Ownable {
         uint256[] memory milestoneAmounts,
         address[] memory tokens
     ) external onlyOwner returns (uint256 proposalId) {
-        if (milestoneBlocks.length == 0) revert ("Invalid proposal");
-        if (milestoneBlocks.length != milestoneAmounts.length) revert ("Invalid proposal");
-        if (milestoneBlocks.length != tokens.length) revert ("Invalid proposal");
+        if (milestoneBlocks.length == 0) revert("Invalid proposal");
+        if (milestoneBlocks.length != milestoneAmounts.length) revert("Invalid proposal");
+        if (milestoneBlocks.length != tokens.length) revert("Invalid proposal");
 
         // Validate tokens are whitelisted (except native currency)
         for (uint256 i; i < tokens.length; i++) {
             if (tokens[i] != address(0) && !whitelistedTokens[tokens[i]]) {
-                revert ("Token not whitelisted");
+                revert("Token not whitelisted");
             }
         }
 
         proposalId = proposalCounter++;
-        
+
         proposals[proposalId] = Proposal({
             proposer: tx.origin, // Use tx.origin to get the actual proposer
             uri: uri,
@@ -147,8 +147,8 @@ contract Grant is Ownable {
 
     function approveProposal(uint256 proposalId) external onlyOwner {
         Proposal storage proposal = proposals[proposalId];
-        if (proposal.submissionBlock == 0) revert ("Proposal not found");
-        if (proposal.approved || proposal.rejected) revert ("Proposal already processed");
+        if (proposal.submissionBlock == 0) revert("Proposal not found");
+        if (proposal.approved || proposal.rejected) revert("Proposal already processed");
 
         // Check if the total requested amounts fall within the remaining budget
         _checkProposalBudgetConstraints(proposalId);
@@ -159,8 +159,8 @@ contract Grant is Ownable {
 
     function rejectProposal(uint256 proposalId) external onlyOwner {
         Proposal storage proposal = proposals[proposalId];
-        if (proposal.submissionBlock == 0) revert ("Proposal not found");
-        if (proposal.approved || proposal.rejected) revert ("Proposal already processed");
+        if (proposal.submissionBlock == 0) revert("Proposal not found");
+        if (proposal.approved || proposal.rejected) revert("Proposal already processed");
 
         proposal.rejected = true;
         emit ProposalRejected(proposalId);
@@ -170,14 +170,14 @@ contract Grant is Ownable {
 
     function releaseMilestone(uint256 proposalId, uint256 milestoneIndex) external onlyOwner {
         Proposal storage proposal = proposals[proposalId];
-        if (proposal.submissionBlock == 0) revert ("Proposal not found");
+        if (proposal.submissionBlock == 0) revert("Proposal not found");
         if (!proposal.approved) revert("Proposal not approved");
 
         Milestone storage milestone = milestones[proposalId][milestoneIndex];
 
-        if (milestone.amount == 0) revert ("Milestone not found");
-        if (milestone.released) revert ("Milestone already released");
-        if (block.number < milestone.blockNumber) revert ("Milestone not reached");
+        if (milestone.amount == 0) revert("Milestone not found");
+        if (milestone.released) revert("Milestone already released");
+        if (block.number < milestone.blockNumber) revert("Milestone not reached");
 
         _checkBudgetConstraints(proposalId, milestoneIndex);
 
@@ -191,13 +191,13 @@ contract Grant is Ownable {
         return proposals[proposalId];
     }
 
-    function getMilestone(uint256 proposalId, uint256 milestoneIndex) external view returns (Milestone memory) {   
+    function getMilestone(uint256 proposalId, uint256 milestoneIndex) external view returns (Milestone memory) {
         return milestones[proposalId][milestoneIndex];
     }
 
     function getProposalMilestones(uint256 proposalId) external view returns (Milestone[] memory) {
         Proposal memory proposal = proposals[proposalId];
-        if (proposal.submissionBlock == 0) revert ("Proposal not found");
+        if (proposal.submissionBlock == 0) revert("Proposal not found");
 
         Milestone[] memory milestoneList = new Milestone[](proposal.milestoneBlocks.length);
         for (uint256 i; i < proposal.milestoneBlocks.length; i++) {
@@ -246,51 +246,63 @@ contract Grant is Ownable {
         }
     }
 
-    function getBudgetStatus() external view returns (
-        uint256 nativeBudget,
-        uint256 nativeSpent,
-        uint256 nativeRemaining,
-        address[] memory whitelistedTokenList,
-        uint256[] memory tokenBudgets,
-        uint256[] memory tokenSpent,
-        uint256[] memory tokenRemaining
-    ) {
+    function getBudgetStatus()
+        external
+        view
+        returns (
+            uint256 nativeBudget,
+            uint256 nativeSpent,
+            uint256 nativeRemaining,
+            address[] memory whitelistedTokenList,
+            uint256[] memory tokenBudgets,
+            uint256[] memory tokenSpent,
+            uint256[] memory tokenRemaining
+        )
+    {
         nativeBudget = budget.nativeBudget;
         nativeSpent = totalSpentNative;
         nativeRemaining = budget.nativeBudget - totalSpentNative;
 
         // Note: This is a simplified version. In practice, you might want to limit the number of tokens returned
         // or implement pagination for better gas efficiency
-        return (nativeBudget, nativeSpent, nativeRemaining, new address[](0), new uint256[](0), new uint256[](0), new uint256[](0));
+        return (
+            nativeBudget,
+            nativeSpent,
+            nativeRemaining,
+            new address[](0),
+            new uint256[](0),
+            new uint256[](0),
+            new uint256[](0)
+        );
     }
 
     function _checkProposalBudgetConstraints(uint256 proposalId) internal view {
         Proposal memory proposal = proposals[proposalId];
-        
+
         // Calculate total amounts needed for each token type
         uint256 totalNativeNeeded = 0;
-        
+
         // First pass: sum up all milestone amounts by token type
         for (uint256 i = 0; i < proposal.milestoneBlocks.length; i++) {
             Milestone memory milestone = milestones[proposalId][i];
-            
+
             if (milestone.token == address(0)) {
                 // Native currency
                 totalNativeNeeded += milestone.amount;
             }
         }
-        
+
         // Check native budget constraints
         if (totalNativeNeeded > 0) {
             if (totalSpentNative + totalNativeNeeded > budget.nativeBudget) {
-                revert ("Insufficient native budget for proposal");
+                revert("Insufficient native budget for proposal");
             }
         }
-        
+
         // Second pass: check token budget constraints for each unique token
         for (uint256 i = 0; i < proposal.milestoneBlocks.length; i++) {
             Milestone memory milestone = milestones[proposalId][i];
-            
+
             if (milestone.token != address(0)) {
                 // Calculate total amount needed for this specific token across all milestones
                 uint256 totalTokenNeeded = 0;
@@ -300,10 +312,10 @@ contract Grant is Ownable {
                         totalTokenNeeded += otherMilestone.amount;
                     }
                 }
-                
+
                 // Check if this token's total requirement exceeds budget
                 if (totalSpentToken[milestone.token] + totalTokenNeeded > budget.tokenBudgets[milestone.token]) {
-                    revert ("Insufficient token budget for proposal");
+                    revert("Insufficient token budget for proposal");
                 }
             }
         }
@@ -315,13 +327,13 @@ contract Grant is Ownable {
         if (milestone.token == address(0)) {
             // Native currency
             if (totalSpentNative + milestone.amount > budget.nativeBudget) {
-                revert ("Insufficient budget");
+                revert("Insufficient budget");
             }
             totalSpentNative += milestone.amount;
         } else {
             // ERC20 token
             if (totalSpentToken[milestone.token] + milestone.amount > budget.tokenBudgets[milestone.token]) {
-                revert ("Insufficient budget");
+                revert("Insufficient budget");
             }
             totalSpentToken[milestone.token] += milestone.amount;
         }

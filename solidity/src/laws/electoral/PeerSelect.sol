@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This law allows members of a role to select from nominated addresses for their own role.
+/// @notice Allows members of a role to select from nominated addresses for their own role.
 ///
 /// The logic:
 /// - Members can assign or revoke roles from nominated addresses.
@@ -52,23 +52,24 @@ contract PeerSelect is Law {
 
     mapping(bytes32 lawHash => Data) public data;
 
+    /// @notice Constructor for PeerSelect law
     constructor() {
-        bytes memory configParams = abi.encode("uint256 maxRoleHolders", "uint256 roleId", "uint8 maxVotes", "address NomineesContract");
+        bytes memory configParams =
+            abi.encode("uint256 maxRoleHolders", "uint256 roleId", "uint8 maxVotes", "address NomineesContract");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         MemoryData memory mem;
-        (uint256 maxRoleHolders_, uint256 roleId_, uint8 maxVotes_, address nomineesContract_) = abi.decode(config, (uint256, uint256, uint8, address));
-        
+        (uint256 maxRoleHolders_, uint256 roleId_, uint8 maxVotes_, address nomineesContract_) =
+            abi.decode(config, (uint256, uint256, uint8, address));
+
         // Get nominees from the Nominees contract
         mem.nominees = Nominees(nomineesContract_).getNominees();
-        
+
         // Save data to state
         mem.lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[mem.lawHash].maxRoleHolders = maxRoleHolders_;
@@ -86,21 +87,21 @@ contract PeerSelect is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address /* caller */, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Build calls to assign or revoke roles for selected nominees
+    /// @param powers The Powers contract address
+    /// @param lawId The law identifier
+    /// @param lawCalldata Encoded bool[] selections matching current nominees from Nominees contract
+    /// @param nonce Unique nonce to build the action id
+    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         MemoryData memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        
+
         // Decode the selection data
         (mem.selection) = abi.decode(lawCalldata, (bool[]));
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -139,9 +140,10 @@ contract PeerSelect is Law {
         // Check each selected nominee and determine if it's assignment or revocation
         for (mem.i = 0; mem.i < mem.numSelections; mem.i++) {
             uint256 selectedIndex = mem.selectedIndices[mem.i];
-            uint48 hasRoleSince = Powers(payable(powers)).hasRoleSince(mem.nominees[selectedIndex], data[mem.lawHash].roleId);
+            uint48 hasRoleSince =
+                Powers(payable(powers)).hasRoleSince(mem.nominees[selectedIndex], data[mem.lawHash].roleId);
             mem.assignFlags[mem.i] = (hasRoleSince == 0);
-            
+
             if (mem.assignFlags[mem.i]) {
                 assignCount++;
             } else {
@@ -159,15 +161,19 @@ contract PeerSelect is Law {
 
         // Set up calls to Powers contract
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.numSelections);
-        
+
         for (mem.i = 0; mem.i < mem.numSelections; mem.i++) {
             uint256 selectedIndex = mem.selectedIndices[mem.i];
             targets[mem.i] = powers;
-            
+
             if (mem.assignFlags[mem.i]) {
-                calldatas[mem.i] = abi.encodeWithSelector(Powers.assignRole.selector, data[mem.lawHash].roleId, mem.nominees[selectedIndex]);
+                calldatas[mem.i] = abi.encodeWithSelector(
+                    Powers.assignRole.selector, data[mem.lawHash].roleId, mem.nominees[selectedIndex]
+                );
             } else {
-                calldatas[mem.i] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.nominees[selectedIndex]);
+                calldatas[mem.i] = abi.encodeWithSelector(
+                    Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.nominees[selectedIndex]
+                );
             }
         }
 

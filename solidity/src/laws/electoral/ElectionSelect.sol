@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice A law that runs delegate elections and assigns roles based on election results.
+/// @notice Run delegate elections and assign roles based on election results.
 ///
 /// This law:
 /// - Fetches current role holders from Powers
@@ -36,25 +36,24 @@ contract ElectionSelect is Law {
         uint256 roleId;
         uint256 maxRoleHolders;
     }
+
     mapping(bytes32 lawHash => Data data) internal _data;
 
-    /// @notice constructor of the law
+    /// @notice Constructor for ElectionSelect law
     constructor() {
         bytes memory configParams = abi.encode("address ElectionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         (address ElectionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
             abi.decode(config, (address, uint256, uint256));
-        
+
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        
+
         _data[lawHash] = Data({
             powersContract: msg.sender,
             ElectionContract: ElectionContract_,
@@ -68,45 +67,40 @@ contract ElectionSelect is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    /// @notice execute the law.
-    /// @param lawCalldata the calldata (empty for this law)
-    function handleRequest(address /*caller*/, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Execute the law by revoking current role holders and assigning newly elected accounts
+    /// @param lawCalldata The calldata (empty for this law)
+    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         Data memory data = _data[lawHash];
-        
+
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // Step 1: Get current role holders from Powers
         address[] memory currentRoleHolders = Powers(payable(data.powersContract)).getRoleHolders(data.roleId);
-        
+
         // Step 2: Get nominee ranking and select top candidates
-        (address[] memory rankedNominees, ) = Erc20DelegateElection(data.ElectionContract).getNomineeRanking();
-        
+        (address[] memory rankedNominees,) = Erc20DelegateElection(data.ElectionContract).getNomineeRanking();
+
         // Select top candidates based on maxRoleHolders
         uint256 numNominees = rankedNominees.length;
         uint256 maxN = data.maxRoleHolders;
         uint256 numToElect = numNominees <= maxN ? numNominees : maxN;
-        
+
         address[] memory elected = new address[](numToElect);
         for (uint256 i = 0; i < numToElect; i++) {
             elected[i] = rankedNominees[i];
         }
-        
+
         // Calculate total number of operations needed:
         // - Revoke all current role holders
         // - Assign role to all newly elected accounts
         uint256 totalOperations = currentRoleHolders.length + elected.length;
-        
+
         if (totalOperations == 0) {
             // No operations needed, but we still need to create an empty array otherwise action will not be set as fulfilled..
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -114,28 +108,21 @@ contract ElectionSelect is Law {
         }
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(totalOperations);
-        
+
         uint256 operationIndex = 0;
 
         // Step 3: Revoke roles from all current holders
         for (uint256 i = 0; i < currentRoleHolders.length; i++) {
             targets[operationIndex] = data.powersContract;
-            calldatas[operationIndex] = abi.encodeWithSelector(
-                Powers.revokeRole.selector,
-                data.roleId,
-                currentRoleHolders[i]
-            );
+            calldatas[operationIndex] =
+                abi.encodeWithSelector(Powers.revokeRole.selector, data.roleId, currentRoleHolders[i]);
             operationIndex++;
         }
-        
+
         // Step 4: Assign roles to newly elected accounts
         for (uint256 i = 0; i < elected.length; i++) {
             targets[operationIndex] = data.powersContract;
-            calldatas[operationIndex] = abi.encodeWithSelector(
-                Powers.assignRole.selector,
-                data.roleId,
-                elected[i]
-            );
+            calldatas[operationIndex] = abi.encodeWithSelector(Powers.assignRole.selector, data.roleId, elected[i]);
             operationIndex++;
         }
 

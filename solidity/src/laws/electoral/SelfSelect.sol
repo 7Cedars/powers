@@ -12,20 +12,10 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
-///
+/// @notice Allows a caller to claim a specific role if they do not already hold it.
+/// @dev The deployer configures a single roleId that can be self-assigned. Intended for
+/// open onboarding flows where a base role can be freely claimed.
 /// @author 7Cedars
-
-/// @notice This contract that assigns or revokes a roleId to the person that called the law.
-/// - At construction time, the following is set:
-///    - the role Id that the contract will be assigned or revoked.
-///
-/// - The contract is meant to be restricted by a specific role, allowing an outsider to freely claim an (entry) role into a DAO.
-///
-/// - The logic:
-///
-/// @dev The contract is an example of a law that
-/// - an open role elect law.
 
 pragma solidity 0.8.26;
 
@@ -36,17 +26,16 @@ import { LawUtilities } from "../../LawUtilities.sol";
 contract SelfSelect is Law {
     mapping(bytes32 lawHash => uint256 roleId) public roleIds;
 
+    /// @notice Constructor for SelfSelect law
     constructor() {
         bytes memory configParams = abi.encode("uint256 RoleId");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         uint256 roleId_ = abi.decode(config, (uint256));
         roleIds[LawUtilities.hashLaw(msg.sender, index)] = roleId_;
 
@@ -54,16 +43,17 @@ contract SelfSelect is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
+    /// @notice Build a call to assign the configured role to the caller if not already held
+    /// @param caller The transaction originator (forwarded to assignment)
+    /// @param powers The Powers contract address
+    /// @param lawId The law identifier
+    /// @param lawCalldata Not used for this law
+    /// @param nonce Unique nonce to build the action id
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);

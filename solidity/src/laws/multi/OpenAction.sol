@@ -20,7 +20,7 @@
 /// - The contract should always be used in combination with modifiers from {PowerModiifiers}.
 ///
 /// The logic:
-/// - any the lawCalldata includes targets[], values[], calldatas[] - that are send straight to the Powers protocol. without any checks.
+/// - the lawCalldata includes targets[], values[], calldatas[] - that are sent straight to the Powers protocol without any checks.
 ///
 /// @author 7Cedars,
 
@@ -37,12 +37,10 @@ contract OpenAction is Law {
         emit Law__Deployed("");
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         // Set UI-exposed input parameters: targets, values, calldatas
         inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
         super.initializeLaw(index, nameDescription, inputParams, config);
@@ -50,16 +48,17 @@ contract OpenAction is Law {
 
     /// @notice Execute the open action.
     /// @param lawCalldata the calldata of the law
-    function handleRequest(address /*caller*/, address /*powers*/, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address, /*caller*/
+        address, /*powers*/
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         pure
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         // note: no check on decoded call data. If needed, this can be added.

@@ -17,6 +17,7 @@
 ///
 /// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Law.sol}. The contract should be used as is, making changes to this contract should be avoided.
 /// @dev Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol.
+/// @dev note that Powers prefers to save as much data as possible on-chain. This reduces reliance on off-chain data that needs to be indexed and (often centrally) stored.
 ///
 /// Note several key differences from openzeppelin's {Governor.sol}.
 /// 1 - Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw} interface.
@@ -27,8 +28,9 @@
 ///
 /// For example organisational implementations, see testConstitutions.sol in the /test folder.
 ///
-/// Note This protocol is a work in progress. A number of features are planned to be added in the future. 
+/// Note This protocol is a work in progress. A number of features are planned to be added in the future.
 /// - Gas efficiency improvements.
+/// - Integration with new ENS standards to log organisational data on-chain.
 /// - And more.
 ///
 /// @author 7Cedars
@@ -59,13 +61,13 @@ contract Powers is EIP712, IPowers {
     uint256 public constant PUBLIC_ROLE = type(uint256).max; // == a lot
     uint256 public constant DENOMINATOR = 100; // == 100%
 
-    uint256 public immutable MAX_CALLDATA_LENGTH;  
-    uint256 public immutable MAX_EXECUTIONS_LENGTH; 
-    
+    uint256 public immutable MAX_CALLDATA_LENGTH;
+    uint256 public immutable MAX_EXECUTIONS_LENGTH;
+
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
-    string public name; // name of the DAO.  
-    string public uri; // a uri to metadata of the DAO. // note can be altered 
+    string public name; // name of the DAO.
+    string public uri; // a uri to metadata of the DAO. // note can be altered
     bool public payableEnabled; // is payable enabled?
     bool private _constituteExecuted; // has the constitute function been called before?
 
@@ -93,7 +95,9 @@ contract Powers is EIP712, IPowers {
     /// @param uri_ uri of the contract
     /// @param maxCallDataLength_ maximum length of calldata for a law
     /// @param maxExecutionsLength_ maximum length of executions for a law
-    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxExecutionsLength_) EIP712(name_, version()) {
+    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxExecutionsLength_)
+        EIP712(name_, version())
+    {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
@@ -111,7 +115,7 @@ contract Powers is EIP712, IPowers {
     ///
     /// @dev This is a virtual function, and can be overridden in the DAO implementation.
     /// @dev If payable is enabled, anyone can send funds in native currency into the contract.
-    /// @dev No access control on this function. 
+    /// @dev No access control on this function.
     receive() external payable virtual {
         if (!payableEnabled) revert Powers__PayableNotEnabled();
         emit FundsReceived(msg.value, msg.sender);
@@ -147,7 +151,7 @@ contract Powers is EIP712, IPowers {
         // check 4: is proposedAction cancelled?
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
-        // check 5: do checks pass? 
+        // check 5: do checks pass?
         PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.fulfilledAt);
 
         // If everything passed, set action as requested.
@@ -197,7 +201,7 @@ contract Powers is EIP712, IPowers {
         // check 6: check array length is too long
         if (targets.length > MAX_EXECUTIONS_LENGTH) revert Powers__ExecutionArrayTooLong();
 
-        // check 7: for each target, check if calldata does not exceed MAX_CALLDATA_LENGTH + targets have not been blacklisted. 
+        // check 7: for each target, check if calldata does not exceed MAX_CALLDATA_LENGTH + targets have not been blacklisted.
         for (uint256 i = 0; i < targets.length; ++i) {
             if (calldatas[i].length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
             if (isBlacklisted(targets[i])) revert Powers__AddressBlacklisted();
@@ -268,7 +272,7 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
 
         // check 3: do proposedAction checks of the law pass?
-       PowersUtilities.checksAtPropose(lawId, lawCalldata, address(this), nonce);
+        PowersUtilities.checksAtPropose(lawId, lawCalldata, address(this), nonce);
 
         // if checks pass: create proposedAction
         Action storage action = _actions[actionId];
@@ -303,10 +307,10 @@ contract Powers is EIP712, IPowers {
         returns (uint256)
     {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
-        
+
         // check: is caller the caller of the proposedAction?
         if (msg.sender != _actions[actionId].caller) revert Powers__NotProposerAction();
- 
+
         return _cancel(lawId, lawCalldata, nonce);
     }
 
@@ -316,11 +320,13 @@ contract Powers is EIP712, IPowers {
     function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal virtual returns (uint256) {
         uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
 
-        // check 1: does action exist? 
+        // check 1: does action exist?
         if (_actions[actionId].proposedAt == 0) revert Powers__ActionNotProposed();
 
         // check 2: is action already fulfilled or cancelled?
-        if (_actions[actionId].fulfilledAt > 0 || _actions[actionId].cancelledAt > 0) revert Powers__UnexpectedActionState();  
+        if (_actions[actionId].fulfilledAt > 0 || _actions[actionId].cancelledAt > 0) {
+            revert Powers__UnexpectedActionState();
+        }
 
         // set action as cancelled.
         _actions[actionId].cancelledAt = uint48(block.number);
@@ -357,7 +363,7 @@ contract Powers is EIP712, IPowers {
         if (!canCallLaw(account, lawId)) revert Powers__CannotCallLaw();
         // check 2: has account already voted?
         if (proposedAction.hasVoted[account]) revert Powers__AlreadyCastVote();
- 
+
         // if all this passes: cast vote.
         _countVote(actionId, account, support);
 
@@ -416,8 +422,10 @@ contract Powers is EIP712, IPowers {
         // check if targetLaw is blacklisted
         if (isBlacklisted(lawInitData.targetLaw)) revert Powers__AddressBlacklisted();
 
-        // check if conditions combine PUBLIC_ROLE with a vote - which is impossible due to PUBLIC_ROLE having an infinite number of members. 
-        if (lawInitData.conditions.allowedRole == PUBLIC_ROLE && lawInitData.conditions.quorum > 0) revert Powers__VoteWithPublicRoleDisallowed();
+        // check if conditions combine PUBLIC_ROLE with a vote - which is impossible due to PUBLIC_ROLE having an infinite number of members.
+        if (lawInitData.conditions.allowedRole == PUBLIC_ROLE && lawInitData.conditions.quorum > 0) {
+            revert Powers__VoteWithPublicRoleDisallowed();
+        }
 
         // if checks pass, set law as active.
         laws[lawCounter].active = true;
@@ -425,9 +433,7 @@ contract Powers is EIP712, IPowers {
         laws[lawCounter].conditions = lawInitData.conditions;
         lawCounter++;
 
-        Law(lawInitData.targetLaw).initializeLaw(
-            lawCounter - 1, lawInitData.nameDescription, "", lawInitData.config
-        );
+        Law(lawInitData.targetLaw).initializeLaw(lawCounter - 1, lawInitData.nameDescription, "", lawInitData.config);
 
         // emit event.
         emit LawAdopted(lawCounter - 1);
@@ -460,7 +466,7 @@ contract Powers is EIP712, IPowers {
     /// @notice Internal version of {setRole} without access control.
     /// @dev This function is used to set a role for a given account. Public role is locked as everyone has it.
     /// @dev Note that it does allow Admin role to be assigned and revoked.
-    /// @dev Note that the function does not revert if trying to remove a role someone does not have, or add a role someone already has. 
+    /// @dev Note that the function does not revert if trying to remove a role someone does not have, or add a role someone already has.
     ///
     /// Emits a {SeperatedPowersEvents::RolSet} event.
     function _setRole(uint256 roleId, address account, bool access) internal virtual {
@@ -468,27 +474,27 @@ contract Powers is EIP712, IPowers {
         if (roleId == PUBLIC_ROLE) revert Powers__CannotSetPublicRole();
         // check 2: Zero address is not allowed.
         if (account == address(0)) revert Powers__CannotAddZeroAddress();
-        
+
         bool newMember = roles[roleId].members[account] == 0;
-        // add role if role requested and account does not already have role.         
+        // add role if role requested and account does not already have role.
         if (access && newMember) {
-            roles[roleId].members[account] = roles[roleId].membersArray.length + 1; // 'index of new member is length of array + 1. index = 0 is used a 'undefined' value.. 
+            roles[roleId].members[account] = roles[roleId].membersArray.length + 1; // 'index of new member is length of array + 1. index = 0 is used a 'undefined' value..
             roles[roleId].membersArray.push(Member(account, uint48(block.number)));
-        // remove role if access set to false and account has role. 
+            // remove role if access set to false and account has role.
         } else if (!access && !newMember) {
             uint256 indexEnd = roles[roleId].membersArray.length - 1;
             Member memory memberEnd = roles[roleId].membersArray[indexEnd];
-            uint256 indexAccount = roles[roleId].members[account];  
+            uint256 indexAccount = roles[roleId].members[account];
 
-            // updating array. Note that 1 is added to the index to avoid 0 index of first member in array. We here have to subtract it. 
+            // updating array. Note that 1 is added to the index to avoid 0 index of first member in array. We here have to subtract it.
             roles[roleId].membersArray[indexAccount - 1] = memberEnd; // replace account with last member account.
             roles[roleId].membersArray.pop(); // remove last member.
-            
-            // updating indices in mapping. 
+
+            // updating indices in mapping.
             roles[roleId].members[memberEnd.account] = indexAccount; // update index of last member in list
             roles[roleId].members[account] = 0; // 'index of removed member is set to 0.
         }
-        // note: nothing happens when 1: access is requested and not a new member 2: access is false and account does not have role. No revert. 
+        // note: nothing happens when 1: access is requested and not a new member 2: access is false and account does not have role. No revert.
 
         emit RoleSet(roleId, account, access);
     }
@@ -502,7 +508,7 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function setPayableEnabled(bool payableEnabled_) public virtual onlyPowers {
         payableEnabled = payableEnabled_;
-    } 
+    }
 
     /// @inheritdoc IPowers
     function setUri(string memory newUri) public virtual onlyPowers {
@@ -641,7 +647,7 @@ contract Powers is EIP712, IPowers {
     function getRoleLabel(uint256 roleId) public view returns (string memory label) {
         return roles[roleId].label;
     }
-    
+
     /// @inheritdoc IPowers
     function getActionState(uint256 actionId) public view virtual returns (ActionState) {
         // We read the struct fields into the stack at once so Solidity emits a single SLOAD
@@ -699,19 +705,19 @@ contract Powers is EIP712, IPowers {
         );
     }
 
-    function getActionVoteData(uint256 actionId) 
-        public 
-        view 
-        virtual 
+    function getActionVoteData(uint256 actionId)
+        public
+        view
+        virtual
         returns (
             uint48 voteStart,
             uint32 voteDuration,
             uint256 voteEnd,
-            uint32 againstVotes, 
-            uint32 forVotes, 
+            uint32 againstVotes,
+            uint32 forVotes,
             uint32 abstainVotes
-            ) 
-        {
+        )
+    {
         Action storage action = _actions[actionId];
 
         return (
@@ -758,12 +764,12 @@ contract Powers is EIP712, IPowers {
 
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[lawId].conditions;
-    } 
+    }
 
     function isBlacklisted(address account) public view returns (bool) {
         return _blacklist[account];
     }
-    
+
     //////////////////////////////////////////////////////////////
     //                       COMPLIANCE                         //
     //////////////////////////////////////////////////////////////

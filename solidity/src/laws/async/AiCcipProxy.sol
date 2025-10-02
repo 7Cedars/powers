@@ -11,13 +11,13 @@
 // /**
 //  * AI CCIP Proxy Contract
 //  * This contract combines CCIP cross-chain messaging with AI address analysis
-//  * 
+//  *
 //  * Flow:
 //  * 1. Receive address via CCIP from another chain
 //  * 2. Send address to AI for analysis via Chainlink
 //  * 3. Receive AI analysis results
 //  * 4. Send analysis results back to original sender via CCIP
-//  * 
+//  *
 //  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
 //  * DO NOT USE THIS CODE IN PRODUCTION.
 //  */
@@ -50,7 +50,7 @@
 
 //     // Mapping to store analysis results by address
 //     mapping(address => AddressAnalysis) public addressAnalyses;
-    
+
 //     // Mapping to track pending AI requests with CCIP context
 //     mapping(bytes32 => PendingRequest) public pendingRequests;
 
@@ -108,7 +108,7 @@
 //      * @param owner_ The owner of the contract
 //      */
 //     constructor(
-//         address router, 
+//         address router,
 //         address link,
 //         address oracle,
 //         uint64 destinationChainSelector,
@@ -116,7 +116,7 @@
 //     ) CCIPReceiver(router) ConfirmedOwner(owner_) {
 //         s_destinationChainSelector = destinationChainSelector;
 //         s_linkToken = LinkTokenInterface(link);
-        
+
 //         // Set up Chainlink
 //         _setChainlinkToken(link);
 //         _setChainlinkOracle(oracle);
@@ -139,7 +139,7 @@
 //         s_lastActionId = actionId;
 //         s_lastSourceChainSelector = any2EvmMessage.sourceChainSelector;
 //         s_lastSender = abi.decode(any2EvmMessage.sender, (address));
-        
+
 //         // Emit event with received address details
 //         emit AddressReceived(
 //             any2EvmMessage.messageId,
@@ -168,16 +168,16 @@
 //         bytes32 ccipMessageId
 //     ) internal {
 //         require(targetAddress != address(0), "Invalid address");
-        
+
 //         Chainlink.Request memory req = _buildChainlinkRequest(
 //             jobId,
-//             address(this), 
+//             address(this),
 //             this.fulfillAddressAnalysis.selector
 //         );
-        
+
 //         // Add the API URL and address as CBOR data
 //         req._add("apiUrl", string.concat(apiUrl, _addressToString(targetAddress)));
-        
+
 //         // Store the pending request with CCIP context
 //         bytes32 requestId = _sendChainlinkRequest(req, ORACLE_PAYMENT);
 
@@ -189,7 +189,7 @@
 //             sourceChainSelector: sourceChainSelector,
 //             ccipMessageId: ccipMessageId
 //         });
-        
+
 //         emit AddressAnalysisRequested(requestId, actionId, targetAddress, originalSender, sourceChainSelector);
 //     }
 
@@ -207,13 +207,13 @@
 //     ) public recordChainlinkFulfillment(requestId) {
 //         PendingRequest memory pendingRequest = pendingRequests[requestId];
 //         require(pendingRequest.targetAddress != address(0), "Request not found");
-        
+
 //         // Store the analysis result
 //         addressAnalyses[pendingRequest.targetAddress] = AddressAnalysis({
 //             category: category,
 //             explanation: explanation
 //         });
-        
+
 //         // Send the analysis results back to the original sender
 //         _sendReplyBack(
 //             pendingRequest.originalSender,
@@ -221,10 +221,10 @@
 //             category,
 //             explanation
 //         );
-        
+
 //         // Clear the pending request
 //         delete pendingRequests[requestId];
-        
+
 //         emit AddressAnalysisFulfilled(
 //             requestId,
 //             pendingRequest.actionId,
@@ -270,7 +270,7 @@
 //             tokenAmounts: new Client.EVMTokenAmount[](0),
 //             extraArgs: Client._argsToBytes(
 //                 Client.GenericExtraArgsV2({
-//                     gasLimit: 2_000_000, // 2M gas limit. 
+//                     gasLimit: 2_000_000, // 2M gas limit.
 //                     allowOutOfOrderExecution: true
 //                 })
 //             ),
@@ -313,13 +313,13 @@
 //      * @return category The category number
 //      * @return explanation The explanation string
 //      */
-//     function getAddressAnalysis(address targetAddress) 
-//         public 
-//         view 
+//     function getAddressAnalysis(address targetAddress)
+//         public
+//         view
 //         returns (
 //             uint256 category,
 //             string memory explanation
-//         ) 
+//         )
 //     {
 //         AddressAnalysis memory analysis = addressAnalyses[targetAddress];
 //         return (

@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This law allows voters to vote on nominees from a standalone OpenElection contract.
+/// @notice Allows voters to vote on nominees from a standalone OpenElection contract.
 ///
 /// The logic:
 /// - The inputParams are dynamic - as many bool options will appear as there are nominees.
@@ -46,25 +46,25 @@ contract VoteInOpenElection is Law {
         uint256 electionId;
         uint256 maxVotes;
     }
+
     mapping(bytes32 lawHash => Data) public data;
 
+    /// @notice Constructor for VoteInOpenElection law
     constructor() {
         bytes memory configParams = abi.encode("address OpenElectionContract", "uint256 maxVotes");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         MemoryData memory mem;
         (address openElectionContract, uint256 maxVotes) = abi.decode(config, (address, uint256));
-        
+
         // Get nominees from the OpenElection contract
         mem.nominees = OpenElection(openElectionContract).getNominees();
-        
+
         // Save data to state
         mem.lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[mem.lawHash].nominees = mem.nominees;
@@ -82,21 +82,22 @@ contract VoteInOpenElection is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
+    /// @notice Build a call to cast a vote in the OpenElection contract
+    /// @param caller The voter address
+    /// @param powers The Powers contract address (unused here, forwarded in action context)
+    /// @param lawId The law identifier
+    /// @param lawCalldata Encoded bool[] where each index corresponds to a nominee
+    /// @param nonce Unique nonce to build the action id
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         MemoryData memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        
+
         // Decode the vote data
         (mem.vote) = abi.decode(lawCalldata, (bool[]));
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -119,7 +120,7 @@ contract VoteInOpenElection is Law {
                 if (mem.numVotes > data[mem.lawHash].maxVotes) {
                     revert("Voter tries to vote for more than maxVotes nominees.");
                 }
-            }  
+            }
         }
 
         // create call for

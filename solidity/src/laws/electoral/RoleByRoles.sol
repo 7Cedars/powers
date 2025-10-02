@@ -12,13 +12,10 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Natspecs are tbi.
-///
+/// @notice Assign or revoke a role based on whether an account holds any of a set of prerequisite roles.
+/// @dev Useful for composing "grouped" roles (e.g., anyone with a specific contributor role can be granted a generic contributor role).
+/// Also revokes the target role if the account no longer holds any prerequisite roles.
 /// @author 7Cedars
-
-/// @notice This contract assigns a role Id based on an account having another role already. 
-/// It is usefule to create 'grouped' roles. (as in, everyone with a specific contrib role, can apply to a generic contrib role as well.)
-/// It works both ways: it also revokes a role if the account does not have any of the necessary roles anymore. 
 
 pragma solidity 0.8.26;
 
@@ -33,51 +30,43 @@ contract RoleByRoles is Law {
         uint256 newRoleId;
         uint256[] roleIdsNeeded;
     }
+
     mapping(bytes32 lawHash => Data data) public data;
 
+    /// @notice Constructor for RoleByRoles law
     constructor() {
         bytes memory configParams = abi.encode("uint256 newRoleId", "uint256[] roleIdsNeeded");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         (uint256 newRoleId_, uint256[] memory roleIdsNeeded_) = abi.decode(config, (uint256, uint256[]));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash] = Data({
-            newRoleId: newRoleId_,
-            roleIdsNeeded: roleIdsNeeded_
-        });
+        data[lawHash] = Data({ newRoleId: newRoleId_, roleIdsNeeded: roleIdsNeeded_ });
 
         inputParams = abi.encode("address Account");
 
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address /* caller */, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // step 1: decode the calldata & create hashes .
+        // step 1: decode the calldata & create hashes
         (address account) = abi.decode(lawCalldata, (address));
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        // step 2: check if the account has any of the needed roles, and if it already has the new role. 
+        // step 2: check if the account has any of the needed roles, and if it already has the new role
         Data memory data_ = data[lawHash];
-        bool hasAnyOfNeededRoles = false; 
+        bool hasAnyOfNeededRoles = false;
         for (uint256 i = 0; i < data_.roleIdsNeeded.length; i++) {
             if (Powers(payable(powers)).hasRoleSince(account, data_.roleIdsNeeded[i]) > 0) {
                 hasAnyOfNeededRoles = true;
@@ -86,15 +75,15 @@ contract RoleByRoles is Law {
         }
         bool alreadyHasNewRole = Powers(payable(powers)).hasRoleSince(account, data_.newRoleId) > 0;
 
-        // step 3: create empty arrays.
+        // step 3: create empty arrays
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 
-        // step 4: set the targets, values and calldatas according to the outcomes at step 2. 
+        // step 4: set the targets, values and calldatas according to the outcomes at step 2
         if (hasAnyOfNeededRoles && !alreadyHasNewRole) {
             targets[0] = powers;
             values[0] = 0;
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, account);
-        } 
+        }
         if (!hasAnyOfNeededRoles && alreadyHasNewRole) {
             targets[0] = powers;
             values[0] = 0;

@@ -102,7 +102,7 @@
 //     ) public override {
 //         (string memory spaceId, uint64 subscriptionId, uint32 gasLimit, bytes32 donID) =
 //             abi.decode(config, (string, uint64, uint32, bytes32));
-        
+
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 //         data[lawHash] = Data({ spaceId: spaceId, subscriptionId: subscriptionId, gasLimit: gasLimit, donID: donID });
 
@@ -134,7 +134,7 @@
 //         Mem memory mem;
 //         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
 //         mem.data = data[mem.lawHash];
-        
+
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 //         (mem.proposalId, mem.choice, mem.targets, mem.values, mem.calldatas, mem.govDescription) =
 //             abi.decode(lawCalldata, (string, string, address[], uint256[], bytes[], string));
@@ -174,7 +174,6 @@
 //         });
 //         requestToProposalId[requestId] = proposalId;
 //     }
-
 
 //     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //     //      Chainlink Functions Oracle: https://docs.chain.link/chainlink-functions/tutorials/api-query-parameters       //
@@ -247,7 +246,7 @@
 //         if (bytes(proposalId).length == 0) {
 //             revert("Request not found");
 //         }
-        
+
 //         Request memory request_ = requests[proposalId];
 
 //         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =

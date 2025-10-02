@@ -47,7 +47,7 @@ contract OpenActionTest is TestSetupMulti {
         // Execute open action
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test open action");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -59,12 +59,12 @@ contract OpenActionTest is TestSetupMulti {
         targets[0] = address(daoMock);
         targets[1] = address(daoMock);
         targets[2] = address(daoMock);
-        
+
         values = new uint256[](3);
         values[0] = 0;
         values[1] = 0;
         values[2] = 0;
-        
+
         calldatas = new bytes[](3);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(daoMock.labelRole.selector, 2, "Delegate");
@@ -73,7 +73,7 @@ contract OpenActionTest is TestSetupMulti {
         // Execute open action
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test multiple calls");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -86,7 +86,6 @@ contract OpenActionTest is TestSetupMulti {
         // Should fail: no targets, values, calldata provided
         vm.expectRevert();
         daoMock.request(lawId, abi.encode(), nonce, "Test empty input");
-
     }
 
     function testOpenActionHandleRequestDirectly() public {
@@ -148,7 +147,7 @@ contract StatementOfIntentTest is TestSetupMulti {
         // Execute statement of intent
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test statement of intent");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -159,11 +158,11 @@ contract StatementOfIntentTest is TestSetupMulti {
         targets = new address[](2);
         targets[0] = address(daoMock);
         targets[1] = address(daoMock);
-        
+
         values = new uint256[](2);
         values[0] = 0;
         values[1] = 0;
-        
+
         calldatas = new bytes[](2);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(daoMock.labelRole.selector, 2, "Delegate");
@@ -171,7 +170,7 @@ contract StatementOfIntentTest is TestSetupMulti {
         // Execute statement of intent
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test multiple statements");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -192,7 +191,9 @@ contract StatementOfIntentTest is TestSetupMulti {
             address[] memory returnedTargets,
             uint256[] memory returnedValues,
             bytes[] memory returnedCalldatas
-        ) = statementOfIntent.handleRequest(alice, address(daoMock), lawId, abi.encode(targets, values, calldatas), nonce);
+        ) = statementOfIntent.handleRequest(
+            alice, address(daoMock), lawId, abi.encode(targets, values, calldatas), nonce
+        );
 
         // Verify the returned values match what we sent
         assertEq(actionId, uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce))));
@@ -231,7 +232,7 @@ contract BespokeActionSimpleTest is TestSetupMulti {
         uint256 quantity = 100;
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(quantity), nonce, "Test bespoke simple");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(quantity), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -247,10 +248,10 @@ contract BespokeActionSimpleTest is TestSetupMulti {
 
     function testBespokeActionSimpleWithLargeQuantity() public {
         // Execute with large quantity
-        uint256 quantity = 1000000;
+        uint256 quantity = 1_000_000;
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(quantity), nonce, "Test large quantity");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(quantity), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -284,7 +285,7 @@ contract PresetSingleActionTest is TestSetupMulti {
         // Execute preset action (no input needed, just trigger)
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test preset single action");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -294,7 +295,7 @@ contract PresetSingleActionTest is TestSetupMulti {
         // Execute with input (should be ignored for preset actions)
         vm.prank(alice);
         daoMock.request(lawId, abi.encode("some input"), nonce, "Test preset with input");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode("some input"), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -326,12 +327,12 @@ contract PresetMultipleActionsTest is TestSetupMulti {
     function testPresetMultipleActionsWithFirstAction() public {
         // Execute first action only
         bool[] memory selections = new bool[](2);
-        selections[0] = true;  // Select first action
+        selections[0] = true; // Select first action
         selections[1] = false; // Don't select second action
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selections), nonce, "Test first action");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selections), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -341,11 +342,11 @@ contract PresetMultipleActionsTest is TestSetupMulti {
         // Execute second action only
         bool[] memory selections = new bool[](2);
         selections[0] = false; // Don't select first action
-        selections[1] = true;  // Select second action
+        selections[1] = true; // Select second action
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selections), nonce, "Test second action");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selections), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -354,12 +355,12 @@ contract PresetMultipleActionsTest is TestSetupMulti {
     function testPresetMultipleActionsWithBothActions() public {
         // Execute both actions
         bool[] memory selections = new bool[](2);
-        selections[0] = true;  // Select first action
-        selections[1] = true;  // Select second action
+        selections[0] = true; // Select first action
+        selections[1] = true; // Select second action
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selections), nonce, "Test both actions");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selections), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -373,7 +374,7 @@ contract PresetMultipleActionsTest is TestSetupMulti {
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selections), nonce, "Test no actions");
-        
+
         // Should succeed (no operations)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selections), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -382,7 +383,7 @@ contract PresetMultipleActionsTest is TestSetupMulti {
     function testPresetMultipleActionsHandleRequestDirectly() public {
         // Execute first action only
         bool[] memory selections = new bool[](2);
-        selections[0] = true;  // Select first action
+        selections[0] = true; // Select first action
         selections[1] = false; // Don't select second action
 
         // Call handleRequest directly to ensure coverage
@@ -430,7 +431,7 @@ contract BespokeActionAdvancedTest is TestSetupMulti {
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(dynamicParts), nonce, "Test bespoke advanced");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(dynamicParts), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -443,7 +444,7 @@ contract BespokeActionAdvancedTest is TestSetupMulti {
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(dynamicParts), nonce, "Test different account");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(dynamicParts), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -533,18 +534,18 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     function testMultiLawsWithComplexProposals() public {
         // Test with complex multi-action proposals
         lawId = 1; // OpenAction law ID
-        
+
         // Setup complex proposal parameters
         targets = new address[](3);
         targets[0] = address(daoMock);
         targets[1] = address(daoMock);
         targets[2] = address(daoMock);
-        
+
         values = new uint256[](3);
         values[0] = 0;
         values[1] = 0;
         values[2] = 0;
-        
+
         calldatas = new bytes[](3);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(daoMock.labelRole.selector, 2, "Delegate");
@@ -553,7 +554,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
         // Execute complex proposal
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test complex proposal");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -562,12 +563,12 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     function testMultiLawsWithLargeArrays() public {
         // Test with large arrays
         lawId = 1; // OpenAction law ID
-        
+
         // Setup large arrays
         targets = new address[](10);
         values = new uint256[](10);
         calldatas = new bytes[](10);
-        
+
         for (uint256 i = 0; i < 10; i++) {
             targets[i] = address(daoMock);
             values[i] = 0;
@@ -577,7 +578,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
         // Execute with large arrays
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test large arrays");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -586,7 +587,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     function testMultiLawsWithZeroAddressTargets() public {
         // Test with zero address targets
         lawId = 1; // OpenAction law ID
-        
+
         targets = new address[](1);
         targets[0] = address(0); // zero address
         values = new uint256[](1);
@@ -597,7 +598,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
         // Execute with zero address target
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test zero address target");
-        
+
         // Should succeed (but will fail when executed)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -606,7 +607,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     // function testMultiLawsWithEtherValues() public {
     //     // Test with ether values
     //     lawId = 1; // OpenAction law ID
-        
+
     //     targets = new address[](1);
     //     targets[0] = address(daoMock);
     //     values = new uint256[](1);
@@ -617,7 +618,7 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     //     // Execute with ether value
     //     vm.prank(alice);
     //     daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Test ether value");
-        
+
     //     // Should succeed
     //     actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
     //     assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);

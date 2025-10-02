@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.26;
 
-import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
@@ -22,7 +22,7 @@ contract Nominees is Ownable {
     event NominationReceived(address indexed nominee);
     event NominationRevoked(address indexed nominee);
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) { }
 
     // --- Nomination API ---
 
@@ -53,7 +53,7 @@ contract Nominees is Ownable {
             emit NominationRevoked(nominee);
         }
     }
-    
+
     // --- View helpers ---
 
     function getNominees() external view returns (address[] memory) {
@@ -64,5 +64,3 @@ contract Nominees is Ownable {
         return nominations[account] == true;
     }
 }
-
-

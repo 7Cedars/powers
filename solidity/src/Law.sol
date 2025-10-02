@@ -12,16 +12,15 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title Law - Base Implementation for Powers Protocol Laws. v0.3.
+/// @title Law - Base Implementation for Powers Protocol Laws. v0.4.
 /// @notice Base contract for implementing role-restricted governance actions
 /// @dev Provides core functionality for creating institutional laws in the Powers protocol
 ///
-/// Laws serve five key functions:
-/// 1. Role restriction of community actions
-/// 2. Transformation of input data into executable calls
-/// 3. State management for the community
-/// 4. Validation of proposal and execution conditions
-/// 5. Returning of data to the Powers protocol
+/// Laws serve four key functions:
+/// 1. Giving roles powers to transform input data into executable calldata.
+/// 2. Validation of input and execution data.
+/// 3. Calling external contracts and validating return data.
+/// 4. Returning of data to the Powers protocol
 ///
 /// Laws can be customized through:
 /// - Inheriting and implementing bespoke logic in the {handleRequest} {_replyPowers} and {_externalCall} functions.
@@ -38,7 +37,6 @@ import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspec
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
 abstract contract Law is ERC165, ILaw {
-
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
@@ -48,27 +46,22 @@ abstract contract Law is ERC165, ILaw {
         bytes config;
         address powers;
     }
+
     mapping(bytes32 lawHash => LawData) public laws;
 
     //////////////////////////////////////////////////////////////
     //                   LAW EXECUTION                          //
     //////////////////////////////////////////////////////////////
     // note this is an unrestricted function. Anyone can initialize a law.
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public virtual {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        virtual
+    {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         LawUtilities.checkStringLength(nameDescription, 1, 255);
 
-        laws[lawHash] = LawData({
-            nameDescription: nameDescription,
-            inputParams: inputParams,
-            config: config,
-            powers: msg.sender
-        });
+        laws[lawHash] =
+            LawData({ nameDescription: nameDescription, inputParams: inputParams, config: config, powers: msg.sender });
 
         emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config);
     }
@@ -86,21 +79,17 @@ abstract contract Law is ERC165, ILaw {
     {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         if (laws[lawHash].powers != msg.sender) {
-            revert Law__OnlyPowers();
+            revert("Only Powers");
         }
 
-        // Simulate and execute the law's logic. This might include additional conditional checks. 
-        (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        ) = handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
+        // Simulate and execute the law's logic. This might include additional conditional checks.
+        (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
+            handleRequest(caller, msg.sender, lawId, lawCalldata, nonce);
 
         _externalCall(lawId, actionId, targets, values, calldatas);
 
         _replyPowers(lawId, actionId, targets, values, calldatas);
-    
+
         return true;
     }
 
@@ -113,31 +102,32 @@ abstract contract Law is ERC165, ILaw {
     /// @return actionId The action ID
     /// @return targets Target contract addresses for calls
     /// @return values ETH values to send with calls
-    /// @return calldatas Encoded function calls 
+    /// @return calldatas Encoded function calls
     function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // Empty implementation - must be overridden
-        revert("handleRequest not implemented");
+        revert("HandleRequest not implemented");
     }
 
-    /// @notice Meant to be used to call an external contract. Especially usefull in the case of async laws. 
+    /// @notice Meant to be used to call an external contract. Especially usefull in the case of async laws.
     /// @dev Can be overridden by implementing contracts.
     /// @param lawId The id of the law
     /// @param actionId The action ID
     /// @param targets Target contract addresses for calls
     /// @param values ETH values to send with calls
     /// @param calldatas Encoded function calls
-    function _externalCall(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
-        // optional override by implementing contracts 
+    function _externalCall(
+        uint16 lawId,
+        uint256 actionId,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas
+    ) internal virtual {
+        // optional override by implementing contracts
     }
 
     /// @notice Meant to be used to reply to the Powers protocol. Can be overridden by implementing contracts.
@@ -147,10 +137,16 @@ abstract contract Law is ERC165, ILaw {
     /// @param targets Target contract addresses for calls
     /// @param values ETH values to send with calls
     /// @param calldatas Encoded function calls
-    function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
+    function _replyPowers(
+        uint16 lawId,
+        uint256 actionId,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas
+    ) internal virtual {
         if (targets.length > 0) {
             IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
-        } 
+        }
     }
 
     //////////////////////////////////////////////////////////////

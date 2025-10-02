@@ -24,12 +24,12 @@
 ///    - If the account has paid less tax than the threshold in the previous epoch, its role is revoked.
 ///    - If there is no previous epoch, the operation reverts.
 ///
-/// @dev The contract is an example of a law that
-/// - has does not need a proposal to be voted through. It can be called directly.
-/// - has a simple tax-based role assignment mechanism.
-/// - doess not have to role restricted.
-/// - translates tax payments to role assignments.
-/// - Note this logic can be extended to include more complex tax-based role assignment mechanisms.
+/// @dev The contract is an example of a law that:
+/// - does not need a proposal to be voted through; it can be called directly
+/// - has a simple tax-based role assignment mechanism
+/// - does not have to be role-restricted
+/// - translates tax payments to role assignments
+/// - can be extended to include more complex tax-based role assignment mechanisms
 
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -58,6 +58,7 @@ contract TaxSelect is Law {
 
     mapping(bytes32 lawHash => Data) internal data;
 
+    /// @notice Constructor for TaxSelect law
     constructor() {
         bytes memory configParams =
             abi.encode("address erc20TaxedMock", "uint256 thresholdTaxPaid", "uint256 roleIdToSet");
@@ -68,12 +69,10 @@ contract TaxSelect is Law {
     /// @param index The index of the law in the DAO
     /// @param nameDescription The description of the law
     /// @param config The configuration parameters (erc20Taxed, thresholdTaxPaid, roleIdToSet)
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         (address erc20Taxed_, uint256 thresholdTaxPaid_, uint256 roleIdToSet_) =
             abi.decode(config, (address, uint256, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
@@ -87,7 +86,7 @@ contract TaxSelect is Law {
     }
 
     /// @notice Handles the request to assign or revoke a role based on tax payments
-    // 
+    //
     /// @param powers The address of the Powers contract
     /// @param lawId The ID of the law
     /// @param lawCalldata The calldata containing the account to assess
@@ -96,17 +95,12 @@ contract TaxSelect is Law {
     /// @return targets The target addresses for the action
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
-    function handleRequest(address /* caller */, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
@@ -125,9 +119,8 @@ contract TaxSelect is Law {
         // step 2: retrieve data on tax paid and role
         mem.hasRole = Powers(payable(powers)).hasRoleSince(account, data[mem.lawHash].roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
-        mem.taxPaid = Erc20Taxed(data[mem.lawHash].erc20Taxed).getTaxLogs(
-            uint48(block.number) - mem.epochDuration, account
-        );
+        mem.taxPaid =
+            Erc20Taxed(data[mem.lawHash].erc20Taxed).getTaxLogs(uint48(block.number) - mem.epochDuration, account);
         // console.log("mem.taxPaid", mem.taxPaid);
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);

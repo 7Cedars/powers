@@ -9,7 +9,7 @@ contract HelperConfig is Script {
     // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.
     struct NetworkConfig {
         uint256 blocksPerHour; // a basic way of establishing time. As long as block times are fairly stable on a chain, this will work.
-        uint256 maxCallDataLength;  // for now these are all set at 10,000.
+        uint256 maxCallDataLength; // for now these are all set at 10,000.
         uint256 maxExecutionsLength; // for now these are all set at 25.
         address chainlinkFunctionsRouter;
         uint64 chainlinkFunctionsSubscriptionId;
@@ -51,7 +51,7 @@ contract HelperConfig is Script {
 
     function getEthSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 300; // new block every 12 seconds
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         networkConfig.chainlinkFunctionsRouter = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
@@ -65,7 +65,7 @@ contract HelperConfig is Script {
 
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 300; // new block every 12 seconds
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         networkConfig.chainlinkFunctionsRouter = 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C;
@@ -79,7 +79,7 @@ contract HelperConfig is Script {
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         networkConfig.chainlinkFunctionsRouter = 0xC17094E3A1348E5C7544D4fF8A36c28f2C6AAE28;
@@ -93,7 +93,7 @@ contract HelperConfig is Script {
 
     function getBaseSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 1800; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         networkConfig.chainlinkFunctionsRouter = 0xf9B8fc078197181C841c296C876945aaa425B278;
@@ -107,7 +107,7 @@ contract HelperConfig is Script {
 
     function getMantleSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 360_000; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
@@ -121,7 +121,7 @@ contract HelperConfig is Script {
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
         networkConfig.blocksPerHour = 3600; // new block per 1 second
-        networkConfig.maxCallDataLength = 10000;
+        networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
         return networkConfig;

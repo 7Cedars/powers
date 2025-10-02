@@ -35,12 +35,12 @@ contract DeployTest is TestSetupPowers {
     }
 
     function testReceive() public {
-        // first enable payable. 
-        vm.prank(address(daoMock)); 
+        // first enable payable.
+        vm.prank(address(daoMock));
         daoMock.setPayableEnabled(true);
 
         vm.deal(alice, 1 ether);
-        
+
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
         emit FundsReceived(1 ether, alice);
@@ -50,15 +50,15 @@ contract DeployTest is TestSetupPowers {
         assertEq(address(daoMock).balance, 1 ether);
     }
 
-    function testReceiveRevertsWhenNotEnabled() public { 
+    function testReceiveRevertsWhenNotEnabled() public {
         vm.deal(alice, 1 ether);
-        vm.prank(address(daoMock)); 
-        daoMock.setPayableEnabled(false); 
-        
+        vm.prank(address(daoMock));
+        daoMock.setPayableEnabled(false);
+
         vm.prank(alice);
         vm.expectRevert(Powers__PayableNotEnabled.selector);
-        (bool success ,) = address(daoMock).call{ value: 1 ether }("");
-        
+        (bool success,) = address(daoMock).call{ value: 1 ether }("");
+
         assertTrue(success);
         assertEq(address(daoMock).balance, 0);
     }
@@ -411,7 +411,8 @@ contract VoteTest is TestSetupPowers {
             }
         }
 
-        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) = daoMock.getActionVoteData(actionId);
+        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
+            daoMock.getActionVoteData(actionId);
         assertEq(againstVotes, uint32(numberAgainstVotes));
         assertEq(forVotes, uint32(numberForVotes));
         assertEq(abstainVotes, uint32(numberAbstainVotes));
@@ -485,19 +486,19 @@ contract ExecuteTest is TestSetupPowers {
         address[] memory tar = new address[](3);
         uint256[] memory val = new uint256[](3);
         bytes[] memory cal = new bytes[](3);
-        
+
         tar[0] = address(daoMock);
         tar[1] = address(daoMock);
         tar[2] = address(daoMock);
-        
+
         val[0] = 0;
         val[1] = 0;
         val[2] = 0;
-        
+
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
         cal[1] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_TWO, "Delegate");
         cal[2] = abi.encodeWithSelector(daoMock.revokeLaw.selector, 7);
-        
+
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         vm.expectEmit(true, false, false, false);
@@ -531,7 +532,7 @@ contract ExecuteTest is TestSetupPowers {
         (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
         conditions = daoMock.getConditions(lawId);
 
-        lawCalldata = abi.encode(tar, val, cal); 
+        lawCalldata = abi.encode(tar, val, cal);
         vm.prank(alice);
         actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
         for (i = 0; i < users.length; i++) {
@@ -541,7 +542,7 @@ contract ExecuteTest is TestSetupPowers {
             }
         }
 
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1); 
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
 
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
@@ -910,11 +911,11 @@ contract ProposeAdvancedTest is TestSetupPowers {
     function testProposeRevertsWithBlacklistedCaller() public {
         lawId = 4; // StatementOfIntent
         lawCalldata = abi.encode(true);
-        
+
         // Blacklist the caller
         vm.prank(address(daoMock));
         daoMock.blacklistAddress(bob, true);
-        
+
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(bob);
         daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
@@ -924,7 +925,7 @@ contract ProposeAdvancedTest is TestSetupPowers {
         lawId = 4; // StatementOfIntent
         // Create calldata longer than MAX_CALLDATA_LENGTH
         lawCalldata = new bytes(daoMock.MAX_CALLDATA_LENGTH() + 1);
-        
+
         vm.expectRevert(PowersErrors.Powers__CalldataTooLong.selector);
         vm.prank(bob);
         daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
@@ -937,18 +938,18 @@ contract ProposeAdvancedTest is TestSetupPowers {
 contract LawAdoptionTest is TestSetupPowers {
     function testAdoptLawRevertsWithBlacklistedTarget() public {
         address blacklistedLaw = lawAddresses[1];
-        
+
         // Blacklist the target law
         vm.prank(address(daoMock));
         daoMock.blacklistAddress(blacklistedLaw, true);
-        
+
         LawInitData memory lawInitData = LawInitData({
             nameDescription: "Test law",
             targetLaw: blacklistedLaw,
             config: abi.encode(),
             conditions: conditions
         });
-        
+
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
@@ -956,7 +957,7 @@ contract LawAdoptionTest is TestSetupPowers {
 
     function testAdoptLawRevertsWithPublicRoleAndQuorum() public {
         newLaw = address(new OpenAction());
-        
+
         // Create conditions with PUBLIC_ROLE and quorum > 0
         PowersTypes.Conditions memory invalidConditions = PowersTypes.Conditions({
             allowedRole: PUBLIC_ROLE,
@@ -968,14 +969,14 @@ contract LawAdoptionTest is TestSetupPowers {
             needCompleted: 0,
             needNotCompleted: 0
         });
-        
+
         LawInitData memory lawInitData = LawInitData({
             nameDescription: "Test law",
             targetLaw: newLaw,
             config: abi.encode(),
             conditions: invalidConditions
         });
-        
+
         vm.expectRevert(PowersErrors.Powers__VoteWithPublicRoleDisallowed.selector);
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
@@ -988,11 +989,11 @@ contract LawAdoptionTest is TestSetupPowers {
 contract RoleManagementTest is TestSetupPowers {
     function testAssignRoleRevertsWithBlacklistedAccount() public {
         address blacklistedAccount = makeAddr("blacklisted");
-        
+
         // Blacklist the account
         vm.prank(address(daoMock));
         daoMock.blacklistAddress(blacklistedAccount, true);
-        
+
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_THREE, blacklistedAccount);
@@ -1006,8 +1007,9 @@ contract RoleManagementTest is TestSetupPowers {
 
     function testLabelRoleRevertsWithLabelTooLong() public {
         // Create a label longer than 255 characters
-        string memory longLabel = "This is a very long label that exceeds the maximum allowed length of 255 characters and should cause the function to revert when trying to set it as a role label in the Powers protocol governance system which has strict validation rules to prevent abuse and ensure proper formatting of role labels";
-        
+        string memory longLabel =
+            "This is a very long label that exceeds the maximum allowed length of 255 characters and should cause the function to revert when trying to set it as a role label in the Powers protocol governance system which has strict validation rules to prevent abuse and ensure proper formatting of role labels";
+
         vm.expectRevert(PowersErrors.Powers__LabelTooLong.selector);
         vm.prank(address(daoMock));
         daoMock.labelRole(ROLE_THREE, longLabel);
@@ -1030,14 +1032,14 @@ contract RoleManagementTest is TestSetupPowers {
         // First assign a role
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_THREE, alice);
-        
+
         uint256 membersBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
         assertEq(membersBefore, 1);
-        
+
         // Now remove the role
         vm.prank(address(daoMock));
         daoMock.revokeRole(ROLE_THREE, alice);
-        
+
         uint256 membersAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
         assertEq(membersAfter, 0);
         assertEq(daoMock.hasRoleSince(alice, ROLE_THREE), 0);
@@ -1051,7 +1053,7 @@ contract RoleManagementTest is TestSetupPowers {
 
     function testGetActionStateNonExistent() public {
         // Test with a non-existent action ID
-        uint256 nonExistentActionId = 999999;
+        uint256 nonExistentActionId = 999_999;
         ActionState state = daoMock.getActionState(nonExistentActionId);
         assertEq(uint8(state), uint8(ActionState.NonExistent));
     }
@@ -1063,7 +1065,7 @@ contract RoleManagementTest is TestSetupPowers {
 contract ConstructorTest is Test {
     function testConstructorRevertsWithEmptyName() public {
         vm.expectRevert(PowersErrors.Powers__InvalidName.selector);
-        new Powers("", "", 10_000, 10_0000);
+        new Powers("", "", 10_000, 100_000);
     }
 
     function testConstructorRevertsWithZeroMaxCallDataLength() public {
@@ -1076,4 +1078,3 @@ contract ConstructorTest is Test {
         new Powers("This is a name", "", 10_000, 0);
     }
 }
-

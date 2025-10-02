@@ -12,7 +12,7 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice This law revokes roles from all accounts when the number of flagged actions exceeds a threshold.
+/// @notice Revoke roles from all accounts when the number of flagged actions exceeds a threshold.
 ///
 /// The logic:
 /// - Counts flagged actions for a specific roleId from FlagActions contract.
@@ -48,20 +48,21 @@ contract NStrikesRevokesRoles is Law {
 
     mapping(bytes32 lawHash => Data) public data;
 
+    /// @notice Constructor for NStrikesRevokesRoles law
     constructor() {
-        bytes memory configParams = abi.encode("uint256 roleId", "uint256 numberOfStrikes", "address flagActionsAddress");
+        bytes memory configParams =
+            abi.encode("uint256 roleId", "uint256 numberOfStrikes", "address flagActionsAddress");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         MemoryData memory mem;
-        (uint256 roleId_, uint256 numberOfStrikes_, address flagActionsAddress_) = abi.decode(config, (uint256, uint256, address));
-        
+        (uint256 roleId_, uint256 numberOfStrikes_, address flagActionsAddress_) =
+            abi.decode(config, (uint256, uint256, address));
+
         // Save data to state
         mem.lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[mem.lawHash].roleId = roleId_;
@@ -73,53 +74,57 @@ contract NStrikesRevokesRoles is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address /* caller */, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Build calls to revoke roles from all holders if strike threshold met
+    /// @param powers The Powers contract address
+    /// @param lawId The law identifier
+    /// @param lawCalldata Not used for this law
+    /// @param nonce Unique nonce to build the action id
+    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         MemoryData memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // Get flagged actions for the specific roleId from FlagActions contract
-        mem.flaggedActionIds = FlagActions(data[mem.lawHash].flagActionsAddress).getFlaggedActionsByRole(uint16(data[mem.lawHash].roleId));
-        
+        mem.flaggedActionIds =
+            FlagActions(data[mem.lawHash].flagActionsAddress).getFlaggedActionsByRole(uint16(data[mem.lawHash].roleId));
+
         // Check if we have enough strikes
         if (mem.flaggedActionIds.length < data[mem.lawHash].numberOfStrikes) {
             revert("Not enough strikes to revoke roles.");
         }
-        
+
         // Get all current role holders
         mem.roleHolders = Powers(payable(powers)).getRoleHolders(data[mem.lawHash].roleId);
-        
+
         // Set up calls to revoke roles from all holders
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.roleHolders.length);
-        
+
         for (mem.i = 0; mem.i < mem.roleHolders.length; mem.i++) {
             targets[mem.i] = powers;
-            calldatas[mem.i] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.roleHolders[mem.i]);
+            calldatas[mem.i] =
+                abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.roleHolders[mem.i]);
         }
 
         return (actionId, targets, values, calldatas);
     }
 
+    /// @notice Get the stored data for a law instance
     function getData(bytes32 lawHash) external view returns (Data memory) {
         return data[lawHash];
     }
 
     /// @notice Check if the role should be revoked based on current flagged actions
     /// @param lawHash The law hash to check
-    /// @return True if the role should be revoked (enough strikes)
-    function shouldRevokeRole(bytes32 lawHash) external view returns (bool) {
-        uint256 flaggedCount = FlagActions(data[lawHash].flagActionsAddress).getFlaggedActionsCountByRole(uint16(data[lawHash].roleId));
+    /// @return shouldRevoke True if the role should be revoked (enough strikes)
+    function shouldRevokeRole(bytes32 lawHash) external view returns (bool shouldRevoke) {
+        uint256 flaggedCount =
+            FlagActions(data[lawHash].flagActionsAddress).getFlaggedActionsCountByRole(uint16(data[lawHash].roleId));
         return flaggedCount >= data[lawHash].numberOfStrikes;
     }
 }

@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -13,8 +13,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Powers Protocol Interface
-/// @notice Interface for the Powers protocol, a Role Restricted Governance Protocol
-/// @dev Derived from OpenZeppelin's Governor.sol contract
+/// @notice Interface for Powers, a protocol implementing Institutional Governance.
+/// @dev Derived from OpenZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
@@ -135,7 +135,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     function blacklistAddress(address account, bool blacklisted) external;
 
     /// @notice Sets the payable enabled status
-    /// @dev IMPORTANT: When payable is enabled, ether can be sent to the protocol. If there is no function to retrieve the funds, the funds will be locked in the protocol.
+    /// @dev IMPORTANT: When payable is enabled, ether can be sent to the protocol. If there is no law to retrieve the funds - and no law to adopt new laws - the funds will be locked in the protocol for ever.
     /// @param payableEnabled The payable enabled status
     function setPayableEnabled(bool payableEnabled) external;
 
@@ -189,7 +189,17 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return againstVotes - the number of votes against the action
     /// @return forVotes - the number of votes for the action
     /// @return abstainVotes - the number of abstain votes
-    function getActionVoteData(uint256 actionId) external view returns (uint48 voteStart, uint32 voteDuration, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes);
+    function getActionVoteData(uint256 actionId)
+        external
+        view
+        returns (
+            uint48 voteStart,
+            uint32 voteDuration,
+            uint256 voteEnd,
+            uint32 againstVotes,
+            uint32 forVotes,
+            uint32 abstainVotes
+        );
 
     /// @notice Gets the calldata for a specific action
     /// @param actionId The unique identifier of the action

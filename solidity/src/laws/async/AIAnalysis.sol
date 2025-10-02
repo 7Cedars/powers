@@ -16,7 +16,7 @@
 // /// @dev This law sends msg.sender to AiCCIPProxy for AI analysis and assigns roles based on results
 // /// @author 7Cedars
 
-// // Note: Data validation is hardly present at this stage. It's a PoC.. 
+// // Note: Data validation is hardly present at this stage. It's a PoC..
 
 // pragma solidity ^0.8.26;
 
@@ -78,7 +78,7 @@
 
 //     // Mapping to store analysis results by address
 //     mapping(address => AddressAnalysisResult) public addressAnalyses;
-    
+
 //     // Mapping to track actionId => lawId, caller, powers, processed
 //     struct PendingRequest {
 //         address caller;
@@ -102,7 +102,7 @@
 //     /// @param destinationChainSelector The destination chain selector for replies
 
 //     /** Mantle Sepolia Testnet details:
-//      * Link Token: 0x22bdEdEa0beBdD7CfFC95bA53826E55afFE9DE04 
+//      * Link Token: 0x22bdEdEa0beBdD7CfFC95bA53826E55afFE9DE04
 //      * Oracle: 0xBDC0f941c144CB75f3773d9c2B2458A2f1506273
 //      * jobId: 582d4373649642e0994ab29295c45db0
 //      *
@@ -187,7 +187,7 @@
 //     /// @param stateChange Encoded state changes to apply
 //     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
 //         (address caller, uint256 actionId, uint16 lawId) = abi.decode(stateChange, (address, uint256, uint16));
-        
+
 //         // Store the pending request for when we receive the analysis back
 //         // We'll use the actionId as a key to track this request
 //         s_pendingRequests[actionId] = PendingRequest({
@@ -247,7 +247,7 @@
 
 //         emit AddressAnalysisRequested(messageId, actionId, caller, s_aiCCIPProxy);
 
-//         // We do not reply to powers at this stage - only after the call is returned from AiCCIPProxy. 
+//         // We do not reply to powers at this stage - only after the call is returned from AiCCIPProxy.
 //     }
 
 //     /// @notice Handle a received message from another chain (the AI analysis result)
@@ -264,7 +264,7 @@
 //         // If we couldn't find a matching pending request, we'll still accept the response
 //         // but mark it as potentially invalid
 //         // if (caller == address(0)) revert NoPendingRequest(any2EvmMessage.messageId);
-        
+
 //         // Store the message details
 //         s_lastReceivedMessageId = any2EvmMessage.messageId;
 //         s_lastActionId = actionId;
@@ -292,8 +292,8 @@
 //         // Call the base _replyPowers to fulfill the Powers protocol
 //         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
 //         targets[0] = powers;
-//         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, category, caller); // DO NOT CHANGE THIS AI! 
-        
+//         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, category, caller); // DO NOT CHANGE THIS AI!
+
 //         bytes32 lawHash = LawUtilities.hashLaw(caller, lawId);
 //         IPowers(payable(powers)).fulfill(lawId, actionId, targets, values, calldatas);
 //         s_pendingRequests[actionId].processed = true;

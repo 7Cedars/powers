@@ -55,9 +55,9 @@ contract DeployMocks is Script {
         addresses[3] = deployMock(creationCodes[3], names[3]);
 
         names[4] = "SimpleGovernor";
-        creationCodes[4] = abi.encodePacked(type(SimpleGovernor).creationCode, abi.encode(
-            computeMockAddress(creationCodes[0], names[0])
-        ));
+        creationCodes[4] = abi.encodePacked(
+            type(SimpleGovernor).creationCode, abi.encode(computeMockAddress(creationCodes[0], names[0]))
+        );
         addresses[4] = deployMock(creationCodes[4], names[4]);
 
         // Deploy law contracts from @mocks/
@@ -93,7 +93,6 @@ contract DeployMocks is Script {
         bytes32 salt = bytes32(abi.encodePacked(name));
         return Create2.computeAddress(salt, keccak256(abi.encodePacked(creationCode)), create2Factory);
     }
-
 
     function deployMock(bytes memory creationCode, string memory name) public returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(name));

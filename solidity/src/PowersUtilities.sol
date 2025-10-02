@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -25,7 +25,6 @@ import { PowersTypes } from "./interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library PowersUtilities {
-    
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
@@ -35,33 +34,24 @@ library PowersUtilities {
     /// @param lawCalldata The calldata of the law
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the law
-    function checksAtPropose(
-        uint16 lawId,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce
-    ) public view {
+    function checksAtPropose(uint16 lawId, bytes memory lawCalldata, address powers, uint256 nonce) public view {
         PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
 
         // Check if parent law completion is required
         if (conditions.needCompleted != 0) {
-            // console2.log("parentActionId", parentActionId);
-            PowersTypes.ActionState stateLog = Powers(payable(powers)).getActionState(
-                hashActionId(conditions.needCompleted, lawCalldata, nonce)
-            ); 
-            // console2.log("state", stateLog);
+            PowersTypes.ActionState stateLog =
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needCompleted, lawCalldata, nonce));
             if (stateLog != PowersTypes.ActionState.Fulfilled) {
-                revert ("Parent law not completed");
+                revert("Parent law not completed");
             }
         }
 
         // Check if parent law must not be completed
         if (conditions.needNotCompleted != 0) {
-            PowersTypes.ActionState stateLog = Powers(payable(powers)).getActionState(
-                hashActionId(conditions.needNotCompleted, lawCalldata, nonce)
-            );
+            PowersTypes.ActionState stateLog =
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needNotCompleted, lawCalldata, nonce));
             if (stateLog == PowersTypes.ActionState.Fulfilled) {
-                revert ("Parent law blocks completion");
+                revert("Parent law blocks completion");
             }
         }
     }
@@ -74,7 +64,7 @@ library PowersUtilities {
     /// @param nonce The nonce of the law
     /// @param executions The executions of the law
     function checksAtRequest(
-        uint16 lawId, 
+        uint16 lawId,
         bytes memory lawCalldata,
         address powers,
         uint256 nonce,
@@ -88,26 +78,25 @@ library PowersUtilities {
             if (
                 executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
             ) {
-                revert ("Execution gap too small");
+                revert("Execution gap too small");
             }
         }
 
         // Check if proposal vote succeeded
         if (conditions.quorum != 0) {
-            if (Powers(payable(powers)).getActionState(
-                hashActionId(lawId, lawCalldata, nonce)
-            ) != PowersTypes.ActionState.Succeeded) {
-                revert ("Proposal not succeeded");
+            if (
+                Powers(payable(powers)).getActionState(hashActionId(lawId, lawCalldata, nonce))
+                    != PowersTypes.ActionState.Succeeded
+            ) {
+                revert("Proposal not succeeded");
             }
         }
 
         // Check execution delay after proposal
         if (conditions.delayExecution != 0) {
-            uint256 deadline = Powers(payable(powers)).getActionDeadline(
-                hashActionId(lawId, lawCalldata, nonce)
-            );
+            uint256 deadline = Powers(payable(powers)).getActionDeadline(hashActionId(lawId, lawCalldata, nonce));
             if (deadline + conditions.delayExecution > block.number) {
-                revert ("Deadline not passed");
+                revert("Deadline not passed");
             }
         }
     }
@@ -115,7 +104,7 @@ library PowersUtilities {
     /////////////////////////////////////////////////////////////
     //                  HELPER FUNCTIONS                        //
     /////////////////////////////////////////////////////////////
-        /// @notice Creates a unique identifier for an action
+    /// @notice Creates a unique identifier for an action
     /// @dev Hashes the combination of law address, calldata, and nonce
     /// @param lawId Address of the law contract being called
     /// @param lawCalldata Encoded function call data
@@ -129,7 +118,11 @@ library PowersUtilities {
         actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
     }
 
-    function getConditions(address powers, uint16 lawId) public view returns (PowersTypes.Conditions memory conditions) {
+    function getConditions(address powers, uint16 lawId)
+        public
+        view
+        returns (PowersTypes.Conditions memory conditions)
+    {
         return Powers(payable(powers)).getConditions(lawId);
     }
 }

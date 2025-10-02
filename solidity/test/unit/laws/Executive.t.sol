@@ -59,11 +59,7 @@ contract AdoptLawsTest is TestSetupExecutive {
         PowersTypes.LawInitData memory lawInitData2 = PowersTypes.LawInitData({
             nameDescription: "Test Law 2",
             targetLaw: address(presetSingleAction),
-            config: abi.encode(
-                new address[](1),
-                new uint256[](1),
-                new bytes[](1)
-            ),
+            config: abi.encode(new address[](1), new uint256[](1), new bytes[](1)),
             conditions: PowersTypes.Conditions({
                 allowedRole: type(uint256).max,
                 quorum: 0,
@@ -84,14 +80,16 @@ contract AdoptLawsTest is TestSetupExecutive {
         lawId = daoMock.lawCounter();
         nameDescription = "Test Adopt Laws";
         configBytes = abi.encode(lawsToAdopt, lawInitDatas);
-        
+
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: nameDescription,
-            targetLaw: address(adoptLaws),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: nameDescription,
+                targetLaw: address(adoptLaws),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
@@ -110,7 +108,7 @@ contract AdoptLawsTest is TestSetupExecutive {
         // Create mock law call ]
         targets = new address[](1);
         targets[0] = address(mockAddresses[0]);
-        values = new uint256[](1); 
+        values = new uint256[](1);
         values[0] = 0;
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(SimpleErc20Votes.mintVotes.selector, 1000);
@@ -143,7 +141,7 @@ contract AdoptLawsTest is TestSetupExecutive {
         // Execute adoption
         vm.prank(alice);
         daoMock.request(lawId, lawCallData, nonce, "Test adopt laws");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, lawCallData, nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -185,7 +183,7 @@ contract GovernorCreateProposalTest is TestSetupExecutive {
         // Execute proposal creation
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas, description), nonce, "Test create proposal");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas, description), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -275,15 +273,13 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test Role");
         description = "Test proposal description";
 
-        
-
-        // first create a proposal in the Governor contract. 
+        // first create a proposal in the Governor contract.
         vm.startPrank(alice);
         votingToken.mintVotes(100);
         votingToken.delegate(address(alice));
         daoMock.request(lawIds[0], abi.encode(targets, values, calldatas, description), nonce, "Test create proposal");
         vm.stopPrank();
-        
+
         uint256 proposalId = simpleGovernor.getProposalId(targets, values, calldatas, keccak256(bytes(description)));
         assertTrue(proposalId != 0);
 
@@ -299,14 +295,13 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
         // Execute proposal execution
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas, description), nonce, "Test execute proposal");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas, description), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
 
     function testGovernorExecuteProposalRevertsWithNoTargets() public {
-
         // Setup proposal parameters with no targets
         targets = new address[](0);
         values = new uint256[](0);
@@ -320,7 +315,6 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
     }
 
     function testGovernorExecuteProposalRevertsWithLengthMismatch() public {
-
         // Setup proposal parameters with length mismatch
         targets = new address[](1);
         targets[0] = address(daoMock);
@@ -338,7 +332,6 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
     }
 
     function testGovernorExecuteProposalRevertsWithEmptyDescription() public {
-
         // Setup proposal parameters with empty description
         targets = new address[](1);
         targets[0] = address(daoMock);
@@ -355,7 +348,6 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
     }
 
     function testGovernorExecuteProposalRevertsWithNonExistentProposal() public {
-
         // Setup proposal parameters for non-existent proposal
         targets = new address[](1);
         targets[0] = address(daoMock);
@@ -417,29 +409,29 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
     function testExecutiveLawsWithComplexProposals() public {
         // Test with complex multi-action proposals
         lawId = 2; // GovernorCreateProposal law ID
-        
+
         // Setup complex proposal parameters
         targets = new address[](3);
         targets[0] = address(daoMock);
         targets[1] = address(daoMock);
         targets[2] = address(daoMock);
-        
+
         values = new uint256[](3);
         values[0] = 0;
         values[1] = 0;
         values[2] = 0;
-        
+
         calldatas = new bytes[](3);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(daoMock.labelRole.selector, 2, "Delegate");
         calldatas[2] = abi.encodeWithSelector(daoMock.assignRole.selector, 3, alice);
-        
+
         description = "Complex multi-action proposal for role management";
 
         // Execute proposal creation
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas, description), nonce, "Test complex proposal");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas, description), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -448,11 +440,11 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
     function testExecutiveLawsWithEmptyInputs() public {
         // Test that laws handle empty inputs gracefully
         lawId = 4; // AdoptLaws law ID
-        
+
         // Execute with empty input
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test empty input");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -461,7 +453,7 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
     function testExecutiveLawsWithInvalidConfigs() public {
         // Test that laws revert with invalid configurations
         lawId = 2; // GovernorCreateProposal law ID
-        
+
         // Test with invalid proposal parameters (no targets)
         targets = new address[](0);
         values = new uint256[](0);
@@ -478,7 +470,7 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
         // and cannot be changed to zero address after initialization
         // We can test that the governor is properly configured instead
         lawId = 2; // GovernorCreateProposal law ID
-        
+
         // Verify governor is properly configured
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
         assertTrue(governorCreateProposal.governorContracts(lawHash) != address(0));
@@ -488,7 +480,7 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
     function testExecutiveLawsWithLongDescriptions() public {
         // Test with very long descriptions
         lawId = 2; // GovernorCreateProposal law ID
-        
+
         // Setup proposal parameters with long description
         targets = new address[](1);
         targets[0] = address(daoMock);
@@ -496,14 +488,14 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
         values[0] = 0;
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test Role");
-        
+
         // Create a very long description
         description = string(abi.encodePacked(new bytes(1000)));
 
         // Execute proposal creation
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(targets, values, calldatas, description), nonce, "Test long description");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas, description), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);

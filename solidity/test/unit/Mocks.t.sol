@@ -17,7 +17,7 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "@mocks/Nominees.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { EmptyTargetsLaw } from "@mocks/LawMocks.sol";
-import { MockTargetsLaw } from "@mocks/LawMocks.sol"; 
+import { MockTargetsLaw } from "@mocks/LawMocks.sol";
 
 /// @notice Unit tests for helper contracts
 
@@ -103,7 +103,7 @@ contract Erc20DelegateElectionTest is TestSetupPowers {
         token.mintVotes(2000);
         vm.prank(charlotte);
         token.mintVotes(500);
-        
+
         vm.prank(alice);
         token.delegate(alice);
         vm.prank(bob);
@@ -114,7 +114,7 @@ contract Erc20DelegateElectionTest is TestSetupPowers {
         // Nominate users
         vm.prank(address(daoMock));
         delegateElection.nominate(address(daoMock), true);
-        
+
         vm.prank(alice);
         vm.expectRevert();
         delegateElection.nominate(alice, true);
@@ -138,7 +138,7 @@ contract Erc20DelegateElectionTest is TestSetupPowers {
         token.mintVotes(2000);
         vm.prank(charlotte);
         token.mintVotes(500);
-        
+
         vm.prank(alice);
         token.delegate(alice);
         vm.prank(bob);
@@ -150,7 +150,7 @@ contract Erc20DelegateElectionTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         testElection.nominate(alice, true);
         testElection.nominate(bob, true);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         // Test with multiple nominees
         (address[] memory nominees2, uint256[] memory votes) = testElection.getNomineeRanking();
@@ -175,9 +175,7 @@ contract FlagActionsTest is TestSetupPowers {
 
         // Mock getActionState to always return Fulfilled
         vm.mockCall(
-            address(daoMock),
-            abi.encodeWithSelector(daoMock.getActionState.selector),
-            abi.encode(ActionState.Fulfilled)
+            address(daoMock), abi.encodeWithSelector(daoMock.getActionState.selector), abi.encode(ActionState.Fulfilled)
         );
     }
 
@@ -196,7 +194,7 @@ contract FlagActionsTest is TestSetupPowers {
         roleId = 1;
         account = alice;
         lawId = 2;
-        
+
         vm.prank(address(daoMock));
         flagActions.flag(actionId, roleId, account, lawId);
 
@@ -212,7 +210,7 @@ contract FlagActionsTest is TestSetupPowers {
         roleId = 1;
         account = alice;
         lawId = 2;
-        
+
         vm.prank(address(daoMock));
         flagActions.flag(actionId, roleId, account, lawId);
 
@@ -226,7 +224,7 @@ contract FlagActionsTest is TestSetupPowers {
         roleId = 1;
         account = alice;
         lawId = 2;
-        
+
         vm.prank(address(daoMock));
         flagActions.flag(actionId, roleId, account, lawId);
 
@@ -273,17 +271,17 @@ contract FlagActionsTest is TestSetupPowers {
         actionIds[0] = 123;
         actionIds[1] = 456;
         actionIds[2] = 789;
-        
+
         uint16[] memory roleIds = new uint16[](3);
         roleIds[0] = 1;
         roleIds[1] = 2;
         roleIds[2] = 3;
-        
+
         accounts = new address[](3);
         accounts[0] = alice;
         accounts[1] = bob;
         accounts[2] = charlotte;
-        
+
         lawIds = new uint16[](3);
         lawIds[0] = 10;
         lawIds[1] = 20;
@@ -428,10 +426,10 @@ contract FlagActionsTest is TestSetupPowers {
         // Test specific context checks
         assertTrue(flagActions.isActionFlaggedForRole(actionId, roleId));
         assertFalse(flagActions.isActionFlaggedForRole(actionId, 999));
-        
+
         assertTrue(flagActions.isActionFlaggedForAccount(actionId, account));
         assertFalse(flagActions.isActionFlaggedForAccount(actionId, bob));
-        
+
         assertTrue(flagActions.isActionFlaggedForLaw(actionId, lawId));
         assertFalse(flagActions.isActionFlaggedForLaw(actionId, 999));
     }
@@ -490,15 +488,15 @@ contract FlagActionsTest is TestSetupPowers {
         assertEq(flagActions.getFlaggedActionsCountByRole(roleIds[0]), 1);
         assertEq(flagActions.getFlaggedActionsCountByRole(roleIds[1]), 0);
         assertEq(flagActions.getFlaggedActionsCountByRole(roleIds[2]), 1);
-        
+
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[0]), 1);
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[1]), 0);
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[2]), 1);
-        
+
         assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[0]), 1);
         assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[1]), 0);
         assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[2]), 1);
-        
+
         assertEq(flagActions.getTotalFlaggedActionsCount(), 2);
 
         // Verify array contents
@@ -550,7 +548,7 @@ contract GrantTest is TestSetupPowers {
 
     function testUpdateNativeBudget() public {
         uint256 budget = 1000 ether;
-        
+
         vm.prank(address(daoMock));
         grant.updateNativeBudget(budget);
 
@@ -560,7 +558,7 @@ contract GrantTest is TestSetupPowers {
 
     function testUpdateTokenBudget() public {
         uint256 budget = 5000;
-        
+
         vm.prank(address(daoMock));
         grant.updateTokenBudget(testToken, budget);
 
@@ -608,7 +606,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 100 ether;
@@ -621,7 +619,7 @@ contract GrantTest is TestSetupPowers {
 
         assertEq(proposalId, 0);
         assertEq(grant.getProposalCount(), 1);
-        
+
         Grant.Proposal memory proposal = grant.getProposal(proposalId);
         assertEq(proposal.proposer, tx.origin);
         assertEq(proposal.uri, uri);
@@ -660,7 +658,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = testToken; // Not whitelisted
@@ -682,7 +680,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -709,7 +707,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -740,7 +738,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -766,7 +764,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -798,7 +796,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -823,7 +821,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -842,7 +840,7 @@ contract GrantTest is TestSetupPowers {
     function testReleaseMilestoneRevertsWhenInsufficientBudget() public {
         // Test the scenario where budget becomes insufficient between approval and release
         // This can happen if the budget is reduced after approval but before release
-        
+
         vm.startPrank(address(daoMock));
         grant.updateNativeBudget(100 ether); // Sufficient budget for approval
         vm.stopPrank();
@@ -851,7 +849,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 50 ether; // Within budget at approval time
         tokens[0] = address(0);
@@ -884,7 +882,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](1);
         uint256[] memory milestoneAmounts = new uint256[](1);
         address[] memory tokens = new address[](1);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
         tokens[0] = address(0);
@@ -913,7 +911,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 100 ether;
@@ -965,7 +963,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 30 ether; // Total: 30 + 40 = 70 ether
@@ -993,7 +991,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 30; // Total: 30 + 40 = 70 tokens
@@ -1021,7 +1019,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 30 ether; // Total: 30 + 40 = 70 ether
@@ -1050,7 +1048,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](3);
         uint256[] memory milestoneAmounts = new uint256[](3);
         address[] memory tokens = new address[](3);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneBlocks[2] = block.number + 300;
@@ -1073,7 +1071,7 @@ contract GrantTest is TestSetupPowers {
     function testApproveProposalRevertsWithMultipleTokenTypes() public {
         // Setup proposal with multiple token types where one exceeds budget
         testToken2 = makeAddr("testToken2");
-        
+
         vm.startPrank(address(daoMock));
         grant.whitelistToken(testToken);
         grant.whitelistToken(testToken2);
@@ -1086,7 +1084,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks = new uint256[](2);
         uint256[] memory milestoneAmounts = new uint256[](2);
         address[] memory tokens = new address[](2);
-        
+
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
         milestoneAmounts[0] = 50; // Token1 - within budget
@@ -1113,7 +1111,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks1 = new uint256[](1);
         uint256[] memory milestoneAmounts1 = new uint256[](1);
         address[] memory tokens1 = new address[](1);
-        
+
         milestoneBlocks1[0] = block.number + 100;
         milestoneAmounts1[0] = 60 ether;
         tokens1[0] = address(0);
@@ -1134,7 +1132,7 @@ contract GrantTest is TestSetupPowers {
         uint256[] memory milestoneBlocks2 = new uint256[](1);
         uint256[] memory milestoneAmounts2 = new uint256[](1);
         address[] memory tokens2 = new address[](1);
-        
+
         milestoneBlocks2[0] = block.number + 200;
         milestoneAmounts2[0] = 50 ether; // Would exceed remaining 40 ether budget
         tokens2[0] = address(0);
@@ -1263,8 +1261,8 @@ contract OpenElectionTest is TestSetupPowers {
 
         // Vote for multiple nominees in one transaction
         bool[] memory votes = new bool[](3);
-        votes[0] = true;  // Vote for alice
-        votes[1] = true;  // Vote for bob
+        votes[0] = true; // Vote for alice
+        votes[1] = true; // Vote for bob
         votes[2] = false; // Don't vote for charlotte
 
         vm.prank(address(daoMock));
@@ -1287,7 +1285,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testOpenElection() public {
         uint256 durationBlocks = 100;
-        
+
         vm.prank(address(daoMock));
         openElection.openElection(durationBlocks);
 
@@ -1348,7 +1346,7 @@ contract OpenElectionTest is TestSetupPowers {
         // Setup: Open election and fast forward past end
         vm.prank(address(daoMock));
         openElection.openElection(100);
-        
+
         vm.roll(block.number + 101);
 
         bool[] memory votes = new bool[](0);
@@ -1379,7 +1377,7 @@ contract OpenElectionTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
         openElection.openElection(100);
-        
+
         bool[] memory votes = new bool[](1);
         votes[0] = true;
         openElection.vote(address(daoMock), votes);
@@ -1404,7 +1402,7 @@ contract OpenElectionTest is TestSetupPowers {
         vm.prank(address(daoMock));
         openElection.openElection(100);
 
-        vm.roll(block.number + 101); 
+        vm.roll(block.number + 101);
 
         vm.prank(address(daoMock));
         openElection.closeElection();
@@ -1443,7 +1441,7 @@ contract OpenElectionTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
         openElection.openElection(100);
-        
+
         bool[] memory votes = new bool[](1);
         votes[0] = true;
         openElection.vote(address(daoMock), votes);
@@ -1470,22 +1468,22 @@ contract OpenElectionTest is TestSetupPowers {
         // Setup: Create multiple nominees and votes
         nominee1 = makeAddr("nominee1");
         nominee2 = makeAddr("nominee2");
-        
+
         // We need to simulate the nomination process by directly calling the contract
         // Since we can't easily create multiple nominees with the current setup,
         // we'll test the basic functionality
         vm.startPrank(address(daoMock));
         openElection.nominate(nominee1, true);
         openElection.nominate(nominee2, true);
-        
+
         openElection.openElection(100);
 
         bool[] memory votes = new bool[](2);
-        votes[0] = true;  // Vote for nominee1 (first nominee)
+        votes[0] = true; // Vote for nominee1 (first nominee)
         votes[1] = false; // Don't vote for nominee2
-        openElection.vote(address(daoMock), votes); 
-        vm.stopPrank(); 
-        
+        openElection.vote(address(daoMock), votes);
+        vm.stopPrank();
+
         vm.roll(block.number + 101);
 
         (address[] memory nominees2, uint256[] memory votes2) = openElection.getNomineeRanking();
@@ -1512,7 +1510,7 @@ contract OpenElectionTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
         openElection.openElection(100);
-        
+
         bool[] memory votes = new bool[](1);
         votes[0] = true;
         openElection.vote(address(daoMock), votes);
@@ -1525,7 +1523,7 @@ contract OpenElectionTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
         openElection.openElection(100);
-        
+
         bool[] memory votes = new bool[](1);
         votes[0] = true;
         openElection.vote(address(daoMock), votes);
@@ -1583,7 +1581,7 @@ contract OpenElectionTest is TestSetupPowers {
 
         // Test voting with different callers for different nominees
         bool[] memory aliceVotes = new bool[](3);
-        aliceVotes[0] = true;  // alice votes for alice (first nominee)
+        aliceVotes[0] = true; // alice votes for alice (first nominee)
         aliceVotes[1] = false; // doesn't vote for bob
         aliceVotes[2] = false; // doesn't vote for charlotte
         vm.prank(address(daoMock));
@@ -1591,13 +1589,13 @@ contract OpenElectionTest is TestSetupPowers {
 
         bool[] memory bobVotes = new bool[](3);
         bobVotes[0] = false; // doesn't vote for alice
-        bobVotes[1] = true;  // bob votes for bob (second nominee)
+        bobVotes[1] = true; // bob votes for bob (second nominee)
         bobVotes[2] = false; // doesn't vote for charlotte
         vm.prank(address(daoMock));
         openElection.vote(bob, bobVotes); // bob votes for bob
 
         bool[] memory charlotteVotes = new bool[](3);
-        charlotteVotes[0] = true;  // charlotte votes for alice (first nominee)
+        charlotteVotes[0] = true; // charlotte votes for alice (first nominee)
         charlotteVotes[1] = false; // doesn't vote for bob
         charlotteVotes[2] = false; // doesn't vote for charlotte
         vm.prank(address(daoMock));
@@ -1616,7 +1614,7 @@ contract OpenElectionTest is TestSetupPowers {
         // Close election and tally
         vm.roll(block.number + 101);
         (address[] memory nominees2, uint256[] memory votes) = openElection.getNomineeRanking();
-        
+
         // Should be ranked by vote count: alice (2), bob (1), charlotte (0)
         assertEq(nominees2.length, 3);
         assertEq(votes.length, 3);
@@ -1669,8 +1667,8 @@ contract DonationsTest is TestSetupPowers {
     function setUp() public override {
         super.setUp();
         donations = Donations(payable(mockAddresses[5]));
-        vm.prank(donations.owner()); 
-        donations.transferOwnership(address(daoMock)); 
+        vm.prank(donations.owner());
+        donations.transferOwnership(address(daoMock));
         testToken = makeAddr("testToken");
     }
 
@@ -1680,7 +1678,7 @@ contract DonationsTest is TestSetupPowers {
 
     function testSetWhitelistedToken() public {
         // Test whitelisting a token
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         assertTrue(donations.isTokenWhitelisted(testToken));
 
@@ -1691,7 +1689,7 @@ contract DonationsTest is TestSetupPowers {
         // Test dewhitelisting
         donations.setWhitelistedToken(testToken, false);
         assertFalse(donations.isTokenWhitelisted(testToken));
-        vm.stopPrank(); 
+        vm.stopPrank();
     }
 
     function testSetWhitelistedTokenRevertsWhenNotOwner() public {
@@ -1702,20 +1700,14 @@ contract DonationsTest is TestSetupPowers {
 
     function testDonateToken() public {
         // Setup: Whitelist token and mint tokens to alice
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
-        
+
         // Mock the token allowance check and transfer
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(1000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(1000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Alice donates tokens
         vm.prank(alice);
@@ -1742,18 +1734,18 @@ contract DonationsTest is TestSetupPowers {
     }
 
     function testDonateTokenRevertsWhenAmountZero() public {
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
-        
+
         vm.expectRevert("Amount must be greater than 0");
         vm.prank(alice);
         donations.donateToken(testToken, 0);
     }
 
     function testDonateTokenRevertsWhenNativeCurrency() public {
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
-        
+
         vm.expectRevert("Use donateNative() for native currency");
         vm.prank(alice);
         donations.donateToken(address(0), 1000);
@@ -1761,13 +1753,13 @@ contract DonationsTest is TestSetupPowers {
 
     function testDonateNative() public {
         // Setup: Whitelist native currency
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
 
         // Alice donates native currency
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        (bool success,) = payable(address(donations)).call{value: 0.5 ether}("");
+        (bool success,) = payable(address(donations)).call{ value: 0.5 ether }("");
         assertTrue(success);
 
         // Check donation was recorded
@@ -1787,36 +1779,30 @@ contract DonationsTest is TestSetupPowers {
     function testDonateNativeRevertsWhenNotWhitelisted() public {
         vm.expectRevert("Native currency not whitelisted");
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
     }
 
     function testDonateNativeRevertsWhenAmountZero() public {
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
-        
+
         vm.expectRevert("Amount must be greater than 0");
         vm.prank(alice);
-        payable(address(donations)).call{value: 0}("");
+        payable(address(donations)).call{ value: 0 }("");
     }
 
     function testGetAllDonations() public {
         // Setup: Whitelist tokens
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         // Mock token allowance and transfers
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(1000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(1000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Make multiple donations
         vm.deal(alice, 2 ether);
@@ -1824,24 +1810,24 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
 
         vm.deal(bob, 1 ether);
         vm.prank(bob);
-        payable(address(donations)).call{value: 0.3 ether}("");
+        payable(address(donations)).call{ value: 0.3 ether }("");
 
         // Get all donations
         Donations.Donation[] memory allDonations = donations.getAllDonations();
         assertEq(allDonations.length, 3);
-        
+
         assertEq(allDonations[0].donor, alice);
         assertEq(allDonations[0].token, testToken);
         assertEq(allDonations[0].amount, 1000);
-        
+
         assertEq(allDonations[1].donor, alice);
         assertEq(allDonations[1].token, address(0));
         assertEq(allDonations[1].amount, 0.5 ether);
-        
+
         assertEq(allDonations[2].donor, bob);
         assertEq(allDonations[2].token, address(0));
         assertEq(allDonations[2].amount, 0.3 ether);
@@ -1849,21 +1835,15 @@ contract DonationsTest is TestSetupPowers {
 
     function testGetDonorDonations() public {
         // Setup
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(1000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(1000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Alice makes multiple donations
         vm.deal(alice, 2 ether);
@@ -1871,12 +1851,12 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
 
         // Bob makes one donation
         vm.deal(bob, 1 ether);
         vm.prank(bob);
-        payable(address(donations)).call{value: 0.3 ether}("");
+        payable(address(donations)).call{ value: 0.3 ether }("");
 
         // Check Alice's donations
         uint256[] memory aliceDonations = donations.getDonorDonations(alice);
@@ -1896,21 +1876,15 @@ contract DonationsTest is TestSetupPowers {
 
     function testGetDonationsRange() public {
         // Setup
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(10000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(10_000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Make 5 donations
         vm.deal(alice, 5 ether);
@@ -1919,7 +1893,7 @@ contract DonationsTest is TestSetupPowers {
             if (i % 2 == 0) {
                 donations.donateToken(testToken, 1000 + i);
             } else {
-                payable(address(donations)).call{value: 0.1 ether}("");
+                payable(address(donations)).call{ value: 0.1 ether }("");
             }
         }
 
@@ -1937,11 +1911,11 @@ contract DonationsTest is TestSetupPowers {
         donations.getDonationsRange(0, 1);
 
         // Setup some donations
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.1 ether}("");
+        payable(address(donations)).call{ value: 0.1 ether }("");
 
         // Test invalid ranges
         vm.expectRevert("Start index out of bounds");
@@ -1956,26 +1930,18 @@ contract DonationsTest is TestSetupPowers {
 
     function testGetTotalDonatedForToken() public {
         // Setup
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
-        
+        vm.stopPrank();
+
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(10000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(10_000)
         );
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, bob, address(donations)),
-            abi.encode(10000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, bob, address(donations)), abi.encode(10_000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Make donations
         vm.deal(alice, 2 ether);
@@ -1983,14 +1949,14 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
 
         vm.deal(bob, 1 ether);
         vm.prank(bob);
         donations.donateToken(testToken, 2000);
 
         vm.prank(bob);
-        payable(address(donations)).call{value: 0.3 ether}("");
+        payable(address(donations)).call{ value: 0.3 ether }("");
 
         // Check totals
         assertEq(donations.getTotalDonatedForToken(testToken), 3000);
@@ -2002,18 +1968,18 @@ contract DonationsTest is TestSetupPowers {
         assertEq(donations.getTotalDonations(), 0);
 
         // Setup
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
         vm.deal(alice, 2 ether);
 
         // Make donations
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.1 ether}("");
+        payable(address(donations)).call{ value: 0.1 ether }("");
 
         assertEq(donations.getTotalDonations(), 1);
 
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.2 ether}("");
+        payable(address(donations)).call{ value: 0.2 ether }("");
 
         assertEq(donations.getTotalDonations(), 2);
     }
@@ -2021,9 +1987,9 @@ contract DonationsTest is TestSetupPowers {
     function testEmergencyWithdrawNative() public {
         // Send some native currency to contract
         vm.deal(address(donations), 1 ether);
-        
+
         uint256 ownerBalanceBefore = address(daoMock).balance;
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.emergencyWithdraw(address(0));
         uint256 ownerBalanceAfter = address(daoMock).balance;
 
@@ -2032,18 +1998,10 @@ contract DonationsTest is TestSetupPowers {
 
     function testEmergencyWithdrawToken() public {
         // Mock token balance and transfer
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.balanceOf.selector),
-            abi.encode(1000)
-        );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transfer.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.balanceOf.selector), abi.encode(1000));
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transfer.selector), abi.encode(true));
 
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.emergencyWithdraw(testToken);
     }
 
@@ -2056,39 +2014,33 @@ contract DonationsTest is TestSetupPowers {
     function testReentrancyProtection() public {
         // This test would require a malicious contract that tries to reenter
         // For now, we'll just verify the nonReentrant modifier is present
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
-        vm.deal(alice, 1 ether); 
-        
+        vm.deal(alice, 1 ether);
+
         // Normal donation should work
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.1 ether}("");
+        payable(address(donations)).call{ value: 0.1 ether }("");
 
         assertEq(donations.getTotalDonations(), 1);
     }
 
     function testMultipleDonors() public {
         // Setup
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(10000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(10_000)
         );
         vm.mockCall(
             testToken,
             abi.encodeWithSelector(IERC20.allowance.selector, charlotte, address(donations)),
-            abi.encode(10000)
+            abi.encode(10_000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Multiple donors make donations
         vm.deal(alice, 1 ether);
@@ -2099,23 +2051,23 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(bob);
-        payable(address(donations)).call{value: 0.2 ether}("");
+        payable(address(donations)).call{ value: 0.2 ether }("");
 
         vm.prank(charlotte);
         donations.donateToken(testToken, 2000);
 
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.3 ether}("");
+        payable(address(donations)).call{ value: 0.3 ether }("");
 
         // Verify all donations
         assertEq(donations.getTotalDonations(), 4);
-        
+
         uint256[] memory aliceDonations = donations.getDonorDonations(alice);
         assertEq(aliceDonations.length, 2);
-        
+
         uint256[] memory bobDonations = donations.getDonorDonations(bob);
         assertEq(bobDonations.length, 1);
-        
+
         uint256[] memory charlotteDonations = donations.getDonorDonations(charlotte);
         assertEq(charlotteDonations.length, 1);
 
@@ -2126,25 +2078,19 @@ contract DonationsTest is TestSetupPowers {
 
     function testEvents() public {
         // Setup
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
         donations.setWhitelistedToken(address(0), true);
-        vm.stopPrank(); 
-        
+        vm.stopPrank();
+
         vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)),
-            abi.encode(1000)
+            testToken, abi.encodeWithSelector(IERC20.allowance.selector, alice, address(donations)), abi.encode(1000)
         );
-        vm.mockCall(
-            testToken,
-            abi.encodeWithSelector(IERC20.transferFrom.selector),
-            abi.encode(true)
-        );
+        vm.mockCall(testToken, abi.encodeWithSelector(IERC20.transferFrom.selector), abi.encode(true));
 
         // Test TokenWhitelisted event
         vm.expectEmit(true, true, true, true);
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         emit Donations.TokenWhitelisted(testToken, true);
         donations.setWhitelistedToken(testToken, true);
 
@@ -2159,7 +2105,7 @@ contract DonationsTest is TestSetupPowers {
         vm.expectEmit(true, false, false, true);
         emit Donations.NativeCurrencyReceived(alice, 0.5 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
     }
 
     function testGetDonationRevertsWithInvalidIndex() public {
@@ -2167,11 +2113,11 @@ contract DonationsTest is TestSetupPowers {
         donations.getDonation(0);
 
         // Add one donation
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.1 ether}("");
+        payable(address(donations)).call{ value: 0.1 ether }("");
 
         // Test valid index
         Donations.Donation memory donation = donations.getDonation(0);
@@ -2203,7 +2149,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function testMintVotes() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount);
 
@@ -2218,20 +2164,20 @@ contract SimpleErc20VotesTest is TestSetupPowers {
     }
 
     function testMintVotesRevertsWithExcessiveAmount() public {
-        uint256 excessiveAmount = 101 * 10**18; // Exceeds MAX_AMOUNT_VOTES_TO_MINT
-        
-        vm.expectRevert(abi.encodeWithSelector(
-            SimpleErc20Votes.Erc20Votes__AmountExceedsMax.selector,
-            excessiveAmount,
-            100 * 10**18
-        ));
+        uint256 excessiveAmount = 101 * 10 ** 18; // Exceeds MAX_AMOUNT_VOTES_TO_MINT
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SimpleErc20Votes.Erc20Votes__AmountExceedsMax.selector, excessiveAmount, 100 * 10 ** 18
+            )
+        );
         vm.prank(alice);
         token.mintVotes(excessiveAmount);
     }
 
     function testMintVotesWithMaxAmount() public {
-        uint256 maxAmount = 100 * 10**18;
-        
+        uint256 maxAmount = 100 * 10 ** 18;
+
         vm.prank(alice);
         token.mintVotes(maxAmount);
 
@@ -2241,10 +2187,10 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function testDelegate() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount);
-        
+
         vm.prank(alice);
         token.delegate(alice);
 
@@ -2254,10 +2200,10 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function testDelegateToAnotherAddress() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount);
-        
+
         vm.prank(alice);
         token.delegate(bob);
 
@@ -2269,10 +2215,10 @@ contract SimpleErc20VotesTest is TestSetupPowers {
     function testMultipleMints() public {
         uint256 amount1 = 1000;
         uint256 amount2 = 2000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount1);
-        
+
         vm.prank(alice);
         token.mintVotes(amount2);
 
@@ -2282,10 +2228,10 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function testTransfer() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount);
-        
+
         vm.prank(alice);
         token.transfer(bob, 500);
 
@@ -2295,13 +2241,13 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function testTransferFrom() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintVotes(amount);
-        
+
         vm.prank(alice);
         token.approve(bob, 500);
-        
+
         vm.prank(bob);
         token.transferFrom(alice, charlotte, 500);
 
@@ -2369,7 +2315,7 @@ contract SimpleGovernorTest is TestSetupPowers {
         // Mint tokens and delegate
         vm.prank(alice);
         token.mintVotes(1000);
-        
+
         vm.prank(alice);
         token.delegate(alice);
 
@@ -2382,7 +2328,7 @@ contract SimpleGovernorTest is TestSetupPowers {
         // Mint tokens to alice and delegate to bob
         vm.prank(alice);
         token.mintVotes(1000);
-        
+
         vm.prank(alice);
         token.delegate(bob);
 
@@ -2397,33 +2343,33 @@ contract SimpleGovernorTest is TestSetupPowers {
         // Mint tokens to alice and delegate
         vm.prank(alice);
         token.mintVotes(1000);
-        
+
         vm.prank(alice);
         token.delegate(alice);
 
         // Create a proposal
         targets = new address[](1);
         targets[0] = address(governor);
-        
+
         values = new uint256[](1);
         values[0] = 0;
-        
+
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSignature("name()");
-        
+
         description = "Test proposal";
 
         vm.prank(alice);
         uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
-        assertNotEq(proposalId, 0); 
+        assertNotEq(proposalId, 0);
     }
 
     function testProposeRevertsWithEmptyTargets() public {
         // Mint tokens to alice and delegate
         vm.prank(alice);
         token.mintVotes(1000);
-        
+
         vm.prank(alice);
         token.delegate(alice);
 
@@ -2441,20 +2387,20 @@ contract SimpleGovernorTest is TestSetupPowers {
         // Mint tokens to alice and delegate
         vm.prank(alice);
         token.mintVotes(1000);
-        
+
         vm.prank(alice);
         token.delegate(alice);
 
         targets = new address[](1);
         targets[0] = address(governor);
-        
+
         values = new uint256[](2); // Mismatched length
         values[0] = 0;
         values[1] = 0;
-        
+
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSignature("name()");
-        
+
         description = "Test proposal";
 
         vm.expectRevert();
@@ -2481,19 +2427,19 @@ contract Erc20TaxedTest is TestSetupPowers {
         assertEq(token.taxRate(), 10);
         assertEq(token.DENOMINATOR(), 100);
         assertEq(token.epochDuration(), 900);
-        assertEq(token.AMOUNT_FAUCET(), 1 * 10**18);
+        assertEq(token.AMOUNT_FAUCET(), 1 * 10 ** 18);
         assertFalse(token.faucetPaused());
     }
 
     function testMint() public {
         uint256 amount = 1000;
-        uint256 balanceBefore = token.balanceOf(token.owner()); 
-        uint256 totalSupplyBefore = token.totalSupply(); 
+        uint256 balanceBefore = token.balanceOf(token.owner());
+        uint256 totalSupplyBefore = token.totalSupply();
 
         vm.prank(token.owner());
         token.mint(amount);
-        uint256 balanceAfter = token.balanceOf(token.owner()); 
-        uint256 totalSupplyAfter = token.totalSupply(); 
+        uint256 balanceAfter = token.balanceOf(token.owner());
+        uint256 totalSupplyAfter = token.totalSupply();
 
         assertEq(balanceBefore + amount, balanceAfter);
         assertEq(totalSupplyBefore + amount, totalSupplyAfter);
@@ -2507,7 +2453,7 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testMintRevertsWhenNotOwner() public {
         vm.prank(alice);
-        vm.expectRevert(); 
+        vm.expectRevert();
         token.mint(1000);
     }
 
@@ -2516,13 +2462,13 @@ contract Erc20TaxedTest is TestSetupPowers {
         vm.prank(token.owner());
         token.faucet();
 
-        uint256 balanceBefore = token.balanceOf(token.owner()); 
-        uint256 totalSupplyBefore = token.totalSupply(); 
+        uint256 balanceBefore = token.balanceOf(token.owner());
+        uint256 totalSupplyBefore = token.totalSupply();
 
         vm.prank(token.owner());
         token.burn(amount);
-        uint256 balanceAfter = token.balanceOf(token.owner()); 
-        uint256 totalSupplyAfter = token.totalSupply(); 
+        uint256 balanceAfter = token.balanceOf(token.owner());
+        uint256 totalSupplyAfter = token.totalSupply();
 
         assertEq(balanceBefore - amount, balanceAfter);
         assertEq(totalSupplyBefore - amount, totalSupplyAfter);
@@ -2542,12 +2488,12 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testFaucet() public {
         uint256 initialBalance = token.balanceOf(alice);
-        
+
         vm.prank(alice);
         token.faucet();
 
         assertEq(token.balanceOf(alice), initialBalance + token.AMOUNT_FAUCET());
-        assertEq(token.totalSupply(), 1 * 10**18 + token.AMOUNT_FAUCET());
+        assertEq(token.totalSupply(), 1 * 10 ** 18 + token.AMOUNT_FAUCET());
     }
 
     function testFaucetRevertsWhenPaused() public {
@@ -2561,11 +2507,11 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testPauseFaucet() public {
         assertFalse(token.faucetPaused());
-        
+
         vm.prank(token.owner());
         token.pauseFaucet();
         assertTrue(token.faucetPaused());
-        
+
         vm.prank(token.owner());
         token.pauseFaucet();
         assertFalse(token.faucetPaused());
@@ -2579,7 +2525,7 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testChangeTaxRate() public {
         uint256 newTaxRate = 15;
-        
+
         vm.prank(token.owner());
         token.changeTaxRate(newTaxRate);
 
@@ -2588,7 +2534,7 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testChangeTaxRateRevertsWithOverflow() public {
         uint256 excessiveTaxRate = 99; // >= DENOMINATOR - 1
-        
+
         vm.prank(token.owner());
         vm.expectRevert(Erc20Taxed.Erc20Taxed__TaxRateOverflow.selector);
         token.changeTaxRate(excessiveTaxRate);
@@ -2604,7 +2550,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         // Give alice some tokens
         vm.prank(alice);
         token.faucet();
-        
+
         uint256 transferAmount = 100;
         uint256 expectedTax = (transferAmount * token.taxRate()) / token.DENOMINATOR();
         uint256 aliceBalanceBefore = token.balanceOf(alice);
@@ -2622,7 +2568,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         // Give alice just enough tokens for transfer but not for tax
         vm.prank(alice);
         token.faucet();
-        
+
         uint256 transferAmount = token.balanceOf(alice);
         uint256 expectedTax = (transferAmount * token.taxRate()) / token.DENOMINATOR();
 
@@ -2633,8 +2579,8 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function testTransferFromOwnerNoTax() public {
         uint256 transferAmount = 100;
-        vm.prank(token.owner()); 
-        token.faucet(); 
+        vm.prank(token.owner());
+        token.faucet();
 
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
@@ -2649,14 +2595,14 @@ contract Erc20TaxedTest is TestSetupPowers {
         // Give alice some tokens
         vm.prank(alice);
         token.faucet();
-        
+
         uint256 transferAmount = 100;
         uint256 aliceBalanceBefore = token.balanceOf(alice);
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.startPrank(alice);
         token.transfer(token.owner(), transferAmount);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         assertEq(token.balanceOf(alice), aliceBalanceBefore - transferAmount);
         assertEq(token.balanceOf(token.owner()), ownerBalanceBefore + transferAmount);
@@ -2666,7 +2612,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         // Give alice some tokens and make a transfer
         vm.prank(alice);
         token.faucet();
-        
+
         uint256 transferAmount = 100;
         uint256 expectedTax = (transferAmount * token.taxRate()) / token.DENOMINATOR();
 
@@ -2681,14 +2627,14 @@ contract Erc20TaxedTest is TestSetupPowers {
         // Give alice some tokens
         vm.prank(alice);
         token.faucet();
-        
+
         uint256 transferAmount = 50;
         uint256 expectedTaxPerTransfer = (transferAmount * token.taxRate()) / token.DENOMINATOR();
 
         // Make two transfers
         vm.prank(alice);
         token.transfer(bob, transferAmount);
-        
+
         vm.prank(alice);
         token.transfer(charlotte, transferAmount);
 
@@ -2716,7 +2662,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testMintNFT() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2726,7 +2672,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testMintNFTRevertsWhenTokenAlreadyExists() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2743,7 +2689,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testBurnNFT() public {
         uint256 tokenId = 1;
-        
+
         // First mint the NFT
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
@@ -2755,13 +2701,13 @@ contract SoulboundErc721Test is TestSetupPowers {
         // Check that the NFT is burned
         vm.expectRevert();
         nft.ownerOf(tokenId);
-        
-        assertEq(nft.balanceOf(alice), 0); 
+
+        assertEq(nft.balanceOf(alice), 0);
     }
 
     function testBurnNFTRevertsWithIncorrectAccount() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2772,7 +2718,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testBurnNFTRevertsWhenNotOwner() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2783,7 +2729,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testTransferReverts() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2795,7 +2741,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testApprovalReverts() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2807,7 +2753,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testSetApprovalForAllReverts() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2820,22 +2766,22 @@ contract SoulboundErc721Test is TestSetupPowers {
     function testMultipleMints() public {
         uint256 tokenId1 = 1;
         uint256 tokenId2 = 2;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId1, alice);
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId2, bob);
 
         assertEq(nft.ownerOf(tokenId1), alice);
         assertEq(nft.ownerOf(tokenId2), bob);
         assertEq(nft.balanceOf(alice), 1);
-        assertEq(nft.balanceOf(bob), 1); 
+        assertEq(nft.balanceOf(bob), 1);
     }
 
     function testGetApproved() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2848,7 +2794,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 
     function testTokenURI() public {
         uint256 tokenId = 1;
-        
+
         vm.prank(address(daoMock));
         nft.mintNFT(tokenId, alice);
 
@@ -2869,7 +2815,7 @@ contract SoulboundErc721Test is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract SimpleErc1155Test is TestSetupPowers {
     SimpleErc1155 token;
-    uint256 COIN_ID = 0; 
+    uint256 COIN_ID = 0;
 
     function setUp() public override {
         super.setUp();
@@ -2878,11 +2824,11 @@ contract SimpleErc1155Test is TestSetupPowers {
 
     function testMintCoins() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
 
-        assertEq(token.balanceOf(alice, COIN_ID), amount); 
+        assertEq(token.balanceOf(alice, COIN_ID), amount);
     }
 
     function testMintCoinsRevertsWithZeroAmount() public {
@@ -2892,45 +2838,45 @@ contract SimpleErc1155Test is TestSetupPowers {
     }
 
     function testMintCoinsRevertsWithExcessiveAmount() public {
-        uint256 excessiveAmount = 101 * 10**18; // Exceeds MAX_AMOUNT_COINS_TO_MINT
-        
-        vm.expectRevert(abi.encodeWithSelector(
-            SimpleErc1155.SimpleErc1155__AmountExceedsMax.selector,
-            excessiveAmount,
-            100 * 10**18
-        ));
+        uint256 excessiveAmount = 101 * 10 ** 18; // Exceeds MAX_AMOUNT_COINS_TO_MINT
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SimpleErc1155.SimpleErc1155__AmountExceedsMax.selector, excessiveAmount, 100 * 10 ** 18
+            )
+        );
         vm.prank(alice);
         token.mintCoins(excessiveAmount);
     }
 
     function testMintCoinsWithMaxAmount() public {
-        uint256 maxAmount = 100 * 10**18;
-        
+        uint256 maxAmount = 100 * 10 ** 18;
+
         vm.prank(alice);
         token.mintCoins(maxAmount);
 
-        assertEq(token.balanceOf(alice, COIN_ID), maxAmount); 
+        assertEq(token.balanceOf(alice, COIN_ID), maxAmount);
     }
 
     function testMultipleMints() public {
         uint256 amount1 = 1000;
         uint256 amount2 = 2000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount1);
-        
+
         vm.prank(alice);
         token.mintCoins(amount2);
 
-        assertEq(token.balanceOf(alice, COIN_ID), amount1 + amount2); 
+        assertEq(token.balanceOf(alice, COIN_ID), amount1 + amount2);
     }
 
     function testTransfer() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
-        
+
         vm.prank(alice);
         token.safeTransferFrom(alice, bob, COIN_ID, 500, "");
 
@@ -2940,16 +2886,16 @@ contract SimpleErc1155Test is TestSetupPowers {
 
     function testBatchTransfer() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
-        
+
         uint256[] memory ids = new uint256[](1);
         ids[0] = COIN_ID;
-        
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 500;
-        
+
         vm.prank(alice);
         token.safeBatchTransferFrom(alice, bob, ids, amounts, "");
 
@@ -2967,7 +2913,7 @@ contract SimpleErc1155Test is TestSetupPowers {
     function testApproveReverts() public {
         vm.prank(alice);
         token.setApprovalForAll(bob, true);
-        
+
         vm.prank(alice);
         token.setApprovalForAll(bob, false);
 
@@ -2976,13 +2922,13 @@ contract SimpleErc1155Test is TestSetupPowers {
 
     function testTransferFrom() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
-        
+
         vm.prank(alice);
         token.setApprovalForAll(bob, true);
-        
+
         vm.prank(bob);
         token.safeTransferFrom(alice, charlotte, COIN_ID, 500, "");
 
@@ -2992,7 +2938,7 @@ contract SimpleErc1155Test is TestSetupPowers {
 
     function testTransferFromRevertsWithoutApproval() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
 
@@ -3008,25 +2954,26 @@ contract SimpleErc1155Test is TestSetupPowers {
     }
 
     function testURI() public view {
-        string memory expectedURI = "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi";
+        string memory expectedURI =
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi";
         assertEq(token.uri(COIN_ID), expectedURI);
     }
 
     function testMultipleUsersMinting() public {
         uint256 amount = 1000;
-        
+
         vm.prank(alice);
         token.mintCoins(amount);
-        
+
         vm.prank(bob);
         token.mintCoins(amount);
-        
+
         vm.prank(charlotte);
         token.mintCoins(amount);
 
         assertEq(token.balanceOf(alice, COIN_ID), amount);
         assertEq(token.balanceOf(bob, COIN_ID), amount);
-        assertEq(token.balanceOf(charlotte, COIN_ID), amount); 
+        assertEq(token.balanceOf(charlotte, COIN_ID), amount);
     }
 }
 
@@ -3264,12 +3211,8 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         bytes memory data = abi.encode("test data");
         uint256 timestamp = block.timestamp;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Check that actionId is returned correctly
         assertEq(actionId, 1);
@@ -3288,12 +3231,8 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         bytes memory data = abi.encode("different data");
         uint256 timestamp = block.timestamp + 100;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return the same empty result regardless of input
         assertEq(actionId, 1);
@@ -3309,12 +3248,8 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         bytes memory data = "";
         uint256 timestamp = 0;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return empty arrays
         assertEq(actionId, 1);
@@ -3330,12 +3265,8 @@ contract EmptyTargetsLawTest is TestSetupPowers {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = emptyTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
+        (actionId, targets, values, calldatas) =
+            emptyTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
 
         // Should still return empty arrays
         assertEq(actionId, 1);
@@ -3365,12 +3296,8 @@ contract MockTargetsLawTest is TestSetupPowers {
         bytes memory data = abi.encode("test data");
         uint256 timestamp = block.timestamp;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Check actionId
         assertEq(actionId, 1);
@@ -3399,12 +3326,8 @@ contract MockTargetsLawTest is TestSetupPowers {
         bytes memory data = abi.encode("different data");
         uint256 timestamp = block.timestamp + 500;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should return the same mock data regardless of input
         assertEq(actionId, 1);
@@ -3426,12 +3349,8 @@ contract MockTargetsLawTest is TestSetupPowers {
         bytes memory data = "";
         uint256 timestamp = 0;
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+        (actionId, targets, values, calldatas) =
+            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return the same mock data
         assertEq(actionId, 1);
@@ -3453,12 +3372,7 @@ contract MockTargetsLawTest is TestSetupPowers {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
 
         // Should still return the same mock data
         assertEq(actionId, 1);
@@ -3476,12 +3390,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     function testHandleRequestMultipleCalls() public {
         // Test multiple calls to ensure consistency
         for (i = 0; i < 5; i++) {
-            (
-                actionId,
-                targets,
-                values,
-                calldatas
-            ) = mockTargetsLaw.handleRequest(
+            (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(
                 makeAddr(string(abi.encodePacked("requester", i))),
                 makeAddr(string(abi.encodePacked("executor", i))),
                 uint16(i),
@@ -3504,12 +3413,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testCalldataContent() public {
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the calldata contains the expected function signatures
         bytes memory expectedCalldata1 = abi.encodeWithSignature("test1()");
@@ -3520,12 +3424,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testValuesAreCorrectEtherAmounts() public {
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the values are exactly 1 ether and 2 ether
         assertEq(values[0], 1 ether);
@@ -3540,12 +3439,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testTargetsAreSpecificAddresses() public {
-        (
-            actionId,
-            targets,
-            values,
-            calldatas
-        ) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the targets are the expected addresses
         assertEq(targets[0], address(0x1));

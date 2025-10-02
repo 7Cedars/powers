@@ -86,11 +86,11 @@
 //     /// @notice Constructor of the law
 //     constructor(address router) FunctionsClient(router) ConfirmedOwner(msg.sender) {
 //         bytes memory configParams = abi.encode(
-//             "string repo", 
-//             "string[] paths", 
-//             "uint256[] roleIds", 
-//             "uint64 subscriptionId", 
-//             "uint32 gasLimit", 
+//             "string repo",
+//             "string[] paths",
+//             "uint256[] roleIds",
+//             "uint64 subscriptionId",
+//             "uint32 gasLimit",
 //             "bytes32 donID"
 //         );
 //         emit Law__Deployed(configParams);
@@ -103,21 +103,21 @@
 //         bytes memory config
 //     ) public override {
 //         (
-//             string memory repo, 
-//             string[] memory paths, 
-//             uint256[] memory roleIds, 
-//             uint64 subscriptionId, 
-//             uint32 gasLimit, 
-//             bytes32 donID 
+//             string memory repo,
+//             string[] memory paths,
+//             uint256[] memory roleIds,
+//             uint64 subscriptionId,
+//             uint32 gasLimit,
+//             bytes32 donID
 //         ) = abi.decode(config, (string, string[], uint256[], uint64, uint32, bytes32));
-        
+
 //         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-//         data[lawHash] = Data({ 
-//             repo: repo, 
-//             paths: paths, 
-//             roleIds: roleIds, 
-//             subscriptionId: subscriptionId, 
-//             gasLimit: gasLimit, 
+//         data[lawHash] = Data({
+//             repo: repo,
+//             paths: paths,
+//             roleIds: roleIds,
+//             subscriptionId: subscriptionId,
+//             gasLimit: gasLimit,
 //             donID: donID
 //         });
 
@@ -141,7 +141,7 @@
 //         Mem memory mem;
 //         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
 //         mem.data = data[mem.lawHash];
-        
+
 //         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 //         (mem.roleId, mem.author) = abi.decode(lawCalldata, (uint256, string));
 
@@ -150,13 +150,13 @@
 
 //         // Get address linked to author from StringToAddress law
 //         mem.stringToAddressLawId = laws[mem.lawHash].conditions.readStateFrom;
-//         (mem.lawSta, mem.lawHashSta, ) = IPowers(powers).getAdoptedLaw(mem.stringToAddressLawId); 
-//         mem.addressLinkedToAuthor = StringToAddress(mem.lawSta).getAddressByString(mem.lawHashSta, mem.author); 
+//         (mem.lawSta, mem.lawHashSta, ) = IPowers(powers).getAdoptedLaw(mem.stringToAddressLawId);
+//         mem.addressLinkedToAuthor = StringToAddress(mem.lawSta).getAddressByString(mem.lawHashSta, mem.author);
 
 //         // Prepare arguments for Chainlink Functions
 //         mem.args = new string[](3);
 //         mem.args[0] = mem.data.repo;
-//         mem.args[1] = mem.data.paths[mem.indexPath]; 
+//         mem.args[1] = mem.data.paths[mem.indexPath];
 //         mem.args[2] = mem.author;
 
 //         // Create arrays for execution - actual Chainlink Functions call happens in _externalCall
@@ -175,7 +175,7 @@
 //     ) internal override {
 //         // Initiate Chainlink Functions request
 //         bytes memory callData = calldatas[0];
-//         (uint256 roleId, string memory author, address powers, address addressLinkedToAuthor, string[] memory args) = 
+//         (uint256 roleId, string memory author, address powers, address addressLinkedToAuthor, string[] memory args) =
 //             abi.decode(callData, (uint256, string, address, address, string[]));
 
 //         // Call Chainlink Functions oracle
@@ -194,7 +194,7 @@
 //     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //     //      Chainlink Functions Oracle: https://docs.chain.link/chainlink-functions/tutorials/api-query-parameters       //
 //     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
 //     /// @notice Send a request to Chainlink Functions
 //     function sendRequest(
 //         string[] memory args,
@@ -213,11 +213,11 @@
 //     }
 
 //     /// @notice Handle Chainlink Functions response
-//     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {        
+//     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
 //         if (s_lastRequestId != requestId) {
 //             revert UnexpectedRequestID(requestId);
 //         }
-        
+
 //         s_lastResponse = response;
 //         s_lastError = err;
 //         if (err.length > 0) {
@@ -226,7 +226,7 @@
 //         if (s_lastResponse.length == 0) {
 //             revert("No response from the API");
 //         }
-        
+
 //         Request memory request = requests[requestId];
 //         request.reply = abi.decode(abi.encode(response), (uint256));
 
@@ -237,10 +237,10 @@
 //             bytes[] memory calldatas = new bytes[](1);
 //             targets[0] = request.powers;
 //             calldatas[0] = abi.encodeWithSelector(
-//                 Powers.assignRole.selector, 
-//                 request.roleId, 
+//                 Powers.assignRole.selector,
+//                 request.roleId,
 //                 request.addressLinkedToAuthor
-//             ); 
+//             );
 //             IPowers(payable(request.powers)).fulfill(request.lawId, request.actionId, targets, values, calldatas);
 //         }
 //     }
@@ -248,7 +248,7 @@
 //     /////////////////////////////////
 //     //      View Functions         //
 //     /////////////////////////////////
-    
+
 //     function getData(bytes32 lawHash) public view returns (Data memory) {
 //         return data[lawHash];
 //     }

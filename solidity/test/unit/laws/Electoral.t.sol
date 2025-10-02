@@ -29,13 +29,13 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 //////////////////////////////////////////////////
 contract ElectionSelectTest is TestSetupElectoral {
     ElectionSelect electionSelect;
-    Erc20DelegateElection delegateElection; 
+    Erc20DelegateElection delegateElection;
 
     function setUp() public override {
         super.setUp();
         electionSelect = ElectionSelect(lawAddresses[9]);
         delegateElection = Erc20DelegateElection(mockAddresses[10]); // Erc20DelegateElection
-        lawId = 1; 
+        lawId = 1;
     }
 
     function testElectionSelectInitialization() public {
@@ -51,7 +51,7 @@ contract ElectionSelectTest is TestSetupElectoral {
         // Execute with no nominees
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test election");
-        
+
         // Should succeed with no operations
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -69,7 +69,7 @@ contract ElectionSelectTest is TestSetupElectoral {
         // Execute election
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test election");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -87,7 +87,7 @@ contract PeerSelectTest is TestSetupElectoral {
         super.setUp();
         peerSelect = PeerSelect(lawAddresses[10]);
         nomineesContract = Nominees(mockAddresses[8]); // Nominees
-        lawId = 2; 
+        lawId = 2;
     }
 
     function testPeerSelectInitialization() public {
@@ -115,12 +115,12 @@ contract PeerSelectTest is TestSetupElectoral {
 
         // Execute with valid selection
         bool[] memory selection = new bool[](2);
-        selection[0] = true;  // Select alice
+        selection[0] = true; // Select alice
         selection[1] = false; // Don't select bob
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selection), nonce, "Test peer select");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selection), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -131,12 +131,12 @@ contract PeerSelectTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         nomineesContract.nominate(alice, true);
         vm.prank(address(daoMock));
-        nomineesContract.nominate(bob, true); 
+        nomineesContract.nominate(bob, true);
 
         // Execute with too many selections
         bool[] memory selection = new bool[](2);
-        selection[0] = true;  // Select alice
-        selection[1] = true;  // Select bob (exceeds maxVotes)
+        selection[0] = true; // Select alice
+        selection[1] = true; // Select bob (exceeds maxVotes)
 
         vm.prank(alice);
         vm.expectRevert("Too many selections. Exceeds maxVotes limit.");
@@ -146,20 +146,22 @@ contract PeerSelectTest is TestSetupElectoral {
     function testPeerSelectWithNoNominees() public {
         // Create a new nominees contract with no nominees
         Nominees emptyNominees = new Nominees();
-        
+
         // Setup law with empty nominees
         lawId = daoMock.lawCounter();
         nameDescription = "Test Peer Select No Nominees";
         configBytes = abi.encode(2, 4, 1, address(emptyNominees));
         conditions.allowedRole = type(uint256).max;
-        
+
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: nameDescription,
-            targetLaw: address(peerSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: nameDescription,
+                targetLaw: address(peerSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
@@ -197,8 +199,8 @@ contract PeerSelectTest is TestSetupElectoral {
 
         // Execute with no selections
         bool[] memory selection = new bool[](2);
-        selection[0] = false;  // Don't select alice
-        selection[1] = false;  // Don't select bob
+        selection[0] = false; // Don't select alice
+        selection[1] = false; // Don't select bob
 
         vm.prank(alice);
         vm.expectRevert("Must select at least one nominee.");
@@ -223,23 +225,25 @@ contract PeerSelectTest is TestSetupElectoral {
         nameDescription = "Test Peer Select Too Many Assignments";
         configBytes = abi.encode(1, 4, 2, address(nomineesContract)); // maxRoleHolders = 1
         conditions.allowedRole = type(uint256).max;
-        
+
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: nameDescription,
-            targetLaw: address(peerSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: nameDescription,
+                targetLaw: address(peerSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Execute with selections that would exceed max role holders
         bool[] memory selection = new bool[](2);
-        selection[0] = true;  // Select alice (already has role, so revocation)
-        selection[1] = true;  // Select bob (already has role, so revocation)
+        selection[0] = true; // Select alice (already has role, so revocation)
+        selection[1] = true; // Select bob (already has role, so revocation)
 
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(selection), nonce, "Test peer select");
-        
+
         // Should succeed (both are revocations, not assignments)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(selection), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -259,7 +263,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         voteInOpenElection = VoteInOpenElection(lawAddresses[11]);
         openElection = OpenElection(mockAddresses[9]); // OpenElection
         nomineesContract = new Nominees();
-        lawId = 3; 
+        lawId = 3;
     }
 
     function testVoteInOpenElectionWithValidVote() public {
@@ -269,32 +273,34 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
-        // ok.. so this law has to indeed be initiated :D 
+        // ok.. so this law has to indeed be initiated :D
         configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Vote In Open Election",
-            targetLaw: lawAddresses[11],
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Vote In Open Election",
+                targetLaw: lawAddresses[11],
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Setup law
         lawId = daoMock.lawCounter() - 1;
 
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         openElection.openElection(100);
         vm.roll(block.number + 1);
 
         // Execute with valid vote
         bool[] memory vote = new bool[](2);
-        vote[0] = true;  // Vote for alice
+        vote[0] = true; // Vote for alice
         vote[1] = false; // Vote for bob
 
         vm.prank(charlotte);
         daoMock.request(lawId, abi.encode(vote), nonce, "Test vote");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(vote), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -309,29 +315,31 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Vote In Open Election",
-            targetLaw: lawAddresses[11],
-            config: abi.encode(
-                mockAddresses[9], // openElection address
-                1 // 1 vote allowed
-            ), 
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Vote In Open Election",
+                targetLaw: lawAddresses[11],
+                config: abi.encode(
+                    mockAddresses[9], // openElection address
+                    1 // 1 vote allowed
+                ),
+                conditions: conditions
+            })
+        );
 
         // Setup law
         lawId = daoMock.lawCounter() - 1;
 
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         openElection.openElection(100);
         vm.roll(block.number + 1);
 
         // Execute with multiple votes
         bool[] memory vote = new bool[](2);
-        vote[0] = true;  // Vote for alice
-        vote[1] = true;  // Vote for bob
+        vote[0] = true; // Vote for alice
+        vote[1] = true; // Vote for bob
 
-        // try to vote on tw0 people. 
+        // try to vote on tw0 people.
         vm.expectRevert("Voter tries to vote for more than maxVotes nominees.");
         vm.prank(charlotte);
         daoMock.request(lawId, abi.encode(vote), nonce, "Test vote");
@@ -346,20 +354,22 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Vote In Open Election",
-            targetLaw: lawAddresses[11],
-            config: abi.encode(
-                mockAddresses[9], // openElection address
-                1 // 1 vote allowed
-            ), 
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Vote In Open Election",
+                targetLaw: lawAddresses[11],
+                config: abi.encode(
+                    mockAddresses[9], // openElection address
+                    1 // 1 vote allowed
+                ),
+                conditions: conditions
+            })
+        );
 
         // Setup law
         lawId = daoMock.lawCounter() - 1;
 
-        vm.prank(address(daoMock)); 
+        vm.prank(address(daoMock));
         openElection.openElection(100);
         vm.roll(block.number + 1);
 
@@ -383,15 +393,17 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Vote In Open Election",
-            targetLaw: lawAddresses[11],
-            config: abi.encode(
-                mockAddresses[9], // openElection address
-                1 // 1 vote allowed
-            ), 
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Vote In Open Election",
+                targetLaw: lawAddresses[11],
+                config: abi.encode(
+                    mockAddresses[9], // openElection address
+                    1 // 1 vote allowed
+                ),
+                conditions: conditions
+            })
+        );
 
         // Setup law
         lawId = daoMock.lawCounter() - 1;
@@ -416,13 +428,11 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
         super.setUp();
         nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[12]);
         flagActions = FlagActions(mockAddresses[6]); // FlagActions
-        lawId = 8; 
+        lawId = 8;
 
         // Mock getActionState to always return Fulfilled
         vm.mockCall(
-            address(daoMock),
-            abi.encodeWithSelector(daoMock.getActionState.selector),
-            abi.encode(ActionState.Fulfilled)
+            address(daoMock), abi.encodeWithSelector(daoMock.getActionState.selector), abi.encode(ActionState.Fulfilled)
         );
     }
 
@@ -458,7 +468,7 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
         // Execute with sufficient strikes
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test strikes");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -476,7 +486,7 @@ contract TaxSelectTest is TestSetupElectoral {
         super.setUp();
         taxSelect = TaxSelect(lawAddresses[13]);
         erc20Taxed = Erc20Taxed(mockAddresses[1]);
-        lawId = 4; 
+        lawId = 4;
     }
 
     function testTaxSelectInitialization() public {
@@ -502,7 +512,7 @@ contract TaxSelectTest is TestSetupElectoral {
         // Execute with epoch
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test tax select");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -535,15 +545,17 @@ contract BuyAccessTest is TestSetupElectoral {
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
         configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-        conditions.allowedRole = PUBLIC_ROLE;  
-        
+        conditions.allowedRole = PUBLIC_ROLE;
+
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: nameDescription,
-            targetLaw: address(buyAccess),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: nameDescription,
+                targetLaw: address(buyAccess),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
@@ -566,20 +578,22 @@ contract BuyAccessTest is TestSetupElectoral {
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
         configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-        conditions.allowedRole = PUBLIC_ROLE;  
+        conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Execute with no donations
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-        
+
         // Should succeed (revoke role)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -598,25 +612,27 @@ contract BuyAccessTest is TestSetupElectoral {
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
         configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-        conditions.allowedRole = PUBLIC_ROLE;  
+        conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Make a donation
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.5 ether}("");
+        payable(address(donations)).call{ value: 0.5 ether }("");
 
         // Execute with donations
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -631,16 +647,18 @@ contract BuyAccessTest is TestSetupElectoral {
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
         configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-        conditions.allowedRole = PUBLIC_ROLE;  
+        conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
         vm.expectRevert("At least one token configuration is required");
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
     }
 
     function testBuyAccessWithUnconfiguredToken() public {
@@ -650,19 +668,19 @@ contract BuyAccessTest is TestSetupElectoral {
         // Whitelist a token that's not in the preset configuration
         vm.prank(address(daoMock));
         donations.setWhitelistedToken(mockAddresses[0], true);
-        
+
         // Make a donation with a different token (unconfigured)
         // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[1]
         vm.startPrank(alice);
         SimpleErc20Votes(mockAddresses[0]).mintVotes(100_000);
         SimpleErc20Votes(mockAddresses[0]).approve(address(donations), 10_000);
         donations.donateToken(mockAddresses[0], 1000); // Different token
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         // Execute with unconfigured token donation
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-        
+
         // Should not succeed but revoke role (no access due to unconfigured token)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -673,31 +691,33 @@ contract BuyAccessTest is TestSetupElectoral {
         address[] memory tokens = new address[](1);
         uint256[] memory tokensPerBlock = new uint256[](1);
         tokens[0] = address(0); // native currency
-        tokensPerBlock[0] = 1000000; // Very high threshold
+        tokensPerBlock[0] = 1_000_000; // Very high threshold
 
         // Test law initialization
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
         configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-        conditions.allowedRole = PUBLIC_ROLE;  
+        conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // Make a small donation (insufficient)
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{value: 0.001 ether}(""); // Very small donation
+        payable(address(donations)).call{ value: 0.001 ether }(""); // Very small donation
 
         // Execute with insufficient donation
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-        
+
         // Should succeed but revoke role (insufficient donation)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -710,7 +730,7 @@ contract BuyAccessTest is TestSetupElectoral {
         // Whitelist a token that's not in the preset configuration
         vm.prank(address(daoMock));
         donations.setWhitelistedToken(mockAddresses[0], true);
-        
+
         // Make a donation with a token that's not in the preset config
         // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[2]
         vm.startPrank(alice);
@@ -720,8 +740,8 @@ contract BuyAccessTest is TestSetupElectoral {
 
         // Execute with unconfigured token donation - this will test _findTokenConfig
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-        vm.stopPrank(); 
-        
+        vm.stopPrank();
+
         // Should succeed but revoke role (token not found in config)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -752,7 +772,7 @@ contract RoleByRolesTest is TestSetupElectoral {
         // Execute with account that has needed role
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test role by roles");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -770,7 +790,7 @@ contract RoleByRolesTest is TestSetupElectoral {
         // Execute with account that no longer has needed role
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test role by roles");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -799,7 +819,7 @@ contract SelfSelectTest is TestSetupElectoral {
         // Execute with account that doesn't have role
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test self select");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -825,7 +845,7 @@ contract RenounceRoleTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        lawId = 7; 
+        lawId = 7;
         renounceRole = RenounceRole(lawAddresses[17]);
     }
 
@@ -840,7 +860,7 @@ contract RenounceRoleTest is TestSetupElectoral {
         // Execute with valid role
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(1), nonce, "Test renounce role");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(1), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -856,7 +876,7 @@ contract RenounceRoleTest is TestSetupElectoral {
     function testRenounceRoleRevertsWithDisallowedRole() public {
         vm.prank(address(daoMock));
         daoMock.assignRole(3, alice);
-        
+
         // Execute with disallowed role
         vm.prank(alice);
         vm.expectRevert("Role not allowed to be renounced.");
@@ -890,67 +910,77 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         roleByRoles = new RoleByRoles();
         selfSelect = new SelfSelect();
         renounceRole = new RenounceRole();
-        flagActions = new FlagActions();    
+        flagActions = new FlagActions();
     }
 
     function testAllElectoralLawsInitialization() public {
         // Test that all electoral laws can be initialized
         lawId = daoMock.lawCounter();
-        
+
         // ElectionSelect
         configBytes = abi.encode(mockAddresses[10], 3, 3); // Erc20DelegateElection
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Election Select",
-            targetLaw: address(electionSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Election Select",
+                targetLaw: address(electionSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // PeerSelect
         configBytes = abi.encode(2, 4, 1, mockAddresses[8]); // Nominees
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Peer Select",
-            targetLaw: address(peerSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Peer Select",
+                targetLaw: address(peerSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // VoteInOpenElection
         configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Vote In Open Election",
-            targetLaw: address(voteInOpenElection),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Vote In Open Election",
+                targetLaw: address(voteInOpenElection),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // NStrikesRevokesRoles
         configBytes = abi.encode(3, 2, address(flagActions));
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "N Strikes Revokes Roles",
-            targetLaw: address(nStrikesRevokesRoles),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "N Strikes Revokes Roles",
+                targetLaw: address(nStrikesRevokesRoles),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // TaxSelect
         configBytes = abi.encode(mockAddresses[1], 1000, 4);
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Tax Select",
-            targetLaw: address(taxSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Tax Select",
+                targetLaw: address(taxSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // BuyAccess
         conditions.allowedRole = type(uint256).max;
@@ -959,17 +989,19 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         tokens[0] = mockAddresses[3];
         tokensPerBlock[0] = 1000;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config:  abi.encode(
-                mockAddresses[5], // Donations contract
-                tokens,
-                tokensPerBlock,
-                4 // roleId to be assigned
-            ),
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: abi.encode(
+                    mockAddresses[5], // Donations contract
+                    tokens,
+                    tokensPerBlock,
+                    4 // roleId to be assigned
+                ),
+                conditions: conditions
+            })
+        );
 
         // RoleByRoles
         configBytes = abi.encode(4, 1);
@@ -977,50 +1009,56 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         uint256[] memory roleIdsNeeded = new uint256[](1);
         roleIdsNeeded[0] = 1;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Role By Roles",
-            targetLaw: address(roleByRoles),
-            config: abi.encode(
-                4, // target role (what gets assigned)
-                roleIdsNeeded // roles that are needed to be assigned
-            ),
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Role By Roles",
+                targetLaw: address(roleByRoles),
+                config: abi.encode(
+                    4, // target role (what gets assigned)
+                    roleIdsNeeded // roles that are needed to be assigned
+                ),
+                conditions: conditions
+            })
+        );
 
         // SelfSelect
         configBytes = abi.encode(4);
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Self Select",
-            targetLaw: address(selfSelect),
-            config: configBytes,
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Self Select",
+                targetLaw: address(selfSelect),
+                config: configBytes,
+                conditions: conditions
+            })
+        );
 
         // RenounceRole
         conditions.allowedRole = type(uint256).max;
         uint256[] memory allowedRoleIds = new uint256[](1);
         allowedRoleIds[0] = 1;
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Renounce Role",
-            targetLaw: address(renounceRole),
-            config: abi.encode(allowedRoleIds),
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Renounce Role",
+                targetLaw: address(renounceRole),
+                config: abi.encode(allowedRoleIds),
+                conditions: conditions
+            })
+        );
 
         // Verify all laws were initialized
         assertEq(daoMock.lawCounter(), lawId + 9);
     }
 
     function testElectoralLawsWithEmptyInputs() public {
-        lawId = 6; // = self select. 
+        lawId = 6; // = self select.
 
         // Execute with empty input
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(), nonce, "Test empty input");
-        
+
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -1028,7 +1066,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
     function testElectoralLawsWithInvalidConfigs() public {
         lawId = 5; // = buy access
-        
+
         // BuyAccess with mismatched array lengths
         address[] memory tokens = new address[](2);
         uint256[] memory tokensPerBlock = new uint256[](1);
@@ -1038,16 +1076,18 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         vm.prank(address(daoMock));
         vm.expectRevert("Tokens and TokensPerBlock arrays must have the same length");
-        daoMock.adoptLaw(PowersTypes.LawInitData({
-            nameDescription: "Buy Access",
-            targetLaw: address(buyAccess),
-            config:  abi.encode(
-                mockAddresses[5], // Donations contract
-                tokens,
-                tokensPerBlock,
-                4 // roleId to be assigned
-            ),
-            conditions: conditions
-        }));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Buy Access",
+                targetLaw: address(buyAccess),
+                config: abi.encode(
+                    mockAddresses[5], // Donations contract
+                    tokens,
+                    tokensPerBlock,
+                    4 // roleId to be assigned
+                ),
+                conditions: conditions
+            })
+        );
     }
 }

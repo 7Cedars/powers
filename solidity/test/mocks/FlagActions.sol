@@ -18,36 +18,37 @@
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IPowers } from "../../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 
 contract FlagActions is Ownable {
     // Storage
     mapping(uint256 actionId => bool isFlagged) public flaggedActions;
-    
+
     // Additional tracking mappings
     mapping(uint16 roleId => uint256[]) public flaggedActionsByRole;
     mapping(address account => uint256[]) public flaggedActionsByAccount;
     mapping(uint16 lawId => uint256[]) public flaggedActionsByLaw;
-    
+
     // Global list of all flagged actions
     uint256[] public allFlaggedActions;
-    
+
     // Metadata storage for efficient removal
     struct ActionMetadata {
         uint16 roleId;
         address account;
         uint16 lawId;
-        uint256 allFlaggedIndex;      // Index in allFlaggedActions array
-        uint256 roleIndex;            // Index in flaggedActionsByRole array
-        uint256 accountIndex;         // Index in flaggedActionsByAccount array
-        uint256 lawIndex;             // Index in flaggedActionsByLaw array
+        uint256 allFlaggedIndex; // Index in allFlaggedActions array
+        uint256 roleIndex; // Index in flaggedActionsByRole array
+        uint256 accountIndex; // Index in flaggedActionsByAccount array
+        uint256 lawIndex; // Index in flaggedActionsByLaw array
         bool exists;
     }
-    
+
     mapping(uint256 actionId => ActionMetadata) public actionMetadata;
-    
+
     // Events
     event FlagActions__Flagged(uint256 actionId, uint16 roleId, address account, uint16 lawId);
     event FlagActions__Unflagged(uint256 actionId, uint16 roleId, address account, uint16 lawId);
@@ -61,16 +62,18 @@ contract FlagActions is Ownable {
     /// @param lawId The law ID associated with the action
     function flag(uint256 actionId, uint16 roleId, address account, uint16 lawId) external onlyOwner {
         if (flaggedActions[actionId]) revert("Already true");
-        if (IPowers(msg.sender).getActionState(actionId) != PowersTypes.ActionState.Fulfilled) revert("Action not fulfilled");
-        
+        if (IPowers(msg.sender).getActionState(actionId) != PowersTypes.ActionState.Fulfilled) {
+            revert("Action not fulfilled");
+        }
+
         flaggedActions[actionId] = true;
-        
+
         // Add to tracking lists and store indices
         uint256 allFlaggedIndex = allFlaggedActions.length;
         uint256 roleIndex = flaggedActionsByRole[roleId].length;
         uint256 accountIndex = flaggedActionsByAccount[account].length;
         uint256 lawIndex = flaggedActionsByLaw[lawId].length;
-        
+
         // Store metadata with indices for efficient removal
         actionMetadata[actionId] = ActionMetadata({
             roleId: roleId,
@@ -82,13 +85,13 @@ contract FlagActions is Ownable {
             lawIndex: lawIndex,
             exists: true
         });
-        
+
         // Add to tracking lists
         flaggedActionsByRole[roleId].push(actionId);
         flaggedActionsByAccount[account].push(actionId);
         flaggedActionsByLaw[lawId].push(actionId);
         allFlaggedActions.push(actionId);
-        
+
         emit FlagActions__Flagged(actionId, roleId, account, lawId);
     }
 
@@ -96,25 +99,25 @@ contract FlagActions is Ownable {
     /// @param actionId The action ID to unflag
     function unflag(uint256 actionId) external onlyOwner {
         if (!flaggedActions[actionId]) revert("Already false");
-        
+
         // Get metadata for efficient removal
         ActionMetadata memory metadata = actionMetadata[actionId];
         if (!metadata.exists) revert("Metadata not found");
-        
+
         flaggedActions[actionId] = false;
-        
+
         // Remove from all tracking arrays using stored indices (O(1) operation)
         _removeFromArrayByIndex(allFlaggedActions, metadata.allFlaggedIndex);
         _removeFromArrayByIndex(flaggedActionsByRole[metadata.roleId], metadata.roleIndex);
         _removeFromArrayByIndex(flaggedActionsByAccount[metadata.account], metadata.accountIndex);
         _removeFromArrayByIndex(flaggedActionsByLaw[metadata.lawId], metadata.lawIndex);
-        
+
         // Update indices of elements that were swapped
         _updateIndicesAfterRemoval(metadata);
-        
+
         // Clear metadata
         delete actionMetadata[actionId];
-        
+
         emit FlagActions__Unflagged(actionId, metadata.roleId, metadata.account, metadata.lawId);
     }
 
@@ -123,18 +126,18 @@ contract FlagActions is Ownable {
     /// @param index The index of the element to remove
     function _removeFromArrayByIndex(uint256[] storage array, uint256 index) internal {
         require(index < array.length, "Index out of bounds");
-        
+
         // If removing the last element, just pop
         if (index == array.length - 1) {
             array.pop();
             return;
         }
-        
+
         // Swap with last element and pop
         uint256 lastElement = array[array.length - 1];
         array[index] = lastElement;
         array.pop();
-        
+
         // Return the swapped element so we can update its metadata
         // This will be handled by the caller
     }
@@ -144,7 +147,7 @@ contract FlagActions is Ownable {
     function _updateIndicesAfterRemoval(ActionMetadata memory removedMetadata) internal {
         // Find the action that was swapped to the removed position
         // and update its metadata indices
-        
+
         // Check allFlaggedActions
         if (removedMetadata.allFlaggedIndex < allFlaggedActions.length) {
             uint256 swappedActionId = allFlaggedActions[removedMetadata.allFlaggedIndex];
@@ -152,7 +155,7 @@ contract FlagActions is Ownable {
                 actionMetadata[swappedActionId].allFlaggedIndex = removedMetadata.allFlaggedIndex;
             }
         }
-        
+
         // Check role array
         if (removedMetadata.roleIndex < flaggedActionsByRole[removedMetadata.roleId].length) {
             uint256 swappedActionId = flaggedActionsByRole[removedMetadata.roleId][removedMetadata.roleIndex];
@@ -160,7 +163,7 @@ contract FlagActions is Ownable {
                 actionMetadata[swappedActionId].roleIndex = removedMetadata.roleIndex;
             }
         }
-        
+
         // Check account array
         if (removedMetadata.accountIndex < flaggedActionsByAccount[removedMetadata.account].length) {
             uint256 swappedActionId = flaggedActionsByAccount[removedMetadata.account][removedMetadata.accountIndex];
@@ -168,7 +171,7 @@ contract FlagActions is Ownable {
                 actionMetadata[swappedActionId].accountIndex = removedMetadata.accountIndex;
             }
         }
-        
+
         // Check law array
         if (removedMetadata.lawIndex < flaggedActionsByLaw[removedMetadata.lawId].length) {
             uint256 swappedActionId = flaggedActionsByLaw[removedMetadata.lawId][removedMetadata.lawIndex];

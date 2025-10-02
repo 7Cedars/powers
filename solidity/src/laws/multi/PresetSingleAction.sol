@@ -15,7 +15,7 @@
 /// @notice A base contract that executes a preset action.
 ///
 /// The logic:
-/// - anythe lawCalldata includes a single bool. If the bool is set to true, it will aend the present calldatas to the execute function of the Powers protocol.
+/// - the lawCalldata includes a single bool. If the bool is set to true, it will send the preset calldatas to the execute function of the Powers protocol.
 ///
 /// @author 7Cedars,
 
@@ -25,27 +25,25 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
 contract PresetSingleAction is Law {
+    /// @dev Data structure for storing preset action configuration
     struct Data {
-        address[] targets;
-        uint256[] values;
-        bytes[] calldatas;
+        address[] targets; /// @dev Target contract addresses for the action
+        uint256[] values; /// @dev ETH values to send with the action
+        bytes[] calldatas; /// @dev Calldata for the action
     }
-    /// the targets, values and calldatas to be used in the calls: set at construction.
 
     mapping(bytes32 lawHash => Data data) internal data;
 
-    /// @notice constructor of the law
+    /// @notice Constructor of the PresetSingleAction law
     constructor() {
         bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
-        emit Law__Deployed(configParams); // empty params
+        emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
             abi.decode(config, (address[], uint256[], bytes[]));
 
@@ -55,17 +53,12 @@ contract PresetSingleAction is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    /// @notice execute the law.
-    function handleRequest(address /*caller*/, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Execute the law by returning the preset action data
+    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -73,6 +66,9 @@ contract PresetSingleAction is Law {
         return (actionId, data[lawHash].targets, data[lawHash].values, data[lawHash].calldatas);
     }
 
+    /// @notice Get the stored data for a specific law instance
+    /// @param lawHash The hash identifying the law instance
+    /// @return The data structure containing the preset action
     function getData(bytes32 lawHash) public view returns (Data memory) {
         return data[lawHash];
     }

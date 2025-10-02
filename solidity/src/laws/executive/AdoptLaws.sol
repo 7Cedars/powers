@@ -12,8 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Adopts a set of laws as set when initializing the law.
-/// The law self destructs after executing.
+/// @notice Adopt a set of laws configured at initialization.
+/// @dev Builds calls to `IPowers.adoptLaw` for each configured law. No self-destruction occurs.
 ///
 /// @author 7Cedars,
 
@@ -25,11 +25,12 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract AdoptLaws is Law {
-    /// @notice Constructor function for AdoptLaws contract.
+    /// @notice Constructor for AdoptLaws law
     struct Data {
         address[] laws;
         bytes[] lawInitDatas;
     }
+
     mapping(bytes32 lawHash => Data data) internal data;
 
     constructor() {
@@ -37,38 +38,30 @@ contract AdoptLaws is Law {
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         // Set UI-exposed input parameters: laws and lawInitDatas
 
         (address[] memory laws_, bytes[] memory lawInitDatas_) = abi.decode(config, (address[], bytes[]));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash] = Data({ laws: laws_, lawInitDatas: lawInitDatas_ });
 
-
         inputParams = abi.encode();
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    /// @notice Execute the adopt laws action.
-    /// @param lawCalldata the calldata containing laws and lawInitDatas
-    function handleRequest(address /*caller*/, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    /// @notice Build calls to adopt the configured laws
+    /// @param lawCalldata Unused for this law
+    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        
+
         Data memory data_ = data[LawUtilities.hashLaw(powers, lawId)];
 
         // Create arrays for the calls to adoptLaw

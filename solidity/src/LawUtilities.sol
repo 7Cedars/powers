@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -32,10 +32,10 @@ library LawUtilities {
     /////////////////////////////////////////////////////////////
     function checkStringLength(string memory name_, uint256 minLength, uint256 maxLength) external pure {
         if (bytes(name_).length < minLength) {
-            revert ("String too short");
+            revert("String too short");
         }
         if (bytes(name_).length > maxLength) {
-            revert ("String too long");
+            revert("String too long");
         }
     }
 
@@ -127,7 +127,7 @@ library LawUtilities {
     function arrayifyBools(uint256 numBools) public pure returns (bool[] memory boolArray) {
         if (numBools == 0) return new bool[](0);
         if (numBools > 1000) revert("Num bools too large");
- 
+
         assembly {
             // Allocate memory for the array
             boolArray := mload(0x40)

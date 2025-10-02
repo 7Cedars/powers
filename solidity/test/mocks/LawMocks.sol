@@ -9,12 +9,7 @@ contract EmptyTargetsLaw is Law {
         public
         pure
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // Return empty arrays
         actionId = 1;
@@ -30,23 +25,18 @@ contract MockTargetsLaw is Law {
         public
         pure
         override
-        returns (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        )
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // Return specific test data
         actionId = 1;
         targets = new address[](2);
         targets[0] = address(0x1);
         targets[1] = address(0x2);
-        
+
         values = new uint256[](2);
         values[0] = 1 ether;
         values[1] = 2 ether;
-        
+
         calldatas = new bytes[](2);
         calldatas[0] = abi.encodeWithSignature("test1()");
         calldatas[1] = abi.encodeWithSignature("test2()");

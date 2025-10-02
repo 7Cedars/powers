@@ -5,12 +5,12 @@ import { Script } from "forge-std/Script.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-// import { console2 } from "forge-std/console2.sol"; // only for testing purposes. 
+// import { console2 } from "forge-std/console2.sol"; // only for testing purposes.
 
 // helper Config
 import { HelperConfig } from "./HelperConfig.s.sol";
 
-// laws to be deployed 
+// laws to be deployed
 // Multi laws
 import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
 import { PresetMultipleActions } from "../src/laws/multi/PresetMultipleActions.sol";

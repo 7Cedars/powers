@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.26;
 
-import {Nominees} from "./Nominees.sol";
+import { Nominees } from "./Nominees.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
@@ -20,6 +20,7 @@ contract OpenElection is Nominees {
         uint256 durationBlocks;
         uint256 endBlock;
     }
+
     ElectionData public currentElection;
 
     // Voting storage
@@ -34,27 +35,27 @@ contract OpenElection is Nominees {
     event ElectionClosed(uint256 indexed electionId);
     event ElectionTallied(address[] rankedNominees, uint256[] votes);
 
-    constructor() Nominees() {}
+    constructor() Nominees() { }
 
     // --- Nomination API (override from Nominees) ---
 
     function nominate(address nominee, bool shouldNominate) public override onlyOwner {
-        if(currentElection.isOpen) revert("cannot nominate during active election");
+        if (currentElection.isOpen) revert("cannot nominate during active election");
         super.nominate(nominee, shouldNominate);
     }
 
     // --- Voting API ---
 
     function vote(address caller, bool[] calldata votes) external onlyOwner {
-        if(!currentElection.isOpen) revert("election not open");
-        if(block.number > currentElection.endBlock) revert("election closed");
-        if(hasVoted[currentElectionId][caller]) revert("already voted");
-        
+        if (!currentElection.isOpen) revert("election not open");
+        if (block.number > currentElection.endBlock) revert("election closed");
+        if (hasVoted[currentElectionId][caller]) revert("already voted");
+
         address[] memory nomineesForElection = nomineesByElection[currentElectionId];
-        if(votes.length != nomineesForElection.length) revert("votes array length mismatch");
+        if (votes.length != nomineesForElection.length) revert("votes array length mismatch");
 
         hasVoted[currentElectionId][caller] = true;
-        
+
         // Cast votes for each nominee where the corresponding boolean is true
         for (uint256 i; i < votes.length; i++) {
             if (votes[i]) {
@@ -68,17 +69,17 @@ contract OpenElection is Nominees {
     // --- Nominees Management ---
 
     function openElection(uint256 durationBlocks) external onlyOwner {
-        if(currentElection.isOpen) revert("election already open");
-        if(durationBlocks == 0) revert("duration must be > 0");
+        if (currentElection.isOpen) revert("election already open");
+        if (durationBlocks == 0) revert("duration must be > 0");
 
         // Reset all votes for new election
         currentElectionId += 1;
-        
+
         // Copy current nominees to this election
         nomineesByElection[currentElectionId] = new address[](nomineesSorted.length);
         for (uint256 i; i < nomineesSorted.length; i++) {
             nomineesByElection[currentElectionId][i] = nomineesSorted[i];
-        } 
+        }
 
         currentElection = ElectionData({
             isOpen: true,
@@ -91,13 +92,13 @@ contract OpenElection is Nominees {
     }
 
     function closeElection() external onlyOwner {
-        if(!currentElection.isOpen) revert("election not open");
-        if(block.number <= currentElection.endBlock) revert("election still active");
+        if (!currentElection.isOpen) revert("election not open");
+        if (block.number <= currentElection.endBlock) revert("election still active");
 
         currentElection.isOpen = false;
         emit ElectionClosed(currentElectionId);
     }
-    
+
     // --- View helpers ---
     function isElectionOpen() external view returns (bool) {
         return currentElection.isOpen && block.number <= currentElection.endBlock;
@@ -120,27 +121,31 @@ contract OpenElection is Nominees {
     }
 
     function getNomineeRanking() public view returns (address[] memory nominees, uint256[] memory votes) {
-        if(currentElection.isOpen && block.number <= currentElection.endBlock) {
+        if (currentElection.isOpen && block.number <= currentElection.endBlock) {
             revert("election still active");
-        } 
+        }
 
         (nominees, votes) = getRankingAnyTime(currentElectionId);
     }
 
-    function getRankingAnyTime(uint256 electionId) public view returns (address[] memory nominees, uint256[] memory votes) {
+    function getRankingAnyTime(uint256 electionId)
+        public
+        view
+        returns (address[] memory nominees, uint256[] memory votes)
+    {
         address[] memory nomineesForElection = nomineesByElection[electionId];
         uint256 numNominees = nomineesForElection.length;
         if (numNominees == 0) return (new address[](0), new uint256[](0));
-        
+
         nominees = new address[](numNominees);
         votes = new uint256[](numNominees);
-        
+
         // Copy nominees and their votes
         for (uint256 i; i < numNominees; i++) {
             nominees[i] = nomineesForElection[i];
             votes[i] = voteCounts[electionId][nomineesForElection[i]];
         }
-        
+
         // Simple bubble sort by vote count (descending)
         for (uint256 i; i < numNominees - 1; i++) {
             for (uint256 j; j < numNominees - i - 1; j++) {
@@ -149,7 +154,7 @@ contract OpenElection is Nominees {
                     uint256 tempVotes = votes[j];
                     votes[j] = votes[j + 1];
                     votes[j + 1] = tempVotes;
-                    
+
                     // Swap nominees
                     address tempNominee = nominees[j];
                     nominees[j] = nominees[j + 1];
@@ -157,7 +162,7 @@ contract OpenElection is Nominees {
                 }
             }
         }
-        
+
         return (nominees, votes);
     }
 }

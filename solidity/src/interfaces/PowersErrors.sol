@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -13,8 +13,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @notice Errors used in the Powers protocol.
-/// Code derived from OpenZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
-///
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
@@ -114,7 +112,7 @@ interface PowersErrors {
 
     /// @notice Emitted when a label is invalid.
     error Powers__InvalidLabel();
-    
+
     /// @notice Emitted when a label is too long.
     error Powers__LabelTooLong();
 
@@ -126,6 +124,4 @@ interface PowersErrors {
 
     /// @notice Emitted when a max executions length is invalid.
     error Powers__InvalidMaxExecutionsLength();
-
 }
-    
