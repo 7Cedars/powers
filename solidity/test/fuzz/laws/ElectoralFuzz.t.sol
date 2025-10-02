@@ -421,7 +421,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // step 2: initialise a NEW VoteInOpenElection law
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCount();
+        lawId = daoMock.lawCounter();
         vm.prank(address(daoMock));
         daoMock.adoptLaw(PowersTypes.LawInitData({
             nameDescription: "Vote In Open Election",
@@ -487,7 +487,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // step 2: initialise a NEW VoteInOpenElection law with multiple votes allowed
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCount();
+        lawId = daoMock.lawCounter();
         vm.prank(address(daoMock));
         daoMock.adoptLaw(PowersTypes.LawInitData({
             nameDescription: "Vote In Open Election Multiple",
@@ -833,7 +833,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // Initialize a new VoteInOpenElection law for this test
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCount();
+        lawId = daoMock.lawCounter();
         vm.prank(address(daoMock));
         daoMock.adoptLaw(PowersTypes.LawInitData({
             nameDescription: "Vote In Open Election Large",

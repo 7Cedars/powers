@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and its contracts have not been audited.           ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -14,7 +14,7 @@
 
 /// @title Law - Base Implementation for Powers Protocol Laws. v0.3.
 /// @notice Base contract for implementing role-restricted governance actions
-/// @dev Provides core functionality for creating governance laws in the Powers protocol
+/// @dev Provides core functionality for creating institutional laws in the Powers protocol
 ///
 /// Laws serve five key functions:
 /// 1. Role restriction of community actions
@@ -24,8 +24,7 @@
 /// 5. Returning of data to the Powers protocol
 ///
 /// Laws can be customized through:
-/// - conditionsuring checks in the constructor
-/// - Inheriting and implementing bespoke logic in the {handleRequest} {_replyPowers} and {_changeState} functions.
+/// - Inheriting and implementing bespoke logic in the {handleRequest} {_replyPowers} and {_externalCall} functions.
 ///
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -39,6 +38,7 @@ import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspec
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying
 
 abstract contract Law is ERC165, ILaw {
+
     //////////////////////////////////////////////////////////////
     //                        STORAGE                           //
     //////////////////////////////////////////////////////////////
@@ -60,10 +60,8 @@ abstract contract Law is ERC165, ILaw {
         bytes memory inputParams,
         bytes memory config
     ) public virtual {
-        // console2.log("waypoint 1");
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         LawUtilities.checkStringLength(nameDescription, 1, 255);
-        // console2.log("waypoint 2");
 
         laws[lawHash] = LawData({
             nameDescription: nameDescription,
@@ -71,12 +69,11 @@ abstract contract Law is ERC165, ILaw {
             config: config,
             powers: msg.sender
         });
-        // console2.log("waypoint 3");
 
         emit Law__Initialized(msg.sender, index, nameDescription, inputParams, config);
     }
 
-    /// @notice Executes the law's logic: validation -> handling request -> changing state -> replying to Powers
+    /// @notice Executes the law's logic: validation -> handling request -> call external -> replying to Powers
     /// @dev Called by the Powers protocol during action execution
     /// @param caller Address that initiated the action
     /// @param lawCalldata Encoded function call data
@@ -129,16 +126,28 @@ abstract contract Law is ERC165, ILaw {
         )
     {
         // Empty implementation - must be overridden
+        revert("handleRequest not implemented");
     }
 
+    /// @notice Meant to be used to call an external contract. Especially usefull in the case of async laws. 
+    /// @dev Can be overridden by implementing contracts.
+    /// @param lawId The id of the law
+    /// @param actionId The action ID
+    /// @param targets Target contract addresses for calls
+    /// @param values ETH values to send with calls
+    /// @param calldatas Encoded function calls
     function _externalCall(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
         // optional override by implementing contracts 
     }
 
+    /// @notice Meant to be used to reply to the Powers protocol. Can be overridden by implementing contracts.
+    /// @dev Can be overridden by implementing contracts.
+    /// @param lawId The id of the law
+    /// @param actionId The action ID
+    /// @param targets Target contract addresses for calls
+    /// @param values ETH values to send with calls
+    /// @param calldatas Encoded function calls
     function _replyPowers(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal virtual {
-        // execute the law's logic conditional on data returned by handleRequest
-        // this function can be overridden with custom logic by law implementations.
-
         if (targets.length > 0) {
             IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
         } 
@@ -162,10 +171,6 @@ abstract contract Law is ERC165, ILaw {
     //////////////////////////////////////////////////////////////
     //                      UTILITIES                           //
     //////////////////////////////////////////////////////////////
-    /// @notice Checks if contract implements required interfaces
-    /// @dev Implements IERC165
-    /// @param interfaceId Interface identifier to check
-    /// @return True if interface is supported
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(ILaw).interfaceId || super.supportsInterface(interfaceId);
     }

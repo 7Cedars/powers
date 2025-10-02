@@ -52,10 +52,12 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 ## Invariants
 
 ### Core Protocol Invariants
-- The total number of active laws must always be equal to `lawCount - 1`
+- `LawCount` should never decrease.
+- Adopting a new law should increase lawCount by 1. 
 - An action can only be executed if it has reached the `Fulfilled` state
 
 ### Governance Invariants
+- Any action that changes state outside of the powers protocol needs to be restricted with a `onlyPowers` modifier.  
 - A proposal can only be executed if it has received sufficient votes to meet the quorum requirement
 - An account can only vote once per proposal
 - The sum of For, Against, and Abstain votes must equal the total number of votes cast

@@ -40,7 +40,7 @@ function adoptLaw(LawInitData memory lawInitData) public
 The function:
 - Can only be called through the protocol itself
 - Verifies the target contract implements the `ILaw` interface
-- Increments the `lawCount`
+- Increments the `lawCounter`
 - Initializes the law with the provided data
 - Emits a `LawAdopted` event
 

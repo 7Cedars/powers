@@ -1,18 +1,34 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+
+///////////////////////////////////////////////////////////////////////////////
+/// This program is free software: you can redistribute it and/or modify    ///
+/// it under the terms of the MIT Public License.                           ///
+///                                                                         ///
+/// This is a Proof Of Concept and is not intended for production use.      ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
+///                                                                         ///
+/// It is distributed in the hope that it will be useful and insightful,    ///
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+/// @title LawUtilitiesTest - Unit tests for LawUtilities library
+/// @notice Tests the LawUtilities library functions
+/// @dev Provides comprehensive coverage of all LawUtilities functions
+/// @author 7Cedars
+
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
-import { TestSetupUtilities } from "../TestSetup.t.sol";
+import { TestSetupLaw } from "../TestSetup.t.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Law } from "../../src/Law.sol";
 
 import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-contract LawUtilitiesTest is TestSetupUtilities {
-    using LawUtilities for LawUtilities.TransactionsByAccount;
 
-    LawUtilities.TransactionsByAccount transactions;
+contract LawUtilitiesTest is TestSetupLaw {
 
     //////////////////////////////////////////////////////////////
     //                  STRING VALIDATION                       //
@@ -95,7 +111,7 @@ contract LawUtilitiesTest is TestSetupUtilities {
     //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
     function testHashActionId() public {
-        uint16 lawId = 1;
+        lawId = 1;
         lawCalldata = abi.encode(true);
         nonce = 123;
 
@@ -104,7 +120,7 @@ contract LawUtilitiesTest is TestSetupUtilities {
     }
 
     function testHashLaw() public {
-        uint16 lawId = 1;
+        lawId = 1;
         lawHash = LawUtilities.hashLaw(address(daoMock), lawId);
         assertEq(lawHash, keccak256(abi.encode(address(daoMock), lawId)));
     }
@@ -118,62 +134,32 @@ contract LawUtilitiesTest is TestSetupUtilities {
         assertEq(calldatas.length, length);
     }
 
-    //////////////////////////////////////////////////////////////
-    //                  TRANSACTION TRACKING                    //
-    //////////////////////////////////////////////////////////////
-    function testLogTransaction() public {
-        address account = alice;
-        uint48 blockNumber = uint48(block.number);
-
-        bool success = transactions.logTransaction(account, blockNumber);
-        assertTrue(success);
-        assertEq(transactions.transactions[account][0], blockNumber);
-    }
-
-    function testCheckThrottle() public {
-        address account = alice;
-        uint48 delay = 100;
-
-        // Should pass when no previous transactions
-        assertTrue(transactions.checkThrottle(account, delay));
-
-        // Log a transaction
-        transactions.logTransaction(account, uint48(block.number));
-
-        // Should fail when delay hasn't passed
-        vm.expectRevert("Delay not passed");
-        transactions.checkThrottle(account, delay);
-
-        // Should pass when delay has passed
-        vm.roll(block.number + delay + 1);
-        assertTrue(transactions.checkThrottle(account, delay));
-    }
-
-    function testCheckNumberOfTransactions() public {
-        address account = alice;
-        uint48 start = uint48(block.number);
-
-        // Log some transactions
-        transactions.logTransaction(account, start);
-        transactions.logTransaction(account, start + 1);
-        transactions.logTransaction(account, start + 2);
-
-        uint48 end = start + 2;
-        uint256 count = transactions.checkNumberOfTransactions(account, start, end);
-        assertEq(count, 3);
-    }
 
     //////////////////////////////////////////////////////////////
     //                  ARRAY UTILITIES                         //
     //////////////////////////////////////////////////////////////
-    function testArrayifyBools() public pure {
-        // This function is complex to test directly due to assembly usage
-        // We'll test it indirectly by checking that it doesn't revert
-        // The function converts calldata booleans to memory array
+    
+    function testArrayifyBoolsEmptyArrayPasses(uint256 numBools) public {
+        numBools = bound(numBools, 0, 1000);
+        // Test with zero booleans
+        bool[] memory result = LawUtilities.arrayifyBools(numBools);
         
-        // Note: This is a simplified test since arrayifyBools works with calldata
-        // In a real scenario, this would be called from a function that receives calldata
-        // For now, we'll just ensure the function exists and can be called
-        assertTrue(true); // Placeholder test
+        assertEq(result.length, numBools);
+    }
+    
+    function testArrayifyBoolsFailsWhenTooLarge(uint256 numBools) public {
+        vm.assume(numBools > 1000);
+
+        vm.expectRevert("Num bools too large");
+        LawUtilities.arrayifyBools(numBools);
+    }
+
+    function testArrayifyBoolsAssemblyBehavior() public {
+        // Test the assembly code's behavior with different input sizes
+        for (i = 0; i <= 5; i++) {
+            bool[] memory result = LawUtilities.arrayifyBools(i);
+            assertEq(result.length, i);
+        }
+        
     }
 }

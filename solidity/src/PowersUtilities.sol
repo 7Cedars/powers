@@ -25,6 +25,7 @@ import { PowersTypes } from "./interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library PowersUtilities {
+    
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////

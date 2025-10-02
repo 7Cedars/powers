@@ -61,7 +61,7 @@ mapping(address account => Deposit[]) internal deposits;
 * `name`: Name of the DAO
 * `uri`: URI to metadata of the DAO
 * `_constituteExecuted`: Boolean tracking if constitute function has been called
-* `lawCount`: Number of laws initiated (starts at 1)
+* `lawCounter`: Number of laws initiated (starts at 1)
 
 ## Functions
 

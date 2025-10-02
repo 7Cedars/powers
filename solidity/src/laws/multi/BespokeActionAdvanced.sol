@@ -20,6 +20,8 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../LawUtilities.sol";
 
+// import { console } from "forge-std/console.sol"; // only for testing purposes. 
+
 contract BespokeActionAdvanced is Law {
     /// the targets, values and calldatas to be used in the calls: set at construction.
 

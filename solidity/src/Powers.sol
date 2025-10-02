@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -17,22 +17,18 @@
 ///
 /// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Law.sol}. The contract should be used as is, making changes to this contract should be avoided.
 /// @dev Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol.
-/// @dev Compatibility with Governor.sol, AccessManager and the Hats protocol is high on the priority list.
 ///
 /// Note several key differences from openzeppelin's {Governor.sol}.
 /// 1 - Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw} interface.
 /// 2 - Proposing, voting, cancelling and executing actions are role restricted along the target law that is called.
 /// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, for instance, still need to be executed through the {execute} function.
 /// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote. Accounts vote with their roles, not with their tokens.
-/// 5 - The core protocol is intentionally minimalistic. Any complexity (timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
+/// 5 - The core protocol is intentionally minimalistic. Any complexities (multi-chain governance, oracle based governance, timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
 ///
-/// For example implementations of DAOs, see the `Deploy...` files in the /script folder.
+/// For example organisational implementations, see testConstitutions.sol in the /test folder.
 ///
-/// Note This protocol is a work in progress. A number of features are planned to be added in the future.
-/// - Integration with, or support for OpenZeppelin's {Governor.sol} and Compound's {GovernorBravo.sol}. The same holds for the Hats Protocol.
-/// - Native support for multi-chain governance.
+/// Note This protocol is a work in progress. A number of features are planned to be added in the future. 
 /// - Gas efficiency improvements.
-/// - Improved time management, including support for EIP-6372 {clock()} for timestamping governance processes.
 /// - And more.
 ///
 /// @author 7Cedars
@@ -67,7 +63,7 @@ contract Powers is EIP712, IPowers {
     uint256 public immutable MAX_EXECUTIONS_LENGTH; 
     
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
-    uint16 public lawCount = 1; // number of laws that have been initiated throughout the life of the organisation.
+    uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
     string public name; // name of the DAO.  
     string public uri; // a uri to metadata of the DAO. // note can be altered 
     bool public payableEnabled; // is payable enabled?
@@ -94,14 +90,17 @@ contract Powers is EIP712, IPowers {
     /// @notice  Sets the value for {name} at the time of construction.
     ///
     /// @param name_ name of the contract
-
-    // TODO: add validation params here. 
-    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength, uint256 maxExecutionsLength) EIP712(name_, version()) {
+    /// @param uri_ uri of the contract
+    /// @param maxCallDataLength_ maximum length of calldata for a law
+    /// @param maxExecutionsLength_ maximum length of executions for a law
+    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxExecutionsLength_) EIP712(name_, version()) {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
-        MAX_CALLDATA_LENGTH = maxCallDataLength;
-        MAX_EXECUTIONS_LENGTH = maxExecutionsLength;
+        if (maxCallDataLength_ == 0) revert Powers__InvalidMaxCallDataLength();
+        if (maxExecutionsLength_ == 0) revert Powers__InvalidMaxExecutionsLength();
+        MAX_CALLDATA_LENGTH = maxCallDataLength_;
+        MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
 
         _setRole(ADMIN_ROLE, msg.sender, true); // the account that initiates a Powerscontract is set to its admin.
 
@@ -351,10 +350,13 @@ contract Powers is EIP712, IPowers {
         if (getActionState(actionId) != ActionState.Active) {
             revert Powers__ProposedActionNotActive();
         }
+        Action storage proposedAction = _actions[actionId];
 
         // Note that we check if account has access to the law targetted in the proposedAction.
-        uint16 lawId = _actions[actionId].lawId;
+        uint16 lawId = proposedAction.lawId;
         if (!canCallLaw(account, lawId)) revert Powers__CannotCallLaw();
+        // check 2: has account already voted?
+        if (proposedAction.hasVoted[account]) revert Powers__AlreadyCastVote();
  
         // if all this passes: cast vote.
         _countVote(actionId, account, support);
@@ -414,20 +416,23 @@ contract Powers is EIP712, IPowers {
         // check if targetLaw is blacklisted
         if (isBlacklisted(lawInitData.targetLaw)) revert Powers__AddressBlacklisted();
 
+        // check if conditions combine PUBLIC_ROLE with a vote - which is impossible due to PUBLIC_ROLE having an infinite number of members. 
+        if (lawInitData.conditions.allowedRole == PUBLIC_ROLE && lawInitData.conditions.quorum > 0) revert Powers__VoteWithPublicRoleDisallowed();
+
         // if checks pass, set law as active.
-        laws[lawCount].active = true;
-        laws[lawCount].targetLaw = lawInitData.targetLaw;
-        laws[lawCount].conditions = lawInitData.conditions;
-        lawCount++;
+        laws[lawCounter].active = true;
+        laws[lawCounter].targetLaw = lawInitData.targetLaw;
+        laws[lawCounter].conditions = lawInitData.conditions;
+        lawCounter++;
 
         Law(lawInitData.targetLaw).initializeLaw(
-            lawCount - 1, lawInitData.nameDescription, "", lawInitData.config
+            lawCounter - 1, lawInitData.nameDescription, "", lawInitData.config
         );
 
         // emit event.
-        emit LawAdopted(lawCount - 1);
+        emit LawAdopted(lawCounter - 1);
 
-        return lawCount - 1;
+        return lawCounter - 1;
     }
 
     /// @inheritdoc IPowers
@@ -547,21 +552,6 @@ contract Powers is EIP712, IPowers {
         return false;
     }
 
-    // @notice internal function {hasBeenProposed} that checks if a given action has been proposed.
-    ///
-    /// @param actionId id of the action.
-    ///
-    /// @return bool true if the action has been proposed, false otherwise.
-    function _hasBeenProposed(uint256 actionId) internal view virtual returns (bool) {
-        ActionState state = getActionState(actionId);
-        if (
-            state != ActionState.NonExistent
-            ) {
-                return true;
-        }
-        return false;
-    }
-
     /// @notice internal function {voteSucceeded} that checks if a vote for a given proposedAction has succeeded.
     ///
     /// @param actionId id of the proposedAction.
@@ -581,9 +571,6 @@ contract Powers is EIP712, IPowers {
     /// @dev It does not check if account has roleId referenced in actionId. This has to be done by {Powers.castVote} function.
     function _countVote(uint256 actionId, address account, uint8 support) internal virtual {
         Action storage proposedAction = _actions[actionId];
-
-        // check 1: has account already voted?
-        if (proposedAction.hasVoted[account]) revert Powers__AlreadyCastVote();
 
         // set account as voted.
         proposedAction.hasVoted[account] = true;

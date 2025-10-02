@@ -118,5 +118,14 @@ interface PowersErrors {
     /// @notice Emitted when a label is too long.
     error Powers__LabelTooLong();
 
+    /// @notice Emitted when a vote with public role is attempted.
+    error Powers__VoteWithPublicRoleDisallowed();
+
+    /// @notice Emitted when a max call data length is invalid.
+    error Powers__InvalidMaxCallDataLength();
+
+    /// @notice Emitted when a max executions length is invalid.
+    error Powers__InvalidMaxExecutionsLength();
+
 }
     

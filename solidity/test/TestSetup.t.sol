@@ -74,7 +74,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawE
     uint16 lawId; 
     bytes32 lawHash;
     address newLaw;
-    uint16 lawCount;
+    uint16 lawCounter;
     address tokenAddress;
     address testToken;
     address testToken2;
@@ -334,6 +334,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());
         Erc20Taxed(mockAddresses[1]).transferOwnership(address(daoMock));
         SoulboundErc721(mockAddresses[2]).transferOwnership(address(daoMock));
+        Donations(payable(mockAddresses[5])).transferOwnership(address(daoMock));
         FlagActions(mockAddresses[6]).transferOwnership(address(daoMock));
         Grant(mockAddresses[7]).transferOwnership(address(daoMock));
         Nominees(mockAddresses[8]).transferOwnership(address(daoMock));
@@ -364,6 +365,7 @@ abstract contract TestSetupPowers is BaseSetup {
 
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);
+        daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -387,28 +389,6 @@ abstract contract TestSetupLaw is BaseSetup {
         vm.startPrank(address(daoMock));
         daoMock.setPayableEnabled(true);
         daoMock.assignRole(ROLE_ONE, alice); 
-        daoMock.assignRole(ROLE_ONE, bob);
-        daoMock.assignRole(ROLE_TWO, charlotte);
-        daoMock.assignRole(ROLE_TWO, david);
-        vm.stopPrank();
-    }
-}
-
-abstract contract TestSetupUtilities is BaseSetup {
-    function setUpVariables() public override {
-        super.setUpVariables();
-
-        // initiate constitution  
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.utilitiesTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
-        );
-
-        // constitute daoMock.
-        daoMock.constitute(lawInitData_);
-
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
-        daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);

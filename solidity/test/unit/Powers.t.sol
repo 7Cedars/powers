@@ -7,6 +7,8 @@ import { Law } from "../../src/Law.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
 import { PowersUtilities } from "../../src/PowersUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
+import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
+import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
@@ -27,7 +29,7 @@ contract DeployTest is TestSetupPowers {
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
         );
         assertEq(daoMock.version(), "0.4");
-        assertNotEq(daoMock.lawCount(), 0);
+        assertNotEq(daoMock.lawCounter(), 0);
 
         assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
     }
@@ -266,7 +268,7 @@ contract CancelTest is TestSetupPowers {
                 daoMock.castVote(actionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
         vm.prank(bob);
         daoMock.request(lawId, lawCalldata, nonce, description);
 
@@ -539,7 +541,7 @@ contract ExecuteTest is TestSetupPowers {
             }
         }
 
-        vm.roll(block.number + conditions.votingPeriod + 1); 
+        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1); 
 
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);
@@ -678,7 +680,7 @@ contract ConstituteTest is TestSetupPowers {
 
 contract SetLawTest is TestSetupPowers {
     function testSetLawSetsNewLaw() public {
-        lawCount = daoMock.lawCount();
+        lawCounter = daoMock.lawCounter();
         newLaw = address(new OpenAction());
 
         LawInitData memory lawInitData = LawInitData({
@@ -691,12 +693,12 @@ contract SetLawTest is TestSetupPowers {
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
 
-        (address law,,) = daoMock.getAdoptedLaw(lawCount);
+        (address law,,) = daoMock.getAdoptedLaw(lawCounter);
         assertEq(law, newLaw, "New law should be active after adoption");
     }
 
     function testSetLawEmitsEvent() public {
-        lawCount = daoMock.lawCount();
+        lawCounter = daoMock.lawCounter();
         newLaw = address(new OpenAction());
 
         LawInitData memory lawInitData = LawInitData({
@@ -707,7 +709,7 @@ contract SetLawTest is TestSetupPowers {
         });
 
         vm.expectEmit(true, false, false, false);
-        emit LawAdopted(uint16(lawCount));
+        emit LawAdopted(uint16(lawCounter));
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
     }
@@ -898,6 +900,180 @@ contract ComplianceTest is TestSetupPowers {
         (bytes4 response) = daoMock.onERC1155BatchReceived(sender, recipient, tokenIds, values, data);
 
         assertEq(response, daoMock.onERC1155BatchReceived.selector, "Should return correct selector");
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//                  PROPOSE FUNCTION TESTS                  //
+//////////////////////////////////////////////////////////////
+contract ProposeAdvancedTest is TestSetupPowers {
+    function testProposeRevertsWithBlacklistedCaller() public {
+        lawId = 4; // StatementOfIntent
+        lawCalldata = abi.encode(true);
+        
+        // Blacklist the caller
+        vm.prank(address(daoMock));
+        daoMock.blacklistAddress(bob, true);
+        
+        vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
+        vm.prank(bob);
+        daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
+    }
+
+    function testProposeRevertsWithCalldataTooLong() public {
+        lawId = 4; // StatementOfIntent
+        // Create calldata longer than MAX_CALLDATA_LENGTH
+        lawCalldata = new bytes(daoMock.MAX_CALLDATA_LENGTH() + 1);
+        
+        vm.expectRevert(PowersErrors.Powers__CalldataTooLong.selector);
+        vm.prank(bob);
+        daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//                  LAW ADOPTION TESTS                      //
+//////////////////////////////////////////////////////////////
+contract LawAdoptionTest is TestSetupPowers {
+    function testAdoptLawRevertsWithBlacklistedTarget() public {
+        address blacklistedLaw = lawAddresses[1];
+        
+        // Blacklist the target law
+        vm.prank(address(daoMock));
+        daoMock.blacklistAddress(blacklistedLaw, true);
+        
+        LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law",
+            targetLaw: blacklistedLaw,
+            config: abi.encode(),
+            conditions: conditions
+        });
+        
+        vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
+        vm.prank(address(daoMock));
+        daoMock.adoptLaw(lawInitData);
+    }
+
+    function testAdoptLawRevertsWithPublicRoleAndQuorum() public {
+        newLaw = address(new OpenAction());
+        
+        // Create conditions with PUBLIC_ROLE and quorum > 0
+        PowersTypes.Conditions memory invalidConditions = PowersTypes.Conditions({
+            allowedRole: PUBLIC_ROLE,
+            quorum: 50, // > 0
+            succeedAt: 0,
+            votingPeriod: 0,
+            delayExecution: 0,
+            throttleExecution: 0,
+            needCompleted: 0,
+            needNotCompleted: 0
+        });
+        
+        LawInitData memory lawInitData = LawInitData({
+            nameDescription: "Test law",
+            targetLaw: newLaw,
+            config: abi.encode(),
+            conditions: invalidConditions
+        });
+        
+        vm.expectRevert(PowersErrors.Powers__VoteWithPublicRoleDisallowed.selector);
+        vm.prank(address(daoMock));
+        daoMock.adoptLaw(lawInitData);
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//                  ROLE MANAGEMENT TESTS                   //
+//////////////////////////////////////////////////////////////
+contract RoleManagementTest is TestSetupPowers {
+    function testAssignRoleRevertsWithBlacklistedAccount() public {
+        address blacklistedAccount = makeAddr("blacklisted");
+        
+        // Blacklist the account
+        vm.prank(address(daoMock));
+        daoMock.blacklistAddress(blacklistedAccount, true);
+        
+        vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
+        vm.prank(address(daoMock));
+        daoMock.assignRole(ROLE_THREE, blacklistedAccount);
+    }
+
+    function testLabelRoleRevertsWithEmptyLabel() public {
+        vm.expectRevert(PowersErrors.Powers__InvalidLabel.selector);
+        vm.prank(address(daoMock));
+        daoMock.labelRole(ROLE_THREE, "");
+    }
+
+    function testLabelRoleRevertsWithLabelTooLong() public {
+        // Create a label longer than 255 characters
+        string memory longLabel = "This is a very long label that exceeds the maximum allowed length of 255 characters and should cause the function to revert when trying to set it as a role label in the Powers protocol governance system which has strict validation rules to prevent abuse and ensure proper formatting of role labels";
+        
+        vm.expectRevert(PowersErrors.Powers__LabelTooLong.selector);
+        vm.prank(address(daoMock));
+        daoMock.labelRole(ROLE_THREE, longLabel);
+    }
+
+    function testSetRoleRevertsWithPublicRole() public {
+        // Try to set PUBLIC_ROLE (should revert)
+        vm.expectRevert(PowersErrors.Powers__CannotSetPublicRole.selector);
+        vm.prank(address(daoMock));
+        daoMock.assignRole(PUBLIC_ROLE, alice);
+    }
+
+    function testSetRoleRevertsWithZeroAddress() public {
+        vm.expectRevert(PowersErrors.Powers__CannotAddZeroAddress.selector);
+        vm.prank(address(daoMock));
+        daoMock.assignRole(ROLE_THREE, address(0));
+    }
+
+    function testSetRoleRemovesRoleCorrectly() public {
+        // First assign a role
+        vm.prank(address(daoMock));
+        daoMock.assignRole(ROLE_THREE, alice);
+        
+        uint256 membersBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(membersBefore, 1);
+        
+        // Now remove the role
+        vm.prank(address(daoMock));
+        daoMock.revokeRole(ROLE_THREE, alice);
+        
+        uint256 membersAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(membersAfter, 0);
+        assertEq(daoMock.hasRoleSince(alice, ROLE_THREE), 0);
+    }
+
+    function testGetRoleHoldersWithEmptyArray() public {
+        // Test with a role that has no members
+        address[] memory holders = daoMock.getRoleHolders(ROLE_THREE);
+        assertEq(holders.length, 0);
+    }
+
+    function testGetActionStateNonExistent() public {
+        // Test with a non-existent action ID
+        uint256 nonExistentActionId = 999999;
+        ActionState state = daoMock.getActionState(nonExistentActionId);
+        assertEq(uint8(state), uint8(ActionState.NonExistent));
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//                  CONSTRUCTOR TESTS                       //
+//////////////////////////////////////////////////////////////
+contract ConstructorTest is Test {
+    function testConstructorRevertsWithEmptyName() public {
+        vm.expectRevert(PowersErrors.Powers__InvalidName.selector);
+        new Powers("", "", 10_000, 10_0000);
+    }
+
+    function testConstructorRevertsWithZeroMaxCallDataLength() public {
+        vm.expectRevert(PowersErrors.Powers__InvalidMaxCallDataLength.selector);
+        new Powers("This is a name", "", 0, 10_000);
+    }
+
+    function testConstructorRevertsWithZeroMaxExecutionsLength() public {
+        vm.expectRevert(PowersErrors.Powers__InvalidMaxExecutionsLength.selector);
+        new Powers("This is a name", "", 10_000, 0);
     }
 }
 

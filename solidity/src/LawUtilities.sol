@@ -27,16 +27,6 @@ import { PowersTypes } from "./interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library LawUtilities {
-    //////////////////////////////////////////////////////////////
-    //                  STORAGE POINTERS                        //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Structure to track transactions by account address
-    /// @dev Uses a mapping to store arrays of block numbers for each account
-    struct TransactionsByAccount {
-        mapping(address account => uint48[] blockNumber) transactions;
-    }
-
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
@@ -49,10 +39,6 @@ library LawUtilities {
         }
     }
 
-
-    /////////////////////////////////////////////////////////////
-    //                  FUNCTIONS                              //
-    /////////////////////////////////////////////////////////////
     /// @notice Verifies if an address owns any tokens from a specific NFT contract
     /// @dev Checks the balance of the given address in the specified ERC721 contract
     /// @param caller Address to check token ownership for
@@ -64,23 +50,6 @@ library LawUtilities {
             revert("Does not own token.");
         }
     }
-
-    /// @notice Checks if an address is blacklisted
-    /// @dev Queries a mapping contract to check if the address is blacklisted
-    /// @param caller Address to check blacklist status for
-    /// @param blacklistAddress Address of the blacklist contract
-    /// @return isBlacklisted True if the address is blacklisted
-    // function blacklistCheck(address caller, address blacklistAddress)
-    //     internal
-    //     pure
-    //     returns (bool isBlacklisted)
-    // {
-    //     isBlacklisted = AddressesMapping(blacklistAddress).addresses(caller);
-
-    //     if (isBlacklisted) {
-    //         revert ("Is blacklisted.");
-    //     }
-    // }
 
     /// @notice Verifies if an address has all specified roles
     /// @dev Checks each role against the Powers contract's role system
@@ -106,62 +75,6 @@ library LawUtilities {
                 revert("Has role.");
             }
         }
-    }
-
-    /// @notice Logs a transaction for an account at a specific block
-    /// @dev Adds a block number to the account's transaction history
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param blockNumber The block number to log
-    /// @return True if the transaction was successfully logged
-    /// see for explanation: https://docs.soliditylang.org/en/v0.8.29/contracts.html#libraries
-    function logTransaction(TransactionsByAccount storage self, address account, uint48 blockNumber)
-        external
-        returns (bool)
-    {
-        self.transactions[account].push(blockNumber);
-        return true;
-    }
-
-    /// @notice Checks if enough time has passed since the last transaction
-    /// @dev Verifies if the delay between transactions meets the minimum requirement
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param delay The minimum number of blocks required between transactions
-    /// @return True if the delay requirement is met
-    function checkThrottle(TransactionsByAccount storage self, address account, uint48 delay)
-        external
-        view
-        returns (bool)
-    {
-        if (self.transactions[account].length == 0) {
-            return true;
-        }
-        uint48 lastTransaction = self.transactions[account][self.transactions[account].length - 1];
-        if (uint48(block.number) - lastTransaction < delay) {
-            revert("Delay not passed");
-        }
-        return true;
-    }
-
-    /// @notice Counts the number of transactions within a block range
-    /// @dev Iterates through transaction history to count transactions in the specified range
-    /// @param self The TransactionsByAccount storage structure
-    /// @param account The address of the account
-    /// @param start The starting block number
-    /// @param end The ending block number
-    /// @return numberOfTransactions The count of transactions within the range
-    function checkNumberOfTransactions(TransactionsByAccount storage self, address account, uint48 start, uint48 end)
-        external
-        view
-        returns (uint256 numberOfTransactions)
-    {
-        for (uint256 i = 0; i < self.transactions[account].length; i++) {
-            if (self.transactions[account][i] >= start && self.transactions[account][i] <= end) {
-                numberOfTransactions++;
-            }
-        }
-        return numberOfTransactions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -212,6 +125,9 @@ library LawUtilities {
     /// @return boolArray The decoded boolean array
     /// Note: written by Cursor AI.
     function arrayifyBools(uint256 numBools) public pure returns (bool[] memory boolArray) {
+        if (numBools == 0) return new bool[](0);
+        if (numBools > 1000) revert("Num bools too large");
+ 
         assembly {
             // Allocate memory for the array
             boolArray := mload(0x40)

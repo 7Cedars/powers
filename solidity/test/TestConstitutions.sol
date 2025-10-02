@@ -131,6 +131,8 @@ contract TestConstitutions is Test {
         conditions.quorum = 20; // = 30% quorum needed
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
         conditions.votingPeriod = 1200; // = number of blocks
+        conditions.throttleExecution = 5000;
+        conditions.delayExecution = 250;    // = 250 blocks to wait after proposal success before execution
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetLaw: lawAddresses[3], // statementOfIntent
@@ -291,21 +293,6 @@ contract TestConstitutions is Test {
         delete conditions;
     }
 
-    //////////////////////////////////////////////////////////////
-    //                  LAW CONSTITUTION                     //
-    //////////////////////////////////////////////////////////////
-    function utilitiesTestConstitution(
-        string[] memory lawNames,
-        address[] memory lawAddresses,
-        string[] memory mockNames,
-        address[] memory mockAddresses,
-        address payable daoMock
-    ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        // for now, utilities test relies on law test constitution.
-        (PowersTypes.LawInitData[] memory lawInitData_) = lawTestConstitution(lawNames, lawAddresses, mockNames, mockAddresses, daoMock);
-        lawInitData = lawInitData_;
-    }
-
     ////////////////////////////////////////////////////////////
     //                ELECTORAL CONSTITUTION                  //
     ////////////////////////////////////////////////////////////
@@ -374,7 +361,7 @@ contract TestConstitutions is Test {
         // BuyAccess - for buying role access with tokens
         tokens = new address[](2);
         tokensPerBlock = new uint256[](2);
-        tokens[0] = mockAddresses[3]; // Erc20Taxed mock
+        tokens[0] = mockAddresses[1]; // Erc20Taxed mock
         tokens[1] = address(0); // native currency. 
         tokensPerBlock[0] = 1000; // tokens per block for access
         tokensPerBlock[1] = 100; 

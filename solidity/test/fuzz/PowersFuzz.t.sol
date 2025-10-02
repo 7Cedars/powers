@@ -146,7 +146,7 @@ contract PowersFuzzTest is TestSetupPowers {
         bool shouldCancel,
         bool shouldVote
     ) public {
-        vm.assume(lawIdfuzzed > 0 && lawIdfuzzed < daoMock.lawCount());
+        vm.assume(lawIdfuzzed > 0 && lawIdfuzzed < daoMock.lawCounter());
         vm.assume(lawCalldataFuzzed.length <= daoMock.MAX_CALLDATA_LENGTH());
     
         // Assign law role to alice and bob
@@ -226,7 +226,7 @@ contract PowersFuzzTest is TestSetupPowers {
         uint256 roleIdFuzzed
     ) public {
         vm.assume(accountFuzzed != address(0));
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCount());
+        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCounter());
         vm.assume(roleIdFuzzed != ADMIN_ROLE && roleIdFuzzed != PUBLIC_ROLE);
         vm.deal(accountFuzzed, 1 ether);
         
@@ -300,7 +300,7 @@ contract PowersFuzzTest is TestSetupPowers {
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
 
-        lawId = daoMock.lawCount() - 1;
+        lawId = daoMock.lawCounter() - 1;
         // Get current law conditions
         conditions = daoMock.getConditions(lawId);
         
@@ -345,19 +345,19 @@ contract PowersFuzzTest is TestSetupPowers {
         if (bytes(nameDescriptionFuzzed).length < 1) vm.expectRevert("String too short");
         if (bytes(nameDescriptionFuzzed).length > 255) vm.expectRevert("String too long");
         daoMock.adoptLaw(lawInitData); 
-        lawCount = daoMock.lawCount();
-        assertTrue(lawCount > 0);
+        lawCounter = daoMock.lawCounter();
+        assertTrue(lawCounter > 0);
         
         // Test law revocation
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawCount - 1);
+        daoMock.revokeLaw(lawCounter - 1);
         // Verify law was revoked
-        (, , bool active2) = daoMock.getAdoptedLaw(lawCount - 1);
+        (, , bool active2) = daoMock.getAdoptedLaw(lawCounter - 1);
         assertFalse(active2);
     }
 
     function testFuzzRevokeLaw(uint16 lawIdFuzzed) public {
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCount());
+        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCounter());
         
         // Get law info before revocation
         (, , bool active2) = daoMock.getAdoptedLaw(lawIdFuzzed);

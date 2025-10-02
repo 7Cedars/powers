@@ -81,7 +81,7 @@ contract AdoptLawsTest is TestSetupExecutive {
         lawInitDatas[1] = abi.encode(lawInitData2);
 
         // Test law initialization
-        lawId = daoMock.lawCount();
+        lawId = daoMock.lawCounter();
         nameDescription = "Test Adopt Laws";
         configBytes = abi.encode(lawsToAdopt, lawInitDatas);
         
@@ -136,7 +136,7 @@ contract AdoptLawsTest is TestSetupExecutive {
         lawInitDatas[0] = abi.encode(lawInitData);
 
         // Setup law
-        lawId = daoMock.lawCount();
+        lawId = daoMock.lawCounter();
         vm.prank(address(daoMock));
         daoMock.adoptLaw(lawInitData);
 
