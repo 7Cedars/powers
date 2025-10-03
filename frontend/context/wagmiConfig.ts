@@ -36,7 +36,7 @@ export const optimismSepolia = defineChain({
       address: '0xca11bde05977b3631167028862be2a173976ca11',
       blockCreated: 1620204,
     },
-    portal: {
+    user: {
       [sourceId]: {
         address: '0x16Fc5058F25648194471939df75CF27A2fdC48BC',
       },

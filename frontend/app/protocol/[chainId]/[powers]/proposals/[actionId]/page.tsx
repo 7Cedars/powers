@@ -1,25 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ProposalBox } from "./ProposalBox";
-import { Voting } from "./Voting"; 
-import { Votes } from "./Votes";
-import { setAction, setError, useActionStore, useChecksStore } from "@/context/store";
-import { Powers, Law, Status, Checks, Action } from "@/context/types";
-import { GovernanceOverview } from "@/components/GovernanceOverview";
+import { ProposalBox } from "../../../../../../components/ProposalBox";
+import { Voting } from "../../../../../../components/Voting"; 
+import { Votes } from "../../../../../../components/Votes";
+import { setAction, useActionStore, useChecksStore } from "@/context/store";
+import { Powers, Checks, Action } from "@/context/types";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
-import { parseParamValues } from "@/utils/parsers";
-import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { useProposal } from "@/hooks/useProposal";
 import { useChecks } from "@/hooks/useChecks";
-import { readContract } from "wagmi/actions";
-import { powersAbi } from "@/context/abi";
-import { hashAction } from "@/utils/hashAction";
-import { wagmiConfig } from "@/context/wagmiConfig";
 import { LawLink } from "@/components/LawLink";
-import { useReadContracts } from "wagmi";
 import { useAction } from "@/hooks/useAction";
 import { TitleText } from "@/components/StandardFonts";
 

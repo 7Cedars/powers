@@ -280,8 +280,8 @@ ANVIL_ARGS_0 := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KE
 ARB_SEPOLIA_TEST_ARGS := --fork-url $(ARB_SEPOLIA_RPC_URL)
 
 SEPOLIA_DEPLOY_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 11155111 --verify -vvvv
-ARB_SEPOLIA_DEPLOY_ARGS := --rpc-url $(ARB_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ARBISCAN_API_KEY) --verifier etherscan --chain 421614 --verify -vvvv
-OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(OPTISCAN_API_KEY) --verifier etherscan --chain 11155420 --verify -vvvv
+ARB_SEPOLIA_DEPLOY_ARGS := --rpc-url $(ARB_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 421614 --verify -vvvv
+OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 11155420 --verify -vvvv
 OPT_DEPLOY_ARGS := --rpc-url $(OPT_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(OPTISCAN_API_KEY) --verifier etherscan --chain 10 --verify -vvvv
 MANTLE_SEPOLIA_DEPLOY_ARGS := --rpc-url $(MANTLE_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 5003 --verify -vvvv
 
@@ -336,5 +336,7 @@ mantleSepoliaDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(
 mantleSepoliaDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 mantleSepoliaDeployVanillaPowers :; forge script script/DeployVanillaPowers.sol:DeployVanillaPowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 
+
+optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --verifier etherscan 0x53CB3281823Ea08439Cf9Ac9F403c08FBF94d490 test/mocks/Erc20VotesMock.sol:Erc20VotesMock --watch
 sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch
 mantleSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 5003 --verifier etherscan 0x4cba41c3d34a6177659126517b9806acefa0f83c --compiler-version 0.8.26 src/laws/electoral/DelegateSelect.sol:DelegateSelect --watch

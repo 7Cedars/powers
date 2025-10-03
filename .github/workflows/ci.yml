@@ -11,68 +11,71 @@ env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  solidity-tests:
-    name: Solidity Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+  # THESE ARE RUN LOCALLY. 
+  # 
+  # solidity-tests:
+  #   name: Solidity Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+  #     - name: Install Foundry
+  #       uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Show Forge version
-        run: |
-          forge --version
+  #     - name: Show Forge version
+  #       run: |
+  #         forge --version
 
-      - name: Run Forge fmt
-        run: |
-          cd solidity && forge fmt --check
-        id: fmt
+  #     - name: Run Forge fmt
+  #       run: |
+  #         cd solidity && forge fmt --check
+  #       id: fmt
 
-      - name: Run Forge build
-        run: |
-          cd solidity && forge build --sizes
-        id: build
+  #     - name: Run Forge build
+  #       run: |
+  #         cd solidity && forge build --sizes
+  #       id: build
 
-      - name: Run Forge tests
-        run: |
-          cd solidity && forge test -vvv
-        id: test
+  #     - name: Run Forge tests
+  #       run: |
+  #         cd solidity && forge test -vvv
+  #       id: test
 
       # - name: Run Forge coverage
       #   run: |
       #     cd solidity && forge coverage --report lcov
       #   id: coverage
 
-  frontend-tests:
-    name: Frontend Tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    steps:
-      - uses: actions/checkout@v4
+  # TODO: Add frontend tests + vercel deploy has checks. 
+  # frontend-tests:
+  #   name: Frontend Tests
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./frontend
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'yarn'
-          cache-dependency-path: 'frontend/yarn.lock'
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '18'
+  #         cache: 'yarn'
+  #         cache-dependency-path: 'frontend/yarn.lock'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+  #     - name: Install dependencies
+  #       run: yarn install --frozen-lockfile
 
-      - name: Run frontend tests
-        run: yarn test --coverage --watchAll=false
+  #     - name: Run frontend tests
+  #       run: yarn test --coverage --watchAll=false
 
-      - name: Run frontend linting
-        run: yarn lint
+  #     - name: Run frontend linting
+  #       run: yarn lint
 
-      - name: Build frontend
-        run: yarn build
+  #     - name: Build frontend
+  #       run: yarn build
 
   security-audit:
     name: Security Audit

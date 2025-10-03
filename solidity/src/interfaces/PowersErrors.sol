@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -13,15 +13,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @notice Errors used in the Powers protocol.
-/// Code derived from OpenZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
-///
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
 interface PowersErrors {
-    /// @notice Emitted when a function is called by an account that lacks the correct roleId.
-    error Powers__AccessDenied();
-
     /// @notice Emitted when an action has already been initiated.
     error Powers__ActionAlreadyInitiated();
 
@@ -33,9 +28,6 @@ interface PowersErrors {
 
     /// @notice Emitted when a callData is invalid.
     error Powers__InvalidCallData();
-
-    /// @notice Emitted when a law did not pass its checks.
-    error Powers__LawDidNotPassChecks();
 
     /// @notice Emitted when a law is not active.
     error Powers__LawNotActive();
@@ -61,9 +53,6 @@ interface PowersErrors {
     /// @notice Emitted when a constitution has already been executed.
     error Powers__ConstitutionAlreadyExecuted();
 
-    /// @notice Emitted when a law is already active.
-    error Powers__LawAlreadyActive();
-
     /// @notice Emitted when a law is not adopted.
     error Powers__AlreadyCastVote();
 
@@ -71,7 +60,7 @@ interface PowersErrors {
     error Powers__InvalidVoteType();
 
     /// @notice Emitted when a role is locked.
-    error Powers__CannotAddToPublicRole();
+    error Powers__CannotSetPublicRole();
 
     /// @notice Emitted when a zero address is added.
     error Powers__CannotAddZeroAddress();
@@ -79,6 +68,60 @@ interface PowersErrors {
     /// @notice Emitted when a name is invalid.
     error Powers__InvalidName();
 
-    /// @notice Emitted when a law does not exist.
-    error Powers__LawDoesNotExist();
+    /// @notice Emitted when a role has no members.
+    error Powers__NoMembersInRole();
+
+    /// @notice Emitted when an action is already fulfilled.
+    error Powers__ActionAlreadyFulfilled();
+
+    /// @notice Emitted when a law request fails.
+    error Powers__LawRequestFailed();
+
+    /// @notice Emitted when a calldata is too long.
+    error Powers__CalldataTooLong();
+
+    /// @notice Emitted when an address is blacklisted.
+    error Powers__AddressBlacklisted();
+
+    /// @notice Emitted when an array is too long.
+    error Powers__ExecutionArrayTooLong();
+
+    /// @notice Emitted when an action does not exist.
+    error Powers__ActionNotProposed();
+
+    /// @notice Emitted when payable is not enabled.
+    error Powers__PayableNotEnabled();
+
+    /// @notice Emitted when an account cannot call a law.
+    error Powers__CannotCallLaw();
+
+    /// @notice Emitted when the caller is not the target law.
+    error Powers__CallerNotTargetLaw();
+
+    /// @notice Emitted when the caller is not the proposer of the action.
+    error Powers__NotProposerAction();
+
+    /// @notice Emitted when the caller is not the admin.
+    error Powers__NotAdmin();
+
+    /// @notice Emitted when an external contract is blacklisted.
+    error Powers__ExternalContractBlacklisted();
+
+    /// @notice Emitted when an external contract is not a contract.
+    error Powers__NotAContract();
+
+    /// @notice Emitted when a label is invalid.
+    error Powers__InvalidLabel();
+
+    /// @notice Emitted when a label is too long.
+    error Powers__LabelTooLong();
+
+    /// @notice Emitted when a vote with public role is attempted.
+    error Powers__VoteWithPublicRoleDisallowed();
+
+    /// @notice Emitted when a max call data length is invalid.
+    error Powers__InvalidMaxCallDataLength();
+
+    /// @notice Emitted when a max executions length is invalid.
+    error Powers__InvalidMaxExecutionsLength();
 }

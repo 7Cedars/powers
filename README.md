@@ -15,24 +15,26 @@
     <img src="./powers_icon_notext.svg" alt="Powers Logo" width="300" height="300">
   </a>
 
-<h3 align="center">Powers</h3>
+<h3 align="center">Powers v0.4</h3>
   <p align="center">
-    Role-based governance for on-chain organisations  
+    Institutional governance for on-chain organisations  
     <br />
-    <!--NB: TO DO -->  
+    <!--TO DO: UPDATE LINKS AFTERUPDATING ORGS -->  
+    <a href=" ">White paper</a> ·
     <a href="/solidity">Solidity protocol</a> ·
-    <a href="https://sepolia.arbiscan.io/address/0x001a6a16d2fc45248e00351314bce898b7d8578f">Proof of Concept (Arbiscan)</a> ·
-    <a href="https://powers-protocol.vercel.app/421614/0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36">Proof of Concept (live Demo)</a> ·
+    <a href="https://powers-protocol.vercel.app/421614/0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36">Demo</a> ·
     <a href="https://7cedars.gitbook.io/powers-protocol">Documentation</a>
   </p>
 </div>
 
+<!-- THE CLIPS NEED TO BE UPDATED! 
 <div align="center">
   For an introduction into the protocol, see
   
    <a href="https://www.tella.tv/video/powers-1-aijc"><b> the 2 minute project pitch</b> </a> or <a href="https://www.tella.tv/video/powers-solving-dao-governance-challenges-bis6"><b> the 15 minute explanation</b></a>.
 
 </div>
+--> 
 
 <!-- TABLE OF CONTENTS --> 
 <!-- NB! Still needs to be adapted --> 
@@ -50,17 +52,17 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About
-Powers restricts governance processes along access roles. It allows a single decision to travel along multiple stakeholders through modular, asynchronous and trustless governance paths before it is executed.
+Powers v0.4 provides institutional governance for on-chain organisations by restricting governance processes along access roles. It allows a single decision to travel along multiple stakeholders through modular, asynchronous and trustless governance paths before it is executed.
 
 ## Use Cases 
 
-Powers enables three key governance patterns that solve common DAO challenges:
+Powers v0.4 enables three key governance patterns that solve common on-chain organisation challenges:
 
-**🔐 Grant Management**: Create accountable grant programs where different roles can allocate different funds, and decisions are logged and can be challenged. All funds remain in the community treasury, and grant programs can be revoked if they don't achieve intended impact.
+**🔐 Devolved Responsibilities**: Create accountable governance structures where different roles can manage specific domains like working groups, grants, councils, and specialized governance bodies. Decisions are logged and can be challenged, with all funds remaining in the community treasury and programs revocable if they don't achieve intended impact.
 
 **⚖️ Separated Powers**: Distribute decision-making across multiple roles to prevent centralization. One role can propose actions, another can veto, and a third can execute - creating checks and balances similar to legislative, judicial, and executive branches.
 
-**🔄 DAO Upgrades**: Upgrade existing DAOs gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing DAO as a role holder.     
+**🔄 On-chain Organisation Upgrades**: Upgrade existing on-chain organisations gradually without abandoning established governance. Start with minimal assets in Powers, add new roles and tasks, and transition completely when confidence grows - all while maintaining the existing organisation as a role holder.     
 
 ## Deploy locally
 
@@ -155,6 +157,7 @@ For detailed information on creating your own laws and organizations, please ref
 ### Built With
 <!-- See for a list of badges: https://github.com/Envoy-VC/awesome-badges -->
 <!-- * [![React][React.js]][React-url]  -->
+* Powers Protocol v0.4
 * Solidity 0.8.26
 * Foundry 0.2.0
 * OpenZeppelin 5.0.2
@@ -165,12 +168,15 @@ For detailed information on creating your own laws and organizations, please ref
 * Privy.io
 
 ### Acknowledgements
+* INVCBULL AUDIT GROUP
 * Arnold Almeida
 * James M 
 * Paulo Fonseca
 * Andrei V  
 * Arbitrum DAO 
-* RnDAO 
+* RnDAO
+
+Powers v0.4 represents a significant evolution in institutional governance for on-chain organisations, building upon the foundational work of the community and contributors. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

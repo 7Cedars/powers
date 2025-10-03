@@ -2,19 +2,17 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/7Cedars/separated-powers"> 
-    <img src="../public/logo.png" alt="Logo" width="300" height="300">
+  <a href="https://github.com/7Cedars/powers"> 
+    <img src="../powers_icon_notext.svg" alt="Logo" width="300" height="300">
   </a>
 
 <h2 align="center"> Powers protocol </h2>
   <p align="center">
-    A role restricted governance protocol for DAOs. 
+    Institutional governance for on-chain organisations. 
     <br />
     <br />
-    <!--NB: TO DO --> 
-    <a href="../README.md">Conceptual overview</a>
-    ·
     <a href="#whats-included">What's included</a> ·
+    <a href="#how-it-works">How it works</a> ·
     <a href="#prerequisites">Prerequisites</a> ·
     <a href="#getting-started">Getting Started</a>
   </p>
@@ -23,56 +21,34 @@
 </div>
 
 ## What's included
-- A fully functional proof-of-concept of the Separated Powers governance protocol. 
-- Base electoral laws, that enable different ways to assign roles to accounts. 
-- Base executive laws, that enable different ways to role restrict and call external functions.
-- Example constitutions and founders documents needed to initialise DAOs  (still a work in progress).
-- Example implementations of DAOs building on the Separated Powers protocol (still a work in progress).
-- Extensive unit, integration, fuzz and invariant tests (still a work in progress).
+- A fully functional proof-of-concept of the Powers governance protocol (v0.4). It allows for the creation of modular and flexible rule based governance in on-chain organisations.  
+- Electoral laws that enable different ways to assign roles to accounts. 
+- Executive laws that enable different ways to role restrict and call external functions.
+- Multi-action laws that provide flexible execution patterns for complex governance operations.
+- Example constitutions and founders documents needed to initialize DAOs.
+- Example implementations of DAOs building on the Powers protocol.
+- Comprehensive unit, integration, fuzz and invariant tests.
 
 ## How it works
-The protocol closely mirrors {Governor.sol} and includes code derived from {AccessManager.sol}. Its code layout is inspired by the Hats protocol.
+In Powers actions need to be executed through role restricted contracts, called laws. These laws give role holders the power to transform pre-defined input into executable calldata. Aside from being role restricted, execution can also be conditional on the execution of another law. This allows for the creation of checks and balances between roles, and the creation of any type of rule based governance structure.       
 
-There are several key differences between {Powers.sol} and openZeppelin's {Governor.sol}.  
-- Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw.sol} interface.
-- Proposing, voting, cancelling and executing actions are role restricted along the target law that is called.
-- All DAO actions need to run through the governance protocol. Calls to laws that do not need a proposal vote to be executed, still need to be executed through {Powers::execute}.
+As such, there are several key differences between {Powers.sol} and the often used {Governor.sol}:  
+- Any action needs to be encoded in role-restricted external contracts, or laws, that follow the {ILaw.sol} interface.
+- Proposing, voting, cancelling and executing actions are role-restricted along the target law that is called.
+- All actions need to run through the governance protocol. Calls to laws that do not need a proposal vote to be executed still need to be executed through {Powers::execute}.
 - The core protocol uses a non-weighted voting mechanism: one account has one vote.
 - The core protocol is minimalistic. Any complexity (timelock, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
 
-Laws are role restricted contracts that provide the following functionalities:
-- Role restricting DAO actions
-- Transforming a lawCalldata input into an output of targets[], values[], calldatas[] to be executed by the Powers protocol.
+Laws are role-restricted contracts that provide the following functionalities:
+- Transforming a lawCalldata input into an output of targets[], values[], calldatas[] to be executed by the Powers protocol
 - Adding conditions to the execution of the law. Any conditional logic can be added to a law, but the standard implementation supports the following:   
-  - a vote quorum, threshold and period in case the law needs a proposal vote to pass before being executed.  
-  - a parent law that needs to be completed before the law can be executed.
-  - a parent law that needs to NOT be completed before the law can be executed.
-  - a vote delay: an amount of time in blocks that needs to have passed since the proposal vote ended before the law can be executed. 
-  - a minimum amount of blocks that need to have passed since the previous execution before the law can be executed again. 
+  - A vote quorum, threshold and period in case the law needs a proposal vote to pass before being executed  
+  - A parent law that needs to be completed before the law can be executed
+  - A parent law that needs to NOT be completed before the law can be executed
+  - A vote delay: an amount of time in blocks that needs to have passed since the proposal vote ended before the law can be executed 
+  - A minimum amount of blocks that need to have passed since the previous execution before the law can be executed again 
 
-The combination of checks and execution logics allows for creating almost any type of governance infrastructure with a minimum number of laws. For example implementations of DAOs, see the implementations/daos folder.
-
-
-
-<!-- ### AgDao is deployed on the Arbitrum Sepolia testnet: 
-Contracts have not been verified, but can be interacted with through [our bespoke user interface](https://separated-powers.vercel.app/).   
-
-[AgDao](https://sepolia.arbiscan.io/address/0x001A6a16D2fc45248e00351314bCE898B7d8578f) - An example Dao implementation. This Dao aims to fund accounts that are aligned to its core values. <br>
-[AgCoins](https://sepolia.arbiscan.io/address/0xC45B6b4013fd888d18F1d94A32bc4af882cDCF86) - A mock coin contract. <br>
-
-#### Laws 
-[Public_assignRole](https://sepolia.arbiscan.io/address/0x7Dcbd2DAc6166F77E8e7d4b397EB603f4680794C) - Allows anyone to claim a member role. <br> 
-[Senior_assignRole](https://sepolia.arbiscan.io/address/0x420bf9045BFD5449eB12E068AEf31251BEb576b1) - Allows senior to vote in assigning senior role. <br> 
-[Senior_revokeRole](https://sepolia.arbiscan.io/address/0x3216EB8D8fF087536835600a7e0B32687744Ef65)- Allows seniors to on revoking a senior role. <br> 
-[Member_assignWhale](https://sepolia.arbiscan.io/address/0xbb45079e74399e7238AAF63C764C3CeE7D77712F) - Allows members to asses if account has sufficient tokens to get whale role. <br> 
-[Whale_proposeLaw](https://sepolia.arbiscan.io/address/0x0Ea769CD03D6159088F14D3b23bF50702b5d4363) - Allows whales to propose a law. <br> 
-[Senior_acceptProposedLaw](https://sepolia.arbiscan.io/address/0xa2c0C9d9762c51DA258d008C92575A158121c87d) - Allows seniors to accept a proposed law. <br> 
-[Admin_setLaw](https://sepolia.arbiscan.io/address/0xfb7291B8FbA99C9FC29E95797914777562983D71) - Allows admin to implement a proposed law. <br> 
-[Member_proposeCoreValue](https://sepolia.arbiscan.io/address/0x8383547475d9ade41cE23D9Aa4D81E85D1eAdeBD) - Allows member to propose a core value. <br> 
-[Whale_acceptCoreValue](https://sepolia.arbiscan.io/address/0xBfa0747E3AC40c628352ff65a1254cC08f1957Aa) - Allows a whale to accept a proposed value as core requirement for funding accounts. <br> 
-[Whale_revokeMember](https://sepolia.arbiscan.io/address/0x71504Ced3199f8a0B32EaBf4C274D1ddD87Ecc4d) - Allows  whale to revoke and blacklist a member for funding non-aligned accounts. <br> 
-[Public_challengeRevoke](https://sepolia.arbiscan.io/address/0x0735199AeDba32A4E1BaF963A3C5C1D2930BdfFd)- Allows a revoked member to challenge the revoke decision. <br> 
-[Senior_reinstateMember](https://sepolia.arbiscan.io/address/0x57C9a89c8550fAf69Ab86a9A4e5c96BcBC270af9) - Allows seniors to accept a challenge and reinstate a member. <br>  -->
+The combination of checks and execution logics allows for creating almost any type of governance infrastructure with a minimum number of laws. For example implementations, see the `/test/TestConstitutions.sol` file.
 
 ## Directory Structure
 
@@ -87,13 +63,11 @@ solidity/
 │
 ├── out/                                       # Compilation output
 ├── script/                                    # Deployment scripts
-│    ├── DeployAlignedDao.s.sol                # Deploys the AgDao example implementation
-│    └── ...                                   # Deployment contracts
+│    ├── DeployLaws.s.sol                      # Deploys law contracts
+│    ├── DeployMocks.s.sol                     # Deploys mock contracts
+│    └── HelperConfig.s.sol                    # Helper configuration
 │
 ├── src/                                       # Protocol resources
-│    ├── integrations/                         # Integration implementations
-│    │    └── ...                              # Integration contracts
-│    │
 │    ├── interfaces/                           # Protocol interfaces
 │    │    ├── ILaw.sol                         # Law interface
 │    │    ├── IPowers.sol                      # Powers interface
@@ -103,80 +77,81 @@ solidity/
 │    │    └── PowersTypes.sol                  # Powers data types
 │    │
 │    ├── laws/                                 # Law implementations
-│    │    ├── bespoke/                         # Custom law implementations
-│    │    │    ├── alignedDao/                 # Aligned DAO specific laws
-│    │    │    ├── diversifiedRoles/           # Diversified roles laws
-│    │    │    └── governYourTax/              # Tax-based governance laws
-│    │    │        ├── RoleByTaxPaid.sol       # Role assignment based on tax
-│    │    │        ├── GrantProgram.sol          # Grant initiation
-│    │    │        └── StopGrant.sol           # Grant termination
-│    │    │
 │    │    ├── electoral/                       # Electoral laws
-│    │    │    ├── DelegateSelect.sol          # Role assignment via delegated votes
-│    │    │    ├── DirectSelect.sol            # Single account role assignment
-│    │    │    ├── ElectionCall.sol            # Election call handling
-│    │    │    ├── ElectionTally.sol           # Election vote tallying
-│    │    │    ├── PeerSelect.sol              # Peer-based selection
-│    │    │    ├── RandomlySelect.sol          # Random role assignment
+│    │    │    ├── BuyAccess.sol               # Role assignment based on donations
+│    │    │    ├── ElectionSelect.sol          # Role assignment via elections
+│    │    │    ├── NStrikesRevokesRoles.sol    # Role revocation after strikes
+│    │    │    ├── PeerSelect.sol              # Peer-based role selection
 │    │    │    ├── RenounceRole.sol            # Role renunciation
-│    │    │    └── SelfSelect.sol              # Self-selection for roles
+│    │    │    ├── RoleByRoles.sol             # Role assignment based on other roles
+│    │    │    ├── SelfSelect.sol              # Self-selection for roles
+│    │    │    ├── TaxSelect.sol               # Role assignment based on tax payments
+│    │    │    └── VoteInOpenElection.sol      # Voting in external elections
 │    │    │
 │    │    ├── executive/                       # Executive laws
-│    │    │    ├── BespokeAction.sol           # Preset contract/function calls
-│    │    │    ├── OpenAction.sol              # Dynamic action execution
-│    │    │    ├── PresetAction.sol            # Preset action execution
-│    │    │    ├── StatementOfIntent.sol            # Proposal-only execution
-│    │    │    └── SelfDestructAction.sol      # Self-destruct action
+│    │    │    ├── AdoptLaws.sol               # Adopt multiple laws at once
+│    │    │    ├── GovernorCreateProposal.sol  # Create governance proposals
+│    │    │    └── GovernorExecuteProposal.sol # Execute governance proposals
 │    │    │
-│    │    ├── state/                           # State management laws
-│    │    │    ├── AddressesMapping.sol        # Address mapping management
-│    │    │    ├── ElectionVotes.sol           # Election votes tracking
-│    │    │    ├── NominateMe.sol              # Self-nomination
-│    │    │    ├── StringsArray.sol            # String array management
-│    │    │    └── TokensArray.sol             # Token array management
+│    │    ├── multi/                           # Multi-action laws
+│    │    │    ├── BespokeActionAdvanced.sol   # Advanced custom actions
+│    │    │    ├── BespokeActionSimple.sol     # Simple custom actions
+│    │    │    ├── OpenAction.sol              # Open action execution
+│    │    │    ├── PresetMultipleActions.sol   # Multiple preset actions
+│    │    │    ├── PresetSingleAction.sol      # Single preset action
+│    │    │    └── StatementOfIntent.sol       # Statement of intent
 │    │    │
-│    │    └── LawUtils.sol                     # Law utility functions
-│    │
-│    ├── Law.sol                               # Core Law contract
-│    └── Powers.sol                            # Core protocol contract
+│    │    ├── Law.sol                          # Core Law contract
+│    │    ├── LawUtilities.sol                 # Law utility functions
+│    │    ├── Powers.sol                       # Core protocol contract
+│    │    └── PowersUtilities.sol              # Powers utility functions
 │
 ├── test/                                      # Tests
 │    ├── fuzz/                                 # Fuzz tests
-│    │    └── SettingLaw_fuzz.t.sol            # Law setting fuzz tests
+│    │    ├── LawFuzz.t.sol                    # Law fuzz tests
+│    │    ├── PowersFuzz.t.sol                 # Powers fuzz tests
+│    │    └── laws/                            # Law-specific fuzz tests
+│    │        ├── ElectoralFuzz.t.sol          # Electoral law fuzz tests
+│    │        ├── ExecutiveFuzz.t.sol          # Executive law fuzz tests
+│    │        └── MultiFuzz.t.sol              # Multi-action law fuzz tests
 │    │
-│    ├── mocks/                                # Mock contracts
-│    │    ├── ConstitutionMock.sol             # Mock constitution
-│    │    ├── DaoMock.sol                      # Mock DAO
-│    │    ├── Erc20TaxedMock.sol               # Mock taxed ERC20
-│    │    └── FoundersMock.sol                 # Mock founders
+│    ├── integration/                          # Integration tests
+│    │    ├── Powers101.t.sol                  # Powers 101 integration tests
+│    │    ├── ManagedGrants_TBI.t.sol          # Managed grants tests (TBI)
+│    │    ├── OpenElections_TBI.t.sol          # Open elections tests (TBI)
+│    │    └── SplitGovernance_TBI.t.sol        # Split governance tests (TBI)
+│    │
+│    ├── mocks/                                # Mock contracts for testing
+│    │    ├── Donations.sol                    # Mock donations contract
+│    │    ├── Erc20DelegateElection.sol        # Mock ERC20 delegate election
+│    │    ├── Erc20Taxed.sol                   # Mock taxed ERC20
+│    │    ├── FlagActions.sol                  # Mock flag actions contract
+│    │    ├── Nominees.sol                     # Mock nominees contract
+│    │    ├── OpenElection.sol                 # Mock open election contract
+│    │    ├── SimpleGovernor.sol               # Mock simple governor
+│    │    └── ...                              # Additional mock contracts
 │    │
 │    ├── unit/                                 # Unit tests
 │    │    ├── Law.t.sol                        # Core Law contract tests
+│    │    ├── LawUtilities.t.sol               # Law utilities tests
 │    │    ├── Powers.t.sol                     # Core Powers contract tests
-│    │    ├── DeployScripts.t.sol              # Deployment script tests
+│    │    ├── PowersUtilities.t.sol            # Powers utilities tests
 │    │    ├── Mocks.t.sol                      # Mock contract tests
-│    │    │
-│    │    └── laws/                            # Law unit tests
+│    │    └── laws/                            # Law-specific unit tests
 │    │        ├── Electoral.t.sol              # Electoral law tests
 │    │        ├── Executive.t.sol              # Executive law tests
-│    │        ├── State.t.sol                  # State law tests
-│    │        │
-│    │        └── bespoke/                     # Custom law tests
-│    │            ├── AlignedDao.t.sol         # Aligned DAO law tests
-│    │            ├── GovernYourTax.t.sol      # Tax governance tests
-│    │            └── DiversifiedRoles.t.sol   # Diversified roles tests
+│    │        └── Multi.t.sol                  # Multi-action law tests
 │    │
+│    ├── TestConstitutions.sol                 # Constitution tests
 │    └── TestSetup.t.sol                       # Test environment setup
 │
-├── .env                                       # Environment variables
 ├── .env.example                               # Environment variables template
 ├── .gitignore                                 # Git ignore rules
 ├── .gitmodules                                # Git submodules
 ├── foundry.toml                               # Foundry configuration
 ├── lcov.info                                  # Test coverage information
 ├── Makefile                                   # Build and test commands
-├── README.md                                  # Project documentation
-└── remappings.txt                             # Solidity import remappings
+└── README.md                                  # Project documentation 
 
 ```
 
@@ -189,17 +164,17 @@ Foundry<br>
 1. Clone this repo locally and move to the solidity folder:
 
 ```sh
-git clone https://github.com/7Cedars/separated-powers
-cd separated-powers/solidity 
+git clone https://github.com/7Cedars/powers
+cd powers/solidity 
 ```
 
 2. Copy `.env.example` to `.env` and update the variables.
 
 ```sh
-cp env.example .env
+cp .env.example .env
 ```
 
-3. run make. This will install all dependencies and run the tests. 
+3. Run make. This will install all dependencies and run the tests. 
 
 ```sh
 make
@@ -212,7 +187,7 @@ forge test
 ```
 
 ## Acknowledgements 
-Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol.
+Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol. The Powers protocol (v0.4) represents a significant evolution in role-based governance systems for on-chain organ.
 
 
 

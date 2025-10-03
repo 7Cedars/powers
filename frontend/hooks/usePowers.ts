@@ -114,7 +114,7 @@ export const usePowers = () => {
         const lawFetched = await publicClient.readContract({ 
           abi: powersAbi,
           address: address as `0x${string}`,
-          functionName: 'getActiveLaw',
+          functionName: 'getAdoptedLaw',
           args: [BigInt(lawId)]
         })
         // console.log("@checkSingleLaw, waypoint 1", {lawFetched})
@@ -148,7 +148,7 @@ export const usePowers = () => {
       // console.log("@checkSingleLaw, waypoint 3", {laws})
       const powersUpdated = { ...powers, 
         laws,
-        activeLaws: laws.filter((law: Law) => law.active)
+        AdoptedLaws: laws.filter((law: Law) => law.active)
       }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
@@ -171,7 +171,7 @@ export const usePowers = () => {
             const lawFetched = await publicClient.readContract({ 
               abi: powersAbi,
               address: address as `0x${string}`,
-              functionName: 'getActiveLaw',
+              functionName: 'getAdoptedLaw',
               args: [BigInt(lawId)]
             })
                 // console.log("@checkLaws, waypoint 2", {lawFetched})
@@ -241,9 +241,9 @@ export const usePowers = () => {
 
   const calculateRoles = (laws: Law[]): bigint[] | undefined => {
     try {
-      const activeLaws = laws.filter((law: Law) => law.active)
-      // console.log("@calculateRoles, waypoint 0", {activeLaws})
-      const rolesAll = activeLaws.map((law: Law) => law.conditions?.allowedRole)
+      const AdoptedLaws = laws.filter((law: Law) => law.active)
+      // console.log("@calculateRoles, waypoint 0", {AdoptedLaws})
+      const rolesAll = AdoptedLaws.map((law: Law) => law.conditions?.allowedRole)
       // console.log("@calculateRoles, waypoint 1", {rolesAll})
       const roles = [... new Set(rolesAll)] as bigint[]
       // console.log("@calculateRoles, waypoint 2", {roles})
@@ -321,7 +321,7 @@ export const usePowers = () => {
       // console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
         laws, 
-        activeLaws: laws.filter((law: Law) => law.active),
+        AdoptedLaws: laws.filter((law: Law) => law.active),
         roles, 
         roleLabels
       }
@@ -441,7 +441,7 @@ export const usePowers = () => {
 
     try {
       for (law of laws) {
-        // console.log("@fetchExecutedActions, waypoint 0", {law})
+        console.log("@fetchExecutedActions, waypoint 0", {law})
 
         const executedActionsFetched = await readContract(wagmiConfig, {
           abi: lawAbi,
@@ -449,10 +449,10 @@ export const usePowers = () => {
           functionName: 'getExecutions',
           args: [law.powers, law.index]
         })
-        // console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
+        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
         executedActions.push(executedActionsFetched as unknown as LawExecutions)
       }
-      // console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
+      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
       powersUpdated = { ...powers, executedActions }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
@@ -519,7 +519,7 @@ export const usePowers = () => {
       let executedActions: Powers | undefined
       let proposals: Powers | undefined
 
-      powersToBeUpdated = { contractAddress: address }
+      powersToBeUpdated = { contractAddress: address, chainId: BigInt(chainId) }
       // console.log("@refetchPowers, waypoint 1", {powersToBeUpdated})
 
       try {
@@ -548,12 +548,13 @@ export const usePowers = () => {
           // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, executedActions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
+            chainId: BigInt(chainId),
             name: data.name,
             metadatas: metaData.metadatas,
             uri: data.uri,
             lawCount: data.lawCount,
             laws: laws.laws,
-            activeLaws: laws.activeLaws,
+            AdoptedLaws: laws.AdoptedLaws,
             proposals: proposals.proposals,
             executedActions: executedActions.executedActions,
             roles: laws.roles,

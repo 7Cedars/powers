@@ -5,7 +5,7 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
@@ -13,8 +13,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title Powers Protocol Interface
-/// @notice Interface for the Powers protocol, a Role Restricted Governance Protocol
-/// @dev Derived from OpenZeppelin's Governor.sol contract
+/// @notice Interface for Powers, a protocol implementing Institutional Governance.
+/// @dev Derived from OpenZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
@@ -36,7 +36,8 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param nonce The nonce for the action
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
-        payable;
+        payable
+        returns (uint256 actionId);
 
     /// @notice Completes an action by executing the actual calls
     /// @dev Can only be called by an active law contract
@@ -59,18 +60,18 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action
     /// @param uriDescription A human-readable description of the proposal
-    /// @return The unique identifier of the created proposal
+    /// @return actionId The unique identifier of the created proposal
     function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
-        returns (uint256);
+        returns (uint256 actionId);
 
     /// @notice Cancels an existing proposal
     /// @dev Can only be called by the original proposer
     /// @param lawId The id of the law
     /// @param lawCalldata The original encoded function call data
     /// @param nonce The nonce for the action
-    /// @return The unique identifier of the cancelled proposal
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256);
+    /// @return actionId The unique identifier of the cancelled proposal
+    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256 actionId);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain
@@ -97,7 +98,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Activates a new law in the protocol
     /// @dev Can only be called through the protocol itself
     /// @param lawInitData The data of the law
-    function adoptLaw(LawInitData calldata lawInitData) external;
+    function adoptLaw(LawInitData calldata lawInitData) external returns (uint256 lawId);
 
     /// @notice Deactivates an existing law
     /// @dev Can only be called through the protocol itself
@@ -122,6 +123,22 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param label The human-readable label for the role
     function labelRole(uint256 roleId, string calldata label) external;
 
+    /// @notice Updates the protocol's metadata URI
+    /// @dev Can only be called through the protocol itself
+    /// @param newUri The new URI string
+    function setUri(string memory newUri) external;
+
+    /// @notice Blacklists an account
+    /// @dev Can only be called through the protocol itself
+    /// @param account The address to blacklist
+    /// @param blacklisted The blacklisted status of the account
+    function blacklistAddress(address account, bool blacklisted) external;
+
+    /// @notice Sets the payable enabled status
+    /// @dev IMPORTANT: When payable is enabled, ether can be sent to the protocol. If there is no law to retrieve the funds - and no law to adopt new laws - the funds will be locked in the protocol for ever.
+    /// @param payableEnabled The payable enabled status
+    function setPayableEnabled(bool payableEnabled) external;
+
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
     //////////////////////////////////////////////////////////////
@@ -129,7 +146,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
     /// @return state the current state of the proposal
-    function state(uint256 actionId) external view returns (ActionState state);
+    function getActionState(uint256 actionId) external view returns (ActionState state);
 
     /// @notice Checks if an account has voted on a specific proposal
     /// @param actionId The unique identifier of the proposal
@@ -140,39 +157,64 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Gets the deadline for voting on a proposal
     /// @param actionId The unique identifier of the proposal
     /// @return deadline the block number at which voting ends
-    function getProposedActionDeadline(uint256 actionId) external view returns (uint256 deadline);
+    function getActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
     /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
-    /// @return cancelled - whether the action has been cancelled
-    /// @return requested - whether the action has been requested
-    /// @return fulfilled - whether the action has been fulfilled
     /// @return lawId - the id of the law that the action is associated with
-    /// @return voteStart - the block number at which voting starts
-    /// @return voteDuration - the duration of the voting period
-    /// @return voteEnd - the block number at which voting ends
+    /// @return proposedAt - the block number at which the action was proposed
+    /// @return requestedAt - the block number at which the action was requested
+    /// @return fulfilledAt - the block number at which the action was fulfilled
+    /// @return cancelledAt - the block number at which the action was cancelled
     /// @return caller - the address of the caller
-    /// @return againstVotes - the number of votes against the action
-    /// @return forVotes - the number of votes for the action
-    /// @return abstainVotes - the number of abstain votes
     /// @return nonce - the nonce of the action
     function getActionData(uint256 actionId)
         external
         view
         returns (
-            bool cancelled,
-            bool requested,
-            bool fulfilled,
             uint16 lawId,
+            uint48 proposedAt,
+            uint48 requestedAt,
+            uint48 fulfilledAt,
+            uint48 cancelledAt,
+            address caller,
+            uint256 nonce
+        );
+
+    /// @notice gets the vote data of an actionId that are not an array.
+    /// @param actionId The unique identifier of the proposal
+    /// @return voteStart - the block number at which voting starts
+    /// @return voteDuration - the duration of the voting period
+    /// @return voteEnd - the block number at which voting ends
+    /// @return againstVotes - the number of votes against the action
+    /// @return forVotes - the number of votes for the action
+    /// @return abstainVotes - the number of abstain votes
+    function getActionVoteData(uint256 actionId)
+        external
+        view
+        returns (
             uint48 voteStart,
             uint32 voteDuration,
             uint256 voteEnd,
-            address caller,
             uint32 againstVotes,
             uint32 forVotes,
-            uint32 abstainVotes,
-            uint256 nonce
+            uint32 abstainVotes
         );
+
+    /// @notice Gets the calldata for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return callData The calldata for the action
+    function getActionCalldata(uint256 actionId) external view returns (bytes memory callData);
+
+    /// @notice Gets the URI for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return _uri The URI for the action
+    function getActionUri(uint256 actionId) external view returns (string memory _uri);
+
+    /// @notice Gets the nonce for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @return nonce The nonce for the action
+    function getActionNonce(uint256 actionId) external view returns (uint256 nonce);
 
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
@@ -195,7 +237,17 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return law The address of the law
     /// @return lawHash The hash of the law
     /// @return active The active status of the law
-    function getActiveLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
+    function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
+
+    /// @notice Gets the actions of a law
+    /// @param lawId The id of the law
+    /// @return actionIds The actions of the law
+    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds);
+
+    /// @notice Gets the conditions of a law
+    /// @param lawId The id of the law
+    /// @return conditions The conditions of the law
+    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law
@@ -207,10 +259,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return version the version string
     function version() external pure returns (string memory version);
 
-    /// @notice Updates the protocol's metadata URI
-    /// @dev Can only be called through the protocol itself
-    /// @param newUri The new URI string
-    function setUri(string memory newUri) external;
+    /// @notice Checks if an account is blacklisted
+    /// @param account The address to check
+    /// @return blacklisted The blacklisted status of the account
+    function isBlacklisted(address account) external view returns (bool blacklisted);
 
     //////////////////////////////////////////////////////////////
     //                      TOKEN HANDLING                      //

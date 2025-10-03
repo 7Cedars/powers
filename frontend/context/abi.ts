@@ -514,7 +514,7 @@ export const powersAbi: Abi = [
   },
   {
     "type": "function",
-    "name": "getActiveLaw",
+    "name": "getAdoptedLaw",
     "inputs": [
       { "name": "lawId", "type": "uint16", "internalType": "uint16" }
     ],
@@ -1057,7 +1057,7 @@ export const powersAbi: Abi = [
   { "type": "error", "name": "Powers__ActionCancelled", "inputs": [] },
   { "type": "error", "name": "Powers__ActionNotRequested", "inputs": [] },
   { "type": "error", "name": "Powers__AlreadyCastVote", "inputs": [] },
-  { "type": "error", "name": "Powers__CannotAddToPublicRole", "inputs": [] },
+  { "type": "error", "name": "Powers__CannotSetPublicRole", "inputs": [] },
   { "type": "error", "name": "Powers__CannotAddZeroAddress", "inputs": [] },
   {
     "type": "error",

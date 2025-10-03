@@ -19,13 +19,13 @@ export function StaticInput({dataType, varName, values}: InputProps) {
     <div className="w-full flex flex-col justify-center items-center">
       {itemsArray.map((item, i) =>  
           <section className="w-full mt-4 flex flex-row justify-center items-center ps-3 pe-6 gap-3" key={i}>
-            <div className="text-xs text-slate-600 ps-3 min-w-20">
-              {varName}
+            <div className="text-xs text-slate-600 ps-3 min-w-28">
+              {`${varName.length > 16 ? `${varName.slice(0, 16)}..` : varName}`}
             </div>
 
             {
               <>
-                <div className="w-full h-fit flex items-center text-md justify-center rounded-md bg-white ps-2 outline outline-1 outline-slate-300">  
+                <div className="w-full h-fit flex items-center text-md justify-center rounded-md ps-2 outline outline-1 outline-slate-300">  
                   <input 
                     type={"string"}
                     name={`input${item}`} 

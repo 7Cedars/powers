@@ -907,13 +907,12 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
 }
 
 const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
-  const { fitView, getNode, getNodes, setCenter, getViewport, setViewport } = useReactFlow()
+  const { getNodes, getViewport, setViewport } = useReactFlow()
   const { chainChecks } = useChecksStore()
   const { actionData } = useActionDataStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
-  const [lastSelectedLawId, setLastSelectedLawId] = React.useState<bigint>(action.lawId)
   const [isInitialized, setIsInitialized] = React.useState(false)
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
@@ -1014,26 +1013,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }
   }, [])
 
-  // Helper function to calculate proper centering coordinates accounting for panel width
-  const calculateCenterPosition = useCallback((nodeX: number, nodeY: number) => {
-    const viewportWidth = window.innerWidth
-    const expandedPanelWidth = Math.min(640, viewportWidth - 40)
-    const isSmallScreen = viewportWidth <= 2 * expandedPanelWidth
-    if (isSmallScreen) {
-      // Center in the middle of the viewport
-      return {
-        x: nodeX + 200 - viewportWidth / 2,
-        y: nodeY + 150
-      }
-    } else {
-      // Offset for the panel as before
-      const centerOffsetX = expandedPanelWidth / 2
-      return {
-        x: nodeX + 200 - centerOffsetX, // 200 is half the node width, subtract centerOffsetX to shift left
-        y: nodeY + 150 // Keep existing vertical offset
-      }
-    }
-  }, [])
 
   // Helper function to calculate fitView options accounting for panel width
   const calculateFitViewOptions = useCallback(() => {
@@ -1119,8 +1098,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     const storedViewport = getStoredViewport()
     
-    // If there's no selected law (main flow page), always fit all nodes in view
-    if (!action.lawId && !selectedLawId) {
+    // Only fit view on initial page load (no selected law and no stored viewport)
+    if (!action.lawId && !selectedLawId && !storedViewport) {
       setTimeout(() => {
         fitViewWithPanel()
         // Save the fitted viewport
@@ -1130,38 +1109,13 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         }, 900)
       }, 100)
     } else if (storedViewport) {
-      // Restore stored viewport only when there's a selected law
+      // Restore stored viewport
       setTimeout(() => {
         setViewport(storedViewport, { duration: 0 })
       }, 100)
     }
-  }, [setViewport, fitView, getViewport, action.lawId, selectedLawId, calculateFitViewOptions, fitViewWithPanel])
+  }, [setViewport, getViewport, action.lawId, selectedLawId, fitViewWithPanel])
 
-  // Auto-fit view when navigating to home page (no selected law)
-  React.useEffect(() => {
-    // Don't change viewport if:
-    // 1. ReactFlow isn't initialized yet
-    // 2. Checks are currently being performed (pending status)
-    // 3. User has manually interacted with the viewport recently
-    if (!isInitialized || checksStatus === "pending" || userHasInteracted) return
-    
-    // Check if we're on the home page (no law selected in URL)
-    const isHomePage = !pathname.includes('/laws/')
-    
-    // If there's no selected law (home page), fit all nodes in view
-    if ((!action.lawId && !selectedLawId) || isHomePage) {
-      const timer = setTimeout(() => {
-        fitViewWithPanel()
-        // Save the fitted viewport
-        setTimeout(() => {
-          const currentViewport = getViewport()
-          setStoredViewport(currentViewport)
-        }, 900)
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [action.lawId, selectedLawId, isInitialized, checksStatus, userHasInteracted, fitViewWithPanel, getViewport, pathname])
 
   // Reset user interaction flag when navigating to home page
   React.useEffect(() => {
@@ -1171,80 +1125,26 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }
   }, [pathname])
 
-  // Auto-zoom to selected law from store or restore previous viewport
-  React.useEffect(() => {
-    // Don't change viewport if:
-    // 1. ReactFlow isn't initialized yet
-    // 2. Checks are currently being performed (pending status)
-    // 3. User has manually interacted with the viewport recently
-    if (!isInitialized || checksStatus === "pending" || userHasInteracted) return
-    
-    const timer = setTimeout(() => {
-      // Only auto-zoom if the selected law has actually changed
-      if (action.lawId !== lastSelectedLawId) {
-        setLastSelectedLawId(action.lawId)
-        
-        if (action.lawId && action.lawId !== 0n) {
-          // Zoom to the law stored in the action store
-          const selectedNode = getNode(String(action.lawId))
-          // console.log("@onInit: waypoint 0", {selectedNode})
-          if (selectedNode) {
-            const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
-            setCenter(centerPos.x, centerPos.y, {
-              zoom: 1.6,
-              duration: 800,
-            })
-          }
-        }
-        // Remove the automatic fitViewWithPanel call when no law is selected
-        // This was causing the continuous zooming out behavior
-      }
-    }, 100)
-    
-    return () => clearTimeout(timer)
-  }, [action.lawId, getNode, setCenter, lastSelectedLawId, isInitialized, calculateCenterPosition, checksStatus, userHasInteracted])
 
-  // Legacy auto-zoom to selected law (keep for backward compatibility but only if no store state)
-  React.useEffect(() => {
-    // Don't change viewport during checks or if user has interacted
-    if (checksStatus === "pending" || userHasInteracted) return
-    
-    if (selectedLawId && (!action.lawId || action.lawId === 0n) && !getStoredViewport()) {
-      // Small delay to ensure nodes are rendered
-      const timer = setTimeout(() => {
-        const selectedNode = getNode(selectedLawId)
-        if (selectedNode) {
-          // Center on the selected node with proper offset for panel
-          const centerPos = calculateCenterPosition(selectedNode.position.x, selectedNode.position.y)
-          setCenter(centerPos.x, centerPos.y, {
-            zoom: 1.6,
-            duration: 800, // Smooth animation
-          })
-        }
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [selectedLawId, getNode, setCenter, action.lawId, calculateCenterPosition, checksStatus, userHasInteracted])
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
-    if (!powers.activeLaws) return { initialNodes: [], initialEdges: [] }
+    if (!powers.AdoptedLaws) return { initialNodes: [], initialEdges: [] }
     
     const nodes: Node[] = []
     const edges: Edge[] = []
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    const positions = createHierarchicalLayout(powers.activeLaws, savedLayout)
+    const positions = createHierarchicalLayout(powers.AdoptedLaws, savedLayout)
     
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
     const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(selectedLawIdFromStore, powers.activeLaws!)
+      ? findConnectedNodes(selectedLawIdFromStore, powers.AdoptedLaws!)
       : undefined
     
-    powers.activeLaws.forEach((law, lawIndex) => {
+    powers.AdoptedLaws.forEach((law, lawIndex) => {
       const roleColor = DEFAULT_NODE_COLOR
       
       // Get checks for this law
@@ -1363,7 +1263,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     return { initialNodes: nodes, initialEdges: edges }
   }, [
-    powers.activeLaws, 
+    powers.AdoptedLaws, 
     powers.contractAddress,
     chainChecks, 
     handleNodeClick, 
@@ -1432,7 +1332,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     }
   }, [onNodesChange, debouncedSaveLayout])
 
-  if (!powers.activeLaws || powers.activeLaws.length === 0) {
+  if (!powers.AdoptedLaws || powers.AdoptedLaws.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">

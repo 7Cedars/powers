@@ -134,12 +134,13 @@ export type BlockRange = {
 
 export type Powers = {
   contractAddress: `0x${string}`;
+  chainId: bigint;
   name?: string;
   uri?: string;
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  activeLaws?: Law[];
+  AdoptedLaws?: Law[];
   proposals?: Action[];
   proposalsBlocksFetched?: BlockRange;
   executedActions?: LawExecutions[]; // executions per law. 
@@ -200,6 +201,8 @@ export type Action = {
   cancelled?: boolean;
   requested?: boolean;
   fulfilled?: boolean;
+  originalFulfilledAction?: Action; // For enabled actions, stores the original fulfilled action data
+  needCompletedLaw?: Law; // For enabled actions, stores the needCompleted law that enabled this action
 }
 
 export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">

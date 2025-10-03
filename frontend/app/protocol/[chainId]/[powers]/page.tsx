@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { parseChainId } from '@/utils/parsers'
 import { usePowers } from '@/hooks/usePowers'
 import { useChains } from 'wagmi'
@@ -24,6 +24,7 @@ export default function FlowPage() {
   const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy(); 
+  const router = useRouter()
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
@@ -101,6 +102,10 @@ export default function FlowPage() {
       fetchExecutedActions(powers as Powers)
     }
   }, [powers, fetchExecutedActions])
+
+  const navigateToUserUser = () => {
+    router.push(`/user/${chainId}/${addressPowers}`)
+  }
   
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10" >
@@ -169,7 +174,7 @@ export default function FlowPage() {
     </section>
     
     {/* main body  */}
-    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start pb-20" help-nav-item="home-screen">
+    <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
       <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchExecutedActions}/>
 
       <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {handleFetchProposals}/> 
@@ -178,6 +183,26 @@ export default function FlowPage() {
       
       <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
       
+    </section>
+
+    {/* Go to user portal button */}
+    <section className="w-full flex justify-center items-center py-4 text-slate-800 opacity-75 hover:opacity-100">
+      <div className="w-full">
+        <Button 
+          size={0} 
+          showBorder={true} 
+          role={6}
+          filled={false}
+          selected={true}
+          onClick={navigateToUserUser}
+          statusButton="idle"
+        > 
+          <div className="flex flex-row gap-1 items-center justify-center">
+            Go to user portal
+            <ArrowUpRightIcon className="w-4 h-4" />
+          </div>
+        </Button>
+      </div>
     </section>
   </main>
   )

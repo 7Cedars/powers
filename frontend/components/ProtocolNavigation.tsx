@@ -38,7 +38,7 @@ const protocolNavigationConfig: NavigationItem[] = [
     id: 'home',
     label: 'Home',
     icon: HomeIcon,
-    path: '/',
+    path: '',
     helpNavItem: 'home'
   },
   {
@@ -74,7 +74,9 @@ const protocolNavigationConfig: NavigationItem[] = [
 
 const NavigationBar = () => {
   const router = useRouter();
-  const path = usePathname();
+  const chainId = useParams().chainId;
+  const powers = useParams().powers;
+  const legacyPath = usePathname();
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   const handleNavigation = (item: NavigationItem) => {
@@ -83,15 +85,13 @@ const NavigationBar = () => {
       return;
     }
     
-    const fullPath = item.path;
+    const fullPath = `/protocol/${chainId}/${powers}${item.path}`;
     router.push(fullPath);
   };
 
   const isSelected = (item: NavigationItem) => {
-    if (item.id === 'home') {
-      return path === item.path || path === `${item.path}/`;
-    }
-    return path === `${item.path}`;
+    const fullPath = `/protocol/${chainId}/${powers}${item.path}`;
+    return legacyPath === fullPath;
   };
 
   return (

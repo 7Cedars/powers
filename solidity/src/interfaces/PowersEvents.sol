@@ -5,17 +5,14 @@
 /// it under the terms of the MIT Public License.                           ///
 ///                                                                         ///
 /// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
+/// Tests are incomplete and contracts have not been extensively audited.   ///
 ///                                                                         ///
 /// It is distributed in the hope that it will be useful and insightful,    ///
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-///
 /// @notice Events used in the Powers protocol.
-/// Code derived from OpenZeppelin's Governor.sol contract and Haberdasher Labs Hats protocol.
-///
 /// @author 7Cedars
 pragma solidity 0.8.26;
 
@@ -105,4 +102,9 @@ interface PowersEvents {
     /// @notice Emitted when a law is revived.
     /// @param lawId the id of the law
     event LawRevived(uint16 indexed lawId);
+
+    /// @notice Emitted when a address is blacklisted.
+    /// @param account the address of the account
+    /// @param blacklisted the blacklisted status of the account
+    event BlacklistSet(address indexed account, bool indexed blacklisted);
 }

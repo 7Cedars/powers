@@ -84,11 +84,13 @@ export const deploymentForms: DeploymentForm[] = [
   {
     id: 7,
     title: "PowersDAO",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicd6td3zkwxjqgrkkdgyibnzdwwbyjz5rmiy6gzny4q7myavwc53q",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeicrdgm4kgz5jg6zan2bsq2da6jqlzg6vxz6pmtlnseblfl5r3nglm",
-    description: "The DAO that governs development of the Powers protocol. This form is only available locally.",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreic2h45qpaafk7zesvyfuzh6dve2mzydtvdwoyuwp72spocvzifl5u",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibs64ol5hjnsqwyx4uzveougdkkyqaqoisqnmd6c2wpp36lwnqp7i",
+    description: "The DAO that governs development of the Powers protocol. This is an example of a fully fledged DAO governed by Powers. You will need to add a Chainlink subscription ID to the form below. Do not forget to add the address of the RoleByGitCommit law as a consumer to your chainlink subscription.",
     disabled: false,
     onlyLocalhost: true,
-    fields: []
+    fields: [
+      { name: "chainlinkSubscriptionId", placeholder: "Chainlink subscription ID, see docs.chain.link/chainlink-functions/resources/subscriptions.", type: "number", required: true }
+    ]
   }
 ]; 
