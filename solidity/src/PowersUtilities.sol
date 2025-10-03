@@ -62,13 +62,13 @@ library PowersUtilities {
     /// @param lawCalldata The calldata of the law
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the law
-    /// @param executions The executions of the law
+    /// @param latestFulfillment The latest fulfillment of the law
     function checksAtRequest(
         uint16 lawId,
         bytes memory lawCalldata,
         address powers,
         uint256 nonce,
-        uint48[] memory executions
+        uint48 latestFulfillment
     ) external view {
         checksAtPropose(lawId, lawCalldata, powers, nonce);
 
@@ -76,7 +76,7 @@ library PowersUtilities {
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
             if (
-                executions.length > 0 && block.number - executions[executions.length - 1] < conditions.throttleExecution
+                latestFulfillment > 0 && block.number - latestFulfillment < conditions.throttleExecution
             ) {
                 revert("Execution gap too small");
             }

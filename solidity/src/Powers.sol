@@ -152,7 +152,10 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
         // check 5: do checks pass?
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.fulfilledAt);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
+
+        // if not registered yet, register actionId at law.
+        if (_actions[actionId].lawId == 0) laws[lawId].actionIds.push(actionId);
 
         // If everything passed, set action as requested.
         Action storage action = _actions[actionId];
@@ -169,7 +172,7 @@ contract Powers is EIP712, IPowers {
 
         // emit event.
         emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, uriAction);
-
+        
         return actionId;
     }
 
@@ -216,12 +219,11 @@ contract Powers is EIP712, IPowers {
             Address.verifyCallResult(success, returndata);
         }
 
-        // register fulfillment at law.
-        laws[lawId].fulfilledAt.push(uint48(block.number));
-        laws[lawId].actionIds.push(actionId);
-
         // emit event.
         emit ActionExecuted(lawId, actionId, targets, values, calldatas);
+
+        // register latestFulfillment at law.
+        laws[lawId].latestFulfillment = uint48(block.number);
     }
 
     /// @inheritdoc IPowers
@@ -273,6 +275,9 @@ contract Powers is EIP712, IPowers {
 
         // check 3: do proposedAction checks of the law pass?
         PowersUtilities.checksAtPropose(lawId, lawCalldata, address(this), nonce);
+
+        // register actionId at law.
+        laws[lawId].actionIds.push(actionId);
 
         // if checks pass: create proposedAction
         Action storage action = _actions[actionId];
@@ -760,6 +765,10 @@ contract Powers is EIP712, IPowers {
         lawHash = keccak256(abi.encode(address(this), lawId));
 
         return (law, lawHash, active);
+    }
+
+    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds) {
+        return laws[lawId].actionIds;
     }
 
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {

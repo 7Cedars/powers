@@ -6,7 +6,6 @@ import { Law } from "../../src/Law.sol";
 import { LawUtilities } from "../../src/LawUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { IERC165 } from "@openzeppelin/contracts/interfaces/IERC165.sol";
-import { LawErrors } from "../../src/interfaces/LawErrors.sol";
 import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
 import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
@@ -127,7 +126,7 @@ contract LawBasicTest is TestSetupLaw {
         );
 
         // act & assert: verify execution reverts when not called from Powers
-        vm.expectRevert(LawErrors.Law__OnlyPowers.selector);
+        vm.expectRevert("Only Powers");
         vm.prank(alice);
         testLaw.executeLaw(alice, lawId, abi.encode(true), nonce);
     }

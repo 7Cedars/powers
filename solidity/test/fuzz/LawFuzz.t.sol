@@ -6,7 +6,6 @@ import { TestSetupLaw } from "../TestSetup.t.sol";
 import { Law } from "../../src/Law.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
-import { LawErrors } from "../../src/interfaces/LawErrors.sol";
 import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
 import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
 import { StatementOfIntent } from "../../src/laws/multi/StatementOfIntent.sol";

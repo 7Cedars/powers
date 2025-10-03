@@ -95,10 +95,10 @@ contract PowersUtilitiesTest is TestSetupPowers {
     function testChecksAtRequestWithNoRequirements() public {
         // Setup: Create conditions with no requirements
         lawCalldata = abi.encode(true);
-        uint48[] memory executions = new uint48[](1);
+        uint48 latestExecution;
 
         // Should not revert when no requirements
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     //////////////////////////////////////////////////////////////
@@ -132,8 +132,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
         lawCalldata = abi.encode(tar, val, cal);
-        uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.number - 1); // Very recent execution
+        uint48 latestExecution = uint48(block.number - 1); // Very recent execution
 
         // First, we need to vote on law 4
         vm.prank(bob);
@@ -152,7 +151,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
         // now we execute law 6
         // Should not revert when throttle is zero
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testGetConditionsForNonExistentLaw() public view {
@@ -258,37 +257,6 @@ contract PowersUtilitiesTest is TestSetupPowers {
     //////////////////////////////////////////////////////////////
     //                  THROTTLE EXECUTION CHECKS                //
     //////////////////////////////////////////////////////////////
-    function testChecksAtRequestWithEmptyExecutionsArray() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 4;
-        address[] memory tar = new address[](1);
-        uint256[] memory val = new uint256[](1);
-        bytes[] memory cal = new bytes[](1);
-        tar[0] = address(daoMock);
-        val[0] = 0;
-        cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
-
-        // we first propose, vote and execute law 4.
-        vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
-        for (i = 0; i < users.length; i++) {
-            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
-                vm.prank(users[i]);
-                daoMock.castVote(proposalActionId, FOR);
-            }
-        }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
-
-        // Empty executions array should not cause revert
-        uint48[] memory executions = new uint48[](0);
-
-        // Should not revert when executions array is empty
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
-    }
-
     function testChecksAtRequestWithThrottleExecutionGapTooSmall() public {
         // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
         lawId = 4;
@@ -313,13 +281,12 @@ contract PowersUtilitiesTest is TestSetupPowers {
         }
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
 
-        // Create executions array with recent execution (gap too small)
-        uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.number - 1000); // Only 1000 blocks ago, but throttle is 5000
+        // Create latestExecution array with recent execution (gap too small)
+        uint48 latestExecution = uint48(block.number - 1000); 
 
         // Should revert when execution gap is too small
         vm.expectRevert("Execution gap too small");
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testChecksAtRequestWithThrottleExecutionGapSufficient() public {
@@ -346,12 +313,11 @@ contract PowersUtilitiesTest is TestSetupPowers {
         }
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
 
-        // Create executions array with sufficient gap
-        uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.number - 6000); // 6000 blocks ago, throttle is 5000
+        // Create latestExecution array with sufficient gap
+        uint48 latestExecution = uint48(block.number - 6000);
 
         // Should not revert when execution gap is sufficient
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testChecksAtRequestWithThrottleExecutionExactlyAtThreshold() public {
@@ -378,80 +344,10 @@ contract PowersUtilitiesTest is TestSetupPowers {
         }
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
 
-        // Create executions array with exactly the throttle threshold
-        uint48[] memory executions = new uint48[](1);
-        executions[0] = uint48(block.number - 5000); // Exactly 5000 blocks ago
+        // Create latestExecution array with exactly the throttle threshold
+        uint48 latestExecution = uint48(block.number - 5000);
 
         // Should not revert when execution gap equals throttle threshold
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
-    }
-
-    function testChecksAtRequestWithMultipleExecutionsThrottle() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 4;
-        address[] memory tar = new address[](1);
-        uint256[] memory val = new uint256[](1);
-        bytes[] memory cal = new bytes[](1);
-        tar[0] = address(daoMock);
-        val[0] = 0;
-        cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
-
-        // we first propose, vote and execute law 4.
-        vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
-        for (i = 0; i < users.length; i++) {
-            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
-                vm.prank(users[i]);
-                daoMock.castVote(proposalActionId, FOR);
-            }
-        }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
-
-        // Create executions array with multiple executions - should check the last one
-        uint48[] memory executions = new uint48[](3);
-        executions[0] = uint48(block.number - 10_000); // Old execution
-        executions[1] = uint48(block.number - 8000); // Old execution
-        executions[2] = uint48(block.number - 1000); // Recent execution (too recent)
-
-        // Should revert when the most recent execution gap is too small
-        vm.expectRevert("Execution gap too small");
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
-    }
-
-    function testChecksAtRequestWithMultipleExecutionsThrottleSufficient() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 4;
-        address[] memory tar = new address[](1);
-        uint256[] memory val = new uint256[](1);
-        bytes[] memory cal = new bytes[](1);
-        tar[0] = address(daoMock);
-        val[0] = 0;
-        cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
-
-        // we first propose, vote and execute law 4.
-        vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
-        for (i = 0; i < users.length; i++) {
-            if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
-                vm.prank(users[i]);
-                daoMock.castVote(proposalActionId, FOR);
-            }
-        }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
-
-        // Create executions array with multiple executions - should check the last one
-        uint48[] memory executions = new uint48[](3);
-        executions[0] = uint48(block.number - 10_000); // Old execution
-        executions[1] = uint48(block.number - 8000); // Old execution
-        executions[2] = uint48(block.number - 6000); // Recent execution (sufficient gap)
-
-        // Should not revert when the most recent execution gap is sufficient
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, executions);
+        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 }

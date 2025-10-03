@@ -12,7 +12,6 @@ import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersErrors } from "../src/interfaces/PowersErrors.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
-import { LawErrors } from "../src/interfaces/LawErrors.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
 
 import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
@@ -36,7 +35,7 @@ import { Nominees } from "@mocks/Nominees.sol";
 import { DeployMocks } from "../script/DeployMocks.s.sol";
 import { DeployLaws } from "../script/DeployLaws.s.sol";
 
-abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents, LawErrors {
+abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // protocol and mocks
     Powers powers;
     HelperConfig helperConfig;

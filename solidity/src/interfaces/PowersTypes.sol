@@ -35,7 +35,7 @@ interface PowersTypes {
         Conditions conditions;
         bool active;
         uint256[] actionIds;
-        uint48[] fulfilledAt;
+        uint48 latestFulfillment;
     }
 
     struct LawInitData {

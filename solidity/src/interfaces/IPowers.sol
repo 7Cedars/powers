@@ -239,6 +239,11 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return active The active status of the law
     function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
 
+    /// @notice Gets the actions of a law
+    /// @param lawId The id of the law
+    /// @return actionIds The actions of the law
+    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds);
+
     /// @notice Gets the conditions of a law
     /// @param lawId The id of the law
     /// @return conditions The conditions of the law
