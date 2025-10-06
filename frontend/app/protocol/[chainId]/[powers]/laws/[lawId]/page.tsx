@@ -10,9 +10,10 @@ import { useWallets } from "@privy-io/react-auth";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
 import { LoadingBox } from "@/components/LoadingBox";
-import { Executions } from "./Executions";
+import { LawActions } from "./LawActions";
 import { useChecks } from "@/hooks/useChecks";
 import { TitleText } from "@/components/StandardFonts";
+import { useAction } from "@/hooks/useAction";
 
 const Page = () => {
   const {wallets, ready} = useWallets();
@@ -20,8 +21,9 @@ const Page = () => {
   const { chainChecks } = useChecksStore();
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   const { powers, fetchPowers, status: statusPowers } = usePowers() 
-  const { fetchChainChecks, status: statusChecks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
+  const { fetchChainStatus, status: statusChecks } = useChecks()
+  const { fetchLawActions } = useAction()
+  const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, request } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
   // console.log("@Law page: waypoint 1", {law, powers})
   // Get checks for this specific law from Zustand store
@@ -79,7 +81,7 @@ const Page = () => {
         // resetting store
       // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-        fetchChainChecks(law.index, lawCalldata, BigInt(action.nonce), wallets, powers)
+        fetchChainStatus(law.index, lawCalldata, BigInt(action.nonce as string), wallets, powers)
 
         // console.log("Handle Simulate waypoint 3b")
         setAction({
@@ -100,7 +102,7 @@ const Page = () => {
           simulate(
             wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
             action.callData as `0x${string}`,
-            BigInt(action.nonce),
+            BigInt(action.nonce as string),
             law
           )
         } catch (error) {
@@ -129,7 +131,7 @@ const Page = () => {
         lawCalldata = '0x0'
       }
 
-      execute(
+      request(
         law, 
         lawCalldata as `0x${string}`,
         nonce,
@@ -162,7 +164,6 @@ const Page = () => {
           upToDate: false
         })
       }
-      fetchExecutions(law)
       resetStatus()
     }
   }, [, law])
@@ -210,7 +211,7 @@ const Page = () => {
 
         {/* right panel: info boxes should only reads from zustand.  */}
         <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
-          {law && <Executions roleId = {law.conditions?.allowedRole as bigint} lawExecutions = {executions} powers = {powers} status = {statusLaw} onRefresh={() => fetchExecutions(law)}/>}
+          {law && <LawActions roleId = {law.conditions?.allowedRole as bigint} powers = {powers} status = {statusLaw} onRefresh={() => fetchLawActions(powers as Powers, law.index)}/>}
         </div>        
     </main>
   )

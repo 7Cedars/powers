@@ -499,34 +499,3 @@ export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 1
   }
   return parseInt(chainId) as 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined
 }
-
-
-export const parseActionData = (data: unknown[]): ActionTruncated => {
-  if (!isArray(data)) {
-    throw new Error('@parseActionData: data not an array.');
-  }
-  if (data.length != 12) {
-    throw new Error('@parseActionData: data not correct length.');
-  }
-
-  // console.log("@parseActionData: waypoint 0", {data})
-
-  const action: ActionTruncated = {
-    cancelled: data[0] as boolean,
-    requested: data[1] as boolean,
-    fulfilled: data[2] as boolean,
-    lawId: data[3] as bigint,
-    voteStart: data[4] as bigint,
-    voteDuration: data[5] as bigint,
-    voteEnd: data[6] as bigint,
-    caller: data[7] as `0x${string}`,
-    againstVotes: data[8] as bigint,
-    forVotes: data[9] as bigint,
-    abstainVotes: data[10] as bigint,
-    nonce: data[11] as unknown as string
-  }
-
-  // console.log("@parseActionData: waypoint 1", {action})
-
-  return action as ActionTruncated
-} 

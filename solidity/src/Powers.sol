@@ -671,7 +671,7 @@ contract Powers is EIP712, IPowers {
             return ActionState.Requested;
         }
 
-        uint256 deadline = getActionDeadline(actionId);
+        uint256 deadline = action.voteStart + action.voteDuration;
 
         if (deadline >= block.number) {
             return ActionState.Active;
@@ -743,16 +743,6 @@ contract Powers is EIP712, IPowers {
         _uri = _actions[actionId].uri;
     }
 
-    function getActionNonce(uint256 actionId) public view virtual returns (uint256 nonce) {
-        return _actions[actionId].nonce;
-    }
-
-    /// @inheritdoc IPowers
-    function getActionDeadline(uint256 actionId) public view virtual returns (uint256) {
-        // uint48 + uint32 => uint256. £test if this works properly.
-        return _actions[actionId].voteStart + _actions[actionId].voteDuration;
-    }
-
     /// @inheritdoc IPowers
     function hasVoted(uint256 actionId, address account) public view virtual returns (bool) {
         return _actions[actionId].hasVoted[account];
@@ -766,15 +756,23 @@ contract Powers is EIP712, IPowers {
 
         return (law, lawHash, active);
     }
+    
+    /// @inheritdoc IPowers
+    function getLatestFulfillment(uint16 lawId) external view returns (uint48 latestFulfillment) {
+        return laws[lawId].latestFulfillment;
+    }
 
+    /// @inheritdoc IPowers
     function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds) {
         return laws[lawId].actionIds;
     }
 
+    /// @inheritdoc IPowers
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[lawId].conditions;
     }
 
+    /// @inheritdoc IPowers
     function isBlacklisted(address account) public view returns (bool) {
         return _blacklist[account];
     }

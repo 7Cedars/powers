@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Law, Checks, Status, LawExecutions, Powers, Action } from "../context/types"
+import { Law, Checks, Status, Powers, Action } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
 import { getPublicClient, readContract } from "wagmi/actions";
@@ -23,7 +23,7 @@ export const useChecks = () => {
   const publicClient = getPublicClient(wagmiConfig, {
     chainId: parseChainId(chainId),
   })
-  const { status: actionStatus, error: actionError, data: actionData, fetchActionData } = useAction()
+  const { fetchActionData, fetchVoteData } = useAction()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
   // note: the state of checks is not stored here, it is stored in the Zustand store
@@ -58,7 +58,7 @@ export const useChecks = () => {
         const state =  await readContract(wagmiConfig, {
                 abi: powersAbi,
                 address: law.powers as `0x${string}`,
-                functionName: 'state', 
+                functionName: 'getActionState', 
                 args: [actionId],
               })
         // console.log("@checkActionStatus: waypoint 1", {state})
@@ -68,37 +68,28 @@ export const useChecks = () => {
         setStatus("error")
         setError(error)
       }
-  }, []) 
-  
-  const fetchExecutions = async (law: Law) => {
-    // console.log("@fetchExecutions: waypoint 0", {lawId})
-    if (publicClient) {
-      try {
-          const lawExecutions = await readContract(wagmiConfig, {
-            abi: lawAbi, 
-            address: law.lawAddress,
-            functionName: 'getExecutions',
-            args: [law.powers, law.index]
-          })
-          return lawExecutions as unknown as LawExecutions
-      } catch (error) {
-        // console.log("@fetchExecutions: waypoint 4", {lawId, error})
-        setStatus("error") 
-        setError(error)
-      }
-    }
-  }
+  }, [])
+
+  const fetchLatestFulfillment = useCallback(async (law: Law) => {
+    const latestFulfillment = await readContract(wagmiConfig, {
+      abi: powersAbi,
+      address: law.powers as `0x${string}`,
+      functionName: 'getLatestFulfillment',
+      args: [law.index],
+    })
+    return latestFulfillment as bigint
+  }, [])
 
   const checkThrottledExecution = useCallback( async (law: Law) => {
-    const fetchedExecutions = await fetchExecutions(law)
+    const latestFulfillment = await fetchLatestFulfillment(law)
     
     const blockNumber = await getBlockNumber(wagmiConfig, {
       chainId: parseChainId(chainId),
     })
-    // console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law, blockNumber})
+    // console.log("checkThrottledExecution, waypoint 1", {latestFulfillment, law, blockNumber})
 
-    if (fetchedExecutions && fetchedExecutions.executions?.length > 0 && blockNumber) {
-      const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
+    if (latestFulfillment && blockNumber) {
+      const result = Number(latestFulfillment) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
       return result as boolean
     } else {
       return true
@@ -109,24 +100,28 @@ export const useChecks = () => {
     // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     // console.log("Deadline ActionId:", actionId)
-    const law = powers.AdoptedLaws?.find(law => law.index === lawId)
+    const law = powers.ActiveLaws?.find(law => law.index === lawId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),
       })
       // console.log("BlockNumber:", blockNumber)
 
-      const deadline = await readContract(wagmiConfig, {
+      const voteData = await readContract(wagmiConfig, {
         abi: powersAbi,
         address: powers.contractAddress as `0x${string}`,
-        functionName: 'getProposedActionDeadline',
+        functionName: 'getActionVoteData',
         args: [actionId]
       })
-      // console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
-      // console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
-      
-      if (deadline && blockNumber) {
-        const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
+
+      const [voteStart, voteDuration, voteEnd, againstVotes, forVotes, abstainVotes] = voteData as unknown as [
+        bigint, bigint, bigint, bigint, bigint, bigint
+      ]
+
+      // console.log("Deadline:", voteEnd, "BlockNumber:", blockNumber)
+      // console.log("Deadline + Delay:", Number(voteEnd) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      if (voteEnd && blockNumber) {
+        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
         // console.log("Deadline Result:", result) 
         return result as boolean
       } else {
@@ -142,37 +137,30 @@ export const useChecks = () => {
     const selectedLawId = String(lawId)
     const connectedNodes: Set<string> = new Set()
     
-    if (powers.AdoptedLaws) {
+    if (powers.ActiveLaws) {
       // Build dependency maps
       const dependencies = new Map<string, Set<string>>()
       const dependents = new Map<string, Set<string>>()
       
-      powers.AdoptedLaws.forEach(law => {
+      powers.ActiveLaws.forEach(law => {
         const lawId = String(law.index)
         dependencies.set(lawId, new Set())
         dependents.set(lawId, new Set())
       })
       
       // Populate dependency relationships
-      powers.AdoptedLaws.forEach(law => {
+      powers.ActiveLaws.forEach(law => {
         const lawId = String(law.index)
         if (law.conditions) {
-          if (law.conditions.needCompleted !== 0n) {
-            const targetId = String(law.conditions.needCompleted)
+          if (law.conditions.needFulfilled !== 0n) {
+            const targetId = String(law.conditions.needFulfilled)
             if (dependencies.has(targetId)) {
               dependencies.get(lawId)?.add(targetId)
               dependents.get(targetId)?.add(lawId)
             }
           }
-          if (law.conditions.needNotCompleted !== 0n) {
-            const targetId = String(law.conditions.needNotCompleted)
-            if (dependencies.has(targetId)) {
-              dependencies.get(lawId)?.add(targetId)
-              dependents.get(targetId)?.add(lawId)
-            }
-          }
-          if (law.conditions.readStateFrom !== 0n) {
-            const targetId = String(law.conditions.readStateFrom)
+          if (law.conditions.needNotFulfilled !== 0n) {
+            const targetId = String(law.conditions.needNotFulfilled)
             if (dependencies.has(targetId)) {
               dependencies.get(lawId)?.add(targetId)
               dependents.get(targetId)?.add(lawId)
@@ -212,17 +200,17 @@ export const useChecks = () => {
           // console.log("fetchChecks triggered, waypoint 1", {law, callData, nonce, wallets, powers, actionLawId, caller})
           const throttled = await checkThrottledExecution(law)
           const authorised = await checkAccountAuthorised(law, powers, wallets)
-          const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [3, 4, 5])
-          const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
-          const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
+          const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [5, 6, 7])
+          const voteActive = await checkActionStatus(law, law.index, callData, nonce, [1])
+          const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [0])
           const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
           // console.log("delay passed at law", law.index, {delayed})
 
-          const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
-          const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
-          const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
+          const notFulfilled1 = await checkActionStatus(law, law.index, callData, nonce, [5])
+          const notFulfilled2 = await checkActionStatus(law, law.conditions.needFulfilled, callData, nonce, [5])
+          const notFulfilled3 = await checkActionStatus(law, law.conditions.needNotFulfilled, callData, nonce, [5])
 
-          // console.log("notCompleted1", {notCompleted1})
+          // console.log("notFulfilled1", {notFulfilled1})
 
             const newChecks: Checks =  {
               delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
@@ -231,9 +219,9 @@ export const useChecks = () => {
               proposalExists: law.conditions.quorum == 0n ? true : proposalExists == false,
               voteActive: law.conditions.quorum == 0n ? true : voteActive,
               proposalPassed: law.conditions.quorum == 0n ? true : proposalStatus,
-              actionNotCompleted: !notCompleted1,
-              lawCompleted: law.conditions.needCompleted == 0n ? true : notCompleted2, 
-              lawNotCompleted: law.conditions.needNotCompleted == 0n ? true : !notCompleted3 
+              actionNotFulfilled: !notFulfilled1,
+              lawFulfilled: law.conditions.needFulfilled == 0n ? true : notFulfilled2, 
+              lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : !notFulfilled3 
             } 
             newChecks.allPassed =  
               newChecks.delayPassed && 
@@ -241,9 +229,9 @@ export const useChecks = () => {
               newChecks.authorised && 
               newChecks.proposalExists && 
               newChecks.proposalPassed && 
-              newChecks.actionNotCompleted && 
-              newChecks.lawCompleted &&
-              newChecks.lawNotCompleted 
+              newChecks.actionNotFulfilled && 
+              newChecks.lawFulfilled &&
+              newChecks.lawNotFulfilled 
           
             // console.log("fetchChecks triggered, waypoint 2", {newChecks})
             setStatus("success") //NB note: after checking status, sets the status back to idle! 
@@ -251,41 +239,61 @@ export const useChecks = () => {
         }       
   }, [ ])
 
-  const fetchChainChecks = useCallback(
+  
+  // Only fetch action and vote data for dependent laws; do not re-run checks.
+  const fetchChainStatus = useCallback(
     async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       const chainLaws = calculateDependencies(lawId, powers)
       setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
-      const law: Law | undefined = powers.AdoptedLaws?.find(law => law.index === lawId)
+      const currentLaw: Law | undefined = powers.ActiveLaws?.find(law => law.index === lawId)
 
-      const checksMap = new Map<string, Checks>()
+      const emptyChecksMap = new Map<string, Checks>()
       const actionDataMap = new Map<string, Action>()
-      if (chainLaws && law) {
+      if (chainLaws && currentLaw) {
         try {
-          // For each active law, calculate basic checks
           for (const lawStrId of chainLaws) {
-            const targetLaw = powers.AdoptedLaws?.find(law => String(law.index) === lawStrId)
-            if (!targetLaw?.conditions) continue
-            const singleChecks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
-            checksMap.set(lawStrId, singleChecks as Checks)
+            // Skip the current law; only fetch status for other connected laws
+            if (String(lawId) === lawStrId) continue
 
-            const actionId = hashAction(BigInt(lawStrId), callData, nonce)
-            // console.log("@fetchChainChecks: waypoint 1", {actionId})
-            const actionData = await fetchActionData(actionId, powers)
-            // console.log("@fetchChainChecks: waypoint 2", {actionData})
-            actionData ? actionDataMap.set(lawStrId, actionData) : null
+            const targetLaw = powers.ActiveLaws?.find(l => String(l.index) === lawStrId)
+            if (!targetLaw) continue
+
+            const computedActionId = hashAction(BigInt(lawStrId), callData, nonce)
+
+            // Build a minimal action object for downstream hooks
+            const baseAction: Action = {
+              actionId: computedActionId.toString(),
+              lawId: BigInt(lawStrId)
+            }
+
+            // Always fetch core action data
+            const withActionData = await fetchActionData(baseAction, powers)
+            if (!withActionData) continue
+
+            // Optionally fetch vote data if the target law uses voting
+            let finalAction: Action = withActionData
+            if (targetLaw.conditions && targetLaw.conditions.quorum != 0n) {
+              const withVotes = await fetchVoteData(withActionData, powers)
+              if (withVotes) {
+                finalAction = withVotes
+              }
+            }
+
+            actionDataMap.set(lawStrId, finalAction)
           }
-          // console.log("@fetchChainChecks: waypoint 3", {checksMap, actionDataMap})
-          setChainChecks(checksMap)
-          setActionData( actionDataMap )
 
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch law checks')
-      } finally {
-        setChecksStatus({status: "success", chains: Array.from(chainLaws)})
-        setStatus("success")
+          setChainChecks(emptyChecksMap)
+          setActionData(actionDataMap)
+
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch chain status')
+        } finally {
+          setChecksStatus({status: "success", chains: Array.from(chainLaws)})
+          setStatus("success")
+        }
       }
     }
-  }, [fetchChecks])
+  , [fetchActionData, fetchVoteData])
 
-  return {status, error, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction}
+  return {status, error, fetchChecks, fetchChainStatus, checkActionStatus, checkAccountAuthorised, hashAction}
 }

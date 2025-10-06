@@ -93,7 +93,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               onClick={() => {
                 if (checks?.proposalExists && action) {
                   // console.log("@DynamicForm: Proposal section", {law, action})
-                  const actionId = hashAction(law?.index, action.callData, BigInt(action.nonce))
+                  const actionId = hashAction(law?.index, action.callData as `0x${string}`, BigInt(action.nonce as string))
                   // Navigate to view the existing proposal
                   router.push(`/protocol/${chainId}/${law?.powers}/proposals/${actionId}`)
                 } else if (checks?.authorised) {
@@ -105,10 +105,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               filled={false}
               selected={true}
               statusButton={
-                (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && checks?.authorised) ? 'idle' :  'disabled'
+                (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotFulfilled && checks?.lawFulfilled && checks?.lawNotFulfilled && checks?.authorised) ? 'idle' :  'disabled'
               }
             >
-              {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+              {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotFulfilled || !checks?.lawFulfilled || !checks?.lawNotFulfilled
                 ? "Passed check needed to make proposal"
                 : !checks?.authorised 
                   ? "Not authorised to make proposal"
@@ -131,18 +131,18 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
             role={6}
             onClick={() => {
               if (checks?.authorised && action) {
-                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
+                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
               }
               // Do nothing if not authorized
             }} 
             filled={false}
             selected={true}
             statusButton={
-              (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && 
+              (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotFulfilled && checks?.lawFulfilled && checks?.lawNotFulfilled && 
                (law?.conditions?.quorum == 0n || checks?.proposalPassed) && 
                checks?.authorised) ? status : 'disabled' 
               }> 
-            {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+            {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotFulfilled || !checks?.lawFulfilled || !checks?.lawNotFulfilled
               ? "Passed check needed to execute"
               : law?.conditions?.quorum != 0n && !checks?.proposalPassed
                 ? "Passed proposal needed for execution"

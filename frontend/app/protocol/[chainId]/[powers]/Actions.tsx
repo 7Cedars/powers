@@ -1,18 +1,14 @@
 'use client'
 
 import { setAction } from "@/context/store";
-import { Law, Powers, Status, LawExecutions, Action } from "@/context/types";
+import { Law, Powers, Status, Action } from "@/context/types";
 import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
-import { GetBlockReturnType } from "@wagmi/core";
 import { parseRole, shorterDescription } from "@/utils/parsers";
-import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useEffect, useState, useRef } from "react";
-import { Button } from "@/components/Button";
 import { useAction } from "@/hooks/useAction";
-import { usePowers } from "@/hooks/usePowers";
 
 const roleColour = [  
   "border-blue-600", 
@@ -24,9 +20,9 @@ const roleColour = [
   "border-slate-600"
 ]
 
-type TempAction = {lawId: bigint, actionId: bigint, executedAt: bigint, role: bigint}
+type TempAction = {actionId: string, lawId: bigint, fulfilledAt: bigint, role: bigint}
 
-type LogsProps = {
+type ActionsProps = {
   hasRoles: {role: bigint, since: bigint}[]
   authenticated: boolean;
   powers: Powers | undefined;
@@ -34,11 +30,11 @@ type LogsProps = {
   onRefresh: () => void;
 }
 
-export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: LogsProps) {
+export function Actions({ hasRoles, authenticated, powers, status, onRefresh}: ActionsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData, data: actionData, status: statusAction } = useAction()
+  const { fetchActionData, action: actionData, status: statusAction } = useAction()
   const [tempActions, setTempActions] = useState<TempAction[]>([])
   const hasFetchedRef = useRef(false)
   
@@ -51,30 +47,30 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
   }, [powers, authenticated])
   
   useEffect(() => {
-    if (powers?.executedActions) {
-      const actionArray = powers.executedActions.map((lawActions: LawExecutions, i) => {
-        return lawActions.actionsIds.map((actionId, j) => {
+    if (powers?.laws) {
+      const actionArray = powers.laws.map((law: Law, i) => {
+        return law.actions?.map((action, j) => {
           return {
-            lawId: BigInt(i + 1),
-            actionId,
-            executedAt: lawActions.executions[j],
-            role: powers?.laws?.[i]?.conditions?.allowedRole
+            actionId: action.actionId,
+            lawId: law.index,
+            fulfilledAt: action.fulfilledAt,
+            role: law.conditions?.allowedRole
           }
         })
       }).flat()
-      setTempActions(actionArray as unknown as {lawId: bigint, actionId: bigint, executedAt: bigint, role: bigint}[])
+      setTempActions(actionArray as unknown as {actionId: string, lawId: bigint, fulfilledAt: bigint, role: bigint}[])
     }
   }, [powers])
 
   // console.log("@Logs: waypoint 0", {tempActions})
-  let executedActions: TempAction[] = tempActions.filter((action): action is TempAction => action !== undefined)
-  executedActions = executedActions.sort((a, b) => Number(b?.executedAt) - Number(a?.executedAt))
+  let fulfilledActions: TempAction[] = tempActions.filter((action): action is TempAction => action !== undefined)
+  fulfilledActions = fulfilledActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt))
 
   useEffect(() => {
-    if (executedActions) {
-      fetchTimestamps(executedActions.map((action) => action.executedAt as bigint), chainId)
+    if (fulfilledActions) {
+      fetchTimestamps(fulfilledActions.map((action) => action.fulfilledAt as bigint), chainId)
     }
-  }, [executedActions])
+  }, [fulfilledActions])
 
   useEffect(() => {
     if (actionData) {
@@ -114,7 +110,7 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
         </div>
       </div>
        {
-        powers?.executedActions && powers?.executedActions.length > 0 ? 
+        tempActions.length > 0 ? 
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
            <div className="w-full overflow-x-auto overflow-y-auto">
             <table className="w-full table-auto text-sm">
@@ -127,7 +123,7 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
         </thead>
         <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
           {
-            executedActions?.map((action: TempAction, i) => {
+            fulfilledActions?.map((action: TempAction, i) => {
               const law = powers?.laws?.find(law => Number(law.index) == Number(action.lawId))
               return (
                 law && 
@@ -139,16 +135,16 @@ export function Logs({ hasRoles, authenticated, powers, status, onRefresh}: Logs
                   <td className="px-2 py-3 w-32">
                     <a
                       href="#"
-                      onClick={e => { e.preventDefault(); fetchActionData(BigInt(action.actionId), powers as Powers); }}
+                      onClick={e => { e.preventDefault(); fetchActionData(action, powers as Powers); }}
                       className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
                     >
                       {(() => {
                         // Ensure consistent block number format for lookup
-                        const executedAtBlock = typeof action.executedAt === 'bigint' 
-                          ? action.executedAt 
-                          : BigInt(action.executedAt as unknown as string)
+                        const fulfilledAtBlock = typeof action.fulfilledAt === 'bigint' 
+                          ? action.fulfilledAt 
+                          : BigInt(action.fulfilledAt as unknown as string)
                         
-                        const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
+                        const timestampData = timestamps.get(`${chainId}:${fulfilledAtBlock}`)
                         const timestamp = timestampData?.timestamp
                         
                         if (!timestamp || timestamp <= 0n) {

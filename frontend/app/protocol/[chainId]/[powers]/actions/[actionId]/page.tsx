@@ -17,15 +17,15 @@ import { TitleText } from "@/components/StandardFonts";
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
-  const { fetchChainChecks, status: statusChecks } = useChecks();
-  const { fetchActionData, data: actionData, status: statusAction } = useAction();
+  const { fetchChainStatus, status: statusChecks } = useChecks();
+  const { fetchActionData, action: actionData, status: statusAction } = useAction();
   const { chainChecks } = useChecksStore();
   const action = useActionStore(); 
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
 
   const handleCheck = async (lawId: bigint, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
     // console.log("@Proposal page: waypoint 2", {lawId, action, wallets, powers})
-    fetchChainChecks(lawId, action.callData, BigInt(action.nonce), wallets, powers)
+    fetchChainStatus(lawId, action.callData as `0x${string}`, BigInt(action.nonce as string), wallets, powers)
   }
 
   // console.log("@Proposal page: waypoint 0", {actionData, action})
@@ -38,7 +38,7 @@ const Page = () => {
 
   useEffect(() => {
     if (actionId) {
-      fetchActionData(BigInt(actionId), powers as Powers)
+      fetchActionData({actionId: actionId, lawId: BigInt(actionId)}, powers as Powers)
     }
   }, [actionId, powers])
 

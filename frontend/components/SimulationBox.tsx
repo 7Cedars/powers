@@ -17,7 +17,7 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   // console.log("@SimulationBox: waypoint 1", {law, simulation})
   const {status, error} = useLaw();
   const [jsxSimulation, setJsxSimulation] = useState<React.JSX.Element[][]> ([]); 
-  const { data, isLoading, isError, error: stateVarsError } = useReadContract({
+  const { data } = useReadContract({
         abi: lawAbi,
         address: law.lawAddress,
         functionName: 'stateVars'

@@ -123,9 +123,10 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-100">
       <ProtocolNavigation>
-        <PowersOverview powers={powers} wallets={wallets} fetchLawsAndRoles={fetchLawsAndRoles}>
-          {children}
-        </PowersOverview>
+        {children}
+        {/* <PowersOverview powers={powers} wallets={wallets} fetchLawsAndRoles={fetchLawsAndRoles}> */}
+          {/* {children} */}
+        {/* </PowersOverview> */}
       </ProtocolNavigation>
     </div>
   )

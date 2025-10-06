@@ -14,14 +14,13 @@ import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
 import { ArrowUpRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
-import { MyProposals } from './MyProposals'
 import { MyRoles } from './MyRoles'
-import { Logs } from './Logs'
+import { Actions } from './Actions'
 import { Powers } from '@/context/types'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
+  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchActions } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy(); 
   const router = useRouter()
@@ -90,18 +89,11 @@ export default function FlowPage() {
     }
   }, [, addressPowers, fetchPowers]) // updateProposals 
 
-  // Memoize the fetch functions to prevent infinite loops
-  const handleFetchProposals = useCallback(() => {
+  const handleFetchActions = useCallback(() => {
     if (powers) {
-      fetchProposals(powers as Powers, 10n, 9000n)
+      fetchActions(powers as Powers)
     }
-  }, [powers, fetchProposals])
-
-  const handleFetchExecutedActions = useCallback(() => {
-    if (powers) {
-      fetchExecutedActions(powers as Powers)
-    }
-  }, [powers, fetchExecutedActions])
+  }, [powers, fetchActions])
 
   const navigateToUserUser = () => {
     router.push(`/user/${chainId}/${addressPowers}`)
@@ -175,9 +167,7 @@ export default function FlowPage() {
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
-      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchExecutedActions}/>
-
-      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {handleFetchProposals}/> 
+      <Actions hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
       
       <Assets status = {statusPowers} powers = {powers}/> 
       

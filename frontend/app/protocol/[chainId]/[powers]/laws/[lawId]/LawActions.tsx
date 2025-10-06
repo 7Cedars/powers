@@ -1,130 +1,45 @@
-import { Status, LawExecutions, Powers } from "@/context/types";
-import { parseActionData } from "@/utils/parsers";
+import { Status, Powers } from "@/context/types";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
-import { Button } from "@/components/Button";
-import { LoadingBox } from "@/components/LoadingBox";
-import { readContract } from "wagmi/actions";
-import { getEnsName } from "@wagmi/core";
-import { powersAbi } from "@/context/abi";
-import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
-import { useAction } from "@/hooks/useAction";
 import { ArrowUpRightIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { setAction, useActionStore } from "@/context/store";
 
 // Helper function to truncate addresses, preferring ENS names
-const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
-  if (ensName) return ensName
+const truncateAddress = (address: string | undefined): string => {
   if (!address) return 'Unknown'
   if (address.length < 10) return address
   return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
-
-type ExecutionWithCaller = {
-  execution: bigint;
-  actionId: bigint;
-  caller?: `0x${string}`;
-  ensName?: string | null;
-}
-
-type ExecutionsProps = {
-  roleId: bigint;
-  lawExecutions: LawExecutions | undefined
+ 
+type LawActionsProps = {
+  roleId: bigint; 
   powers: Powers | undefined;
   status: Status;
   onRefresh?: () => void;
 };
 
-export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: ExecutionsProps) => {
+export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData, data: actionData } = useAction()
   const router = useRouter()
-  const [executionsWithCallers, setExecutionsWithCallers] = useState<ExecutionWithCaller[]>([])
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const action = useActionStore() 
+  const [isRefreshing, setIsRefreshing] = useState(false) 
 
-  // console.log('@Executions: action', action)
+  const lawActions = powers?.laws?.find(law => law.index == roleId)?.actions
+  // console.log('@LawActions: lawActions', lawActions)
+
+  const handleSelectAction = (actionId: string) => {
+    router.push(`/protocol/${chainId}/${powers?.contractAddress}/actions/${actionId}`)
+  }
 
   useEffect(() => {
-    if (lawExecutions) {
-      const blocks = lawExecutions.executions
+    if (lawActions) {
+      const blocks = lawActions.map(action => action.fulfilledAt)
       if (blocks && blocks.length > 0) {
-        fetchTimestamps(blocks, chainId)
+        fetchTimestamps(blocks as bigint[], chainId)
       }
     }
-  }, [lawExecutions, chainId])
-
-  const fetchCallers = async () => {
-    try {
-      if (!lawExecutions?.executions || !lawExecutions?.actionsIds || !powers?.contractAddress) return
-
-      setIsRefreshing(true)
-      const executionsData = await Promise.all(
-        lawExecutions?.executions.map(async (execution, index) => {
-          const actionId = lawExecutions?.actionsIds[index]
-          try {
-            const actionData = await readContract(wagmiConfig, {
-              abi: powersAbi,
-              address: powers?.contractAddress,
-              functionName: 'getActionData',
-              args: [actionId]
-            }) 
-            const parsedActionData = parseActionData(actionData as unknown as unknown[])
-             
-             // Try to get ENS name for the caller
-             let ensName: string | null = null
-             try {
-               ensName = await getEnsName(wagmiConfig, {
-                 address: parsedActionData.caller as `0x${string}`
-               })
-             } catch (ensError) {
-               // ENS lookup failed, continue without ENS name
-               // console.log('ENS lookup failed for:', parsedActionData.caller)
-             }
-             return {
-               execution,
-               actionId,
-               caller: parsedActionData.caller,
-               ensName
-             }
-          } catch (error) {
-            console.error('Error fetching caller for action:', actionId, error)
-            return {
-              execution,
-              actionId,
-              caller: undefined,
-              ensName: null
-            }
-          }
-        })
-      )
-      setExecutionsWithCallers(executionsData)
-      setIsRefreshing(false)
-    } catch (error) {
-      console.error('Error fetching callers:', error)
-      setIsRefreshing(false)
-    }
-  }
-
-  // Fetch caller information for each execution
-  useEffect(() => {
-    if (lawExecutions?.executions && lawExecutions?.actionsIds && powers?.contractAddress) {
-      fetchCallers()
-    }
-  }, [lawExecutions, powers?.contractAddress])
-
-  const handleSelectAction = (actionId: bigint) => {
-    fetchActionData(actionId, powers as Powers)
-  }
-
-  useEffect(() => {
-    if (actionData) {
-      setAction({...actionData, upToDate: true})
-    }
-  }, [actionData])
+  }, [lawActions, chainId])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden" help-nav-item="latest-executions">
@@ -133,13 +48,12 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
       >
         <div className="w-full flex flex-row gap-6 items-center justify-between">
           <div className="text-left text-sm text-slate-600">
-            Latest executions
+            Latest actions
           </div> 
           <div className="flex flex-row gap-2 items-center">
             <button
               className="p-1 hover:bg-slate-200 rounded transition-colors"
               onClick={() => {
-                fetchCallers()
                 if (onRefresh) {
                   onRefresh()
                 }
@@ -163,7 +77,7 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
       </div>
       
     {
-        lawExecutions?.executions && lawExecutions?.executions?.length > 0 ?  
+        lawActions && lawActions?.length > 0 ?  
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
@@ -175,15 +89,7 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
                   </tr>
                 </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                  {
-                    (executionsWithCallers.length > 0 ? executionsWithCallers : 
-                     lawExecutions.executions.map((execution, index) => ({
-                       execution,
-                       actionId: lawExecutions.actionsIds[index],
-                       caller: undefined,
-                       ensName: null
-                     }))
-                    ).map((executionData, index: number) => (
+                  {lawActions.map((action, index) => (
                       <tr
                         key={index}
                         className="text-sm text-left text-slate-800"
@@ -192,14 +98,14 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
                         <td className="px-2 py-3 w-32">
                           <a
                             href="#"
-                            onClick={e => { e.preventDefault(); handleSelectAction(executionData.actionId); }}
+                            onClick={e => { e.preventDefault(); handleSelectAction(action.actionId); }}
                             className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
                           >
                             {(() => {
                               // Ensure consistent block number format for lookup
-                              const executedAtBlock = typeof executionData.execution === 'bigint' 
-                                ? executionData.execution 
-                                : BigInt(executionData.execution as unknown as string)
+                              const executedAtBlock = typeof action.fulfilledAt === 'bigint' 
+                                ? action.fulfilledAt 
+                                : BigInt(action.fulfilledAt as unknown as string)
                               
                               const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
                               const timestamp = timestampData?.timestamp
@@ -226,14 +132,14 @@ export const Executions = ({roleId, lawExecutions, powers, status, onRefresh}: E
                         {/* Executioner */}
                         <td className="px-2 py-3 w-24">
                           <div className="truncate text-slate-500 text-xs font-mono">
-                            {truncateAddress(executionData.caller, executionData.ensName)}
+                            {truncateAddress(action.caller)}
                           </div>
                         </td>
 
                         {/* Action ID */}
                           <td className="px-2 py-3 w-24">
                           <div className="truncate text-slate-500 text-xs font-mono">
-                            {executionData.actionId.toString()}
+                            {action.actionId.toString()}
                           </div>
                         </td>
                       </tr>

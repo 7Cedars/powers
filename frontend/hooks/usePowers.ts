@@ -1,9 +1,9 @@
-import { Status, Action, Powers, Law, Metadata, RoleLabel, Conditions, LawExecutions, BlockRange, Role, PowersExecutions } from "../context/types"
+import { Status, Action, Powers, Law, Metadata, RoleLabel, Conditions } from "../context/types"
 import { wagmiConfig } from '../context/wagmiConfig'
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { lawAbi, powersAbi } from "@/context/abi";
-import { GetBlockReturnType, Hex, Log, parseEventLogs, ParseEventLogsReturnType } from "viem"
-import { getBlock, getPublicClient, readContract, readContracts } from "wagmi/actions";
+import { parseEventLogs, ParseEventLogsReturnType } from "viem"
+import { getPublicClient, readContract, readContracts } from "wagmi/actions";
 import { bytesToParams, parseChainId, parseMetadata } from "@/utils/parsers";
 import { useParams } from "next/navigation";
 import { useBlockNumber } from "wagmi";
@@ -39,29 +39,30 @@ export const usePowers = () => {
   const fetchPowersData = async(powers: Powers): Promise<Powers | undefined> => {
     const powersPopulated: Powers | undefined = powers
     try {
-      const namePowers = await publicClient.readContract({
-        address: powers.contractAddress as `0x${string}`,
-        abi: powersAbi,
-        functionName: 'name'
-      })  
+      const [namePowers, uriPowers, lawCountPowers] = await readContracts(wagmiConfig, {
+        allowFailure: false,
+        contracts: [
+          {
+            address: powers.contractAddress as `0x${string}`,
+            abi: powersAbi,
+            functionName: 'name'
+          },
+          {
+            address: powers.contractAddress as `0x${string}`,
+            abi: powersAbi,
+            functionName: 'uri'
+          },
+          {
+            address: powers.contractAddress as `0x${string}`,
+            abi: powersAbi,
+            functionName: 'lawCount'
+          }
+        ]
+      }) as [string, string, bigint]
 
-      const uriPowers = await publicClient.readContract({
-        address: powers.contractAddress as `0x${string}`,
-        abi: powersAbi,
-        functionName: 'uri',
-      })
-
-      const lawCountPowers = await publicClient.readContract({
-        address: powers.contractAddress as `0x${string}`,
-        abi: powersAbi,
-        functionName: 'lawCount',
-      })
-
-      if (namePowers && uriPowers && lawCountPowers) {
-        powersPopulated.lawCount = lawCountPowers as bigint
-        powersPopulated.name = namePowers as string
-        powersPopulated.uri = uriPowers as string
-      }
+      powersPopulated.lawCount = lawCountPowers as bigint
+      powersPopulated.name = namePowers as string
+      powersPopulated.uri = uriPowers as string
       return powersPopulated
 
     } catch (error) {
@@ -103,94 +104,43 @@ export const usePowers = () => {
     }
   }
 
-  const checkSingleLaw = async (powers: Powers, lawId: bigint) => {
-    // console.log("@checkSingleLaw, waypoint 0", {lawId})
-    let fetchedLaw: Law | undefined = undefined
-    let laws: Law[] = powers.laws || []
-    setStatus("pending")
-
-    if (publicClient && lawId && address) {
-      try {
-        const lawFetched = await publicClient.readContract({ 
-          abi: powersAbi,
-          address: address as `0x${string}`,
-          functionName: 'getAdoptedLaw',
-          args: [BigInt(lawId)]
-        })
-        // console.log("@checkSingleLaw, waypoint 1", {lawFetched})
-        const lawFetchedTyped = lawFetched as [`0x${string}`, `0x${string}`, boolean]
-
-        fetchedLaw = {
-          powers: address,
-          lawAddress: lawFetchedTyped[0] as unknown as `0x${string}`,
-          lawHash: lawFetchedTyped[1] as unknown as `0x${string}`,
-          index: lawId,
-          active: lawFetchedTyped[2] as unknown as boolean
-        }
-        // console.log("@checkSingleLaw, waypoint 2", {fetchedLaw})
-      } catch (error) {
-        setStatus("error")
-        setError(error)
-      }
-      laws = laws.map((law: Law) => {        
-        if (fetchedLaw?.index == law.index) {
-          return {
-            ...law,
-            lawAddress: fetchedLaw.lawAddress,
-            lawHash: fetchedLaw.lawHash,
-            index: fetchedLaw.index,
-            active: fetchedLaw.active
-          }
-        } else {
-          return law
-        }
-      })
-      // console.log("@checkSingleLaw, waypoint 3", {laws})
-      const powersUpdated = { ...powers, 
-        laws,
-        AdoptedLaws: laws.filter((law: Law) => law.active)
-      }
-      setPowers(powersUpdated)
-      powersUpdated && savePowers(powersUpdated)
-      setStatus("success")
-      }
-  }
-
   const checkLaws = async (lawIds: bigint[]) => {
     // console.log("@checkLaws, waypoint 0", {lawIds})
-    let lawId: bigint
     const fetchedLaws: Law[] = []
 
     setStatus("pending")
 
     if (publicClient && lawIds.length > 0 && address) {
-        // fetching all laws ever initiated by the org
-        for (lawId of lawIds) {
-          // console.log("@checkLaws, waypoint 1", {lawId})
-          try { 
-            const lawFetched = await publicClient.readContract({ 
-              abi: powersAbi,
-              address: address as `0x${string}`,
-              functionName: 'getAdoptedLaw',
-              args: [BigInt(lawId)]
-            })
-                // console.log("@checkLaws, waypoint 2", {lawFetched})
-            const lawFetchedTyped = lawFetched as [`0x${string}`, `0x${string}`, boolean]
+        try {
+          // Batch fetch all laws via multicall
+          const contracts = lawIds.map((id) => ({
+            abi: powersAbi,
+            address: address as `0x${string}`,
+            functionName: 'getAdoptedLaw' as const,
+            args: [BigInt(id)] as [bigint]
+          }))
+
+          const results = await readContracts(wagmiConfig, {
+            allowFailure: false,
+            contracts
+          }) as Array<[`0x${string}`, `0x${string}`, boolean]>
+
+          results.forEach((lawTuple, idx) => {
+            const id = lawIds[idx]
             fetchedLaws.push({
               powers: address,
-              lawAddress: lawFetchedTyped[0] as unknown as `0x${string}`,
-              lawHash: lawFetchedTyped[1] as unknown as `0x${string}`,
-              index: lawId,
-              active: lawFetchedTyped[2] as unknown as boolean
+              lawAddress: lawTuple[0] as unknown as `0x${string}`,
+              lawHash: lawTuple[1] as unknown as `0x${string}`,
+              index: id,
+              active: lawTuple[2] as unknown as boolean
             })
-            // console.log("@checkLaws, waypoint 3", {error})
-          } catch (error) {
-            // console.log("@checkLaws, waypoint 3", {error})
-            setStatus("error")
-            setError(error)
-          }
+          })
+
+          return fetchedLaws
+        } catch (error) {
+          setStatus("error")
+          setError(error)
         }
-        return fetchedLaws
     }
   }
 
@@ -199,37 +149,97 @@ export const usePowers = () => {
     const populatedLaws: Law[] = []
 
     try {
+      // Build a single multicall for all missing fields across all laws
+      type PendingCall = {
+        kind: 'conditions' | 'inputParams' | 'nameDescription' | 'actions'
+        lawIdx: number
+      }
+      const contracts: Array<
+        | {
+            abi: typeof lawAbi
+            address: `0x${string}`
+            functionName: 'getInputParams' | 'getNameDescription'
+            args: [string | `0x${string}`, bigint]
+          }
+        | {
+            abi: typeof powersAbi
+            address: `0x${string}`
+            functionName: 'getConditions'
+            args: [bigint]
+          }
+      > = []
+      const pending: PendingCall[] = []
+
+      laws.forEach((l, idx) => {
+        if (l.lawAddress != `0x0000000000000000000000000000000000000000`) {
+          if (!l.conditions) {
+            contracts.push({
+              abi: powersAbi,
+              address: l.powers as `0x${string}`,
+              functionName: 'getConditions',
+              args: [l.index]
+            })
+            pending.push({ kind: 'conditions', lawIdx: idx })
+            // Immediately also fetch law action ids after conditions, to keep result order predictable
+            contracts.push({
+              abi: powersAbi,
+              address: l.powers as `0x${string}`,
+              functionName: 'getLawActions',
+              args: [l.index]
+            } as any)
+            pending.push({ kind: 'actions', lawIdx: idx })
+          }
+          if (!l.inputParams) {
+            contracts.push({
+              abi: lawAbi,
+              address: l.lawAddress as `0x${string}`,
+              functionName: 'getInputParams',
+              args: [l.powers, l.index]
+            })
+            pending.push({ kind: 'inputParams', lawIdx: idx })
+          }
+          if (!l.nameDescription) {
+            contracts.push({
+              abi: lawAbi,
+              address: l.lawAddress as `0x${string}`,
+              functionName: 'getNameDescription',
+              args: [l.powers, l.index]
+            })
+            pending.push({ kind: 'nameDescription', lawIdx: idx })
+          }
+        }
+      })
+
+      if (contracts.length > 0) {
+        const results = await readContracts(wagmiConfig, {
+          allowFailure: false,
+          contracts
+        })
+
+        // Apply results back to the corresponding laws in order
+        results.forEach((value, i) => {
+          const meta = pending[i]
+          const target = laws[meta.lawIdx]
+          if (meta.kind === 'conditions') {
+            target.conditions = value as Conditions
+          } else if (meta.kind === 'inputParams') {
+            target.inputParams = value as `0x${string}`
+            target.params = bytesToParams(target.inputParams)
+          } else if (meta.kind === 'nameDescription') {
+            target.nameDescription = value as string
+          } else if (meta.kind === 'actions') {
+            const actionIds = (value as bigint[]) || []
+            if (actionIds.length > 0) {
+              target.actions = actionIds.map((id) => ({
+                actionId: String(id),
+                lawId: target.index
+              }))
+            }
+          }
+        })
+      }
+
       for (law of laws) {
-        if (!law.conditions && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const lawConditions = await publicClient.readContract({
-            abi: lawAbi, 
-            address: law.lawAddress as `0x${string}`,
-            functionName: 'getConditions',
-            args: [law.powers, law.index]
-          })
-          law.conditions = lawConditions as Conditions
-        }
-
-        if (!law.inputParams && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const lawInputParams = await publicClient.readContract({
-            abi: lawAbi, 
-            address: law.lawAddress as `0x${string}`,
-            functionName: 'getInputParams',
-            args: [law.powers, law.index]
-          })
-          law.inputParams = lawInputParams as `0x${string}`
-          law.params = bytesToParams(law.inputParams)
-        }
-
-        if (!law.nameDescription && law.lawAddress != `0x0000000000000000000000000000000000000000`) {
-          const nameDescription = await publicClient.readContract({
-            abi: lawAbi, 
-            address: law.lawAddress as `0x${string}`,
-            functionName: 'getNameDescription',
-            args: [law.powers, law.index]
-          })
-          law.nameDescription = nameDescription as string
-        }
         populatedLaws.push(law)
       }
       return populatedLaws
@@ -241,9 +251,9 @@ export const usePowers = () => {
 
   const calculateRoles = (laws: Law[]): bigint[] | undefined => {
     try {
-      const AdoptedLaws = laws.filter((law: Law) => law.active)
-      // console.log("@calculateRoles, waypoint 0", {AdoptedLaws})
-      const rolesAll = AdoptedLaws.map((law: Law) => law.conditions?.allowedRole)
+      const ActiveLaws = laws.filter((law: Law) => law.active)
+      // console.log("@calculateRoles, waypoint 0", {ActiveLaws})
+      const rolesAll = ActiveLaws.map((law: Law) => law.conditions?.allowedRole)
       // console.log("@calculateRoles, waypoint 1", {rolesAll})
       const roles = [... new Set(rolesAll)] as bigint[]
       // console.log("@calculateRoles, waypoint 2", {roles})
@@ -260,22 +270,32 @@ export const usePowers = () => {
 
     if (roles.length > 0) {
     try {
-      for (role of roles) {
-        const [roleLabel, roleHolders] = await Promise.all([
-          readContract(wagmiConfig, {
-            abi: powersAbi,
-            address: powers.contractAddress as `0x${string}`,
-            functionName: 'getRoleLabel',
-            args: [role]
-          }),
-          readContract(wagmiConfig, {
-            abi: powersAbi,
-            address: powers.contractAddress as `0x${string}`,
-            functionName: 'getAmountRoleHolders',
-            args: [role]
-          })
-        ])
-        updatedRoleLabels = [...updatedRoleLabels, {roleId: role, label: roleLabel as string, holders: roleHolders as bigint }]
+      // Build a multicall to fetch labels and holder counts for all roles
+      const contracts = roles.flatMap((r) => ([
+        {
+          abi: powersAbi,
+          address: powers.contractAddress as `0x${string}`,
+          functionName: 'getRoleLabel' as const,
+          args: [r] as [bigint]
+        },
+        {
+          abi: powersAbi,
+          address: powers.contractAddress as `0x${string}`,
+          functionName: 'getAmountRoleHolders' as const,
+          args: [r] as [bigint]
+        }
+      ]))
+
+      const results = await readContracts(wagmiConfig, {
+        allowFailure: false,
+        contracts
+      })
+
+      // results are in pairs [label, holders] per role in same order
+      for (let i = 0; i < roles.length; i++) {
+        const label = results[i * 2] as string
+        const holders = results[i * 2 + 1] as bigint
+        updatedRoleLabels.push({ roleId: roles[i], label, holders })
       }
       return updatedRoleLabels
     } catch (error) {
@@ -321,7 +341,7 @@ export const usePowers = () => {
       // console.log("@fetchLawsAndRoles, waypoint 1")
       powersUpdated = { ...powers, 
         laws, 
-        AdoptedLaws: laws.filter((law: Law) => law.active),
+        ActiveLaws: laws.filter((law: Law) => law.active),
         roles, 
         roleLabels
       }
@@ -336,124 +356,95 @@ export const usePowers = () => {
     }
   }
   
-  const fetchProposals = async (powers: Powers | undefined, maxRuns: bigint, chunkSize: bigint) => {
-    let powersUpdated: Powers | undefined;
-    // console.log("@fetchProposals, waypoint 0", {powers, currentBlock, maxRuns, chunkSize})
-
-    if (!publicClient || !currentBlock || !powers) {
-      setStatus("error")
-      setError("No public client, current block, or powers data")
-      return powers
-    } else {
-      // Initialize arrays to collect results
-      let proposalsFetched: Action[] = powers?.proposals || []; // Start with existing proposals
-     
-      let distance = powers?.proposalsBlocksFetched ? BigInt(Number(currentBlock) - Number(powers?.proposalsBlocksFetched?.to)) : BigInt(Number(chunkSize) * Number(maxRuns))
-      if (distance > BigInt(Number(chunkSize) * Number(maxRuns)) ) {
-        distance = BigInt(Number(chunkSize) * Number(maxRuns))
-      }
-      const blockFrom = currentBlock - distance
-      // console.log("@fetchProposals, waypoint 1", {blockFrom, distance, currentBlock})
-
-      // Fetch blocks in chunks with pagination
-      let chunkFrom: bigint = 0n
-      let chunkTo: bigint = 0n
-      // console.log("@fetchProposals, waypoint 2", {chunkFrom, chunkTo})
-  
-      // check if we reached the end of the distance or max runs
-      // if so, save here everything to disc.  
-      let i = 0
-      while (i < Number(distance)) {
-        // console.log("@fetchProposals, waypoint 3", {chunkTo, i, distance})
-      
-        // calculate chunk boundaries
-        chunkFrom = BigInt(Number(blockFrom) + i)
-        chunkTo = (Number(chunkFrom) + Number(chunkSize)) > Number(currentBlock) ? currentBlock : BigInt(Number(chunkFrom) + Number(chunkSize))
-        // console.log("@fetchProposals, waypoint 3.1", {chunkFrom, chunkTo, currentBlock})
-        
-        try { 
-          // Fetch events for the current chunk
-          const logs = await publicClient.getContractEvents({ 
-            address: powers?.contractAddress as `0x${string}`,
-            abi: powersAbi, 
-            eventName: 'ProposedActionCreated',
-            fromBlock: chunkFrom,
-            toBlock: chunkTo
-          })
-          // console.log("@fetchProposals, waypoint 4", {logs, publicClient})          
-          const fetchedLogs = parseEventLogs({
-            abi: powersAbi,
-            eventName: 'ProposedActionCreated',
-            logs
-          });
-          // console.log("@fetchProposals, waypoint 5", {fetchedLogs})
-          let newProposals: Action[] = (fetchedLogs as ParseEventLogsReturnType).map(log => log.args as Action);
-          // but with typing of nonce and actionId as string
-          newProposals = newProposals.map(proposal => { 
-            return {
-              ...proposal,
-              actionId: String(proposal.actionId),
-              nonce: String(proposal.nonce)
-            }
-          })
-          // console.log("@fetchProposals, waypoint 6", {newProposals})
-          // Append new proposals to the accumulated array
-          proposalsFetched = [...proposalsFetched, ...newProposals]
-          } catch (error) {
-            setStatus("error")
-            setError(error)
-            return powers
-          }
-          i = i + Number(chunkSize)
-        }
-        
-        // Remove duplicates based on actionId and nonce
-        const uniqueProposals = proposalsFetched.filter((proposal, index, self) => 
-          index === self.findIndex(p => p.actionId === proposal.actionId && p.nonce === proposal.nonce)
-        )
-        // console.log("@fetchProposals, waypoint 7", {uniqueProposals})
-        // const sortedProposals = uniqueProposals.sort((a: Action, b: Action) => a.voteStart && b.voteStart ? a.voteStart > b.voteStart ? -1 : 1 : 0);
-        // console.log("@fetchProposals, waypoint 8", {sortedProposals})
-        
-          powersUpdated = { ...powers as Powers, 
-            proposals: uniqueProposals, // Use deduplicated proposals
-            proposalsBlocksFetched: { 
-              from: powers?.proposalsBlocksFetched?.from ? 
-                powers?.proposalsBlocksFetched.from : // note: from is only saved once, and is never updated.  
-                blockFrom, 
-              to: chunkTo 
-            }
-          }
-          // console.log("@fetchProposals, waypoint 9", {powersUpdated})
-          setPowers(powersUpdated)
-          savePowers(powersUpdated)
-          return powersUpdated
-      }
-      // return powers
-  }
-  
-  const fetchExecutedActions = async (powers: Powers) => {
+  // Note: it ONLY fetch the action data on status of the action. Calldata, vote data is not fetched.
+  const fetchActions = async (powers: Powers) => {
     setStatus("pending")
     let powersUpdated: Powers | undefined;
     let law: Law
     const laws = powers.laws || []
-    const executedActions: LawExecutions[] = []
 
     try {
-      for (law of laws) {
-        console.log("@fetchExecutedActions, waypoint 0", {law})
+      // 1) Fetch all actionIds per law via multicall to Powers.getLawActions
+      const lawIds = laws.map((l) => l.index)
+      const lawActionsResults = await readContracts(wagmiConfig, {
+        allowFailure: false,
+        contracts: lawIds.map((id) => ({
+          abi: powersAbi,
+          address: powers.contractAddress as `0x${string}`,
+          functionName: 'getLawActions' as const,
+          args: [id]
+        }))
+      }) as Array<bigint[]>
 
-        const executedActionsFetched = await readContract(wagmiConfig, {
-          abi: lawAbi,
-          address: law.lawAddress as `0x${string}`,
-          functionName: 'getExecutions',
-          args: [law.powers, law.index]
+      // Map actionIds back to their lawId and create a flat list of unique actionIds
+      const actionIdToLawId = new Map<string, bigint>()
+      const allActionIds: bigint[] = []
+      lawActionsResults.forEach((ids, idx) => {
+        const lId = lawIds[idx]
+        ;(ids || []).forEach((aid) => {
+          const key = aid.toString()
+          if (!actionIdToLawId.has(key)) {
+            actionIdToLawId.set(key, lId)
+            allActionIds.push(aid)
+          }
         })
-        console.log("@fetchExecutedActions, waypoint 1", {executedActionsFetched})
-        executedActions.push(executedActionsFetched as unknown as LawExecutions)
+      })
+
+      // Early exit if there are no actions
+      if (allActionIds.length === 0) {
+        powersUpdated = { ...powers }
+        setPowers(powersUpdated)
+        powersUpdated && savePowers(powersUpdated)
+        setStatus("success")
+        return powersUpdated
       }
-      console.log("@fetchExecutedActions, waypoint 2", {executedActions, error})
-      powersUpdated = { ...powers, executedActions }
+
+      // 2) Fetch actionData for all actions via multicall to Powers.getActionData
+      const actionDataResults = await readContracts(wagmiConfig, {
+        allowFailure: false,
+        contracts: allActionIds.map((aid) => ({
+          abi: powersAbi,
+          address: powers.contractAddress as `0x${string}`,
+          functionName: 'getActionData' as const,
+          args: [aid]
+        }))
+      }) as Array<[
+        number, // lawId (uint16)
+        bigint, // proposedAt (uint48)
+        bigint, // requestedAt (uint48)
+        bigint, // fulfilledAt (uint48)
+        bigint, // cancelledAt (uint48)
+        `0x${string}`, // caller
+        bigint // nonce
+      ]>
+
+      // 3) Build Action objects and set them back on their corresponding laws
+      const updatedLaws = laws.map((l) => ({ ...l, actions: [] as Action[] }))
+      actionDataResults.forEach((tuple, idx) => {
+        const actionId = allActionIds[idx]
+        const fromTuple = tuple
+        const returnedLawId = BigInt(fromTuple[0])
+        const mappedLawId = actionIdToLawId.get(actionId.toString()) ?? returnedLawId
+
+        const action: Action = {
+          actionId: String(actionId),
+          lawId: mappedLawId,
+          caller: fromTuple[5],
+          nonce: String(fromTuple[6]),
+          proposedAt: fromTuple[1],
+          requestedAt: fromTuple[2],
+          fulfilledAt: fromTuple[3],
+          cancelledAt: fromTuple[4]
+        }
+
+        // push to corresponding law
+        const lawIndex = updatedLaws.findIndex((lw) => lw.index === mappedLawId)
+        if (lawIndex !== -1) {
+          updatedLaws[lawIndex].actions = [...(updatedLaws[lawIndex].actions || []), action]
+        }
+      })
+
+      powersUpdated = { ...powers, laws: updatedLaws }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
@@ -516,16 +507,14 @@ export const usePowers = () => {
       let data: Powers | undefined
       let metaData: Powers | undefined
       let laws: Powers | undefined
-      let executedActions: Powers | undefined
-      let proposals: Powers | undefined
+      let actions: Powers | undefined
 
       powersToBeUpdated = { contractAddress: address, chainId: BigInt(chainId) }
       // console.log("@refetchPowers, waypoint 1", {powersToBeUpdated})
 
       try {
-        [data, proposals] = await Promise.all([
-          fetchPowersData(powersToBeUpdated),
-          fetchProposals(powersToBeUpdated, 10n, 10000n),
+        [data] = await Promise.all([
+          fetchPowersData(powersToBeUpdated)
         ])
         // console.log("@refetchPowers, waypoint 2", {data, proposals})
         // console.log("@refetchPowers, waypoint 0.1", {data, proposals})
@@ -538,14 +527,13 @@ export const usePowers = () => {
           // console.log("@refetchPowers, waypoint 3", {metaData, laws})
         }
         // console.log("@refetchPowers, waypoint 4", {metaData, laws})
-        if (laws) {
-          executedActions = await fetchExecutedActions(laws)
+        if (laws) { actions = await fetchActions(laws) }
           // console.log("@refetchPowers, waypoint 5", {executedActions})
-        }
-        // console.log("@refetchPowers, waypoint 6", {data, metaData, laws, executedActions, proposals})
+        
+        // console.log("@refetchPowers, waypoint 6", {data, metaData, laws, actions, proposals})
 
-        if (data != undefined && metaData != undefined && laws != undefined && executedActions != undefined && proposals != undefined) {
-          // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, executedActions, proposals})
+        if (data != undefined && metaData != undefined && laws != undefined && actions != undefined) {
+          // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, actions, proposals})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             chainId: BigInt(chainId),
@@ -554,9 +542,7 @@ export const usePowers = () => {
             uri: data.uri,
             lawCount: data.lawCount,
             laws: laws.laws,
-            AdoptedLaws: laws.AdoptedLaws,
-            proposals: proposals.proposals,
-            executedActions: executedActions.executedActions,
+            ActiveLaws: laws.ActiveLaws,
             roles: laws.roles,
             roleLabels: laws.roleLabels,
             deselectedRoles: laws.deselectedRoles,
@@ -576,5 +562,5 @@ export const usePowers = () => {
     }, [ ] 
   )
 
-  return {status, error, powers, fetchPowers, refetchPowers, fetchLawsAndRoles, fetchProposals, fetchExecutedActions, checkLaws, checkSingleLaw}  
+  return {status, error, powers, fetchPowers, refetchPowers, fetchLawsAndRoles, fetchActions, checkLaws}  
 }

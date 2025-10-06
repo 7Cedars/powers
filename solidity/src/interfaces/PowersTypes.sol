@@ -88,7 +88,6 @@ interface PowersTypes {
         Succeeded, // - calculate this
         Requested, // - log this
         Fulfilled // - log this
-
     }
 
     /// @notice Supported vote types. Matches Governor Bravo ordering.

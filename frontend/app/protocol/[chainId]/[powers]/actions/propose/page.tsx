@@ -20,7 +20,7 @@ const Page = () => {
   // Get checks for this specific law from Zustand store
   const checks = law ? chainChecks?.get(String(law.index)) : undefined
   const { wallets } = useWallets();
-  const { fetchChainChecks } = useChecks();
+  const { fetchChainStatus } = useChecks();
 
   useEffect(() => {
     if (addressPowers) {
@@ -30,7 +30,7 @@ const Page = () => {
 
   const handleCheck = async (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
     setError({error: null})
-    fetchChainChecks(law.index, action.callData, BigInt(action.nonce), wallets, powers)
+    fetchChainStatus(law.index, action.callData as `0x${string}`, BigInt(action.nonce as string), wallets, powers)
   }
 
   return (

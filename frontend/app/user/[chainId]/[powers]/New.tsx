@@ -11,7 +11,6 @@ import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
 import { usePowers } from '@/hooks/usePowers'
-import { useProposal } from '@/hooks/useProposal'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { LawBox } from './LawBox'
 import HeaderLaw from '@/components/HeaderLaw'
@@ -26,9 +25,8 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
   const { chainChecks } = useChecksStore();
-  const { fetchChainChecks, status: statusChecks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
-  const { status: statusProposals, propose } = useProposal();
+  const { fetchChainStatus, status: statusChecks } = useChecks()
+  const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, propose, request } = useLaw();
   const { refetchPowers, status: statusPowers } = usePowers();
 
   // console.log("@New, statusProposals", {statusProposals})
@@ -57,7 +55,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   // console.log("@New, powers", powers)
   // console.log("@New, hasRoles", hasRoles)
   const finalFilteredLaws = powers?.laws?.filter(
-    law => law.conditions?.needCompleted == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
+    law => law.conditions?.needFulfilled == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
   )
   // console.log("@New, filteredLaws", finalFilteredLaws)
 
@@ -65,14 +63,14 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   const enabledLaws = selectedLaw && powers?.laws ? 
     powers.laws.filter(law => 
       law.active && 
-      law.conditions?.needCompleted == selectedLaw.index
+      law.conditions?.needFulfilled == selectedLaw.index
     ) : []
 
   // Get laws that will be blocked by executing the selected law
   const blockedLaws = selectedLaw && powers?.laws ? 
     powers.laws.filter(law => 
       law.active && 
-      law.conditions?.needNotCompleted == selectedLaw.index
+      law.conditions?.needNotFulfilled == selectedLaw.index
     ) : []
 
   // console.log("@New, selectedLaw", selectedLaw)
@@ -100,7 +98,6 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
           upToDate: false
         })
       }
-      fetchExecutions(selectedLaw)
       resetStatus()
     }
   }, [selectedLaw])
@@ -147,7 +144,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     }
     
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-      fetchChainChecks(selectedLaw.index, lawCalldata, BigInt(action.nonce), wallets, powers)
+      fetchChainStatus(selectedLaw.index, lawCalldata, BigInt(action.nonce as string), wallets, powers)
 
       setAction({
         ...action,
@@ -165,7 +162,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
         simulate(
           wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           action.callData as `0x${string}`,
-          BigInt(action.nonce),
+          BigInt(action.nonce as string),
           selectedLaw
         )
       } catch (error) {
@@ -217,7 +214,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
       lawCalldata = '0x0'
     }
 
-    execute(
+    request(
       selectedLaw, 
       lawCalldata as `0x${string}`,
       nonce,

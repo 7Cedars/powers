@@ -6,7 +6,6 @@ import { Button } from "@/components/Button";
 import { useParams, useRouter } from "next/navigation";
 import { useLaw } from "@/hooks/useLaw";
 import { Law, Powers, Action, Status } from "@/context/types";
-import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { hashAction } from "@/utils/hashAction";
@@ -20,7 +19,7 @@ import { StaticForm } from "@/components/StaticForm";
 export function ProposeBox({law, powers, proposalExists, authorised, onCheck, status}: {law?: Law, powers: Powers, status: Status, proposalExists: boolean, authorised: boolean, onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void}) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposals, propose} = useProposal();
+  const {status: statusProposals, propose} = useLaw();
   const { wallets } = useWallets();
   const { actionData } = useActionDataStore();
   const router = useRouter();
@@ -33,14 +32,14 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
   useEffect(() => {
     simulate(
       action.caller as `0x${string}`,
-      action.callData,
-      BigInt(action.nonce),
-      law as Law
+      action.callData as `0x${string}`,
+      BigInt(action.nonce as string),
+      law as Law  
     )
   }, [law, action])
 
   const navigateToProposal = () => {
-    const hash = hashAction(law?.index as bigint, action.callData, BigInt(action.nonce))
+    const hash = hashAction(law?.index as bigint, action.callData as `0x${string}`, BigInt(action.nonce as string))
     router.push(`/protocol/${chainId}/${addressPowers}/proposals/${hash}`)
   }
 
@@ -93,9 +92,9 @@ export function ProposeBox({law, powers, proposalExists, authorised, onCheck, st
                 } else {
                   propose(
                     law?.index as bigint, 
-                    action.callData, 
-                    BigInt(action.nonce),
-                    action.description,
+                    action.callData as `0x${string}`, 
+                    BigInt(action.nonce as string),
+                    action.description as string,
                     powers as Powers
                   )
                 }

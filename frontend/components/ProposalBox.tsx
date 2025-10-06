@@ -5,7 +5,6 @@ import { useActionStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
 import { Action, Checks, Law, Powers, Status } from "@/context/types";
-import { useProposal } from "@/hooks/useProposal";
 import { SimulationBox } from "@/components/SimulationBox";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { useBlockNumber } from "wagmi";
@@ -32,7 +31,7 @@ export function ProposalBox({
 }) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
+  const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useLaw();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
   const law = powers?.laws?.find(law => law.index == lawId)
   const chains = useChains();
@@ -58,8 +57,8 @@ export function ProposalBox({
     if (action.actionId && wallets.length > 0) {
       simulate(
         action.caller as `0x${string}`,
-        action.callData,
-        BigInt(action.nonce),
+        action.callData as `0x${string}`,
+        BigInt(action.nonce as string),
         law as Law
         )
 

@@ -1,5 +1,4 @@
-import { ConnectedWallet } from '@privy-io/react-auth';
-import { Config, GetBlockReturnType } from '@wagmi/core';
+import { GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
 export type SupportedChains = 421614 | 11155111 | 31337 | 5003 | undefined
@@ -17,24 +16,6 @@ export type LawSimulation = [
       `0x${string}`[], 
       `0x${string}`
 ]
-
-export type LawExecutions = {
-  powers: `0x${string}`, 
-  config: `0x${string}`, 
-  actionsIds: bigint[], 
-  executions: bigint[] 
-}
-
-// If possible, remove this type. 
-export type PowersExecutions = {
-  lawId: bigint, 
-  actionId: bigint, 
-  blockNumber: bigint, 
-  blockHash: `0x${string}`, 
-  targets: `0x${string}`[], 
-  values: bigint[], 
-  calldatas: `0x${string}`[] 
-}
 
 export type Attribute = {  
   trait_type: string | number ;  
@@ -72,9 +53,8 @@ export type ChainProps = {
 export type Conditions = {
   allowedRole: bigint; 
   delayExecution: bigint; 
-  needNotCompleted: bigint;
-  needCompleted: bigint;
-  readStateFrom: bigint;
+  needNotFulfilled: bigint;
+  needFulfilled: bigint;
   quorum: bigint; 
   succeedAt: bigint; 
   throttleExecution: bigint;
@@ -107,7 +87,7 @@ export type Law = {
   config?: `0x${string}`;
   inputParams?: `0x${string}`; 
   params ?: {varName: string, dataType: DataType}[]; 
-  executions?: LawExecutions; 
+  actions?: Action[]; 
   active: boolean;
 }
 
@@ -119,12 +99,6 @@ export type Metadata = {
   erc721s: `0x${string}`[];
   erc1155s: `0x${string}`[];
   attributes: Attribute[]
-}
-
-export type RoleLabel = { 
-  roleId: bigint; 
-  label: string; 
-  holders?: bigint;
 }
 
 export type BlockRange = {
@@ -140,10 +114,7 @@ export type Powers = {
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  AdoptedLaws?: Law[];
-  proposals?: Action[];
-  proposalsBlocksFetched?: BlockRange;
-  executedActions?: LawExecutions[]; // executions per law. 
+  ActiveLaws?: Law[]; 
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   roleHolders?: bigint[];
@@ -158,13 +129,11 @@ export type Role = {
   since?: number
 }
 
-export type Roles = {
-  roleId: bigint;
-  holders?: number;
-  laws?: Law[];
-  proposals?: Action[];
-  roles?: Role[];
-};
+export type RoleLabel = { 
+  roleId: bigint; 
+  label: string; 
+  holders?: bigint;
+}
 
 export type Checks = {
   allPassed?: boolean; 
@@ -172,10 +141,10 @@ export type Checks = {
   proposalExists?: boolean;
   voteActive?: boolean;
   proposalPassed?: boolean;
-  executed?: boolean;
-  actionNotCompleted?: boolean;
-  lawCompleted?: boolean;
-  lawNotCompleted?: boolean;
+  fulfilled?: boolean;
+  actionNotFulfilled?: boolean;
+  lawFulfilled?: boolean;
+  lawNotFulfilled?: boolean;
   delayPassed?: boolean;
   throttlePassed?: boolean;
 }
@@ -184,12 +153,16 @@ export type Action = {
   actionId: string;
   lawId: bigint;
   caller?: `0x${string}`;
-  dataTypes: DataType[] | undefined;
-  paramValues: (InputType | InputType[])[] | undefined;
-  nonce: string;
-  description: string;
-  callData: `0x${string}`;
-  upToDate: boolean;
+  dataTypes?: DataType[] | undefined;
+  paramValues?: (InputType | InputType[])[] | undefined;
+  nonce?: string;
+  description?: string;
+  callData?: `0x${string}`;
+  upToDate?: boolean;
+  proposedAt?: bigint;
+  requestedAt?: bigint;
+  fulfilledAt?: bigint;
+  cancelledAt?: bigint;
   state?: number;
   voteStart?: bigint;
   voteDuration?: bigint;
@@ -197,12 +170,6 @@ export type Action = {
   againstVotes?: bigint;
   forVotes?: bigint;
   abstainVotes?: bigint;
-  executedAt?: bigint;
-  cancelled?: boolean;
-  requested?: boolean;
-  fulfilled?: boolean;
-  originalFulfilledAction?: Action; // For enabled actions, stores the original fulfilled action data
-  needCompletedLaw?: Law; // For enabled actions, stores the needCompleted law that enabled this action
 }
 
 export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">

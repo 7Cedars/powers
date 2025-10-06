@@ -192,7 +192,9 @@ contract ProposeTest is TestSetupPowers {
         (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
         conditions = daoMock.getConditions(lawId);
 
-        assertEq(daoMock.getActionDeadline(actionId), block.number + conditions.votingPeriod);
+        (, , uint256 deadline, , , ) = daoMock.getActionVoteData(actionId);
+
+        assertEq(deadline, block.number + conditions.votingPeriod);
     }
 }
 
@@ -411,12 +413,11 @@ contract VoteTest is TestSetupPowers {
             }
         }
 
-        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
+        (, , uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
             daoMock.getActionVoteData(actionId);
         assertEq(againstVotes, uint32(numberAgainstVotes));
         assertEq(forVotes, uint32(numberForVotes));
-        assertEq(abstainVotes, uint32(numberAbstainVotes));
-        assertEq(voteEnd, daoMock.getActionDeadline(actionId));
+        assertEq(abstainVotes, uint32(numberAbstainVotes)); 
     }
 
     function testVoteRevertsWithInvalidVote() public {

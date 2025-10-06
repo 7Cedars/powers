@@ -94,7 +94,8 @@ library PowersUtilities {
 
         // Check execution delay after proposal
         if (conditions.delayExecution != 0) {
-            uint256 deadline = Powers(payable(powers)).getActionDeadline(hashActionId(lawId, lawCalldata, nonce));
+
+            (, , uint256 deadline, , , ) = Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
             if (deadline + conditions.delayExecution > block.number) {
                 revert("Deadline not passed");
             }

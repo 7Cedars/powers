@@ -37,7 +37,7 @@ export default function SettingsPage() {
     },
     lawCount: 0n,
     laws: [],
-    AdoptedLaws: [],
+    ActiveLaws: [],
     proposals: [],
     roles: [],
     roleLabels: [],

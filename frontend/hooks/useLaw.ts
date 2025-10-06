@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Status, LawSimulation, Law, LawExecutions } from "../context/types"
+import { Status, LawSimulation, Law, Powers, Action } from "../context/types"
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
-import { usePrivy } from "@privy-io/react-auth";
-import { setError } from "../context/store";
 
 export const useLaw = () => {
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
-  const [simulation, setSimulation ] = useState<LawSimulation>()
-  const [executions, setExecutions ] = useState<LawExecutions>()
+  const [simulation, setSimulation ] = useState<LawSimulation>() 
+  const [hasVoted, setHasVoted] = useState<boolean | undefined>()
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
@@ -30,32 +28,104 @@ export const useLaw = () => {
     setError(null)
     setTransactionHash(undefined)
   }
-
-  const fetchExecutions = useCallback( 
-    async (law: Law) => {
-      // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
-      setError(null)
-      setStatus("pending")
-      try {
-          const result = await readContract(wagmiConfig, {
-            abi: lawAbi,
-            address: law.lawAddress as `0x${string}`,
-            functionName: 'getExecutions', 
-            args: [law.powers, law.index]
-            })
-          // console.log("@fetchExecutions: waypoint 2a", {result})
-          setExecutions(result as unknown as LawExecutions)
-          setStatus("success")
+  
+  // Actions //  
+  const propose = useCallback( 
+    async (
+      lawId: bigint,
+      lawCalldata: `0x${string}`,
+      nonce: bigint,
+      description: string,
+      powers: Powers
+    ) => {
+        setStatus("pending")
+        try {
+          const { request } = await simulateContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'propose',
+            args: [lawId, lawCalldata, nonce, description]
+          })
+          if (request) {
+            const result = await writeContract(wagmiConfig, request)
+            setTransactionHash(result)
+            setStatus("success")
+          }
         } catch (error) {
+            setStatus("error") 
+            setError(error)
+        }
+  }, [ ])
+
+  const cancel = useCallback( 
+    async (
+      lawId: bigint,
+      lawCalldata: `0x${string}`,
+      nonce: bigint,
+      powers: Powers
+    ) => {
+        setStatus("pending")
+        try {
+          const result = await writeContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'cancel', 
+            args: [lawId, lawCalldata, nonce]
+          })
+          setTransactionHash(result)
+      } catch (error) {
           setStatus("error") 
           setError(error)
+      }
+  }, [ ])
+
+  // note: I did not implement castVoteWithReason -- to much work for now. 
+  const castVote = useCallback( 
+    async (
+      actionId: bigint,
+      support: bigint,
+      powers: Powers
+    ) => {
+        setStatus("pending")
+        try {
+          const result = await writeContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'castVote', 
+            args: [actionId, support]
+          })
+          setTransactionHash(result)
+          setStatus("success")
+      } catch (error) {
+          setStatus("error") 
           setError(error)
-          // console.log(error)
-        }
-        setStatus("idle")
+      }
+  }, [ ])
+
+  // note: I did not implement castVoteWithReason -- to much work for now. 
+  const checkHasVoted = useCallback( 
+    async (
+      actionId: bigint,
+      account: `0x${string}`,
+      powers: Powers
+    ) => {
+      // console.log("checkHasVoted triggered")
+        setStatus("pending")
+        try {
+          const result = await readContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress,
+            functionName: 'hasVoted', 
+            args: [actionId, account]
+          })
+          setHasVoted(result as boolean )
+          setStatus("idle") 
+      } catch (error) {
+          setStatus("error") 
+          setError(error)
+      }
   }, [ ])
   
-
   const simulate = useCallback( 
     async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
       // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
@@ -82,7 +152,7 @@ export const useLaw = () => {
         setStatus("idle")
   }, [ ])
 
-  const execute = useCallback( 
+  const request = useCallback( 
     async (
       law: Law,
       lawCalldata: `0x${string}`,
@@ -118,5 +188,5 @@ export const useLaw = () => {
       }
   }, [ ])
 
-  return {status, error, executions, simulation, resetStatus, simulate, execute, fetchExecutions}
+  return {status, error, simulation, hasVoted, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, checkHasVoted}
 }
