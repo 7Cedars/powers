@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Action, Roles, Checks, Status } from '../context/types'
+import { Action, Checks, Status } from '../context/types'
 
 type ActionStore = Action;
 const initialStateAction: ActionStore = {

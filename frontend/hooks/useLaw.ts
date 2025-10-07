@@ -4,8 +4,11 @@ import { Status, LawSimulation, Law, Powers, Action } from "../context/types"
 import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
+import { parseChainId } from "@/utils/parsers";
+import { useParams } from "next/navigation";
 
 export const useLaw = () => {
+  const { chainId } = useParams<{ chainId: string }>()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [simulation, setSimulation ] = useState<LawSimulation>() 
@@ -44,7 +47,8 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'propose',
-            args: [lawId, lawCalldata, nonce, description]
+            args: [lawId, lawCalldata, nonce, description],
+            chainId: parseChainId(chainId)
           })
           if (request) {
             const result = await writeContract(wagmiConfig, request)
@@ -70,7 +74,8 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'cancel', 
-            args: [lawId, lawCalldata, nonce]
+            args: [lawId, lawCalldata, nonce],
+            chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
       } catch (error) {
@@ -92,7 +97,8 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'castVote', 
-            args: [actionId, support]
+            args: [actionId, support], 
+            chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
           setStatus("success")
@@ -116,7 +122,8 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'hasVoted', 
-            args: [actionId, account]
+            args: [actionId, account],
+            chainId: parseChainId(chainId)
           })
           setHasVoted(result as boolean )
           setStatus("idle") 
@@ -137,7 +144,8 @@ export const useLaw = () => {
             abi: lawAbi,
             address: law.lawAddress as `0x${string}`,
             functionName: 'handleRequest', 
-            args: [caller, law.powers, law.index, lawCalldata, nonce]
+            args: [caller, law.powers, law.index, lawCalldata, nonce],
+            chainId: parseChainId(chainId)
             })
           // console.log("@simulate: waypoint 2a", {result})
           // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})

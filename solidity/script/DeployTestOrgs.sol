@@ -24,23 +24,29 @@ contract DeployTestOrgs is Script {
     DeployMocks deployMocks;
     DeployLaws deployLaws;
     TestConstitutions testConstitutions;
+    Powers powers;
 
     function run() external returns (address[] memory powersAddresses, string[] memory mockNames, address[] memory mockAddresses, string[] memory lawNames, address[] memory lawAddresses) {// returns  addresses of the deployed powers contracts
         deployMocks = new DeployMocks();
         deployLaws = new DeployLaws();
         testConstitutions = new TestConstitutions();
+        powersAddresses = new address[](1);
 
         (mockNames, mockAddresses) = deployMocks.run();
         (lawNames, lawAddresses) = deployLaws.run();
-        Powers powers;
-        powersAddresses = new address[](1);
-        
         // Powers 101
+        vm.startBroadcast();
         powers = new Powers("Test Org", "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq", 10_000, 25);
+        vm.stopBroadcast();
+        
         (PowersTypes.LawInitData[] memory lawInitData) = testConstitutions.powers101Constitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(powers))
         );
+
+        vm.startBroadcast();
         powers.constitute(lawInitData);
+        vm.stopBroadcast();
+        
         powersAddresses[0] = address(powers);
 
         // here we can add more test powers implementations.

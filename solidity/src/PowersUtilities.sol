@@ -38,18 +38,18 @@ library PowersUtilities {
         PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
 
         // Check if parent law completion is required
-        if (conditions.needCompleted != 0) {
+        if (conditions.needFulfilled != 0) {
             PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(hashActionId(conditions.needCompleted, lawCalldata, nonce));
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needFulfilled, lawCalldata, nonce));
             if (stateLog != PowersTypes.ActionState.Fulfilled) {
                 revert("Parent law not completed");
             }
         }
 
         // Check if parent law must not be completed
-        if (conditions.needNotCompleted != 0) {
+        if (conditions.needNotFulfilled != 0) {
             PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(hashActionId(conditions.needNotCompleted, lawCalldata, nonce));
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needNotFulfilled, lawCalldata, nonce));
             if (stateLog == PowersTypes.ActionState.Fulfilled) {
                 revert("Parent law blocks completion");
             }

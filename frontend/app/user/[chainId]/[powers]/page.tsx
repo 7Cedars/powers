@@ -31,7 +31,6 @@ export default function UserPage() {
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const [proposals, setProposals] = useState<any[]>([])
-  const [proposalsLoading, setProposalsLoading] = useState(false)
   const proposalsFetchedRef = useRef(false)
   
   // Refs to store reset functions from child components
@@ -45,7 +44,7 @@ export default function UserPage() {
     { id: 'About', label: 'About', icon: InformationCircleIcon }
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
-  const { refetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
+  const { refetchPowers, powers, fetchActions } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
@@ -109,7 +108,8 @@ export default function UserPage() {
                 abi: powersAbi,
                 address: addressPowers as `0x${string}`,
                 functionName: 'hasRoleSince', 
-                args: [account, role]
+                args: [account, role],
+                chainId: parseChainId(chainId)
                 })
               // Only include roles where since > 0 (user actually has the role)
               if ((fetchedSince as bigint) > 0n) {
@@ -123,35 +123,11 @@ export default function UserPage() {
       }
     }, [])
 
-  // Memoize the fetch functions to prevent infinite loops
-  const handleFetchProposals = useCallback(async () => {
+  const handleFetchActions = useCallback(() => {
     if (powers) {
-      setProposalsLoading(true)
-      try {
-        const updatedPowers = await fetchProposals(powers as Powers, 10n, 9000n)
-        if (updatedPowers?.proposals) {
-          setProposals(updatedPowers.proposals)
-        }
-        // console.log("@handleFetchProposals, waypoint 0", {updatedPowers})
-      } catch (error) {
-        console.error('Error fetching proposals:', error)
-      } finally {
-        setProposalsLoading(false)
-      }
+      fetchActions(powers as Powers)
     }
-  }, [powers, fetchProposals])
-
-  // Manual refresh function that resets the ref
-  const handleRefreshProposals = useCallback(() => {
-    proposalsFetchedRef.current = false
-    handleFetchProposals()
-  }, [handleFetchProposals])
-
-  const handleFetchExecutedActions = useCallback(() => {
-    if (powers) {
-      fetchExecutedActions(powers as Powers)
-    }
-  }, [powers, fetchExecutedActions])
+  }, [powers, fetchActions])
 
   useEffect(() => {
     // Load the protocol from localStorage
@@ -191,14 +167,6 @@ export default function UserPage() {
       refetchPowers(addressPowers as `0x${string}`)
     }
   }, [, addressPowers, refetchPowers])
-
-  // Fetch proposals when powers are available
-  useEffect(() => {
-    if (powers && authenticated && !proposalsFetchedRef.current) {
-      proposalsFetchedRef.current = true
-      handleFetchProposals()
-    }
-  }, [powers, authenticated]) // Removed handleFetchProposals from dependencies
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -317,7 +285,8 @@ export default function UserPage() {
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
           {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={proposalsLoading} onRefresh={handleRefreshProposals} resetRef={incomingResetRef}/>}
+          {/* NB! Loading still needs to be fixed   */}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={"idle"} onRefresh={handleFetchActions} resetRef={incomingResetRef}/>}
           {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>

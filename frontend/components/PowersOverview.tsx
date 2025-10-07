@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { Powers, Law, Checks, LawSimulation, LawExecutions, Status, InputType } from '@/context/types'
+import { Powers } from '@/context/types'
 import { PowersFlow } from './PowersFlow'
 import { ConnectedWallet } from '@privy-io/react-auth'
 import { ChevronRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'

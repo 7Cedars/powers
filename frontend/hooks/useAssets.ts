@@ -34,7 +34,8 @@ export const useAssets = (powers: Powers | undefined) => {
             const name = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
-              functionName: 'name' 
+              functionName: 'name',
+              chainId: parseChainId(chainId)
             })
             const nameParsed = name as string
             // console.log("@useAssets, nameParsed:", {nameParsed})
@@ -42,7 +43,8 @@ export const useAssets = (powers: Powers | undefined) => {
             const symbol = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
-              functionName: 'symbol' 
+              functionName: 'symbol',
+              chainId: parseChainId(chainId)
             })
             const symbolParsed = symbol as string
             // console.log("@useAssets, symbolParsed:", {symbolParsed})
@@ -51,7 +53,8 @@ export const useAssets = (powers: Powers | undefined) => {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
               functionName: 'balanceOf', 
-              args: [powers.contractAddress] 
+              args: [powers.contractAddress],
+              chainId: parseChainId(chainId)
             })
             const balanceParsed = balance as bigint
             // console.log("@useAssets, balanceParsed:", {balanceParsed})
@@ -61,7 +64,8 @@ export const useAssets = (powers: Powers | undefined) => {
               const decimal = await readContract(wagmiConfig, {
                 abi: erc20Abi,
                 address: token,
-                functionName: 'decimals'
+                functionName: 'decimals',
+                chainId: parseChainId(chainId)
               })
               decimalParsed = decimal as bigint
             }
@@ -120,7 +124,8 @@ export const useAssets = (powers: Powers | undefined) => {
              abi: erc1155Abi,
              address: token,
              functionName: 'balanceOfBatch', 
-             args: [AccountsToCheck, IdsToCheck] 
+             args: [AccountsToCheck, IdsToCheck],
+             chainId: parseChainId(chainId)
            })
            const balancesParsed: bigint[] = balancesRaw as bigint[]
            
@@ -157,7 +162,8 @@ export const useAssets = (powers: Powers | undefined) => {
              abi: erc1155Abi,
              address: token.address as `0x${string}`,
              functionName: 'uri', 
-             args: [token.tokenId] 
+            args: [token.tokenId],
+             chainId: parseChainId(chainId)
             })
            
              if (uriRaw) {

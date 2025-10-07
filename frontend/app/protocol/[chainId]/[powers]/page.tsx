@@ -14,7 +14,8 @@ import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
 import { ArrowUpRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
-import { MyRoles } from './MyRoles'
+import { Roles } from './Roles'
+import { Laws } from './Laws'
 import { Actions } from './Actions'
 import { Powers } from '@/context/types'
 
@@ -66,7 +67,8 @@ export default function FlowPage() {
               abi: powersAbi,
               address: addressPowers as `0x${string}`,
               functionName: 'hasRoleSince', 
-              args: [account, role]
+              args: [account, role], 
+              chainId: parseChainId(chainId)
               })
             fetchedHasRole.push({role, since: fetchedSince as bigint})
             }
@@ -167,11 +169,15 @@ export default function FlowPage() {
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
-      <Actions hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
-      
       <Assets status = {statusPowers} powers = {powers}/> 
       
-      <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
+      <Actions hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
+      
+      <Roles powers = {powers} status = {statusPowers}/>
+      
+      <Laws powers = {powers} status = {statusPowers}/>
+
+      
       
     </section>
 

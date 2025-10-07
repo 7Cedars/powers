@@ -5,7 +5,7 @@ import { ProposalBox } from "../../../../../../components/ProposalBox";
 import { Voting } from "../../../../../../components/Voting"; 
 import { Votes } from "../../../../../../components/Votes";
 import { setAction, useActionStore, useChecksStore } from "@/context/store";
-import { Powers, Checks, Action } from "@/context/types";
+import { Powers, Checks, Action, Law } from "@/context/types";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
@@ -17,15 +17,16 @@ import { TitleText } from "@/components/StandardFonts";
 const Page = () => {
   const { powers, fetchPowers, status: statusPowers } = usePowers()
   const { wallets } = useWallets();
-  const { fetchChainStatus, status: statusChecks } = useChecks();
+  const { fetchChecks, status: statusChecks } = useChecks();
   const { fetchActionData, action: actionData, status: statusAction } = useAction();
   const { chainChecks } = useChecksStore();
   const action = useActionStore(); 
   const { powers: addressPowers, actionId } = useParams<{ powers: string, actionId: string }>()
+  const law = powers?.laws?.find(law => law.index == actionData?.lawId)
 
-  const handleCheck = async (lawId: bigint, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
+  const handleCheck = async (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
     // console.log("@Proposal page: waypoint 2", {lawId, action, wallets, powers})
-    fetchChainStatus(lawId, action.callData as `0x${string}`, BigInt(action.nonce as string), wallets, powers)
+    fetchChecks(law, action.callData as `0x${string}`, BigInt(action.nonce as string), wallets, powers)
   }
 
   // console.log("@Proposal page: waypoint 0", {actionData, action})
@@ -61,10 +62,10 @@ const Page = () => {
         lawId = {actionData?.lawId} 
         checks = {chainChecks.get(String(actionData?.lawId)) as Checks} 
         status = {statusChecks} 
-        onCheck = {() => handleCheck(actionData?.lawId as bigint, action, wallets, powers as Powers)} 
+        onCheck = {() => handleCheck(law as Law, action, wallets, powers as Powers)} 
         proposalStatus = {actionData?.state ? actionData.state : 0} /> 
         }
-      {actionData?.lawId && powers && <LawLink lawId = {actionData?.lawId} powers = {powers as Powers}/>}
+      { actionData?.lawId && powers && <LawLink lawId = {actionData?.lawId} powers = {powers as Powers}/> }
       { actionData?.lawId && <Voting action = {action} powers = {powers} status = {statusChecks}/> }
       { <Votes actionId = {actionId} action = {action} powers = {powers} status = {statusChecks}/> }
     </main>

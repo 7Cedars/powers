@@ -25,7 +25,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
   const { chainChecks } = useChecksStore();
-  const { fetchChainStatus, status: statusChecks } = useChecks()
+  const { fetchChecks, status: statusChecks } = useChecks()
   const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, propose, request } = useLaw();
   const { refetchPowers, status: statusPowers } = usePowers();
 
@@ -144,7 +144,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     }
     
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-      fetchChainStatus(selectedLaw.index, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+      fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
 
       setAction({
         ...action,

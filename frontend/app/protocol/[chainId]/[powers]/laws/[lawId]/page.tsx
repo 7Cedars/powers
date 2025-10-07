@@ -21,7 +21,7 @@ const Page = () => {
   const { chainChecks } = useChecksStore();
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   const { powers, fetchPowers, status: statusPowers } = usePowers() 
-  const { fetchChainStatus, status: statusChecks } = useChecks()
+  const { fetchChecks, status: statusChecks } = useChecks()
   const { fetchLawActions } = useAction()
   const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, request } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
@@ -81,7 +81,7 @@ const Page = () => {
         // resetting store
       // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-        fetchChainStatus(law.index, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+        fetchChecks(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
 
         // console.log("Handle Simulate waypoint 3b")
         setAction({

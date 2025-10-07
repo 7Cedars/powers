@@ -21,13 +21,13 @@ interface PowersTypes {
         // Slot 0
         uint256 allowedRole; // 32 bytes
         // Slot 1
-        uint16 needCompleted; // 2 bytes - index of law that must be completed before this one
+        uint16 needFulfilled; // 2 bytes - index of law that must be completed before this one
         uint48 delayExecution; // 6 bytes  - Blocks to wait after proposal success before execution
         uint48 throttleExecution; // 6 bytes  - Minimum blocks between executions
         uint32 votingPeriod; // 4 bytes  - Number of blocks for voting period
         uint8 quorum; // 1 byte   - Required participation percentage
         uint8 succeedAt; // 1 byte   - Required success percentage
-        uint16 needNotCompleted; // 2 bytes - index of law that must NOT be completed
+        uint16 needNotFulfilled; // 2 bytes - index of law that must NOT be completed
     }
 
     struct AdoptedLaw {

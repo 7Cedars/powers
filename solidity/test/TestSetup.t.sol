@@ -100,8 +100,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     uint8 quorum;
     uint8 succeedAt;
     uint32 votingPeriod;
-    address needCompleted;
-    address needNotCompleted;
+    address needFulfilled;
+    address needNotFulfilled;
     uint48 delayExecution;
     uint48 throttleExecution;
     bool quorumReached;

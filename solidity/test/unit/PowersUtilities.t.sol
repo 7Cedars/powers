@@ -123,7 +123,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
     function testChecksAtRequestWithZeroThrottle() public {
         // Setup: Use lawId 6 from powersTestConstitution which has no throttle (throttleExecution = 0)
-        // it does have a parentLaw needCompleted, so we need to complete it.
+        // it does have a parentLaw needFulfilled, so we need to complete it.
         lawId = 6;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
@@ -163,8 +163,8 @@ contract PowersUtilitiesTest is TestSetupPowers {
         assertEq(conditionsResult.quorum, 0);
         assertEq(conditionsResult.succeedAt, 0);
         assertEq(conditionsResult.votingPeriod, 0);
-        assertEq(conditionsResult.needCompleted, 0);
-        assertEq(conditionsResult.needNotCompleted, 0);
+        assertEq(conditionsResult.needFulfilled, 0);
+        assertEq(conditionsResult.needNotFulfilled, 0);
         assertEq(conditionsResult.delayExecution, 0);
         assertEq(conditionsResult.throttleExecution, 0);
     }

@@ -269,8 +269,8 @@ contract PowersFuzzTest is TestSetupPowers {
                 succeedAt: succeedAtFuzzed,
                 votingPeriod: votingPeriodFuzzed,
                 allowedRole: allowedRoleFuzzed,
-                needCompleted: 0,
-                needNotCompleted: 0,
+                needFulfilled: 0,
+                needNotFulfilled: 0,
                 delayExecution: 0,
                 throttleExecution: 0
             }),
@@ -312,8 +312,8 @@ contract PowersFuzzTest is TestSetupPowers {
                 succeedAt: succeedAtFuzzed,
                 votingPeriod: votingPeriodFuzzed,
                 allowedRole: allowedRoleFuzzed,
-                needCompleted: 0,
-                needNotCompleted: 0,
+                needFulfilled: 0,
+                needNotFulfilled: 0,
                 delayExecution: 0,
                 throttleExecution: 0
             }),

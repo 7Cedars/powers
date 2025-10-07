@@ -7,9 +7,10 @@ import { useState } from "react";
 import Image from 'next/image'
 import { 
   HomeIcon, 
-  ChatBubbleBottomCenterIcon,
+  BoltIcon,
+  UserGroupIcon,
+  ScaleIcon,
   BuildingLibraryIcon,
-  NewspaperIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton';
@@ -29,6 +30,7 @@ interface NavigationItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   hidden?: boolean;
+  hideLabel?: boolean;
   helpNavItem?: string;
 }
 
@@ -42,18 +44,25 @@ const protocolNavigationConfig: NavigationItem[] = [
     helpNavItem: 'home'
   },
   {
-    id: 'proposals',
-    label: 'Proposals',
-    icon: ChatBubbleBottomCenterIcon,
-    path: '/proposals',
-    helpNavItem: 'proposals'
+    id: 'actions',
+    label: 'Actions',
+    icon: BoltIcon,
+    path: '/actions',
+    helpNavItem: 'actions'
   },
   {
-    id: 'logs',
-    label: 'Logs',
-    icon: NewspaperIcon,
-    path: '/logs',
-    helpNavItem: 'logs'
+    id: 'roles',
+    label: 'Roles',
+    icon: UserGroupIcon,
+    path: '/roles',
+    helpNavItem: 'roles'
+  },
+  {
+    id: 'laws',
+    label: 'Laws',
+    icon: ScaleIcon,
+    path: '/laws',
+    helpNavItem: 'laws'
   },
   {
     id: 'treasury',
@@ -61,15 +70,16 @@ const protocolNavigationConfig: NavigationItem[] = [
     icon: BuildingLibraryIcon,
     path: '/treasury',
     helpNavItem: 'treasury'
-  },
-  {
-    id: 'help',
-    label: 'Help',
-    icon: QuestionMarkCircleIcon,
-    path: '#',
-    hidden: true, // Hidden by default on mobile
-    helpNavItem: undefined
   }
+  // {
+  //   id: 'help',
+  //   label: 'Help',
+  //   icon: QuestionMarkCircleIcon,
+  //   path: '#',
+  //   hidden: true, // Hidden by default on mobile
+  //   hideLabel: true, // Only show icon, no text
+  //   helpNavItem: undefined
+  // }
 ];
 
 const NavigationBar = () => {
@@ -107,7 +117,7 @@ const NavigationBar = () => {
           >
             <div className={layoutIconBox}> 
               <item.icon className={layoutIcons} />
-              <p className={layoutText}> {item.label} </p>
+              {!item.hideLabel && <p className={layoutText}> {item.label} </p>}
             </div> 
           </button>
         ))}

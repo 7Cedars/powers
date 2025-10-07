@@ -3,11 +3,12 @@ import { lawAbi, powersAbi } from "../context/abi";
 import { Status, Action, Powers, ActionTruncated } from "../context/types"
 import { readContract, readContracts } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { parseParamValues } from "@/utils/parsers";
+import { parseChainId, parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
- 
+import { useParams } from "next/navigation";
 
 export const useAction = () => {
+  const { chainId } = useParams<{ chainId: string }>()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null)
   const [action, setAction ] = useState<Action | undefined>()
@@ -30,6 +31,9 @@ export const useAction = () => {
       actionObject: Action,
       powers: Powers
     ) => {
+      setError(null)
+      setStatus("pending")
+      
       try {
         const [{ result: voteData }, { result: state }] = await readContracts(wagmiConfig, {
           contracts: [
@@ -37,13 +41,15 @@ export const useAction = () => {
               abi: powersAbi,
               address: powers.contractAddress as `0x${string}`,
               functionName: 'getActionVoteData',
-              args: [BigInt(actionObject.actionId)]
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
             },
             {
               abi: powersAbi,
               address: powers.contractAddress as `0x${string}`,
               functionName: 'getActionState',
-              args: [BigInt(actionObject.actionId)]
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
             }
           ]
         })
@@ -88,13 +94,15 @@ export const useAction = () => {
               abi: powersAbi,
               address: powers.contractAddress as `0x${string}`,
               functionName: 'getActionCalldata',
-              args: [BigInt(actionObject.actionId)]
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
             },
             {
               abi: powersAbi,
               address: powers.contractAddress as `0x${string}`,
               functionName: 'getActionUri',
-              args: [BigInt(actionObject.actionId)]
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
             }
           ]
         })
@@ -143,7 +151,8 @@ export const useAction = () => {
               abi: powersAbi,
               address: powers.contractAddress as `0x${string}`,
               functionName: 'getActionData',
-              args: [BigInt(actionObject.actionId)]
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
             }
           ]
         })

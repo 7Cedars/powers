@@ -142,7 +142,7 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 0; // = admin.
-        conditions.needCompleted = 4; // = law that must be completed before this one.
+        conditions.needFulfilled = 4; // = law that must be completed before this one.
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetLaw: lawAddresses[3], // statementOfIntent
@@ -152,8 +152,8 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 2; // = role that can call this law.
-        conditions.needCompleted = 4; // = law that must be completed before this one.
-        conditions.needNotCompleted = 5; // = law that must not be completed before this one.
+        conditions.needFulfilled = 4; // = law that must be completed before this one.
+        conditions.needNotFulfilled = 5; // = law that must not be completed before this one.
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
             targetLaw: lawAddresses[2], // openAction.
@@ -220,7 +220,7 @@ contract TestConstitutions is Test {
         delete conditions;
 
         // setting up config file
-        conditions.needCompleted = 1;
+        conditions.needFulfilled = 1;
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[2] = PowersTypes.LawInitData({
@@ -232,7 +232,7 @@ contract TestConstitutions is Test {
         delete conditions;
 
         // setting up config file
-        conditions.needNotCompleted = 1;
+        conditions.needNotFulfilled = 1;
         conditions.allowedRole = 1;
         // initiating law.
         lawInitData[3] = PowersTypes.LawInitData({
@@ -517,8 +517,8 @@ contract TestConstitutions is Test {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -759,7 +759,7 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 0; // = admin.
-        conditions.needCompleted = 4; // = law that must be completed before this one.
+        conditions.needFulfilled = 4; // = law that must be completed before this one.
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetLaw: lawAddresses[3], // statementOfIntent
@@ -772,8 +772,8 @@ contract TestConstitutions is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.succeedAt = 66; // = 51% simple majority needed for executing an action.
         conditions.quorum = 20; // = 30% quorum needed
-        conditions.needCompleted = 4; // = law that must be completed before this one.
-        conditions.needNotCompleted = 5; // = law that must not be completed before this one.
+        conditions.needFulfilled = 4; // = law that must be completed before this one.
+        conditions.needNotFulfilled = 5; // = law that must not be completed before this one.
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
             targetLaw: lawAddresses[2], // openAction.
@@ -814,35 +814,35 @@ contract TestConstitutions is Test {
     // law 1: CREATE PROPOSAL
 
     // law 2: ASSIGN TO PATH A (SELECTORS)
-    // needCompleted: law 1
-    // needNotCompleted: law 5
+    // needFulfilled: law 1
+    // needNotFulfilled: law 5
 
     // law 3: ASSIGN TO PATH B (SELECTORS)
-    // needCompleted: law 1
-    // needNotCompleted: law 5
+    // needFulfilled: law 1
+    // needNotFulfilled: law 5
 
     // law 4: ASSIGN TO PATH C (SELECTORS)
-    // needCompleted: law 1
-    // needNotCompleted: law 5
+    // needFulfilled: law 1
+    // needNotFulfilled: law 5
 
     // law 5: ALLOCATION CLOSED (SELECTORS)
-    // needCompleted: law 1
+    // needFulfilled: law 1
 
     // law 6: (PATH A) EXECUTE PROPOSAL (EXECUTIVES)
-    // needCompleted: law 2
+    // needFulfilled: law 2
 
     // law 7: (PATH B) VETO PROPOSAL (SECURITY COUNCIL)
-    // needCompleted: law 3
+    // needFulfilled: law 3
 
     // law 8: (PATH B) EXECUTE PROPOSAL (EXECUTIVES)
-    // needCompleted: law 3
-    // needNotCompleted: law 7
+    // needFulfilled: law 3
+    // needNotFulfilled: law 7
 
     // law 9: (PATH C) PASS PROPOSAL (SECURITY COUNCIL)
-    // needCompleted: law 4
+    // needFulfilled: law 4
 
     // law 10: (PATH C) EXECUTE PROPOSAL (SECURITY COUNCIL)
-    // needCompleted: law 9
+    // needFulfilled: law 9
 
     //////////////////////////////////////////////////////////////
     //               MANAGED GRANTS CONSTITUTION                //
@@ -854,27 +854,27 @@ contract TestConstitutions is Test {
 
     // law 2: SCOPE ASSESSMENT (SCOPE ASSESSOR)
     // assigns applicant role
-    // needCompleted: law 1
+    // needFulfilled: law 1
 
     // Law 3: TECHNICAL ASSESSMENT (TECHNICAL ASSESSOR)
-    // needCompleted: law 2
+    // needFulfilled: law 2
 
     // Law 4: FINANCIAL ASSESSMENT (FINANCIAL ASSESSOR)
-    // needCompleted: law 3
+    // needFulfilled: law 3
 
     // Law 5: ASSIGN GRANT (GRANT IMBURSER)
     // assigns grantee role
-    // needCompleted: law 4
+    // needFulfilled: law 4
 
     // Law 6: END GRANT (GRANT IMBURSER)
-    // needCompleted: law 5
+    // needFulfilled: law 5
 
     // Law 7: LOG COMPLAINT (APPLICANT)
-    // needCompleted: law 1
+    // needFulfilled: law 1
 
     // Law 8: JUDGE COMPLAINT (JUDGE)
     // flags action
-    // needCompleted: law 7
+    // needFulfilled: law 7
 
     // Law 9: N STRIKES YOUR OUT (PUBLIC)
     // removes ALL role holders from role.
@@ -885,7 +885,7 @@ contract TestConstitutions is Test {
 
     // Law 12: ASSESS PAYOUT (GRANT IMBURSER)
     // sends payout to grantee
-    // needCompleted: law 11
+    // needFulfilled: law 11
 
     //////////////////////////////////////////////////////////////
     //                      MORE ORGS TBI                       //

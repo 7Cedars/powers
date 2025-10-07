@@ -175,14 +175,14 @@ Defines the conditions for a law's execution.
 ```solidity
 struct Conditions {
     uint256 allowedRole;
-    uint16 needCompleted;
+    uint16 needFulfilled;
     uint48 delayExecution;
     uint48 throttleExecution;
     uint16 readStateFrom;
     uint32 votingPeriod;
     uint8 quorum;
     uint8 succeedAt;
-    uint16 needNotCompleted;
+    uint16 needNotFulfilled;
 }
 ```
 

@@ -40,31 +40,31 @@
   
 //   // console.log("@getEnabledActions: User roles and laws", {userRoleIds, userLaws: userLaws.length})
 
-//   // 2. Check each law for needCompleted requirement
+//   // 2. Check each law for needFulfilled requirement
 //   for (const law of userLaws) {
 //     if (law.conditions?.needFulfilled && law.conditions.needFulfilled > 0) {
-//       // console.log("@getEnabledActions: Found law with needCompleted", {lawIndex: law.index, needCompleted: law.conditions.needCompleted})
+//       // console.log("@getEnabledActions: Found law with needFulfilled", {lawIndex: law.index, needFulfilled: law.conditions.needFulfilled})
       
-//       // 3. Find the needCompleted law
-//       const needCompletedLaw = powers.laws.find(l => 
+//       // 3. Find the needFulfilled law
+//       const needFulfilledLaw = powers.laws.find(l => 
 //         BigInt(l.index) === BigInt(law.conditions!.needFulfilled)
 //       )
       
-//       if (needCompletedLaw) {
-//         // console.log("@getEnabledActions: Found needCompleted law", {needCompletedLawIndex: needCompletedLaw.index})
+//       if (needFulfilledLaw) {
+//         // console.log("@getEnabledActions: Found needFulfilled law", {needFulfilledLawIndex: needFulfilledLaw.index})
         
-//         // 4. Get fulfilled actions from the needCompleted law
-//         // Find the executed actions for the needCompleted law by matching the law index
-//         const needCompletedLawExecutions = allActions.find((exec, index) => {
+//         // 4. Get fulfilled actions from the needFulfilled law
+//         // Find the executed actions for the needFulfilled law by matching the law index
+//         const needFulfilledLawExecutions = allActions.find((exec, index) => {
 //           const lawForExecution = powers.laws?.[index]
-//           return lawForExecution?.index === needCompletedLaw.index
+//           return lawForExecution?.index === needFulfilledLaw.index
 //         })
         
-//         // console.log("@getEnabledActions: NeedCompleted law executions", {needCompletedLawExecutions, actionsCount: needCompletedLawExecutions?.actionsIds.length})
+//         // console.log("@getEnabledActions: needFulfilled law executions", {needFulfilledLawExecutions, actionsCount: needFulfilledLawExecutions?.actionsIds.length})
         
-//         if (needCompletedLawExecutions && needCompletedLawExecutions.actionId.length > 0) {
+//         if (needFulfilledLawExecutions && needFulfilledLawExecutions.actionId.length > 0) {
 //           // 5. For each fulfilled action, we need to get its data to calculate the corresponding action ID for the original law
-//           for (const fulfilledActionId of needCompletedLawExecutions.actionId) {
+//           for (const fulfilledActionId of needFulfilledLawExecutions.actionId) {
 //             try {
 //               // Fetch the complete action data for the fulfilled action
 //               // console.log("@getEnabledActions: Fetching fulfilled action data", {fulfilledActionId})
@@ -104,7 +104,7 @@
 //                     dataTypes: law.params?.map(param => param.dataType),
 //                     paramValues: fulfilledActionData.paramValues,
 //                     nonce: fulfilledActionData.nonce,
-//                     description: `Action enabled by completion of law ${needCompletedLaw.index}`,
+//                     description: `Action enabled by completion of law ${needFulfilledLaw.index}`,
 //                     callData: fulfilledActionData.callData,
 //                     upToDate: true,
 //                     state: undefined,
@@ -190,14 +190,14 @@
 //   const enabledLaws = selectedItem && powers?.laws ? 
 //     powers.laws.filter(law => 
 //       law.active && 
-//       law.conditions?.needCompleted == selectedItem.lawId
+//       law.conditions?.needFulfilled == selectedItem.lawId
 //     ) : []
 
 //   // Get laws that will be blocked by executing the selected item's law
 //   const blockedLaws = selectedItem && powers?.laws ? 
 //     powers.laws.filter(law => 
 //       law.active && 
-//       law.conditions?.needNotCompleted == selectedItem.lawId
+//       law.conditions?.needNotFulfilled == selectedItem.lawId
 //     ) : []
 
 //   useEffect(() => {
@@ -389,13 +389,13 @@
           
 //           <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
 //             {/* Action coming from section - for enabled actions */}
-//             {selectedItem.needCompletedLaw && actionData && (
+//             {selectedItem.needFulfilledLaw && actionData && (
 //               <div className="mb-6">
 //                 <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Action <b>coming</b> from: </h3>
 //                 <div className="w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 opacity-50">
 //                   <UserItem
 //                     powers={powers as Powers}
-//                     law={selectedItem.needCompletedLaw}
+//                     law={selectedItem.needFulfilledLaw}
 //                     chainId={chainId as string}
 //                     actionId={BigInt(actionData.actionId)}
 //                     showLowerSection={false}

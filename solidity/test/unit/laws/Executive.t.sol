@@ -51,8 +51,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -67,8 +67,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -125,8 +125,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 

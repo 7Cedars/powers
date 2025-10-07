@@ -21,7 +21,7 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Law, Powers, Checks, Action } from '@/context/types'
+import { Law, Powers, Action } from '@/context/types'
 import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
 import { useBlocks } from '@/hooks/useBlocks'
 import { parseChainId } from '@/utils/parsers'
@@ -40,11 +40,8 @@ import {
   FlagIcon
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { setAction, useActionStore, useChecksStatusStore, useActionDataStore } from '@/context/store'
-import { LoadingBox } from '@/components/LoadingBox'
-import { useChecksStore } from '@/context/store'
+import { setAction, useActionStore, useActionDataStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import { NodeStatusIndicator } from '@/components/NodeStatusIndicator'
 import HeaderLaw from '@/components/HeaderLaw'
 
 // Default colors for all nodes
@@ -52,9 +49,9 @@ const DEFAULT_NODE_COLOR = '#475569' // slate-600
 const DEFAULT_BORDER_CLASS = 'border-slate-600'
 const EXECUTED_BORDER_CLASS = 'border-green-600'
 
-function getNodeBorderClass(law: Law, checks: Checks | undefined): string {
-  // Check if the action has been successfully executed
-  if (checks && checks.actionNotFulfilled === false) {
+function getNodeBorderClass(action: Action | undefined): string {
+  // Check if the action has been successfully executed (fulfilledAt > 0)
+  if (action && action.fulfilledAt && action.fulfilledAt > 0n) {
     return EXECUTED_BORDER_CLASS
   }
   return DEFAULT_BORDER_CLASS
@@ -72,17 +69,19 @@ interface LawSchemaNodeData {
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
   const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers } = data
-  const { chainChecks } = useChecksStore()
-  const { status: checksStatus, chains: loadingChains } = useChecksStatusStore()
   const { actionData } = useActionDataStore()
   const { timestamps, fetchTimestamps } = useBlocks()
   const chainId = useParams().chainId as string
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
+  
+  // Get action data for this law
+  const currentLawAction = actionData.get(String(law.index))
 
   // Fetch timestamps for the current law's action data
   React.useEffect(() => {
+    console.log("LAW schema node triggered", {law, actionData})
     const currentLawAction = actionData.get(String(law.index))
     if (currentLawAction) {
       const blockNumbers: bigint[] = []
@@ -100,15 +99,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       
       // Also fetch timestamps for dependent laws
       if (law.conditions) {
-        if (law.conditions.needFulfilled !== 0n) {
+        if (law.conditions.needFulfilled != null && BigInt(law.conditions.needFulfilled) != 0n) {
           const dependentAction = actionData.get(String(law.conditions.needFulfilled))
-          if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt !== 0n) {
+          if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
         }
-        if (law.conditions.needNotFulfilled !== 0n) {
+        if (law.conditions.needNotFulfilled != null && BigInt(law.conditions.needNotFulfilled) != 0n) {
           const dependentAction = actionData.get(String(law.conditions.needNotFulfilled))
-          if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt !== 0n) {
+          if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
         }
@@ -231,11 +230,11 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       case 'needFulfilled':
       case 'needNotFulfilled':
         // Get executedAt from the dependent law - this should work regardless of current law's action data
-        const dependentLawId = itemKey === 'needFulfilled' 
+        const dependentLawId = itemKey == 'needFulfilled' 
           ? law.conditions?.needFulfilled 
           : law.conditions?.needNotFulfilled
         
-        if (dependentLawId && dependentLawId !== 0n) {
+        if (dependentLawId && dependentLawId != 0n) {
           const dependentAction = actionData.get(String(dependentLawId))
           
           return formatBlockNumberOrTimestamp(dependentAction?.fulfilledAt)
@@ -244,48 +243,48 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       
       case 'proposalCreated':
         // Show proposal creation time - use voteStart from current law's action data or proposal data
-        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
         }
         // Fallback to proposal data if action data not available
         const proposal = getCurrentLawProposal()
-        if (proposal && proposal.voteStart && proposal.voteStart !== 0n) {
+        if (proposal && proposal.voteStart && proposal.voteStart != 0n) {
           return formatBlockNumberOrTimestamp(proposal.voteStart)
         }
         return null
       
       case 'voteStarted':
         // Use voteStart field - show if current law has action data with voteStart
-        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
+        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
         }
         // Fallback to proposal data
         const proposalForVoteStart = getCurrentLawProposal()
-        if (proposalForVoteStart && proposalForVoteStart.voteStart && proposalForVoteStart.voteStart !== 0n) {
+        if (proposalForVoteStart && proposalForVoteStart.voteStart && proposalForVoteStart.voteStart != 0n) {
           return formatBlockNumberOrTimestamp(proposalForVoteStart.voteStart)
         }
         return null
       
       case 'voteEnded':
         // Use voteEnd field - show when vote has ended
-        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
         }
         // Fallback to proposal data
         const proposalForVoteEnd = getCurrentLawProposal()
-        if (proposalForVoteEnd && proposalForVoteEnd.voteEnd && proposalForVoteEnd.voteEnd !== 0n) {
+        if (proposalForVoteEnd && proposalForVoteEnd.voteEnd && proposalForVoteEnd.voteEnd != 0n) {
           return formatBlockNumberOrTimestamp(proposalForVoteEnd.voteEnd)
         }
         return null
       
       case 'proposalPassed':
         // Use voteEnd field - show when proposal passed (vote ended successfully)
-        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
+        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
         }
         // Fallback to proposal data
         const proposalForPassed = getCurrentLawProposal()
-        if (proposalForPassed && proposalForPassed.voteEnd && proposalForPassed.voteEnd !== 0n) {
+        if (proposalForPassed && proposalForPassed.voteEnd && proposalForPassed.voteEnd != 0n) {
           return formatBlockNumberOrTimestamp(proposalForPassed.voteEnd)
         }
         return null
@@ -293,13 +292,13 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       case 'delay':
         // Calculate delay pass time if voteEnd exists and delay > 0
         // Only show if current law has action data with voteEnd
-        if (law.conditions && law.conditions.delayExecution !== 0n && currentLawAction?.voteEnd) {
+        if (law.conditions && law.conditions.delayExecution != 0n && currentLawAction?.voteEnd) {
           return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
         }
         // Fallback to proposal data for delay calculation
-        if (law.conditions && law.conditions.delayExecution !== 0n) {
+        if (law.conditions && law.conditions.delayExecution != 0n) {
           const proposalForDelay = getCurrentLawProposal()
-          if (proposalForDelay && proposalForDelay.voteEnd && proposalForDelay.voteEnd !== 0n) {
+          if (proposalForDelay && proposalForDelay.voteEnd && proposalForDelay.voteEnd != 0n) {
             return calculateDelayPassTime(proposalForDelay.voteEnd, law.conditions.delayExecution)
           }
         }
@@ -311,30 +310,14 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         return null
       
       case 'executed':        
-        // Only show date if actually executed (executedAt > 0 AND actionNotFulfilled is false)
-        if (currentLawAction && currentLawAction.fulfilledAt && currentLawAction.fulfilledAt !== 0n && checks?.actionNotFulfilled === false) {
+        // Only show date if actually executed (fulfilledAt > 0)
+        if (currentLawAction && currentLawAction.fulfilledAt && currentLawAction.fulfilledAt != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.fulfilledAt)
         }
         return null
       
       default:
         return null
-    }
-  }
-
-  let checks = chainChecks.get(String(law.index))
-  if (!checks) {
-    checks = {
-      allPassed: false,
-      delayPassed: false,
-      throttlePassed: false,
-      authorised: false,
-      proposalExists: false,
-      proposalPassed: false,
-      actionNotFulfilled: true,
-      lawFulfilled: false,
-      lawNotFulfilled: false,
-      voteActive: false,
     }
   }
 
@@ -355,40 +338,36 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
     const items: { 
       key: string
       label: string
-      status: boolean | undefined
+      blockNumber?: bigint
       hasHandle: boolean
       targetLaw?: bigint
       edgeType?: string
     }[] = []
+
+    // console.log("checkItems triggered", {law, actionData})
     
-    // 1. Throttle passed
-    if (Number(law.conditions?.throttleExecution) != 0) {
-      items.push({ 
-        key: 'throttle', 
-        label: 'Throttle Passed', 
-        status: checks?.throttlePassed,
-        hasHandle: false
-      })
-    }
-    
-    // 2 & 3. Law completed and Law not completed (dependency checks)
+    // 1. Dependency checks - show only if dependent laws exist (condition != 0)
     if (law.conditions) {
-      if (Number(law.conditions.needFulfilled) !== 0) {
+      if (law.conditions.needFulfilled > 0n) {
+        const dependentAction = actionData.get(String(law.conditions.needFulfilled))
         items.push({ 
           key: 'needFulfilled', 
-          label: `Law ${law.conditions.needFulfilled} Completed`, 
-          status: checks?.lawFulfilled,
+          label: `Law ${law.conditions.needFulfilled} Fulfilled`, 
+          blockNumber: dependentAction?.fulfilledAt,
           hasHandle: true,
           targetLaw: law.conditions.needFulfilled,
           edgeType: 'needFulfilled'
         })
       }
       
-      if (Number(law.conditions.needNotFulfilled) !== 0) {
+      if (law.conditions.needNotFulfilled > 0n) {
+        const dependentAction = actionData.get(String(law.conditions.needNotFulfilled))
+        // For needNotFulfilled, show green when the dependent law is NOT fulfilled (blockNumber is 0 or undefined)
+        const notFulfilledBlockNumber = (!dependentAction?.fulfilledAt || dependentAction.fulfilledAt === 0n) ? 1n : 0n
         items.push({ 
           key: 'needNotFulfilled', 
-          label: `Law ${law.conditions.needNotFulfilled} Not Completed`, 
-          status: checks?.lawNotFulfilled,
+          label: `Law ${law.conditions.needNotFulfilled} Not Fulfilled`, 
+          blockNumber: notFulfilledBlockNumber,
           hasHandle: true,
           targetLaw: law.conditions.needNotFulfilled,
           edgeType: 'needNotFulfilled'
@@ -396,64 +375,74 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       }
     }
     
-    // 4. Vote started, Vote ended, and Proposal passed (only when quorum > 0)
-    // These appear before executed check when voting is required
-    if (law.conditions && Number(law.conditions.quorum) !== 0) {
+    // 2. Throttle check - show only if throttle condition exists (throttleExecution > 0)
+    if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) {
+      // Show as completed if we have action data (simplified - could be enhanced with actual throttle check)
+      items.push({ 
+        key: 'throttle', 
+        label: 'Throttle Passed', 
+        blockNumber: currentLawAction ? 1n : 0n, // Simplified: assume passed if action exists
+        hasHandle: false
+      })
+    }
+    
+    // 3. Vote flow - show only when quorum > 0
+    if (law.conditions && law.conditions.quorum != null && law.conditions.quorum > 0n) {
       items.push({ 
         key: 'proposalCreated', 
         label: 'Proposal Created', 
-        status: checks?.proposalExists ?? false,
+        blockNumber: currentLawAction?.voteStart,
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteStarted', 
         label: 'Vote Started', 
-        status: checks?.proposalExists ?? false, // Mirrors proposalCreated - when proposal is created, vote starts
+        blockNumber: currentLawAction?.voteStart,
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteEnded', 
         label: 'Vote Ended', 
-        status: checks?.proposalExists && checks?.voteActive == false ? true : false, // Mirrors proposalPassed - when proposal passes, vote has ended
+        blockNumber: currentLawAction?.voteEnd,
         hasHandle: false
       })
       
-      // 5. Proposal passed
       items.push({ 
         key: 'proposalPassed', 
         label: 'Proposal Passed', 
-        status: checks?.proposalPassed ?? false, // Ensure consistent nullish coalescing
+        // Show green if proposal passed (state 5, 6, or 7) and vote ended
+        blockNumber: (currentLawAction?.voteEnd && currentLawAction?.state && [5, 6, 7].includes(currentLawAction.state)) 
+          ? currentLawAction.voteEnd 
+          : 0n,
         hasHandle: false
       })
     }
     
-    // 6. Delay passed
-    if (Number(law.conditions?.delayExecution) != 0) {
+    // 4. Delay - show only if delayExecution > 0
+    if (law.conditions && law.conditions.delayExecution != null && law.conditions.delayExecution > 0n) {
       items.push({ 
         key: 'delay', 
         label: 'Delay Passed', 
-        status: checks?.delayPassed,
+        // For delay, we use voteEnd as the reference block (the delay is calculated from it)
+        blockNumber: currentLawAction?.voteEnd,
         hasHandle: false
       })
     }
     
-    // 8. Executed
+    // 5. Executed - always show
     items.push({ 
       key: 'executed', 
       label: 'Executed', 
-      status: checks?.actionNotFulfilled == false,
+      blockNumber: currentLawAction?.fulfilledAt,
       hasHandle: false
     })
     
     return items
-  }, [checks, law.conditions])
+  }, [currentLawAction, law.conditions, actionData])
 
-  const allChecksPassing = checkItems.filter(item => item.status !== undefined).every(item => item.status === true)
-  const anyChecksFailing = checkItems.filter(item => item.status !== undefined).some(item => item.status === false)
-
-  const roleBorderClass = getNodeBorderClass(law, checks)
+  const roleBorderClass = getNodeBorderClass(currentLawAction)
 
   // Helper values for HeaderLaw
   const lawName = law.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`;
@@ -464,12 +453,11 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   const blockExplorerUrl = supportedChain?.blockExplorers?.default.url;
 
   return (
-    <NodeStatusIndicator status={ loadingChains.includes(String(law.index)) ? checksStatus as "loading" | "success" | "error" | "initial" : "success"}>
-      <div 
-        className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
-        help-nav-item="flow-node"
-        onClick={handleClick}
-      >        
+    <div 
+      className={`shadow-lg rounded-lg bg-white ${borderThickness} min-w-[300px] max-w-[380px] w-[380px] overflow-hidden ${roleBorderClass} cursor-pointer hover:shadow-xl transition-shadow ${opacityClass} relative`}
+      help-nav-item="flow-node"
+      onClick={handleClick}
+    >        
         {/* Law Header - replaced with HeaderLaw */}
         <div className="px-4 py-3 border-b border-gray-300 bg-slate-100" style={{ borderBottomColor: roleColor }}>
           <HeaderLaw
@@ -483,75 +471,55 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
           />
         </div>
         
-        {/* Checks Section - Database Rows Style */}
-        {!checks ? (
-          // Loading state when checks are undefined
-          <div className="relative p-4 bg-slate-50">
-            <div className="flex items-center justify-center">
-              <LoadingBox />
-            </div>
-          </div>
-        ) : checkItems.length > 0 ? (
+        {/* Action Steps Section */}
+        {checkItems.length > 0 && (
           <div className="relative bg-slate-50">
-            {checkItems.map((item, index) => (
+            {checkItems.map((item, index) => {
+              // Determine if this step is completed based on blockNumber
+              const isCompleted = item.blockNumber != null && item.blockNumber > 0n
+              const iconColor = isCompleted ? 'text-green-600' : 'text-black'
+              
+              return (
               <div key={item.key} className="relative">
                 <div className="px-4 py-2 flex items-center justify-between text-xs relative">
                 <div className="flex items-center space-x-2 flex-1">
                     <div className="w-6 h-6 flex justify-center items-center relative">
-                    {item.status !== undefined ? (
-                      // Status-based checks with appropriate icons
-                        item.key === 'executed' ? (
-                          <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white relative z-10 ${allChecksPassing ? 'border-black' : 'border-gray-400'}`}>
-                            <RocketLaunchIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                        ) : item.key === 'proposalPassed' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <CheckCircleIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                        ) : item.key === 'delay' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <CalendarDaysIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
+                      {item.key === 'executed' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <RocketLaunchIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
+                      ) : item.key === 'proposalPassed' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <CheckCircleIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
+                      ) : item.key === 'delay' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <CalendarDaysIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
                       ) : item.key === 'throttle' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <QueueListIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                      ) : item.key === 'needCompleted' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <DocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                      ) : item.key === 'needNotCompleted' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <XMarkIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <QueueListIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
+                      ) : item.key === 'needFulfilled' || item.key === 'needNotFulfilled' ? (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <DocumentCheckIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
                       ) : item.key === 'voteStarted' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <ArchiveBoxIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <ArchiveBoxIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
                       ) : item.key === 'voteEnded' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <FlagIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <FlagIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
                       ) : item.key === 'proposalCreated' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <ClipboardDocumentCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                        ) : (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <ShieldCheckIcon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-black'}`} />
-                          </div>
-                        )
-                    ) : (
-                      // Dependency checks without status
-                      item.key === 'readStateFrom' ? (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <LinkIcon className="w-4 h-4 text-black" />
-                          </div>
-                        ) : (
-                          <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
-                            <ClipboardDocumentCheckIcon className="w-4 h-4 text-black" />
-                          </div>
-                        )
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <ClipboardDocumentCheckIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
+                          <ShieldCheckIcon className={`w-4 h-4 ${iconColor}`} />
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 flex flex-col min-w-0">
@@ -609,11 +577,10 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
                   />
                 )}
               </div>
-            ))}
+            )})}
           </div>
-        ) : null}
+        )}
       </div>
-    </NodeStatusIndicator>
   )
 }
 
@@ -645,14 +612,14 @@ function findConnectedNodes(selectedLawId: string, laws: Law[]): Set<string> {
   laws.forEach(law => {
     const lawId = String(law.index)
     if (law.conditions) {
-      if (law.conditions.needFulfilled !== 0n) {
+      if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
         const targetId = String(law.conditions.needFulfilled)
         if (dependencies.has(targetId)) {
         dependencies.get(lawId)?.add(targetId)
         dependents.get(targetId)?.add(lawId)
         }
       }
-      if (law.conditions.needNotFulfilled !== 0n) {
+      if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled !== 0n) {
         const targetId = String(law.conditions.needNotFulfilled)
         if (dependencies.has(targetId)) {
         dependencies.get(lawId)?.add(targetId)
@@ -709,14 +676,14 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   laws.forEach(law => {
     const lawId = String(law.index)
     if (law.conditions) {
-      if (law.conditions.needFulfilled !== 0n) {
+      if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
         const targetId = String(law.conditions.needFulfilled)
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
           dependents.get(targetId)?.add(lawId)
         }
       }
-      if (law.conditions.needNotFulfilled !== 0n) {
+      if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled !== 0n) {
         const targetId = String(law.conditions.needNotFulfilled)
         if (dependencies.has(targetId)) {
           dependencies.get(lawId)?.add(targetId)
@@ -861,7 +828,6 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
 
 const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const { getNodes, getViewport, setViewport } = useReactFlow()
-  const { chainChecks } = useChecksStore()
   const { actionData } = useActionDataStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
@@ -869,10 +835,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const [isInitialized, setIsInitialized] = React.useState(false)
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<any>(null)
-  const { status: checksStatus } = useChecksStatusStore()
   const pathname = usePathname()
 
-  // console.log("@FlowContent: waypoint 0", {action, selectedLawId, lastSelectedLawId, powers})
+  // console.log("@FlowContent: waypoint 0", {action, selectedLawId, powers})
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -1099,11 +1064,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     powers.ActiveLaws.forEach((law, lawIndex) => {
       const roleColor = DEFAULT_NODE_COLOR
-      
-      // Get checks for this law
-      const checks = chainChecks?.get(String(law.index))
-      const roleBorderClass = getNodeBorderClass(law, checks)
-      
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
       
@@ -1115,7 +1075,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
         data: {
           powers,
           law,
-          checks,
           roleColor,
           onNodeClick: handleNodeClick,
           selectedLawId: selectedLawIdFromStore,
@@ -1128,8 +1087,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       if (law.conditions) {
         const sourceId = lawId
         
-        // Edge from needCompleted check to target law
-        if (law.conditions.needFulfilled != 0n) {
+        // Edge from needFulfilled check to target law
+        if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
           const targetId = String(law.conditions.needFulfilled)
           // Determine if this edge should be highlighted (connected to selected node)
           const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
@@ -1156,8 +1115,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
           })
         }
         
-        // Edge from needNotCompleted check to target law
-        if (law.conditions.needNotFulfilled != 0n) {
+        // Edge from needNotFulfilled check to target law
+        if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled != 0n) {
           const targetId = String(law.conditions.needNotFulfilled)
           // Determine if this edge should be highlighted (connected to selected node)
           const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
@@ -1192,7 +1151,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   }, [
     powers.ActiveLaws, 
     powers.contractAddress,
-    chainChecks, 
+    actionData,
     handleNodeClick, 
     selectedLawId, 
     action.lawId, 

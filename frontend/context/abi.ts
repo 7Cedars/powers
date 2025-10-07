@@ -252,7 +252,7 @@ export const ownableAbi: Abi = [
 //                 "internalType": "uint256"
 //               },
 //               {
-//                 "name": "needCompleted",
+//                 "name": "needFulfilled",
 //                 "type": "uint16",
 //                 "internalType": "uint16"
 //               },
@@ -283,7 +283,7 @@ export const ownableAbi: Abi = [
 //                 "internalType": "uint8"
 //               },
 //               {
-//                 "name": "needNotCompleted",
+//                 "name": "needNotFulfilled",
 //                 "type": "uint16",
 //                 "internalType": "uint16"
 //               }
@@ -378,7 +378,7 @@ export const ownableAbi: Abi = [
 //                 "internalType": "uint256"
 //               },
 //               {
-//                 "name": "needCompleted",
+//                 "name": "needFulfilled",
 //                 "type": "uint16",
 //                 "internalType": "uint16"
 //               },
@@ -409,7 +409,7 @@ export const ownableAbi: Abi = [
 //                 "internalType": "uint8"
 //               },
 //               {
-//                 "name": "needNotCompleted",
+//                 "name": "needNotFulfilled",
 //                 "type": "uint16",
 //                 "internalType": "uint16"
 //               }
@@ -544,14 +544,14 @@ export const ownableAbi: Abi = [
 //         "internalType": "struct ILaw.Conditions",
 //         "components": [
 //           { "name": "allowedRole", "type": "uint256", "internalType": "uint256" },
-//           { "name": "needCompleted", "type": "uint16", "internalType": "uint16" },
+//           { "name": "needFulfilled", "type": "uint16", "internalType": "uint16" },
 //           { "name": "delayExecution", "type": "uint48", "internalType": "uint48" },
 //           { "name": "throttleExecution", "type": "uint48", "internalType": "uint48" },
 //           { "name": "readStateFrom", "type": "uint16", "internalType": "uint16" },
 //           { "name": "votingPeriod", "type": "uint32", "internalType": "uint32" },
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
-//           { "name": "needNotCompleted", "type": "uint16", "internalType": "uint16" }
+//           { "name": "needNotFulfilled", "type": "uint16", "internalType": "uint16" }
 //         ]
 //       }
 //     ],
@@ -1137,7 +1137,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1164,7 +1164,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }
@@ -1199,7 +1199,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1226,7 +1226,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }
@@ -1272,7 +1272,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1299,7 +1299,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }
@@ -1407,7 +1407,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1434,7 +1434,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }
@@ -1469,7 +1469,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1496,7 +1496,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }
@@ -1586,7 +1586,7 @@ export const ownableAbi: Abi = [
 //             "internalType": "uint256"
 //           },
 //           {
-//             "name": "needCompleted",
+//             "name": "needFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           },
@@ -1613,7 +1613,7 @@ export const ownableAbi: Abi = [
 //           { "name": "quorum", "type": "uint8", "internalType": "uint8" },
 //           { "name": "succeedAt", "type": "uint8", "internalType": "uint8" },
 //           {
-//             "name": "needNotCompleted",
+//             "name": "needNotFulfilled",
 //             "type": "uint16",
 //             "internalType": "uint16"
 //           }

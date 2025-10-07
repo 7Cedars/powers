@@ -5,26 +5,26 @@ import { encodeAbiParameters, encodeFunctionData } from "viem";
 
 export interface LawConditions {
   allowedRole: bigint;
-  needCompleted: bigint;
+  needFulfilled: bigint;
   delayExecution: bigint;
   throttleExecution: bigint;
   readStateFrom: bigint;
   votingPeriod: bigint;
   quorum: bigint;
   succeedAt: bigint;
-  needNotCompleted: bigint;
+  needNotFulfilled: bigint;
 }
 
 export interface CreateConditionsParams {
   allowedRole?: bigint;
-  needCompleted?: bigint;
+  needFulfilled?: bigint;
   delayExecution?: bigint;
   throttleExecution?: bigint;
   readStateFrom?: bigint;
   votingPeriod?: bigint;
   quorum?: bigint;
   succeedAt?: bigint;
-  needNotCompleted?: bigint;
+  needNotFulfilled?: bigint;
 }
 
 export interface LawInitData {
@@ -100,38 +100,38 @@ const getMockAddress = (mockName: string, chainId: number): `0x${string}` => {
 
 const createConditions = (params: CreateConditionsParams): LawConditions => ({
   allowedRole: params.allowedRole ?? 0n, 
-  needCompleted: params.needCompleted ?? 0n, 
+  needFulfilled: params.needFulfilled ?? 0n, 
   delayExecution: params.delayExecution ?? 0n, 
   throttleExecution: params.throttleExecution ?? 0n, 
   readStateFrom: params.readStateFrom ?? 0n, 
   votingPeriod: params.votingPeriod ?? 0n, 
   quorum: params.quorum ?? 0n, 
   succeedAt: params.succeedAt ?? 0n, 
-  needNotCompleted: params.needNotCompleted ?? 0n
+  needNotFulfilled: params.needNotFulfilled ?? 0n
 });
 
 const createEncodedConditions = (params: CreateConditionsParams): `0x${string}` => encodeAbiParameters(
   [ 
     { name: 'allowedRole', type: 'uint256' },
-    { name: 'needCompleted', type: 'uint256' },
+    { name: 'needFulfilled', type: 'uint256' },
     { name: 'delayExecution', type: 'uint256' },
     { name: 'throttleExecution', type: 'uint256' },
     { name: 'readStateFrom', type: 'uint256' },
     { name: 'votingPeriod', type: 'uint256' },
     { name: 'quorum', type: 'uint256' },
     { name: 'succeedAt', type: 'uint256' },
-    { name: 'needNotCompleted', type: 'uint256' }
+    { name: 'needNotFulfilled', type: 'uint256' }
   ],
   [
     params.allowedRole ?? 0n, 
-    params.needCompleted ?? 0n,
+    params.needFulfilled ?? 0n,
     params.delayExecution ?? 0n,
     params.throttleExecution ?? 0n,
     params.readStateFrom ?? 0n,
     params.votingPeriod ?? 0n,
     params.quorum ?? 0n,
     params.succeedAt ?? 0n,
-    params.needNotCompleted ?? 0n
+    params.needNotFulfilled ?? 0n
   ]
 ); 
 
@@ -243,7 +243,7 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
     config: statementOfIntentConfig,
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: 2n // references the Statement of Intent law
+      needFulfilled: 2n // references the Statement of Intent law
     })
   });
 
@@ -259,8 +259,8 @@ export function createPowers101LawInitData(powersAddress: `0x${string}`, formDat
       quorum: 50n,
       succeedAt: 77n,
       votingPeriod: minutesToBlocks(5, chainId),
-      needCompleted: 2n,
-      needNotCompleted: 3n,
+      needFulfilled: 2n,
+      needNotFulfilled: 3n,
       delayExecution: minutesToBlocks(3, chainId)
     })
   });
@@ -386,7 +386,7 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
     ),  
     conditions: createConditions({
       allowedRole: 1n,
-      needCompleted: 1n
+      needFulfilled: 1n
     })
   });
 
@@ -404,7 +404,7 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
     ),
     conditions: createConditions({
       allowedRole: 1n,
-      needCompleted: 2n
+      needFulfilled: 2n
     })
   });
 
@@ -422,7 +422,7 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
     ),
     conditions: createConditions({
       allowedRole: 2n,
-      needCompleted: 3n,
+      needFulfilled: 3n,
       quorum: 77n,
       votingPeriod: minutesToBlocks(5, chainId),
       succeedAt: 51n
@@ -443,8 +443,8 @@ export function createCrossChainGovernanceLawInitData(powersAddress: `0x${string
     ),
     conditions: createConditions({
       allowedRole: 1n,
-      needCompleted: 3n,
-      needNotCompleted: 4n,
+      needFulfilled: 3n,
+      needNotFulfilled: 4n,
       quorum: 10n,
       votingPeriod: minutesToBlocks(5, chainId),
       succeedAt: 10n,
@@ -665,7 +665,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 1n, // SELECTORS
-      needCompleted: 2n, // need to have created a proposal
+      needFulfilled: 2n, // need to have created a proposal
       votingPeriod: 100n, // 100 blocks
       quorum: 50n, // 50% quorum
       succeedAt: 50n // 50% success threshold
@@ -679,7 +679,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 1n, // SELECTORS
-      needCompleted: 2n, // need 2 to have created a proposal
+      needFulfilled: 2n, // need 2 to have created a proposal
       votingPeriod: 100n, // 100 blocks
       quorum: 50n, // 50% quorum
       succeedAt: 50n // 50% success threshold
@@ -693,7 +693,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 1n, // SELECTORS
-      needCompleted: 2n, // need 2 to have created a proposal
+      needFulfilled: 2n, // need 2 to have created a proposal
       votingPeriod: 100n, // 100 blocks
       quorum: 50n, // 50% quorum
       succeedAt: 50n // 50% success threshold
@@ -708,7 +708,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 3n, // EXECUTIVES
-      needCompleted: 3n // need to have created a proposal and assigned to path 1
+      needFulfilled: 3n // need to have created a proposal and assigned to path 1
       // NOTE: no vote. Each and every executive can execute the proposal. 
     })
   });
@@ -721,7 +721,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 2n, // SECURITY COUNCIL
-      needCompleted: 4n, // need to have created a proposal and assigned to path 2
+      needFulfilled: 4n, // need to have created a proposal and assigned to path 2
       votingPeriod: 100n, // 100 blocks
       quorum: 70n, // 70% quorum: high
       succeedAt: 70n // 70% success threshold: high
@@ -735,8 +735,8 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 3n, // EXECUTIVES
-      needCompleted: 4n, // need to have created a proposal and assigned to path 2
-      needNotCompleted: 7n, // need to have vetoed the proposal
+      needFulfilled: 4n, // need to have created a proposal and assigned to path 2
+      needNotFulfilled: 7n, // need to have vetoed the proposal
       delayExecution: minutesToBlocks(10, chainId), // delay execution by 10 minutes
       // NOTE: no vote. Each and every executive can execute the proposal. 
     })
@@ -750,7 +750,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 3n, // EXECUTIVES
-      needCompleted: 5n, // need to have created a proposal and assigned to path 3
+      needFulfilled: 5n, // need to have created a proposal and assigned to path 3
       votingPeriod: 100n, // 100 blocks
       quorum: 30n, // 30% quorum: low
       succeedAt: 51n // 51% success threshold: low
@@ -764,7 +764,7 @@ export function createSplitGovernanceLawInitData(powersAddress: `0x${string}`, f
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 2n, // SECURITY COUNCIL
-      needCompleted: 9n, 
+      needFulfilled: 9n, 
       votingPeriod: 100n, // 100 blocks
       quorum: 30n, // 30% quorum: low
       succeedAt: 51n // 51% success threshold: low
@@ -987,7 +987,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
       getLawAddress("Grant", chainId), 
       createEncodedConditions({
         allowedRole: 4n,
-        needCompleted: 8n // Grantee needs to have created a proposal for payout. 
+        needFulfilled: 8n // Grantee needs to have created a proposal for payout. 
       })
     ]
   ); 
@@ -1012,7 +1012,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 1n, // Scope Assessors
-      needCompleted: 2n // need to have created a proposal
+      needFulfilled: 2n // need to have created a proposal
     })
   });
 
@@ -1023,7 +1023,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 2n, // Technical Assessors
-      needCompleted: 3n // need to have created a proposal
+      needFulfilled: 3n // need to have created a proposal
     })
   });
 
@@ -1034,7 +1034,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: proposalConfig,
     conditions: createConditions({
       allowedRole: 3n, // Financial Assessors
-      needCompleted: 4n // need to have created a proposal
+      needFulfilled: 4n // need to have created a proposal
     })
   });
 
@@ -1045,7 +1045,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: grantConfig,
     conditions: createConditions({
       allowedRole: 4n, // Grant Imburser
-      needCompleted: 5n // all assessments need to be completed. 
+      needFulfilled: 5n // all assessments need to be completed. 
     })
   });
 
@@ -1056,7 +1056,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: grantConfig,
     conditions: createConditions({
       allowedRole: 4n, // Grant Imburser
-      needCompleted: 6n // all assessments need to be completed. 
+      needFulfilled: 6n // all assessments need to be completed. 
     })
   });
 
@@ -1092,7 +1092,7 @@ export function createGrantsManagerLawInitData(powersAddress: `0x${string}`, for
     config: "0x", // empty config
     conditions: createConditions({
       allowedRole: 5n, // Judges
-      needCompleted: 9n // need to have created a complaint
+      needFulfilled: 9n // need to have created a complaint
     })
   });
 
@@ -1210,7 +1210,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: ADMIN_ROLE,
-                needCompleted: 9n // references the Statement of Intent law
+                needFulfilled: 9n // references the Statement of Intent law
               })
             }]
           }),
@@ -1227,8 +1227,8 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
                 quorum: 50n,
                 succeedAt: 77n,
                 votingPeriod: minutesToBlocks(5, chainId),
-                needCompleted: 9n,
-                needNotCompleted: 10n,
+                needFulfilled: 9n,
+                needNotFulfilled: 10n,
                 delayExecution: minutesToBlocks(3, chainId)
               })
             }]
@@ -1327,7 +1327,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 1n, // SELECTORS
-                needCompleted: 9n, // need to have created a proposal
+                needFulfilled: 9n, // need to have created a proposal
                 votingPeriod: 100n, // 100 blocks
                 quorum: 50n, // 50% quorum
                 succeedAt: 50n // 50% success threshold
@@ -1344,7 +1344,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 1n, // SELECTORS
-                needCompleted: 9n, // need to have created a proposal
+                needFulfilled: 9n, // need to have created a proposal
                 votingPeriod: 100n, // 100 blocks
                 quorum: 50n, // 50% quorum
                 succeedAt: 50n // 50% success threshold
@@ -1361,7 +1361,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 1n, // SELECTORS
-                needCompleted: 9n, // need to have created a proposal
+                needFulfilled: 9n, // need to have created a proposal
                 votingPeriod: 100n, // 100 blocks
                 quorum: 50n, // 50% quorum
                 succeedAt: 50n // 50% success threshold
@@ -1378,7 +1378,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 3n, // EXECUTIVES
-                needCompleted: 10n // need to have created a proposal and assigned to path 1
+                needFulfilled: 10n // need to have created a proposal and assigned to path 1
                 // NOTE: no vote. Each and every executive can execute the proposal. 
               })
             }]
@@ -1393,7 +1393,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 2n, // SECURITY COUNCIL
-                needCompleted: 11n, // need to have created a proposal and assigned to path 2
+                needFulfilled: 11n, // need to have created a proposal and assigned to path 2
                 votingPeriod: 100n, // 100 blocks
                 quorum: 70n, // 70% quorum: high
                 succeedAt: 70n // 70% success threshold: high
@@ -1410,8 +1410,8 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 3n, // EXECUTIVES
-                needCompleted: 11n, // need to have created a proposal and assigned to path 2
-                needNotCompleted: 14n // need to have vetoed the proposal
+                needFulfilled: 11n, // need to have created a proposal and assigned to path 2
+                needNotFulfilled: 14n // need to have vetoed the proposal
                 // NOTE: no vote. Each and every executive can execute the proposal. 
               })
             }]
@@ -1426,7 +1426,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 3n, // EXECUTIVES
-                needCompleted: 12n, // need to have created a proposal and assigned to path 3
+                needFulfilled: 12n, // need to have created a proposal and assigned to path 3
                 votingPeriod: 100n, // 100 blocks
                 quorum: 30n, // 30% quorum: low
                 succeedAt: 51n // 51% success threshold: low
@@ -1443,7 +1443,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
               config: statementOfIntentConfig,
               conditions: createConditions({
                 allowedRole: 2n, // SECURITY COUNCIL
-                needCompleted: 16n, 
+                needFulfilled: 16n, 
                 votingPeriod: 100n, // 100 blocks
                 quorum: 30n, // 30% quorum: low
                 succeedAt: 51n // 51% success threshold: low
@@ -1525,7 +1525,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
     ),
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: 3n
+      needFulfilled: 3n
     })
   });
 
@@ -1556,7 +1556,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
     ),
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: 5n
+      needFulfilled: 5n
     })
   });
   
@@ -1588,7 +1588,7 @@ export function createPackagedUpgradesLawInitData(powersAddress: `0x${string}`, 
     ),
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: 7n
+      needFulfilled: 7n
     })
   });
 
@@ -1722,7 +1722,7 @@ export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, for
     config: "0x", // empty config
     conditions: createConditions({
       allowedRole: 3n, // previous DAO role
-      needNotCompleted: 2n // law 2 should NOT have passed
+      needNotFulfilled: 2n // law 2 should NOT have passed
     })
   });
 
@@ -1749,7 +1749,7 @@ export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, for
     ),
     conditions: createConditions({
       allowedRole: 3n, // previous DAO role
-      needNotCompleted: 3n // law 3 should NOT have passed
+      needNotFulfilled: 3n // law 3 should NOT have passed
     })
   });
 
@@ -1795,7 +1795,7 @@ export function createSingleUpgradeLawInitData(powersAddress: `0x${string}`, for
       votingPeriod: minutesToBlocks(5, chainId),
       quorum: 30n, // 30% quorum
       succeedAt: 51n, // 51% majority
-      needNotCompleted: 6n // law 6 needs to have passed
+      needNotFulfilled: 6n // law 6 needs to have passed
     })
   });
 
@@ -1926,7 +1926,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   });  
 
   // Law 3:StatementOfIntent => Veto a budget proposal  -- role 1 (Funders), subject to vote 50% ? .  
-  // needCompleted => law 2. 
+  // needFulfilled => law 2. 
   lawInitData.push({
     nameDescription: "Veto budget: Veto the proposal to adapt the grants budget (law 5 = doc, 8 = frontend, 10 = protocol grants).",
     targetLaw: getLawAddress("StatementOfIntent", chainId),
@@ -1936,12 +1936,12 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       votingPeriod: daysToBlocks(3, chainId),
       succeedAt: 66n,
       quorum: 50n,
-      needCompleted: BigInt(lawInitData.length)
+      needFulfilled: BigInt(lawInitData.length)
     })
   });  
 
   // Law 4: Erc20Budget => adapt budget Existing Grant Program  -- Admin. 
-  // needCompleted   => law 2.
+  // needFulfilled   => law 2.
   // need NotCompleted   => law 3. 
   lawInitData.push({
     nameDescription: "Set budget: Set the budget for the grants (law 5 = doc, 8 = frontend, 10 = protocol grants).",
@@ -1949,8 +1949,8 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     config: "0x", // empty config
     conditions: createConditions({
       allowedRole: ADMIN_ROLE,
-      needCompleted: BigInt(lawInitData.length - 1),
-      needNotCompleted: BigInt(lawInitData.length)
+      needFulfilled: BigInt(lawInitData.length - 1),
+      needNotFulfilled: BigInt(lawInitData.length)
     })
   });
 
@@ -2013,7 +2013,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     // Allocate grant law
     const grantConditions = createEncodedConditions({
       allowedRole: roleId,
-      needCompleted: 6n
+      needFulfilled: 6n
     });
     const grantConfig = encodeAbiParameters(
       [
@@ -2034,8 +2034,8 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
         quorum: 50n,
         succeedAt: 51n,
         votingPeriod: daysToBlocks(7, chainId),
-        needCompleted: BigInt(lawInitData.length), // a grant proposals needs to have been made.  
-        needNotCompleted: 5n // a grant proposal should not have been vetoed.  
+        needFulfilled: BigInt(lawInitData.length), // a grant proposals needs to have been made.  
+        needNotFulfilled: 5n // a grant proposal should not have been vetoed.  
       })
     }); 
 
@@ -2046,7 +2046,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
       config: "0x",
       conditions: createConditions({
         allowedRole: roleId,
-        needCompleted: BigInt(lawInitData.length), // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
+        needFulfilled: BigInt(lawInitData.length), // a grant needs to have been created. Note: it is only possible to end a grant after the last milestone has been released.  
       })
     }); 
   }); 
@@ -2077,7 +2077,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
     targetLaw: getLawAddress("StatementOfIntent", chainId),
     config: adoptLawPackageConfig,
     conditions: createConditions({
-      needCompleted: BigInt(lawInitData.length),  // 14n
+      needFulfilled: BigInt(lawInitData.length),  // 14n
       allowedRole: 1n,
       votingPeriod: daysToBlocks(3, chainId),
       succeedAt: 33n,
@@ -2086,16 +2086,16 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
   });  
 
   // law 18: AdoptLawPackage => Adopt a new package of laws. 
-  // needCompleted => law 13.
-  // needNotCompleted => law 14. 
+  // needFulfilled => law 13.
+  // needNotFulfilled => law 14. 
   lawInitData.push({
     nameDescription: "Adopt a new package of laws: Adopt a new package of laws.",
     targetLaw: getLawAddress("AdoptLawPackage", chainId),
     config: "0x",
     conditions: createConditions({
       allowedRole: ADMIN_ROLE, // the admin in the end has the power to accept new laws. 
-      needCompleted: BigInt(lawInitData.length - 1), // 14n,
-      needNotCompleted: BigInt(lawInitData.length), // 15n
+      needFulfilled: BigInt(lawInitData.length - 1), // 14n,
+      needNotFulfilled: BigInt(lawInitData.length), // 15n
     })
   });  
 
@@ -2212,7 +2212,7 @@ export function createPowersDaoLawInitData(powersAddress: `0x${string}`, formDat
         votingPeriod: daysToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 5n, // 5% quorum. 
-        needNotCompleted: 23n, // need not to have vetoed a revoking of roles. 
+        needNotFulfilled: 23n, // need not to have vetoed a revoking of roles. 
         delayExecution: daysToBlocks(5, chainId),
         allowedRole: 5n  // community members can revoke roles, subject to a vote. 
       })

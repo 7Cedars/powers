@@ -52,7 +52,7 @@ A constitution is an array of LawInitData structs, that is used as input for the
 
 As Powers adopts laws, each law is given an **index**. The index starts at 1, **not zero**. The first law to be adopted gets index 1, the second 2, and so on.
 
-When referring to laws that need to be completed (`conditions.needCompleted`), can veto (`conditions.needNotCompleted`) or record state (`conditions.readStateFrom)` we need to refer to the index the law will have in your Powers deployment - not in your LawInitData array!
+When referring to laws that need to be completed (`conditions.needFulfilled`), can veto (`conditions.needNotFulfilled`) or record state (`conditions.readStateFrom)` we need to refer to the index the law will have in your Powers deployment - not in your LawInitData array!
 
 To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.
 {% endhint %}
@@ -76,8 +76,8 @@ lawInitData = new PowersTypes.LawInitData({
         succeedAt: 51, // uint8, percentage of For votes needed to pass.
         delayExecution,: 600, // uint48, number of blocks that needs to pass after end of vote before law can be executed. 
         // dependent laws:  
-        needCompleted: 2, // uint16, the index of a law that needs to have been fulfilled before the law can be executed.  
-        needNotCompleted, 3, // uint16, the index of a law that should NOT have been fulfilled before the law can be executed.
+        needFulfilled: 2, // uint16, the index of a law that needs to have been fulfilled before the law can be executed.  
+        needNotFulfilled, 3, // uint16, the index of a law that should NOT have been fulfilled before the law can be executed.
         readStateFrom, 4, // uint16, the index of a law that can be used as source of state data.
         // throttling execution:  
         throttleExecution, 2400 // uint48, the number of blocks that needs to have passed before the law can be executed after a prior execution. 

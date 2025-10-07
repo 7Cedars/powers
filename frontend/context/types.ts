@@ -138,7 +138,7 @@ export type RoleLabel = {
 export type Checks = {
   allPassed?: boolean; 
   authorised?: boolean;
-  proposalExists?: boolean;
+  actionExists?: boolean;
   voteActive?: boolean;
   proposalPassed?: boolean;
   fulfilled?: boolean;
@@ -190,11 +190,3 @@ export type ContractAddress = {
   contract: string; 
   address: `0x${string}`; 
 }
-
-export type CompletedProposal = {
-  caller: `0x${string}`;
-  address: `0x${string}`;
-  lawCalldata: `0x${string}`;
-  descriptionHash: `0x${string}`;
-  blockNumber: bigint;
-} 

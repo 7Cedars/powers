@@ -16,7 +16,7 @@ export function Assets({status, powers}: {status: Status, powers: Powers | undef
   ];
   
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md lg:max-w-64 overflow-hidden">
+    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
       <button
         onClick={() => 
           { 
@@ -27,7 +27,7 @@ export function Assets({status, powers}: {status: Status, powers: Powers | undef
         className="w-full border-b border-slate-300 p-2 bg-slate-100"
       >
       <div className="w-full flex flex-row gap-6 items-center justify-between">
-        <div className="text-left text-sm text-slate-600 w-44">
+        <div className="text-left text-sm text-slate-600 w-32">
           Total Assets
         </div> 
           <ArrowUpRightIcon

@@ -1,70 +1,69 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/Button";
+import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Law, Powers } from "@/context/types";
-
 import { bigintToRole } from "@/utils/bigintTo";
-import { setRole, useRoleStore } from "@/context/store";
-import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
-import { shorterDescription } from "@/utils/parsers";
+import HeaderLawSmall from "@/components/HeaderLawSmall";
+import { useChains } from "wagmi";
 
 export function LawList({powers, status, onRefresh}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
-  const {deselectedRoles} = useRoleStore()
+  const chains = useChains();
   const { chainId } = useParams<{ chainId: string }>()
+  const [deselectedRoles, setDeselectedRoles] = useState<bigint[]>([])
 
-  // console.log("@LawList: ", {deselectedRoles, powers, status})
-  
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
 
     if (deselectedRoles?.includes(role)) {
       newDeselection = deselectedRoles?.filter(oldRole => oldRole != role)
-    } else if (deselectedRoles != undefined) {
-      newDeselection = [...deselectedRoles, role]
     } else {
-      newDeselection = [role]
+      newDeselection = [...deselectedRoles, role]
     }
-    setRole({deselectedRoles: newDeselection})
+    setDeselectedRoles(newDeselection)
   };
+
+  const blockExplorerUrl = chains.find(chain => chain.id === parseInt(chainId))?.blockExplorers?.default.url;
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-      {/* Header with roles - matching LogsList.tsx structure */}
-      <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 overflow-y-scroll">
-        <div className="text-slate-900 text-center font-bold text-lg">
+      {/* Header - matching RoleList.tsx structure */}
+      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
+        <div className="text-slate-800 text-center text-lg">
           Laws
         </div>
-        {powers?.roles?.map((role, i) => 
-            <div className="flex flex-row w-full min-w-fit h-8" key={i}>
-              <Button
-                size={0}
-                showBorder={true}
-                role={role == 115792089237316195423570985008687907853269984665640564039457584007913129639935n ? 6 : Number(role)}
-                selected={!deselectedRoles?.includes(BigInt(role))}
-                onClick={() => handleRoleSelection(BigInt(role))}
+        <div className="flex flex-row gap-2 items-center">
+          {onRefresh && (
+            <div className="w-8 h-8">
+              <button
+                onClick={onRefresh}
+                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}
               >
-                {bigintToRole(role, powers)} 
-              </Button>
+                <ArrowPathIcon className="w-5 h-5 text-slate-500" />
+              </button>
             </div>
-        )}
-        {onRefresh && (
-          <div className="w-8 h-8">
-            <Button
-              size={0}
-              showBorder={true}
-              onClick={onRefresh}
-            >
-              <ArrowPathIcon className="w-5 h-5" />
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Table content - matching LogsList.tsx structure */}
+      {/* Role filter bar - matching ActionsList.tsx structure */}
+      <div className="w-full flex flex-row gap-12 justify-start items-center py-4 overflow-x-auto border-b border-slate-200 p-4 pe-8">
+        {powers?.roles?.map((role, i) => (
+          <button 
+            key={i}
+            onClick={() => handleRoleSelection(BigInt(role))}
+            className="w-fit h-full hover:text-slate-400 text-sm aria-selected:text-slate-800 text-slate-300 whitespace-nowrap"
+            aria-selected={!deselectedRoles?.includes(BigInt(role))}
+          >  
+            <p className="text-sm text-left">{bigintToRole(role, powers)}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Table content */}
       {status == "pending" ?  
         <div className="w-full flex flex-col justify-center items-center p-6">
           <LoadingBox /> 
@@ -74,76 +73,33 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
-                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
-                  <tr className="w-full text-xs font-light text-left text-slate-500">
-                    <th className="ps-4 px-2 py-3 font-light w-16"> Id </th>
-                    <th className="px-2 py-3 font-light w-auto"> Description </th>
-                    <th className="px-2 py-3 font-light w-32"> Address </th>
-                    <th className="px-2 py-3 font-light w-20"> Role </th>
-                  </tr>
-                </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                  {
-                    powers?.ActiveLaws?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))?.map((law: Law, i) => 
-                      <tr
-                        key={i}
-                        className="text-xs text-left text-slate-800"
-                      >
-                        {/* ID */}
-                        <td className="ps-4 px-2 py-3 w-16">
-                          <div className="text-slate-500 text-xs">
-                            {Number(law.index)}
-                          </div>
-                        </td>
-                        
-                        {/* Description */}
-                        <td className="px-2 py-3 w-auto">
-                          <Button
-                            showBorder={true}
-                            role={
-                              law.conditions?.allowedRole == 115792089237316195423570985008687907853269984665640564039457584007913129639935n
-                                ? 6
-                                : law.conditions?.allowedRole == 0n
-                                ? 0
-                                : Number(law.conditions?.allowedRole)
-                            }
-                            onClick={() => { router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
-                            align={0}
-                            selected={true}
-                            filled={false}
-                            size={0}
-                          >
-                            <div className="text-xs py-1 px-1">
-                              {shorterDescription(law.nameDescription, "short")}
-                            </div>
-                          </Button>
-                        </td>
-                        
-                        {/* Address */}
-                        <td className="px-2 py-3 w-32">
-                          <div className="truncate text-slate-500 text-xs">
-                            {law.lawAddress && 
-                              <a 
-                                href={`https://sepolia.etherscan.io/address/${law.lawAddress}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="flex flex-row items-center gap-1 hover:text-slate-700 transition-colors"
-                              >
-                                <span>{`${law.lawAddress.slice(0, 6)}...${law.lawAddress.slice(-4)}`}</span>
-                                <ArrowUpRightIcon className="w-3 h-3" />
-                              </a>
-                            }
-                          </div>
-                        </td>
-                        
-                        {/* Role */}
-                        <td className="px-2 py-3 w-20">
-                          <div className="truncate text-slate-500 text-xs">
-                            {law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-"}
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                  {powers?.ActiveLaws
+                    ?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))
+                    ?.map((law: Law, i) => {
+                      const roleName = law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-";
+                      const numHolders = "-"; // You can add actual holder count if available
+                      
+                      return (
+                        <tr 
+                          key={i}
+                          className="text-xs text-left text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
+                          onClick={() => { router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
+                        >
+                          <td className="ps-4 px-2 py-3 w-auto">
+                            <HeaderLawSmall
+                              powers={powers}
+                              lawName={law.nameDescription || `Law #${law.index}`}
+                              roleName={roleName}
+                              numHolders={numHolders}
+                              description=""
+                              contractAddress={law.lawAddress || ""}
+                              blockExplorerUrl={blockExplorerUrl}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })
                   }
                 </tbody>
               </table>
