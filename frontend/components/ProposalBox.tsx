@@ -105,7 +105,7 @@ export function ProposalBox({
 
       {/* execute button */}
         <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
-          { proposalStatus != 0 ?  
+          { proposalStatus != 3 ?  
               <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 
                 Vote has closed  
               </div>

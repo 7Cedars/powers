@@ -23,6 +23,7 @@ import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
 import About from './About'
+import { useAction } from '@/hooks/useAction'
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
@@ -45,6 +46,7 @@ export default function UserPage() {
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { refetchPowers, powers, fetchActions } = usePowers()
+  const { fetchAllActions } = useAction()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
@@ -284,10 +286,10 @@ export default function UserPage() {
       {/* Tab Content */}
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
-          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
+          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} refetchPowers={refetchPowers} fetchActions={fetchActions} resetRef={newResetRef}/>}
           {/* NB! Loading still needs to be fixed   */}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={"idle"} onRefresh={handleFetchActions} resetRef={incomingResetRef}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} onRefresh={handleFetchActions} resetRef={incomingResetRef}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} fetchAllActions={fetchAllActions} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>
       </div>

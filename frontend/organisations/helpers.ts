@@ -14,7 +14,6 @@ export interface CreateConditionsParams {
   needFulfilled?: bigint;
   delayExecution?: bigint;
   throttleExecution?: bigint;
-  readStateFrom?: bigint;
   votingPeriod?: bigint;
   quorum?: bigint;
   succeedAt?: bigint;
@@ -29,7 +28,6 @@ export interface LawConditions {
   needFulfilled: bigint;
   delayExecution: bigint;
   throttleExecution: bigint;
-  readStateFrom: bigint;
   votingPeriod: bigint;
   quorum: bigint;
   succeedAt: bigint;
@@ -44,7 +42,6 @@ export const createConditions = (params: CreateConditionsParams): LawConditions 
   needFulfilled: params.needFulfilled ?? 0n,
   delayExecution: params.delayExecution ?? 0n,
   throttleExecution: params.throttleExecution ?? 0n,
-  readStateFrom: params.readStateFrom ?? 0n,
   votingPeriod: params.votingPeriod ?? 0n,
   quorum: params.quorum ?? 0n,
   succeedAt: params.succeedAt ?? 0n,

@@ -4,31 +4,18 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
-import { Law, Powers, LawExecutions, Action } from '@/context/types'
-import { usePowers } from '@/hooks/usePowers'
+import { Law, Powers, Action } from '@/context/types' 
 import { useAction } from '@/hooks/useAction'
 import { StaticForm } from '@/components/StaticForm'
 import { setAction } from '@/context/store'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
-type ExecutionWithLaw = {
-  law: Law
-  execution: bigint
-  actionId: bigint
-}
-
-export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, fetchAllActions: (powers: Powers) => Promise<Action[]>, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId } = useParams<{ chainId: string }>()
-  const { authenticated } = usePrivy()
-  const { fetchPowers, checkLaws, status: statusPowers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals, powers } = usePowers()
-  const { fetchActionData } = useAction()
+  const { authenticated } = usePrivy() 
+  const { fetchAction } = useAction()
   
-  // Use powers from hook if available, otherwise fall back to prop
-  const currentPowers = powers || powersProp
-  const [executionsWithLaws, setExecutionsWithLaws] = useState<ExecutionWithLaw[]>([])
-  // const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedItem, setSelectedItem] = useState<ExecutionWithLaw | null>(null)
+  const [selectedItem, setSelectedItem] = useState<Action | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
   const [reloading, setReloading] = useState(false)
@@ -41,40 +28,48 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
   }, [])
 
   // Assign reset function to ref
-  React.useEffect(() => {
+  useEffect(() => {
     resetRef.current = resetSelection
     return () => {
       resetRef.current = null
     }
   }, [resetSelection, resetRef])
 
-  // console.log("@Fulfilled, powers", currentPowers)
-
-  // Calculate displayed items and whether there are more to show
-  const displayedItems = executionsWithLaws.slice(0, itemsToShow)
-  const hasMoreItems = executionsWithLaws.length > itemsToShow
+  // Fetch actions on initial load
+  useEffect(() => {
+    if (powers) {
+      fetchAllActions(powers)
+    }
+  }, [])
 
   // Handle reload button click
   const handleReload = useCallback(async () => {
-    if (!currentPowers) return
+    if (!powers) return
     
     setReloading(true)
-    setError(null)
-    
     try {
-      // console.log("@Fulfilled: Starting reload of executed actions")
-      // Fetch the latest executed actions
-      const updatedPowers = await fetchExecutedActions(currentPowers)
-      if (updatedPowers) {
-        // console.log("@Fulfilled: Successfully reloaded executed actions", {executedActionsCount: updatedPowers.executedActions?.length})
-      }
+      await fetchAllActions(powers)
     } catch (error) {
       console.error("Error reloading fulfilled actions:", error)
-      setError("Failed to reload fulfilled actions")
     } finally {
       setReloading(false)
     }
-  }, [currentPowers, fetchExecutedActions])
+  }, [powers, fetchAllActions])
+
+  console.log("@Fulfilled, powers", powers)
+
+  const allActions = useMemo(() => {
+    if (!powers.laws) return []
+    const userRoleIds = hasRoles.map(role => role.role)
+    const userLaws = powers.laws?.filter(law => 
+      law.conditions && userRoleIds.includes(law.conditions.allowedRole)
+    )
+    if (!userLaws) return []
+    return userLaws.flatMap(law => law.actions)
+  }, [powers])
+
+  const displayedItems = allActions.slice(0, itemsToShow)
+  const hasMoreItems = allActions.length > itemsToShow
 
   // Handle show more button click
   const handleShowMore = useCallback(() => {
@@ -82,56 +77,29 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
   }, [])
 
   // Handle item click and fetch action data
-  const handleItemClick = useCallback(async (executionData: ExecutionWithLaw) => {
-    setSelectedItem(executionData)
+  const handleItemClick = useCallback(async (action: Action) => {
+    setSelectedItem(action)
     setLoadingActionData(true)
     setActionData(null)
-    
+
     try {
-      const action = await fetchActionData(executionData.actionId, currentPowers)
-      if (action) {
-        setActionData(action)
+      const completeAction = await fetchAction(action, powers)
+      if (completeAction) {
+        setActionData(completeAction)
         // Set the action in the store so StaticForm can access it
-        setAction(action)
+        setAction(completeAction)
       }
     } catch (error) {
       console.error("Error fetching action data:", error)
-      setError("Failed to load action details")
     } finally {
       setLoadingActionData(false)
     }
-  }, [fetchActionData, currentPowers])
-
-  // Process executed actions similar to Logs.tsx
-  useEffect(() => {
-    // console.log("@Fulfilled: Processing executed actions", {executedActions: currentPowers?.executedActions?.length, laws: currentPowers?.laws?.length})
-    
-    if (currentPowers?.executedActions && currentPowers?.laws) {
-      const actionArray = currentPowers.executedActions.map((lawActions: LawExecutions, i) => {
-        return lawActions.actionsIds.map((actionId, j) => {
-          const law = currentPowers.laws?.[i]
-          if (law) {
-            return {
-              law,
-              execution: lawActions.executions[j],
-              actionId
-            }
-          }
-          return null
-        })
-      }).flat().filter((item): item is ExecutionWithLaw => item !== null)
-      
-      // Sort by execution time (most recent first)
-      const sortedExecutions = actionArray.sort((a, b) => Number(b.execution) - Number(a.execution))
-      // console.log("@Fulfilled: Setting executions with laws", {count: sortedExecutions.length})
-      setExecutionsWithLaws(sortedExecutions)
-      // Reset pagination when data changes
-      setItemsToShow(25)
-    }
-  }, [currentPowers?.executedActions, currentPowers?.laws])
+  }, [fetchAction, powers])
 
   // If an item is selected, show the details inline
   if (selectedItem) {
+    const law = powers.laws?.find(l => l.index === selectedItem.lawId)
+    
     return (
       <div className="w-full mx-auto">
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -154,15 +122,17 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
             {/* Static Form with Action Data - Matching DynamicForm layout */}
             <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`}>
               {/* Header section with UserItem - matching DynamicForm */}
-              <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-                <UserItem
-                  powers={currentPowers as Powers}
-                  law={selectedItem.law}
-                  chainId={chainId as string}
-                  actionId={selectedItem.actionId}
-                  showLowerSection={false}
-                />
-              </div>
+              {law && (
+                <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
+                  <UserItem
+                    powers={powers}
+                    law={law}
+                    chainId={chainId as string}
+                    actionId={BigInt(selectedItem.actionId)}
+                    showLowerSection={false}
+                  />
+                </div>
+              )}
 
               {/* Form content */}
               <div className="p-6">
@@ -170,8 +140,8 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
                   <div className="flex items-center justify-center py-8">
                     <div className="text-slate-500">Loading action data...</div>
                   </div>
-                ) : actionData ? (
-                  <StaticForm law={selectedItem.law} />
+                ) : actionData && law ? (
+                  <StaticForm law={law} staticDescription={true} />
                 ) : (
                   <div className="text-slate-500 italic">No action data available</div>
                 )}
@@ -201,43 +171,7 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
     )
   }
 
-  if (reloading) {
-    return (
-      <div className="w-full mx-auto">
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
-            <p className="text-sm text-slate-600">Completed actions and proposals</p>
-          </div>
-          <div className="p-4">
-            <p className="text-sm text-slate-500 italic">
-              Loading fulfilled actions...
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="w-full mx-auto">
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
-            <p className="text-sm text-slate-600">Completed actions and proposals</p>
-          </div>
-          <div className="p-4">
-            <p className="text-sm text-red-500 italic">
-              {error}
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (executionsWithLaws.length === 0) {
+  if (allActions.length === 0) {
     return (
       <div className="w-full mx-auto">
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -274,44 +208,39 @@ export default function Fulfilled({hasRoles, powers: powersProp, resetRef}: {has
           </div>
         </div>
         
-        {/* Render UserItem components for each execution */}
+        {/* Render UserItem components for each fulfilled action */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
-          {reloading ? (
-            <div className="p-4">
-              <div className="flex items-center justify-center py-8">
-                <div className="text-sm text-slate-500">Reloading fulfilled actions...</div>
+          {displayedItems.map((action, index) => {
+            const law = powers.laws?.find(l => l.index === action?.lawId)
+            if (!law) return null
+            
+            return (
+              <div 
+                key={`${action!.actionId}-${action!.lawId}-${index}`}
+                className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
+                onClick={() => handleItemClick(action!)}
+              >
+                <UserItem
+                  powers={powers}
+                  law={law}
+                  chainId={chainId as string}
+                  actionId={BigInt(action!.actionId)}
+                  showLowerSection={false}
+                />
               </div>
+            )
+          })}
+          
+          {/* Show more button */}
+          {hasMoreItems && (
+            <div className="p-4">
+              <button
+                onClick={handleShowMore}
+                className="w-full py-2 px-4 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-md transition-colors"
+              >
+                Show more (`{allActions.length - itemsToShow} remaining)
+              </button>
             </div>
-          ) : (
-            <>
-              {displayedItems.map((executionData, index) => (
-                <div 
-                  key={`${executionData.law.lawAddress}-${executionData.law.index}-${executionData.actionId}-${index}`}
-                  className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
-                  onClick={() => handleItemClick(executionData)}
-                >
-                  <UserItem
-                    powers={currentPowers as Powers}
-                    law={executionData.law}
-                    chainId={chainId as string}
-                    actionId={executionData.actionId}
-                    showLowerSection={false}
-                  />
-                </div>
-              ))}
-              
-              {/* Show more button */}
-              {hasMoreItems && (
-                <div className="p-4">
-                  <button
-                    onClick={handleShowMore}
-                    className="w-full py-2 px-4 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-md transition-colors"
-                  >
-                    Show more ({executionsWithLaws.length - itemsToShow} remaining)
-                  </button>
-                </div>
-              )}
-            </>
           )}
         </div>
       </div>

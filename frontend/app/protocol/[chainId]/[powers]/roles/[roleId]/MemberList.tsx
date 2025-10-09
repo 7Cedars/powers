@@ -9,14 +9,19 @@ import { powersAbi } from "@/context/abi";
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { LoadingBox } from "@/components/LoadingBox";
+import { bigintToRole } from "@/utils/bigintTo";
+import { useChains } from "wagmi";
 
 export function MemberList({powers, roleId, status: statusPowers}: {powers: Powers | undefined, roleId: bigint, status: Status}) {
   const { chainId } = useParams<{ chainId: string }>()
+  const chains = useChains();
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<any | null>(null)
   const [members, setMembers] = useState<`0x${string}`[]>([])
 
   console.log("@MemberList: ", {powers, roleId, status, error, chainId})
+  const roleName = powers ? bigintToRole(roleId, powers) : "Loading..."
+  const blockExplorerUrl = chains.find(chain => chain.id === parseInt(chainId))?.blockExplorers?.default.url;
 
   const fetchRoleHolders = useCallback(
     async (roleId: bigint) => {
@@ -60,27 +65,6 @@ export function MemberList({powers, roleId, status: statusPowers}: {powers: Powe
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-      {/* Header */}
-      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
-        <div className="text-slate-800 text-center text-lg">
-          Members
-        </div>
-        <div className="flex flex-row gap-2 items-center">
-          {powers && (
-            <div className="w-8 h-8">
-              <button
-                onClick={handleRefresh}
-                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}
-              >
-                <ArrowPathIcon 
-                  className="w-5 h-5 text-slate-500 aria-selected:animate-spin"
-                  aria-selected={status == "pending"}
-                />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Table content */}
       {status == 'pending' ? 
@@ -108,9 +92,20 @@ export function MemberList({powers, roleId, status: statusPowers}: {powers: Powe
                       </td>
                       
                       <td className="px-2 py-3 w-auto">
-                        <div className="text-slate-800 font-mono text-xs">
-                          {member}
-                        </div>
+                        {blockExplorerUrl ? (
+                          <a
+                            href={`${blockExplorerUrl}/address/${member}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-slate-800 font-mono text-xs hover:text-blue-600 hover:underline transition-colors"
+                          >
+                            {member}
+                          </a>
+                        ) : (
+                          <div className="text-slate-800 font-mono text-xs">
+                            {member}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}

@@ -97,37 +97,6 @@ export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Pow
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-      {/* Header - matching AssetList.tsx structure */}
-      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
-        <div className="text-slate-800 text-center text-lg">
-          Roles
-        </div>
-        <div className="flex flex-row gap-2 items-center">
-          {powers && (
-            <div className="w-8 h-8">
-              <button
-                onClick={handleRefreshRoles}
-                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}
-              >
-                <ArrowPathIcon 
-                  className="w-5 h-5 text-slate-500 aria-selected:animate-spin"
-                  aria-selected={status == "pending"}
-                />
-              </button>
-            </div>
-          )}
-          {onRefresh && (
-            <div className="w-8 h-8">
-              <button
-                onClick={onRefresh}
-                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}
-              >
-                <ArrowPathIcon className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Table content - matching AssetList.tsx structure */}
       {status && status == 'pending' ? 

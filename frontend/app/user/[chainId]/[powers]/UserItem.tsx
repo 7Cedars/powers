@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import React, { useEffect, useState } from "react"; 
 import { useChains } from 'wagmi';
 import { Law, Powers } from "@/context/types";
 import HeaderLaw from '@/components/HeaderLaw';
@@ -40,9 +39,9 @@ export function UserItem({
 
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
-    if (powers?.executedActions) {
+    if (powers?.laws) {
       const lawIndex = Number(law.index);
-      const lawExecutions = powers.executedActions[lawIndex - 1]; // Array is 0-indexed, law indices start at 1
+      const lawExecutions = powers.laws[lawIndex - 1].actions; // Array is 0-indexed, law indices start at 1
       
       if (lawExecutions) {
         let targetActionId: bigint | null = null;
@@ -54,19 +53,19 @@ export function UserItem({
         
         if (targetActionId) {
           // Find the specific action in the executions
-          const actionIndex = lawExecutions.actionsIds.findIndex(id => id === targetActionId);
+          const actionIndex = lawExecutions.findIndex(action => BigInt(action.actionId) === targetActionId);
           if (actionIndex !== -1) {
-            const executedAt = lawExecutions.executions[actionIndex];
+            const executedAt = lawExecutions[actionIndex].fulfilledAt;
             setExecutionData({
               actionId: targetActionId,
-              executedAt,
+              executedAt: executedAt!,
               fulfilled: true // If it's in executedActions, it's fulfilled
             });
           }
         }
       }
     }
-  }, [actionId, powers?.executedActions, law.index]);
+  }, [actionId, powers?.laws, law.index]);
 
   // Fetch timestamp for execution block
   useEffect(() => {
@@ -150,7 +149,7 @@ export function UserItem({
                 {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      const proposal = powers?.proposals?.find(p => BigInt(p.actionId) === actionId);
+                      const proposal = powers?.laws?.find(l => l.index === law.index)?.actions?.find(a => BigInt(a.actionId) === actionId);
                       const state = proposal?.state;
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       

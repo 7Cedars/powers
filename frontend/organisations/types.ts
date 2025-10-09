@@ -1,4 +1,14 @@
-import { LawInitData } from "@/public/createLawInitData";
+import { LawConditions } from "./helpers";
+
+/**
+ * Law initialization data
+ */
+export interface LawInitData {
+  nameDescription: string;
+  targetLaw: `0x${string}`;
+  config: `0x${string}`;
+  conditions: LawConditions;
+}
 
 /**
  * Represents a form field for organization deployment

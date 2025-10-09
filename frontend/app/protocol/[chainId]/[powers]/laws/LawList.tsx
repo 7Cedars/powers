@@ -31,7 +31,7 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* Header - matching RoleList.tsx structure */}
-      <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
+      {/* <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
         <div className="text-slate-800 text-center text-lg">
           Laws
         </div>
@@ -47,7 +47,7 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Role filter bar - matching ActionsList.tsx structure */}
       <div className="w-full flex flex-row gap-12 justify-start items-center py-4 overflow-x-auto border-b border-slate-200 p-4 pe-8">

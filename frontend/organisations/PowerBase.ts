@@ -1,5 +1,5 @@
 import { Organization } from "./types";
-import { LawInitData } from "@/public/createLawInitData";
+import { LawInitData } from "./types";
 import { powersAbi } from "@/context/abi";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
 import { getLawAddress, getMockAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
@@ -21,8 +21,8 @@ export const PowerBase: Organization = {
   metadata: {
     id: "power-base",
     title: "Power Base",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihnj7ckqvlxzqhxvz2k3jx5y6k5z7x8y9z0a1b2c3d4e5f6g7h8i9",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihq6k7l8m9n0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0i1",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibjnkey6ldzghkbnp73pigh4lj6rmnmqalzplcwfz25vmhl3rst3q",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeickdiqcdmjjwx6ah6ckuveufjw6n2g6qdvatuhxcsbmkub3pvshnm",
     description: "Deploy the Power Base DAO - a decentralized organization that manages Powers protocol development through three independent grant programs (Documentation, Frontend, Protocol). Features contributor-based governance via GitHub commits, funder participation, and milestone-based grant disbursements.",
     disabled: false,
     onlyLocalhost: false
@@ -367,8 +367,7 @@ export const PowerBase: Organization = {
       targetLaw: getLawAddress("RoleByGitCommit", chainId),
       config: roleByGitCommitConfig,
       conditions: createConditions({
-        allowedRole: PUBLIC_ROLE,
-        readStateFrom: BigInt(lawInitData.length)
+        allowedRole: PUBLIC_ROLE
       })
     });
 

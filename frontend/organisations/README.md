@@ -225,8 +225,7 @@ const conditions = createConditions({
   needFulfilled: 2n,
   needNotFulfilled: 3n,
   delayExecution: daysToBlocks(3, chainId),
-  throttleExecution: 100n,
-  readStateFrom: 5n
+  throttleExecution: 100n
 });
 ```
 

@@ -14,6 +14,7 @@ import { getBlockNumber } from '@wagmi/core'
 
 export const useChecks = () => {
   const { chainId } = useParams<{ chainId: string }>() 
+  const [checks, setChecks] = useState<Checks | undefined>()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
   // note: the state of checks is not stored here, it is stored in the Zustnd store
@@ -158,10 +159,11 @@ export const useChecks = () => {
           newChecks.allPassed = Object.values(newChecks).filter(item => item !== undefined).every(item => item === true)
           
           // console.log("fetchChecks triggered, waypoint 2", {newChecks})
+          setChecks(newChecks)
           setStatus("success") //NB note: after checking status, sets the status back to idle! 
           return newChecks
         }       
   }, [ ])
 
-  return {status, error, fetchChecks, getActionState, checkAccountAuthorised, hashAction}
+  return {status, error, checks, fetchChecks, getActionState, checkAccountAuthorised, hashAction}
 }

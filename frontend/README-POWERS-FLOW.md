@@ -101,11 +101,6 @@ The visualization shows law dependencies between law group nodes:
 - **Meaning**: Target law must NOT be completed for source law to execute
 - **Visual**: Thick dashed red line
 
-### Read State From (Blue dotted line)
-- **Condition**: `readStateFrom !== 0n`
-- **Meaning**: Source law reads state from target law
-- **Visual**: Thick dotted blue line
-
 ## Layout and Positioning
 
 ### Automatic Layout

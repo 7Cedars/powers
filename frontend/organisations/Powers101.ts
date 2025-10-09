@@ -1,8 +1,8 @@
 import { Organization } from "./types";
-import { LawInitData } from "@/public/createLawInitData";
 import { powersAbi, erc20TaxedAbi, erc20VotesAbi } from "@/context/abi";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
 import { getLawAddress, getMockAddress, minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
+import { LawInitData } from "./types";
 
 /**
  * Powers 101 Organization
@@ -171,8 +171,7 @@ export const Powers101: Organization = {
         ]
       ),
       conditions: createConditions({
-        allowedRole: ADMIN_ROLE,
-        readStateFrom: 5n
+        allowedRole: ADMIN_ROLE
       })
     });
 

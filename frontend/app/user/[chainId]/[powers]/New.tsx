@@ -16,20 +16,21 @@ import { LawBox } from './LawBox'
 import HeaderLaw from '@/components/HeaderLaw'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { useChains } from 'wagmi'
+import { useAction } from '@/hooks/useAction'
+import { hashAction } from '@/utils/hashAction'
 
-export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function New({hasRoles, powers, refetchPowers, fetchActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, refetchPowers: (address: `0x${string}`) => void, fetchActions: (powers: Powers) => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { authenticated } = usePrivy()
   const {wallets, ready} = useWallets();
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
-  const { chainChecks } = useChecksStore();
-  const { fetchChecks, status: statusChecks } = useChecks()
+  const { fetchChecks, status: statusChecks, checks } = useChecks()
+  const { fetchAction } = useAction()
   const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, propose, request } = useLaw();
-  const { refetchPowers, status: statusPowers } = usePowers();
 
-  // console.log("@New, statusProposals", {statusProposals})
+  console.log("@New:", {powers, action})
   
   // State to track selected law
   const [selectedLaw, setSelectedLaw] = useState<Law | null>(null)
@@ -47,9 +48,6 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
       resetRef.current = null
     }
   }, [resetSelection, resetRef])
-  
-  // Get checks for the selected law from Zustand store
-  const checks = selectedLaw && chainChecks ? chainChecks.get(String(selectedLaw.index)) : undefined
 
   // Filter laws based on criteria
   // console.log("@New, powers", powers)
@@ -129,10 +127,13 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
 
   const handleSimulate = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
     if (!selectedLaw) return
+    console.log("@handleSimulate: waypoint 0", {paramValues, nonce, description})
+
     
     setError({error: null})
     let lawCalldata: `0x${string}` | undefined
-    
+    console.log("@handleSimulate: waypoint 1", {paramValues, nonce, description})
+
     if (paramValues.length > 0 && paramValues) {
       try {
         lawCalldata = encodeAbiParameters(parseAbiParameters(selectedLaw.params?.map(param => param.dataType).toString() || ""), paramValues); 
@@ -142,12 +143,18 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     } else {
       lawCalldata = '0x0'
     }
-    
+
+    console.log("@handleSimulate: waypoint 1.5", {lawCalldata, ready, wallets, powers})
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
       fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+      const actionId = hashAction(selectedLaw.index, lawCalldata, BigInt(action.nonce as string)).toString()
+      const actionData = await fetchAction({actionId: actionId, lawId: selectedLaw.index}, powers as Powers)
+      
+      console.log("@handleSimulate: waypoint 2", {actionData, actionId})
 
       setAction({
         ...action,
+        state: actionData?.state == undefined ? 0 : actionData.state,
         lawId: selectedLaw.index,
         caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
         dataTypes: selectedLaw.params?.map(param => param.dataType),
@@ -172,6 +179,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   };
 
   const handlePropose = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    console.log("@handlePropose: waypoint 0", {paramValues, nonce, description})
     if (!selectedLaw) return
     
     setError({error: null})
@@ -195,6 +203,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
         description,
         powers as Powers
       )
+      console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
     }
   };
 
@@ -223,7 +232,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   };
 
 
-  // If a law is selected, show the DynamicForm
+  // If a law is selected, show the either LawBox or ProposalBox
   if (selectedLaw) {
     return (
       <div className="w-full mx-auto">
@@ -245,6 +254,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
               powers={powers as Powers}
               law={selectedLaw}
               checks={checks as Checks}
+              statusChecks={statusChecks}
               params={selectedLaw.params || []}
               status={statusLaw}
               simulation={simulation}
@@ -314,6 +324,8 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
       </div>
     )
   }
+
+  /// Error messages /// 
 
   if (!authenticated) {
     return (

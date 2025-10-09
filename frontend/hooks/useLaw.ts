@@ -154,7 +154,6 @@ export const useLaw = () => {
         } catch (error) {
           setStatus("error") 
           setError(error)
-          setError(error)
           // console.log(error)
         }
         setStatus("idle")
@@ -190,7 +189,6 @@ export const useLaw = () => {
           }
         } catch (error) {
           setStatus("error") 
-          setError(error)
           setError(error)
           // console.log("@execute: waypoint 5", {error}) 
       }

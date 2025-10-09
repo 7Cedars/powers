@@ -58,7 +58,7 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
   useEffect(() => {
     // console.log("useEffect triggered at DynamicForm")
       try {
-        const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData);
+        const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData as `0x${string}`);
         const valuesParsed = parseParamValues(values) 
         // console.log("@DynamicForm: useEffect triggered at DynamicForm", {values, valuesParsed})
         if (dataTypes.length != valuesParsed.length) {
@@ -175,10 +175,10 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
             selected={true}
             onClick={(e) => {
               e.preventDefault();
-              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
-            }} 
+              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
+            }}
             statusButton={
-               action && action.description && action.description.length > 0 && action.nonce && action.paramValues ? 'idle' : 'disabled'
+               action && action.description && action.description.length > 0 && action.nonce && action.paramValues ? status : 'disabled'
               }> 
             Check 
           </Button>

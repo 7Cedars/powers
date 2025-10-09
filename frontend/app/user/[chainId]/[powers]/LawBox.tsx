@@ -18,6 +18,7 @@ type LawBoxProps = {
   powers: Powers;
   law: Law;
   checks: Checks;
+  statusChecks: Status;
   params: {
     varName: string;
     dataType: DataType;
@@ -32,9 +33,8 @@ type LawBoxProps = {
   onPropose?: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
+export function LawBox({powers, law, checks, statusChecks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
   const action = useActionStore();
-  const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
@@ -90,34 +90,20 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           <div className="w-full">
             <Button 
               size={0} 
-              role={6}
-              onClick={() => {
-                if (checks?.proposalPassed && action) {
-                  // console.log("@DynamicForm: Proposal section", {law, action})
-                  const actionId = hashAction(law?.index, action.callData as `0x${string}`, BigInt(action.nonce as string))
-                  // Navigate to view the existing proposal
-                  router.push(`/protocol/${chainId}/${law?.powers}/proposals/${actionId}`)
-                } else if (checks?.authorised && checks?.proposalPassed && onPropose && action) {
-                  // Create a new proposal using the onPropose function
-                  onPropose(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
-                } else if (checks?.authorised) {
-                  // Navigate to create a new proposal (fallback)
-                  router.push(`/protocol/${chainId}/${law?.powers}/proposals/new`)
-                }
-                // Do nothing if not authorized and no proposal exists
-              }}
+              role={6} 
+              onClick={() => onPropose && onPropose(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string) }
               filled={false}
               selected={true}
               statusButton={
-                (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotFulfilled && checks?.lawFulfilled && checks?.lawNotFulfilled && checks?.authorised) ? 'idle' :  'disabled'
+                (checks?.authorised && action?.upToDate && action.state == 0) ? status :  'disabled'
               }
             >
               {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotFulfilled || !checks?.lawFulfilled || !checks?.lawNotFulfilled
                 ? "Passed check needed to make proposal"
                 : !checks?.authorised 
                   ? "Not authorised to make proposal"
-                  : checks?.proposalPassed 
-                    ? "View proposal"
+                  : action.state != 0 
+                    ? "Action already proposed"
                     : `Create proposal for '${shorterDescription(law?.nameDescription, "short")}'`
               }
             </Button>
