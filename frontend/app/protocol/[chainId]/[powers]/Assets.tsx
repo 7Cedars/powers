@@ -1,11 +1,10 @@
 `use client`
 
-import { LoadingBox } from "@/components/LoadingBox";
 import { Powers, Status } from "@/context/types";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 
-export function Assets({status, powers}: {status: Status, powers: Powers | undefined}) {
+export function Assets({powers}: {status: Status, powers: Powers | undefined}) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   

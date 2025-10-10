@@ -1,11 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
 import { Status, LawSimulation, Law, Powers, Action } from "../context/types"
-import { getConnectorClient, readContract, simulateContract, writeContract } from "@wagmi/core";
+import { getConnectorClient, readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { parseChainId } from "@/utils/parsers";
 import { useParams } from "next/navigation";
+
+type VoteData = {
+  actionId: string
+  voteStart: bigint
+  voteDuration: bigint
+  voteEnd: bigint
+  againstVotes: bigint
+  forVotes: bigint
+  abstainVotes: bigint
+  state: number
+}
 
 export const useLaw = () => {
   const { chainId } = useParams<{ chainId: string }>()
@@ -13,6 +24,7 @@ export const useLaw = () => {
   const [error, setError] = useState<any | null>(null)
   const [simulation, setSimulation ] = useState<LawSimulation>() 
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()
+  const [actionVote, setActionVote] = useState<VoteData | undefined>()
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
@@ -57,7 +69,7 @@ export const useLaw = () => {
           }
         } catch (error) {
             setStatus("error") 
-            setError(error)
+            setError(error as Error)
         }
   }, [ ])
 
@@ -80,7 +92,7 @@ export const useLaw = () => {
           setTransactionHash(result)
       } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
       }
   }, [ ])
 
@@ -104,7 +116,7 @@ export const useLaw = () => {
           setStatus("success")
       } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
       }
   }, [ ])
 
@@ -129,9 +141,62 @@ export const useLaw = () => {
           setStatus("idle") 
       } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
       }
   }, [ ])
+
+  const fetchVoteData = useCallback(
+    async (
+      actionObject: Action,
+      powers: Powers
+    ) => {
+      setError(null)
+      setStatus("pending")
+      
+      try {
+        const [{ result: voteData }, { result: state }] = await readContracts(wagmiConfig, {
+          contracts: [
+            {
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionVoteData',
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
+            },
+            {
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionState',
+              args: [BigInt(actionObject.actionId)],
+              chainId: parseChainId(chainId)
+            }
+          ]
+        })
+
+        const [voteStart, voteDuration, voteEnd, againstVotes, forVotes, abstainVotes] = voteData as unknown as [
+          bigint, bigint, bigint, bigint, bigint, bigint
+        ]
+
+        const vote: VoteData = {
+          actionId: actionObject.actionId as string,
+          state: state ? state as number : 0,
+          voteStart: voteStart as bigint,
+          voteDuration: voteDuration as bigint,
+          voteEnd: voteEnd as bigint,
+          againstVotes: againstVotes as bigint,
+          forVotes: forVotes as bigint,
+          abstainVotes: abstainVotes as bigint,
+        }
+
+        setActionVote(vote)
+        setStatus("success")
+        return vote
+      } catch (error) {
+        setStatus("error")
+        setError(error as Error)
+        return undefined
+      }
+    }, [ ])
   
   const simulate = useCallback( 
     async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
@@ -153,8 +218,8 @@ export const useLaw = () => {
           setStatus("success")
         } catch (error) {
           setStatus("error") 
-          setError(error)
-          // console.log(error)
+          setError(error as Error)
+          console.log("@simulate: ERROR", {error})
         }
         setStatus("idle")
   }, [ ])
@@ -189,10 +254,10 @@ export const useLaw = () => {
           }
         } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
           // console.log("@execute: waypoint 5", {error}) 
       }
   }, [ ])
 
-  return {status, error, simulation, hasVoted, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, checkHasVoted}
+  return {status, error, simulation, hasVoted, actionVote, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, checkHasVoted, fetchVoteData}
 }

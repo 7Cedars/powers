@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { onboardingSteps, smallScreenOnboardingSteps, type OnboardingStep } from './onboarding';
+import { onboardingSteps, smallScreenOnboardingSteps } from './onboarding';
 import { useRouter, useParams } from 'next/navigation';
 
 interface OnboardingModalProps {
@@ -172,16 +172,6 @@ export const OnboardingModal = ({ isOpen, onClose, onRequestOpen }: OnboardingMo
     localStorage.setItem('powers-onboarding-completed', 'true');
   };
 
-  // Function to restart onboarding (useful for help button)
-  const restartOnboarding = () => {
-    localStorage.removeItem('powers-onboarding-completed');
-    setCurrentStep(0);
-    // Request parent to open modal
-    if (onRequestOpen) {
-      onRequestOpen();
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -203,34 +193,34 @@ export const OnboardingModal = ({ isOpen, onClose, onRequestOpen }: OnboardingMo
                 top: 0,
                 left: 0,
                 right: 0,
-                height: getHighlightPosition()!.top
+                height: getHighlightPosition()?.top
               }}
             />
             {/* Left overlay */}
             <div 
               className="absolute bg-black opacity-20"
               style={{
-                top: getHighlightPosition()!.top,
+                top: getHighlightPosition()?.top,
                 left: 0,
-                width: getHighlightPosition()!.left,
-                height: getHighlightPosition()!.height
+                width: getHighlightPosition()?.left,
+                height: getHighlightPosition()?.height
               }}
             />
             {/* Right overlay */}
             <div 
               className="absolute bg-black opacity-20"
               style={{
-                top: getHighlightPosition()!.top,
-                left: getHighlightPosition()!.left + getHighlightPosition()!.width,
+                top: getHighlightPosition()?.top,
+                left: (getHighlightPosition()?.left || 0) + (getHighlightPosition()?.width || 0),
                 right: 0,
-                height: getHighlightPosition()!.height
+                height: getHighlightPosition()?.height
               }}
             />
             {/* Bottom overlay */}
             <div 
               className="absolute bg-black opacity-20"
               style={{
-                top: getHighlightPosition()!.top + getHighlightPosition()!.height,
+                top: (getHighlightPosition()?.top || 0) + (getHighlightPosition()?.height || 0),
                 left: 0,
                 right: 0,
                 bottom: 0

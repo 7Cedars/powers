@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+interface GitHubCommit {
+  committer: {
+    login: string;
+  } | null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -47,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     const commits = await githubResponse.json()
-    const matchingCommits = commits.filter((commit: any) => 
+    const matchingCommits = (commits as GitHubCommit[]).filter((commit) => 
       commit.committer && commit.committer.login === author
     )
 
@@ -122,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     const commits = await githubResponse.json()
-    const matchingCommits = commits.filter((commit: any) => 
+    const matchingCommits = (commits as GitHubCommit[]).filter((commit) => 
       commit.committer && commit.committer.login === author
     )
 

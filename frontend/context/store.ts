@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { Action, Checks, Status } from '../context/types'
+import { ActionTruncated, Checks, Status } from '../context/types'
 
-type ActionStore = Action;
+type ActionStore = ActionTruncated;
 const initialStateAction: ActionStore = {
   actionId: "0",
   lawId: 0n,
@@ -38,7 +38,7 @@ const initialStateChecks: ChecksStore = {
 }
 
 type ActionDataStore = {
-  actionData: Map<string, Action>
+  actionData: Map<string, ActionTruncated>
 }
 
 const initialStateActionData: ActionDataStore = {
@@ -107,7 +107,7 @@ export const clearChainChecks = () => {
 // Action Data Store
 export const useActionDataStore = create<ActionDataStore>()(() => initialStateActionData);
 
-export const setActionData = (actionData: Map<string, Action>) => {
+export const setActionData = (actionData: Map<string, ActionTruncated>) => {
   useActionDataStore.setState({ actionData })
 }
 

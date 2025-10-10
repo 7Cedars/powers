@@ -4,7 +4,6 @@ import React, { useCallback, useMemo } from 'react'
 import ReactFlow, {
   Node,
   Edge,
-  Controls,
   Background,
   MiniMap,
   useNodesState,
@@ -17,7 +16,6 @@ import ReactFlow, {
   NodeProps,
   useReactFlow,
   ReactFlowProvider,
-  useStore,
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -28,9 +26,7 @@ import { parseChainId } from '@/utils/parsers'
 import { useBlockNumber, useChains } from 'wagmi'
 import {
   CalendarDaysIcon,
-  QueueListIcon,
-  XMarkIcon,
-  LinkIcon,
+  QueueListIcon,  
   DocumentCheckIcon,
   ShieldCheckIcon,
   ClipboardDocumentCheckIcon,
@@ -43,6 +39,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation'
 import { setAction, useActionStore, useActionDataStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import HeaderLaw from '@/components/HeaderLaw'
+import { hashAction } from '@/utils/hashAction'
 
 // Default colors for all nodes
 const DEFAULT_NODE_COLOR = '#475569' // slate-600
@@ -57,6 +54,46 @@ function getNodeBorderClass(action: Action | undefined): string {
   return DEFAULT_BORDER_CLASS
 }
 
+// Helper function to get action data for all laws in the dependency chain
+function getActionDataForChain(
+  selectedAction: Action | undefined,
+  laws: Law[],
+  powers: Powers,
+  actionDataStore: Map<string, Action>
+): Map<string, Action> {
+  const actionDataMap = new Map<string, Action>()
+  
+  // If no selected action or no calldata/nonce, fall back to using actionDataStore
+  if (!selectedAction || !selectedAction.callData || !selectedAction.nonce) {
+    return actionDataStore
+  }
+  
+  // For each law, calculate the actionId and look up the action data
+  laws.forEach(law => {
+    const lawId = law.index
+    const calculatedActionId = hashAction(lawId, selectedAction.callData!, BigInt(selectedAction.nonce!))
+    
+    // First, check if this action exists in the Powers object
+    const lawData = powers.laws?.find(l => l.index === lawId)
+    if (lawData && lawData.actions) {
+      const action = lawData.actions.find(a => a.actionId === String(calculatedActionId))
+      if (action) {
+        actionDataMap.set(String(lawId), action)
+      }
+    }
+    
+    // If not found in Powers object, check the actionDataStore
+    if (!actionDataMap.has(String(lawId))) {
+      const storeAction = actionDataStore.get(String(lawId))
+      if (storeAction && storeAction.actionId === String(calculatedActionId)) {
+        actionDataMap.set(String(lawId), storeAction)
+      }
+    }
+  })
+  
+  return actionDataMap
+}
+
 interface LawSchemaNodeData {
   powers: Powers
   law: Law
@@ -65,33 +102,35 @@ interface LawSchemaNodeData {
   selectedLawId?: string
   connectedNodes?: Set<string>
   actionDataTimestamp?: number
+  selectedAction?: Action
+  chainActionData: Map<string, Action>
 }
 
-const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => {
-  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers } = data
-  const { actionData } = useActionDataStore()
+const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
+  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers, chainActionData } = data
   const { timestamps, fetchTimestamps } = useBlocks()
   const chainId = useParams().chainId as string
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
   
-  // Get action data for this law
-  const currentLawAction = actionData.get(String(law.index))
+  // Get action data for this law from the chain action data
+  const currentLawAction = chainActionData.get(String(law.index))
 
   // Fetch timestamps for the current law's action data
   React.useEffect(() => {
-    console.log("LAW schema node triggered", {law, actionData})
-    const currentLawAction = actionData.get(String(law.index))
+    // console.log("LAW schema node triggered", {law, chainActionData})
+    const currentLawAction = chainActionData.get(String(law.index))
     if (currentLawAction) {
       const blockNumbers: bigint[] = []
       
       // Collect all block numbers that need timestamps
-      if (currentLawAction.voteStart && currentLawAction.voteStart !== 0n) {
-        blockNumbers.push(currentLawAction.voteStart)
+      // proposedAt is used for proposal created, vote started, and calculating vote ended
+      if (currentLawAction.proposedAt && currentLawAction.proposedAt !== 0n) {
+        blockNumbers.push(currentLawAction.proposedAt)
       }
-      if (currentLawAction.voteEnd && currentLawAction.voteEnd !== 0n) {
-        blockNumbers.push(currentLawAction.voteEnd)
+      if (currentLawAction.requestedAt && currentLawAction.requestedAt !== 0n) {
+        blockNumbers.push(currentLawAction.requestedAt)
       }
       if (currentLawAction.fulfilledAt && currentLawAction.fulfilledAt !== 0n) {
         blockNumbers.push(currentLawAction.fulfilledAt)
@@ -100,13 +139,13 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       // Also fetch timestamps for dependent laws
       if (law.conditions) {
         if (law.conditions.needFulfilled != null && BigInt(law.conditions.needFulfilled) != 0n) {
-          const dependentAction = actionData.get(String(law.conditions.needFulfilled))
+          const dependentAction = chainActionData.get(String(law.conditions.needFulfilled))
           if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
         }
         if (law.conditions.needNotFulfilled != null && BigInt(law.conditions.needNotFulfilled) != 0n) {
-          const dependentAction = actionData.get(String(law.conditions.needNotFulfilled))
+          const dependentAction = chainActionData.get(String(law.conditions.needNotFulfilled))
           if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
@@ -118,7 +157,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
         fetchTimestamps(blockNumbers, chainId)
       }
     }
-  }, [actionData, law.index, law.conditions, chainId, fetchTimestamps])
+  }, [chainActionData, law.index, law.conditions, chainId, fetchTimestamps])
   
   // Helper function to format block number or timestamp to desired format
   const formatBlockNumberOrTimestamp = (value: bigint | undefined): string | null => {
@@ -158,20 +197,20 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
   }
   
   // Helper function to calculate when delay will pass with time remaining info
-  const calculateDelayPassTime = (voteEndBlock: bigint | undefined, delaySeconds: bigint): string | null => {
-    if (!voteEndBlock || voteEndBlock === 0n || delaySeconds === 0n) {
+  const calculateDelayPassTime = (requestedAtBlock: bigint | undefined, delaySeconds: bigint): string | null => {
+    if (!requestedAtBlock || requestedAtBlock === 0n || delaySeconds === 0n) {
       return null
     }
     
     try {
-      // First, get the timestamp for the voteEnd block
-      const cacheKey = `${chainId}:${voteEndBlock}`
+      // First, get the timestamp for the requestedAt block
+      const cacheKey = `${chainId}:${requestedAtBlock}`
       const cachedTimestamp = timestamps.get(cacheKey)
       
       if (cachedTimestamp && cachedTimestamp.timestamp) {
-        // Add the delay in seconds to the vote end timestamp
-        const voteEndTimestamp = Number(cachedTimestamp.timestamp)
-        const delayPassTimestamp = voteEndTimestamp + Number(delaySeconds)
+        // Add the delay in seconds to the requested timestamp
+        const requestedAtTimestamp = Number(cachedTimestamp.timestamp)
+        const delayPassTimestamp = requestedAtTimestamp + Number(delaySeconds)
         
         // Check if delay has already passed by comparing with current time
         const currentTimestamp = Math.floor(Date.now() / 1000)
@@ -216,101 +255,85 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
 
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
-    const currentLawAction = actionData.get(String(law.index))
+    const currentLawAction = chainActionData.get(String(law.index))
     // console.log("currentLawAction", currentLawAction)
-    
-    // Helper function to get proposal data for current law
-    const getCurrentLawProposal = () => {
-      const actions: Action[] = powers?.laws?.find(law => law.index === law.index)?.actions || []
-      if (!actions) return null
-      return actions.find(action => action.voteStart !== 0n)
-    }
     
     switch (itemKey) {
       case 'needFulfilled':
-      case 'needNotFulfilled':
+      case 'needNotFulfilled': {
         // Get executedAt from the dependent law - this should work regardless of current law's action data
         const dependentLawId = itemKey == 'needFulfilled' 
           ? law.conditions?.needFulfilled 
           : law.conditions?.needNotFulfilled
         
         if (dependentLawId && dependentLawId != 0n) {
-          const dependentAction = actionData.get(String(dependentLawId))
+          const dependentAction = chainActionData.get(String(dependentLawId))
           
           return formatBlockNumberOrTimestamp(dependentAction?.fulfilledAt)
         }
         return null
+      }
       
-      case 'proposalCreated':
-        // Show proposal creation time - use voteStart from current law's action data or proposal data
-        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
-        }
-        // Fallback to proposal data if action data not available
-        const proposal = getCurrentLawProposal()
-        if (proposal && proposal.voteStart && proposal.voteStart != 0n) {
-          return formatBlockNumberOrTimestamp(proposal.voteStart)
+      case 'proposalCreated': {
+        // Show proposal creation time - use proposedAt from current law's action data
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.proposedAt)
         }
         return null
+      }
       
-      case 'voteStarted':
-        // Use voteStart field - show if current law has action data with voteStart
-        if (currentLawAction && currentLawAction.voteStart && currentLawAction.voteStart != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.voteStart)
-        }
-        // Fallback to proposal data
-        const proposalForVoteStart = getCurrentLawProposal()
-        if (proposalForVoteStart && proposalForVoteStart.voteStart && proposalForVoteStart.voteStart != 0n) {
-          return formatBlockNumberOrTimestamp(proposalForVoteStart.voteStart)
+      case 'voteStarted': {
+        // Vote started is the same as proposal created (proposedAt)
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.proposedAt)
         }
         return null
+      }
       
-      case 'voteEnded':
-        // Use voteEnd field - show when vote has ended
-        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
-        }
-        // Fallback to proposal data
-        const proposalForVoteEnd = getCurrentLawProposal()
-        if (proposalForVoteEnd && proposalForVoteEnd.voteEnd && proposalForVoteEnd.voteEnd != 0n) {
-          return formatBlockNumberOrTimestamp(proposalForVoteEnd.voteEnd)
-        }
-        return null
-      
-      case 'proposalPassed':
-        // Use voteEnd field - show when proposal passed (vote ended successfully)
-        if (currentLawAction && currentLawAction.voteEnd && currentLawAction.voteEnd != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.voteEnd)
-        }
-        // Fallback to proposal data
-        const proposalForPassed = getCurrentLawProposal()
-        if (proposalForPassed && proposalForPassed.voteEnd && proposalForPassed.voteEnd != 0n) {
-          return formatBlockNumberOrTimestamp(proposalForPassed.voteEnd)
-        }
-        return null
-      
-      case 'delay':
-        // Calculate delay pass time if voteEnd exists and delay > 0
-        // Only show if current law has action data with voteEnd
-        if (law.conditions && law.conditions.delayExecution != 0n && currentLawAction?.voteEnd) {
-          return calculateDelayPassTime(currentLawAction.voteEnd, law.conditions.delayExecution)
-        }
-        // Fallback to proposal data for delay calculation
-        if (law.conditions && law.conditions.delayExecution != 0n) {
-          const proposalForDelay = getCurrentLawProposal()
-          if (proposalForDelay && proposalForDelay.voteEnd && proposalForDelay.voteEnd != 0n) {
-            return calculateDelayPassTime(proposalForDelay.voteEnd, law.conditions.delayExecution)
+      case 'voteEnded': {
+        // Calculate vote end time using proposedAt + votingPeriod
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod) {
+          // Get the timestamp for proposedAt block
+          const cacheKey = `${chainId}:${currentLawAction.proposedAt}`
+          const cachedTimestamp = timestamps.get(cacheKey)
+          
+          if (cachedTimestamp && cachedTimestamp.timestamp) {
+            // Add voting period to get vote end time
+            const proposedTimestamp = Number(cachedTimestamp.timestamp)
+            const voteEndTimestamp = proposedTimestamp + Number(law.conditions.votingPeriod)
+            
+            const dateStr = toFullDateFormat(voteEndTimestamp)
+            const timeStr = toEurTimeFormat(voteEndTimestamp)
+            return `${dateStr}: ${timeStr}`
           }
+        }
+        return null
+      }
+      
+      case 'requested': {
+        // Use requestedAt field - show when proposal was requested (after vote passed)
+        if (currentLawAction && currentLawAction.requestedAt && currentLawAction.requestedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentLawAction.requestedAt)
+        }
+        return null
+      }
+      
+      case 'delay': {
+        // Calculate delay pass time if requestedAt exists and delay > 0
+        // Only show if current law has action data with requestedAt
+        if (law.conditions && law.conditions.delayExecution != 0n && currentLawAction?.requestedAt) {
+          return calculateDelayPassTime(currentLawAction.requestedAt, law.conditions.delayExecution)
         }
         // Return null if no action data or no delay condition
         return null
+      }
       
       case 'throttle':
         // Keep as null for now
         return null
       
-      case 'executed':        
-        // Only show date if actually executed (fulfilledAt > 0)
+      case 'fulfilled':        
+        // Only show date if actually fulfilled (fulfilledAt > 0)
         if (currentLawAction && currentLawAction.fulfilledAt && currentLawAction.fulfilledAt != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.fulfilledAt)
         }
@@ -344,12 +367,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       edgeType?: string
     }[] = []
 
-    // console.log("checkItems triggered", {law, actionData})
+    // console.log("checkItems triggered", {law, chainActionData})
     
     // 1. Dependency checks - show only if dependent laws exist (condition != 0)
     if (law.conditions) {
       if (law.conditions.needFulfilled > 0n) {
-        const dependentAction = actionData.get(String(law.conditions.needFulfilled))
+        const dependentAction = chainActionData.get(String(law.conditions.needFulfilled))
         items.push({ 
           key: 'needFulfilled', 
           label: `Law ${law.conditions.needFulfilled} Fulfilled`, 
@@ -361,7 +384,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       }
       
       if (law.conditions.needNotFulfilled > 0n) {
-        const dependentAction = actionData.get(String(law.conditions.needNotFulfilled))
+        const dependentAction = chainActionData.get(String(law.conditions.needNotFulfilled))
         // For needNotFulfilled, show green when the dependent law is NOT fulfilled (blockNumber is 0 or undefined)
         const notFulfilledBlockNumber = (!dependentAction?.fulfilledAt || dependentAction.fulfilledAt === 0n) ? 1n : 0n
         items.push({ 
@@ -391,31 +414,31 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       items.push({ 
         key: 'proposalCreated', 
         label: 'Proposal Created', 
-        blockNumber: currentLawAction?.voteStart,
+        blockNumber: currentLawAction?.proposedAt,
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteStarted', 
         label: 'Vote Started', 
-        blockNumber: currentLawAction?.voteStart,
+        // Vote started is the same as proposal created
+        blockNumber: currentLawAction?.proposedAt,
         hasHandle: false
       })
       
       items.push({ 
         key: 'voteEnded', 
         label: 'Vote Ended', 
-        blockNumber: currentLawAction?.voteEnd,
+        // Show as completed if we have proposedAt (vote will end at proposedAt + votingPeriod)
+        blockNumber: currentLawAction?.proposedAt,
         hasHandle: false
       })
       
       items.push({ 
-        key: 'proposalPassed', 
-        label: 'Proposal Passed', 
-        // Show green if proposal passed (state 5, 6, or 7) and vote ended
-        blockNumber: (currentLawAction?.voteEnd && currentLawAction?.state && [5, 6, 7].includes(currentLawAction.state)) 
-          ? currentLawAction.voteEnd 
-          : 0n,
+        key: 'requested', 
+        label: 'Requested', 
+        // Show green if action has been requested (requestedAt > 0)
+        blockNumber: currentLawAction?.requestedAt || 0n,
         hasHandle: false
       })
     }
@@ -425,22 +448,22 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
       items.push({ 
         key: 'delay', 
         label: 'Delay Passed', 
-        // For delay, we use voteEnd as the reference block (the delay is calculated from it)
-        blockNumber: currentLawAction?.voteEnd,
+        // For delay, we use requestedAt as the reference block (the delay is calculated from it)
+        blockNumber: currentLawAction?.requestedAt,
         hasHandle: false
       })
     }
     
-    // 5. Executed - always show
+    // 5. Fulfilled - always show
     items.push({ 
-      key: 'executed', 
-      label: 'Executed', 
+      key: 'fulfilled', 
+      label: 'Fulfilled', 
       blockNumber: currentLawAction?.fulfilledAt,
       hasHandle: false
     })
     
     return items
-  }, [currentLawAction, law.conditions, actionData])
+  }, [currentLawAction, law.conditions, chainActionData])
 
   const roleBorderClass = getNodeBorderClass(currentLawAction)
 
@@ -484,11 +507,11 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
                 <div className="px-4 py-2 flex items-center justify-between text-xs relative">
                 <div className="flex items-center space-x-2 flex-1">
                     <div className="w-6 h-6 flex justify-center items-center relative">
-                      {item.key === 'executed' ? (
+                      {item.key === 'fulfilled' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <RocketLaunchIcon className={`w-4 h-4 ${iconColor}`} />
                         </div>
-                      ) : item.key === 'proposalPassed' ? (
+                      ) : item.key === 'requested' ? (
                         <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center bg-white relative z-10">
                           <CheckCircleIcon className={`w-4 h-4 ${iconColor}`} />
                         </div>
@@ -547,12 +570,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data, id} ) => 
                     />
                   )}
                   
-                  {/* Target handle for executed check */}
-                  {item.key === 'executed' && (
+                  {/* Target handle for fulfilled check */}
+                  {item.key === 'fulfilled' && (
                     <Handle
                       type="target"
                       position={Position.Right}
-                      id="executed-target"
+                      id="fulfilled-target"
                       style={{ 
                         background: roleColor, // Use role color instead of gray
                         width: 10,
@@ -778,12 +801,13 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   const yRowMap = new Map<number, number>()
   usedYRows.forEach((row, idx) => yRowMap.set(row, idx))
   // Shift all nodes up to fill gaps
-  positions.forEach((pos, lawId) => {
-    const oldRow = pos.y / NODE_SPACING_Y
-    if (yRowMap.has(oldRow)) {
-      positions.set(lawId, { x: pos.x, y: yRowMap.get(oldRow)! * NODE_SPACING_Y })
-    }
-  })
+    positions.forEach((pos, lawId) => {
+      const oldRow = pos.y / NODE_SPACING_Y
+      const newRow = yRowMap.get(oldRow)
+      if (newRow !== undefined) {
+        positions.set(lawId, { x: pos.x, y: newRow * NODE_SPACING_Y })
+      }
+    })
 
   // Place all singletons in a horizontal row at the bottom
   // Find all y rows (in row units, not pixels) used by non-singleton nodes
@@ -832,9 +856,8 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
-  const [isInitialized, setIsInitialized] = React.useState(false)
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
-  const reactFlowInstanceRef = React.useRef<any>(null)
+  const reactFlowInstanceRef = React.useRef<ReturnType<typeof useReactFlow> | null>(null)
   const pathname = usePathname()
 
   // console.log("@FlowContent: waypoint 0", {action, selectedLawId, powers})
@@ -934,9 +957,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
 
   // Helper function to calculate fitView options accounting for panel width
   const calculateFitViewOptions = useCallback(() => {
-    const viewportWidth = window.innerWidth
-    const expandedPanelWidth = Math.min(640, viewportWidth - 40)
-    const isSmallScreen = viewportWidth <= 2 * expandedPanelWidth
     return {
       padding: 0.2,
       duration: 800,
@@ -1007,12 +1027,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     })
     router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
     // console.log("@handleNodeClick: waypoint 1", {action})
-  }, [router, chainId, powers?.contractAddress, action, getViewport, setAction])
+  }, [router, chainId, powers?.contractAddress, action, getViewport])
 
   // Handle ReactFlow initialization
-  const onInit = useCallback((reactFlowInstance: any) => {
+  const onInit = useCallback((reactFlowInstance: ReturnType<typeof useReactFlow>) => {
     reactFlowInstanceRef.current = reactFlowInstance
-    setIsInitialized(true)
     
     const storedViewport = getStoredViewport()
     
@@ -1062,7 +1081,18 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       ? findConnectedNodes(selectedLawIdFromStore, powers.ActiveLaws!)
       : undefined
     
-    powers.ActiveLaws.forEach((law, lawIndex) => {
+    // Get the selected action from the store
+    const selectedAction = action.actionId !== "0" ? action : undefined
+    
+    // Get action data for all laws in the chain
+    const chainActionData = getActionDataForChain(
+      selectedAction,
+      powers.ActiveLaws,
+      powers,
+      actionData
+    )
+    
+    powers.ActiveLaws.forEach((law) => {
       const roleColor = DEFAULT_NODE_COLOR
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
@@ -1080,12 +1110,19 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
           selectedLawId: selectedLawIdFromStore,
           connectedNodes,
           actionDataTimestamp: Date.now(),
+          selectedAction,
+          chainActionData,
         },
       })
       
       // Create edges from dependency checks to target laws
       if (law.conditions) {
         const sourceId = lawId
+        
+        // Check if the source law's action is fulfilled
+        const sourceAction = chainActionData.get(sourceId)
+        const isSourceFulfilled = sourceAction && sourceAction.fulfilledAt && sourceAction.fulfilledAt > 0n
+        const edgeColor = isSourceFulfilled ? '#16a34a' : '#6B7280' // green-600 if fulfilled, gray otherwise
         
         // Edge from needFulfilled check to target law
         if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
@@ -1099,15 +1136,15 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             source: sourceId,
             sourceHandle: 'needFulfilled-handle',
             target: targetId,
-            targetHandle: 'executed-target',
+            targetHandle: 'fulfilled-target',
             type: 'smoothstep',
             label: 'Needs Fulfilled',
-            style: { stroke: '#6B7280', strokeWidth: 2, opacity: edgeOpacity },
-            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
+            style: { stroke: edgeColor, strokeWidth: 2, opacity: edgeOpacity },
+            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: edgeColor, opacity: edgeOpacity },
             labelBgStyle: { fill: '#f1f5f9', fillOpacity: 0.8 * edgeOpacity },
             markerStart: {
               type: MarkerType.ArrowClosed,
-              color: '#6B7280',
+              color: edgeColor,
               width: 20,
               height: 20,
             },
@@ -1127,15 +1164,15 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
             source: sourceId,
             sourceHandle: 'needNotFulfilled-handle',
             target: targetId,
-            targetHandle: 'executed-target',
+            targetHandle: 'fulfilled-target',
             type: 'smoothstep',
             label: 'Needs Not Fulfilled',
-            style: { stroke: '#6B7280', strokeWidth: 2, strokeDasharray: '6,3', opacity: edgeOpacity },
-            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: '#6B7280', opacity: edgeOpacity },
+            style: { stroke: edgeColor, strokeWidth: 2, strokeDasharray: '6,3', opacity: edgeOpacity },
+            labelStyle: { fontSize: '10px', fontWeight: 'bold', fill: edgeColor, opacity: edgeOpacity },
             labelBgStyle: { fill: '#f1f5f9', fillOpacity: 0.8 * edgeOpacity },
             markerStart: {
               type: MarkerType.ArrowClosed,
-              color: '#6B7280',
+              color: edgeColor,
               width: 20,
               height: 20,
             },
@@ -1149,8 +1186,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     return { initialNodes: nodes, initialEdges: edges }
   }, [
-    powers.ActiveLaws, 
-    powers.contractAddress,
+    powers,
     actionData,
     handleNodeClick, 
     selectedLawId, 
@@ -1208,10 +1244,10 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     debouncedSaveLayout()
   }, [debouncedSaveLayout])
 
-  const onNodesChangeWithSave = useCallback((changes: any) => {
-    onNodesChange(changes)
+  const onNodesChangeWithSave = useCallback((changes: { type: string; dragging?: boolean; id?: string }[]) => {
+    onNodesChange(changes as any[])
     // Check if any node was dragged
-    const hasDragChange = changes.some((change: any) => change.type === 'position' && change.dragging === false)
+    const hasDragChange = changes.some((change) => change.type === 'position' && change.dragging === false)
     if (hasDragChange) {
       setUserHasInteracted(true) // Mark interaction when dragging nodes
       debouncedSaveLayout()

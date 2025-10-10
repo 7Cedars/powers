@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useChains } from 'wagmi'
-import { parseChainId } from '@/utils/parsers'
 import { Powers } from '@/context/types'
 import Image from 'next/image'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
-import { usePrivy } from '@privy-io/react-auth'
+
+
 import { useWallets } from '@privy-io/react-auth'
 import { useRouter } from 'next/navigation'
 
@@ -15,7 +15,6 @@ export default function SettingsPage() {
   const [selectedProtocols, setSelectedProtocols] = useState<Record<string, Powers[]>>({})
   const [combinedProtocols, setCombinedProtocols] = useState<Powers[]>([])
   const chains = useChains()
-  const { authenticated } = usePrivy()
   const { wallets } = useWallets()
   const connectedAddress = wallets?.[0]?.address
   const router = useRouter()
@@ -76,7 +75,7 @@ export default function SettingsPage() {
     }
 
     loadSavedProtocols()
-  }, [])
+  }, [ ])
 
   useEffect(() => {
     // Load selected protocols for the connected wallet
@@ -96,7 +95,8 @@ export default function SettingsPage() {
   }, [])
 
   // Function to combine saved protocols and selected protocols, removing duplicates
-  const combineProtocols = (saved: Powers[], selected: Record<string, Powers[]>) => {
+  const combineProtocols = useCallback(
+  (saved: Powers[], selected: Record<string, Powers[]>) => {
     const combined: Powers[] = [...saved]
     
     // Add selected protocols for the current wallet
@@ -113,13 +113,13 @@ export default function SettingsPage() {
     }
     
     return combined
-  }
+  }, [connectedAddress])
 
   // Update combined protocols whenever saved or selected protocols change
   useEffect(() => {
     const combined = combineProtocols(savedProtocols, selectedProtocols)
     setCombinedProtocols(combined)
-  }, [savedProtocols, selectedProtocols, connectedAddress])
+  }, [savedProtocols, selectedProtocols, connectedAddress, combineProtocols])
 
   const handleAddToProfile = (protocol: Powers) => {
     if (!connectedAddress) return

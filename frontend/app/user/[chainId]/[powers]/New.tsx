@@ -5,21 +5,19 @@ import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
-import { InputType, Law, Powers, Checks } from '@/context/types'
-import { useErrorStore, useActionStore, useChecksStore, setError, setAction } from '@/context/store'
+import { InputType, Law, Powers, Checks, Action } from '@/context/types'
+import { useActionStore, setError, setAction } from '@/context/store'
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
-import { usePowers } from '@/hooks/usePowers'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { LawBox } from './LawBox'
 import HeaderLaw from '@/components/HeaderLaw'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import { useChains } from 'wagmi'
-import { useAction } from '@/hooks/useAction'
+import { useChains } from 'wagmi'   
 import { hashAction } from '@/utils/hashAction'
 
-export default function New({hasRoles, powers, refetchPowers, fetchActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, refetchPowers: (address: `0x${string}`) => void, fetchActions: (powers: Powers) => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, refetchPowers: (address: `0x${string}`) => void, fetchActions: (powers: Powers) => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { authenticated } = usePrivy()
   const {wallets, ready} = useWallets();
@@ -27,7 +25,6 @@ export default function New({hasRoles, powers, refetchPowers, fetchActions, rese
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
   const { fetchChecks, status: statusChecks, checks } = useChecks()
-  const { fetchAction } = useAction()
   const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, propose, request } = useLaw();
 
   console.log("@New:", {powers, action})
@@ -98,7 +95,7 @@ export default function New({hasRoles, powers, refetchPowers, fetchActions, rese
       }
       resetStatus()
     }
-  }, [selectedLaw])
+  }, [selectedLaw, action, resetStatus])
 
   useEffect(() => {
     if (errorUseLaw) {
@@ -148,13 +145,12 @@ export default function New({hasRoles, powers, refetchPowers, fetchActions, rese
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
       fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
       const actionId = hashAction(selectedLaw.index, lawCalldata, BigInt(action.nonce as string)).toString()
-      const actionData = await fetchAction({actionId: actionId, lawId: selectedLaw.index}, powers as Powers)
+      const actionData = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === actionId) as Action | undefined
       
       console.log("@handleSimulate: waypoint 2", {actionData, actionId})
 
       setAction({
         ...action,
-        state: actionData?.state == undefined ? 0 : actionData.state,
         lawId: selectedLaw.index,
         caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
         dataTypes: selectedLaw.params?.map(param => param.dataType),
@@ -391,7 +387,7 @@ export default function New({hasRoles, powers, refetchPowers, fetchActions, rese
               </div>
             </div>
           ) : (
-            finalFilteredLaws && finalFilteredLaws.map((law: Law, index: number) => (
+            finalFilteredLaws && finalFilteredLaws.map((law: Law) => (
               <div 
                 key={`${law.lawAddress}-${law.index}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"

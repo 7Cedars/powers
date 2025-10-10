@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { RoleList } from "./RoleList";
 import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";

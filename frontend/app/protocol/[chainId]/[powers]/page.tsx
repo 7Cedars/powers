@@ -12,7 +12,7 @@ import { readContract } from 'wagmi/actions'
 import { wagmiConfig } from '@/context/wagmiConfig'
 import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
-import { ArrowUpRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
 import { Roles } from './Roles'
 import { Laws } from './Laws'
@@ -21,7 +21,7 @@ import { Powers } from '@/context/types'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchActions } = usePowers()
+  const { fetchPowers, status: statusPowers, powers, fetchActions } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy(); 
   const router = useRouter()
@@ -76,20 +76,21 @@ export default function FlowPage() {
         } catch (error) {
         console.error(error)
       }
-    }, [])
+    }, [addressPowers, chainId])
 
   useEffect(() => {
-    if (wallets && wallets[0]) {
-      fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
+    const walletAddress = wallets?.[0]?.address;
+    if (walletAddress && powers?.roles) {
+      fetchMyRoles(walletAddress as `0x${string}`, powers.roles)
     }
-  }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
+  }, [wallets, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
     console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
-  }, [, addressPowers, fetchPowers]) // updateProposals 
+  }, [addressPowers, fetchPowers]) // updateProposals 
 
   const handleFetchActions = useCallback(() => {
     if (powers) {
@@ -171,13 +172,11 @@ export default function FlowPage() {
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
       <Assets status = {statusPowers} powers = {powers}/> 
       
-      <Actions hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
+      <Actions powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
       
       <Roles powers = {powers} status = {statusPowers}/>
       
-      <Laws powers = {powers} status = {statusPowers}/>
-
-      
+      <Laws powers = {powers} status = {statusPowers}/>      
       
     </section>
 

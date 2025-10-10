@@ -629,7 +629,7 @@ contract ConstituteTest is TestSetupPowers {
 
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2], // = openAction
+            targetLaw: lawAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -649,7 +649,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2], // = openAction
+            targetLaw: lawAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -669,7 +669,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2],
+            targetLaw: lawAddresses[3],
             config: abi.encode(),
             conditions: conditions
         });
@@ -938,7 +938,7 @@ contract ProposeAdvancedTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract LawAdoptionTest is TestSetupPowers {
     function testAdoptLawRevertsWithBlacklistedTarget() public {
-        address blacklistedLaw = lawAddresses[1];
+        address blacklistedLaw = lawAddresses[2];
 
         // Blacklist the target law
         vm.prank(address(daoMock));

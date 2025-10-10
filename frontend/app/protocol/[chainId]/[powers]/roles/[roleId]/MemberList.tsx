@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useParams } from "next/navigation";
 import { Status, Powers } from "@/context/types";
 import { parseChainId } from "@/utils/parsers";
@@ -9,18 +8,16 @@ import { powersAbi } from "@/context/abi";
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { LoadingBox } from "@/components/LoadingBox";
-import { bigintToRole } from "@/utils/bigintTo";
 import { useChains } from "wagmi";
 
-export function MemberList({powers, roleId, status: statusPowers}: {powers: Powers | undefined, roleId: bigint, status: Status}) {
+export function MemberList({powers, roleId}: {powers: Powers | undefined, roleId: bigint, status: Status}) {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains();
   const [status, setStatus] = useState<Status>('idle')
-  const [error, setError] = useState<any | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const [members, setMembers] = useState<`0x${string}`[]>([])
 
   console.log("@MemberList: ", {powers, roleId, status, error, chainId})
-  const roleName = powers ? bigintToRole(roleId, powers) : "Loading..."
   const blockExplorerUrl = chains.find(chain => chain.id === parseInt(chainId))?.blockExplorers?.default.url;
 
   const fetchRoleHolders = useCallback(
@@ -44,7 +41,7 @@ export function MemberList({powers, roleId, status: statusPowers}: {powers: Powe
           setStatus("success")
         } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
           console.error("Error fetching role holders:", error)
         }
       }
@@ -55,13 +52,6 @@ export function MemberList({powers, roleId, status: statusPowers}: {powers: Powe
       fetchRoleHolders(roleId)
     }
   }, [powers, roleId, fetchRoleHolders])
-
-  const handleRefresh = () => {
-    console.log("@handleRefresh: ", {powers, roleId})
-    if (powers && roleId != undefined) {
-      fetchRoleHolders(roleId)
-    }
-  }
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

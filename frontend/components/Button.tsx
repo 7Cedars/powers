@@ -11,7 +11,7 @@ type ButtonProps = {
   align?: 0 | 1 | 2;   
   role?: number; 
   filled?: boolean;
-  children: any;
+  children: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 

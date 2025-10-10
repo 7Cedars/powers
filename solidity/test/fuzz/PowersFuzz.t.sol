@@ -262,7 +262,7 @@ contract PowersFuzzTest is TestSetupPowers {
         vm.assume(allowedRoleFuzzed != ADMIN_ROLE && allowedRoleFuzzed != PUBLIC_ROLE);
 
         PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[2],
+            targetLaw: lawAddresses[3],
             nameDescription: "Test law conditions",
             conditions: PowersTypes.Conditions({
                 quorum: quorumFuzzed,
@@ -305,7 +305,7 @@ contract PowersFuzzTest is TestSetupPowers {
 
         // Create law init data
         PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[2],
+            targetLaw: lawAddresses[3],
             nameDescription: nameDescriptionFuzzed,
             conditions: PowersTypes.Conditions({
                 quorum: quorumFuzzed,

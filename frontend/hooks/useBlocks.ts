@@ -135,7 +135,7 @@ export const useBlocks = () => {
           } catch (error) {
             console.error(`@useBlocks, error fetching block ${blockNumber}: `, error)
             setStatus("error")
-            setError(error)
+            setError(error as Error)
             return
           }
         }

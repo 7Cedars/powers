@@ -97,7 +97,7 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
 
       <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
         <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
-          Calldata to be send to Powers  
+          Calls to be executed by Powers  
         </div>
         <div className="w-full h-fit overflow-scroll">
           <table className="table-auto w-full ">

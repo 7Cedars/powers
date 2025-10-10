@@ -172,7 +172,7 @@ export type Action = {
   abstainVotes?: bigint;
 }
 
-export type ActionTruncated = Omit<Action, "actionId" | "dataTypes" | "paramValues" | "callData" | "upToDate" | "description">
+export type ActionTruncated = Omit<Action, "proposedAt" | "requestedAt" | "fulfilledAt" | "cancelledAt" | "state" | "voteStart" | "voteDuration" | "voteEnd" | "againstVotes" | "forVotes" | "abstainVotes">
 
 export type ProtocolEvent = {
   address: `0x${string}`;

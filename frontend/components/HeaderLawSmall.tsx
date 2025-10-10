@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import DynamicThumbnail from './DynamicThumbnail';
 import { Powers } from '@/context/types';
 
@@ -8,7 +7,6 @@ interface HeaderLawSmallProps {
   lawName: string;
   roleName: string;
   numHolders: number | string;
-  description: string;
   contractAddress: string;
   blockExplorerUrl?: string; // Optional, for dynamic linking
   className?: string;
@@ -19,7 +17,6 @@ export const HeaderLawSmall: React.FC<HeaderLawSmallProps> = ({
   lawName,
   roleName,
   numHolders,
-  description,
   contractAddress,
   blockExplorerUrl,
   className = '',

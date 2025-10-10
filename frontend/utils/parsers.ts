@@ -1,7 +1,7 @@
 import { ChangeEvent } from "react";
-import { InputType, DataType, Metadata, Attribute, Token, Action, ActionTruncated } from "../context/types"
+import { InputType, DataType, Metadata, Attribute, Token } from "../context/types"
 import { type UseReadContractsReturnType } from 'wagmi'
-import { decodeAbiParameters, hexToString } from 'viem'
+import { hexToString } from 'viem'
 
 const isArray = (array: unknown): array is Array<unknown> => {
   // array.find(item => !isString(item)) 
@@ -427,14 +427,15 @@ export const parseProposalStatus = (state: string | undefined): string => {
   }
 
   switch (state) {
-    case '0': return "Active";
-    case '1': return "Cancelled";
-    case '2': return "Defeated";
-    case '3': return "Succeeded";
-    case '4': return "Requested";
-    case '5': return "Fulfilled";
-    case '6': return "NonExistent";
-
+    case '0': return "NonExistent";
+    case '1': return "Proposed";
+    case '2': return "Cancelled";
+    case '3': return "Active";
+    case '4': return "Defeated";
+    case '5': return "Succeeded";
+    case '6': return "Requested";
+    case '7': return "Fulfilled";
+    
     default:
       return "unsupported state";
   } 

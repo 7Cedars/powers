@@ -1,9 +1,10 @@
-import { Status, Powers } from "@/context/types";
+import { Status, Powers, Action } from "@/context/types";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { ArrowUpRightIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { setAction } from "@/context/store";
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined): string => {
@@ -13,33 +14,36 @@ const truncateAddress = (address: string | undefined): string => {
 }
  
 type LawActionsProps = {
-  roleId: bigint; 
+  lawId: bigint; 
   powers: Powers | undefined;
   status: Status;
   onRefresh?: () => void;
 };
 
-export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps) => {
+export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const router = useRouter()
-  const [isRefreshing, setIsRefreshing] = useState(false) 
+  const router = useRouter() 
 
-  const lawActions = powers?.laws?.find(law => law.index == roleId)?.actions
-  // console.log('@LawActions: lawActions', lawActions)
-
-  const handleSelectAction = (actionId: string) => {
-    router.push(`/protocol/${chainId}/${powers?.contractAddress}/actions/${actionId}`)
-  }
+  const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
+  const sortedActions = lawActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
+  const allTimestamps = Array.from(new Set(
+    sortedActions.flatMap(action => [
+      action?.requestedAt,
+      action?.proposedAt, 
+      action?.fulfilledAt,
+      action?.cancelledAt
+    ].filter((timestamp): timestamp is bigint => 
+      timestamp !== undefined && 
+      timestamp !== null
+    ))
+  ))
 
   useEffect(() => {
-    if (lawActions) {
-      const blocks = lawActions.map(action => action.fulfilledAt)
-      if (blocks && blocks.length > 0) {
-        fetchTimestamps(blocks as bigint[], chainId)
-      }
+    if (sortedActions) {
+      fetchTimestamps(allTimestamps, chainId)
     }
-  }, [lawActions, chainId])
+  }, [sortedActions, chainId, fetchTimestamps])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden" help-nav-item="latest-executions">
@@ -59,15 +63,9 @@ export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps)
                 }
               }}
             >
-              {isRefreshing ? (
-                <ArrowPathIcon
-                  className="w-4 h-4 text-slate-800 animate-spin"
-                />
-              ) : (
-                <ArrowPathIcon
-                  className="w-4 h-4 text-slate-800"
-                />
-              )}
+              <ArrowPathIcon
+                className="w-4 h-4 text-slate-800"
+              />
             </button>
             <ArrowUpRightIcon
               className="w-4 h-4 text-slate-800"
@@ -98,14 +96,18 @@ export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps)
                         <td className="px-2 py-3 w-32">
                           <a
                             href="#"
-                            onClick={e => { e.preventDefault(); handleSelectAction(action.actionId); }}
+                            onClick={e => { 
+                              setAction(action) 
+                              e.preventDefault(); 
+                              router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                            }}
                             className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
                           >
                             {(() => {
                               // Ensure consistent block number format for lookup
                               const executedAtBlock = typeof action.fulfilledAt === 'bigint' 
                                 ? action.fulfilledAt 
-                                : BigInt(action.fulfilledAt as unknown as string)
+                                : BigInt(0)
                               
                               const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
                               const timestamp = timestampData?.timestamp
@@ -139,7 +141,7 @@ export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps)
                         {/* Action ID */}
                           <td className="px-2 py-3 w-24">
                           <div className="truncate text-slate-500 text-xs font-mono">
-                            {action.actionId.toString()}
+                            {`${action.actionId.toString().slice(0, 10)}...${action.actionId.toString().slice(-8)}`}
                           </div>
                         </td>
                       </tr>
@@ -151,7 +153,7 @@ export const LawActions = ({roleId, powers, status, onRefresh}: LawActionsProps)
           </div>
         :
         <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
-          No recent executions found
+          No actions found
         </div>
       }
     </div>

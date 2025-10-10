@@ -1,14 +1,12 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { usePrivy, useWallets } from '@privy-io/react-auth' 
 import { usePowers } from '@/hooks/usePowers'
 import { PowersOverview } from '@/components/PowersOverview'
 import { useParams } from 'next/navigation'
 import { LoadingBox } from '@/components/LoadingBox'
-import { Law, Powers, Checks } from '@/context/types'
-import { useActionStore, useChecksStore } from '@/context/store'
 import { ProtocolNavigation } from '@/components/ProtocolNavigation'
 
 interface FlowLayoutProps {
@@ -17,15 +15,12 @@ interface FlowLayoutProps {
 
 export default function FlowLayout({ children }: FlowLayoutProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const action = useActionStore()
-  const { chainChecks } = useChecksStore()
-  const { ready, authenticated } = usePrivy()
-  const { wallets } = useWallets()
-  const { chainId, powers: powersAddress } = useParams<{
+  const { ready } = usePrivy()
+  const { powers: powersAddress } = useParams<{
     chainId: string
     powers: string
   }>()
+  const { wallets } = useWallets()
   
   const {
     powers,
@@ -34,12 +29,8 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
     fetchPowers,
     fetchLawsAndRoles
   } = usePowers()
-  const law = powers?.laws?.find(law => law.index == BigInt(action.lawId))
 
-  // Check if we're on a proposal page - if so, don't run layout useEffects that overwrite checks
-  const isProposalPage = pathname?.includes('/proposals/')
-
-  // console.log("@FlowLayout: ", {chainChecks, checksStatus, checksError, law, action, wallets, powers, powersAddress})
+  // console.log("@FlowLayout: ", {wallets, powers, powersAddress})
 
   // Fetch powers on mount
   useEffect(() => {

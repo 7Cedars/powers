@@ -1,51 +1,35 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { setError, useActionStore, useErrorStore } from "@/context/store";
+import React, { useEffect } from "react";
+import { useActionStore, useErrorStore } from "@/context/store";
 import { Button } from "@/components/Button";
-import { ArrowUpRightIcon, PlusIcon, SparklesIcon, UserGroupIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { SectionText } from "@/components/StandardFonts";
-import { useChainId, useChains } from 'wagmi'
-import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
-import { parseChainId, parseLawError, parseParamValues, parseRole, parseTrueFalse, shorterDescription } from "@/utils/parsers";
-import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers } from "@/context/types";
+import { parseLawError, parseParamValues } from "@/utils/parsers";
+import { DataType, InputType, Law } from "@/context/types";
 import { DynamicInput } from "@/components/DynamicInput";
-import { SimulationBox } from "@/components/SimulationBox";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
-import { useParams, useRouter } from "next/navigation";
-import { hashAction } from "@/utils/hashAction";
-import HeaderLaw from '@/components/HeaderLaw';
-import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
+import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 
 type DynamicFormProps = {
-  powers: Powers;
   law: Law;
-  checks: Checks;
   params: {
     varName: string;
     dataType: DataType;
     }[]; 
-  simulation?: LawSimulation;
-  selectedExecution?: Execution | undefined;
   status: Status; 
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
-  onExecute: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function DynamicForm({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute}: DynamicFormProps) {
+export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps) {
   const action = useActionStore();
   const error = useErrorStore()
-  const router = useRouter();
-  const { chainId } = useParams<{ chainId: string }>()
   const dataTypes = params.map(param => param.dataType) 
-  const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
 
   // console.log("@DynamicForm:", {checks, action})
-  console.log("@DynamicForm:", {error})
+  // console.log("@DynamicForm:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
@@ -155,7 +139,6 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
                 }} />
             </div>
         </div>
-      
 
       {/* Errors */}
       { error.error &&
@@ -165,6 +148,8 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
           </div>
         </div>
       }
+
+      { !action.upToDate && (
 
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
@@ -177,12 +162,11 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
               e.preventDefault();
               onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
             }}
-            statusButton={
-               action && action.description && action.description.length > 0 && action.nonce && action.paramValues ? status : 'disabled'
-              }> 
+            statusButton={ status } > 
             Check 
-          </Button>
-        </div>  
+            </Button>
+          </div>  
+        )}
       </form>
       }
       {/* dynamic form end */}

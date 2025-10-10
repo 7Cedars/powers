@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useRouter, useParams } from "next/navigation";
 import { Status, Powers } from "@/context/types";
 import { parseChainId } from "@/utils/parsers";
@@ -16,23 +15,20 @@ import DynamicThumbnail from "@/components/DynamicThumbnail";
 type Roles = {
   roleId: bigint;
   holders: number;
-  laws: any[];
+  laws: unknown[];
 }
 
-export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
+export function RoleList({powers}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
-  const [status, setStatus] = useState<Status>('idle')
-  const [error, setError] = useState<any | null>(null)
+  const [status, setStatus] = useState<Status>('idle') 
   const [roles, setRoles] = useState<Roles[]>([])
 
   // console.log("@RoleList: ", {powers, roles})
 
   const fetchAmountRoleHolders = useCallback(
     async (roleIds: bigint[]) => {
-      // console.log("fetch role triggered", {roleIds})
-
-      setError(null)
+      // console.log("fetch role triggered", {roleIds}
       setStatus("pending")
 
       if (powers) {
@@ -77,8 +73,8 @@ export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Pow
           setRoles(rolesSorted)
           setStatus("success")
         } catch (error) {
-          setStatus("error") 
-          setError(error)
+          setStatus("error")  
+          console.error("Error fetching role holders:", error)
         }
       }
     }, [powers, chainId]) 
@@ -88,12 +84,6 @@ export function RoleList({powers, status: statusPowers, onRefresh}: {powers: Pow
       fetchAmountRoleHolders(powers.roles || [])
     }
   }, [powers, fetchAmountRoleHolders])
-
-  const handleRefreshRoles = () => {
-    if (powers) {
-      fetchAmountRoleHolders(powers.roles || [])
-    }
-  }
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

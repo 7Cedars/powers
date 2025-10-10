@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams, usePathname } from 'next/navigation';
-import type { PropsWithChildren } from "react";
 import { useRouter } from 'next/navigation'
 import { useState } from "react";
 import Image from 'next/image'
@@ -10,10 +9,9 @@ import {
   BoltIcon,
   UserGroupIcon,
   ScaleIcon,
-  BuildingLibraryIcon,
-  QuestionMarkCircleIcon
+  BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
-import { ConnectButton } from './ConnectButton';
+import { ConnectButton } from './ConnectButton'
 import { BlockCounter } from './BlockCounter';
 import { OnboardingModal } from './OnboardingModal';
 
@@ -28,7 +26,7 @@ interface NavigationItem {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  path: string;
+  path: string; 
   hidden?: boolean;
   hideLabel?: boolean;
   helpNavItem?: string;

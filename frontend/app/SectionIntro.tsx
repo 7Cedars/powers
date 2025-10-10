@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Image from 'next/image'
 import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
   

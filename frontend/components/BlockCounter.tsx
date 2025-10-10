@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useBlockNumber, usePublicClient } from 'wagmi';
+import { usePublicClient } from 'wagmi';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export function BlockCounter() {

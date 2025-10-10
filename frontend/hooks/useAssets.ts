@@ -181,7 +181,7 @@ export const useAssets = (powers: Powers | undefined) => {
             } return erc1155sMetadata
           } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
         // }
       }
   }

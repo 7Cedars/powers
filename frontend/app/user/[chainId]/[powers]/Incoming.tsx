@@ -11,9 +11,9 @@ import { Votes } from '@/components/Votes'
 import { useChecks } from '@/hooks/useChecks'
 import { setAction } from '@/context/store'
 import { useChains } from 'wagmi'
+import { ConnectedWallet } from '@privy-io/react-auth'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { hashAction } from '@/utils/hashAction'
-import { useAction } from '@/hooks/useAction'
 import { StaticForm } from '@/components/StaticForm'
 import HeaderLaw from '@/components/HeaderLaw'
 import { Button } from '@/components/Button'
@@ -34,7 +34,6 @@ import { encodeAbiParameters, parseAbiParameters } from "viem"
 const getEnabledActions = async (
   powers: Powers, 
   hasRoles: {role: bigint, since: bigint}[], 
-  fetchAction: (action: Action, powers: Powers) => Promise<Action | undefined>
 ): Promise<Action[]> => {
   const enabledActions: Action[] = []
   
@@ -56,7 +55,7 @@ const getEnabledActions = async (
     
     // Find the needFulfilled law
     const needFulfilledLaw = powers.laws.find(l => 
-      l.index === law.conditions!.needFulfilled
+      l.index === law.conditions?.needFulfilled
     )
     
     if (!needFulfilledLaw || !needFulfilledLaw.actions) {
@@ -76,7 +75,7 @@ const getEnabledActions = async (
     for (const fulfilledAction of fulfilledActions) {
       try {
         // Ensure we have complete action data
-        const completeAction = await fetchAction(fulfilledAction, powers)
+        const completeAction = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === fulfilledAction.actionId)
         if (!completeAction || !completeAction.callData || !completeAction.nonce) {
           continue
         }
@@ -101,7 +100,7 @@ const getEnabledActions = async (
         // Step 9: If a needNotFulfilled was set at the law, check if the action has been fulfilled
         if (law.conditions?.needNotFulfilled && law.conditions.needNotFulfilled > 0n) {
           const needNotFulfilledLaw = powers.laws.find(l => 
-            l.index === law.conditions!.needNotFulfilled
+            l.index === law.conditions?.needNotFulfilled
           )
           
           if (needNotFulfilledLaw) {
@@ -159,7 +158,7 @@ type IncomingProps = {
 export default function Incoming({hasRoles, powers, onRefresh, resetRef}: IncomingProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const { fetchChecks, status: statusChecks } = useChecks()
-  const { fetchAction } = useAction()
+  const { fetchVoteData } = useLaw()
   const { status: statusLaw, request, propose } = useLaw()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
@@ -257,7 +256,8 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
         const proposedActionsList: Action[] = []
         for (const action of allUserActions) {
           try {
-            const completeAction = await fetchAction(action, powers)
+            const allActions = powers.laws?.flatMap(l => l.actions || [])
+            const completeAction = allActions?.find(a => a.actionId === action.actionId)
             if (completeAction && (completeAction.state === 3)) {
               proposedActionsList.push(completeAction)
             }
@@ -270,7 +270,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
         setProposedActions(proposedActionsList)
         
         // Steps 4-10: Get enabled actions
-        const enabled = await getEnabledActions(powers, hasRoles, fetchAction)
+        const enabled = await getEnabledActions(powers, hasRoles)
         // console.log("@fetchIncomingActions, waypoint 6", {enabled})
         setEnabledActions(enabled)
         
@@ -285,7 +285,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
     }
     
     fetchIncomingActions()
-  }, [powers, hasRoles, fetchAction])
+  }, [powers, hasRoles])
 
   // Handle proposal click
   const handleProposalClick = (proposal: Action) => {
@@ -302,7 +302,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
     
     try {
       // Fetch complete action data
-      const completeAction = await fetchAction(action, powers)
+      const completeAction = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
         setAction(completeAction)
@@ -313,10 +313,10 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
     } finally {
       setLoadingActionData(false)
     }
-  }, [fetchAction, powers])
+  }, [powers])
 
   // Wrapper for fetchChecks to match the expected signature
-  const handleCheck = async (law: Law, action: Action, wallets: any[], powers: Powers) => {
+  const handleCheck = async (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => {
     if (action && action.callData && action.nonce && wallets.length > 0) {
       await fetchChecks(
         law,
@@ -613,8 +613,6 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
                   powers={powers}
                   lawId={BigInt(selectedProposal.lawId)}
                   checks={undefined} // Will be fetched by ProposalBox if needed
-                  status={statusChecks}
-                  onCheck={handleCheck}
                   proposalStatus={selectedProposal.state || 0}
                 />
               </section>

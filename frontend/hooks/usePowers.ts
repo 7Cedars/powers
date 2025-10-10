@@ -66,7 +66,7 @@ export const usePowers = () => {
     } catch (error) {
       console.log("@fetchPowersData, waypoint 3", {error})
       setStatus("error") 
-      setError(error)
+      setError(error as Error)
     }
   }
 
@@ -98,7 +98,7 @@ export const usePowers = () => {
       } catch (error) {
         console.log("@fetchMetaData, waypoint 4", {error})
         setStatus("error") 
-        setError(error)
+        setError(error as Error)
       }
     }
   }
@@ -139,7 +139,7 @@ export const usePowers = () => {
           return fetchedLaws
         } catch (error) {
           setStatus("error")
-          setError(error)
+          setError(error as Error)
         }
     }
   }
@@ -236,7 +236,7 @@ export const usePowers = () => {
       return populatedLaws
     } catch (error) {
       setStatus("error") 
-      setError(error)
+      setError(error as Error)
     }
   }
 
@@ -251,7 +251,7 @@ export const usePowers = () => {
       return roles
     } catch (error) {
       setStatus("error") 
-      setError(error)
+      setError(error as Error)
     }
   }
 
@@ -293,7 +293,7 @@ export const usePowers = () => {
       return updatedRoleLabels
     } catch (error) {
         setStatus("error")
-        setError(error)
+        setError(error as Error)
       }
     }
   }
@@ -336,7 +336,7 @@ export const usePowers = () => {
     } catch (error) {
       // console.log("@fetchLawsAndRoles, waypoint 6", {error})
       setStatus("error")
-      setError(error)
+      setError(error as Error)
     }
     // console.log("@fetchLawsAndRoles, waypoint 7", {laws, roles, roleLabels, error})
     if (laws && roles && roleLabels) {
@@ -365,6 +365,23 @@ export const usePowers = () => {
     let law: Law
     const laws = powers.laws || []
 
+    // Collect existing actions and identify which are stale (states 2=Cancelled, 4=Defeated, 7=Fulfilled)
+    const existingActionsMap = new Map<string, Action>()
+    const staleActionIds = new Set<string>()
+    
+    laws.forEach((l) => {
+      (l.actions || []).forEach((action) => {
+        const actionIdStr = action.actionId.toString()
+        existingActionsMap.set(actionIdStr, action)
+        // States 2, 4, 7 are stale (Cancelled, Defeated, Fulfilled)
+        if (action.state === 2 || action.state === 4 || action.state === 7) {
+          staleActionIds.add(actionIdStr)
+        }
+      })
+    })
+    
+    console.log("@fetchActions, waypoint 0", { staleCount: staleActionIds.size, totalExisting: existingActionsMap.size })
+
     try {
       // 1) Fetch all actionIds per law via multicall to Powers.getLawActions
       const lawIds = laws.map((l) => l.index)
@@ -382,6 +399,8 @@ export const usePowers = () => {
       // Map actionIds back to their lawId and create a flat list of unique actionIds
       const actionIdToLawId = new Map<string, bigint>()
       const allActionIds: bigint[] = []
+      const actionIdsToFetch: bigint[] = []
+      
       lawActionsResults.forEach((ids, idx) => {
         const lId = lawIds[idx]
         ;(ids || []).forEach((aid) => {
@@ -389,62 +408,99 @@ export const usePowers = () => {
           if (!actionIdToLawId.has(key)) {
             actionIdToLawId.set(key, lId)
             allActionIds.push(aid)
+            // Only fetch if not already stale
+            if (!staleActionIds.has(key)) {
+              actionIdsToFetch.push(aid)
+            }
           }
         })
       })
 
-      // Early exit if there are no actions
+      console.log("@fetchActions, waypoint 1", { 
+        allActionIds: allActionIds.length, 
+        actionIdsToFetch: actionIdsToFetch.length,
+        skippedStale: allActionIds.length - actionIdsToFetch.length
+      })
+
+      // 2) Build initial law structure with empty actions arrays
+      const updatedLaws = laws.map((l) => ({ ...l, actions: [] as Action[] }))
+
+      // Early exit if there are no actions at all
       if (allActionIds.length === 0) {
-        powersUpdated = { ...powers }
+        powersUpdated = { ...powers, laws: updatedLaws }
         setPowers(powersUpdated)
         powersUpdated && savePowers(powersUpdated)
         setStatus("success")
         return powersUpdated
       }
 
-      // 2) Fetch actionData for all actions via multicall to Powers.getActionData
-      const actionDataResults = await readContracts(wagmiConfig, {
-        allowFailure: false,
-        contracts: allActionIds.map((aid) => ({
-          abi: powersAbi,
-          address: powers.contractAddress as `0x${string}`,
-          functionName: 'getActionData' as const,
-          args: [aid],
-          chainId: parseChainId(chainId)
-        }))
-      }) as Array<[
-        number, // lawId (uint16)
-        bigint, // proposedAt (uint48)
-        bigint, // requestedAt (uint48)
-        bigint, // fulfilledAt (uint48)
-        bigint, // cancelledAt (uint48)
-        `0x${string}`, // caller
-        bigint // nonce
-      ]>
+      // 3) Fetch actionData and actionState only for non-stale actions
+      if (actionIdsToFetch.length > 0) {
+        const [actionDataResults, actionStateResults] = await Promise.all([
+          readContracts(wagmiConfig, {
+            allowFailure: false,
+            contracts: actionIdsToFetch.map((aid) => ({
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionData' as const,
+              args: [aid],
+              chainId: parseChainId(chainId)
+            }))
+          }) as Promise<Array<[
+            number,
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+            `0x${string}`,
+            bigint
+          ]>>,
+          readContracts(wagmiConfig, {
+            allowFailure: false,
+            contracts: actionIdsToFetch.map((aid) => ({
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionState' as const,
+              args: [aid],
+              chainId: parseChainId(chainId)
+            }))
+          }) as Promise<Array<number>>
+        ])
 
-      // 3) Build Action objects and set them back on their corresponding laws
-      const updatedLaws = laws.map((l) => ({ ...l, actions: [] as Action[] }))
-      actionDataResults.forEach((tuple, idx) => {
-        const actionId = allActionIds[idx]
-        const fromTuple = tuple
-        const returnedLawId = BigInt(fromTuple[0])
-        const mappedLawId = actionIdToLawId.get(actionId.toString()) ?? returnedLawId
+        // 4) Build Action objects for newly fetched actions
+        actionDataResults.forEach((tuple, idx) => {
+          const actionId = actionIdsToFetch[idx]
+          const fromTuple = tuple
+          const returnedLawId = BigInt(fromTuple[0])
+          const mappedLawId = actionIdToLawId.get(actionId.toString()) ?? returnedLawId
 
-        const action: Action = {
-          actionId: String(actionId),
-          lawId: mappedLawId,
-          caller: fromTuple[5],
-          nonce: String(fromTuple[6]),
-          proposedAt: fromTuple[1],
-          requestedAt: fromTuple[2],
-          fulfilledAt: fromTuple[3],
-          cancelledAt: fromTuple[4]
-        }
+          const action: Action = {
+            actionId: String(actionId),
+            lawId: mappedLawId,
+            caller: fromTuple[5],
+            nonce: String(fromTuple[6]),
+            proposedAt: fromTuple[1],
+            requestedAt: fromTuple[2],
+            fulfilledAt: fromTuple[3],
+            cancelledAt: fromTuple[4],
+            state: actionStateResults[idx]
+          }
 
-        // push to corresponding law
-        const lawIndex = updatedLaws.findIndex((lw) => lw.index === mappedLawId)
-        if (lawIndex !== -1) {
-          updatedLaws[lawIndex].actions = [...(updatedLaws[lawIndex].actions || []), action]
+          // Update the map with fresh data
+          existingActionsMap.set(action.actionId, action)
+        })
+      }
+
+      // 5) Distribute all actions (both stale and fresh) to their corresponding laws
+      allActionIds.forEach((actionId) => {
+        const actionIdStr = actionId.toString()
+        const action = existingActionsMap.get(actionIdStr)
+        if (action) {
+          const lawId = actionIdToLawId.get(actionIdStr)
+          const lawIndex = updatedLaws.findIndex((lw) => lw.index === lawId)
+          if (lawIndex !== -1) {
+            updatedLaws[lawIndex].actions = [...(updatedLaws[lawIndex].actions || []), action]
+          }
         }
       })
 
@@ -455,7 +511,7 @@ export const usePowers = () => {
       return powersUpdated
       } catch (error) {
         setStatus("error")
-        setError(error)
+        setError(error as Error)
         return powers
       }
   }
@@ -555,7 +611,7 @@ export const usePowers = () => {
       } catch (error) {
          console.error("@fetchPowers error:", error)
         setStatus("error")
-        setError(error)
+        setError(error as Error)
       } finally {
         setStatus("success")
       }

@@ -8,6 +8,7 @@ import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
+import { setAction } from "@/context/store";
 
 export function ActionsList({powers, status}: {powers: Powers | undefined, status: string}) {
   const router = useRouter()
@@ -22,18 +23,44 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
     .flatMap(law => (law.actions || [])
       .map(action => ({ ...action }))
     )
-    .filter(a => a !== undefined && a.state !== undefined) as Action[]
-
-  // Fetch timestamps for voteEnd blocks
-  useEffect(() => {
-    if (!aggregatedActions || aggregatedActions.length === 0) return
-    const voteEndBlocks = aggregatedActions
-      .map(a => typeof a.voteEnd === 'bigint' ? a.voteEnd : (a.voteEnd ? BigInt(a.voteEnd as unknown as string) : undefined))
-      .filter((b): b is bigint => b !== undefined)
-    if (voteEndBlocks.length > 0) {
-      fetchTimestamps(voteEndBlocks, chainId)
+  
+  const actionsWithState: Action[] = aggregatedActions.map(action =>  {
+    if (action?.cancelledAt && action.cancelledAt > 0) {
+      return { ...action, state: 2 }
     }
-  }, [aggregatedActions])
+    if (action?.fulfilledAt && action.fulfilledAt > 0) {
+      return { ...action, state: 7 }
+    }
+    if (action?.requestedAt && action.requestedAt > 0) {
+      return { ...action, state: 6 }
+    }
+    if (action?.proposedAt && action.proposedAt > 0) {
+      return { ...action, state: 3 }
+    } 
+    return { ...action, state: 0 }
+  })
+    // .filter(a => a != undefined && a.state != undefined) as Action[]
+
+  console.log("@ActionsList: waypoint 0", {actionsWithState})
+
+  // Fetch timestamps for action blocks
+  useEffect(() => {
+    if (!actionsWithState || actionsWithState.length === 0) return
+    const allTimestamps = Array.from(new Set(
+      actionsWithState.flatMap(action => [
+        action?.requestedAt,
+        action?.proposedAt, 
+        action?.fulfilledAt,
+        action?.cancelledAt
+      ].filter((timestamp): timestamp is bigint => 
+        timestamp !== undefined && 
+        timestamp !== null
+      ))
+    ))
+    if (allTimestamps.length > 0) {
+      fetchTimestamps(allTimestamps, chainId)
+    }
+  }, [actionsWithState, chainId, fetchTimestamps])
 
   const handleStatusSelection = (actionStatus: string) => {
     let newDeselection: string[] = []
@@ -71,58 +98,78 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
           <LoadingBox /> 
         </div>
         : 
-        aggregatedActions && aggregatedActions.length > 0 ? 
+        actionsWithState && actionsWithState.length > 0 ? 
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
                 <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
                   <tr className="w-full text-xs font-light text-left text-slate-500">
-                    <th className="ps-4 px-2 py-3 font-light w-32"> Vote ends </th>
+                    <th className="ps-4 px-2 py-3 font-light w-40"> Date </th>
+                    <th className="px-2 py-3 font-light w-32"> Action ID </th>
                     <th className="px-2 py-3 font-light w-auto"> Law </th>
                     <th className="px-2 py-3 font-light w-24"> Status </th>
-                    <th className="px-2 py-3 font-light w-auto"> Description </th>
                     <th className="px-2 py-3 font-light w-20"> Role </th>
                   </tr>
                 </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
-                    aggregatedActions
-                      ?.slice()
-                      ?.sort((a: Action, b: Action) => {
-                        const aVoteEnd = typeof a.voteEnd === 'bigint' ? a.voteEnd : (a.voteEnd ? BigInt(a.voteEnd as unknown as string) : 0n)
-                        const bVoteEnd = typeof b.voteEnd === 'bigint' ? b.voteEnd : (b.voteEnd ? BigInt(b.voteEnd as unknown as string) : 0n)
-                        return aVoteEnd > bVoteEnd ? -1 : aVoteEnd < bVoteEnd ? 1 : 0
-                      })
+                    actionsWithState
+                      
                       ?.map((action: Action, i) => {
                         const law = powers?.laws?.find(law => law.index == action.lawId)
                         if (!law || law.conditions?.allowedRole == undefined) return null
-                        if (deselectedStatus.includes(String(action.state) ? String(action.state) : '9')) return null
+                        if (deselectedStatus.includes(String(action.state))) return null
 
                         return (
                           <tr
                             key={i}
                             className="text-xs text-left text-slate-800"
                           >
-                            {/* Vote ends */}
-                            <td className="ps-4 px-2 py-3 w-32">
+                            {/* Date */}
+                            <td className="ps-4 px-2 py-3 w-40">
                               <a
                                 href="#"
-                                onClick={e => { e.preventDefault(); router.push(`/protocol/${chainId}/${powers?.contractAddress}/proposals/${action.actionId}`); }}
+                                onClick={e => { 
+                                  e.preventDefault(); 
+                                  setAction(action) 
+                                  router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                                }}
                                 className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
                               >
                                 {(() => {
-                                  const voteEndBlock = typeof action.voteEnd === 'bigint' 
-                                    ? action.voteEnd 
-                                    : (action.voteEnd ? BigInt(action.voteEnd as unknown as string) : 0n)
-                                  const timestampData = timestamps.get(`${chainId}:${voteEndBlock}`)
+                                  // Get the earliest non-zero timestamp between proposed and requested
+                                  let targetBlock: bigint | undefined;
+                                  const proposedAt = typeof action.proposedAt === 'bigint' 
+                                    ? action.proposedAt 
+                                    : (action.proposedAt ? BigInt(action.proposedAt as unknown as string) : 0n);
+                                  const requestedAt = typeof action.requestedAt === 'bigint'
+                                    ? action.requestedAt
+                                    : (action.requestedAt ? BigInt(action.requestedAt as unknown as string) : 0n);
+
+                                  if (proposedAt > 0n && requestedAt > 0n) {
+                                    targetBlock = proposedAt < requestedAt ? proposedAt : requestedAt;
+                                  } else if (proposedAt > 0n) {
+                                    targetBlock = proposedAt;
+                                  } else if (requestedAt > 0n) {
+                                    targetBlock = requestedAt;
+                                  }
+
+                                  if (!targetBlock) {
+                                    return 'No timestamp';
+                                  }
+
+                                  const timestampData = timestamps.get(`${chainId}:${targetBlock}`)
                                   const timestamp = timestampData?.timestamp
+                                  
                                   if (!timestamp || timestamp <= 0n) {
                                     return 'Loading...'
                                   }
+                                  
                                   const timestampNumber = Number(timestamp)
                                   if (isNaN(timestampNumber) || timestampNumber <= 0) {
                                     return 'Invalid date'
                                   }
+                                  
                                   try {
                                     return `${toFullDateFormat(timestampNumber)}: ${toEurTimeFormat(timestampNumber)}`
                                   } catch (error) {
@@ -131,6 +178,13 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
                                   }
                                 })()}
                               </a>
+                            </td>
+
+                            {/* Action ID */}
+                            <td className="px-2 py-3 w-32">
+                              <div className="truncate text-slate-500 text-xs font-mono">
+                                {`${action.actionId.toString().slice(0, 6)}...${action.actionId.toString().slice(-4)}`}
+                              </div>
                             </td>
 
                             {/* Law */}
@@ -144,22 +198,6 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
                             <td className="px-2 py-3 w-24">
                               <div className="truncate text-slate-500 text-xs">
                                 {parseProposalStatus(String(action.state))}
-                              </div>
-                            </td>
-
-                            {/* Description */}
-                            <td className="px-2 py-3 w-auto">
-                              <div className="truncate text-slate-500 text-xs">
-                                {action.description ? (
-                                  <a 
-                                    href={action.description}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-slate-700 transition-colors"
-                                  >
-                                    {action.description.length > 30 ? `${action.description.slice(0, 30)}...` : action.description}
-                                  </a>
-                                ) : '-'}
                               </div>
                             </td>
 

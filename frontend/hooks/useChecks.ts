@@ -1,15 +1,12 @@
 import { useCallback, useState } from "react";
-import { lawAbi, powersAbi } from "../context/abi";
-import { Law, Checks, Status, Powers, Action } from "../context/types"
+import { powersAbi } from "../context/abi";
+import { Law, Checks, Status, Powers } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
-import { getPublicClient, readContract } from "wagmi/actions";
-import { useBlockNumber } from 'wagmi'
+import { readContract } from "wagmi/actions";
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
-import { setActionData, setChainChecks, setChecksStatus } from "@/context/store";
-import { useAction } from "./useAction";
 import { getBlockNumber } from '@wagmi/core'
 
 export const useChecks = () => {
@@ -36,7 +33,7 @@ export const useChecks = () => {
           return result as boolean 
         } catch (error) {
             setStatus("error") 
-            setError(error)
+            setError(error as Error)
             // console.log("@checkAccountAuthorised: waypoint 2", {error})
         }
   }, [])
@@ -58,7 +55,7 @@ export const useChecks = () => {
 
       } catch (error) {
         setStatus("error")
-        setError(error)
+        setError(error as Error)
       }
   }, [])
 

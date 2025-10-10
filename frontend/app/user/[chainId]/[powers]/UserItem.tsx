@@ -56,11 +56,13 @@ export function UserItem({
           const actionIndex = lawExecutions.findIndex(action => BigInt(action.actionId) === targetActionId);
           if (actionIndex !== -1) {
             const executedAt = lawExecutions[actionIndex].fulfilledAt;
-            setExecutionData({
-              actionId: targetActionId,
-              executedAt: executedAt!,
-              fulfilled: true // If it's in executedActions, it's fulfilled
-            });
+            if (executedAt) {
+              setExecutionData({
+                actionId: targetActionId,
+                executedAt: executedAt,
+                fulfilled: true // If it's in executedActions, it's fulfilled
+              });
+            }
           }
         }
       }

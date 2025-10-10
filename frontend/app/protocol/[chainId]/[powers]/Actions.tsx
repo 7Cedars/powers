@@ -1,83 +1,44 @@
 'use client'
 
-import { setAction } from "@/context/store";
-import { Law, Powers, Status, Action } from "@/context/types";
+import { Action, Law, Powers, Status } from "@/context/types";
 import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
-import { parseRole, shorterDescription } from "@/utils/parsers";
+import { shorterDescription } from "@/utils/parsers";
 import { useBlocks } from "@/hooks/useBlocks";
-import { useEffect, useState, useRef } from "react";
-import { useAction } from "@/hooks/useAction";
-
-const roleColour = [  
-  "border-blue-600", 
-  "border-red-600", 
-  "border-yellow-600", 
-  "border-purple-600",
-  "border-green-600", 
-  "border-orange-600", 
-  "border-slate-600"
-]
-
-type TempAction = {actionId: string, lawId: bigint, fulfilledAt: bigint, role: bigint}
+import { useEffect } from "react";
+import { setAction } from "@/context/store";
 
 type ActionsProps = {
-  hasRoles: {role: bigint, since: bigint}[]
-  authenticated: boolean;
   powers: Powers | undefined;
   status: Status;
   onRefresh: () => void;
 }
 
-export function Actions({ hasRoles, authenticated, powers, status, onRefresh}: ActionsProps) {
+export function Actions({ powers, status, onRefresh}: ActionsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const { fetchActionData, action: actionData, status: statusAction } = useAction()
-  const [tempActions, setTempActions] = useState<TempAction[]>([])
-  const hasFetchedRef = useRef(false)
-  
-  // Auto-fetch executed actions on initialization
-  useEffect(() => {
-    if (powers && authenticated && !hasFetchedRef.current) {
-      hasFetchedRef.current = true
-      onRefresh()
-    }
-  }, [powers, authenticated])
-  
-  useEffect(() => {
-    if (powers?.laws) {
-      const actionArray = powers.laws.map((law: Law, i) => {
-        return law.actions?.map((action, j) => {
-          return {
-            actionId: action.actionId,
-            lawId: law.index,
-            fulfilledAt: action.fulfilledAt,
-            role: law.conditions?.allowedRole
-          }
-        })
-      }).flat()
-      setTempActions(actionArray as unknown as {actionId: string, lawId: bigint, fulfilledAt: bigint, role: bigint}[])
-    }
-  }, [powers])
 
-  // console.log("@Logs: waypoint 0", {tempActions})
-  let fulfilledActions: TempAction[] = tempActions.filter((action): action is TempAction => action !== undefined)
-  fulfilledActions = fulfilledActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt))
+  const allActions = powers?.laws?.flatMap((law) => law.actions) || []
+  const sortedActions = allActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
+  const allTimestamps = Array.from(new Set(
+    sortedActions.flatMap(action => [
+      action?.requestedAt,
+      action?.proposedAt, 
+      action?.fulfilledAt,
+      action?.cancelledAt
+    ].filter((timestamp): timestamp is bigint => 
+      timestamp !== undefined && 
+      timestamp !== null
+    ))
+  ))
 
   useEffect(() => {
-    if (fulfilledActions) {
-      fetchTimestamps(fulfilledActions.map((action) => action.fulfilledAt as bigint), chainId)
+    if (sortedActions) {
+      fetchTimestamps(allTimestamps, chainId)
     }
-  }, [fulfilledActions])
-
-  useEffect(() => {
-    if (actionData) {
-      setAction(actionData)
-      router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(actionData.lawId)}`)
-    }
-  }, [actionData])
+  }, [sortedActions, chainId, fetchTimestamps])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden"> 
@@ -110,7 +71,7 @@ export function Actions({ hasRoles, authenticated, powers, status, onRefresh}: A
         </div>
       </div>
        {
-        tempActions.length > 0 ? 
+        sortedActions.length > 0 ? 
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
            <div className="w-full overflow-x-auto overflow-y-auto">
             <table className="w-full table-auto text-sm">
@@ -123,8 +84,9 @@ export function Actions({ hasRoles, authenticated, powers, status, onRefresh}: A
         </thead>
         <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
           {
-            fulfilledActions?.map((action: TempAction, i) => {
+            sortedActions?.map((action: Action, i) => {
               const law = powers?.laws?.find(law => Number(law.index) == Number(action.lawId))
+              if (!law) return null
               return (
                 law && 
                 <tr
@@ -135,16 +97,32 @@ export function Actions({ hasRoles, authenticated, powers, status, onRefresh}: A
                   <td className="px-2 py-3 w-32">
                     <a
                       href="#"
-                      onClick={e => { e.preventDefault(); fetchActionData(action, powers as Powers); }}
+                      onClick={e => { 
+                        setAction(action) 
+                        e.preventDefault(); 
+                        router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                      }}
                       className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
                     >
                       {(() => {
-                        // Ensure consistent block number format for lookup
-                        const fulfilledAtBlock = typeof action.fulfilledAt === 'bigint' 
-                          ? action.fulfilledAt 
-                          : BigInt(action.fulfilledAt as unknown as string)
-                        
-                        const timestampData = timestamps.get(`${chainId}:${fulfilledAtBlock}`)
+                        // Get the earliest non-zero timestamp between proposed and requested
+                        let targetBlock: bigint | undefined;
+                        const proposedAt = action.proposedAt 
+                        const requestedAt = action.requestedAt 
+
+                        if (proposedAt && requestedAt && proposedAt > 0n && requestedAt > 0n) {
+                          targetBlock = proposedAt < requestedAt ? proposedAt : requestedAt;
+                        } else if (proposedAt && proposedAt > 0n) {
+                          targetBlock = proposedAt;
+                        } else if (requestedAt && requestedAt > 0n) {
+                          targetBlock = requestedAt;
+                        }
+
+                        if (!targetBlock) {
+                          return 'No timestamp';
+                        }
+
+                        const timestampData = timestamps.get(`${chainId}:${targetBlock}`)
                         const timestamp = timestampData?.timestamp
                         
                         if (!timestamp || timestamp <= 0n) {

@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { usePowers } from "@/hooks/usePowers";
 import { TitleText } from "@/components/StandardFonts";
 import { bigintToRole } from "@/utils/bigintTo";
-import DynamicThumbnail from "@/components/DynamicThumbnail";
 
 export default function Page() {
   const { powers: addressPowers, roleId } = useParams<{ powers: string, roleId: string }>()  

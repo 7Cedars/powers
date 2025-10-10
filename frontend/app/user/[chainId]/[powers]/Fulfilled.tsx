@@ -4,16 +4,14 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
-import { Law, Powers, Action } from '@/context/types' 
-import { useAction } from '@/hooks/useAction'
+import { Powers, Action } from '@/context/types' 
 import { StaticForm } from '@/components/StaticForm'
 import { setAction } from '@/context/store'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
-export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, fetchAllActions: (powers: Powers) => Promise<Action[]>, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, fetchAllActions: () => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId } = useParams<{ chainId: string }>()
   const { authenticated } = usePrivy() 
-  const { fetchAction } = useAction()
   
   const [selectedItem, setSelectedItem] = useState<Action | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
@@ -38,9 +36,9 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
   // Fetch actions on initial load
   useEffect(() => {
     if (powers) {
-      fetchAllActions(powers)
+      fetchAllActions()
     }
-  }, [])
+  }, [powers, fetchAllActions])
 
   // Handle reload button click
   const handleReload = useCallback(async () => {
@@ -48,7 +46,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     
     setReloading(true)
     try {
-      await fetchAllActions(powers)
+      await fetchAllActions()
     } catch (error) {
       console.error("Error reloading fulfilled actions:", error)
     } finally {
@@ -66,7 +64,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     )
     if (!userLaws) return []
     return userLaws.flatMap(law => law.actions)
-  }, [powers])
+  }, [powers, hasRoles])
 
   const displayedItems = allActions.slice(0, itemsToShow)
   const hasMoreItems = allActions.length > itemsToShow
@@ -83,7 +81,8 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     setActionData(null)
 
     try {
-      const completeAction = await fetchAction(action, powers)
+      const allActions = powers.laws?.flatMap(l => l.actions || [])
+      const completeAction = allActions?.find(a => a.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
         // Set the action in the store so StaticForm can access it
@@ -94,7 +93,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     } finally {
       setLoadingActionData(false)
     }
-  }, [fetchAction, powers])
+  }, [powers])
 
   // If an item is selected, show the details inline
   if (selectedItem) {
@@ -214,21 +213,21 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
             const law = powers.laws?.find(l => l.index === action?.lawId)
             if (!law) return null
             
-            return (
+            return action ? (
               <div 
-                key={`${action!.actionId}-${action!.lawId}-${index}`}
+                key={`${action.actionId}-${action.lawId}-${index}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
-                onClick={() => handleItemClick(action!)}
+                onClick={() => handleItemClick(action)}
               >
                 <UserItem
                   powers={powers}
                   law={law}
                   chainId={chainId as string}
-                  actionId={BigInt(action!.actionId)}
+                  actionId={BigInt(action.actionId)}
                   showLowerSection={false}
                 />
               </div>
-            )
+            ) : null
           })}
           
           {/* Show more button */}

@@ -13,9 +13,10 @@ import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, simulateContract, writeContract } from "@wagmi/core";
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
-import { getEnabledOrganizations, Organization } from "@/organisations";
+import { getEnabledOrganizations } from "@/organisations";
+import Image from "next/image";
 
-export function SectionDeployCarouselV2() {
+export function SectionDeployDemo() {
   const [currentOrgIndex, setCurrentOrgIndex] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const { deployContract, data: deployHash, reset } = useDeployContract();
@@ -23,8 +24,8 @@ export function SectionDeployCarouselV2() {
     hash: deployHash,
   });
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<any | null>(null);
-  const [transactionHash, setTransactionHash] = useState<`0x${string}` | undefined>();
+  const [error, setError] = useState<Error | null>(null);
+  const [_transactionHash, setTransactionHash] = useState<`0x${string}` | undefined>();
   const [constituteCompleted, setConstituteCompleted] = useState(false);
   const { ready, authenticated } = usePrivy();
   const { chain } = useAccount();
@@ -119,11 +120,11 @@ export function SectionDeployCarouselV2() {
         }
       } catch (error) {
         setStatus("error"); 
-        setError(error);
+        setError(error as Error);
         console.error("@execute: error", { error });
       }
     },
-    [currentOrgIndex, formData, selectedChainId, currentOrg]
+    [formData, selectedChainId, currentOrg]
   );
 
   useEffect(() => {
@@ -202,18 +203,22 @@ export function SectionDeployCarouselV2() {
           </div>
 
           {/* Form Content */}
-          <div className="w-full p-6 flex flex-col overflow-y-auto flex-1">
+          <div className="w-full py-6 px-6 flex flex-col overflow-y-auto flex-1">
             {/* Image Display */}
             {currentOrg.metadata.banner && (
               <div className="mb-4 flex justify-center">
-                <img 
-                  src={currentOrg.metadata.banner} 
-                  alt={`${currentOrg.metadata.title} template`}
-                  className="max-w-full h-auto rounded-lg shadow-sm"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                <div className="relative w-full h-48 sm:h-64">
+                  <Image
+                    src={currentOrg.metadata.banner} 
+                    alt={`${currentOrg.metadata.title} template`}
+                    fill
+                    className="rounded-lg"
+                    style={{objectFit: "contain"}}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
               </div>
             )}
             
@@ -234,7 +239,7 @@ export function SectionDeployCarouselV2() {
                     type={field.type}
                     name={field.name}
                     placeholder={field.placeholder}
-                    className="w-full h-12 px-3 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full h-12 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     value={formData[field.name] || ''}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
                     required={field.required}

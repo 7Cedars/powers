@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { AssetList } from "./AssetList";
 import { AddAsset } from "./AddAsset";
 import { useParams } from "next/navigation";

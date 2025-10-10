@@ -4,12 +4,11 @@ import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Law, Powers } from "@/context/types";
 import { bigintToRole } from "@/utils/bigintTo";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { LoadingBox } from "@/components/LoadingBox";
 import HeaderLawSmall from "@/components/HeaderLawSmall";
 import { useChains } from "wagmi";
 
-export function LawList({powers, status, onRefresh}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
+export function LawList({powers, status}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
   const chains = useChains();
   const { chainId } = useParams<{ chainId: string }>()
@@ -30,25 +29,6 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
-      {/* Header - matching RoleList.tsx structure */}
-      {/* <div className="w-full flex flex-row gap-3 justify-between items-center pt-3 px-4">
-        <div className="text-slate-800 text-center text-lg">
-          Laws
-        </div>
-        <div className="flex flex-row gap-2 items-center">
-          {onRefresh && (
-            <div className="w-8 h-8">
-              <button
-                onClick={onRefresh}
-                className={`w-full h-full flex justify-center items-center rounded-md border border-slate-400 py-1 px-2`}
-              >
-                <ArrowPathIcon className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div> */}
-
       {/* Role filter bar - matching ActionsList.tsx structure */}
       <div className="w-full flex flex-row gap-12 justify-start items-center py-4 overflow-x-auto border-b border-slate-200 p-4 pe-8">
         {powers?.roles?.map((role, i) => (
@@ -92,7 +72,6 @@ export function LawList({powers, status, onRefresh}: {powers: Powers | undefined
                               lawName={law.nameDescription || `Law #${law.index}`}
                               roleName={roleName}
                               numHolders={numHolders}
-                              description=""
                               contractAddress={law.lawAddress || ""}
                               blockExplorerUrl={blockExplorerUrl}
                             />

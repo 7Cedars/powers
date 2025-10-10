@@ -22,17 +22,13 @@ import DynamicThumbnail from '@/components/DynamicThumbnail'
 import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
-import About from './About'
-import { useAction } from '@/hooks/useAction'
+import About from './About' 
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
-  const [protocol, setProtocol] = useState<Powers | null>(null)
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
-  const [proposals, setProposals] = useState<any[]>([])
-  const proposalsFetchedRef = useRef(false)
   
   // Refs to store reset functions from child components
   const newResetRef = useRef<(() => void) | null>(null)
@@ -46,7 +42,6 @@ export default function UserPage() {
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { refetchPowers, powers, fetchActions } = usePowers()
-  const { fetchAllActions } = useAction()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
@@ -123,7 +118,7 @@ export default function UserPage() {
           console.error(error)
         }
       }
-    }, [])
+    }, [PUBLIC_ROLE, addressPowers, chainId])
 
   const handleFetchActions = useCallback(() => {
     if (powers) {
@@ -132,43 +127,23 @@ export default function UserPage() {
   }, [powers, fetchActions])
 
   useEffect(() => {
-    // Load the protocol from localStorage
-    const loadProtocol = () => {
-      try {
-        const localStore = localStorage.getItem('powersProtocols')
-        if (localStore && localStore !== 'undefined') {
-          const protocols: Powers[] = JSON.parse(localStore)
-          const foundProtocol = protocols.find(p => p.contractAddress === addressPowers)
-          setProtocol(foundProtocol || null)
-        }
-      } catch (error) {
-        console.error('Error loading protocol:', error)
-      }
-    }
-
-    loadProtocol()
-  }, [addressPowers])
-
-  useEffect(() => {
     validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
 
   useEffect(() => {
-    if (wallets && powers?.roles) {
+    const walletAddress = wallets?.[0]?.address;
+    if (walletAddress && powers?.roles) {
       // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
-      fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
+      fetchMyRoles(walletAddress as `0x${string}`, powers.roles)
     }
-  }, [, wallets?.[0]?.address, fetchMyRoles, powers?.roles])
+  }, [wallets, fetchMyRoles, powers?.roles])
 
   useEffect(() => {
     // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
-      // Reset proposals ref when switching protocols
-      proposalsFetchedRef.current = false
-      setProposals([])
       refetchPowers(addressPowers as `0x${string}`)
     }
-  }, [, addressPowers, refetchPowers])
+  }, [addressPowers, refetchPowers])
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -289,7 +264,7 @@ export default function UserPage() {
           {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} refetchPowers={refetchPowers} fetchActions={fetchActions} resetRef={newResetRef}/>}
           {/* NB! Loading still needs to be fixed   */}
           {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} onRefresh={handleFetchActions} resetRef={incomingResetRef}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} fetchAllActions={fetchAllActions} resetRef={fulfilledResetRef}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} fetchAllActions={handleFetchActions} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>
       </div>

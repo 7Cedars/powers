@@ -8,7 +8,7 @@ import {
  PlusIcon
 } from '@heroicons/react/24/outline';
 import { setAction, useActionStore } from "@/context/store";
-import { setError, useErrorStore } from "@/context/store";
+import { setError } from "@/context/store";
 
 type InputProps = {
   dataType: DataType;
@@ -22,7 +22,6 @@ export function DynamicInput({dataType, varName, values, onChange, index}: Input
   const [inputArray, setInputArray] = useState<InputType[]>(values instanceof Array ? values : [values || ""])
   const [itemsArray, setItemsArray] = useState<number[]>([0])
   const action = useActionStore()
-  const error = useErrorStore()
   const inputValue = values instanceof Array ? values[index] : values
 
   // Sync local state with global action store

@@ -4,13 +4,11 @@ import { useChains, usePublicClient } from "wagmi"
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { powersAbi } from "@/context/abi"
 import { parseChainId } from "@/utils/parsers"
-import { useActionDataStore } from "@/context/store"
 import { useBlocks } from "@/hooks/useBlocks"
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates"
 import { getEnsName } from "@wagmi/core"
 import { LoadingBox } from "@/components/LoadingBox"
 import { Action, Powers, Status } from "@/context/types"
-import { useAction } from "@/hooks/useAction"
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -56,7 +54,6 @@ type VotesProps = {
 
 export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
   const { chainId } = useParams<{ chainId: string }>()
-  const { actionData } = useActionDataStore()
   const { timestamps, fetchTimestamps } = useBlocks()
   const [votes, setVotes] = useState<VoteData[]>([])
   const [loading, setLoading] = useState(false)

@@ -10,7 +10,7 @@
 import React from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
-import { SectionDeployCarouselV2 } from "./SectionDeployCarouselV2";
+import { SectionDeployDemo } from "./SectionDeployDemo";
 import { Footer } from "./Footer";
 
 import { 
@@ -43,7 +43,7 @@ export default function Page() {
 
             < SectionIntro /> 
             < SectionUsecases /> 
-            < SectionDeployCarouselV2 />
+            < SectionDeployDemo />
             <div className = "min-h-48"/>  
             < Footer /> 
            

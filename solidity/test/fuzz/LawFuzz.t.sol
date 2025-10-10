@@ -32,11 +32,11 @@ contract LawFuzzTest is TestSetupLaw {
         super.setUp();
 
         // Initialize law instances
-        presetSingleAction = PresetSingleAction(lawAddresses[3]);
-        openAction = OpenAction(lawAddresses[2]);
-        statementOfIntent = StatementOfIntent(lawAddresses[5]);
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[6]);
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[7]);
+        presetSingleAction = PresetSingleAction(lawAddresses[4]);
+        openAction = OpenAction(lawAddresses[3]);
+        statementOfIntent = StatementOfIntent(lawAddresses[6]);
+        bespokeActionSimple = BespokeActionSimple(lawAddresses[7]);
+        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[8]);
     }
 
     //////////////////////////////////////////////////////////////

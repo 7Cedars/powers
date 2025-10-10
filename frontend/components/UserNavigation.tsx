@@ -1,17 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { 
-  HomeIcon,
-  IdentificationIcon,
-  NewspaperIcon,
-  BookOpenIcon
+  HomeIcon 
 } from '@heroicons/react/24/outline'
 import { ConnectButton } from './ConnectButton'
 import { BlockCounter } from './BlockCounter'
-import { OnboardingModal } from './OnboardingModal'
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -73,7 +69,6 @@ const UserNavigationBar = () => {
 }
 
 const UserHeader = () => {
-  const path = usePathname()
 
   return (
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">

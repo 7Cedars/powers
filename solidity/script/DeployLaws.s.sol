@@ -44,85 +44,90 @@ contract DeployLaws is Script {
         router = helperConfig.getConfig().chainlinkFunctionsRouter;
         // console2.log("router1", router);
 
-        names = new string[](18);
-        addresses = new address[](18);
-        bytes[] memory creationCodes = new bytes[](18);
-        bytes[] memory constructorArgs = new bytes[](18);
+        names = new string[](19);
+        addresses = new address[](19);
+        bytes[] memory creationCodes = new bytes[](19);
+        bytes[] memory constructorArgs = new bytes[](19);
 
-        // Multi laws (0-5)
+        // dummy law to get index of aray to be the same as lawId. 
         names[0] = "PresetSingleAction";
         creationCodes[0] = type(PresetSingleAction).creationCode;
-        constructorArgs[0] = abi.encode("PresetSingleAction");
+        constructorArgs[0] = abi.encode();
 
-        names[1] = "PresetMultipleActions";
-        creationCodes[1] = type(PresetMultipleActions).creationCode;
-        constructorArgs[1] = abi.encode("PresetMultipleActions");
+        // Multi laws (0-5)
+        names[1] = "PresetSingleAction";
+        creationCodes[1] = type(PresetSingleAction).creationCode;
+        constructorArgs[1] = abi.encode("PresetSingleAction");
 
-        names[2] = "OpenAction";
-        creationCodes[2] = type(OpenAction).creationCode;
-        constructorArgs[2] = abi.encode("OpenAction");
+        names[2] = "PresetMultipleActions";
+        creationCodes[2] = type(PresetMultipleActions).creationCode;
+        constructorArgs[2] = abi.encode("PresetMultipleActions");
 
-        names[3] = "StatementOfIntent";
-        creationCodes[3] = type(StatementOfIntent).creationCode;
-        constructorArgs[3] = abi.encode("StatementOfIntent");
+        names[3] = "OpenAction";
+        creationCodes[3] = type(OpenAction).creationCode;
+        constructorArgs[3] = abi.encode("OpenAction");
 
-        names[4] = "BespokeActionAdvanced";
-        creationCodes[4] = type(BespokeActionAdvanced).creationCode;
-        constructorArgs[4] = abi.encode("BespokeActionAdvanced");
+        names[4] = "StatementOfIntent";
+        creationCodes[4] = type(StatementOfIntent).creationCode;
+        constructorArgs[4] = abi.encode("StatementOfIntent");
 
-        names[5] = "BespokeActionSimple";
-        creationCodes[5] = type(BespokeActionSimple).creationCode;
-        constructorArgs[5] = abi.encode("BespokeActionSimple");
+        names[5] = "BespokeActionAdvanced";
+        creationCodes[5] = type(BespokeActionAdvanced).creationCode;
+        constructorArgs[5] = abi.encode("BespokeActionAdvanced");
+
+        names[6] = "BespokeActionSimple";
+        creationCodes[6] = type(BespokeActionSimple).creationCode;
+        constructorArgs[6] = abi.encode("BespokeActionSimple");
 
         // Executive laws (6-8)
-        names[6] = "AdoptLaws";
-        creationCodes[6] = type(AdoptLaws).creationCode;
-        constructorArgs[6] = abi.encode("AdoptLaws");
+        names[7] = "AdoptLaws";
+        creationCodes[7] = type(AdoptLaws).creationCode;
+        constructorArgs[7] = abi.encode("AdoptLaws");
 
-        names[7] = "GovernorCreateProposal";
-        creationCodes[7] = type(GovernorCreateProposal).creationCode;
-        constructorArgs[7] = abi.encode("GovernorCreateProposal");
+        names[8] = "GovernorCreateProposal";
+        creationCodes[8] = type(GovernorCreateProposal).creationCode;
+        constructorArgs[8] = abi.encode("GovernorCreateProposal");
 
-        names[8] = "GovernorExecuteProposal";
-        creationCodes[8] = type(GovernorExecuteProposal).creationCode;
-        constructorArgs[8] = abi.encode("GovernorExecuteProposal");
+        names[9] = "GovernorExecuteProposal";
+        creationCodes[9] = type(GovernorExecuteProposal).creationCode;
+        constructorArgs[9] = abi.encode("GovernorExecuteProposal");
 
         // Electoral laws (9-18)
-        names[9] = "ElectionSelect";
-        creationCodes[9] = type(ElectionSelect).creationCode;
-        constructorArgs[9] = abi.encode("ElectionSelect");
+        names[10] = "ElectionSelect";
+        creationCodes[10] = type(ElectionSelect).creationCode;
+        constructorArgs[10] = abi.encode("ElectionSelect");
 
-        names[10] = "PeerSelect";
-        creationCodes[10] = type(PeerSelect).creationCode;
-        constructorArgs[10] = abi.encode("PeerSelect");
+        names[11] = "PeerSelect";
+        creationCodes[11] = type(PeerSelect).creationCode;
+        constructorArgs[11] = abi.encode("PeerSelect");
 
-        names[11] = "VoteInOpenElection";
-        creationCodes[11] = type(VoteInOpenElection).creationCode;
-        constructorArgs[11] = abi.encode("VoteInOpenElection");
+        names[12] = "VoteInOpenElection";
+        creationCodes[12] = type(VoteInOpenElection).creationCode;
+        constructorArgs[12] = abi.encode("VoteInOpenElection");
 
-        names[12] = "NStrikesRevokesRoles";
-        creationCodes[12] = type(NStrikesRevokesRoles).creationCode;
-        constructorArgs[12] = abi.encode("NStrikesRevokesRoles");
+        names[13] = "NStrikesRevokesRoles";
+        creationCodes[13] = type(NStrikesRevokesRoles).creationCode;
+        constructorArgs[13] = abi.encode("NStrikesRevokesRoles");
 
-        names[13] = "TaxSelect";
-        creationCodes[13] = type(TaxSelect).creationCode;
-        constructorArgs[13] = abi.encode("TaxSelect");
+        names[14] = "TaxSelect";
+        creationCodes[14] = type(TaxSelect).creationCode;
+        constructorArgs[14] = abi.encode("TaxSelect");
 
-        names[14] = "BuyAccess";
-        creationCodes[14] = type(BuyAccess).creationCode;
-        constructorArgs[14] = abi.encode("BuyAccess");
+        names[15] = "BuyAccess";
+        creationCodes[15] = type(BuyAccess).creationCode;
+        constructorArgs[15] = abi.encode("BuyAccess");
 
-        names[15] = "RoleByRoles";
-        creationCodes[15] = type(RoleByRoles).creationCode;
-        constructorArgs[15] = abi.encode("RoleByRoles");
+        names[16] = "RoleByRoles";
+        creationCodes[16] = type(RoleByRoles).creationCode;
+        constructorArgs[16] = abi.encode("RoleByRoles");
 
-        names[16] = "SelfSelect";
-        creationCodes[16] = type(SelfSelect).creationCode;
-        constructorArgs[16] = abi.encode("SelfSelect");
+        names[17] = "SelfSelect";
+        creationCodes[17] = type(SelfSelect).creationCode;
+        constructorArgs[17] = abi.encode("SelfSelect");
 
-        names[17] = "RenounceRole";
-        creationCodes[17] = type(RenounceRole).creationCode;
-        constructorArgs[17] = abi.encode("RenounceRole");
+        names[18] = "RenounceRole";
+        creationCodes[18] = type(RenounceRole).creationCode;
+        constructorArgs[18] = abi.encode("RenounceRole");
 
         for (uint256 i = 0; i < creationCodes.length; i++) {
             //    console2.log("router", router);

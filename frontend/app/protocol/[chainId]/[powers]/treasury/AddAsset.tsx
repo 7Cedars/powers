@@ -10,13 +10,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 export function AddAsset({powers, onRefresh}: {powers: Powers | undefined, onRefresh?: () => void}) {
   const [newToken, setNewToken] = useState<`0x${string}`>()
-  const {status, error, tokens, native, addErc20, resetErc20s, fetchTokens} = useAssets(powers as Powers)
-
-  const handleRefreshAssets = () => {
-    if (powers) {
-      fetchTokens(powers)
-    }
-  }
+  const {status, error, addErc20} = useAssets(powers as Powers)
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

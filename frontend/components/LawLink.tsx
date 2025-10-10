@@ -1,16 +1,7 @@
-import { Execution, Law, Status, LawExecutions, Powers } from "@/context/types";
-import { parseChainId, parseParamValues, parseRole, shorterDescription } from "@/utils/parsers";
-import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
+import { Powers } from "@/context/types";
+import { shorterDescription } from "@/utils/parsers";
 import { Button } from "@/components/Button";
-import { LoadingBox } from "@/components/LoadingBox";
-import { setAction, setError, useActionStore } from "@/context/store";
-import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { getPublicClient, readContract } from "wagmi/actions";
-import { lawAbi, powersAbi } from "@/context/abi";
-import { wagmiConfig } from "@/context/wagmiConfig";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
-import { useBlocks } from "@/hooks/useBlocks";
 
 export const LawLink = ({lawId, powers}: {lawId: bigint, powers: Powers}) => {
   const router = useRouter()

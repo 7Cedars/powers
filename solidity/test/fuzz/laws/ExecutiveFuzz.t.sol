@@ -46,12 +46,12 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[3])
-        statementOfIntent = StatementOfIntent(lawAddresses[3]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[7]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[8]);
-        adoptLaws = AdoptLaws(lawAddresses[6]);
-        presetSingleAction = PresetSingleAction(lawAddresses[0]);
+        // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[4])
+        statementOfIntent = StatementOfIntent(lawAddresses[4]);
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]);
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]);
+        adoptLaws = AdoptLaws(lawAddresses[7]);
+        presetSingleAction = PresetSingleAction(lawAddresses[1]);
     }
 
     //////////////////////////////////////////////////////////////

@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useActionStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
-import { Action, Checks, Law, Powers, Status } from "@/context/types";
+import { Action, Checks, Law, Powers } from "@/context/types";
 import { SimulationBox } from "@/components/SimulationBox";
-import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
-import { useBlockNumber } from "wagmi";
+import { useWallets } from "@privy-io/react-auth";
 import HeaderLaw from '@/components/HeaderLaw';
 import { useChains } from 'wagmi';
 import { parseChainId } from '@/utils/parsers';
@@ -18,20 +17,16 @@ export function ProposalBox({
   powers, 
   lawId, 
   checks, 
-  status, 
-  onCheck, 
   proposalStatus
 }: {
   powers?: Powers, 
   lawId: bigint, 
   checks?: Checks, 
-  status: Status, 
-  onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void, 
   proposalStatus: number,
 }) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useLaw();
+  const {status: statusProposal, hasVoted, castVote, checkHasVoted} = useLaw();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
   const law = powers?.laws?.find(law => law.index == lawId)
   const chains = useChains();
@@ -39,7 +34,6 @@ export function ProposalBox({
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
-  const {data: blockNumber} = useBlockNumber();
   // console.log("@proposalBox: ", {lawId, action, checks, statusProposal, hasVoted})
 
   const handleCastVote = async (action: Action, support: bigint) => { 
