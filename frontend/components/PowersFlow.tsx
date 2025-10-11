@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -36,7 +36,7 @@ import {
   FlagIcon
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { setAction, useActionStore, useActionDataStore } from '@/context/store'
+import { setAction, useActionStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import HeaderLaw from '@/components/HeaderLaw'
 import { hashAction } from '@/utils/hashAction'
@@ -58,14 +58,13 @@ function getNodeBorderClass(action: Action | undefined): string {
 function getActionDataForChain(
   selectedAction: Action | undefined,
   laws: Law[],
-  powers: Powers,
-  actionDataStore: Map<string, Action>
+  powers: Powers
 ): Map<string, Action> {
   const actionDataMap = new Map<string, Action>()
   
-  // If no selected action or no calldata/nonce, fall back to using actionDataStore
+  // If no selected action or no calldata/nonce, return empty map
   if (!selectedAction || !selectedAction.callData || !selectedAction.nonce) {
-    return actionDataStore
+    return actionDataMap
   }
   
   // For each law, calculate the actionId and look up the action data
@@ -73,20 +72,13 @@ function getActionDataForChain(
     const lawId = law.index
     const calculatedActionId = hashAction(lawId, selectedAction.callData!, BigInt(selectedAction.nonce!))
     
-    // First, check if this action exists in the Powers object
+    // Check if this action exists in the Powers object
+    // Actions are stored in powers.laws, not powers.ActiveLaws
     const lawData = powers.laws?.find(l => l.index === lawId)
     if (lawData && lawData.actions) {
       const action = lawData.actions.find(a => a.actionId === String(calculatedActionId))
       if (action) {
         actionDataMap.set(String(lawId), action)
-      }
-    }
-    
-    // If not found in Powers object, check the actionDataStore
-    if (!actionDataMap.has(String(lawId))) {
-      const storeAction = actionDataStore.get(String(lawId))
-      if (storeAction && storeAction.actionId === String(calculatedActionId)) {
-        actionDataMap.set(String(lawId), storeAction)
       }
     }
   })
@@ -351,7 +343,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   }
 
   const isSelected = selectedLawId === String(law.index)
-  const borderThickness = isSelected ? 'border-2' : 'border'
+  const borderThickness = isSelected ? 'border-4' : 'border'
   
   // Apply opacity based on connection to selected node
   const isConnected = !selectedLawId || !connectedNodes || connectedNodes.has(String(law.index))
@@ -614,6 +606,7 @@ const nodeTypes = {
 interface PowersFlowProps {
   powers: Powers
   selectedLawId?: string
+  refreshActions?: () => void
 }
 
 // Helper function to find all nodes connected to a selected node through dependencies
@@ -850,9 +843,8 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
   }
 }
 
-const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
+const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refreshActions }) => {
   const { getNodes, getViewport, setViewport } = useReactFlow()
-  const { actionData } = useActionDataStore()
   const router = useRouter()
   const chainId = useParams().chainId as string
   const action = useActionStore()
@@ -1073,12 +1065,12 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    const positions = createHierarchicalLayout(powers.ActiveLaws, savedLayout)
+    const positions = createHierarchicalLayout(powers.ActiveLaws || [], savedLayout)
     
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
     const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(selectedLawIdFromStore, powers.ActiveLaws!)
+      ? findConnectedNodes(selectedLawIdFromStore, powers.ActiveLaws || [])
       : undefined
     
     // Get the selected action from the store
@@ -1087,12 +1079,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     // Get action data for all laws in the chain
     const chainActionData = getActionDataForChain(
       selectedAction,
-      powers.ActiveLaws,
-      powers,
-      actionData
+      powers.ActiveLaws || [],
+      powers
     )
     
-    powers.ActiveLaws.forEach((law) => {
+    powers.ActiveLaws?.forEach((law) => {
       const roleColor = DEFAULT_NODE_COLOR
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
@@ -1100,7 +1091,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
       // Create law schema node
       nodes.push({
         id: lawId,
-        type: 'lawSchema',
+        type: 'lawSchema',  
         position,
         data: {
           powers,
@@ -1187,7 +1178,6 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId }) => {
     return { initialNodes: nodes, initialEdges: edges }
   }, [
     powers,
-    actionData,
     handleNodeClick, 
     selectedLawId, 
     action.lawId, 

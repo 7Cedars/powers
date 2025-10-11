@@ -8,6 +8,8 @@ import { PowersOverview } from '@/components/PowersOverview'
 import { useParams } from 'next/navigation'
 import { LoadingBox } from '@/components/LoadingBox'
 import { ProtocolNavigation } from '@/components/ProtocolNavigation'
+import { Powers } from '@/context/types'
+import { useActionStore } from '@/context/store'
 
 interface FlowLayoutProps {
   children: React.ReactNode
@@ -21,12 +23,13 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
     powers: string
   }>()
   const { wallets } = useWallets()
-  
+  const action = useActionStore()
   const {
     powers,
     status: powersStatus,
     error: powersError,
     fetchPowers,
+    fetchActions,
     fetchLawsAndRoles
   } = usePowers()
 
@@ -37,7 +40,7 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
     if (powersAddress && !powers) {
       fetchPowers(powersAddress as `0x${string}`)
     }
-  }, [powersAddress, powers, fetchPowers])
+  }, [powersAddress, powers, fetchPowers ])
 
   // Show loading while authentication is checking
   if (!ready) {
@@ -114,7 +117,7 @@ export default function FlowLayout({ children }: FlowLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-100">
       <ProtocolNavigation>
-        <PowersOverview powers={powers} wallets={wallets} fetchLawsAndRoles={fetchLawsAndRoles}>
+        <PowersOverview powers={powers} wallets={wallets} fetchLawsAndRoles={fetchLawsAndRoles} fetchActions={fetchActions}>
           {children}
         </PowersOverview>
       </ProtocolNavigation>

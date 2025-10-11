@@ -13,13 +13,15 @@ interface PowersOverviewProps {
   selectedLawId?: string
   children?: React.ReactNode
   fetchLawsAndRoles?: (powers: Powers) => Promise<Powers | undefined>
+  fetchActions?: (powers: Powers) => Promise<Powers | undefined>
 }
 
 export const PowersOverview: React.FC<PowersOverviewProps> = ({ 
   powers, 
   selectedLawId,
   children,
-  fetchLawsAndRoles
+  fetchLawsAndRoles,
+  fetchActions
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -31,14 +33,15 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
   }, [pathname])
 
   const handleRefresh = async () => {
-    if (!fetchLawsAndRoles || isRefreshing) return
+    if (!fetchLawsAndRoles || !fetchActions || isRefreshing) return
     
     setIsRefreshing(true)
     try {
       await fetchLawsAndRoles(powers)
+      await fetchActions(powers)
       // The viewport will be updated automatically when the component re-renders with new data
     } catch (error) {
-      console.error('Failed to refresh laws and roles:', error)
+      console.error('Failed to refresh laws and roles or actions:', error)
     } finally {
       setIsRefreshing(false)
     }
@@ -69,6 +72,7 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
           key={`powers-flow-${powers.contractAddress}`}
           powers={powers} 
           selectedLawId={selectedLawId} 
+          refreshActions={fetchActions ? () => fetchActions(powers) : undefined}
         />
       </div>
 

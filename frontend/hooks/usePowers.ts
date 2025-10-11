@@ -15,8 +15,11 @@ export const usePowers = () => {
 
   // function to save powers to local storage
   const savePowers = (powers: Powers) => {
+    // console.log("@savePowers, waypoint 0", {powers})
     const localStore = localStorage.getItem("powersProtocols")
+    // console.log("@savePowers, waypoint 1", {localStore})
     const saved: Powers[] = localStore && localStore != "undefined" ? JSON.parse(localStore) : []
+    // console.log("@savePowers, waypoint 2", {saved})
     const existing = saved.find(item => item.contractAddress == address)
     if (existing) {
       saved.splice(saved.indexOf(existing), 1)
@@ -504,7 +507,8 @@ export const usePowers = () => {
         }
       })
 
-      powersUpdated = { ...powers, laws: updatedLaws }
+      powersUpdated = { ...powers, laws: updatedLaws, ActiveLaws: updatedLaws.filter((l) => l.active) }
+
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")

@@ -37,14 +37,6 @@ const initialStateChecks: ChecksStore = {
   chainChecks: new Map()
 }
 
-type ActionDataStore = {
-  actionData: Map<string, ActionTruncated>
-}
-
-const initialStateActionData: ActionDataStore = {
-  actionData: new Map()
-}
-
 type ChecksStatusStore = {
   status: Status
   chains: string[]
@@ -102,13 +94,6 @@ export const updateLawChecks = (lawId: string, checks: Checks) => {
 
 export const clearChainChecks = () => {
   useChecksStore.setState(initialStateChecks)
-}
-
-// Action Data Store
-export const useActionDataStore = create<ActionDataStore>()(() => initialStateActionData);
-
-export const setActionData = (actionData: Map<string, ActionTruncated>) => {
-  useActionDataStore.setState({ actionData })
 }
 
 // Checks Status Store

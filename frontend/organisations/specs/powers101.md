@@ -1,37 +1,114 @@
-Powers 101 SpecificationOverviewPowers 101 is an introductory governance template designed as an ideal starting point for users new to the Powers protocol. It provides a lightweight, foundational structure for communities seeking a simple and accessible governance model. The model establishes a basic two-role structure—a Guardian with administrative capabilities and a Member role that is open for anyone to join. This minimalist setup is deliberately chosen to lower the barrier to entry, allowing for straightforward community engagement and basic governance actions without the complexity of more advanced systems. It's perfect for projects in their early stages, enabling them to grow their community first and evolve their governance model later.Governance OverviewThis diagram illustrates the relationship between the roles (Actors) and the actions they are permitted to perform (Laws).graph TD
-    subgraph Actors
-        A[Guardian]
-        B[Member]
-        C[Public]
-    end
+# Powers 101 Organisation Specification
 
-    subgraph "Electoral Laws"
-        D[Join the Organisation (SelfSelect)]
-        E[Renounce a Role (RenounceRole)]
-        F[Assign/Revoke Membership (RoleByRoles)]
-    end
+## Organisational Structure & Context
 
-    subgraph "Executive Laws"
-        G[Adopt Laws (AdoptLaws)]
-    end
+### *Vision & Mission*
 
-    subgraph "Multi-purpose Laws"
-        H[Statement of Intent (StatementOfIntent)]
-    end
+Powers 101 is a simple DAO designed to demonstrate the core concepts of the Powers protocol. It provides a basic governance structure with a separation of powers between delegates, members, and an admin, making it an ideal starting point for understanding how the protocol works.
 
-    C -- can execute --> D
-    A -- can execute --> E
-    B -- can execute --> E
-    A -- can execute --> F
-    A -- can execute --> G
-    B -- can execute --> H
-Actors (Roles)The Powers 101 organisation defines two primary roles, creating a clear distinction between administrative control and community participation.RoleDescriptionGuardianThe primary administrative role for the organisation. The address that deploys the contract is automatically assigned this role. The Guardian is responsible for high-level actions like adopting new laws and acts as a moderator by managing the membership of the DAO, with the power to both assign and revoke the Member role.MemberA standard participant in the organisation. This role is open and can be acquired via a public-facing law, allowing for permissionless entry. The primary function of a Member is to make their voice heard through on-chain statements of intent, allowing them to signal views and propose ideas in a transparent and verifiable manner without complex voting mechanisms.Powers (Laws)The Powers 101 organisation includes five foundational laws to facilitate its simple yet effective governance structure. These laws provide the core functionalities for administration, membership, and participation.LawDescriptionPermissionsAdopt Laws (AdoptLaws)Provides a mechanism for proposing and integrating new laws, which enables the evolution of the organisation's governance framework over time. For example, the Guardian could use this to adopt new laws for managing a treasury.GuardianAssign/Revoke Membership (RoleByRoles)Grants the Guardian the direct authority to manage the roster of Members. This provides a basic moderation tool to onboard contributors or remove bad actors.GuardianStatement of Intent (StatementOfIntent)Enables members to create formal, non-binding on-chain proposals. It serves as a powerful tool for community signalling, informal polls, or making a public statement that is permanently recorded without triggering any executable actions.MemberJoin the Organisation (SelfSelect)Makes the organisation open by allowing any external user to voluntarily assign themselves the Member role. This permissionless entry is key to fostering organic community growth.Public (Any Address)Renounce a Role (RenounceRole)Provides an essential exit mechanism, permitting any user holding a role (Guardian or Member) to voluntarily renounce it at any time. This respects user autonomy, allowing individuals to leave the community or step down from a position cleanly.Guardian, MemberInitialisation ParametersUpon deployment, the Powers 101 organisation is configured with a clear and simple initial state designed for ease of use and immediate functionality.ParameterValueInitial GuardianThe address of the deployer is programmatically assigned the Guardian role, placing initial trust and responsibility on the founding entity.Initial MembersThe organisation is intentionally deployed with no members assigned. This reinforces the opt-in nature of the community, ensuring all participants have actively chosen to join via the SelfSelect law.Deployment SummaryThis sequence diagram illustrates the on-chain actions performed to construct the complete governance structure during deployment.sequenceDiagram
-    participant D as Deployer
-    participant P as Powers Contract
+### *Treasury Management*
 
-    D->>P: 1. Deploy new Powers contract instance
-    D->>P: 2. Create "Guardian" & "Member" roles
-    D->>P: 3. Assign "Guardian" role to Deployer
-    D->>P: 4. Adopt 5 foundational laws
-    D->>P: 5. Configure law permissions
-A new, independent Powers contract is deployed to the blockchain, serving as the core of the new organisation.The "Guardian" and "Member" roles are formally created and registered within the Powers contract.The deployer's address is immediately assigned the "Guardian" role, granting initial administrative authority.Finally, the five foundational laws are adopted and their permissions are configured, linking each law's functionality to the appropriate roles and making the organisation fully operational.
+The organization's treasury is managed through proposals initiated by members and executed by delegates. This model allows for a decentralized approach to treasury management, where the community can propose actions and the elected delegates are responsible for carrying them out.
+
+## Roles
+
+| *Role Id* | *Role name* | *Selection criteria.* |
+| :--- | :--- | :--- |
+| 0 | Admin | Admin role assigned at deployment. |
+| 1 | Members | Anyone can self-select to become a member. |
+| 2 | Delegates | Elected by members through a formal election process. |
+| … | Public | Everyone. |
+
+## On-chain Laws
+
+### *Executive Laws (executing actions)*
+
+| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Members | Propose Action | StatementOfIntent.sol | "address[] Targets", "uint256[] Values", "bytes[] Calldatas" | none | 51% success, 20% quorum, 5 minute voting period |
+| Admin | Veto Action | StatementOfIntent.sol | "address[] Targets", "uint256[] Values", "bytes[] Calldatas" | none | Proposal must exist |
+| Delegates | Execute Action | OpenAction.sol | (from proposal) | Executes the proposed action | 77% success, 50% quorum, 5 minute voting period, 3 minute delay, proposal must exist, not vetoed |
+
+### *Electoral Laws (assigning roles)*
+
+| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Members | Nominate Self for Delegate | NominateMe.sol | none | Adds the caller to the list of nominees for the delegate role. | Caller must be a member. |
+| Admin | Call Delegate Election | ElectionStart.sol | none | Starts a new election for the delegate role. | Admin only. |
+| Public | Become a Member | SelfSelect.sol | "uint256 roleId" | Assigns the caller the member role. | Public access, 25 block throttle. |
+
+### *Constitutional Laws (adopting and revoking laws)*
+
+There are no specific constitutional laws defined in the Powers 101 organization. Law management is handled by the Admin role.
+
+## Off-chain Operations
+
+### *Dispute Resolution*
+
+Disputes regarding ambiguous law conditions or malicious actions by role-holders will be addressed through community discussion in the official communication channels, with final arbitration by the Admin role if consensus cannot be reached.
+
+### *Code of Conduct / Ethics*
+
+All participants are expected to act in good faith to further the mission of Powers 101. This includes respectful communication, constructive feedback, and responsible use of powers.
+
+### *Communication Channels*
+
+Official proposals, discussions, and announcements take place on the Powers 101 Discord server and community forum.
+
+## Description of Governance
+
+Powers 101 is a decentralized organization designed to showcase the fundamental governance principles of the Powers protocol.
+
+  * **Remit**: The primary function is to provide a simple, transparent, and educational platform for users to learn about decentralized governance.
+  * **Roles**: Roles are straightforward: anyone can become a **Member**, members can nominate themselves to be **Delegates**, and an **Admin** role manages the system.
+  * **Executive Paths**:
+      - **Proposal Lifecycle**: Members propose actions, the Admin can veto them, and Delegates execute approved proposals.
+  * **Summary**: The governance structure of Powers 101 is a minimalist implementation of the Powers protocol, demonstrating a clear separation of powers and providing a hands-on learning experience for decentralized governance.
+
+## Governance Flow Diagrams
+
+### Proposal Process
+
+```mermaid
+flowchart LR
+    RM(( Members )):::user0
+    RAdmin(( Admin )):::user5
+    RD(( Delegates )):::user2
+
+    A[#2 Propose Action]
+    B[#3 Veto Action]
+    C[#4 Execute Action]
+
+    RM -- Vote 51% success 20% quorum --> A
+    RAdmin -- Veto --> B
+    RD -- Vote 77% success 50% quorum --> C
+
+    A -- enables --> B
+    A -- enables --> C
+    B -- blocks --> C
+
+    classDef user0 fill:#8dcfec
+    classDef user5 fill:#ffcdd2
+    classDef user2 fill:#b3e5fc
+```
+
+### Electoral Process
+
+```mermaid
+flowchart LR
+    RPublic(( Public )):::user7
+    RM(( Members )):::user0
+    RAdmin(( Admin )):::user5
+
+    L[Become a Member]
+    M[Nominate Self for Delegate]
+    N[Call Delegate Election]
+
+    RPublic -- Self-select --> L
+    RM -- Nominate --> M
+    RAdmin -- Execute --> N
+
+    classDef user0 fill:#8dcfec
+    classDef user5 fill:#ffcdd2
+    classDef user7 fill:#e0e0e0
+```

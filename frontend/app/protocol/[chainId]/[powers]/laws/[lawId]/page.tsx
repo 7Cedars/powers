@@ -219,7 +219,7 @@ const Page = () => {
               <div className="flex flex-row gap-2">
                 <span className="font-semibold">ActionId:</span>
                 <span className="font-mono">
-                  {populatedAction?.upToDate ? `${populatedAction?.actionId.slice(0, 10)}...${populatedAction?.actionId.slice(-8)}` : '-'}
+                  {populatedAction?.actionId ? `${populatedAction?.actionId.slice(0, 10)}...${populatedAction?.actionId.slice(-8)}` : '-'}
                 </span>
               </div>
               <div className="flex flex-row gap-2">
@@ -235,7 +235,7 @@ const Page = () => {
                   populatedAction?.state === 7 ? 'text-green-600 bg-green-100' : // Fulfilled
                   'text-slate-500 bg-slate-100'
                 }`}>
-                  {populatedAction?.upToDate ? getStateLabel(populatedAction?.state) : '-'}
+                  {getStateLabel(populatedAction?.state)}
                 </span>
               </div>
             </div>
