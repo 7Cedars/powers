@@ -1,22 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { Status, LawSimulation, Law, Powers, Action } from "../context/types"
+import { Status, LawSimulation, Law, Powers, Action, ActionVote } from "../context/types"
 import { getConnectorClient, readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { parseChainId } from "@/utils/parsers";
 import { useParams } from "next/navigation";
-
-type VoteData = {
-  actionId: string
-  voteStart: bigint
-  voteDuration: bigint
-  voteEnd: bigint
-  againstVotes: bigint
-  forVotes: bigint
-  abstainVotes: bigint
-  state: number
-}
 
 export const useLaw = () => {
   const { chainId } = useParams<{ chainId: string }>()
@@ -24,7 +13,7 @@ export const useLaw = () => {
   const [error, setError] = useState<any | null>(null)
   const [simulation, setSimulation ] = useState<LawSimulation>() 
   const [hasVoted, setHasVoted] = useState<boolean | undefined>()
-  const [actionVote, setActionVote] = useState<VoteData | undefined>()
+  const [actionVote, setActionVote] = useState<ActionVote | undefined>()
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
   const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
@@ -177,7 +166,7 @@ export const useLaw = () => {
           bigint, bigint, bigint, bigint, bigint, bigint
         ]
 
-        const vote: VoteData = {
+        const vote: ActionVote = {
           actionId: actionObject.actionId as string,
           state: state ? state as number : 0,
           voteStart: voteStart as bigint,

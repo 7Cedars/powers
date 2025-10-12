@@ -20,7 +20,7 @@ export function Actions({ powers, status, onRefresh}: ActionsProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
 
-  const allActions = powers?.laws?.flatMap((law) => law.actions) || []
+  const allActions = powers?.actions && powers?.actions?.length > 0 ? powers?.actions : []
   const sortedActions = allActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
   const allTimestamps = Array.from(new Set(
     sortedActions.flatMap(action => [

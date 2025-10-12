@@ -8,7 +8,7 @@ import { useBlocks } from "@/hooks/useBlocks"
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates"
 import { getEnsName } from "@wagmi/core"
 import { LoadingBox } from "@/components/LoadingBox"
-import { Action, Powers, Status } from "@/context/types"
+import { Action, ActionVote, Powers, Status } from "@/context/types"
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -50,9 +50,10 @@ type VotesProps = {
   action: Action
   powers: Powers | undefined
   status: Status
+  actionVote: ActionVote
 }
 
-export const Votes = ({ actionId, action, powers, status }: VotesProps) => {
+export const Votes = ({ actionId, action, powers, status, actionVote }: VotesProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const [votes, setVotes] = useState<VoteData[]>([])

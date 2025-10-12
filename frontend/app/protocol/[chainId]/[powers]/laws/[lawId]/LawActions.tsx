@@ -25,7 +25,7 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
   const { timestamps, fetchTimestamps } = useBlocks()
   const router = useRouter() 
 
-  const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
+  const lawActions = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.filter(action => action.lawId == lawId) : []
   const sortedActions = lawActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
   const allTimestamps = Array.from(new Set(
     sortedActions.flatMap(action => [

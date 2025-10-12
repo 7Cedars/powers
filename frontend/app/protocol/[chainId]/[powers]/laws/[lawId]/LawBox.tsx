@@ -40,8 +40,8 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const [logSupport, setLogSupport] = useState<bigint>()
-  const {status: statusProposal, hasVoted, castVote, checkHasVoted, fetchVoteData } = useLaw();
-  const actionVote = powers.laws?.find(law => law.index == action.lawId)?.actions?.find(action => action.actionId == action.actionId)
+  const { hasVoted, castVote, checkHasVoted, fetchVoteData } = useLaw();
+  // const action = powers.actions && powers.actions?.length > 0 ? powers.actions?.find(action => action.actionId == action.actionId) : undefined
 
   console.log("@LawBox, waypoint 0", {action, checks, law})
 
@@ -105,7 +105,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       {
       // option 1: When action does not exist, and needs a vote, create proposal button
       
-      Number(law?.conditions?.quorum) > 0 && actionVote?.state == undefined && action.upToDate ? (
+      Number(law?.conditions?.quorum) > 0 && action?.state == undefined ? (
           <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">          
             <div className="w-full">
               <Button 
@@ -124,7 +124,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           </div>
           ) 
         // option 2a: When action does not exist and does not need a vote, execute button 
-        : Number(law?.conditions?.quorum) == 0 && actionVote?.state == undefined && action.upToDate  ? (
+        : Number(law?.conditions?.quorum) == 0 && action?.state == undefined ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 
@@ -138,7 +138,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
         </div>
         )
         // option 2b: When action does exist and has a succeeded state, execute button
-        :  Number(law?.conditions?.quorum) > 0 && actionVote?.state == 5 && action.upToDate ? (
+        :  Number(law?.conditions?.quorum) > 0 && action?.state == 5  ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 
@@ -152,7 +152,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
         </div>
         )
         // option 3: When action exists, and is active, show vote button
-        : actionVote?.state == 3 && action.upToDate ? (
+        : action?.state == 3 ? (
           <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
           { hasVoted ? 
               <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 

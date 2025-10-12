@@ -56,16 +56,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
 
   console.log("@Fulfilled, powers", powers)
 
-  const allActions = useMemo(() => {
-    if (!powers.laws) return []
-    const userRoleIds = hasRoles.map(role => role.role)
-    const userLaws = powers.laws?.filter(law => 
-      law.conditions && userRoleIds.includes(law.conditions.allowedRole)
-    )
-    if (!userLaws) return []
-    return userLaws.flatMap(law => law.actions)
-  }, [powers, hasRoles])
-
+  const allActions = powers.actions && powers.actions?.length > 0 ? powers.actions : []
   const displayedItems = allActions.slice(0, itemsToShow)
   const hasMoreItems = allActions.length > itemsToShow
 
@@ -81,7 +72,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     setActionData(null)
 
     try {
-      const allActions = powers.laws?.flatMap(l => l.actions || [])
+      const allActions = powers.actions && powers.actions?.length > 0 ? powers.actions : []
       const completeAction = allActions?.find(a => a.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)

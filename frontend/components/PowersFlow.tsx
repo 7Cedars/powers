@@ -73,7 +73,6 @@ function getActionDataForChain(
     const calculatedActionId = hashAction(lawId, selectedAction.callData!, BigInt(selectedAction.nonce!))
     
     // Check if this action exists in the Powers object
-    // Actions are stored in powers.laws, not powers.ActiveLaws
     const lawData = powers.laws?.find(l => l.index === lawId)
     if (lawData && lawData.actions) {
       const action = lawData.actions.find(a => a.actionId === String(calculatedActionId))
@@ -1058,19 +1057,20 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
-    if (!powers.ActiveLaws) return { initialNodes: [], initialEdges: [] }
+    if (!powers.laws) return { initialNodes: [], initialEdges: [] }
+    const ActiveLaws = powers.laws.filter(law => law.active)
     
     const nodes: Node[] = []
     const edges: Edge[] = []
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    const positions = createHierarchicalLayout(powers.ActiveLaws || [], savedLayout)
+    const positions = createHierarchicalLayout(ActiveLaws || [], savedLayout)
     
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
     const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(selectedLawIdFromStore, powers.ActiveLaws || [])
+      ? findConnectedNodes(selectedLawIdFromStore, ActiveLaws || [])
       : undefined
     
     // Get the selected action from the store
@@ -1079,11 +1079,11 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
     // Get action data for all laws in the chain
     const chainActionData = getActionDataForChain(
       selectedAction,
-      powers.ActiveLaws || [],
+      ActiveLaws || [],
       powers
     )
     
-    powers.ActiveLaws?.forEach((law) => {
+    ActiveLaws?.forEach((law) => {
       const roleColor = DEFAULT_NODE_COLOR
       const lawId = String(law.index)
       const position = positions.get(lawId) || { x: 0, y: 0 }
@@ -1243,8 +1243,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
       debouncedSaveLayout()
     }
   }, [onNodesChange, debouncedSaveLayout])
-
-  if (!powers.ActiveLaws || powers.ActiveLaws.length === 0) {
+  
+  const ActiveLaws = powers.laws?.filter(law => law.active)
+  if (!ActiveLaws || ActiveLaws.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">

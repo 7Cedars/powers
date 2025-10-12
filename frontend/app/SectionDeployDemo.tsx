@@ -11,6 +11,7 @@ import { powersAbi } from "@/context/abi";
 import { Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, simulateContract, writeContract } from "@wagmi/core";
+import { toBytes } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
@@ -19,7 +20,7 @@ import Image from "next/image";
 export function SectionDeployDemo() {
   const [currentOrgIndex, setCurrentOrgIndex] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const { deployContract, data: deployHash, reset } = useDeployContract();
+  const { deployContract, data: deployHash, reset, error: deployError } = useDeployContract();
   const { data: receipt } = useTransactionReceipt({
     hash: deployHash,
   });
@@ -64,7 +65,7 @@ export function SectionDeployDemo() {
     }
   }, [currentOrgIndex, availableOrganizations.length]);
 
-  console.log("deploy: ", { status, error, deployHash, receipt });
+  console.log("deploy: ", { status, error, deployHash, receipt, deployError });
 
   const currentOrg = availableOrganizations[currentOrgIndex];
 
@@ -278,7 +279,7 @@ export function SectionDeployDemo() {
                       if (ready && authenticated && !currentOrg.metadata.disabled && areRequiredFieldsFilled()) {
                         deployContract({
                           abi: powersAbi, 
-                          args: [currentOrg.metadata.title, currentOrg.metadata.uri],
+                          args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10n, 10_000n],
                           bytecode: bytecodePowers,
                         });
                       }

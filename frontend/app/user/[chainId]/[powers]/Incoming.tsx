@@ -18,6 +18,7 @@ import { StaticForm } from '@/components/StaticForm'
 import HeaderLaw from '@/components/HeaderLaw'
 import { Button } from '@/components/Button'
 import { useLaw } from '@/hooks/useLaw'
+import { ActionVote } from '@/context/types'
 import { encodeAbiParameters, parseAbiParameters } from "viem"
 
 /**
@@ -37,7 +38,7 @@ const getEnabledActions = async (
 ): Promise<Action[]> => {
   const enabledActions: Action[] = []
   
-  if (!powers.laws) {
+  if (!powers.laws || !powers.actions) {
     return enabledActions
   }
 
@@ -58,13 +59,14 @@ const getEnabledActions = async (
       l.index === law.conditions?.needFulfilled
     )
     
-    if (!needFulfilledLaw || !needFulfilledLaw.actions) {
+    if (!needFulfilledLaw) {
       continue
     }
     
     // Step 6: Fetch all actions from this needFulfilled law, filter by status = fulfilled
-    const fulfilledActions = needFulfilledLaw.actions.filter(action => 
-      action.state === 7 || (action.fulfilledAt && action.fulfilledAt > 0n)
+    const fulfilledActions = powers.actions.filter(action => 
+      action.lawId === needFulfilledLaw.index &&
+      (action.state === 7 || (action.fulfilledAt && action.fulfilledAt > 0n))
     )
     
     // Step 7: If the list is longer than 0
@@ -75,7 +77,7 @@ const getEnabledActions = async (
     for (const fulfilledAction of fulfilledActions) {
       try {
         // Ensure we have complete action data
-        const completeAction = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === fulfilledAction.actionId)
+        const completeAction = powers.actions?.find(a => a.actionId === fulfilledAction.actionId)
         if (!completeAction || !completeAction.callData || !completeAction.nonce) {
           continue
         }
@@ -88,7 +90,8 @@ const getEnabledActions = async (
         )
         
         // Check if this action has been fulfilled in the current law
-        const existingAction = law.actions?.find(action => 
+        const existingAction = powers.actions?.find(action => 
+          action.lawId === law.index &&
           action.actionId === calculatedActionId.toString()
         )
         
@@ -112,7 +115,8 @@ const getEnabledActions = async (
             )
             
             // Check if this action is fulfilled in the needNotFulfilled law
-            const blockedAction = needNotFulfilledLaw.actions?.find(action => 
+            const blockedAction = powers.actions?.find(action => 
+              action.lawId === needNotFulfilledLaw.index &&
               action.actionId === needNotFulfilledActionId.toString() &&
               (action.state === 7 || (action.fulfilledAt && action.fulfilledAt > 0n))
             )
@@ -158,7 +162,7 @@ type IncomingProps = {
 export default function Incoming({hasRoles, powers, onRefresh, resetRef}: IncomingProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const { fetchChecks, status: statusChecks } = useChecks()
-  const { fetchVoteData } = useLaw()
+  const { actionVote, fetchVoteData } = useLaw()
   const { status: statusLaw, request, propose } = useLaw()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
@@ -229,7 +233,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
   useEffect(() => {
     const fetchIncomingActions = async () => {
       // console.log("@fetchIncomingActions, waypoint 0", {powers, hasRoles})
-      if (!powers || !powers.laws || hasRoles.length === 0) {
+      if (!powers || !powers.laws || !powers.actions || hasRoles.length === 0) {
         setProposedActions([])
         setEnabledActions([])
         return
@@ -245,19 +249,16 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
           law.active && law.conditions && userRoleIds.includes(law.conditions.allowedRole)
         )
         // console.log("@fetchIncomingActions, waypoint 3", {userLaws})
-        const allUserActions: Action[] = []
-        for (const law of userLaws) {
-          if (law.actions && law.actions.length > 0) {
-            allUserActions.push(...law.actions)
-          }
-        }
+        const userLawIds = userLaws.map(law => law.index)
+        const allUserActions = powers.actions.filter(action => 
+          userLawIds.includes(action.lawId)
+        )
         // console.log("@fetchIncomingActions, waypoint 4", {allUserActions})
         // Step 2 & 3: Fetch their status and filter for proposed actions (Active or Succeeded)
         const proposedActionsList: Action[] = []
         for (const action of allUserActions) {
           try {
-            const allActions = powers.laws?.flatMap(l => l.actions || [])
-            const completeAction = allActions?.find(a => a.actionId === action.actionId)
+            const completeAction = powers.actions?.find(a => a.actionId === action.actionId)
             if (completeAction && (completeAction.state === 3)) {
               proposedActionsList.push(completeAction)
             }
@@ -302,7 +303,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
     
     try {
       // Fetch complete action data
-      const completeAction = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === action.actionId)
+      const completeAction = powers.actions?.find(a => a.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
         setAction(completeAction)
@@ -623,6 +624,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
                   <Voting
                     powers={powers} 
                     status={statusChecks as Status}
+                    actionVote={actionVote as ActionVote}
                   />
                 </section>
 
@@ -632,6 +634,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
                     action={selectedProposal}
                     powers={powers}
                     status={statusChecks as Status}
+                    actionVote={actionVote as ActionVote}
                   />
                 </section>
               </div>

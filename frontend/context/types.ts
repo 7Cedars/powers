@@ -87,7 +87,6 @@ export type Law = {
   config?: `0x${string}`;
   inputParams?: `0x${string}`; 
   params ?: {varName: string, dataType: DataType}[]; 
-  actions?: Action[]; 
   active: boolean;
 }
 
@@ -106,6 +105,17 @@ export type BlockRange = {
   to: bigint;
 }
 
+export type ActionVote = {
+  actionId: string
+  voteStart: bigint
+  voteDuration: bigint
+  voteEnd: bigint
+  againstVotes: bigint
+  forVotes: bigint
+  abstainVotes: bigint
+  state: number
+}
+
 export type Powers = {
   contractAddress: `0x${string}`;
   chainId: bigint;
@@ -114,7 +124,7 @@ export type Powers = {
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  ActiveLaws?: Law[]; 
+  actions? : Action[];
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   roleHolders?: bigint[];

@@ -5,7 +5,7 @@ import { LawBox } from "./LawBox";
 import { setAction, setError, useActionStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { InputType, Law, Powers, Checks, Action } from "@/context/types";
+import { InputType, Law, Powers, Checks, Action, ActionVote } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
@@ -23,9 +23,11 @@ const Page = () => {
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
   const { powers, fetchPowers, status: statusPowers, fetchActions } = usePowers() 
   const { fetchChecks, checks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, request, propose } = useLaw();
+  const { status: statusLaw, error: errorUseLaw, simulation, actionVote, resetStatus, simulate, request, propose } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
-  const populatedAction = powers?.laws?.find(law => law.index == BigInt(lawId))?.actions?.find(a => a.actionId == action.actionId)
+  const populatedAction = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.find(a => a.actionId == action.actionId) : undefined
+
+  console.log("@Page: waypoint 0", {law, action, populatedAction, actionVote, statusLaw, statusPowers})
 
   // Helper function to map state numbers to their labels
   const getStateLabel = (state: number | undefined): string => {
@@ -48,6 +50,19 @@ const Page = () => {
       fetchPowers(addressPowers as `0x${string}`)
     }
   }, [addressPowers])
+
+  useEffect(() => {
+     if (statusLaw == "success") {
+      fetchActions(powers as Powers)
+      resetStatus()
+    }
+  }, [statusLaw])
+
+//   useEffect(() => {
+//     if (statusPowers == "success" && action.actionId && law?.conditions?.quorum && Number(law?.conditions?.quorum) > 0) {
+//       fetchVoteData(action, powers as Powers)
+//    }
+//  }, [statusPowers])
  
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       // console.log("Handle Simulate called:", {paramValues, nonce, law})
@@ -194,6 +209,8 @@ const Page = () => {
   }, [law])
 
 
+
+
   useEffect(() => {
     if (errorUseLaw) {
       setError({error: errorUseLaw})
@@ -291,10 +308,10 @@ const Page = () => {
         {/* Voting, Latest Actions section */}
         <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
           {/* Conditional if a law.condition.quorum >0 && action.state != 0 && action.upToDate: show vote and voting */}
-          {Number(law?.conditions?.quorum) > 0 && populatedAction?.state != 0 && populatedAction?.upToDate && (
+          {Number(law?.conditions?.quorum) > 0 && populatedAction?.state != 0 && (
             <>
-              <Voting powers={powers} status={statusLaw} />
-              <Votes actionId={populatedAction?.actionId} action={populatedAction} powers={powers} status={statusLaw} />
+              <Voting powers={powers} status={statusLaw} actionVote={actionVote as ActionVote} />
+              <Votes actionId={populatedAction?.actionId as string} action={populatedAction as Action} powers={powers} status={statusLaw} actionVote={actionVote as ActionVote} />
             </>
           )}
           

@@ -17,14 +17,8 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
 
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
-
-  // Aggregate actions across all laws, skipping those without a defined state
-  const aggregatedActions: Action[] = (powers?.laws || [])
-    .flatMap(law => (law.actions || [])
-      .map(action => ({ ...action }))
-    )
   
-  const actionsWithState: Action[] = aggregatedActions.map(action =>  {
+  const actionsWithState: Action[] = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.map(action =>  {
     if (action?.cancelledAt && action.cancelledAt > 0) {
       return { ...action, state: 2 }
     }
@@ -38,10 +32,8 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
       return { ...action, state: 3 }
     } 
     return { ...action, state: 0 }
-  })
+  }) : []
     // .filter(a => a != undefined && a.state != undefined) as Action[]
-
-  console.log("@ActionsList: waypoint 0", {actionsWithState})
 
   // Fetch timestamps for action blocks
   useEffect(() => {

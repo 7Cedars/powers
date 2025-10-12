@@ -40,8 +40,7 @@ export function UserItem({
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
     if (powers?.laws) {
-      const lawIndex = Number(law.index);
-      const lawExecutions = powers.laws[lawIndex - 1].actions; // Array is 0-indexed, law indices start at 1
+      const lawExecutions = powers.actions && powers.actions?.length > 0 ? powers.actions?.filter(action => action.lawId == law.index) : []
       
       if (lawExecutions) {
         let targetActionId: bigint | null = null;
@@ -151,7 +150,7 @@ export function UserItem({
                 {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      const proposal = powers?.laws?.find(l => l.index === law.index)?.actions?.find(a => BigInt(a.actionId) === actionId);
+                      const proposal = powers?.actions && powers.actions?.length > 0 ? powers.actions?.find(a => BigInt(a.actionId) === actionId) : undefined;
                       const state = proposal?.state;
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { ActionTruncated, Checks, Status } from '../context/types'
+import { Action, Checks, Status } from '../context/types'
 
-type ActionStore = ActionTruncated;
+type ActionStore = Action;
 const initialStateAction: ActionStore = {
   actionId: "0",
   lawId: 0n,

@@ -145,7 +145,8 @@ export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRol
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
       fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
       const actionId = hashAction(selectedLaw.index, lawCalldata, BigInt(action.nonce as string)).toString()
-      const actionData = powers.laws?.flatMap(l => l.actions || [])?.find(a => a.actionId === actionId) as Action | undefined
+      const actionData = powers.actions && powers.actions?.length > 0 ? powers.actions?.find(a => a.actionId === actionId) as Action | undefined
+      : undefined
       
       console.log("@handleSimulate: waypoint 2", {actionData, actionId})
 

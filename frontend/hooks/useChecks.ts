@@ -90,7 +90,7 @@ export const useChecks = () => {
     // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     // console.log("Deadline ActionId:", actionId)
-    const law = powers.ActiveLaws?.find(law => law.index === lawId)
+    const law = powers.laws?.find(law => law.index === lawId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),

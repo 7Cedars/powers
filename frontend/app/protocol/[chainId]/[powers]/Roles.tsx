@@ -20,8 +20,9 @@ export function Roles({powers, status}: RolesProps) {
 
   // Count laws for each role
   const getLawCountForRole = (roleId: bigint) => {
-    if (!powers?.ActiveLaws) return 0;
-    return powers.ActiveLaws.filter(law => law.conditions?.allowedRole === roleId).length;
+    if (!powers?.laws) return 0;
+    const ActiveLaws = powers.laws.filter(law => law.active)
+    return ActiveLaws.filter(law => law.conditions?.allowedRole === roleId).length;
   };
 
   return (
