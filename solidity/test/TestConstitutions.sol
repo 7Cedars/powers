@@ -10,8 +10,8 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 // test setup
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { BaseSetup } from "./TestSetup.t.sol";
-import { LawUtilities } from "../src/LawUtilities.sol";
-import { PowersUtilities } from "../src/PowersUtilities.sol";
+import { LawUtilities } from "../src/libraries/LawUtilities.sol";
+import { Checks } from "../src/libraries/Checks.sol";
 import { DeployMocks } from "../script/DeployMocks.s.sol";
 import { DeployLaws } from "../script/DeployLaws.s.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";

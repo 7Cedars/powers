@@ -25,7 +25,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { FlagActions } from "@mocks/FlagActions.sol";
 
 // import "forge-std/console2.sol"; // only for testing purposes. Comment out for production.
@@ -38,6 +38,7 @@ contract NStrikesRevokesRoles is Law {
         uint256 i;
         uint256 j;
         uint256 flaggedCount;
+        uint256 amountRoleHolders;
     }
 
     struct Data {
@@ -100,16 +101,22 @@ contract NStrikesRevokesRoles is Law {
         }
 
         // Get all current role holders
-        mem.roleHolders = Powers(payable(powers)).getRoleHolders(data[mem.lawHash].roleId);
+        mem.amountRoleHolders = Powers(payable(powers)).getAmountRoleHolders(data[mem.lawHash].roleId);
+        mem.roleHolders = new address[](mem.amountRoleHolders);
+        for (uint256 i = 0; i < mem.amountRoleHolders; i++) {
+            mem.roleHolders[i] = Powers(payable(powers)).getRoleHolderAtIndex(data[mem.lawHash].roleId, i);
+        }
 
         // Set up calls to revoke roles from all holders
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.roleHolders.length);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(mem.amountRoleHolders);
 
-        for (mem.i = 0; mem.i < mem.roleHolders.length; mem.i++) {
+        for (mem.i = 0; mem.i < mem.amountRoleHolders; mem.i++) {
             targets[mem.i] = powers;
             calldatas[mem.i] =
                 abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.roleHolders[mem.i]);
+                mem.i++;
         }
+        mem.i = 0;
 
         return (actionId, targets, values, calldatas);
     }

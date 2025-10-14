@@ -24,7 +24,7 @@
 // import { ILaw } from "../../interfaces/ILaw.sol";
 // import { Powers } from "../../Powers.sol";
 // import { IPowers } from "../../interfaces/IPowers.sol";
-// import { LawUtilities } from "../../LawUtilities.sol";
+// import { LawUtilities } from "../../libraries/LawUtilities.sol";
 // import { Client } from "@chainlink/contracts-ccip/libraries/Client.sol";
 // import { CCIPReceiver } from "@chainlink/contracts-ccip/applications/CCIPReceiver.sol";
 // import { IRouterClient } from "@chainlink/contracts-ccip/interfaces/IRouterClient.sol";

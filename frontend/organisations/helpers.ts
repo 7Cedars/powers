@@ -1,4 +1,6 @@
+
 import { getConstants } from "@/context/constants";
+import deployedLaws from "../../solidity/broadcast/DeployLaws.s.sol/31337/run-latest.json";
 
 /**
  * Common role constants used across organizations
@@ -48,36 +50,27 @@ export const createConditions = (params: CreateConditionsParams): LawConditions 
   needNotFulfilled: params.needNotFulfilled ?? 0n
 });
 
-/**
- * Get a law contract address by its name
- * @param lawName - Name of the law (e.g., "OpenAction", "StatementOfIntent")
- * @param chainId - Chain ID
- * @returns The address of the law contract
- * @throws Error if law not found
- */
-export const getLawAddress = (lawName: string, chainId: number): `0x${string}` => {
-  const constants = getConstants(chainId);
-  const address = constants.LAW_ADDRESSES[constants.LAW_NAMES.indexOf(lawName)];
-  if (!address) {
-    throw new Error(`Law address not found for: ${lawName}`);
-  }
-  return address;
-};
+export const getLawAddress = (name: string, chainId: number): `0x${string}` => {
 
-/**
- * Get a mock contract address by its name
- * @param mockName - Name of the mock contract
- * @param chainId - Chain ID
- * @returns The address of the mock contract
- * @throws Error if mock not found
- */
-export const getMockAddress = (mockName: string, chainId: number): `0x${string}` => {
-  const constants = getConstants(chainId);
-  const address = constants.MOCK_ADDRESSES[constants.MOCK_NAMES.indexOf(mockName)];
-  if (!address) {
-    throw new Error(`Mock address not found for: ${mockName}`);
+  const namesValue: string = deployedLaws.returns.names.value
+  const addressesValue: string = deployedLaws.returns.addresses.value
+  const namesClean = namesValue.replace('[', '').replace(']', '');
+  const addressesClean = addressesValue.replace('[', '').replace(']', '');
+
+  console.log({namesClean});
+  console.log({addressesClean});
+
+  const names: string[] = namesClean.split(",").map((name: string) => name.trim());
+  console.log({names});
+  const addresses: string[] = addressesClean.split(",").map((address: string) => address.trim());
+  console.log({addresses});
+
+  const index = names.indexOf(name);
+  if (index === -1) {
+    console.log(`Law not found for: ${name}`);
   }
-  return address;
+  return addresses[index] as `0x${string}`;
+
 };
 
 /**

@@ -9,7 +9,7 @@ import { GovernorExecuteProposal } from "../../../src/laws/executive/GovernorExe
 import { AdoptLaws } from "../../../src/laws/executive/AdoptLaws.sol";
 import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";

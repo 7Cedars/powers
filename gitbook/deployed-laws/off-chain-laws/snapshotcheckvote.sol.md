@@ -1,3 +1,0 @@
-# SnapshotCheckVote.sol
-
-🚧 **Coming soon.** 🚧

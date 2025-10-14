@@ -56,7 +56,7 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
 
   console.log("@Fulfilled, powers", powers)
 
-  const allActions = powers.actions && powers.actions?.length > 0 ? powers.actions : []
+  const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions) : []
   const displayedItems = allActions.slice(0, itemsToShow)
   const hasMoreItems = allActions.length > itemsToShow
 
@@ -72,8 +72,8 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
     setActionData(null)
 
     try {
-      const allActions = powers.actions && powers.actions?.length > 0 ? powers.actions : []
-      const completeAction = allActions?.find(a => a.actionId === action.actionId)
+      const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions) : []
+      const completeAction = allActions.find(a => a?.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
         // Set the action in the store so StaticForm can access it

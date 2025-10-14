@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Status, Powers } from "@/context/types";
 import { parseChainId } from "@/utils/parsers";
 import { powersAbi } from "@/context/abi";
-import { readContract } from "wagmi/actions";
+import { readContracts } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useChains } from "wagmi";
@@ -27,17 +27,50 @@ export function MemberList({powers, roleId}: {powers: Powers | undefined, roleId
 
       if (powers) {
         try {
-          const result = await readContract(wagmiConfig, {
+          // First, get the amount of role holders
+          const [amountResult] = await readContracts(wagmiConfig, {
+            contracts: [{
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getAmountRoleHolders',
+              args: [roleId],
+              chainId: parseChainId(chainId)
+            }]
+          })
+          
+          if (amountResult.status !== 'success') {
+            throw new Error('Failed to get amount of role holders')
+          }
+          
+          const amount = Number(amountResult.result)
+          console.log("@fetchRoleHolders amount: ", {amount})
+          
+          if (amount === 0) {
+            setMembers([])
+            setStatus("success")
+            return
+          }
+          
+          // Build array of contract calls for all members
+          const memberContracts = Array.from({ length: amount }, (_, i) => ({
             abi: powersAbi,
             address: powers.contractAddress as `0x${string}`,
-            functionName: 'getRoleHolders',
-            args: [roleId],
+            functionName: 'getRoleHolderAtIndex' as const,
+            args: [roleId, BigInt(i)],
             chainId: parseChainId(chainId)
+          }))
+          
+          // Fetch all members in parallel
+          const results = await readContracts(wagmiConfig, {
+            contracts: memberContracts
           })
-          console.log("@fetchRoleHolders: ", {result})
-
-          const membersParsed = result as `0x${string}`[]
-          setMembers(membersParsed)
+          
+          const fetchedMembers: `0x${string}`[] = results
+            .filter(result => result.status === 'success')
+            .map(result => result.result as `0x${string}`)
+          
+          console.log("@fetchRoleHolders members: ", {fetchedMembers})
+          setMembers(fetchedMembers)
           setStatus("success")
         } catch (error) {
           setStatus("error") 

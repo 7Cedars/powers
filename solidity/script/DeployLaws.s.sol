@@ -31,7 +31,7 @@ import { VoteInOpenElection } from "../src/laws/electoral/VoteInOpenElection.sol
 import { NStrikesRevokesRoles } from "../src/laws/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
 import { BuyAccess } from "../src/laws/electoral/BuyAccess.sol";
-import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
+import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol"; 
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 

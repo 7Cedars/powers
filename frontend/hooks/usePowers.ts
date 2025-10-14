@@ -348,113 +348,231 @@ export const usePowers = () => {
     setStatus("pending")
     let powersUpdated: Powers | undefined;
     const laws = powers.laws || []
-    const existingActions = powers.actions || []
-    const staleActions = existingActions.filter((action) => action.state == 2 || action.state == 4 || action.state == 7)
- 
-    console.log("@fetchActions, waypoint 0", { staleCount: staleActions.length, totalExisting: existingActions.length })
+    const activeLaws = laws.filter((law) => law.active)
+
+    console.log("@fetchActions, waypoint 0", { totalLaws: laws.length, activeLaws: activeLaws.length })
 
     try {
-      // 1) Fetch all actionIds per law via multicall to Powers.getLawActions
-      const lawIds = laws.map((l) => l.index)
-      const lawActionsResults = await readContracts(wagmiConfig, {
+      // Step 1 & 2: Per law, fetch saved actions and identify stale actions with their indices
+      const staleActionsByLaw = new Map<string, Set<number>>() // lawId -> Set of stale indices
+      
+      activeLaws.forEach((law) => {
+        const savedActions = law.actions || []
+        const staleIndices = new Set<number>()
+        
+        savedActions.forEach((action, index) => {
+          // State 2, 4, or 7 are stale (Defeated, Fulfilled, or NonExistent)
+          if (action.state === 2 || action.state === 4 || action.state === 7) {
+            staleIndices.add(index)
+          }
+        })
+        
+        if (staleIndices.size > 0) {
+          staleActionsByLaw.set(law.index.toString(), staleIndices)
+          console.log(`@fetchActions, law ${law.index}: ${staleIndices.size} stale actions at indices:`, Array.from(staleIndices))
+        }
+      })
+
+      // Step 3: Fetch getQuantityLawActions for each active law
+      const actionQuantities = await readContracts(wagmiConfig, {
         allowFailure: false,
-        contracts: lawIds.map((id) => ({
+        contracts: activeLaws.map((law) => ({
           abi: powersAbi,
           address: powers.contractAddress as `0x${string}`,
-          functionName: 'getLawActions' as const,
-          args: [id],
+          functionName: 'getQuantityLawActions' as const,
+          args: [law.index],
           chainId: parseChainId(chainId)
         }))
-      }) as Array<bigint[]>
+      }) as Array<bigint>
 
-      console.log("@fetchActions, waypoint 1", { lawActionsResults })
+      console.log("@fetchActions, waypoint 1", { actionQuantities })
 
-      const allActionIds: bigint[] = lawActionsResults.flat()
-      const actionIdToLawId = new Map<string, bigint>()
-      lawActionsResults.forEach((law, index) => {
-        law.forEach((action) => {
-          actionIdToLawId.set(action.toString(), BigInt(index + 1))
-        })
+      // Step 4: Create list of indices to fetch per law (excluding stale actions)
+      type FetchRequest = {
+        lawId: bigint
+        lawIndex: number
+        actionIndex: number
+      }
+      
+      const fetchRequests: FetchRequest[] = []
+      
+      actionQuantities.forEach((quantity, lawIndex) => {
+        const law = activeLaws[lawIndex]
+        const lawId = law.index
+        const staleIndices = staleActionsByLaw.get(lawId.toString()) || new Set()
+        
+        // Create array from 0 to quantity - 1, excluding stale indices
+        for (let i = 0; i < Number(quantity); i++) {
+          if (!staleIndices.has(i)) {
+            fetchRequests.push({
+              lawId,
+              lawIndex,
+              actionIndex: i
+            })
+          }
+        }
       })
-      console.log("@fetchActions, waypoint 2", { actionIdToLawId })
-      const actionIdsToFetch: bigint[] = allActionIds.filter((actionId) => !staleActions.some((staleAction) => staleAction.actionId === actionId.toString()))
-      console.log("@fetchActions, waypoint 2", { allActionIds, actionIdsToFetch })
 
-      // Early exit if no actions
-      if (actionIdsToFetch.length === 0) {
+      console.log("@fetchActions, waypoint 2", { totalFetchRequests: fetchRequests.length })
+
+      // Early exit if no actions to fetch
+      if (fetchRequests.length === 0) {
         setStatus("success")
         return powers
       }
 
-      // 2) Fetch actionData and actionState only for non-stale actions
-      const [actionDataResults, actionStateResults] = await Promise.all([
+      // Step 5: Combine into one large array for readContracts
+      // Note that this code is super inefficient. - AI created. TODO: Optimize.
+      const [actionIdResults, actionDataResults, actionStateResults] = await Promise.all([
+        // Fetch actionIds
         readContracts(wagmiConfig, {
           allowFailure: false,
-          contracts: actionIdsToFetch.map((aid) => ({
+          contracts: fetchRequests.map((req) => ({
             abi: powersAbi,
             address: powers.contractAddress as `0x${string}`,
-            functionName: 'getActionData' as const,
-            args: [aid],
+            functionName: 'getLawActionAtIndex' as const,
+            args: [req.lawId, BigInt(req.actionIndex)],
             chainId: parseChainId(chainId)
           }))
-        }) as Promise<Array<[
-          number,
-          bigint,
-          bigint,
-          bigint,
-          bigint,
-          `0x${string}`,
-          bigint
-        ]>>,
+        }) as Promise<Array<bigint>>,
+        
+        // Fetch actionData (will use actionIds from first call)
         readContracts(wagmiConfig, {
           allowFailure: false,
-          contracts: actionIdsToFetch.map((aid) => ({
+          contracts: fetchRequests.map((req) => ({
             abi: powersAbi,
             address: powers.contractAddress as `0x${string}`,
-            functionName: 'getActionState' as const,
-            args: [aid],
+            functionName: 'getLawActionAtIndex' as const,
+            args: [req.lawId, BigInt(req.actionIndex)],
             chainId: parseChainId(chainId)
           }))
-        }) as Promise<Array<number>>
+        }).then(async (actionIds) => {
+          return readContracts(wagmiConfig, {
+            allowFailure: false,
+            contracts: (actionIds as Array<bigint>).map((aid) => ({
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionData' as const,
+              args: [aid],
+              chainId: parseChainId(chainId)
+            }))
+          }) as Promise<Array<[
+            number,
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+            `0x${string}`,
+            bigint
+          ]>>
+        }),
+        
+        // Fetch actionState
+        readContracts(wagmiConfig, {
+          allowFailure: false,
+          contracts: fetchRequests.map((req) => ({
+            abi: powersAbi,
+            address: powers.contractAddress as `0x${string}`,
+            functionName: 'getLawActionAtIndex' as const,
+            args: [req.lawId, BigInt(req.actionIndex)],
+            chainId: parseChainId(chainId)
+          }))
+        }).then(async (actionIds) => {
+          return readContracts(wagmiConfig, {
+            allowFailure: false,
+            contracts: (actionIds as Array<bigint>).map((aid) => ({
+              abi: powersAbi,
+              address: powers.contractAddress as `0x${string}`,
+              functionName: 'getActionState' as const,
+              args: [aid],
+              chainId: parseChainId(chainId)
+            }))
+          }) as Promise<Array<number>>
+        })
       ])
 
-      console.log("@fetchActions, waypoint 3", { actionDataResults, actionStateResults })
+      console.log("@fetchActions, waypoint 3", { actionIdResults, actionDataResults, actionStateResults })
 
-    // 3) Build Action objects for newly fetched actions
-      const fetchedActions = actionDataResults.map((tuple, idx) => {
-        const actionId = actionIdsToFetch[idx]
-        const fromTuple = tuple
-        const returnedLawId = BigInt(fromTuple[0])
-        const mappedLawId = actionIdToLawId.get(actionId.toString()) ?? returnedLawId
-
+      // Step 6: Recreate proper action objects
+      const fetchedActionsByLaw = new Map<string, Action[]>()
+      
+      fetchRequests.forEach((req, idx) => {
+        const actionId = actionIdResults[idx]
+        const tuple = actionDataResults[idx]
+        const state = actionStateResults[idx]
+        
         const action: Action = {
           actionId: String(actionId),
-          lawId: mappedLawId,
-          caller: fromTuple[5],
-          nonce: String(fromTuple[6]),
-          proposedAt: fromTuple[1],
-          requestedAt: fromTuple[2],
-          fulfilledAt: fromTuple[3],
-          cancelledAt: fromTuple[4],
-          state: actionStateResults[idx]
+          lawId: req.lawId,
+          caller: tuple[5],
+          nonce: String(tuple[6]),
+          proposedAt: tuple[1],
+          requestedAt: tuple[2],
+          fulfilledAt: tuple[3],
+          cancelledAt: tuple[4],
+          state: state
         }
-          
-        return action
+        
+        const lawKey = req.lawId.toString()
+        if (!fetchedActionsByLaw.has(lawKey)) {
+          fetchedActionsByLaw.set(lawKey, [])
+        }
+        fetchedActionsByLaw.get(lawKey)!.push({ ...action, index: req.actionIndex } as any)
       })
 
-      console.log("@fetchActions, waypoint 4", { fetchedActions })
-      const updatedActions = [...staleActions, ...fetchedActions]
+      console.log("@fetchActions, waypoint 4", { fetchedActionsByLaw })
 
-      powersUpdated = { ...powers, actions: updatedActions }
+      // Step 7: Merge arrays of actions per law, correctly along their indices
+      const updatedLaws = activeLaws.map((law, lawIndex) => {
+        const quantity = Number(actionQuantities[lawIndex])
+        const savedActions = law.actions || []
+        const fetchedActions = fetchedActionsByLaw.get(law.index.toString()) || []
+        
+        // Create array with correct length, filling in stale and fetched actions by index
+        const mergedActions: Action[] = new Array(quantity)
+        
+        // First, place stale actions at their indices
+        savedActions.forEach((action, index) => {
+          if (action.state === 2 || action.state === 4 || action.state === 7) {
+            mergedActions[index] = action
+          }
+        })
+        
+        // Then, place fetched actions at their indices
+        fetchedActions.forEach((actionWithIndex: any) => {
+          const { index, ...action } = actionWithIndex
+          mergedActions[index] = action
+        })
+        
+        // Filter out any undefined entries (shouldn't happen, but just in case)
+        const finalActions = mergedActions.filter(a => a !== undefined)
+        
+        console.log(`@fetchActions, law ${law.index}: merged ${finalActions.length} actions`)
+        
+        return {
+          ...law,
+          actions: finalActions
+        }
+      })
+
+      // Also include inactive laws unchanged
+      const inactiveLaws = laws.filter((law) => !law.active)
+      const allUpdatedLaws = [...updatedLaws, ...inactiveLaws]
+
+      console.log("@fetchActions, waypoint 5", { updatedLaws: allUpdatedLaws.length })
+
+      // Step 8: Update and save powers
+      powersUpdated = { ...powers, laws: allUpdatedLaws }
       setPowers(powersUpdated)
       powersUpdated && savePowers(powersUpdated)
       setStatus("success")
       return powersUpdated
-      } catch (error) {
-        setStatus("error")
-        setError(error as Error)
-        return powers
-      }
+    } catch (error) {
+      console.log("@fetchActions, error", error)
+      setStatus("error")
+      setError(error as Error)
+      return powers
+    }
   }
 
   const fetchPowers = useCallback(

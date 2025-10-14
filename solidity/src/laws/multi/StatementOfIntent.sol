@@ -23,7 +23,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 
 contract StatementOfIntent is Law {
     /// @notice Constructor function for StatementOfIntent law

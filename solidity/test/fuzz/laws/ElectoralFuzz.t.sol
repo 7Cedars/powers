@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";

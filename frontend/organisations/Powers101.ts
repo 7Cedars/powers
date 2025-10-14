@@ -1,5 +1,5 @@
 import { Organization } from "./types";
-import { powersAbi, erc20TaxedAbi, erc20VotesAbi } from "@/context/abi";
+import { powersAbi } from "@/context/abi";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
 import { getLawAddress, getMockAddress, minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
 import { LawInitData } from "./types";
@@ -30,7 +30,7 @@ export const Powers101: Organization = {
 
   fields: [],
 
-  createLawInitData: (powersAddress: `0x${string}`, formData: Record<string, any>, chainId: number): LawInitData[] => {
+  createLawInitData: (powersAddress: `0x${string}`, chainId: number): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
 
     //////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ export const Powers101: Organization = {
 
     lawInitData.push({
       nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws and mints tokens. Press the refresh button to see the new labels.",
-      targetLaw: getLawAddress("PresetAction", chainId),
+      targetLaw: getLawAddress("PresetAction"),
       config: encodeAbiParameters(
         [
           { name: 'targets', type: 'address[]' },
@@ -49,12 +49,10 @@ export const Powers101: Organization = {
         [
           [
             powersAddress, 
-            powersAddress, 
-            getMockAddress("Erc20TaxedMock", chainId), 
-            getMockAddress("Erc20VotesMock", chainId), 
+            powersAddress,  
             powersAddress
           ],
-          [0n, 0n, 0n, 0n, 0n],
+          [0n, 0n, 0n],
           [
             encodeFunctionData({
               abi: powersAbi,
@@ -65,16 +63,6 @@ export const Powers101: Organization = {
               abi: powersAbi,
               functionName: "labelRole",  
               args: [2n, "Delegates"]
-            }),
-            encodeFunctionData({
-              abi: erc20TaxedAbi,
-              functionName: "faucet",
-              args: []
-            }),
-            encodeFunctionData({
-              abi: erc20VotesAbi,
-              functionName: "mintVotes",
-              args: [2500000000000000000n]
             }),
             encodeFunctionData({
               abi: powersAbi,
@@ -101,7 +89,7 @@ export const Powers101: Organization = {
     // Law 2: Statement of Intent
     lawInitData.push({
       nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent"),
       config: statementOfIntentConfig,
       conditions: createConditions({
         allowedRole: 1n,
@@ -114,7 +102,7 @@ export const Powers101: Organization = {
     // Law 3: Veto an action
     lawInitData.push({
       nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent"),
       config: statementOfIntentConfig,
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
@@ -125,7 +113,7 @@ export const Powers101: Organization = {
     // Law 4: Execute an action
     lawInitData.push({
       nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
-      targetLaw: getLawAddress("OpenAction", chainId),
+      targetLaw: getLawAddress("OpenAction"),
       config: "0x",
       conditions: createConditions({
         allowedRole: 2n,
@@ -145,7 +133,7 @@ export const Powers101: Organization = {
     // Law 5: Nominate me for delegate
     lawInitData.push({
       nameDescription: "Nominate oneself for any role.",
-      targetLaw: getLawAddress("NominateMe", chainId),
+      targetLaw: getLawAddress("NominateMe"),
       config: "0x",
       conditions: createConditions({
         allowedRole: 1n
@@ -155,7 +143,7 @@ export const Powers101: Organization = {
     // Law 6: Call election for delegate role
     lawInitData.push({
       nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
-      targetLaw: getLawAddress("ElectionStart", chainId),
+      targetLaw: getLawAddress("ElectionStart"),
       config: encodeAbiParameters(
         [
           { name: 'ElectionList', type: 'address' },
@@ -164,8 +152,8 @@ export const Powers101: Organization = {
           { name: 'maxToElect', type: 'uint32' }
         ],
         [ 
-          getLawAddress("ElectionList", chainId), 
-          getLawAddress("ElectionTally", chainId),
+          getLawAddress("ElectionList"), 
+          getLawAddress("ElectionSelect"),
           2,
           5
         ]
@@ -178,7 +166,7 @@ export const Powers101: Organization = {
     // Law 7: Self select as community member
     lawInitData.push({
       nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
-      targetLaw: getLawAddress("SelfSelect", chainId),
+      targetLaw: getLawAddress("SelfSelect"),
       config: encodeAbiParameters(
         [{ name: 'roleId', type: 'uint256' }],
         [1n]

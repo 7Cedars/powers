@@ -29,7 +29,7 @@
 pragma solidity 0.8.26;
 
 import { IPowers } from "./interfaces/IPowers.sol";
-import { LawUtilities } from "./LawUtilities.sol";
+import { LawUtilities } from "./libraries/LawUtilities.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { ERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
 import { IERC165 } from "../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";

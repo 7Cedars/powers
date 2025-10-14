@@ -40,7 +40,7 @@ export function UserItem({
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
     if (powers?.laws) {
-      const lawExecutions = powers.actions && powers.actions?.length > 0 ? powers.actions?.filter(action => action.lawId == law.index) : []
+      const lawExecutions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(action => action?.lawId == law.index) : []
       
       if (lawExecutions) {
         let targetActionId: bigint | null = null;
@@ -52,9 +52,9 @@ export function UserItem({
         
         if (targetActionId) {
           // Find the specific action in the executions
-          const actionIndex = lawExecutions.findIndex(action => BigInt(action.actionId) === targetActionId);
+          const actionIndex = lawExecutions.findIndex(action => BigInt(action?.actionId as string) === targetActionId);
           if (actionIndex !== -1) {
-            const executedAt = lawExecutions[actionIndex].fulfilledAt;
+            const executedAt = lawExecutions[actionIndex]?.fulfilledAt;
             if (executedAt) {
               setExecutionData({
                 actionId: targetActionId,
@@ -150,7 +150,7 @@ export function UserItem({
                 {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      const proposal = powers?.actions && powers.actions?.length > 0 ? powers.actions?.find(a => BigInt(a.actionId) === actionId) : undefined;
+                      const proposal = powers?.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
                       const state = proposal?.state;
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       

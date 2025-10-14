@@ -1,3 +1,0 @@
-# GovernorExecuteProposal.sol
-
-🚧 **Coming soon.** 🚧

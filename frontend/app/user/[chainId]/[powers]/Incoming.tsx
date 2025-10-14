@@ -38,7 +38,7 @@ const getEnabledActions = async (
 ): Promise<Action[]> => {
   const enabledActions: Action[] = []
   
-  if (!powers.laws || !powers.actions) {
+  if (!powers.laws || !powers.laws.flatMap(l => l.actions)) {
     return enabledActions
   }
 
@@ -64,9 +64,9 @@ const getEnabledActions = async (
     }
     
     // Step 6: Fetch all actions from this needFulfilled law, filter by status = fulfilled
-    const fulfilledActions = powers.actions.filter(action => 
-      action.lawId === needFulfilledLaw.index &&
-      (action.state === 7 || (action.fulfilledAt && action.fulfilledAt > 0n))
+    const fulfilledActions = powers.laws.flatMap(l => l.actions).filter(action => 
+      action?.lawId === needFulfilledLaw.index &&
+      (action?.state === 7 || (action?.fulfilledAt && action?.fulfilledAt > 0n))
     )
     
     // Step 7: If the list is longer than 0
@@ -77,7 +77,7 @@ const getEnabledActions = async (
     for (const fulfilledAction of fulfilledActions) {
       try {
         // Ensure we have complete action data
-        const completeAction = powers.actions?.find(a => a.actionId === fulfilledAction.actionId)
+        const completeAction = powers.laws.flatMap(l => l.actions).find(a => a?.actionId === fulfilledAction?.actionId)
         if (!completeAction || !completeAction.callData || !completeAction.nonce) {
           continue
         }
@@ -90,13 +90,13 @@ const getEnabledActions = async (
         )
         
         // Check if this action has been fulfilled in the current law
-        const existingAction = powers.actions?.find(action => 
-          action.lawId === law.index &&
-          action.actionId === calculatedActionId.toString()
+        const existingAction = powers.laws.flatMap(l => l.actions).find(action => 
+          action?.lawId === law.index &&
+          action?.actionId === calculatedActionId.toString()
         )
         
         // If the action is already fulfilled, skip it
-        if (existingAction && (existingAction.state === 7 || (existingAction.fulfilledAt && existingAction.fulfilledAt > 0n))) {
+        if (existingAction && (existingAction?.state === 7 || (existingAction?.fulfilledAt && existingAction?.fulfilledAt > 0n))) {
           continue
         }
         
@@ -115,10 +115,10 @@ const getEnabledActions = async (
             )
             
             // Check if this action is fulfilled in the needNotFulfilled law
-            const blockedAction = powers.actions?.find(action => 
-              action.lawId === needNotFulfilledLaw.index &&
-              action.actionId === needNotFulfilledActionId.toString() &&
-              (action.state === 7 || (action.fulfilledAt && action.fulfilledAt > 0n))
+            const blockedAction = powers.laws.flatMap(l => l.actions).find(action => 
+              action?.lawId === needNotFulfilledLaw.index &&
+              action?.actionId === needNotFulfilledActionId.toString() &&
+              (action?.state === 7 || (action?.fulfilledAt && action?.fulfilledAt > 0n))
             )
             
             // If the blocking action is fulfilled, skip this enabled action
@@ -233,7 +233,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
   useEffect(() => {
     const fetchIncomingActions = async () => {
       // console.log("@fetchIncomingActions, waypoint 0", {powers, hasRoles})
-      if (!powers || !powers.laws || !powers.actions || hasRoles.length === 0) {
+      if (!powers || !powers.laws || !powers.laws.flatMap(l => l.actions) || hasRoles.length === 0) {
         setProposedActions([])
         setEnabledActions([])
         return
@@ -250,21 +250,21 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
         )
         // console.log("@fetchIncomingActions, waypoint 3", {userLaws})
         const userLawIds = userLaws.map(law => law.index)
-        const allUserActions = powers.actions.filter(action => 
-          userLawIds.includes(action.lawId)
-        )
+        const allUserActions = powers.laws.flatMap(l => l.actions).filter(action => 
+          userLawIds.includes(action?.lawId as bigint)
+        ) as Action[]
         // console.log("@fetchIncomingActions, waypoint 4", {allUserActions})
         // Step 2 & 3: Fetch their status and filter for proposed actions (Active or Succeeded)
         const proposedActionsList: Action[] = []
         for (const action of allUserActions) {
           try {
-            const completeAction = powers.actions?.find(a => a.actionId === action.actionId)
-            if (completeAction && (completeAction.state === 3)) {
+            const completeAction = powers.laws.flatMap(l => l.actions).find(a => a?.actionId === action?.actionId)
+            if (completeAction && (completeAction?.state === 3)) {
               proposedActionsList.push(completeAction)
             }
             console.log("@fetchIncomingActions, waypoint 5", {completeAction})
           } catch (error) {
-            console.error("Error fetching action state:", error)
+            console.error("Error fetching action state:", error)  
           }
         }
         // console.log("@fetchIncomingActions, waypoint 5", {proposedActionsList})
@@ -303,7 +303,7 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
     
     try {
       // Fetch complete action data
-      const completeAction = powers.actions?.find(a => a.actionId === action.actionId)
+      const completeAction = powers.laws?.flatMap(l => l.actions).find(a => a?.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
         setAction(completeAction)

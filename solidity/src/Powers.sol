@@ -40,7 +40,7 @@ pragma solidity 0.8.26;
 import { Law } from "./Law.sol";
 import { ILaw } from "./interfaces/ILaw.sol";
 import { IPowers } from "./interfaces/IPowers.sol";
-import { PowersUtilities } from "./PowersUtilities.sol";
+import { Checks } from "./libraries/Checks.sol";
 import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165Checker.sol";
 import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 import { EIP712 } from "../lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
@@ -129,11 +129,10 @@ contract Powers is EIP712, IPowers {
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
         payable
-        virtual
         onlyAdoptedLaw(lawId)
         returns (uint256 actionId)
     {
-        actionId = _hashAction(lawId, lawCalldata, nonce);
+        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
         AdoptedLaw memory law = laws[lawId];
 
         // check 0 is calldata length is too long
@@ -152,7 +151,7 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
         // check 5: do checks pass?
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
+        Checks.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
 
         // if not registered yet, register actionId at law.
         if (_actions[actionId].lawId == 0) laws[lawId].actionIds.push(actionId);
@@ -183,7 +182,7 @@ contract Powers is EIP712, IPowers {
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas
-    ) external payable virtual onlyAdoptedLaw(lawId) {
+    ) external payable onlyAdoptedLaw(lawId) {
         AdoptedLaw memory law = laws[lawId];
 
         // check 1: is law active?
@@ -229,7 +228,6 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
-        virtual
         onlyAdoptedLaw(lawId)
         returns (uint256 actionId)
     {
@@ -265,7 +263,7 @@ contract Powers is EIP712, IPowers {
     {
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
         Conditions memory conditions = getConditions(lawId);
-        actionId = _hashAction(lawId, lawCalldata, nonce);
+        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
 
         // check 1: does target law need proposedAction vote to pass?
         if (conditions.quorum == 0) revert Powers__NoVoteNeeded();
@@ -274,7 +272,7 @@ contract Powers is EIP712, IPowers {
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
 
         // check 3: do proposedAction checks of the law pass?
-        PowersUtilities.checksAtPropose(lawId, lawCalldata, address(this), nonce);
+        Checks.checksAtPropose(lawId, lawCalldata, address(this), nonce);
 
         // register actionId at law.
         laws[lawId].actionIds.push(actionId);
@@ -306,12 +304,11 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     /// @dev the account to cancel must be the account that created the proposedAction.
     function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
-        public
-        virtual
+        external
         onlyAdoptedLaw(lawId)
         returns (uint256)
     {
-        uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
+        uint256 actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
 
         // check: is caller the caller of the proposedAction?
         if (msg.sender != _actions[actionId].caller) revert Powers__NotProposerAction();
@@ -323,7 +320,7 @@ contract Powers is EIP712, IPowers {
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
     function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal virtual returns (uint256) {
-        uint256 actionId = _hashAction(lawId, lawCalldata, nonce);
+        uint256 actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
 
         // check 1: does action exist?
         if (_actions[actionId].proposedAt == 0) revert Powers__ActionNotProposed();
@@ -343,12 +340,12 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function castVote(uint256 actionId, uint8 support) external virtual {
+    function castVote(uint256 actionId, uint8 support) external {
         return _castVote(actionId, msg.sender, support, "");
     }
 
     /// @inheritdoc IPowers
-    function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) public virtual {
+    function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) external {
         return _castVote(actionId, msg.sender, support, reason);
     }
 
@@ -379,7 +376,7 @@ contract Powers is EIP712, IPowers {
     //                  ROLE AND LAW ADMIN                      //
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
-    function constitute(LawInitData[] memory constituentLaws) external virtual {
+    function constitute(LawInitData[] memory constituentLaws) external {
         // check 1: only admin can call this function
         if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__NotAdmin();
 
@@ -399,14 +396,14 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function adoptLaw(LawInitData memory lawInitData) public onlyPowers returns (uint256 lawId) {
+    function adoptLaw(LawInitData memory lawInitData) external onlyPowers returns (uint256 lawId) {
         lawId = _adoptLaw(lawInitData);
 
         return lawId;
     }
 
     /// @inheritdoc IPowers
-    function revokeLaw(uint16 lawId) public onlyPowers {
+    function revokeLaw(uint16 lawId) external onlyPowers {
         if (laws[lawId].active == false) revert Powers__LawNotActive();
 
         laws[lawId].active = false;
@@ -447,19 +444,19 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function assignRole(uint256 roleId, address account) public onlyPowers {
+    function assignRole(uint256 roleId, address account) external onlyPowers {
         if (isBlacklisted(account)) revert Powers__AddressBlacklisted();
 
         _setRole(roleId, account, true);
     }
 
     /// @inheritdoc IPowers
-    function revokeRole(uint256 roleId, address account) public onlyPowers {
+    function revokeRole(uint256 roleId, address account) external onlyPowers {
         _setRole(roleId, account, false);
     }
 
     /// @inheritdoc IPowers
-    function labelRole(uint256 roleId, string memory label) public virtual onlyPowers {
+    function labelRole(uint256 roleId, string memory label) external onlyPowers {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) revert Powers__LockedRole();
         if (bytes(label).length == 0) revert Powers__InvalidLabel();
         if (bytes(label).length > 255) revert Powers__LabelTooLong();
@@ -505,33 +502,24 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function blacklistAddress(address account, bool blacklisted) public virtual onlyPowers {
+    function blacklistAddress(address account, bool blacklisted) public onlyPowers {
         _blacklist[account] = blacklisted;
         emit BlacklistSet(account, blacklisted);
     }
 
     /// @inheritdoc IPowers
-    function setPayableEnabled(bool payableEnabled_) public virtual onlyPowers {
+    function setPayableEnabled(bool payableEnabled_) public onlyPowers {
         payableEnabled = payableEnabled_;
     }
 
     /// @inheritdoc IPowers
-    function setUri(string memory newUri) public virtual onlyPowers {
+    function setUri(string memory newUri) public onlyPowers {
         uri = newUri;
     }
 
     //////////////////////////////////////////////////////////////
     //                     HELPER FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
-    function _hashAction(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
-        return uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
-    }
-
     /// @notice internal function {quorumReached} that checks if the quorum for a given proposedAction has been reached.
     ///
     /// @param actionId id of the proposedAction.
@@ -638,15 +626,11 @@ contract Powers is EIP712, IPowers {
         return roles[roleId].membersArray.length;
     }
 
-    function getRoleHolders(uint256 roleId) public view returns (address[] memory members) {
-        members = new address[](roles[roleId].membersArray.length);
-        if (roles[roleId].membersArray.length == 0) {
-            return new address[](0);
+    function getRoleHolderAtIndex(uint256 roleId, uint256 index) public view returns (address account) {
+        if (index >= getAmountRoleHolders(roleId)) {
+            revert Powers__InvalidIndex();
         }
-        for (uint256 i = 0; i < roles[roleId].membersArray.length; i++) {
-            members[i] = roles[roleId].membersArray[i].account;
-        }
-        return members;
+        return roles[roleId].membersArray[index].account;
     }
 
     function getRoleLabel(uint256 roleId) public view returns (string memory label) {
@@ -763,8 +747,16 @@ contract Powers is EIP712, IPowers {
     }
 
     /// @inheritdoc IPowers
-    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds) {
-        return laws[lawId].actionIds;
+    function getQuantityLawActions(uint16 lawId) external view returns (uint256 quantityLawActions) {
+        return laws[lawId].actionIds.length;
+    }
+
+    /// @inheritdoc IPowers
+    function getLawActionAtIndex(uint16 lawId, uint256 index) external view returns (uint256 actionId) {
+        if (index >= laws[lawId].actionIds.length) {
+            revert Powers__InvalidIndex();
+        }
+        return laws[lawId].actionIds[index];
     }
 
     /// @inheritdoc IPowers

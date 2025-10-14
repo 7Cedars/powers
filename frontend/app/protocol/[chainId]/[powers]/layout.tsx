@@ -8,7 +8,6 @@ import { PowersOverview } from '@/components/PowersOverview'
 import { useParams } from 'next/navigation'
 import { LoadingBox } from '@/components/LoadingBox'
 import { ProtocolNavigation } from '@/components/ProtocolNavigation'
-import { Powers } from '@/context/types'
 import { useActionStore } from '@/context/store'
 
 interface FlowLayoutProps {

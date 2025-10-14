@@ -10,7 +10,7 @@ import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.s
 import { PresetMultipleActions } from "../../../src/laws/multi/PresetMultipleActions.sol";
 import { BespokeActionAdvanced } from "../../../src/laws/multi/BespokeActionAdvanced.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 /// @title Multi Law Fuzz Tests

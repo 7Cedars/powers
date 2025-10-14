@@ -2,7 +2,7 @@ import { Organization } from "./types";
 import { LawInitData } from "./types";
 import { powersAbi } from "@/context/abi";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
-import { getLawAddress, getMockAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
+import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
 
 /**
  * Power Base Organization
@@ -30,7 +30,7 @@ export const PowerBase: Organization = {
 
   fields: [],
 
-  createLawInitData: (powersAddress: `0x${string}`, formData: Record<string, any>, chainId: number): LawInitData[] => {
+  createLawInitData: (powersAddress: `0x${string}`, chainId: number): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
     
     // Define roles
@@ -145,188 +145,188 @@ export const PowerBase: Organization = {
     });
 
     // Laws 6-8: Set Budgets (Admin executes after proposal passes and veto doesn't)
-    const grantAddresses = [
-      getMockAddress("DocsGrant", chainId),
-      getMockAddress("FrontendGrant", chainId),
-      getMockAddress("ProtocolGrant", chainId)
-    ];
+    // const grantAddresses = [
+    //   getMockAddress("DocsGrant", chainId),
+    //   getMockAddress("FrontendGrant", chainId),
+    //   getMockAddress("ProtocolGrant", chainId)
+    // ];
     
-    const budgetLawNames = ["Documentation", "Frontend", "Protocol"];
+    // const budgetLawNames = ["Documentation", "Frontend", "Protocol"];
     
-    grantAddresses.forEach((grantAddress, index) => {
-      const needFulfilledLawId = BigInt(2 + index); // Laws 2, 3, 4
+    // grantAddresses.forEach((grantAddress, index) => {
+    //   const needFulfilledLawId = BigInt(2 + index); // Laws 2, 3, 4
       
-      lawInitData.push({
-        nameDescription: `Set ${budgetLawNames[index]} Budget: Admin sets budget after proposal passes and isn't vetoed.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x8b5e3b4a" as `0x${string}`, // updateTokenBudget(address,uint256)
-            ["address TokenAddress", "uint256 Budget"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: ADMIN_ROLE,
-          needFulfilled: needFulfilledLawId,
-          needNotFulfilled: 5n
-        })
-      });
-    });
+    //   lawInitData.push({
+    //     nameDescription: `Set ${budgetLawNames[index]} Budget: Admin sets budget after proposal passes and isn't vetoed.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x8b5e3b4a" as `0x${string}`, // updateTokenBudget(address,uint256)
+    //         ["address TokenAddress", "uint256 Budget"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: ADMIN_ROLE,
+    //       needFulfilled: needFulfilledLawId,
+    //       needNotFulfilled: 5n
+    //     })
+    //   });
+    // });
 
-    // Laws 9-11: Whitelist Tokens (Admin only)
-    grantAddresses.forEach((grantAddress, index) => {
-      lawInitData.push({
-        nameDescription: `Whitelist Token (${budgetLawNames[index]}): Admin whitelists ERC20 tokens for grants.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x0a3b0a4f" as `0x${string}`, // whitelistToken(address)
-            ["address Token"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: ADMIN_ROLE
-        })
-      });
-    });
+    // // Laws 9-11: Whitelist Tokens (Admin only)
+    // grantAddresses.forEach((grantAddress, index) => {
+    //   lawInitData.push({
+    //     nameDescription: `Whitelist Token (${budgetLawNames[index]}): Admin whitelists ERC20 tokens for grants.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x0a3b0a4f" as `0x${string}`, // whitelistToken(address)
+    //         ["address Token"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: ADMIN_ROLE
+    //     })
+    //   });
+    // });
 
     //////////////////////////////////////////////////////////////////
     //                    GRANT LAWS (12-26)                        //
     //////////////////////////////////////////////////////////////////
 
-    const proposalConfig = encodeAbiParameters(
-      [{ name: 'inputParams', type: 'string[]' }],
-      [["string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens"]]
-    );
+    // const proposalConfig = encodeAbiParameters(
+    //   [{ name: 'inputParams', type: 'string[]' }],
+    //   [["string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens"]]
+    // );
 
-    const grantTypes = [
-      { name: "Documentation", roleId: 2n, grantAddress: grantAddresses[0] },
-      { name: "Frontend", roleId: 3n, grantAddress: grantAddresses[1] },
-      { name: "Protocol", roleId: 4n, grantAddress: grantAddresses[2] }
-    ];
+    // const grantTypes = [
+    //   { name: "Documentation", roleId: 2n, grantAddress: grantAddresses[0] },
+    //   { name: "Frontend", roleId: 3n, grantAddress: grantAddresses[1] },
+    //   { name: "Protocol", roleId: 4n, grantAddress: grantAddresses[2] }
+    // ];
 
-    grantTypes.forEach(({ name, roleId, grantAddress }) => {
-      const baseIndex = lawInitData.length;
+    // grantTypes.forEach(({ name, roleId, grantAddress }) => {
+    //   const baseIndex = lawInitData.length;
 
-      // Submit Proposal (Public)
-      lawInitData.push({
-        nameDescription: `Submit ${name} Grant Proposal: Anyone can submit a ${name.toLowerCase()} grant proposal.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x7c5e9b1a" as `0x${string}`, // submitProposal(string,uint256[],uint256[],address[])
-            ["string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: PUBLIC_ROLE
-        })
-      });
+    //   // Submit Proposal (Public)
+    //   lawInitData.push({
+    //     nameDescription: `Submit ${name} Grant Proposal: Anyone can submit a ${name.toLowerCase()} grant proposal.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x7c5e9b1a" as `0x${string}`, // submitProposal(string,uint256[],uint256[],address[])
+    //         ["string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: PUBLIC_ROLE
+    //     })
+    //   });
 
-      // Veto Proposal (Members)
-      lawInitData.push({
-        nameDescription: `Veto ${name} Grant: Members vote to veto a ${name.toLowerCase()} grant proposal.`,
-        targetLaw: getLawAddress("StatementOfIntent", chainId),
-        config: encodeAbiParameters(
-          [{ name: 'inputParams', type: 'string[]' }],
-          [["uint256 proposalId"]]
-        ),
-        conditions: createConditions({
-          allowedRole: 5n,
-          votingPeriod: daysToBlocks(3, chainId),
-          succeedAt: 66n,
-          quorum: 25n
-        })
-      });
+    //   // Veto Proposal (Members)
+    //   lawInitData.push({
+    //     nameDescription: `Veto ${name} Grant: Members vote to veto a ${name.toLowerCase()} grant proposal.`,
+    //     targetLaw: getLawAddress("StatementOfIntent", chainId),
+    //     config: encodeAbiParameters(
+    //       [{ name: 'inputParams', type: 'string[]' }],
+    //       [["uint256 proposalId"]]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: 5n,
+    //       votingPeriod: daysToBlocks(3, chainId),
+    //       succeedAt: 66n,
+    //       quorum: 25n
+    //     })
+    //   });
 
-      // Approve Grant (Contributors)
-      lawInitData.push({
-        nameDescription: `Approve ${name} Grant: ${name} contributors vote to approve a grant.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x6f0f6698" as `0x${string}`, // approveProposal(uint256)
-            ["uint256 proposalId"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: roleId,
-          votingPeriod: daysToBlocks(7, chainId),
-          succeedAt: 51n,
-          quorum: 50n,
-          needNotFulfilled: BigInt(baseIndex + 2) // Veto law
-        })
-      });
+    //   // Approve Grant (Contributors)
+    //   lawInitData.push({
+    //     nameDescription: `Approve ${name} Grant: ${name} contributors vote to approve a grant.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x6f0f6698" as `0x${string}`, // approveProposal(uint256)
+    //         ["uint256 proposalId"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: roleId,
+    //       votingPeriod: daysToBlocks(7, chainId),
+    //       succeedAt: 51n,
+    //       quorum: 50n,
+    //       needNotFulfilled: BigInt(baseIndex + 2) // Veto law
+    //     })
+    //   });
 
-      // Release Milestone (Contributors)
-      lawInitData.push({
-        nameDescription: `Release ${name} Milestone: ${name} contributors release milestone payments.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x4b8a4e9c" as `0x${string}`, // releaseMilestone(uint256,uint256)
-            ["uint256 proposalId", "uint256 milestoneIndex"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: roleId
-        })
-      });
+    //   // Release Milestone (Contributors)
+    //   lawInitData.push({
+    //     nameDescription: `Release ${name} Milestone: ${name} contributors release milestone payments.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x4b8a4e9c" as `0x${string}`, // releaseMilestone(uint256,uint256)
+    //         ["uint256 proposalId", "uint256 milestoneIndex"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: roleId
+    //     })
+    //   });
 
-      // Reject Grant (Contributors)
-      lawInitData.push({
-        nameDescription: `Reject ${name} Grant: ${name} contributors vote to reject a grant.`,
-        targetLaw: getLawAddress("BespokeActionSimple", chainId),
-        config: encodeAbiParameters(
-          [
-            { name: 'target', type: 'address' },
-            { name: 'functionSelector', type: 'bytes4' },
-            { name: 'inputParams', type: 'string[]' }
-          ],
-          [
-            grantAddress,
-            "0x9d888e86" as `0x${string}`, // rejectProposal(uint256)
-            ["uint256 proposalId"]
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: roleId,
-          votingPeriod: daysToBlocks(7, chainId),
-          succeedAt: 51n,
-          quorum: 50n
-        })
-      });
-    });
+    //   // Reject Grant (Contributors)
+    //   lawInitData.push({
+    //     nameDescription: `Reject ${name} Grant: ${name} contributors vote to reject a grant.`,
+    //     targetLaw: getLawAddress("BespokeActionSimple", chainId),
+    //     config: encodeAbiParameters(
+    //       [
+    //         { name: 'target', type: 'address' },
+    //         { name: 'functionSelector', type: 'bytes4' },
+    //         { name: 'inputParams', type: 'string[]' }
+    //       ],
+    //       [
+    //         grantAddress,
+    //         "0x9d888e86" as `0x${string}`, // rejectProposal(uint256)
+    //         ["uint256 proposalId"]
+    //       ]
+    //     ),
+    //     conditions: createConditions({
+    //       allowedRole: roleId,
+    //       votingPeriod: daysToBlocks(7, chainId),
+    //       succeedAt: 51n,
+    //       quorum: 50n
+    //     })
+    //   });
+    // });
 
     //////////////////////////////////////////////////////////////////
     //                  ELECTORAL LAWS (27-32)                      //
@@ -372,21 +372,21 @@ export const PowerBase: Organization = {
     });
 
     // Law 29: Fund Development
-    lawInitData.push({
-      nameDescription: `Fund Development: Fund the protocol and get Funder role. Token: ${getMockAddress("Erc20TaxedMock", chainId)}`,
-      targetLaw: getLawAddress("BuyAccess", chainId),
-      config: encodeAbiParameters(
-        [
-          { name: 'erc20Token', type: 'address' },
-          { name: 'tokensPerBlock', type: 'uint256' },
-          { name: 'roleId', type: 'uint16' }
-        ],
-        [getMockAddress("Erc20TaxedMock", chainId), BigInt(2 * 1000), 1]
-      ),
-      conditions: createConditions({
-        allowedRole: PUBLIC_ROLE
-      })
-    });
+    // lawInitData.push({
+    //   nameDescription: `Fund Development: Fund the protocol and get Funder role. Token: ${getMockAddress("Erc20TaxedMock", chainId)}`,
+    //   targetLaw: getLawAddress("BuyAccess", chainId),
+    //   config: encodeAbiParameters(
+    //     [
+    //       { name: 'erc20Token', type: 'address' },
+    //       { name: 'tokensPerBlock', type: 'uint256' },
+    //       { name: 'roleId', type: 'uint16' }
+    //     ],
+    //     [getMockAddress("Erc20TaxedMock", chainId), BigInt(2 * 1000), 1]
+    //   ),
+    //   conditions: createConditions({
+    //     allowedRole: PUBLIC_ROLE
+    //   })
+    // });
 
     // Law 30: Apply for Membership
     lawInitData.push({

@@ -142,6 +142,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
     //////////////////////////////////////////////////////////////
+    /// @notice Gets the quantity of actions of a law
+    /// @param lawId The id of the law
+    /// @return quantityLawActions The quantity of actions of the law
+    function getQuantityLawActions(uint16 lawId) external view returns (uint256 quantityLawActions);
 
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
@@ -217,6 +221,12 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return amountMembers the number of role holders
     function getAmountRoleHolders(uint256 roleId) external view returns (uint256 amountMembers);
 
+    /// @notice Gets the holder of a role at a specific index
+    /// @param roleId The identifier of the role
+    /// @param index The index of the role holder
+    /// @return account The address of the role holder
+    function getRoleHolderAtIndex(uint256 roleId, uint256 index) external view returns (address account);
+
     /// @notice Gets the label of a role
     /// @param roleId The identifier of the role
     /// @return label The label of the role
@@ -236,8 +246,9 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Gets the actions of a law
     /// @param lawId The id of the law
-    /// @return actionIds The actions of the law
-    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds);
+    /// @param index The index of the action
+    /// @return actionId The action at the index
+    function getLawActionAtIndex(uint16 lawId, uint256 index) external view returns (uint256 actionId);
 
     /// @notice Gets the conditions of a law
     /// @param lawId The id of the law

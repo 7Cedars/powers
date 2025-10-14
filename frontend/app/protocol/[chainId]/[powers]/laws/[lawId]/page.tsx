@@ -27,7 +27,7 @@ const Page = () => {
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
   const populatedAction = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.find(a => a.actionId == action.actionId) : undefined
 
-  console.log("@Page: waypoint 0", {law, action, populatedAction, actionVote, statusLaw, statusPowers})
+  console.log("@Page: waypoint 0", {law, action, populatedAction, actionVote, statusLaw, statusPowers, errorUseLaw})
 
   // Helper function to map state numbers to their labels
   const getStateLabel = (state: number | undefined): string => {

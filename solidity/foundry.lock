@@ -1,0 +1,11 @@
+{
+  "solidity/lib/forge-std": {
+    "rev": "60acb7aaadcce2d68e52986a0a66fe79f07d138f"
+  },
+  "solidity/lib/hats-protocol": {
+    "rev": "cccb71a061cdb9095af7d11dfdb47026993d8c4e"
+  },
+  "solidity/lib/openzeppelin-contracts": {
+    "rev": "cc94ea49301460aa6bd39edf29b2ab953d1d80b5"
+  }
+}

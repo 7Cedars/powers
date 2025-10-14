@@ -84,6 +84,7 @@ export type Law = {
   index: bigint;
   nameDescription?: string;
   conditions?: Conditions;
+  actions? : Action[];
   config?: `0x${string}`;
   inputParams?: `0x${string}`; 
   params ?: {varName: string, dataType: DataType}[]; 
@@ -124,7 +125,6 @@ export type Powers = {
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  actions? : Action[];
   roles?: bigint[];
   roleLabels?: RoleLabel[];
   roleHolders?: bigint[];

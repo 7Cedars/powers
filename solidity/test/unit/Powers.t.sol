@@ -4,8 +4,8 @@ pragma solidity 0.8.26;
 import "forge-std/Test.sol";
 import { Powers } from "../../src/Powers.sol";
 import { Law } from "../../src/Law.sol";
-import { LawUtilities } from "../../src/LawUtilities.sol";
-import { PowersUtilities } from "../../src/PowersUtilities.sol";
+import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
+import { Checks } from "../../src/libraries/Checks.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
@@ -1048,8 +1048,8 @@ contract RoleManagementTest is TestSetupPowers {
 
     function testGetRoleHoldersWithEmptyArray() public {
         // Test with a role that has no members
-        address[] memory holders = daoMock.getRoleHolders(ROLE_THREE);
-        assertEq(holders.length, 0);
+        uint256 amountRoleHolders = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(amountRoleHolders, 0);
     }
 
     function testGetActionStateNonExistent() public {

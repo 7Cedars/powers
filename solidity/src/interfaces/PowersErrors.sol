@@ -124,4 +124,7 @@ interface PowersErrors {
 
     /// @notice Emitted when a max executions length is invalid.
     error Powers__InvalidMaxExecutionsLength();
+
+    /// @notice Emitted when an index is invalid.
+    error Powers__InvalidIndex();
 }

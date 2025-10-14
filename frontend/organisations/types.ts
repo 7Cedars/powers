@@ -56,8 +56,7 @@ export interface Organization {
    * @param chainId - Chain ID where deployment is happening
    */
   createLawInitData: (
-    powersAddress: `0x${string}`,
-    formData: Record<string, any>,
+    powersAddress: `0x${string}`, 
     chainId: number
   ) => LawInitData[];
   

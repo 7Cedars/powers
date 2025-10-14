@@ -12,9 +12,9 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @title PowersUtilitiesTest - Unit tests for PowersUtilities library
-/// @notice Tests the PowersUtilities library functions
-/// @dev Provides comprehensive coverage of all PowersUtilities functions
+/// @title ChecksTest - Unit tests for Checks library
+/// @notice Tests the Checks library functions
+/// @dev Provides comprehensive coverage of all Checks functions
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
@@ -22,13 +22,13 @@ pragma solidity 0.8.26;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import { Powers } from "../../src/Powers.sol";
-import { PowersUtilities } from "../../src/PowersUtilities.sol";
+import { Checks } from "../../src/libraries/Checks.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Law } from "../../src/Law.sol";
 
-contract PowersUtilitiesTest is TestSetupPowers {
+contract ChecksTest is TestSetupPowers {
     //////////////////////////////////////////////////////////////
     //                  PROPOSAL CHECKS                         //
     //////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
         lawCalldata = abi.encode(true);
 
         // Should not revert when no parent requirements
-        PowersUtilities.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
+        Checks.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
     }
 
     function testChecksAtProposeRevertsWhenParentNotCompleted() public {
@@ -47,7 +47,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
         // Should revert when parent is not completed
         vm.expectRevert("Parent law not completed");
-        PowersUtilities.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
+        Checks.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
     }
 
     function testChecksAtProposeWithParentBlocking() public {
@@ -86,7 +86,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
         // Step 2: Now test that law 6 is blocked because law 5 was completed
         vm.expectRevert("Parent law blocks completion");
-        PowersUtilities.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
+        Checks.checksAtPropose(lawId, lawCalldata, address(daoMock), nonce);
     }
 
     //////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
         uint48 latestExecution;
 
         // Should not revert when no requirements
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     //////////////////////////////////////////////////////////////
@@ -109,13 +109,13 @@ contract PowersUtilitiesTest is TestSetupPowers {
         lawCalldata = abi.encode(true);
         nonce = 123;
 
-        actionId = PowersUtilities.hashActionId(lawId, lawCalldata, nonce);
+        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
         assertEq(actionId, uint256(keccak256(abi.encode(lawId, lawCalldata, nonce))));
     }
 
     function testGetConditions() public view {
         // Test getting conditions for an existing law
-        PowersTypes.Conditions memory conditionsResult = PowersUtilities.getConditions(address(daoMock), 1);
+        PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 1);
 
         // Verify we get valid conditions back
         assertTrue(conditionsResult.allowedRole != 0 || conditionsResult.allowedRole == type(uint256).max);
@@ -151,12 +151,12 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
         // now we execute law 6
         // Should not revert when throttle is zero
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testGetConditionsForNonExistentLaw() public view {
         // Test getting conditions for a non-existent law
-        PowersTypes.Conditions memory conditionsResult = PowersUtilities.getConditions(address(daoMock), 999);
+        PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 999);
 
         // Should return default/empty conditions
         assertEq(conditionsResult.allowedRole, 0);
@@ -286,7 +286,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
 
         // Should revert when execution gap is too small
         vm.expectRevert("Execution gap too small");
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testChecksAtRequestWithThrottleExecutionGapSufficient() public {
@@ -317,7 +317,7 @@ contract PowersUtilitiesTest is TestSetupPowers {
         uint48 latestExecution = uint48(block.number - 6000);
 
         // Should not revert when execution gap is sufficient
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testChecksAtRequestWithThrottleExecutionExactlyAtThreshold() public {
@@ -348,6 +348,6 @@ contract PowersUtilitiesTest is TestSetupPowers {
         uint48 latestExecution = uint48(block.number - 5000);
 
         // Should not revert when execution gap equals throttle threshold
-        PowersUtilities.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 }

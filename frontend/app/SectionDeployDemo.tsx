@@ -2,16 +2,14 @@
 
 import { Button } from "@/components/Button"; 
 import { ConnectButton } from "@/components/ConnectButton";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useDeployContract, useTransactionReceipt, useSwitchChain, useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
-import { bytecodePowers } from "@/context/bytecode";
 import { powersAbi } from "@/context/abi";
 import { Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { getConnectorClient, simulateContract, writeContract } from "@wagmi/core";
-import { toBytes } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
@@ -28,6 +26,7 @@ export function SectionDeployDemo() {
   const [error, setError] = useState<Error | null>(null);
   const [_transactionHash, setTransactionHash] = useState<`0x${string}` | undefined>();
   const [constituteCompleted, setConstituteCompleted] = useState(false);
+  const [bytecodePowers, setBytecodePowers] = useState<`0x${string}` | undefined>();
   const { ready, authenticated } = usePrivy();
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -51,10 +50,19 @@ export function SectionDeployDemo() {
   // Get the current selected chain ID
   const selectedChainId = chains.find(c => c.name === selectedChain)?.id;
 
+  const getBytecodePowers = useCallback(async (chainId: number) => {
+    const { default: data } = await import(`../../solidity/powered/${chainId}.json`, { assert: { type: "json" } });
+    setBytecodePowers(data.powers.bytecode as `0x${string}`);
+  }, []);
+
   // Switch chain when selected chain changes
   useEffect(() => {
     if (selectedChainId && chain?.id !== selectedChainId) {
       switchChain({ chainId: selectedChainId });
+    }
+    if (selectedChainId) {
+      getBytecodePowers(selectedChainId);
+      console.log("bytecodePowers: ", { bytecodePowers });
     }
   }, [selectedChainId, chain?.id, switchChain]);
 
@@ -96,8 +104,7 @@ export function SectionDeployDemo() {
       try {
         // Create law initialization data using the organization's method
         const lawInitData = currentOrg.createLawInitData(
-          powersAddress,
-          formData,
+          powersAddress, 
           selectedChainId || 11155111
         );
         
@@ -276,11 +283,11 @@ export function SectionDeployDemo() {
                           : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                     }`}
                     onClick={() => {
-                      if (ready && authenticated && !currentOrg.metadata.disabled && areRequiredFieldsFilled()) {
+                      if (ready && authenticated && !currentOrg.metadata.disabled && areRequiredFieldsFilled() && bytecodePowers) {
                         deployContract({
                           abi: powersAbi, 
                           args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10n, 10_000n],
-                          bytecode: bytecodePowers,
+                          bytecode: bytecodePowers as `0x${string}`,
                         });
                       }
                     }}

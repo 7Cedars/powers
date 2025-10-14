@@ -120,7 +120,7 @@ update-deps:
 
 install-deps:
 	@echo "Installing dependencies..."
-	forge install foundry-rs/forge-std@v1.9.1 --no-commit --no-git && \
+	forge install foundry-rs/forge-std --no-commit --no-git && \
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit --no-git && \
 	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0 --no-commit --no-git && \
 	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-commit --no-git 
@@ -128,7 +128,7 @@ install-deps:
 reset-deps:
 	@echo "Resetting dependencies..."
 	rm -rf lib/
-	forge install foundry-rs/forge-std@v1.9.1 --no-git && \
+	forge install foundry-rs/forge-std --no-git && \
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2  --no-git && \
 	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0  --no-git && \
 	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-git 
@@ -289,7 +289,11 @@ anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
 # anvil local 
-anvilDeploy :; forge script script/DeployTestOrgs.sol:DeployTestOrgs $(ANVIL_ARGS_0)
+anvilDeploy :; forge script script/DeployTestOrgs.s.sol:DeployTestOrgs $(ANVIL_ARGS_0)
+anvilInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) --ffi -vv 
+anvilDeployLibraries :; forge script script/DeployLibraries.s.sol:DeployLibraries $(ANVIL_ARGS_0)
+anvilDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0)
+anvilDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0)
 
 # # Ethereum sepolia 
 # sepoliaDeployVanillaPowers :; forge script script/DeployVanillaPowers.sol:DeployVanillaPowers $(SEPOLIA_DEPLOY_ARGS)

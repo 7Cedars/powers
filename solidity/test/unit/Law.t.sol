@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
 import { Law } from "../../src/Law.sol";
-import { LawUtilities } from "../../src/LawUtilities.sol";
+import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { IERC165 } from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
