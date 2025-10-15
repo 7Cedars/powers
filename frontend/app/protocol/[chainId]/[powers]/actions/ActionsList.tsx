@@ -18,7 +18,7 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
   
-  const actionsWithState: Action[] = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.map(action =>  {
+  const actionsWithState: Action[] = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions).map((action: Action | undefined) =>  {
     if (action?.cancelledAt && action.cancelledAt > 0) {
       return { ...action, state: 2 }
     }
@@ -32,7 +32,7 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
       return { ...action, state: 3 }
     } 
     return { ...action, state: 0 }
-  }) : []
+  }).filter(a => a != undefined && a.state != undefined) as Action[] : []
     // .filter(a => a != undefined && a.state != undefined) as Action[]
 
   // Fetch timestamps for action blocks

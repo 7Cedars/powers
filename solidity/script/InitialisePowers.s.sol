@@ -43,11 +43,11 @@ import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 contract InitialisePowers is Script { 
     string outputFile;
 
-    function run() external {
+    function run() external returns (string[] memory names, address[] memory addresses) {
         string memory obj1 = "some key"; 
 
         vm.startBroadcast();
-        deployAndRecordLaws(obj1);
+        (names, addresses) = deployAndRecordLaws(obj1);
         vm.stopBroadcast();
  
         vm.startBroadcast();
@@ -66,7 +66,7 @@ contract InitialisePowers is Script {
         outputFile = string.concat("powered/", vm.toString(block.chainid), ".json");
         vm.writeJson(finalJson, outputFile);
         console2.log("Success! All deployment data saved to:", outputFile);
-
+ 
     }
 
     /// @notice Uses vm.ffi() and the 'serialize' function to add bytecode to the obj1 string.
@@ -95,8 +95,9 @@ contract InitialisePowers is Script {
 
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1) internal { 
-        string[] memory names = new string[](19);
+    function deployAndRecordLaws(string memory obj1) internal returns (string[] memory names, address[] memory addresses) { 
+        names = new string[](19);
+        addresses = new address[](19);
         bytes[] memory creationCodes = new bytes[](19);
         bytes[] memory constructorArgs = new bytes[](19);
         
@@ -181,6 +182,7 @@ contract InitialisePowers is Script {
       
         for (uint256 i = 0; i < names.length; i++) {
             address lawAddr = deployLaw(creationCodes[i], constructorArgs[i]);
+            addresses[i] = lawAddr;
             vm.serializeAddress(obj1, names[i], lawAddr);
         }
     }

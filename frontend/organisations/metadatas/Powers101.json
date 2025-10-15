@@ -3,9 +3,22 @@
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihhixxl25nugrwvbjbn2jg4uh2bvrl54gybn4gqqekc734veod4um",
   "description": 
     "A base example of an on-chain organisation that uses the Powers protocol to govern itself and create a simple check and balance system.",
+  "website": "",
   "code-of-conduct": "", 
   "dispute-resolution": "",
-  "communication-channels": "",
+  "communication-channels": [
+    {
+      "discord": "",
+      "telegram": "",
+      "x": "",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "",
+      "forum": "",
+      "documentation": ""
+    }
+  ],
   "attributes": [
     {
       "trait_type": "optional trait 1",

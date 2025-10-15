@@ -78,14 +78,14 @@ interface PowersTypes {
     /// @dev that a proposal cannot be set as 'executed' as in Governor.sol. It can only be set as 'completed'.
     /// This is because execution logic in {Powers} is separated from the proposal logic.
     enum ActionState {
-        NonExistent,
-        Proposed, // - log this
-        Cancelled, // - log this
-        Active, // - calculate this -- wait what is difference between this and Proposed? CHECK! 
-        Defeated, // - calculate this
-        Succeeded, // - calculate this
-        Requested, // - log this
-        Fulfilled // - log this
+        NonExistent, // - 0: log this
+        Proposed, // - 1: log this
+        Cancelled, // - 2: log this
+        Active, // - 3: calculate this -- wait what is difference between this and Proposed? CHECK! 
+        Defeated, // - 4: calculate this
+        Succeeded, // - 5: calculate this
+        Requested, // - 6: log this
+        Fulfilled // - 7: log this
     }
 
     /// @notice Supported vote types. Matches Governor Bravo ordering.

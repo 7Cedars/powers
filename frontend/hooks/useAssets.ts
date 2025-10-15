@@ -1,10 +1,10 @@
 // ok, what does this need to do? 
 
-import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
+import { erc1155Abi, erc20Abi, erc721Abi } from "@/context/abi"
 // import { publicClient } from "@/context/clients"
 import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
-import { useBalance, useChains } from "wagmi"
+import { useBalance } from "wagmi"
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { parse1155Metadata } from "@/utils/parsers"
@@ -16,12 +16,10 @@ export const useAssets = (powers: Powers | undefined) => {
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
   const { chainId } = useParams<{ chainId: string }>()
-  const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const {data: native, status: statusBalance}  = useBalance({
+  const {data: native}  = useBalance({
     address: powers?.contractAddress
   }) 
-  // console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
+  // console.log("@useAssets, tokens, status, error", {tokens, status, error})
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`

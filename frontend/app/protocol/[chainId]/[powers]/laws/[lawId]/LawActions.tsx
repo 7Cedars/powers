@@ -1,10 +1,12 @@
-import { Status, Powers, Action } from "@/context/types";
+import { Status, Powers, Action, Law, DataType, InputType } from "@/context/types";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useBlocks } from "@/hooks/useBlocks";
 import { ArrowUpRightIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { setAction } from "@/context/store";
+import { parseParamValues } from "@/utils/parsers";
+import { decodeAbiParameters, parseAbiParameters } from "viem";
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined): string => {
@@ -25,20 +27,31 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
   const { timestamps, fetchTimestamps } = useBlocks()
   const router = useRouter() 
 
-  const lawActions = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.filter(action => action.lawId == lawId) : []
-  const sortedActions = lawActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
-  const allTimestamps = Array.from(new Set(
-    sortedActions.flatMap(action => [
-      action?.requestedAt,
-      action?.proposedAt, 
-      action?.fulfilledAt,
-      action?.cancelledAt
-    ].filter((timestamp): timestamp is bigint => 
-      timestamp !== undefined && 
-      timestamp !== null
-    ))
-  ))
 
+  const handleActionClick = (action: Action, e: React.MouseEvent<HTMLAnchorElement>) => {
+    let valuesParsed: (InputType | InputType[])[] = []
+    const law = powers?.laws?.find(law => law.index == action.lawId) as Law
+    const dataTypes = law.params?.map((param: { varName: string; dataType: DataType }) => param.dataType) || []
+    if (dataTypes.length > 0) {
+      const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData as `0x${string}`);
+      valuesParsed = parseParamValues(values) 
+    } else {
+      valuesParsed = []
+    }
+
+    console.log("@LawActions, waypoint 1", {valuesParsed})
+
+    setAction({...action, paramValues: valuesParsed, upToDate: true})
+    e.preventDefault(); 
+    router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+  }
+
+  const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
+  const sortedActions = lawActions?.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
+  const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
+
+  console.log("@LawActions, waypoint 0", {lawActions})
+  
   useEffect(() => {
     if (sortedActions) {
       fetchTimestamps(allTimestamps, chainId)
@@ -97,9 +110,7 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
                           <a
                             href="#"
                             onClick={e => { 
-                              setAction(action) 
-                              e.preventDefault(); 
-                              router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                              handleActionClick(action, e)
                             }}
                             className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
                           >

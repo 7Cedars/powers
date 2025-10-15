@@ -33,7 +33,7 @@ import { Nominees } from "@mocks/Nominees.sol";
 
 // deploy scripts
 import { DeployMocks } from "../script/DeployMocks.s.sol";
-import { DeployLaws } from "../script/DeployLaws.s.sol";
+import { InitialisePowers } from "../script/InitialisePowers.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // protocol and mocks
@@ -41,7 +41,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     HelperConfig helperConfig;
     PowersMock daoMock;
     DeployMocks deployMocks;
-    DeployLaws deployLaws;
+    InitialisePowers initialisePowers;
     string[] lawNames;
     address[] lawAddresses;
     string[] mockNames;
@@ -328,9 +328,9 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
 
         // deploy external contracts
         deployMocks = new DeployMocks();
-        deployLaws = new DeployLaws();
+        initialisePowers = new InitialisePowers();
         (mockNames, mockAddresses) = deployMocks.run();
-        (lawNames, lawAddresses) = deployLaws.run();
+        (lawNames, lawAddresses) = initialisePowers.run();
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());

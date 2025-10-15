@@ -134,7 +134,7 @@ export default function UserPage() {
     const walletAddress = wallets?.[0]?.address;
     if (walletAddress && powers?.roles) {
       // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
-      fetchMyRoles(walletAddress as `0x${string}`, powers.roles)
+      fetchMyRoles(walletAddress as `0x${string}`, powers.roles.map(role => role.roleId))
     }
   }, [wallets, fetchMyRoles, powers?.roles])
 

@@ -1,31 +1,21 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
-import { Powers } from '@/context/types'
+import { useParams, usePathname } from 'next/navigation'
 import { PowersFlow } from './PowersFlow'
-import { ConnectedWallet } from '@privy-io/react-auth'
 import { ChevronRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { usePowers } from '@/hooks/usePowers'
+import { Powers } from '@/context/types'
 
-interface PowersOverviewProps {
-  powers: Powers
-  wallets: ConnectedWallet[]
-  selectedLawId?: string
-  children?: React.ReactNode
-  fetchLawsAndRoles?: (powers: Powers) => Promise<Powers | undefined>
-  fetchActions?: (powers: Powers) => Promise<Powers | undefined>
-}
-
-export const PowersOverview: React.FC<PowersOverviewProps> = ({ 
-  powers, 
-  selectedLawId,
-  children,
-  fetchLawsAndRoles,
-  fetchActions
-}) => {
+export const PowersOverview: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { powers, fetchPowers } = usePowers()
   const [isRefreshing, setIsRefreshing] = useState(false)
   const pathname = usePathname()
+  const { powers: powersAddress } = useParams<{
+    chainId: string
+    powers: string
+  }>()
 
   // Auto-expand panel when navigating to a new page
   useEffect(() => {
@@ -33,24 +23,30 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
   }, [pathname])
 
   const handleRefresh = async () => {
-    if (!fetchLawsAndRoles || !fetchActions || isRefreshing) return
-    
+    if (!fetchPowers || isRefreshing) return
     setIsRefreshing(true)
     try {
-      await fetchLawsAndRoles(powers)
-      await fetchActions(powers)
+      await fetchPowers(powersAddress as `0x${string}`)
       // The viewport will be updated automatically when the component re-renders with new data
     } catch (error) {
       console.error('Failed to refresh laws and roles or actions:', error)
     } finally {
-      setIsRefreshing(false)
+      setIsRefreshing(false)  
     }
   }
+
+  useEffect(() => {
+    if (powersAddress) {
+      fetchPowers(powersAddress as `0x${string}`)
+    }
+  }, [powersAddress, fetchPowers])
+
+  console.log("@PowersOverview, waypoint 0", {powersAddress, powers})
 
   return (
     <div className="absolute top-0 left-0 w-screen h-screen">
       {/* Refresh Button - Top Right Corner - Above everything */}
-      {fetchLawsAndRoles && (
+      {powers && (
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
@@ -69,10 +65,8 @@ export const PowersOverview: React.FC<PowersOverviewProps> = ({
       {/* Main Flow Diagram - Full Screen Background */}
       <div className="absolute top-0 left-0 w-full h-full bg-slate-100 z-0" style={{ boxShadow: 'inset 8px 0 16px -8px rgba(0, 0, 0, 0.1)' }}>
         <PowersFlow 
-          key={`powers-flow-${powers.contractAddress}`}
-          powers={powers} 
-          selectedLawId={selectedLawId} 
-          refreshActions={fetchActions ? () => fetchActions(powers) : undefined}
+          key={`powers-flow-${powersAddress}`}
+          powers={powers as Powers} 
         />
       </div>
 

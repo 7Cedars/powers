@@ -47,13 +47,13 @@ type VoteData = {
 
 type VotesProps = {
   actionId: string
+  lawId: bigint
   action: Action
   powers: Powers | undefined
-  status: Status
-  actionVote: ActionVote
+  status: Status  
 }
 
-export const Votes = ({ actionId, action, powers, status, actionVote }: VotesProps) => {
+export const Votes = ({ actionId, lawId, action, powers, status }: VotesProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const [votes, setVotes] = useState<VoteData[]>([])
@@ -62,10 +62,14 @@ export const Votes = ({ actionId, action, powers, status, actionVote }: VotesPro
   const publicClient = usePublicClient()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  const law = powers?.laws?.find(law => law.index == lawId)
+  const voteEnd = law?.conditions?.votingPeriod ? action?.proposedAt ? action.proposedAt + law.conditions.votingPeriod : 0 : 0
+
+  console.log("@Votes: waypoint 0", {action, actionId, powers, status})
 
 
   useEffect(() => {
-    if (!action?.voteStart || !action?.voteEnd || !powers?.contractAddress || !publicClient) {
+    if (!action?.proposedAt || !powers?.contractAddress || !publicClient) {
       return
     }
     // console.log("@Votes: waypoint 0", {action, actionId, powers, publicClient})
@@ -81,8 +85,8 @@ export const Votes = ({ actionId, action, powers, status, actionVote }: VotesPro
           abi: powersAbi,
           eventName: 'VoteCast',
           args: {actionId: BigInt(actionId)},
-          fromBlock: BigInt(action?.voteStart ? action.voteStart : 0),
-          toBlock: BigInt(action?.voteEnd ? action.voteEnd : 0)
+          fromBlock: BigInt(action?.proposedAt ? action.proposedAt : 0),
+          toBlock: BigInt(voteEnd ? voteEnd : 0)
         })
 
         // console.log("@Votes: waypoint 1", {logs})
@@ -139,9 +143,9 @@ export const Votes = ({ actionId, action, powers, status, actionVote }: VotesPro
     }
 
     fetchVotes()
-  }, [action?.voteStart, action?.voteEnd, powers?.contractAddress, actionId, chainId, fetchTimestamps, publicClient])
+  }, [action?.proposedAt, voteEnd, powers?.contractAddress, actionId, chainId, fetchTimestamps, publicClient])
 
-  if (!action?.voteStart || !action?.voteEnd) {
+  if (!action?.proposedAt || !voteEnd) {
     return null // Don't render if no voting period data
   }
 

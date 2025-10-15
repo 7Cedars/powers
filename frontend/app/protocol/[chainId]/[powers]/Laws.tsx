@@ -15,7 +15,7 @@ export function Laws({powers, status}: LawsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
 
-  const activeLaws = powers?.ActiveLaws || [];
+  const activeLaws = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.filter(law => law.active) : [];
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
@@ -25,7 +25,7 @@ export function Laws({powers, status}: LawsProps) {
       >
         <div className="w-full flex flex-row gap-6 items-center justify-between">
           <div className="text-left text-sm text-slate-600 w-32">
-            Laws
+            Active Laws
           </div> 
           <ArrowUpRightIcon
             className="w-4 h-4 text-slate-800"

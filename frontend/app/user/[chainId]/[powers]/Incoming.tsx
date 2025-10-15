@@ -631,10 +631,10 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
                 <section className="w-full lg:w-1/2">
                   <Votes 
                     actionId={selectedProposal.actionId}
+                    lawId={BigInt(selectedProposal.lawId)}
                     action={selectedProposal}
                     powers={powers}
-                    status={statusChecks as Status}
-                    actionVote={actionVote as ActionVote}
+                    status={statusChecks as Status} 
                   />
                 </section>
               </div>

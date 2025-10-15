@@ -1,16 +1,11 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
-import { usePrivy } from '@privy-io/react-auth'
-import { useWallets } from '@privy-io/react-auth'
 import { useParams, useRouter } from 'next/navigation'
 import { parseChainId } from '@/utils/parsers'
 import { usePowers } from '@/hooks/usePowers'
 import { useChains } from 'wagmi'
-import { readContract } from 'wagmi/actions'
-import { wagmiConfig } from '@/context/wagmiConfig'
-import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
@@ -18,14 +13,12 @@ import { Roles } from './Roles'
 import { Laws } from './Laws'
 import { Actions } from './Actions'
 import { Powers } from '@/context/types'
+import { MetadataLinks } from '@/components/MetadataLinks'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
   const { fetchPowers, status: statusPowers, powers, fetchActions } = usePowers()
-  const { wallets } = useWallets()
-  const { authenticated } = usePrivy(); 
   const router = useRouter()
-  const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const chains = useChains()
@@ -56,37 +49,9 @@ export default function FlowPage() {
       validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
 
-  const fetchMyRoles = useCallback(
-    async (account: `0x${string}`, roles: bigint[]) => {
-      let role: bigint; 
-      const fetchedHasRole: {role: bigint; since: bigint}[] = []; 
-
-      try {
-        for await (role of roles) {
-          const fetchedSince = await readContract(wagmiConfig, {
-              abi: powersAbi,
-              address: addressPowers as `0x${string}`,
-              functionName: 'hasRoleSince', 
-              args: [account, role], 
-              chainId: parseChainId(chainId)
-              })
-            fetchedHasRole.push({role, since: fetchedSince as bigint})
-            }
-            setHasRoles(fetchedHasRole)
-        } catch (error) {
-        console.error(error)
-      }
-    }, [addressPowers, chainId])
 
   useEffect(() => {
-    const walletAddress = wallets?.[0]?.address;
-    if (walletAddress && powers?.roles) {
-      fetchMyRoles(walletAddress as `0x${string}`, powers.roles)
-    }
-  }, [wallets, fetchMyRoles, powers?.roles])
-
-  useEffect(() => {
-    console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
+    // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
     if (addressPowers) {
       fetchPowers(addressPowers as `0x${string}`)
     }
@@ -131,18 +96,6 @@ export default function FlowPage() {
       <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
         {powers?.name}
       </div>
-
-      {/* Reload button */}
-      {/* <button
-        onClick={() => addressPowers && fetchLawsAndRoles(powers as Powers)}
-        className="absolute top-4 left-4 p-2 rounded-md bg-slate-50/25 hover:bg-slate-100/90 border border-slate-300/50 shadow-sm transition-all duration-200 backdrop-blur-sm"
-        title="Reload powers data"
-        disabled={statusPowers === "pending"}
-      >
-        <ArrowPathIcon 
-          className={`w-4 h-4 text-slate-700 ${statusPowers === "pending" ? 'animate-spin' : ''}`}
-        />
-      </button> */}
     </section>
     
     {/* Description + link to powers protocol deployment */}  
@@ -151,6 +104,7 @@ export default function FlowPage() {
       <div className="w-full text-slate-800 text-left text-pretty">
          {powers?.metadatas?.description} 
       </div>
+      
       <a
         href={`${supportedChain?.blockExplorers?.default.url}/address/${addressPowers as `0x${string}`}#code`} target="_blank" rel="noopener noreferrer"
         className="w-full"
@@ -167,6 +121,14 @@ export default function FlowPage() {
       </>
       {/* } */}
     </section>
+    
+    {/* Metadata Links */}
+    <MetadataLinks 
+      website={powers?.metadatas?.website}
+      codeOfConduct={powers?.metadatas?.["code-of-conduct"]}
+      disputeResolution={powers?.metadatas?.["dispute-resolution"]}
+      communicationChannels={powers?.metadatas?.["communication-channels"]}
+    />
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">

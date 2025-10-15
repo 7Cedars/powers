@@ -40,6 +40,7 @@ import { setAction, useActionStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import HeaderLaw from '@/components/HeaderLaw'
 import { hashAction } from '@/utils/hashAction'
+import { usePowers } from '@/hooks/usePowers'
 
 // Default colors for all nodes
 const DEFAULT_NODE_COLOR = '#475569' // slate-600
@@ -604,15 +605,15 @@ const nodeTypes = {
 
 interface PowersFlowProps {
   powers: Powers
-  selectedLawId?: string
-  refreshActions?: () => void
 }
 
 // Helper function to find all nodes connected to a selected node through dependencies
-function findConnectedNodes(selectedLawId: string, laws: Law[]): Set<string> {
+function findConnectedNodes(powers: Powers, selectedLawId: string): Set<string> {
   const connected = new Set<string>()
   const visited = new Set<string>()
-  
+
+  const laws = powers?.laws || []
+
   // Build dependency maps
   const dependencies = new Map<string, Set<string>>()
   const dependents = new Map<string, Set<string>>()
@@ -842,16 +843,14 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
   }
 }
 
-const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refreshActions }) => {
+const FlowContent: React.FC<PowersFlowProps> = ({ powers }) => {
   const { getNodes, getViewport, setViewport } = useReactFlow()
+  const { lawId: selectedLawId } = useParams<{lawId: string }>()  
   const router = useRouter()
-  const chainId = useParams().chainId as string
   const action = useActionStore()
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<ReturnType<typeof useReactFlow> | null>(null)
   const pathname = usePathname()
-
-  // console.log("@FlowContent: waypoint 0", {action, selectedLawId, powers})
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -863,7 +862,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
       if (!localStore || localStore === "undefined") return undefined
       
       const saved: Powers[] = JSON.parse(localStore)
-      const existing = saved.find(item => item.contractAddress === powers.contractAddress)
+      const existing = saved.find(item => item.contractAddress === powers?.contractAddress as `0x${string}`)
       
       if (existing && existing.layout) {
         return existing.layout
@@ -874,7 +873,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
       console.error('Failed to load layout from localStorage:', error)
       return undefined
     }
-  }, [powers.contractAddress])
+  }, [powers?.contractAddress])
 
   // Function to save powers object to localStorage (similar to usePowers.ts)
   const savePowersToLocalStorage = React.useCallback((updatedPowers: Powers) => {
@@ -915,7 +914,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
     
     // Create updated powers object with layout data
     const updatedPowers: Powers = {
-      ...powers,
+      ...powers as Powers,
       layout: currentLayout
     }
     
@@ -1016,9 +1015,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
       lawId: BigInt(lawId),
       upToDate: false
     })
-    router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${lawId}`)
+    router.push(`/protocol/${powers?.chainId}/${powers?.contractAddress}/laws/${lawId}`)
     // console.log("@handleNodeClick: waypoint 1", {action})
-  }, [router, chainId, powers?.contractAddress, action, getViewport])
+  }, [router, powers?.contractAddress, action, getViewport])
 
   // Handle ReactFlow initialization
   const onInit = useCallback((reactFlowInstance: ReturnType<typeof useReactFlow>) => {
@@ -1057,8 +1056,9 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
 
   // Create nodes and edges from laws
   const { initialNodes, initialEdges } = useMemo(() => {
-    if (!powers.laws) return { initialNodes: [], initialEdges: [] }
-    const ActiveLaws = powers.laws.filter(law => law.active)
+    if (!powers?.laws) return { initialNodes: [], initialEdges: [] }
+    const ActiveLaws = powers?.laws.filter(law => law.active)
+    if (!ActiveLaws) return { initialNodes: [], initialEdges: [] }
     
     const nodes: Node[] = []
     const edges: Edge[] = []
@@ -1070,7 +1070,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
     // Find connected nodes if a law is selected
     const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
     const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(selectedLawIdFromStore, ActiveLaws || [])
+      ? findConnectedNodes(powers as Powers, selectedLawIdFromStore as string)
       : undefined
     
     // Get the selected action from the store
@@ -1244,7 +1244,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers, selectedLawId, refresh
     }
   }, [onNodesChange, debouncedSaveLayout])
   
-  const ActiveLaws = powers.laws?.filter(law => law.active)
+  const ActiveLaws = powers?.laws?.filter(law => law.active)
   if (!ActiveLaws || ActiveLaws.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">

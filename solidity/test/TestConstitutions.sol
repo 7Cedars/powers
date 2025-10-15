@@ -10,16 +10,8 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 // test setup
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { BaseSetup } from "./TestSetup.t.sol";
-import { LawUtilities } from "../src/libraries/LawUtilities.sol";
-import { Checks } from "../src/libraries/Checks.sol";
-import { DeployMocks } from "../script/DeployMocks.s.sol";
-import { DeployLaws } from "../script/DeployLaws.s.sol";
-import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
+
 import { Nominees } from "@mocks/Nominees.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Donations } from "@mocks/Donations.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
 
 contract TestConstitutions is Test {
     uint256[] milestoneDisbursements;

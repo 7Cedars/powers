@@ -13,20 +13,21 @@ import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 import { TestConstitutions } from "../test/TestConstitutions.sol";
+import { InitialisePowers } from "./InitialisePowers.s.sol";
+import { DeployMocks } from "./DeployMocks.s.sol";
 
 // @dev this script is used to deploy the mocks to the chain.
 // Note: we do not return addresses of the deployed mocks. -- I am thinking about scrapping it. It is more trouble than its worth
 // addresses should be computed on basis of deployment data using create2.
 contract DeployTestOrgs is Script {
     address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
-    // InitialisePowers initialisePowers;
+    InitialisePowers initialisePowers;
+    DeployMocks deployMocks;
     TestConstitutions testConstitutions;
     Powers powers;
 
     function run() external returns (
         address[] memory powersAddresses, 
-        string[] memory libraryNames, 
-        address[] memory libraryAddresses, 
         string[] memory mockNames, 
         address[] memory mockAddresses, 
         string[] memory lawNames, 
@@ -34,8 +35,13 @@ contract DeployTestOrgs is Script {
         ) {
 
             testConstitutions = new TestConstitutions();
+            initialisePowers = new InitialisePowers();
+            deployMocks = new DeployMocks();
             powersAddresses = new address[](1);
 
+            (mockNames, mockAddresses) = deployMocks.run();
+            (lawNames, lawAddresses) = initialisePowers.run();
+            
             // Powers 101
             vm.startBroadcast();
             powers = new Powers("Test Org", "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq", 10_000, 25);
@@ -53,6 +59,6 @@ contract DeployTestOrgs is Script {
 
             // here we can add more test powers implementations.
 
-            return (powersAddresses, libraryNames, libraryAddresses, mockNames, mockAddresses, lawNames, lawAddresses);
+            return (powersAddresses, mockNames, mockAddresses, lawNames, lawAddresses);
     }
 }

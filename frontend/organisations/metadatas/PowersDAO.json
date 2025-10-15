@@ -3,9 +3,22 @@
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeibs64ol5hjnsqwyx4uzveougdkkyqaqoisqnmd6c2wpp36lwnqp7i",
   "description": 
     "The DAO that governs development of the Powers protocol. Accounts can buy time-limited access to the Funders role. Anyone that has PRs accepted in the documentation, frontend or protocol folders of Powers repository can claim a Documentation, Frontend or Protocol contributor role, respectively. All contributers decide, together, on how to divide funds for development of each of these areas. Each role then has the power to fund specific funding requests for their respective development areas.",
+  "website": "",
   "code-of-conduct": "", 
   "dispute-resolution": "",
-  "communication-channels": "",
+  "communication-channels": [
+    {
+      "discord": "",
+      "telegram": "",
+      "x": "",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "",
+      "forum": "",
+      "documentation": ""
+    }
+  ],
   "attributes": [
     {
       "trait_type": "optional trait 1",

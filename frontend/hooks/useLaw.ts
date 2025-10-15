@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
 import { Status, LawSimulation, Law, Powers, Action, ActionVote } from "../context/types"
-import { getConnectorClient, readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
+import { readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { parseChainId } from "@/utils/parsers";
@@ -20,6 +20,8 @@ export const useLaw = () => {
     confirmations: 2, 
     hash: transactionHash,
   })
+
+  // console.log("@useLaw, waypoint 0", {actionVote, statusReceipt})
  
   useEffect(() => {
     if (statusReceipt === "success") setStatus("success")
@@ -41,25 +43,27 @@ export const useLaw = () => {
       nonce: bigint,
       description: string,
       powers: Powers
-    ) => {
+    ): Promise<boolean> => {
         setStatus("pending")
         try {
-          const { request } = await simulateContract(wagmiConfig, {
+          const { request: simulatedRequest } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'propose',
             args: [lawId, lawCalldata, nonce, description],
             chainId: parseChainId(chainId)
           })
-          if (request) {
-            const result = await writeContract(wagmiConfig, request)
+          if (simulatedRequest) {
+            const result = await writeContract(wagmiConfig, simulatedRequest)
             setTransactionHash(result)
             setStatus("success")
+            return true
           }
         } catch (error) {
             setStatus("error") 
             setError(error as Error)
         }
+        return false
   }, [ ])
 
   const cancel = useCallback( 
@@ -68,7 +72,7 @@ export const useLaw = () => {
       lawCalldata: `0x${string}`,
       nonce: bigint,
       powers: Powers
-    ) => {
+    ): Promise<boolean> => {
         setStatus("pending")
         try {
           const result = await writeContract(wagmiConfig, {
@@ -79,9 +83,12 @@ export const useLaw = () => {
             chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
+          setStatus("success")
+          return true
       } catch (error) {
           setStatus("error") 
           setError(error as Error)
+          return false
       }
   }, [ ])
 
@@ -91,7 +98,7 @@ export const useLaw = () => {
       actionId: bigint,
       support: bigint,
       powers: Powers
-    ) => {
+    ): Promise<boolean> => {
         setStatus("pending")
         try {
           const result = await writeContract(wagmiConfig, {
@@ -103,9 +110,11 @@ export const useLaw = () => {
           })
           setTransactionHash(result)
           setStatus("success")
+          return true
       } catch (error) {
           setStatus("error") 
           setError(error as Error)
+          return false
       }
   }, [ ])
 
@@ -115,7 +124,7 @@ export const useLaw = () => {
       actionId: bigint,
       account: `0x${string}`,
       powers: Powers
-    ) => {
+    ): Promise<boolean> => {
       // console.log("checkHasVoted triggered")
         setStatus("pending")
         try {
@@ -128,9 +137,11 @@ export const useLaw = () => {
           })
           setHasVoted(result as boolean )
           setStatus("idle") 
+          return result as boolean
       } catch (error) {
           setStatus("error") 
           setError(error as Error)
+          return false
       }
   }, [ ])
 
@@ -138,9 +149,11 @@ export const useLaw = () => {
     async (
       actionObject: Action,
       powers: Powers
-    ) => {
+    ): Promise<ActionVote | undefined> => {
       setError(null)
       setStatus("pending")
+
+      console.log("@fetchVoteData, waypoint 0", {actionObject, powers})
       
       try {
         const [{ result: voteData }, { result: state }] = await readContracts(wagmiConfig, {
@@ -162,6 +175,8 @@ export const useLaw = () => {
           ]
         })
 
+        console.log("@fetchVoteData, waypoint 1", {voteData, state})
+
         const [voteStart, voteDuration, voteEnd, againstVotes, forVotes, abstainVotes] = voteData as unknown as [
           bigint, bigint, bigint, bigint, bigint, bigint
         ]
@@ -177,10 +192,13 @@ export const useLaw = () => {
           abstainVotes: abstainVotes as bigint,
         }
 
+        console.log("@fetchVoteData, waypoint 2", {vote})
+
         setActionVote(vote)
         setStatus("success")
         return vote
       } catch (error) {
+        console.log("@fetchVoteData, waypoint 3", {error})
         setStatus("error")
         setError(error as Error)
         return undefined
@@ -188,7 +206,7 @@ export const useLaw = () => {
     }, [ ])
   
   const simulate = useCallback( 
-    async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law) => {
+    async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law): Promise<boolean> => {
       // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
       setError(null)
       setStatus("pending")
@@ -205,10 +223,12 @@ export const useLaw = () => {
           // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
           setSimulation(result as LawSimulation)
           setStatus("success")
+          return true
         } catch (error) {
           setStatus("error") 
           setError(error as Error)
           console.log("@simulate: ERROR", {error})
+          return false
         }
         setStatus("idle")
   }, [ ])
@@ -219,34 +239,34 @@ export const useLaw = () => {
       lawCalldata: `0x${string}`,
       nonce: bigint,
       description: string
-    ) => {
+    ): Promise<boolean> => {
         // console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
         setError(null)
         setStatus("pending")
         try {
-          const { request } = await simulateContract(wagmiConfig, {
+          const { request: simulatedRequest } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
             address: law.powers as `0x${string}`,
             functionName: 'request',
             args: [law.index, lawCalldata, nonce, description]
           })
-
-          // console.log("@execute: waypoint 1", {request})
-          const client = await getConnectorClient(wagmiConfig)
-          // console.log("@execute: waypoint 2", {client})
           
-          if (request) {
+          if (simulatedRequest) {
             // console.log("@execute: waypoint 3", {request})
-            const result = await writeContract(wagmiConfig, request)
+            const result = await writeContract(wagmiConfig, simulatedRequest)
             setTransactionHash(result)
             // console.log("@execute: waypoint 4", {result})
+            return true
           }
         } catch (error) {
           setStatus("error") 
           setError(error as Error)
           // console.log("@execute: waypoint 5", {error}) 
-      }
-  }, [ ])
+          return false
+        }
+        setStatus("idle")
+        return false
+      }, [ ])
 
   return {status, error, simulation, hasVoted, actionVote, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, checkHasVoted, fetchVoteData}
 }

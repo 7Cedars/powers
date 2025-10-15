@@ -40,9 +40,9 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const [logSupport, setLogSupport] = useState<bigint>()
-  const { hasVoted, castVote, checkHasVoted, fetchVoteData } = useLaw(); 
+  const { hasVoted, castVote, checkHasVoted } = useLaw();  
 
-  console.log("@LawBox, waypoint 0", {action, checks, law})
+  // console.log("@LawBox, waypoint 0", {action, checks, law})
 
   useEffect(() => {
     if (action.actionId && wallets.length > 0) {
@@ -51,7 +51,6 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
         wallets[0].address as `0x${string}`,
         powers as Powers
       )
-      fetchVoteData(action, powers as Powers)
     }
   }, [action, wallets])
 
@@ -103,7 +102,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       <div className="w-full pt-4" help-nav-item="propose-or-vote">
       {
       // option 1: When action does not exist, and needs a vote, create proposal button
-      Number(law?.conditions?.quorum) > 0 && action?.state == 0 && action?.upToDate ? (
+      Number(law?.conditions?.quorum) > 0 && action?.state == 8 && action?.upToDate ? (
           <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">          
             <div className="w-full">
               <Button 
@@ -122,7 +121,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           </div>
           ) 
         // option 2: When action does not exist and does not need a vote, execute button 
-        : Number(law?.conditions?.quorum) == 0 && action?.state == 0 && action?.upToDate ? (
+        : Number(law?.conditions?.quorum) == 0 && action?.state == 8 && action?.upToDate ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 

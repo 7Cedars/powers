@@ -5,8 +5,8 @@ export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
 
   let roleIds: bigint[] = [] 
   
-  if (powers?.roleLabels != undefined && powers.roleLabels.length > 0) { 
-    roleIds = powers.roleLabels.map(roleLabel => roleLabel.roleId)
+  if (powers?.roles != undefined && powers.roles.length > 0) { 
+    roleIds = powers.roles.map(role => role.roleId)
   }
   // console.log("@bigintToRole: waypoint 1", {roleIds})
 
@@ -15,7 +15,7 @@ export const bigintToRole = (roleId: bigint, powers: Powers): string  => {
     :
     roleId == 0n ? "Admin" 
     :
-    roleIds.includes(roleId) ? powers.roleLabels?.find(roleLabel => roleLabel.roleId == roleId)?.label : `Role ${Number(roleId)}`
+    roleIds.includes(roleId) ? powers.roles?.find(role => role.roleId == roleId)?.label : `Role ${Number(roleId)}`
   // console.log("@bigintToRole: waypoint 2", {roleLabel})
   return roleLabel ? String(roleLabel).charAt(0).toUpperCase() + String(roleLabel).slice(1) : `Role ${Number(roleId)}`
 }
@@ -27,8 +27,8 @@ export const bigintToRoleHolders = (roleId: bigint, powers: Powers): string | "â
     return "âˆž"
   }
 
-  return powers.roleLabels?.find(roleLabel => Number(roleLabel.roleId) == Number(roleId))?.holders ? 
-    String(powers.roleLabels?.find(roleLabel => Number(roleLabel.roleId) == Number(roleId))?.holders) 
+  return powers.roles?.find(role => Number(role.roleId) == Number(roleId))?.amountHolders ? 
+    String(powers.roles?.find(role => Number(role.roleId) == Number(roleId))?.amountHolders) 
     : 
     "0"
 }

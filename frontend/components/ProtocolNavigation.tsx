@@ -2,7 +2,6 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation'
-import { useState } from "react";
 import Image from 'next/image'
 import { 
   HomeIcon, 
@@ -13,7 +12,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from './ConnectButton'
 import { BlockCounter } from './BlockCounter';
-import { OnboardingModal } from './OnboardingModal';
 
 // Navigation styling constants
 const layoutIconBox = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
@@ -69,37 +67,18 @@ const protocolNavigationConfig: NavigationItem[] = [
     path: '/treasury',
     helpNavItem: 'treasury'
   }
-  // {
-  //   id: 'help',
-  //   label: 'Help',
-  //   icon: QuestionMarkCircleIcon,
-  //   path: '#',
-  //   hidden: true, // Hidden by default on mobile
-  //   hideLabel: true, // Only show icon, no text
-  //   helpNavItem: undefined
-  // }
 ];
 
 const NavigationBar = () => {
   const router = useRouter();
-  const chainId = useParams().chainId;
-  const powers = useParams().powers;
-  const legacyPath = usePathname();
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const path = usePathname(); 
+  const { chainId, powers } = useParams<{ chainId: string, powers: string }>()
 
-  const handleNavigation = (item: NavigationItem) => {
-    if (item.id === 'help') {
-      setIsOnboardingOpen(true);
-      return;
+  const isSelected = (item: NavigationItem): boolean => {
+    if (item.id === 'home') {
+      return path === `/protocol/${chainId}/${powers}` || path === `/protocol/${chainId}/${powers}/`
     }
-    
-    const fullPath = `/protocol/${chainId}/${powers}${item.path}`;
-    router.push(fullPath);
-  };
-
-  const isSelected = (item: NavigationItem) => {
-    const fullPath = `/protocol/${chainId}/${powers}${item.path}`;
-    return legacyPath === fullPath;
+    return path.includes(item.path)
   };
 
   return (
@@ -108,7 +87,7 @@ const NavigationBar = () => {
         {protocolNavigationConfig.map((item) => (
           <button 
             key={item.id}
-            onClick={() => handleNavigation(item)}
+            onClick={() => router.push(`/protocol/${chainId}/${powers}${item.path}`)}
             aria-selected={isSelected(item)} 
             className={`${layoutButton} ${item.hidden ? 'hidden md:flex' : ''}`}
             help-nav-item={item.helpNavItem}
@@ -120,19 +99,11 @@ const NavigationBar = () => {
           </button>
         ))}
       </div>
-      
-      <OnboardingModal 
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        onRequestOpen={() => setIsOnboardingOpen(true)}
-      />
     </>
   )
 } 
 
-const Header = () => {
-  const path = usePathname()
-  
+const Header = () => {  
   return (
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">
     <section className="grow flex flex-row gap-1 justify-between pe-2">
@@ -148,7 +119,7 @@ const Header = () => {
             >
           </Image>
         </a> 
-        {path == `/` ? null : <BlockCounter /> }
+        <BlockCounter />
       </div>
       
       <div className="flex flex-row gap-2 items-center">
@@ -156,7 +127,7 @@ const Header = () => {
           <NavigationBar />
         </div>
         
-        {path == `/` ? null : <ConnectButton /> }
+        <ConnectButton />
       </div>
     </section>
   </div>
@@ -171,7 +142,11 @@ const Footer = () => {
   )
 }
 
-export const ProtocolNavigation = ({ children }: { children: React.ReactNode }) => {
+interface NavigationProps {
+  children: React.ReactNode
+}
+
+export const ProtocolNavigation = ({ children }: NavigationProps) => {
   const path = usePathname()
 
   return (

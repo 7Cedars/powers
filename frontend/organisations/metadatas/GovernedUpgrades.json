@@ -3,9 +3,22 @@
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidnbbvs4kq36nre4lbgl7dh7tzm3vkjpuaneroeygkw3lqve6upoa",
   "description": 
     "An example implementation of an organisation that has a law for adopting new laws. In this example that goes one law at a time. For packaged upgrades, see PackagedUpgrades in the Deploy Your Powers section.",
+  "website": "",
   "code-of-conduct": "", 
   "dispute-resolution": "",
-  "communication-channels": "",
+  "communication-channels": [
+    {
+      "discord": "",
+      "telegram": "",
+      "x": "",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "",
+      "forum": "",
+      "documentation": ""
+    }
+  ],
   "attributes": [
     {
       "trait_type": "optional trait 1",

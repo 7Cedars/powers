@@ -16,16 +16,15 @@ export const Voting = ({ powers, status: statusPowers, actionVote }: {powers: Po
   const constants = getConstants(parseChainId(chainId) as number)
   const action = useActionStore()
   const law = powers?.laws?.find(law => law.index == action?.lawId)
-  const roleHolders = Number(powers?.roleLabels?.find(role => BigInt(role.roleId) == BigInt(law?.conditions?.allowedRole || 0))?.holders || 0)
+  const roleHolders = Number(powers?.roles?.find(role => BigInt(role.roleId) == BigInt(law?.conditions?.allowedRole || 0))?.amountHolders) || 0
 
-  console.log("@Voting: waypoint 0", {action, actionVote})
+  // console.log("@Voting: waypoint 0", {action, actionVote})
 
   // Use updated action data if available, otherwise use prop
   const allVotes = Number(actionVote?.forVotes || 0) + Number(actionVote?.againstVotes || 0) + Number(actionVote?.abstainVotes || 0)
   const quorum = roleHolders > 0 ? Math.floor((roleHolders * Number(law?.conditions?.quorum || 0)) / 100) : 0
   const threshold = roleHolders > 0 ? Math.floor((roleHolders * Number(law?.conditions?.succeedAt || 0)) / 100) : 0
   const deadline = Number(actionVote?.voteEnd || 0)
-  const state = actionVote?.state ?? 6
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
 
   return (
@@ -47,28 +46,28 @@ export const Voting = ({ powers, status: statusPowers, actionVote }: {powers: Po
         {/* Proposal state block */}
         <div className = "w-full flex flex-col justify-center items-center p-4 py-3"> 
             { 
-              state === undefined || state === null ? 
+              action.state === undefined || action.state === null ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> No Proposal Found </div>
               :
-              state === 3 ? 
+              action.state === 3 ? 
                 <div className={`${layout} text-blue-500 bg-blue-100`}> Active </div>
               :
-              state === 2 ? 
+              action.state === 2 ? 
                 <div className={`${layout} text-orange-500 bg-orange-100`}> Cancelled </div>
               :
-              state === 4 ? 
+              action.state === 4 ? 
                 <div className={`${layout} text-red-500 bg-red-100`}> Defeated </div>
               :
-              state === 5 ? 
+              action.state === 5 ? 
                 <div className={`${layout} text-green-500 bg-green-100`}> Succeeded </div>
               :
-              state === 6 ? 
+              action.state === 6 ? 
                 <div className={`${layout} text-slate-700 bg-slate-200`}> Requested </div>
               :
-              state === 7 ? 
+              action.state === 7 ? 
                 <div className={`${layout} text-slate-700 bg-slate-200`}> Fulfilled </div>
               :
-              state === 0 ? 
+              action.state === 0 ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> NonExistent </div>
               :
               null 

@@ -29,7 +29,7 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
   const dataTypes = params.map(param => param.dataType) 
 
   // console.log("@DynamicForm:", {checks, action})
-  // console.log("@DynamicForm:", {error})
+  console.log("@DynamicForm:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})

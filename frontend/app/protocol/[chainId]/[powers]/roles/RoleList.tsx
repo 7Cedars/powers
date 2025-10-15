@@ -1,89 +1,26 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Status, Powers } from "@/context/types";
-import { parseChainId } from "@/utils/parsers";
-import { powersAbi } from "@/context/abi";
-import { readContracts } from "wagmi/actions";
-import { wagmiConfig } from "@/context/wagmiConfig";
+import { Status, Powers, Role } from "@/context/types";
 import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import DynamicThumbnail from "@/components/DynamicThumbnail";
 
-// Type definition for role data with holder count and related laws
-type Roles = {
-  roleId: bigint;
-  holders: number;
-  laws: unknown[];
+type RoleListProps = {
+  powers: Powers | undefined,
+  status: Status,
 }
 
-export function RoleList({powers}: {powers: Powers | undefined, status: Status, onRefresh?: () => void}) {
+// Need to add a refetch button ? 
+
+export function RoleList({powers, status}: RoleListProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
-  const [status, setStatus] = useState<Status>('idle') 
-  const [roles, setRoles] = useState<Roles[]>([])
 
-  // console.log("@RoleList: ", {powers, roles})
+  const roles = powers?.roles
 
-  const fetchAmountRoleHolders = useCallback(
-    async (roleIds: bigint[]) => {
-      // console.log("fetch role triggered", {roleIds}
-      setStatus("pending")
-
-      if (powers) {
-        try {
-          // Filter out roleIds that are too large (> 429496729600000)
-          const validRoleIds = roleIds.filter(roleId => Number(roleId) < 429496729600000)
-          
-          if (validRoleIds.length === 0) {
-            setRoles([])
-            setStatus("success")
-            return
-          }
-
-          // Build multicall contracts array for all valid role IDs
-          const contracts = validRoleIds.map((roleId) => ({
-            abi: powersAbi,
-            address: powers.contractAddress as `0x${string}`,
-            functionName: 'getAmountRoleHolders' as const,
-            args: [roleId] as [bigint],
-            chainId: parseChainId(chainId)
-          }))
-
-          // Fetch all role holder counts in a single multicall
-          const results = await readContracts(wagmiConfig, {
-            allowFailure: false,
-            contracts
-          }) as bigint[]
-
-          // Build the roles array with holder counts and filtered laws
-          const rolesFetched: Roles[] = validRoleIds.map((roleId, index) => {
-            const holders = results[index]
-            const laws = powers?.laws?.filter(law => law.conditions?.allowedRole == BigInt(roleId)) || []
-            return {
-              roleId,
-              holders: Number(holders),
-              laws
-            }
-          })
-
-          // Sort roles by roleId
-          const rolesSorted = rolesFetched.sort((a: Roles, b: Roles) => a.roleId > b.roleId ? 1 : -1)
-          setRoles(rolesSorted)
-          setStatus("success")
-        } catch (error) {
-          setStatus("error")  
-          console.error("Error fetching role holders:", error)
-        }
-      }
-    }, [powers, chainId]) 
-
-  useEffect(() => {
-    if (powers) {
-      fetchAmountRoleHolders(powers.roles || [])
-    }
-  }, [powers, fetchAmountRoleHolders])
+  console.log("@RoleList:", {roles, powers})
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
@@ -100,7 +37,7 @@ export function RoleList({powers}: {powers: Powers | undefined, status: Status, 
               <table className="w-full table-auto text-sm">
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
-                    roles?.map((role: Roles, i: number) =>
+                    powers.roles?.map((role: Role, i: number) =>
                       <tr 
                         key={i} 
                         className="text-xs text-left text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
@@ -125,8 +62,8 @@ export function RoleList({powers}: {powers: Powers | undefined, status: Status, 
                               <div className="text-sm text-slate-600">
                                 {role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n 
                                   ? 'Universal role' 
-                                  : `${role.holders} ${role.holders === 1 ? 'holder' : 'holders'}`
-                                } • {role.laws?.length} {role.laws?.length === 1 ? 'law' : 'laws'}
+                                  : `${role.amountHolders} ${Number(role.amountHolders) == 1 ? 'holder' : 'holders'}`
+                                }
                               </div>
                             </div>
                           </div>

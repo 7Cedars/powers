@@ -15,9 +15,6 @@ export function Roles({powers, status}: RolesProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
 
-  // Display roles (excluding the 0n public role, keeping Universal as Public)
-  const allRoles = (powers?.roles || []).map(roleId => ({ roleId }));
-
   // Count laws for each role
   const getLawCountForRole = (roleId: bigint) => {
     if (!powers?.laws) return 0;
@@ -46,7 +43,7 @@ export function Roles({powers, status}: RolesProps) {
           <LoadingBox /> 
         </div>
       : 
-      allRoles && allRoles.length > 0 ? 
+      powers?.roles && powers?.roles.length > 0 ? 
         <div className="w-full h-fit lg:max-h-56 max-h-48 flex flex-col justify-start items-center overflow-hidden">
           <div className="w-full overflow-x-auto overflow-y-auto">
             <table className="w-full table-auto text-sm">
@@ -57,7 +54,7 @@ export function Roles({powers, status}: RolesProps) {
                 </tr>
               </thead>
               <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                {allRoles.map((role, i) => (
+                {powers?.roles?.map((role, i) => (
                   <tr
                     key={i}
                     className="text-sm text-left text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
@@ -67,13 +64,13 @@ export function Roles({powers, status}: RolesProps) {
                       <div className="text-xs text-slate-800">
                         {role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n 
                           ? 'Public' 
-                          : bigintToRole(role.roleId, powers as Powers)
+                          : bigintToRole(role.roleId as bigint, powers as Powers)
                         }
                       </div>
                     </td>
                     <td className="pl-1 pr-2 py-3">
                       <div className="text-xs text-slate-500 text-right">
-                        {getLawCountForRole(role.roleId)}
+                        {getLawCountForRole(role.roleId as bigint)}
                       </div>
                     </td>
                   </tr>

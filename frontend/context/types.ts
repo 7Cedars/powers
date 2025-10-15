@@ -91,10 +91,26 @@ export type Law = {
   active: boolean;
 }
 
+export type CommunicationChannels = {
+  discord?: string;
+  telegram?: string;
+  x?: string;
+  paragraph?: string;
+  youtube?: string;
+  facebook?: string;
+  github?: string;
+  forum?: string;
+  documentation?: string;
+}
+
 export type Metadata = { 
   icon: string; 
   banner: string;
   description: string; 
+  website?: string;
+  "code-of-conduct"?: string;
+  "dispute-resolution"?: string;
+  "communication-channels"?: CommunicationChannels[];
   erc20s: `0x${string}`[];
   erc721s: `0x${string}`[];
   erc1155s: `0x${string}`[];
@@ -125,24 +141,20 @@ export type Powers = {
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
-  roles?: bigint[];
-  roleLabels?: RoleLabel[];
-  roleHolders?: bigint[];
-  deselectedRoles?: bigint[];
+  roles?: Role[];
   layout?: Record<string, { x: number; y: number }>; // Graph layout positions
 }
 
-export type Role = {
-  access: boolean,
-  account: `0x${string}`,
-  roleId: number,
-  since?: number
-}
-
-export type RoleLabel = { 
+export type Role = { 
   roleId: bigint; 
   label: string; 
-  holders?: bigint;
+  amountHolders?: bigint;
+  members?: Member[];
+}
+
+export type Member = { 
+  account: `0x${string}`; 
+  since: bigint; 
 }
 
 export type Checks = {

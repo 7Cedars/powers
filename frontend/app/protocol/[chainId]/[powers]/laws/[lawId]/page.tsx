@@ -5,7 +5,7 @@ import { LawBox } from "./LawBox";
 import { setAction, setError, useActionStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { InputType, Law, Powers, Checks, Action, ActionVote } from "@/context/types";
+import { InputType, Law, Powers, Checks, Action, ActionVote, Role } from "@/context/types";
 import { useWallets } from "@privy-io/react-auth";
 import { usePowers } from "@/hooks/usePowers";
 import { useParams } from "next/navigation";
@@ -21,13 +21,12 @@ const Page = () => {
   const {wallets, ready} = useWallets();
   const action = useActionStore();  
   const { powers: addressPowers, lawId } = useParams<{ powers: string, lawId: string }>()  
-  const { powers, fetchPowers, status: statusPowers, fetchActions } = usePowers() 
+  const { powers, fetchPowers, status: statusPowers, fetchActions, fetchRoles } = usePowers() 
   const { fetchChecks, checks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, simulation, actionVote, resetStatus, simulate, request, propose } = useLaw();
-  const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId))
-  const populatedAction = powers?.actions && powers?.actions?.length > 0 ? powers?.actions?.find(a => a.actionId == action.actionId) : undefined
+  const { status: statusLaw, error: errorUseLaw, simulation, actionVote, resetStatus, simulate, request, propose, fetchVoteData } = useLaw();
+  const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId)) 
 
-  console.log("@Page: waypoint 0", {law, action, populatedAction, actionVote, statusLaw, statusPowers, errorUseLaw})
+  // console.log("@Page: waypoint 0", {law, action, actionVote, statusLaw, statusPowers, errorUseLaw, powers, checks})
 
   // Helper function to map state numbers to their labels
   const getStateLabel = (state: number | undefined): string => {
@@ -53,17 +52,10 @@ const Page = () => {
 
   useEffect(() => {
      if (statusLaw == "success") {
-      fetchActions(powers as Powers)
       resetStatus()
     }
   }, [statusLaw])
 
-//   useEffect(() => {
-//     if (statusPowers == "success" && action.actionId && law?.conditions?.quorum && Number(law?.conditions?.quorum) > 0) {
-//       fetchVoteData(action, powers as Powers)
-//    }
-//  }, [statusPowers])
- 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
       // console.log("Handle Simulate called:", {paramValues, nonce, law})
       setError({error: null})
@@ -82,7 +74,7 @@ const Page = () => {
         // console.log("Handle Simulate waypoint 2d")
         lawCalldata = '0x0'
       }
-        // resetting store
+      // resetting store
       // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
       if (lawCalldata && ready && wallets && powers?.contractAddress) { 
         fetchChecks(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
@@ -91,7 +83,7 @@ const Page = () => {
         const newAction: Action = {
           ...action,
           actionId: actionId,
-          state: 0, // NonExistent
+          state: 0, // non existent
           lawId: law.index,
           caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           dataTypes: law.params?.map(param => param.dataType),
@@ -104,16 +96,19 @@ const Page = () => {
 
         // console.log("Handle Simulate waypoint 3b")
         setAction(newAction)
-        console.log("Handle Simulate", {newAction})
         
         try {
         // simulating law. 
-          simulate(
+          const success = await simulate(
             wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
             newAction.callData as `0x${string}`,
             BigInt(newAction.nonce as string),
             law
           )
+          if (success) { 
+            setAction({...newAction, state: 8})
+            console.log("Handle Simulate", {newAction})
+          }
           // fetchAction(newAction, powers as Powers, true)
         } catch (error) {
           // console.log("Handle Simulate waypoint 3c")
@@ -127,7 +122,7 @@ const Page = () => {
     if (!law) return
     
     setError({error: null})
-    let lawCalldata: `0x${string}` | undefined
+    let lawCalldata: `0x${string}` = '0x0'
     
     if (paramValues.length > 0 && paramValues) {
       try {
@@ -138,15 +133,19 @@ const Page = () => {
     } else {
       lawCalldata = '0x0'
     }
-
+ 
     if (lawCalldata && ready && wallets && powers?.contractAddress) {
-      propose(
+      const success = await propose(
         law.index as bigint,
         lawCalldata,
         nonce,
         description,
         powers as Powers
-      )
+        )
+      if (success) {
+        setAction({...action, state: 3})
+        console.log("Handle Propose", {action})
+      }
       console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
     }
   };
@@ -169,13 +168,18 @@ const Page = () => {
         // console.log("Handle Simulate waypoint 2d")
         lawCalldata = '0x0'
       }
-
-      request(
+ 
+      const success = await request(
         law, 
         lawCalldata as `0x${string}`,
         nonce,
         description
       )
+      if (success) {
+        setAction({...action, state: 6})
+        console.log("Handle Execute", {action})
+      }
+      console.log("@handleExecute: waypoint 1", {paramValues, nonce, description})
   };
 
   // resetting DynamicForm and fetching executions when switching laws: 
@@ -236,28 +240,34 @@ const Page = () => {
               <div className="flex flex-row gap-2">
                 <span className="font-semibold">ActionId:</span>
                 <span className="font-mono">
-                  {populatedAction?.actionId ? `${populatedAction?.actionId.slice(0, 10)}...${populatedAction?.actionId.slice(-8)}` : '-'}
+                  {action?.actionId ? `${action?.actionId.slice(0, 10)}...${action?.actionId.slice(-8)}` : '-'}
                 </span>
               </div>
               <div className="flex flex-row gap-2">
                 <span className="font-semibold">Status:</span>
                 <span className={`px-2 rounded ${
-                  populatedAction?.state === undefined ? 'text-slate-500 bg-slate-100' : // NonExistent
-                  populatedAction?.state === 1 ? 'text-blue-600 bg-blue-100' : // Proposed
-                  populatedAction?.state === 2 ? 'text-red-600 bg-red-100' : // Cancelled  
-                  populatedAction?.state === 3 ? 'text-orange-600 bg-orange-100' : // Active
-                  populatedAction?.state === 4 ? 'text-red-600 bg-red-100' : // Defeated
-                  populatedAction?.state === 5 ? 'text-green-600 bg-green-100' : // Succeeded
-                  populatedAction?.state === 6 ? 'text-blue-600 bg-blue-100' : // Requested
-                  populatedAction?.state === 7 ? 'text-green-600 bg-green-100' : // Fulfilled
+                  action?.state === undefined ? 'text-slate-500 bg-slate-100' : // NonExistent
+                  action?.state === 1 ? 'text-blue-600 bg-blue-100' : // Proposed
+                  action?.state === 2 ? 'text-red-600 bg-red-100' : // Cancelled  
+                  action?.state === 3 ? 'text-orange-600 bg-orange-100' : // Active
+                  action?.state === 4 ? 'text-red-600 bg-red-100' : // Defeated
+                  action?.state === 5 ? 'text-green-600 bg-green-100' : // Succeeded
+                  action?.state === 6 ? 'text-blue-600 bg-blue-100' : // Requested
+                  action?.state === 7 ? 'text-green-600 bg-green-100' : // Fulfilled
                   'text-slate-500 bg-slate-100'
                 }`}>
-                  {getStateLabel(populatedAction?.state)}
+                  {getStateLabel(action?.state)}
                 </span>
               </div>
             </div>
             <button
-              onClick={() => powers && fetchActions(powers as Powers)}
+              onClick={
+                () => {
+                  powers && fetchActions(powers as Powers)
+                  fetchVoteData(action, powers as Powers)
+                  powers && fetchRoles(powers as Powers)
+                }
+              }
               disabled={statusPowers === 'pending'}
               className="flex items-center justify-center w-9 h-9 bg-slate-50 border border-slate-300 rounded-md hover:bg-slate-100 transition-colors disabled:opacity-50 flex-shrink-0"
               aria-label="Refetch action state"
@@ -308,10 +318,10 @@ const Page = () => {
         {/* Voting, Latest Actions section */}
         <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
           {/* Conditional if a law.condition.quorum >0 && action.state != 0 && action.upToDate: show vote and voting */}
-          {Number(law?.conditions?.quorum) > 0 && populatedAction?.state != 0 && (
+          {Number(law?.conditions?.quorum) > 0 && action?.state != 0 && action?.state != 8 && (
             <>
               <Voting powers={powers} status={statusLaw} actionVote={actionVote as ActionVote} />
-              <Votes actionId={populatedAction?.actionId as string} action={populatedAction as Action} powers={powers} status={statusLaw} actionVote={actionVote as ActionVote} />
+              <Votes actionId={action?.actionId as string} lawId={law?.index as bigint} action={action as Action} powers={powers} status={statusLaw} />
             </>
           )}
           

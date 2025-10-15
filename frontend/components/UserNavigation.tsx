@@ -34,11 +34,7 @@ const UserNavigationBar = () => {
   const router = useRouter()
   const path = usePathname()
 
-  const handleNavigation = (item: typeof userNavigationConfig[0]) => {
-    router.push(item.path)
-  }
-
-  const isSelected = (item: typeof userNavigationConfig[0]) => {
+  const isSelected = (item: typeof userNavigationConfig[0]): boolean => {
     if (item.id === 'home') {
       return path === '/user' || path === '/user/'
     }
@@ -51,7 +47,7 @@ const UserNavigationBar = () => {
         {userNavigationConfig.map((item) => (
           <button 
             key={item.id}
-            onClick={() => handleNavigation(item)}
+            onClick={() => router.push(item.path)}
             aria-selected={isSelected(item)} 
             className={layoutButton}
             help-nav-item={item.id}

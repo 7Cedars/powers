@@ -13,6 +13,7 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
   const chains = useChains();
   const { chainId } = useParams<{ chainId: string }>()
   const [deselectedRoles, setDeselectedRoles] = useState<bigint[]>([])
+  const ActiveLaws = powers?.laws?.filter(law => law.active)
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -34,11 +35,11 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
         {powers?.roles?.map((role, i) => (
           <button 
             key={i}
-            onClick={() => handleRoleSelection(BigInt(role))}
+            onClick={() => handleRoleSelection(BigInt(role.roleId))}
             className="w-fit h-full hover:text-slate-400 text-sm aria-selected:text-slate-800 text-slate-300 whitespace-nowrap"
-            aria-selected={!deselectedRoles?.includes(BigInt(role))}
+            aria-selected={!deselectedRoles?.includes(BigInt(role.roleId))}
           >  
-            <p className="text-sm text-left">{bigintToRole(role, powers)}</p>
+            <p className="text-sm text-left">{bigintToRole(role.roleId, powers)}</p>
           </button>
         ))}
       </div>
@@ -49,15 +50,15 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
           <LoadingBox /> 
         </div>
         :
-        powers?.ActiveLaws && powers?.ActiveLaws.length > 0 ?
+        ActiveLaws && ActiveLaws.length > 0 ?
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                  {powers?.ActiveLaws
+                  {ActiveLaws
                     ?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))
                     ?.map((law: Law, i) => {
-                      const roleName = law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers) : "-";
+                      const roleName = law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers as Powers) : "-";
                       const numHolders = "-"; // You can add actual holder count if available
                       
                       return (
@@ -68,7 +69,7 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
                         >
                           <td className="ps-4 px-2 py-3 w-auto">
                             <HeaderLawSmall
-                              powers={powers}
+                              powers={powers as Powers}
                               lawName={law.nameDescription || `Law #${law.index}`}
                               roleName={roleName}
                               numHolders={numHolders}

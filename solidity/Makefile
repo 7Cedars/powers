@@ -276,7 +276,7 @@ info:
 ###############################
 # 		Deploy Commands  				# 
 ###############################
-ANVIL_ARGS_0 := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY_0) --broadcast
+ANVIL_ARGS_0 := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY_0) --broadcast --ffi -vv
 ARB_SEPOLIA_TEST_ARGS := --fork-url $(ARB_SEPOLIA_RPC_URL)
 
 SEPOLIA_DEPLOY_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 11155111 --verify -vvvv
@@ -289,11 +289,9 @@ anvilTest :; forge test $(ANVIL_ARGS_0)
 arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
 
 # anvil local 
-anvilDeploy :; forge script script/DeployTestOrgs.s.sol:DeployTestOrgs $(ANVIL_ARGS_0)
-anvilInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) --ffi -vv 
-anvilDeployLibraries :; forge script script/DeployLibraries.s.sol:DeployLibraries $(ANVIL_ARGS_0)
+anvilDeployTest :; forge script script/DeployTestOrgs.s.sol:DeployTestOrgs $(ANVIL_ARGS_0)
+anvilInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0)
 anvilDeployMocks :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0)
-anvilDeployLaws :; forge script script/DeployLaws.s.sol:DeployLaws $(ANVIL_ARGS_0)
 
 # # Ethereum sepolia 
 # sepoliaDeployVanillaPowers :; forge script script/DeployVanillaPowers.sol:DeployVanillaPowers $(SEPOLIA_DEPLOY_ARGS)
