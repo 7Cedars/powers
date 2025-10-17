@@ -63,7 +63,7 @@ export interface Organization {
   createLawInitData: (
     powersAddress: `0x${string}`, 
     deployedLaws: Record<string, `0x${string}`>,
-    deployedMocks: Record<string, `0x${string}`>
+    deployedDependencies: Record<string, `0x${string}`>
   ) => LawInitData[];
 
   /**

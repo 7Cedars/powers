@@ -51,5 +51,5 @@ export function getEnabledOrganizations(isLocalhost: boolean = false): Organizat
 }
 
 // Re-export types for convenience
-export type { Organization, OrganizationField, OrganizationMetadata, MockContract } from "./types";
+export type { Organization, OrganizationField, OrganizationMetadata, DeployableContract } from "./types";
 

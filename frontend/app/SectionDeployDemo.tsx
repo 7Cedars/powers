@@ -31,7 +31,7 @@ export function SectionDeployDemo() {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<Error | null>(null);
-  const [deployedMocks, setDeployedMocks] = useState<Record<string, `0x${string}`>>({});
+  const [deployedDependencies, setDeployedMocks] = useState<Record<string, `0x${string}`>>({});
   const [deployedPowersAddress, setDeployedPowersAddress] = useState<`0x${string}` | undefined>();
   const [constituteCompleted, setConstituteCompleted] = useState(false);
   const [bytecodePowers, setBytecodePowers] = useState<`0x${string}` | undefined>();
@@ -145,7 +145,7 @@ export function SectionDeployDemo() {
       const mockDeployStatuses = dependencies.map(dep => ({ name: dep.name, status: "pending" as Status }));
       setDeployStatus(prev => ({ ...prev, mocksDeploy: mockDeployStatuses }));
 
-      const deployedMocksMap: Record<string, `0x${string}`> = {};
+      const deployedDependenciesMap: Record<string, `0x${string}`> = {};
 
       for (let i = 0; i < dependencies.length; i++) {
         const dep = dependencies[i];
@@ -176,7 +176,7 @@ export function SectionDeployDemo() {
           throw new Error(`Failed to get ${dep.name} contract address from receipt`);
         }
 
-        deployedMocksMap[dep.name] = mockAddress;
+        deployedDependenciesMap[dep.name] = mockAddress;
         console.log(`${dep.name} deployed at:`, mockAddress);
 
         setDeployStatus(prev => ({
@@ -189,14 +189,14 @@ export function SectionDeployDemo() {
         await delayIfNeeded();
       }
 
-      setDeployedMocks(deployedMocksMap);
+      setDeployedMocks(deployedDependenciesMap);
 
       // STEP 3: Create law init data with deployed addresses
       console.log("Step 3: Creating law init data...");
       const lawInitData = currentOrg.createLawInitData(
         powersAddress,
         deployedLaws,
-        deployedMocksMap
+        deployedDependenciesMap
       );
       console.log("Law init data created:", lawInitData);
 
@@ -231,10 +231,10 @@ export function SectionDeployDemo() {
 
         // 4b: Execute transferOwnership for ownable contracts
         for (const dep of dependencies) {
-          if (dep.ownable && deployedMocksMap[dep.name]) {
+          if (dep.ownable && deployedDependenciesMap[dep.name]) {
             console.log(`Transferring ownership of ${dep.name} to Powers...`);
             const transferTxHash = await writeContract(wagmiConfig, {
-              address: deployedMocksMap[dep.name],
+              address: deployedDependenciesMap[dep.name],
               abi: dep.abi,
               functionName: 'transferOwnership',
               args: [powersAddress]
@@ -265,10 +265,10 @@ export function SectionDeployDemo() {
 
         // 4b: Add transferOwnership calls for ownable contracts
         for (const dep of dependencies) {
-          if (dep.ownable && deployedMocksMap[dep.name]) {
+          if (dep.ownable && deployedDependenciesMap[dep.name]) {
             console.log(`Adding transferOwnership for ${dep.name} to Powers`);
             multicallContracts.push({
-              address: deployedMocksMap[dep.name],
+              address: deployedDependenciesMap[dep.name],
               abi: dep.abi,
               functionName: 'transferOwnership',
               args: [powersAddress]

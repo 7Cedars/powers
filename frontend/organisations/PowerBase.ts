@@ -27,10 +27,10 @@ export const PowerBase: Organization = {
     disabled: false,
     onlyLocalhost: false
   },
-
   fields: [],
-
-  createLawInitData: (powersAddress: `0x${string}`, chainId: number): LawInitData[] => {
+  dependencies: [],
+  
+  createLawInitData: (powersAddress: `0x${string}`, deployedLaws: Record<string, `0x${string}`>): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
     
     // Define roles
@@ -52,7 +52,7 @@ export const PowerBase: Organization = {
 
     lawInitData.push({
       nameDescription: "RUN THIS LAW FIRST: Assigns role labels. Press refresh after execution.",
-      targetLaw: getLawAddress("PresetAction", chainId),
+      targetLaw: getLawAddress("PresetAction", deployedLaws),
       config: encodeAbiParameters(
         [
           { name: 'targets', type: 'address[]' },
@@ -95,11 +95,11 @@ export const PowerBase: Organization = {
     // Law 2: Propose Documentation Budget
     lawInitData.push({
       nameDescription: "Propose Documentation Budget: Members vote on documentation grant budget.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: budgetConfig,
       conditions: createConditions({
         allowedRole: 5n,
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(7, Number(deployedLaws.chainId)),
         succeedAt: 51n,
         quorum: 33n
       })
@@ -108,11 +108,11 @@ export const PowerBase: Organization = {
     // Law 3: Propose Frontend Budget
     lawInitData.push({
       nameDescription: "Propose Frontend Budget: Members vote on frontend grant budget.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: budgetConfig,
       conditions: createConditions({
         allowedRole: 5n,
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(7, Number(deployedLaws.chainId)),
         succeedAt: 51n,
         quorum: 33n
       })
@@ -121,11 +121,11 @@ export const PowerBase: Organization = {
     // Law 4: Propose Protocol Budget
     lawInitData.push({
       nameDescription: "Propose Protocol Budget: Members vote on protocol grant budget.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: budgetConfig,
       conditions: createConditions({
         allowedRole: 5n,
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(7, Number(deployedLaws.chainId)),
         succeedAt: 51n,
         quorum: 33n
       })
@@ -134,11 +134,11 @@ export const PowerBase: Organization = {
     // Law 5: Veto Budget Proposal
     lawInitData.push({
       nameDescription: "Veto Budget: Funders can veto any budget proposal (laws 2, 3, or 4).",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: budgetConfig,
       conditions: createConditions({
         allowedRole: 1n,
-        votingPeriod: daysToBlocks(3, chainId),
+        votingPeriod: daysToBlocks(3, Number(deployedLaws.chainId)),
         succeedAt: 66n,
         quorum: 50n
       })
@@ -335,7 +335,7 @@ export const PowerBase: Organization = {
     // Law 27: Github to EVM
     lawInitData.push({
       nameDescription: "Github to EVM: Map your GitHub username to your EVM address.",
-      targetLaw: getLawAddress("StringToAddress", chainId),
+      targetLaw: getLawAddress("StringToAddress", deployedLaws),
       config: "0x",
       conditions: createConditions({
         allowedRole: PUBLIC_ROLE
@@ -364,7 +364,7 @@ export const PowerBase: Organization = {
 
     lawInitData.push({
       nameDescription: "Github to Role: Assign contributor roles based on GitHub commits (2=docs, 3=frontend, 4=protocol).",
-      targetLaw: getLawAddress("RoleByGitCommit", chainId),
+      targetLaw: getLawAddress("RoleByGitCommit", deployedLaws),
       config: roleByGitCommitConfig,
       conditions: createConditions({
         allowedRole: PUBLIC_ROLE
@@ -391,7 +391,7 @@ export const PowerBase: Organization = {
     // Law 30: Apply for Membership
     lawInitData.push({
       nameDescription: "Apply for Membership: Get Member role if you're a Funder or Contributor.",
-      targetLaw: getLawAddress("RoleByRoles", chainId),
+      targetLaw: getLawAddress("RoleByRoles", deployedLaws),
       config: encodeAbiParameters(
         [
           { name: 'newRoleId', type: 'uint256' },
@@ -407,7 +407,7 @@ export const PowerBase: Organization = {
     // Law 31: Veto Role Revocation
     lawInitData.push({
       nameDescription: "Veto Role Revocation: Admin can veto member votes to revoke roles.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: encodeAbiParameters(
         [{ name: 'inputParams', type: 'string[]' }],
         [["address[] Accounts"]]
@@ -421,18 +421,18 @@ export const PowerBase: Organization = {
     rolesArray.forEach(roleName => {
       lawInitData.push({
         nameDescription: `Remove ${roleName}: Members vote to remove accounts from ${roleName} role.`,
-        targetLaw: getLawAddress("DirectDeselect", chainId),
+        targetLaw: getLawAddress("DirectDeselect", deployedLaws),
         config: encodeAbiParameters(
           [{ name: 'roleId', type: 'uint256' }],
           [roles[roleName]]
         ),
         conditions: createConditions({
           allowedRole: 5n,
-          votingPeriod: daysToBlocks(5, chainId),
+          votingPeriod: daysToBlocks(5, Number(deployedLaws.chainId)),
           succeedAt: 51n,
           quorum: 5n,
           needNotFulfilled: 31n,
-          delayExecution: daysToBlocks(5, chainId)
+          delayExecution: daysToBlocks(5, Number(deployedLaws.chainId))
         })
       });
     });
@@ -449,11 +449,11 @@ export const PowerBase: Organization = {
     // Law 38: Propose Law Package
     lawInitData.push({
       nameDescription: "Propose Law Package: Members vote to propose new laws.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: adoptLawPackageConfig,
       conditions: createConditions({
         allowedRole: 5n,
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(7, Number(deployedLaws.chainId)),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -462,11 +462,11 @@ export const PowerBase: Organization = {
     // Law 39: Veto Law Package
     lawInitData.push({
       nameDescription: "Veto Law Package: Funders can veto proposed law packages.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: adoptLawPackageConfig,
       conditions: createConditions({
         allowedRole: 1n,
-        votingPeriod: daysToBlocks(3, chainId),
+        votingPeriod: daysToBlocks(3, Number(deployedLaws.chainId)),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: BigInt(lawInitData.length)
@@ -476,7 +476,7 @@ export const PowerBase: Organization = {
     // Law 40: Adopt Law Package
     lawInitData.push({
       nameDescription: "Adopt Law Package: Admin adopts new laws after proposal passes and isn't vetoed.",
-      targetLaw: getLawAddress("AdoptLawPackage", chainId),
+      targetLaw: getLawAddress("AdoptLawPackage", deployedLaws),
       config: "0x",
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
@@ -486,23 +486,5 @@ export const PowerBase: Organization = {
     });
 
     return lawInitData;
-  },
-
-  getMockContracts: (formData: Record<string, any>) => {
-    return [
-      {
-        name: "DocsGrant",
-        contractName: "Grant"
-      },
-      {
-        name: "FrontendGrant",
-        contractName: "Grant"
-      },
-      {
-        name: "ProtocolGrant",
-        contractName: "Grant"
-      }
-    ];
   }
 };
-
