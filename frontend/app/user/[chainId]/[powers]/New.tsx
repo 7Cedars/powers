@@ -11,7 +11,7 @@ import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
-import { LawBox } from './LawBox'
+import { UserLawBox } from './UserLawBox'
 import HeaderLaw from '@/components/HeaderLaw'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { useChains } from 'wagmi'   
@@ -222,7 +222,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
           </div>
           
           <div className="p-4 max-h-[calc(100vh-200px)] ">
-            <LawBox 
+            <UserLawBox 
               powers={powers as Powers}
               law={selectedLaw}
               checks={checks as Checks}
