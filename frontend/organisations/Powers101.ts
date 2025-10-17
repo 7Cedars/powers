@@ -31,13 +31,13 @@ export const Powers101: Organization = {
   },
   fields: [],
   dependencies: [
-    {
-      name: "Open Election", 
-      abi: JSON.parse(JSON.stringify(openElection.abi)) as Abi,
-      args: [],
-      bytecode: JSON.parse(JSON.stringify(openElection.bytecode.object)) as `0x${string}`,
-      ownable: true
-    }
+    // {
+    //   name: "Open Election", 
+    //   abi: JSON.parse(JSON.stringify(openElection.abi)) as Abi,
+    //   args: [],
+    //   bytecode: JSON.parse(JSON.stringify(openElection.bytecode.object)) as `0x${string}`,
+    //   ownable: true
+    // }
   ],
 
   createLawInitData: (powersAddress: `0x${string}`, deployedLaws: Record<string, `0x${string}`>, deployedDependencies: Record<string, `0x${string}`>): LawInitData[] => {
@@ -143,40 +143,7 @@ export const Powers101: Organization = {
     //                    ELECTORAL LAWS                            //
     //////////////////////////////////////////////////////////////////
 
-    // Law 5: Nominate me for delegate
-    lawInitData.push({
-      nameDescription: "Nominate oneself for any role.",
-      targetLaw: getLawAddress("NominateMe", deployedLaws),
-      config: "0x",
-      conditions: createConditions({
-        allowedRole: 1n
-      })
-    });
-
-    // Law 6: Call election for delegate role
-    lawInitData.push({
-      nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
-      targetLaw: getLawAddress("ElectionStart", deployedLaws),
-      config: encodeAbiParameters(
-        [
-          { name: 'ElectionList', type: 'address' },
-          { name: 'ElectionTally', type: 'address' },
-          { name: 'roleId', type: 'uint16' },
-          { name: 'maxToElect', type: 'uint32' }
-        ],
-        [ 
-          getLawAddress("ElectionList", deployedLaws), 
-          getLawAddress("ElectionSelect", deployedLaws),
-          2,
-          5
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE
-      })
-    });
-
-    // Law 7: Self select as community member
+    // Law 5: Self select as community member
     lawInitData.push({
       nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
       targetLaw: getLawAddress("SelfSelect", deployedLaws),
@@ -187,6 +154,20 @@ export const Powers101: Organization = {
       conditions: createConditions({
         throttleExecution: 25n,
         allowedRole: PUBLIC_ROLE
+      })
+    });
+
+    // Law 6: Self select as delegate
+    lawInitData.push({
+      nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this law.",
+      targetLaw: getLawAddress("SelfSelect", deployedLaws),
+      config: encodeAbiParameters(
+        [{ name: 'roleId', type: 'uint256' }],
+        [2n]
+      ),
+      conditions: createConditions({
+        throttleExecution: 25n,
+        allowedRole: 1n
       })
     });
 

@@ -61,7 +61,7 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action?.actionId))
   const {actionVote, fetchVoteData} = useLaw();
 
-  console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
+  // console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
  
   // Votes state
   const { timestamps, fetchTimestamps } = useBlocks()

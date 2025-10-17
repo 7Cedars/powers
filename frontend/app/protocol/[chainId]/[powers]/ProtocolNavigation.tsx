@@ -18,6 +18,7 @@ import { PowersFlow } from '../../../../components/PowersFlow';
 import { usePowers } from '@/hooks/usePowers';
 import { useEffect, useState } from 'react';
 import { useStatusStore, usePowersStore, useErrorStore, setStatus, setError, setAction, useActionStore } from '@/context/store';
+import { usePublicClient } from 'wagmi';
 
 // Navigation styling constants
 const layoutIconBox = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
@@ -35,6 +36,8 @@ interface NavigationItem {
   hideLabel?: boolean;
   helpNavItem?: string;
 }
+
+
 
 // Default navigation configuration for protocol pages
 const protocolNavigationConfig: NavigationItem[] = [
@@ -117,7 +120,21 @@ const Header = () => {
   const errorPowers = useErrorStore();
   const action = useActionStore();
   const powers = usePowersStore();
-  const { fetchPowers } = usePowers();
+  const { fetchPowers } = usePowers(); 
+  const publicClient = usePublicClient();
+  const [blockNumber, setBlockNumber] = useState<bigint | null>(null);
+
+  const fetchBlockNumber = async () => {
+    if (!publicClient) return;
+    
+    try {
+      const number = await publicClient.getBlockNumber();
+      setBlockNumber(number);
+    } catch (error) {
+      console.error('Failed to fetch block number:', error);
+      return null;
+    }
+  };
 
   console.log("@HEADER:", {powersAddress, status: statusPowers.status, error: errorPowers.error, action: action, powers: powers})
 
@@ -136,8 +153,11 @@ const Header = () => {
             >
           </Image>
         </a> 
-        <BlockCounter />
-        <button
+        <BlockCounter onRefresh={() => {
+          fetchPowers(powersAddress as `0x${string}`);
+          fetchBlockNumber();
+        }} blockNumber={blockNumber} />
+        {/* <button
           onClick={() => fetchPowers(powersAddress as `0x${string}`)}
           disabled={statusPowers.status == "pending"}
           className="flex items-center justify-center rounded-md p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-400 hover:border-slate-600"
@@ -146,7 +166,7 @@ const Header = () => {
           <ArrowPathIcon 
             className={`w-5 h-5 text-slate-600 ${statusPowers.status == "pending" ? 'animate-spin' : ''}`}
           />
-        </button>
+        </button> */}
       </div>
       
       <div className="flex flex-row gap-2 items-center">
@@ -227,6 +247,7 @@ export const ProtocolNavigation: React.FC<{ children: React.ReactNode }> = ({ ch
   const pathname = usePathname();
   const powers = usePowersStore();
   const { fetchPowers } = usePowers();
+
 
   useEffect(() => {
     if (powers.contractAddress == undefined || powers.contractAddress == `0x0` || powers.contractAddress != powersAddress) {

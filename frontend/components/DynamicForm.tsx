@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useActionStore, useErrorStore, usePowersStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { parseLawError, parseParamValues } from "@/utils/parsers";
-import { DataType, InputType, Law } from "@/context/types";
+import { Checks, DataType, InputType, Law } from "@/context/types";
 import { DynamicInput } from "@/components/DynamicInput";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
@@ -17,7 +17,7 @@ type DynamicFormProps = {
     varName: string;
     dataType: DataType;
     }[]; 
-  status: Status; 
+  status: Status;   
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;

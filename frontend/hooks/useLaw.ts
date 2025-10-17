@@ -158,7 +158,7 @@ export const useLaw = () => {
       setError({error: null})
       setStatus({status: "pending"})
 
-      console.log("@fetchVoteData, waypoint 0", {actionObject, powers})
+      // console.log("@fetchVoteData, waypoint 0", {actionObject, powers})
       
       try {
         const [{ result: voteData }, { result: state }] = await readContracts(wagmiConfig, {
@@ -180,7 +180,7 @@ export const useLaw = () => {
           ]
         })
 
-        console.log("@fetchVoteData, waypoint 1", {voteData, state})
+        // console.log("@fetchVoteData, waypoint 1", {voteData, state})
 
         const [voteStart, voteDuration, voteEnd, againstVotes, forVotes, abstainVotes] = voteData as unknown as [
           bigint, bigint, bigint, bigint, bigint, bigint
@@ -197,7 +197,7 @@ export const useLaw = () => {
           abstainVotes: abstainVotes as bigint,
         }
 
-        console.log("@fetchVoteData, waypoint 2", {vote})
+        // console.log("@fetchVoteData, waypoint 2", {vote})
 
         setActionVote(vote)
         setStatus({status: "success"})

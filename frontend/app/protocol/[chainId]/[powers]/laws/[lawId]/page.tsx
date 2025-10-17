@@ -107,7 +107,7 @@ const Page = () => {
             law
           )
           if (success) { 
-            setAction({...newAction, state: 8})
+            // setAction({...newAction, state: 8})
             console.log("Handle Simulate", {newAction})
           }
           // fetchAction(newAction, powers as Powers, true)

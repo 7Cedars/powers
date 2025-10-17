@@ -1,17 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Action, Powers } from "@/context/types";
 import { parseProposalStatus, shorterDescription } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
+import { callDataToActionParams } from "@/utils/callDataToActionParams";
 import { setAction } from "@/context/store";
 
-export function ActionsList({powers}: {powers: Powers | undefined}) {
-  const router = useRouter()
+export function ActionsList({powers}: {powers: Powers | undefined}) { 
   const { chainId } = useParams<{ chainId: string }>()
+  const router = useRouter()
   const { timestamps, fetchTimestamps } = useBlocks()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
@@ -33,9 +34,9 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
     }
     setDeselectedStatus(newDeselection)
   }
-
+ 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+    <div className="w-full max-w-xl flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* Status filter bar */}
       <div className="w-full flex flex-row gap-6 justify-between items-center py-4 overflow-y-scroll border-b border-slate-200 px-4">
       {
@@ -89,9 +90,10 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                             <td className="ps-4 px-2 py-3 w-40">
                               <a
                                 href="#"
-                                onClick={e => { 
-                                  e.preventDefault(); 
-                                  setAction(action) 
+                                onClick={(e) => {
+                                  const paramValues = callDataToActionParams(action, powers)
+                                  setAction({...action, paramValues: paramValues, upToDate: false})
+                                  e.preventDefault()
                                   router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
                                 }}
                                 className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"

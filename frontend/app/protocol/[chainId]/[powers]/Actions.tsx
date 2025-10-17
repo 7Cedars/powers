@@ -1,13 +1,15 @@
 'use client'
 
-import { Action, Law, Powers, Status } from "@/context/types";
-import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { Action, Powers, Status } from "@/context/types";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter } from "next/navigation";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
 import { shorterDescription } from "@/utils/parsers";
 import { useBlocks } from "@/hooks/useBlocks";
 import { useEffect } from "react";
 import { setAction } from "@/context/store";
+import { callDataToActionParams } from "@/utils/callDataToActionParams";
+
 
 type ActionsProps = {
   powers: Powers | undefined;
@@ -39,7 +41,7 @@ export function Actions({ powers, status}: ActionsProps) {
     }
   }, [sortedActions, chainId, fetchTimestamps])
 
-  return (
+  return ( 
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden"> 
       <div className="w-full border-b border-slate-300 p-2 bg-slate-100">
       <div className="w-full flex flex-row gap-6 items-center justify-between">
@@ -87,9 +89,10 @@ export function Actions({ powers, status}: ActionsProps) {
                   <td className="px-2 py-3 w-32">
                     <a
                       href="#"
-                      onClick={e => { 
-                        setAction(action) 
-                        e.preventDefault(); 
+                      onClick={(e) => {
+                        const paramValues = callDataToActionParams(action, powers)
+                        setAction({...action, paramValues: paramValues, upToDate: false})
+                        e.preventDefault()
                         router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
                       }}
                       className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"

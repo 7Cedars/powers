@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains } from 'wagmi'
 import { parseChainId, shorterDescription } from "@/utils/parsers";
-import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers, Status } from "@/context/types";
+import { Action, Checks, DataType, Execution, InputType, Law, LawSimulation, Powers, Status } from "@/context/types";
 import { SimulationBox } from "@/components/SimulationBox";
 import { useParams } from "next/navigation";
 import HeaderLaw from '@/components/HeaderLaw';
@@ -41,9 +41,9 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const [logSupport, setLogSupport] = useState<bigint>()
   const { hasVoted, castVote, checkHasVoted } = useLaw(); 
-  const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action.actionId));
+  const [populatedAction, setPopulatedAction] = useState<Action | undefined>(undefined);
 
-  // console.log("@LawBox, waypoint 0", {action, checks, law})
+  console.log("@LawBox, waypoint 0", {action, checks, law, populatedAction})
 
   useEffect(() => {
     if (action.actionId && wallets.length > 0 && powersAddress) {
@@ -54,6 +54,26 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       )
     }
   }, [action.actionId, wallets, powersAddress, checkHasVoted])
+
+  useEffect(() => {
+    if (action.upToDate && action.actionId) {
+      // First try to find the action in law.actions (for actions that exist on chain)
+      const actionFromLaw = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
+      
+      // If found in law.actions, use it (it has full data from chain)
+      // Otherwise, use the action from store (for newly simulated actions not yet on chain)
+      if (actionFromLaw) {
+        setPopulatedAction(actionFromLaw);
+      } else {
+        // Convert store action to Action type with state from store
+        setPopulatedAction({
+          ...action,
+          state: action.state || 0,
+          actionId: action.actionId
+        } as Action);
+      }
+    }
+  }, [action.upToDate, law?.actions, action.actionId, action.state, action])
 
   return (
     <main className="w-full" help-nav-item="law-input">
@@ -103,7 +123,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       <div className="w-full pt-4">
       {
       // option 1: When action does not exist, and needs a vote, create proposal button
-      Number(law?.conditions?.quorum) > 0 && populatedAction?.state == 8 && action?.upToDate ? (
+      Number(law?.conditions?.quorum) > 0 && populatedAction?.state == 0 && action?.upToDate ? (
           <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">          
             <div className="w-full">
               <Button 
@@ -122,7 +142,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           </div>
           ) 
         // option 2: When action does not exist and does not need a vote, execute button 
-        : Number(law?.conditions?.quorum) == 0 && populatedAction?.state == 8 && action?.upToDate ? (
+        : Number(law?.conditions?.quorum) == 0 && populatedAction?.state == 0 && action?.upToDate ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 
@@ -130,13 +150,13 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               onClick={() => onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)}
               filled={false}
               selected={true}
-              statusButton= {status}> 
-              Execute
+              statusButton= { checks?.allPassed ? status == 'success' ? 'idle' : status : 'disabled' }> 
+              Execute {checks?.allPassed ? '' : ' (checks not passed yet)'}
             </Button>
         </div>
         )
         // option 2: When action does exist and has a succeeded state, execute button
-        :  Number(law?.conditions?.quorum) > 0 && action?.state == 5 && action?.upToDate ? (
+        :  Number(law?.conditions?.quorum) > 0 && populatedAction?.state == 5 && action?.upToDate ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 
@@ -144,8 +164,8 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
               onClick={() => onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)}
               filled={false}
               selected={true}
-              statusButton= {status}> 
-              Execute
+              statusButton= { checks?.allPassed ? status == 'success' ? 'idle' : status : 'disabled' }> 
+              Execute {checks?.allPassed ? '' : ' (checks not passed yet)'}
             </Button>
         </div>
         )

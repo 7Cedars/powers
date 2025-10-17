@@ -617,7 +617,7 @@ export function SectionDeployDemo() {
                   <div className="w-6 h-6 rounded-full bg-slate-300 flex-shrink-0" />
                 )}
                 <span className={`text-sm ${deployStatus.multicall === 'success' ? 'text-green-600 font-medium' : deployStatus.multicall === 'error' ? 'text-red-600' : 'text-slate-600'}`}>
-                  Constitute & Transfer Ownership
+                  {`Constitute Powers ${currentOrg.dependencies.length > 0 ? `& Transfer Ownership` : ''}`}
                 </span>
               </div>
             </div>
