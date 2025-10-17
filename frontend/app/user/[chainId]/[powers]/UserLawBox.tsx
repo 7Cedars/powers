@@ -14,7 +14,7 @@ import { useActionStore } from "@/context/store";
 import { useWallets } from "@privy-io/react-auth";
 import { useLaw } from "@/hooks/useLaw";
 
-type LawBoxProps = {
+type UserLawBoxProps = {
   powers: Powers;
   law: Law;
   checks: Checks;
@@ -32,7 +32,7 @@ type LawBoxProps = {
   onPropose?: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function LawBox({powers, law, checks, params, status, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
+export function UserLawBox({powers, law, checks, params, status, selectedExecution, onChange, onSimulate, onExecute, onPropose}: UserLawBoxProps) {
   const action = useActionStore();
   const {actionVote, fetchVoteData} = useLaw();
   const { chainId } = useParams<{ chainId: string }>()
@@ -82,6 +82,7 @@ export function LawBox({powers, law, checks, params, status, selectedExecution, 
         law={law}
         params={params}
         status={status}
+        checks={checks}
         onChange={onChange}
         onSimulate={onSimulate}
       />

@@ -81,7 +81,7 @@ const UserHeader = () => {
               >
             </Image>
           </a> 
-          <BlockCounter />
+          <BlockCounter onRefresh={() => {}} blockNumber={BigInt(0)} />
         </div>
         
         <div className="flex flex-row gap-2 items-center">

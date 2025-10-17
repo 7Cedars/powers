@@ -109,7 +109,10 @@ export async function GET(request: NextRequest) {
     const signature = extractSignature(commitMessage);
     if (!signature) {
       console.log(`No signature found in commit ${commitHash}.`);
-      return null;
+      return NextResponse.json(
+        { error: `No signature found in commit ${commitHash}.` },
+        { status: 400 }
+      )
     }
 
     return NextResponse.json({

@@ -17,13 +17,14 @@ type DynamicFormProps = {
     varName: string;
     dataType: DataType;
     }[]; 
-  status: Status;   
+  status: Status;
+  checks: Checks;
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps) {
+export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFormProps) {
   const action = useActionStore();
   const error = useErrorStore()
   const dataTypes = params.map(param => param.dataType) 
@@ -162,8 +163,7 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
         </div>
       }
 
-      { !action.upToDate && (
-
+      { !action.upToDate || checks == undefined &&  (
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
             size={0} 
@@ -175,7 +175,7 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
               e.preventDefault();
               onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
             }}
-            statusButton={ status } > 
+            statusButton={ status == 'success' ? 'idle' : status } > 
             Check 
             </Button>
           </div>  

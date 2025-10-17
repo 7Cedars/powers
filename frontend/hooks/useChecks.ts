@@ -147,14 +147,14 @@ export const useChecks = () => {
             throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
             authorised,
             actionExists: law.conditions.quorum == 0n ? true : actionState != 0n,
-            voteActive: law.conditions.quorum == 0n ? true : actionState == 1n,
             proposalPassed: law.conditions.quorum == 0n ? true : actionState == 5n || actionState == 6n || actionState == 7n,
             actionNotFulfilled: actionState != 7n,
             lawFulfilled: law.conditions.needFulfilled == 0n ? true : actionStateNeedFulfilled == 7n, 
             lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n 
           } 
           newChecks.allPassed = Object.values(newChecks).filter(item => item !== undefined).every(item => item === true)
-          
+          newChecks.voteActive = law.conditions.quorum == 0n ? true : actionState == 1n
+
           // console.log("fetchChecks triggered, waypoint 2", {newChecks})
           setChecks(newChecks)
           setStatus("success") //NB note: after checking status, sets the status back to idle! 

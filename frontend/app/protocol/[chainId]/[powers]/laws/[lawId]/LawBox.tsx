@@ -111,6 +111,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
         law={law}
         params={params}
         status={status}
+        checks={checks}
         onChange={onChange}
         onSimulate={onSimulate} 
       />

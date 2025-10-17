@@ -62,7 +62,7 @@ contract StatementOfIntent is Law {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        (targets, values, calldatas) = abi.decode(lawCalldata, (address[], uint256[], bytes[]));
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         return (actionId, targets, values, calldatas);
     }
 }
