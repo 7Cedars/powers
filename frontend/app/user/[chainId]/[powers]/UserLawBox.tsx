@@ -82,6 +82,7 @@ export function UserLawBox({powers, law, checks, params, status, selectedExecuti
         law={law}
         params={params}
         status={status}
+        checks={checks}
         onChange={onChange}
         onSimulate={onSimulate}
       />
