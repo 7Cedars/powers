@@ -24,7 +24,7 @@ contract OpenActionTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        openAction = OpenAction(lawAddresses[2]); // OpenAction from multi constitution
+        openAction = OpenAction(lawAddresses[3]); // OpenAction from multi constitution
         lawId = 1; // OpenAction law ID in multi constitution
     }
 
@@ -124,7 +124,7 @@ contract StatementOfIntentTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        statementOfIntent = StatementOfIntent(lawAddresses[3]); // StatementOfIntent from multi constitution
+        statementOfIntent = StatementOfIntent(lawAddresses[4]); // StatementOfIntent from multi constitution
         lawId = 2; // StatementOfIntent law ID in multi constitution
     }
 
@@ -215,7 +215,7 @@ contract BespokeActionSimpleTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[5]); // BespokeActionSimple from multi constitution
+        bespokeActionSimple = BespokeActionSimple(lawAddresses[6]); // BespokeActionSimple from multi constitution
         erc1155Mock = SimpleErc1155(mockAddresses[3]); // SimpleErc1155 mock
         lawId = 3; // BespokeActionSimple law ID in multi constitution
     }
@@ -266,7 +266,7 @@ contract PresetSingleActionTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        presetSingleAction = PresetSingleAction(lawAddresses[0]); // PresetSingleAction from multi constitution
+        presetSingleAction = PresetSingleAction(lawAddresses[1]); // PresetSingleAction from multi constitution
         lawId = 5; // PresetSingleAction law ID in multi constitution
     }
 
@@ -310,7 +310,7 @@ contract PresetMultipleActionsTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        presetMultipleActions = PresetMultipleActions(lawAddresses[1]); // PresetMultipleActions from multi constitution
+        presetMultipleActions = PresetMultipleActions(lawAddresses[2]); // PresetMultipleActions from multi constitution
         lawId = 6; // PresetMultipleActions law ID in multi constitution
     }
 
@@ -413,7 +413,7 @@ contract BespokeActionAdvancedTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[4]); // BespokeActionAdvanced from multi constitution
+        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[5]); // BespokeActionAdvanced from multi constitution
         lawId = 4; // BespokeActionAdvanced law ID in multi constitution
     }
 
@@ -488,12 +488,12 @@ contract MultiEdgeCaseTest is TestSetupMulti {
 
     function setUp() public override {
         super.setUp();
-        openAction = OpenAction(lawAddresses[2]);
-        statementOfIntent = StatementOfIntent(lawAddresses[3]);
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[5]);
-        presetSingleAction = PresetSingleAction(lawAddresses[0]);
-        presetMultipleActions = PresetMultipleActions(lawAddresses[1]);
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[4]);
+        openAction = OpenAction(lawAddresses[3]);
+        statementOfIntent = StatementOfIntent(lawAddresses[4]);
+        bespokeActionSimple = BespokeActionSimple(lawAddresses[6]);
+        presetSingleAction = PresetSingleAction(lawAddresses[1]);
+        presetMultipleActions = PresetMultipleActions(lawAddresses[2]);
+        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[5]);
     }
 
     function testAllMultiLawsInitialization() public {

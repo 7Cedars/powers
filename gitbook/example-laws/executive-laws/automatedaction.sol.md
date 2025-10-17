@@ -1,3 +1,0 @@
-# AutomatedAction.sol
-
-🚧 **Coming soon.** 🚧

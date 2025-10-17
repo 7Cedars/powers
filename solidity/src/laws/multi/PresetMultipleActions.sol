@@ -24,7 +24,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 
 contract PresetMultipleActions is Law {
     /// @dev Data structure for storing preset action configurations

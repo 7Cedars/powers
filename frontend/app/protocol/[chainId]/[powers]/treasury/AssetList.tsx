@@ -1,29 +1,29 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { ArrowPathIcon, ArrowUpRightIcon, GiftIcon } from "@heroicons/react/24/outline";
-import { useChains, useReadContracts } from "wagmi";
-import { erc1155Abi, erc20Abi } from "@/context/abi";
+import { ArrowPathIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { useChains } from "wagmi";
 import { useAssets } from "@/hooks/useAssets";
-import { Token, Powers, Status } from "@/context/types";
+import { Token, Powers } from "@/context/types";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
-import { Button } from "@/components/Button";
+import { usePowersStore } from "@/context/store";
 
-export function AssetList({powers, status: statusPowers}: {powers: Powers | undefined, status: Status}) {
+export function AssetList() {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const {status, error, tokens, native, fetchTokens} = useAssets(powers)
+  const powers = usePowersStore(); 
+  const {status, tokens, native, fetchTokens} = useAssets(powers)
 
-  // console.log("@AssetList: waypoint 0", {powers, statusPowers, status, error, tokens, native})
+  // console.log("@AssetList: waypoint 0", {powers, status, tokens, native})
 
   useEffect(() => {
-    if (supportedChain && statusPowers == "success" && powers) {
-      fetchTokens(powers) 
+    if (supportedChain && powers) {
+      fetchTokens(powers as Powers)   
     }
-  }, [powers, statusPowers, fetchTokens])
+  }, [powers, fetchTokens, supportedChain])
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">

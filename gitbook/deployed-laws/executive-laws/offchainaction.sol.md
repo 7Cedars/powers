@@ -1,3 +1,0 @@
-# OffChainAction.sol
-
-🚧 **Coming soon.** 🚧

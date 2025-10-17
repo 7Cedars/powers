@@ -5,18 +5,17 @@ import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
-import { InputType, Law, Powers, Checks } from '@/context/types'
-import { useErrorStore, useActionStore, useChecksStore, setError, setAction } from '@/context/store'
+import { InputType, Law, Powers, Checks, Action } from '@/context/types'
+import { useActionStore, setError, setAction } from '@/context/store'
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
-import { usePowers } from '@/hooks/usePowers'
-import { useProposal } from '@/hooks/useProposal'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { LawBox } from './LawBox'
 import HeaderLaw from '@/components/HeaderLaw'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import { useChains } from 'wagmi'
+import { useChains } from 'wagmi'   
+import { hashAction } from '@/utils/hashAction'
 
 export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
@@ -25,13 +24,10 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
-  const { chainChecks } = useChecksStore();
-  const { fetchChainChecks, status: statusChecks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, executions, simulation, fetchExecutions, resetStatus, simulate, execute } = useLaw();
-  const { status: statusProposals, propose } = useProposal();
-  const { refetchPowers, status: statusPowers } = usePowers();
+  const { fetchChecks, status: statusChecks, checks } = useChecks()
+  const { simulation, resetStatus, simulate, propose, request } = useLaw();
 
-  // console.log("@New, statusProposals", {statusProposals})
+  console.log("@New:", {powers, action})
   
   // State to track selected law
   const [selectedLaw, setSelectedLaw] = useState<Law | null>(null)
@@ -49,15 +45,12 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
       resetRef.current = null
     }
   }, [resetSelection, resetRef])
-  
-  // Get checks for the selected law from Zustand store
-  const checks = selectedLaw && chainChecks ? chainChecks.get(String(selectedLaw.index)) : undefined
 
   // Filter laws based on criteria
   // console.log("@New, powers", powers)
   // console.log("@New, hasRoles", hasRoles)
   const finalFilteredLaws = powers?.laws?.filter(
-    law => law.conditions?.needCompleted == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
+    law => law.conditions?.needFulfilled == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
   )
   // console.log("@New, filteredLaws", finalFilteredLaws)
 
@@ -65,14 +58,14 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   const enabledLaws = selectedLaw && powers?.laws ? 
     powers.laws.filter(law => 
       law.active && 
-      law.conditions?.needCompleted == selectedLaw.index
+      law.conditions?.needFulfilled == selectedLaw.index
     ) : []
 
   // Get laws that will be blocked by executing the selected law
   const blockedLaws = selectedLaw && powers?.laws ? 
     powers.laws.filter(law => 
       law.active && 
-      law.conditions?.needNotCompleted == selectedLaw.index
+      law.conditions?.needNotFulfilled == selectedLaw.index
     ) : []
 
   // console.log("@New, selectedLaw", selectedLaw)
@@ -100,42 +93,19 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
           upToDate: false
         })
       }
-      fetchExecutions(selectedLaw)
       resetStatus()
     }
-  }, [selectedLaw])
-
-  useEffect(() => {
-    if (errorUseLaw) {
-      setError({error: errorUseLaw})
-    }
-  }, [errorUseLaw])
-
-  // Handle reload button click
-  const handleReload = async () => {
-    if (!addressPowers) return
-    
-    setReloading(true)
-    setError({error: null})
-    
-    try {
-      // console.log("@New: Starting reload of laws")
-      await refetchPowers(addressPowers as `0x${string}`)
-      //  console.log("@New: Successfully reloaded laws")
-    } catch (error) {
-      console.error("Error reloading laws:", error)
-      setError({error: error as Error})
-    } finally {
-      setReloading(false)
-    }
-  }
+  }, [selectedLaw, action, resetStatus])
 
   const handleSimulate = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
     if (!selectedLaw) return
+    console.log("@handleSimulate: waypoint 0", {paramValues, nonce, description})
+
     
     setError({error: null})
     let lawCalldata: `0x${string}` | undefined
-    
+    console.log("@handleSimulate: waypoint 1", {paramValues, nonce, description})
+
     if (paramValues.length > 0 && paramValues) {
       try {
         lawCalldata = encodeAbiParameters(parseAbiParameters(selectedLaw.params?.map(param => param.dataType).toString() || ""), paramValues); 
@@ -145,9 +115,15 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     } else {
       lawCalldata = '0x0'
     }
-    
+
+    console.log("@handleSimulate: waypoint 1.5", {lawCalldata, ready, wallets, powers})
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-      fetchChainChecks(selectedLaw.index, lawCalldata, BigInt(action.nonce), wallets, powers)
+      fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+      const actionId = hashAction(selectedLaw.index, lawCalldata, BigInt(action.nonce as string)).toString()
+      const actionData = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => a?.actionId === actionId) as Action | undefined
+      : undefined as Action | undefined
+      
+      console.log("@handleSimulate: waypoint 2", {actionData, actionId})
 
       setAction({
         ...action,
@@ -165,7 +141,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
         simulate(
           wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
           action.callData as `0x${string}`,
-          BigInt(action.nonce),
+          BigInt(action.nonce as string),
           selectedLaw
         )
       } catch (error) {
@@ -175,6 +151,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   };
 
   const handlePropose = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    console.log("@handlePropose: waypoint 0", {paramValues, nonce, description})
     if (!selectedLaw) return
     
     setError({error: null})
@@ -198,6 +175,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
         description,
         powers as Powers
       )
+      console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
     }
   };
 
@@ -217,7 +195,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
       lawCalldata = '0x0'
     }
 
-    execute(
+    request(
       selectedLaw, 
       lawCalldata as `0x${string}`,
       nonce,
@@ -226,7 +204,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   };
 
 
-  // If a law is selected, show the DynamicForm
+  // If a law is selected, show the either LawBox or ProposalBox
   if (selectedLaw) {
     return (
       <div className="w-full mx-auto">
@@ -248,9 +226,9 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
               powers={powers as Powers}
               law={selectedLaw}
               checks={checks as Checks}
+              status={statusChecks}
+              statusChecks={statusChecks}
               params={selectedLaw.params || []}
-              status={statusLaw}
-              simulation={simulation}
               onChange={() => {
                 setAction({...action, upToDate: false})
               }}
@@ -318,6 +296,8 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     )
   }
 
+  /// Error messages /// 
+
   if (!authenticated) {
     return (
       <div className="w-full mx-auto">
@@ -363,13 +343,6 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
               <h2 className="text-lg font-semibold text-slate-800">New</h2>
               <p className="text-sm text-slate-600">Available laws for your roles</p>
             </div>
-            <button 
-              onClick={handleReload}
-              disabled={reloading}
-              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`w-5 h-5 ${reloading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
         
@@ -382,7 +355,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
               </div>
             </div>
           ) : (
-            finalFilteredLaws && finalFilteredLaws.map((law: Law, index: number) => (
+            finalFilteredLaws && finalFilteredLaws.map((law: Law) => (
               <div 
                 key={`${law.lawAddress}-${law.index}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"

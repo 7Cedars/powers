@@ -1,61 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useBlockNumber, usePublicClient } from 'wagmi';
+import { usePublicClient } from 'wagmi';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useStatusStore } from '@/context/store';
 
-export function BlockCounter() {
-  const [blockNumber, setBlockNumber] = useState<bigint | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
+export function BlockCounter({ onRefresh, blockNumber }: { onRefresh: () => void, blockNumber: bigint | null }) {
+  const statusPowers = useStatusStore();
   const publicClient = usePublicClient();
-
-  // Fetch initial block number
-  useEffect(() => {
-    const fetchBlockNumber = async () => {
-      if (!publicClient) return;
-      
-      try {
-        const number = await publicClient.getBlockNumber();
-        setBlockNumber(number);
-      } catch (error) {
-        console.error('Failed to fetch block number:', error);
-      }
-    };
-
-    fetchBlockNumber();
-  }, [publicClient]);
-
-  const handleRefresh = async () => {
-    if (!publicClient) return;
-    
-    setIsLoading(true);
-    try {
-      const number = await publicClient.getBlockNumber();
-      setBlockNumber(number);
-    } catch (error) {
-      console.error('Failed to refresh block number:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <button
-      onClick={handleRefresh}
-      disabled={isLoading || !publicClient}
-      className="h-full flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-md border border-slate-200 hover:border-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
+      onClick={onRefresh}
+      disabled={statusPowers.status == "pending" || !publicClient}
+      className="h-full flex items-center gap-3 px-3 py-1 rounded-md border border-slate-400 hover:border-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
       title="Refresh block number"
     >
       <div className="flex items-center gap-1">
-        <span className="text-sm text-slate-600 font-mono leading-none">Block</span>
-        <span className="text-sm text-slate-600 font-mono leading-none">
-          {blockNumber ? blockNumber.toString() : '...'}
-        </span>
+        <span className="text-sm text-slate-600 font-mono leading-none">Block {blockNumber ? blockNumber.toString() : '...'}</span>
       </div>
-      <div className="pb-0.5 text-slate-600 hover:text-slate-700 transition-colors">
-        <ArrowPathIcon 
-          className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} 
-        />
+      <div className="flex items-center justify-center rounded-md transition-colors">
+          <ArrowPathIcon 
+            className={`w-5 h-5 text-slate-600 ${statusPowers.status == "pending" ? 'animate-spin' : ''}`}
+          />
       </div>
     </button>
   );

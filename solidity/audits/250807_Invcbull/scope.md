@@ -65,8 +65,8 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 ### Law System Invariants
 - A law can only be executed if it is active
 - The `lawId` must be unique across all active laws
-- A law's conditions must be valid (e.g., `needCompleted` law must exist if specified)
-- A law cannot execute if its parent law (specified by `needCompleted`) has not been fulfilled
+- A law's conditions must be valid (e.g., `needFulfilled` law must exist if specified)
+- A law cannot execute if its parent law (specified by `needFulfilled`) has not been fulfilled
 
 ### State Management Invariants
 - The `actionId` must be unique for each combination of `lawId`, `lawCalldata`, and `nonce`

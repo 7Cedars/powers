@@ -1,0 +1,36 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiduqnzehle3y5t47mxoxgqvbxqus7meu6gfxldzrff2r3cmzjdham",
+  "description": 
+    "An example implementation of an organisation that has multiple governance tracks and where selectors can decide which track to use for a specific proposal.",
+  "website": "",
+  "code-of-conduct": "", 
+  "dispute-resolution": "",
+  "communication-channels": [
+    {
+      "discord": "",
+      "telegram": "",
+      "x": "",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "",
+      "forum": "",
+      "documentation": ""
+    }
+  ],
+  "attributes": [
+    {
+      "trait_type": "optional trait 1",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 2",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 3",
+      "value": "none"
+    }
+  ]
+}

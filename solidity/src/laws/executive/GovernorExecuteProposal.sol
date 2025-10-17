@@ -22,7 +22,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 
@@ -83,10 +83,13 @@ contract GovernorExecuteProposal is Law {
         }
         if (bytes(description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
 
+        // NB, todo: DEBUG  
         // Get proposal ID from governor contract
-        uint256 proposalId = Governor(governorContract).getProposalId(
-            proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
-        );
+        // uint256 proposalId = Governor(governorContract).getProposalId(
+        //     proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
+        // );
+
+        uint256 proposalId = 0;
 
         // Validate proposal exists
         if (proposalId == 0) revert("GovernorExecuteProposal: Proposal not found");

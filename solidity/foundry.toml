@@ -5,8 +5,13 @@ libs = ["lib"]
 evm_version = "cancun"
 always_use_create_2_factory = true
 memory_limit = 1342177280
-optimizer_runs = 200
+optimizer_runs = 400
 # dynamic_test_linking = true
+
+fs_permissions = [
+    { access = "read", path = "./out"},
+    { access = "read-write", path = "./powered/" }
+]
 
 # Remappings for dependencies
 remappings = [
@@ -17,7 +22,8 @@ remappings = [
     "@solbase/=lib/solbase/src/",
     "@chainlink/contracts/=lib/chainlink-evm/contracts", 
     "@chainlink/contracts-ccip/=lib/chainlink-ccip/chains/evm/contracts",
-    "@mocks/=test/mocks/"
+    "@mocks/=test/mocks/",
+    "@multicall3/=lib/multicall3/src/"
 ] 
 
 [fmt]

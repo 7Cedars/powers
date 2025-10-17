@@ -18,16 +18,15 @@ pragma solidity 0.8.26;
 
 interface PowersTypes {
     struct Conditions {
-        // Slot 0
-        uint256 allowedRole; // 32 bytes
-        // Slot 1
-        uint16 needCompleted; // 2 bytes - index of law that must be completed before this one
-        uint48 delayExecution; // 6 bytes  - Blocks to wait after proposal success before execution
-        uint48 throttleExecution; // 6 bytes  - Minimum blocks between executions
-        uint32 votingPeriod; // 4 bytes  - Number of blocks for voting period
-        uint8 quorum; // 1 byte   - Required participation percentage
-        uint8 succeedAt; // 1 byte   - Required success percentage
-        uint16 needNotCompleted; // 2 bytes - index of law that must NOT be completed
+        uint256 allowedRole; // Takes its own slot
+        // --- All of the following can be packed into a single slot (144 bits total) ---
+        uint32 votingPeriod;
+        uint32 delayExecution;
+        uint32 throttleExecution;
+        uint16 needFulfilled;
+        uint16 needNotFulfilled;
+        uint8 quorum;
+        uint8 succeedAt;
     }
 
     struct AdoptedLaw {
@@ -53,26 +52,25 @@ interface PowersTypes {
     /// @dev in contrast to other Governance protocols, votes are not weighted and can hence be a uint32, not a uint256.
     /// @dev votes are logged at the proposal. In on struct. This is in contrast to other governance protocols where ProposalVote is a separate struct.
     struct Action {
-        // slot 1
-        uint16 lawId; // 2
-        uint48 proposedAt; // 6
-        uint48 requestedAt; // 6
-        uint48 cancelledAt; // 6
-        uint48 fulfilledAt; // 6
-        uint48 voteStart; // 6
-        // slot 2
-        uint32 voteDuration; // 4
-        address caller; // 20
-        uint32 againstVotes; // 4 as votes are not weighted, uint32 is sufficient to count number of votes.  -- this is a big gas saver. As such, combining the proposalCore and ProposalVote is (I think) okay
-        uint32 forVotes; // 4
-        // slot 3
-        uint32 abstainVotes; // 4
-        // ... and more slots.
-        mapping(address voter => bool) hasVoted; // 20 ?
-        // note: We save lawCalldata ONCHAIN when executed. -- this will be mroe expensive, but it decreases dependence on external services.
-        bytes lawCalldata; // 32 ... and more.
-        string uri; // 32 bytes ... and more. uri to metadata (description, etc) of action. Markdown file supported by frontend, but in theory can be anything.
-        uint256 nonce; // 32 bytes
+        // --- Packed Slot 1 (248 bits used) ---
+        uint48 proposedAt;
+        uint48 requestedAt;
+        uint48 fulfilledAt;
+        uint48 cancelledAt;
+        uint48 voteStart;
+        uint16 lawId;
+        // --- Packed Slot 2 (128 bits used) ---
+        uint32 voteDuration;
+        uint32 againstVotes;
+        uint32 forVotes;
+        uint32 abstainVotes;
+        // --- Separate Slots ---
+        address caller;
+        uint256 nonce;
+        // --- Dynamic/Mapping Types (do not take up static slots) ---
+        bytes lawCalldata;
+        string uri;
+        mapping(address => bool) hasVoted;
     }
 
     /// @notice enum for the state of a proposal.
@@ -80,15 +78,14 @@ interface PowersTypes {
     /// @dev that a proposal cannot be set as 'executed' as in Governor.sol. It can only be set as 'completed'.
     /// This is because execution logic in {Powers} is separated from the proposal logic.
     enum ActionState {
-        NonExistent,
-        Proposed, // - log this
-        Cancelled, // - log this
-        Active, // - calculate this
-        Defeated, // - calculate this
-        Succeeded, // - calculate this
-        Requested, // - log this
-        Fulfilled // - log this
-
+        NonExistent, // - 0: log this
+        Proposed, // - 1: log this
+        Cancelled, // - 2: log this
+        Active, // - 3: calculate this -- wait what is difference between this and Proposed? CHECK! 
+        Defeated, // - 4: calculate this
+        Succeeded, // - 5: calculate this
+        Requested, // - 6: log this
+        Fulfilled // - 7: log this
     }
 
     /// @notice Supported vote types. Matches Governor Bravo ordering.

@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
@@ -70,15 +70,15 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        electionSelect = ElectionSelect(lawAddresses[9]);
-        peerSelect = PeerSelect(lawAddresses[10]);
-        voteInOpenElection = VoteInOpenElection(lawAddresses[11]);
-        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[12]);
-        taxSelect = TaxSelect(lawAddresses[13]);
-        buyAccess = BuyAccess(lawAddresses[14]);
-        roleByRoles = RoleByRoles(lawAddresses[15]);
-        selfSelect = SelfSelect(lawAddresses[16]);
-        renounceRole = RenounceRole(lawAddresses[17]);
+        electionSelect = ElectionSelect(lawAddresses[10]);
+        peerSelect = PeerSelect(lawAddresses[11]);
+        voteInOpenElection = VoteInOpenElection(lawAddresses[12]);
+        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[13]);
+        taxSelect = TaxSelect(lawAddresses[14]);
+        buyAccess = BuyAccess(lawAddresses[15]);
+        roleByRoles = RoleByRoles(lawAddresses[16]);
+        selfSelect = SelfSelect(lawAddresses[17]);
+        renounceRole = RenounceRole(lawAddresses[18]);
 
         // Initialize mock contract instances
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
@@ -531,7 +531,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         vm.assume(accountFuzzed != address(0));
         taxPaidFuzzed = bound(taxPaidFuzzed, -100, 100);
 
-        TaxSelect.Data memory data = TaxSelect(lawAddresses[13]).getData(LawUtilities.hashLaw(address(daoMock), 4));
+        TaxSelect.Data memory data = TaxSelect(lawAddresses[14]).getData(LawUtilities.hashLaw(address(daoMock), 4));
         uint256 actualTaxPaid = uint256(int256(data.thresholdTaxPaid) + taxPaidFuzzed);
 
         vm.mockCall(

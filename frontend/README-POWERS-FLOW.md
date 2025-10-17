@@ -92,19 +92,14 @@ Each law group contains its own embedded checks with collapsible display:
 The visualization shows law dependencies between law group nodes:
 
 ### Needs Completed (Green solid line)
-- **Condition**: `needCompleted !== 0n`
+- **Condition**: `needFulfilled !== 0n`
 - **Meaning**: Target law must be completed before source law can execute
 - **Visual**: Thick solid green line
 
 ### Needs Not Completed (Red dashed line)
-- **Condition**: `needNotCompleted !== 0n`
+- **Condition**: `needNotFulfilled !== 0n`
 - **Meaning**: Target law must NOT be completed for source law to execute
 - **Visual**: Thick dashed red line
-
-### Read State From (Blue dotted line)
-- **Condition**: `readStateFrom !== 0n`
-- **Meaning**: Source law reads state from target law
-- **Visual**: Thick dotted blue line
 
 ## Layout and Positioning
 

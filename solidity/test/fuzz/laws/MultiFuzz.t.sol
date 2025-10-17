@@ -10,7 +10,7 @@ import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.s
 import { PresetMultipleActions } from "../../../src/laws/multi/PresetMultipleActions.sol";
 import { BespokeActionAdvanced } from "../../../src/laws/multi/BespokeActionAdvanced.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 /// @title Multi Law Fuzz Tests
@@ -49,12 +49,12 @@ contract MultiFuzzTest is TestSetupMulti {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        presetSingleAction = PresetSingleAction(lawAddresses[0]);
-        presetMultipleActions = PresetMultipleActions(lawAddresses[1]);
-        openAction = OpenAction(lawAddresses[2]);
-        statementOfIntent = StatementOfIntent(lawAddresses[3]);
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[4]);
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[5]);
+        presetSingleAction = PresetSingleAction(lawAddresses[1]);
+        presetMultipleActions = PresetMultipleActions(lawAddresses[2]);
+        openAction = OpenAction(lawAddresses[3]);
+        statementOfIntent = StatementOfIntent(lawAddresses[4]);
+        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[5]);
+        bespokeActionSimple = BespokeActionSimple(lawAddresses[6]);
     }
 
     //////////////////////////////////////////////////////////////

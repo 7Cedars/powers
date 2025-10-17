@@ -1,36 +1,28 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
-import { usePrivy } from '@privy-io/react-auth'
-import { useWallets } from '@privy-io/react-auth'
 import { useParams, useRouter } from 'next/navigation'
 import { parseChainId } from '@/utils/parsers'
-import { usePowers } from '@/hooks/usePowers'
 import { useChains } from 'wagmi'
-import { readContract } from 'wagmi/actions'
-import { wagmiConfig } from '@/context/wagmiConfig'
-import { powersAbi } from '@/context/abi'
 import Image from 'next/image'
-import { ArrowUpRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
-import { MyProposals } from './MyProposals'
-import { MyRoles } from './MyRoles'
-import { Logs } from './Logs'
-import { Powers } from '@/context/types'
+import { Roles } from './Roles'
+import { Laws } from './Laws'
+import { Actions } from './Actions'
+import { MetadataLinks } from '@/components/MetadataLinks'
+import { usePowersStore, useStatusStore } from '@/context/store'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-  const { fetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
-  const { wallets } = useWallets()
-  const { authenticated } = usePrivy(); 
   const router = useRouter()
-  const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  
+  const powers = usePowersStore(); 
+  const statusPowers = useStatusStore();
   // console.log("@home:", {chains, supportedChain, powers})
 
   const validateBannerImage = useCallback(async (url: string | undefined) => {
@@ -55,53 +47,6 @@ export default function FlowPage() {
   useEffect(() => {
       validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
-
-  const fetchMyRoles = useCallback(
-    async (account: `0x${string}`, roles: bigint[]) => {
-      let role: bigint; 
-      const fetchedHasRole: {role: bigint; since: bigint}[] = []; 
-
-      try {
-        for await (role of roles) {
-          const fetchedSince = await readContract(wagmiConfig, {
-              abi: powersAbi,
-              address: addressPowers as `0x${string}`,
-              functionName: 'hasRoleSince', 
-              args: [account, role]
-              })
-            fetchedHasRole.push({role, since: fetchedSince as bigint})
-            }
-            setHasRoles(fetchedHasRole)
-        } catch (error) {
-        console.error(error)
-      }
-    }, [])
-
-  useEffect(() => {
-    if (wallets && wallets[0]) {
-      fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
-    }
-  }, [wallets?.[0]?.address, fetchMyRoles, powers?.roles])
-
-  useEffect(() => {
-    console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
-    if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [, addressPowers, fetchPowers]) // updateProposals 
-
-  // Memoize the fetch functions to prevent infinite loops
-  const handleFetchProposals = useCallback(() => {
-    if (powers) {
-      fetchProposals(powers as Powers, 10n, 9000n)
-    }
-  }, [powers, fetchProposals])
-
-  const handleFetchExecutedActions = useCallback(() => {
-    if (powers) {
-      fetchExecutedActions(powers as Powers)
-    }
-  }, [powers, fetchExecutedActions])
 
   const navigateToUserUser = () => {
     router.push(`/user/${chainId}/${addressPowers}`)
@@ -136,18 +81,6 @@ export default function FlowPage() {
       <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
         {powers?.name}
       </div>
-
-      {/* Reload button */}
-      {/* <button
-        onClick={() => addressPowers && fetchLawsAndRoles(powers as Powers)}
-        className="absolute top-4 left-4 p-2 rounded-md bg-slate-50/25 hover:bg-slate-100/90 border border-slate-300/50 shadow-sm transition-all duration-200 backdrop-blur-sm"
-        title="Reload powers data"
-        disabled={statusPowers === "pending"}
-      >
-        <ArrowPathIcon 
-          className={`w-4 h-4 text-slate-700 ${statusPowers === "pending" ? 'animate-spin' : ''}`}
-        />
-      </button> */}
     </section>
     
     {/* Description + link to powers protocol deployment */}  
@@ -156,6 +89,7 @@ export default function FlowPage() {
       <div className="w-full text-slate-800 text-left text-pretty">
          {powers?.metadatas?.description} 
       </div>
+      
       <a
         href={`${supportedChain?.blockExplorers?.default.url}/address/${addressPowers as `0x${string}`}#code`} target="_blank" rel="noopener noreferrer"
         className="w-full"
@@ -173,15 +107,23 @@ export default function FlowPage() {
       {/* } */}
     </section>
     
+    {/* Metadata Links */}
+    <MetadataLinks 
+      website={powers?.metadatas?.website}
+      codeOfConduct={powers?.metadatas?.codeOfConduct}
+      disputeResolution={powers?.metadatas?.disputeResolution}
+      communicationChannels={powers?.metadatas?.communicationChannels}
+    />
+    
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
-      <Logs hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers} onRefresh = {handleFetchExecutedActions}/>
-
-      <MyProposals hasRoles = {hasRoles} authenticated = {authenticated} proposals = {powers?.proposals || []} powers = {powers} status = {statusPowers} onFetchProposals = {handleFetchProposals}/> 
+      <Assets status = {statusPowers.status} powers = {powers}/> 
       
-      <Assets status = {statusPowers} powers = {powers}/> 
+      <Actions powers = {powers} status = {statusPowers.status} />
       
-      <MyRoles hasRoles = {hasRoles} authenticated = {authenticated} powers = {powers} status = {statusPowers}/>
+      <Roles powers = {powers} status = {statusPowers.status}/>
+      
+      <Laws powers = {powers} status = {statusPowers.status}/>      
       
     </section>
 

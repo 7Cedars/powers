@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
 import { useChains } from 'wagmi'
-import { parseChainId } from '@/utils/parsers'
 import { Powers } from '@/context/types'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -38,6 +37,7 @@ export default function ProfilePage() {
 
     loadSelectedProtocols()
   }, [connectedAddress])
+
 
   const getChainName = (chainId: bigint) => {
     const parsedChainId = Number(chainId)

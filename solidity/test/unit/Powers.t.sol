@@ -4,8 +4,8 @@ pragma solidity 0.8.26;
 import "forge-std/Test.sol";
 import { Powers } from "../../src/Powers.sol";
 import { Law } from "../../src/Law.sol";
-import { LawUtilities } from "../../src/LawUtilities.sol";
-import { PowersUtilities } from "../../src/PowersUtilities.sol";
+import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
+import { Checks } from "../../src/libraries/Checks.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
@@ -192,7 +192,9 @@ contract ProposeTest is TestSetupPowers {
         (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
         conditions = daoMock.getConditions(lawId);
 
-        assertEq(daoMock.getActionDeadline(actionId), block.number + conditions.votingPeriod);
+        (, , uint256 deadline, , , ) = daoMock.getActionVoteData(actionId);
+
+        assertEq(deadline, block.number + conditions.votingPeriod);
     }
 }
 
@@ -411,12 +413,11 @@ contract VoteTest is TestSetupPowers {
             }
         }
 
-        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
+        (, , uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
             daoMock.getActionVoteData(actionId);
         assertEq(againstVotes, uint32(numberAgainstVotes));
         assertEq(forVotes, uint32(numberForVotes));
-        assertEq(abstainVotes, uint32(numberAbstainVotes));
-        assertEq(voteEnd, daoMock.getActionDeadline(actionId));
+        assertEq(abstainVotes, uint32(numberAbstainVotes)); 
     }
 
     function testVoteRevertsWithInvalidVote() public {
@@ -628,7 +629,7 @@ contract ConstituteTest is TestSetupPowers {
 
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2], // = openAction
+            targetLaw: lawAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -648,7 +649,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2], // = openAction
+            targetLaw: lawAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -668,7 +669,7 @@ contract ConstituteTest is TestSetupPowers {
         LawInitData[] memory lawInitData = new LawInitData[](1);
         lawInitData[0] = LawInitData({
             nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[2],
+            targetLaw: lawAddresses[3],
             config: abi.encode(),
             conditions: conditions
         });
@@ -937,7 +938,7 @@ contract ProposeAdvancedTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract LawAdoptionTest is TestSetupPowers {
     function testAdoptLawRevertsWithBlacklistedTarget() public {
-        address blacklistedLaw = lawAddresses[1];
+        address blacklistedLaw = lawAddresses[2];
 
         // Blacklist the target law
         vm.prank(address(daoMock));
@@ -966,8 +967,8 @@ contract LawAdoptionTest is TestSetupPowers {
             votingPeriod: 0,
             delayExecution: 0,
             throttleExecution: 0,
-            needCompleted: 0,
-            needNotCompleted: 0
+            needFulfilled: 0,
+            needNotFulfilled: 0
         });
 
         LawInitData memory lawInitData = LawInitData({
@@ -1047,8 +1048,8 @@ contract RoleManagementTest is TestSetupPowers {
 
     function testGetRoleHoldersWithEmptyArray() public {
         // Test with a role that has no members
-        address[] memory holders = daoMock.getRoleHolders(ROLE_THREE);
-        assertEq(holders.length, 0);
+        uint256 amountRoleHolders = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(amountRoleHolders, 0);
     }
 
     function testGetActionStateNonExistent() public {

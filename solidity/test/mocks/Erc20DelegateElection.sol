@@ -19,7 +19,7 @@ contract Erc20DelegateElection is Nominees {
 
     Config public config;
 
-    constructor(address tokenAddress) Nominees() {
+    constructor(address tokenAddress) {
         if (tokenAddress == address(0)) revert("token required");
         config = Config({ token: ERC20Votes(tokenAddress) });
     }

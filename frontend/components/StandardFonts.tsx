@@ -47,12 +47,12 @@ export const TitleText = ({
 }: TitleTextProps) => {
   // Subtle, modern section label style
   return (
-    <div className="flex flex-col items-start w-full my-4">
+    <div className="flex flex-col items-start w-full mt-4">
       <div className={`font-semibold break-words text-left ${size === 2 ? 'text-xl md:text-2xl' : size === 1 ? 'text-lg' : 'text-base'} text-slate-800 mb-0.5`}>
         {title}
       </div>
       {subtitle && (
-        <div className={`text-slate-500 break-words text-left ${size === 2 ? 'text-base md:text-lg' : size === 1 ? 'text-sm' : 'text-xs'} mb-1 tracking-tight`}>
+        <div className={`text-slate-500 break-words text-left ${size === 2 ? 'text-base md:text-lg' : size === 1 ? 'text-sm' : 'text-xs'} tracking-tight`}>
           {subtitle}
         </div>
       )}

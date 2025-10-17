@@ -9,7 +9,7 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Powers } from "../src/Powers.sol";
 import { Law } from "../src/Law.sol";
 import { ILaw } from "../src/interfaces/ILaw.sol";
-import { LawUtilities } from "../src/LawUtilities.sol";
+import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 // external contracts
@@ -25,7 +25,7 @@ import { FlagActions } from "@mocks/FlagActions.sol";
 import { Grant } from "@mocks/Grant.sol";
 import { OpenElection } from "@mocks/OpenElection.sol";
 import { Nominees } from "@mocks/Nominees.sol";
-import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
+import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol"; 
 
 // @dev this script is used to deploy the mocks to the chain.
 // Note: we do not return addresses of the deployed mocks. -- I am thinking about scrapping it. It is more trouble than its worth

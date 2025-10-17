@@ -10,7 +10,7 @@
 import React from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionUsecases } from "./SectionUsecases";
-import { SectionDeployCarousel } from "./SectionDeployCarousel";
+import { SectionDeployDemo } from "./SectionDeployDemo";
 import { Footer } from "./Footer";
 
 import { 
@@ -29,7 +29,7 @@ export default function Page() {
                         <b>Powers</b>  
                     </div>
                     <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
-                        Separate, relate and distribute on-chain powers through role-based governance.
+                        Separate and distribute on-chain powers through institutional governance.
                     </div>
                 </section> 
 
@@ -43,7 +43,7 @@ export default function Page() {
 
             < SectionIntro /> 
             < SectionUsecases /> 
-            < SectionDeployCarousel />
+            < SectionDeployDemo />
             <div className = "min-h-48"/>  
             < Footer /> 
            

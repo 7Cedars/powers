@@ -22,18 +22,16 @@ import DynamicThumbnail from '@/components/DynamicThumbnail'
 import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
-import About from './About'
+import About from './About' 
+import { usePowersStore } from '@/context/store'
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
-  const [protocol, setProtocol] = useState<Powers | null>(null)
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
-  const [proposals, setProposals] = useState<any[]>([])
-  const [proposalsLoading, setProposalsLoading] = useState(false)
-  const proposalsFetchedRef = useRef(false)
-  
+  const powers = usePowersStore()
+
   // Refs to store reset functions from child components
   const newResetRef = useRef<(() => void) | null>(null)
   const incomingResetRef = useRef<(() => void) | null>(null)
@@ -45,7 +43,6 @@ export default function UserPage() {
     { id: 'About', label: 'About', icon: InformationCircleIcon }
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
-  const { refetchPowers, checkLaws, status: statusPowers, powers, fetchLawsAndRoles, fetchExecutedActions, fetchProposals } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
@@ -109,7 +106,8 @@ export default function UserPage() {
                 abi: powersAbi,
                 address: addressPowers as `0x${string}`,
                 functionName: 'hasRoleSince', 
-                args: [account, role]
+                args: [account, role],
+                chainId: parseChainId(chainId)
                 })
               // Only include roles where since > 0 (user actually has the role)
               if ((fetchedSince as bigint) > 0n) {
@@ -121,84 +119,20 @@ export default function UserPage() {
           console.error(error)
         }
       }
-    }, [])
-
-  // Memoize the fetch functions to prevent infinite loops
-  const handleFetchProposals = useCallback(async () => {
-    if (powers) {
-      setProposalsLoading(true)
-      try {
-        const updatedPowers = await fetchProposals(powers as Powers, 10n, 9000n)
-        if (updatedPowers?.proposals) {
-          setProposals(updatedPowers.proposals)
-        }
-        // console.log("@handleFetchProposals, waypoint 0", {updatedPowers})
-      } catch (error) {
-        console.error('Error fetching proposals:', error)
-      } finally {
-        setProposalsLoading(false)
-      }
-    }
-  }, [powers, fetchProposals])
-
-  // Manual refresh function that resets the ref
-  const handleRefreshProposals = useCallback(() => {
-    proposalsFetchedRef.current = false
-    handleFetchProposals()
-  }, [handleFetchProposals])
-
-  const handleFetchExecutedActions = useCallback(() => {
-    if (powers) {
-      fetchExecutedActions(powers as Powers)
-    }
-  }, [powers, fetchExecutedActions])
-
-  useEffect(() => {
-    // Load the protocol from localStorage
-    const loadProtocol = () => {
-      try {
-        const localStore = localStorage.getItem('powersProtocols')
-        if (localStore && localStore !== 'undefined') {
-          const protocols: Powers[] = JSON.parse(localStore)
-          const foundProtocol = protocols.find(p => p.contractAddress === addressPowers)
-          setProtocol(foundProtocol || null)
-        }
-      } catch (error) {
-        console.error('Error loading protocol:', error)
-      }
-    }
-
-    loadProtocol()
-  }, [addressPowers])
+    }, [PUBLIC_ROLE, addressPowers, chainId])
 
   useEffect(() => {
     validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
 
   useEffect(() => {
-    if (wallets && powers?.roles) {
+    const walletAddress = wallets?.[0]?.address;
+    if (walletAddress && powers?.roles) {
       // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
-      fetchMyRoles(wallets[0].address as `0x${string}`, powers?.roles || [])
+      fetchMyRoles(walletAddress as `0x${string}`, powers.roles.map(role => role.roleId))
     }
-  }, [, wallets?.[0]?.address, fetchMyRoles, powers?.roles])
+  }, [wallets, fetchMyRoles, powers?.roles])
 
-  useEffect(() => {
-    // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
-    if (addressPowers) {
-      // Reset proposals ref when switching protocols
-      proposalsFetchedRef.current = false
-      setProposals([])
-      refetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [, addressPowers, refetchPowers])
-
-  // Fetch proposals when powers are available
-  useEffect(() => {
-    if (powers && authenticated && !proposalsFetchedRef.current) {
-      proposalsFetchedRef.current = true
-      handleFetchProposals()
-    }
-  }, [powers, authenticated]) // Removed handleFetchProposals from dependencies
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -317,7 +251,8 @@ export default function UserPage() {
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
           {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} proposals={proposals} loading={proposalsLoading} onRefresh={handleRefreshProposals} resetRef={incomingResetRef}/>}
+          {/* NB! Loading still needs to be fixed   */}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} resetRef={incomingResetRef}/>}
           {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>

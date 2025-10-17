@@ -20,7 +20,7 @@
 // pragma solidity 0.8.26;
 
 // import { Law } from "../../src/Law.sol";
-// import { LawUtilities } from "../../src/LawUtilities.sol";
+// import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
 // import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 // import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 // import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";

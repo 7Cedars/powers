@@ -1,7 +1,7 @@
 import { ChangeEvent } from "react";
-import { InputType, DataType, Metadata, Attribute, Token, Action, ActionTruncated } from "../context/types"
+import { InputType, DataType, Metadata, Attribute, Token } from "../context/types"
 import { type UseReadContractsReturnType } from 'wagmi'
-import { decodeAbiParameters, hexToString } from 'viem'
+import { hexToString } from 'viem'
 
 const isArray = (array: unknown): array is Array<unknown> => {
   // array.find(item => !isString(item)) 
@@ -384,18 +384,12 @@ export const parseMetadata = (metadata: unknown): Metadata => {
     'icon' in metadata &&   
     'banner' in metadata &&   
     'description' in metadata && 
-    'erc20s' in metadata &&
-    'erc721s' in metadata &&
-    'erc1155s' in metadata &&
     'attributes' in metadata 
     ) { 
         return ({
           icon: metadata.icon as string,
           banner: metadata.banner as string,
           description: parseDescription(metadata.description),
-          erc20s: parseTokens(metadata.erc20s),
-          erc721s: parseTokens(metadata.erc721s),
-          erc1155s: parseTokens(metadata.erc1155s),
           attributes: parseAttributes(metadata.attributes)
         })
        }
@@ -427,14 +421,15 @@ export const parseProposalStatus = (state: string | undefined): string => {
   }
 
   switch (state) {
-    case '0': return "Active";
-    case '1': return "Cancelled";
-    case '2': return "Defeated";
-    case '3': return "Succeeded";
-    case '4': return "Requested";
-    case '5': return "Fulfilled";
-    case '6': return "NonExistent";
-
+    case '0': return "NonExistent";
+    case '1': return "Proposed";
+    case '2': return "Cancelled";
+    case '3': return "Active";
+    case '4': return "Defeated";
+    case '5': return "Succeeded";
+    case '6': return "Requested";
+    case '7': return "Fulfilled";
+    
     default:
       return "unsupported state";
   } 
@@ -499,34 +494,3 @@ export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 1
   }
   return parseInt(chainId) as 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined
 }
-
-
-export const parseActionData = (data: unknown[]): ActionTruncated => {
-  if (!isArray(data)) {
-    throw new Error('@parseActionData: data not an array.');
-  }
-  if (data.length != 12) {
-    throw new Error('@parseActionData: data not correct length.');
-  }
-
-  // console.log("@parseActionData: waypoint 0", {data})
-
-  const action: ActionTruncated = {
-    cancelled: data[0] as boolean,
-    requested: data[1] as boolean,
-    fulfilled: data[2] as boolean,
-    lawId: data[3] as bigint,
-    voteStart: data[4] as bigint,
-    voteDuration: data[5] as bigint,
-    voteEnd: data[6] as bigint,
-    caller: data[7] as `0x${string}`,
-    againstVotes: data[8] as bigint,
-    forVotes: data[9] as bigint,
-    abstainVotes: data[10] as bigint,
-    nonce: data[11] as unknown as string
-  }
-
-  // console.log("@parseActionData: waypoint 1", {action})
-
-  return action as ActionTruncated
-} 

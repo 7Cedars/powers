@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useReadContract } from 'wagmi'
 import { lawAbi } from "@/context/abi";
-import { useLaw } from "@/hooks/useLaw";
 import { bytesToParams, parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
 import { LawSimulation, Law } from "@/context/types";
@@ -15,9 +14,8 @@ type SimulationBoxProps = {
 
 export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   // console.log("@SimulationBox: waypoint 1", {law, simulation})
-  const {status, error} = useLaw();
   const [jsxSimulation, setJsxSimulation] = useState<React.JSX.Element[][]> ([]); 
-  const { data, isLoading, isError, error: stateVarsError } = useReadContract({
+  const { data } = useReadContract({
         abi: lawAbi,
         address: law.lawAddress,
         functionName: 'stateVars'
@@ -71,33 +69,10 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   }, [simulation])
 
   return (
-    <section className="w-full flex flex-col gap-6 justify-start items-center px-6 pt-4">
-    {dataTypes.length > 0 ? 
-      <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
-          <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
-            State variables to be saved in law 
-          </div>
-          <div className="w-full h-fit overflow-scroll">
-            <table className="table-auto w-full ">
-              <thead className="w-full border-b border-slate-300">
-                <tr className="w-96 bg-slate-50 text-xs font-light font-mono text-left text-slate-600">
-                    <th className="ps-6 py-2 font-light"> Data type </th>
-                    <th className="font-light text-left"> Value </th>
-                </tr>
-              </thead>
-                <tbody className="w-full text-xs text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
-                  { jsxSimulation[0] ? jsxSimulation[0].map(row => {return (row)} ) : null } 
-                </tbody>
-              </table>
-            </div>
-        </div>
-        : 
-        null
-      }
-
-      <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
+    <section className="mx-auto flex flex-col gap-6 justify-start items-center px-6 pt-4">
+      <div className="max-w-lg mx-auto flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
         <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
-          Calldata to be send to Powers  
+          Calls to be executed by Powers  
         </div>
         <div className="w-full h-fit overflow-scroll">
           <table className="table-auto w-full ">
@@ -109,17 +84,7 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
               </tr>
             </thead>
               <tbody className="w-full text-xs text-right text-slate-500 bg-slate-50 divide-y divide-slate-200">
-                { 
-                  jsxSimulation[1] ? 
-                    jsxSimulation[1].map(row => {return (row)} ) 
-                  : status && status == "error" ?
-                    <div className="w-full flex flex-col gap-0 justify-start items-center text-red-800 text-xs p-4">
-                      <div className="font-medium">Error:</div>
-                      <div className="font-mono">{String(error)}</div>
-                    </div>  
-                  :
-                  null 
-                  } 
+                { jsxSimulation[1] && jsxSimulation[1].map(row => {return (row)} ) } 
               </tbody>
             </table>
           </div>

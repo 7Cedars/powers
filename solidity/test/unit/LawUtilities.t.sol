@@ -20,7 +20,7 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { LawUtilities } from "../../src/LawUtilities.sol";
+import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Law } from "../../src/Law.sol";

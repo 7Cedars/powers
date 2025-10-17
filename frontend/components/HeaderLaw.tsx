@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import DynamicThumbnail from './DynamicThumbnail';
 import { Powers } from '@/context/types';
 

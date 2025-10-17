@@ -27,9 +27,9 @@ contract AdoptLawsTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        adoptLaws = AdoptLaws(lawAddresses[6]); // AdoptLaws from executive constitution
-        openAction = OpenAction(lawAddresses[2]); // OpenAction
-        presetSingleAction = PresetSingleAction(lawAddresses[0]); // PresetSingleAction
+        adoptLaws = AdoptLaws(lawAddresses[7]); // AdoptLaws from executive constitution
+        openAction = OpenAction(lawAddresses[3]); // OpenAction
+        presetSingleAction = PresetSingleAction(lawAddresses[1]); // PresetSingleAction
         lawId = 4; // AdoptLaws law ID in executive constitution
     }
 
@@ -51,8 +51,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -67,8 +67,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -125,8 +125,8 @@ contract AdoptLawsTest is TestSetupExecutive {
                 votingPeriod: 0,
                 delayExecution: 0,
                 throttleExecution: 0,
-                needCompleted: 0,
-                needNotCompleted: 0
+                needFulfilled: 0,
+                needNotFulfilled: 0
             })
         });
 
@@ -158,7 +158,7 @@ contract GovernorCreateProposalTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[7]); // GovernorCreateProposal from executive constitution
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]); // GovernorCreateProposal from executive constitution
         votingToken = SimpleErc20Votes(mockAddresses[0]);
         simpleGovernor = SimpleGovernor(payable(mockAddresses[4]));
         lawId = 2; // GovernorCreateProposal law ID in executive constitution
@@ -248,8 +248,8 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[7]); // GovernorCreateProposal from executive constitution
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[8]); // GovernorExecuteProposal from executive constitution
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]); // GovernorCreateProposal from executive constitution
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]); // GovernorExecuteProposal from executive constitution
         votingToken = SimpleErc20Votes(mockAddresses[0]);
         simpleGovernor = SimpleGovernor(payable(mockAddresses[4]));
         lawIds = new uint16[](1);
@@ -379,11 +379,11 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        adoptLaws = AdoptLaws(lawAddresses[6]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[7]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[8]);
-        openAction = OpenAction(lawAddresses[2]);
-        presetSingleAction = PresetSingleAction(lawAddresses[0]);
+        adoptLaws = AdoptLaws(lawAddresses[7]);
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]);
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]);
+        openAction = OpenAction(lawAddresses[3]);
+        presetSingleAction = PresetSingleAction(lawAddresses[1]);
         simpleGovernor = SimpleGovernor(payable(mockAddresses[4]));
     }
 

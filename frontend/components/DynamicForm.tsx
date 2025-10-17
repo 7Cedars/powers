@@ -1,51 +1,35 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { setError, useActionStore, useErrorStore } from "@/context/store";
+import React, { useEffect } from "react";
+import { useActionStore, useErrorStore, usePowersStore } from "@/context/store";
 import { Button } from "@/components/Button";
-import { ArrowUpRightIcon, PlusIcon, SparklesIcon, UserGroupIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { SectionText } from "@/components/StandardFonts";
-import { useChainId, useChains } from 'wagmi'
-import { decodeAbiParameters, parseAbiParameters, toHex } from "viem";
-import { parseChainId, parseLawError, parseParamValues, parseRole, parseTrueFalse, shorterDescription } from "@/utils/parsers";
-import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers } from "@/context/types";
+import { parseLawError, parseParamValues } from "@/utils/parsers";
+import { Checks, DataType, InputType, Law } from "@/context/types";
 import { DynamicInput } from "@/components/DynamicInput";
-import { SimulationBox } from "@/components/SimulationBox";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
-import { useParams, useRouter } from "next/navigation";
-import { hashAction } from "@/utils/hashAction";
-import HeaderLaw from '@/components/HeaderLaw';
-import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
+import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 
 type DynamicFormProps = {
-  powers: Powers;
   law: Law;
-  checks: Checks;
   params: {
     varName: string;
     dataType: DataType;
     }[]; 
-  simulation?: LawSimulation;
-  selectedExecution?: Execution | undefined;
-  status: Status; 
+  status: Status;   
   // onChange: (input: InputType | InputType[]) => void;
   onChange: () => void;
   onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
-  onExecute: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function DynamicForm({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute}: DynamicFormProps) {
+export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps) {
   const action = useActionStore();
   const error = useErrorStore()
-  const router = useRouter();
-  const { chainId } = useParams<{ chainId: string }>()
   const dataTypes = params.map(param => param.dataType) 
-  const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-
+  const powers = usePowersStore();
   // console.log("@DynamicForm:", {checks, action})
-  console.log("@DynamicForm:", {error})
+  // console.log("@DynamicForm:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
@@ -56,28 +40,23 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
   }
 
   useEffect(() => {
+    // Only run if we have valid callData and it's not already processed
+    if (!action.callData || action.callData === '0x0' || action.upToDate) {
+      return;
+    }
+
+    // Additional guard: only process if dataTypes match the law
+    if (dataTypes.length === 0) {
+      return;
+    }
+
     // console.log("useEffect triggered at DynamicForm")
-      try {
-        const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData);
-        const valuesParsed = parseParamValues(values) 
-        // console.log("@DynamicForm: useEffect triggered at DynamicForm", {values, valuesParsed})
-        if (dataTypes.length != valuesParsed.length) {
-          // console.log("@DynamicForm: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
-          setAction({...action, paramValues: dataTypes.map(dataType => {
-            const isArray = dataType.indexOf('[]') > -1;
-            if (dataType.indexOf('string') > -1) {
-              return isArray ? [""] : "";
-            } else if (dataType.indexOf('bool') > -1) {
-              return isArray ? [false] : false;
-            } else {
-              return isArray ? [0] : 0;
-            }
-          }), upToDate: true})
-        } else {
-          setAction({...action, paramValues: valuesParsed, upToDate: true})
-        }
-      } catch(error) { 
-        console.error("Error decoding abi parameters at action calldata: ", error)
+    try {
+      const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData as `0x${string}`);
+      const valuesParsed = parseParamValues(values) 
+      // console.log("@DynamicForm: useEffect triggered at DynamicForm", {values, valuesParsed})
+      if (dataTypes.length != valuesParsed.length) {
+        // console.log("@DynamicForm: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
         setAction({...action, paramValues: dataTypes.map(dataType => {
           const isArray = dataType.indexOf('[]') > -1;
           if (dataType.indexOf('string') > -1) {
@@ -88,8 +67,26 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
             return isArray ? [0] : 0;
           }
         }), upToDate: true})
-      }  
-  }, [ , law ])
+      } else {
+        setAction({...action, paramValues: valuesParsed, upToDate: true})
+      }
+    } catch(error) { 
+      console.error("Error decoding abi parameters at action calldata: ", error)
+      // Only set action if we haven't already (prevent infinite loop on decode errors)
+      if (!action.upToDate) {
+        setAction({...action, paramValues: dataTypes.map(dataType => {
+          const isArray = dataType.indexOf('[]') > -1;
+          if (dataType.indexOf('string') > -1) {
+            return isArray ? [""] : "";
+          } else if (dataType.indexOf('bool') > -1) {
+            return isArray ? [false] : false;
+          } else {
+            return isArray ? [0] : 0;
+          }
+        }), upToDate: true})
+      }
+    }  
+  }, [law.index, action.callData, action.upToDate])
 
   return (
     <> 
@@ -155,7 +152,6 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
                 }} />
             </div>
         </div>
-      
 
       {/* Errors */}
       { error.error &&
@@ -166,6 +162,8 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
         </div>
       }
 
+      { !action.upToDate && (
+
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
             size={0} 
@@ -175,14 +173,13 @@ export function DynamicForm({powers, law, checks, params, status, simulation, se
             selected={true}
             onClick={(e) => {
               e.preventDefault();
-              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
-            }} 
-            statusButton={
-               action && action.description && action.description.length > 0 && action.nonce && action.paramValues ? 'idle' : 'disabled'
-              }> 
+              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
+            }}
+            statusButton={ status } > 
             Check 
-          </Button>
-        </div>  
+            </Button>
+          </div>  
+        )}
       </form>
       }
       {/* dynamic form end */}

@@ -1,32 +1,20 @@
 import { useCallback, useState } from "react";
-import { lawAbi, powersAbi } from "../context/abi";
-import { Law, Checks, Status, LawExecutions, Powers, Action } from "../context/types"
+import { powersAbi } from "../context/abi";
+import { Law, Checks, Status, Powers } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
-import { getPublicClient, readContract } from "wagmi/actions";
-import { useBlockNumber } from 'wagmi'
+import { readContract } from "wagmi/actions";
 import { useParams } from "next/navigation";
 import { parseChainId } from "@/utils/parsers";
 import { hashAction } from "@/utils/hashAction";
-import { setActionData, setChainChecks, setChecksStatus } from "@/context/store";
-import { useAction } from "./useAction";
 import { getBlockNumber } from '@wagmi/core'
 
 export const useChecks = () => {
-  const { chainId } = useParams<{ chainId: string }>()
-  // const { data: blockNumber, refetch } = useBlockNumber({
-  //   chainId: parseChainId(chainId),
-  //   cacheTime: 2_000
-  // })
-  // console.log("blockNumber", {blockNumber, chainId})
-
-  const publicClient = getPublicClient(wagmiConfig, {
-    chainId: parseChainId(chainId),
-  })
-  const { status: actionStatus, error: actionError, data: actionData, fetchActionData } = useAction()
+  const { chainId } = useParams<{ chainId: string }>() 
+  const [checks, setChecks] = useState<Checks | undefined>()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
-  // note: the state of checks is not stored here, it is stored in the Zustand store
+  // note: the state of checks is not stored here, it is stored in the Zustnd store
 
   // console.log("useChecks: waypoint 0", {error, status})
 
@@ -39,66 +27,59 @@ export const useChecks = () => {
                   address: powers.contractAddress as `0x${string}`,
                   functionName: 'canCallLaw', 
                   args: [wallets[0].address, law.index],
+                  chainId: parseChainId(chainId)
                 })
           // console.log("@checkAccountAuthorised: waypoint 1", {result})
           return result as boolean 
         } catch (error) {
             setStatus("error") 
-            setError(error)
+            setError(error as Error)
             // console.log("@checkAccountAuthorised: waypoint 2", {error})
         }
   }, [])
 
-  const checkActionStatus = useCallback(
-    async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint, stateToCheck: number[]): Promise<boolean | undefined> => {
+  const getActionState = useCallback(
+    async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint): Promise<bigint | undefined> => {
       const actionId = hashAction(lawId, lawCalldata, nonce)
-      // console.log("@checkActionStatus: waypoint 0", {lawId, lawCalldata, nonce, stateToCheck, actionId})
+      // console.log("@getActionState: waypoint 0", {lawId, lawCalldata, nonce, actionId})
 
       try {
         const state =  await readContract(wagmiConfig, {
                 abi: powersAbi,
                 address: law.powers as `0x${string}`,
-                functionName: 'state', 
+                functionName: 'getActionState', 
                 args: [actionId],
+                chainId: parseChainId(chainId)
               })
-        // console.log("@checkActionStatus: waypoint 1", {state})
-        const result = stateToCheck.includes(Number(state)) 
-        return result 
+        return state as bigint
+
       } catch (error) {
         setStatus("error")
-        setError(error)
+        setError(error as Error)
       }
-  }, []) 
-  
-  const fetchExecutions = async (law: Law) => {
-    // console.log("@fetchExecutions: waypoint 0", {lawId})
-    if (publicClient) {
-      try {
-          const lawExecutions = await readContract(wagmiConfig, {
-            abi: lawAbi, 
-            address: law.lawAddress,
-            functionName: 'getExecutions',
-            args: [law.powers, law.index]
-          })
-          return lawExecutions as unknown as LawExecutions
-      } catch (error) {
-        // console.log("@fetchExecutions: waypoint 4", {lawId, error})
-        setStatus("error") 
-        setError(error)
-      }
-    }
-  }
+  }, [])
+
+  const fetchLatestFulfillment = useCallback(async (law: Law) => {
+    const latestFulfillment = await readContract(wagmiConfig, {
+      abi: powersAbi,
+      address: law.powers as `0x${string}`,
+      functionName: 'getLatestFulfillment',
+      args: [law.index],
+      chainId: parseChainId(chainId)
+    })
+    return latestFulfillment as bigint
+  }, [])
 
   const checkThrottledExecution = useCallback( async (law: Law) => {
-    const fetchedExecutions = await fetchExecutions(law)
+    const latestFulfillment = await fetchLatestFulfillment(law)
     
     const blockNumber = await getBlockNumber(wagmiConfig, {
       chainId: parseChainId(chainId),
     })
-    // console.log("checkThrottledExecution, waypoint 1", {fetchedExecutions, law, blockNumber})
+    // console.log("checkThrottledExecution, waypoint 1", {latestFulfillment, law, blockNumber})
 
-    if (fetchedExecutions && fetchedExecutions.executions?.length > 0 && blockNumber) {
-      const result = Number(fetchedExecutions?.executions[0]) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
+    if (latestFulfillment && blockNumber) {
+      const result = Number(latestFulfillment) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
       return result as boolean
     } else {
       return true
@@ -109,24 +90,29 @@ export const useChecks = () => {
     // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
     const actionId = hashAction(lawId, calldata, nonce)
     // console.log("Deadline ActionId:", actionId)
-    const law = powers.AdoptedLaws?.find(law => law.index === lawId)
+    const law = powers.laws?.find(law => law.index === lawId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),
       })
       // console.log("BlockNumber:", blockNumber)
 
-      const deadline = await readContract(wagmiConfig, {
+      const voteData = await readContract(wagmiConfig, {
         abi: powersAbi,
         address: powers.contractAddress as `0x${string}`,
-        functionName: 'getProposedActionDeadline',
-        args: [actionId]
+        functionName: 'getActionVoteData',
+        args: [actionId],
+        chainId: parseChainId(chainId)
       })
-      // console.log("Deadline:", deadline, "BlockNumber:", blockNumber)
-      // console.log("Deadline + Delay:", Number(deadline) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
-      
-      if (deadline && blockNumber) {
-        const result = Number(deadline) > 0 ? Number(deadline) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
+
+      const [voteStart, voteDuration, voteEnd, againstVotes, forVotes, abstainVotes] = voteData as unknown as [
+        bigint, bigint, bigint, bigint, bigint, bigint
+      ]
+
+      // console.log("Deadline:", voteEnd, "BlockNumber:", blockNumber)
+      // console.log("Deadline + Delay:", Number(voteEnd) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      if (voteEnd && blockNumber) {
+        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
         // console.log("Deadline Result:", result) 
         return result as boolean
       } else {
@@ -138,70 +124,6 @@ export const useChecks = () => {
     }
   }
 
-  const calculateDependencies = (lawId: bigint, powers: Powers) => {
-    const selectedLawId = String(lawId)
-    const connectedNodes: Set<string> = new Set()
-    
-    if (powers.AdoptedLaws) {
-      // Build dependency maps
-      const dependencies = new Map<string, Set<string>>()
-      const dependents = new Map<string, Set<string>>()
-      
-      powers.AdoptedLaws.forEach(law => {
-        const lawId = String(law.index)
-        dependencies.set(lawId, new Set())
-        dependents.set(lawId, new Set())
-      })
-      
-      // Populate dependency relationships
-      powers.AdoptedLaws.forEach(law => {
-        const lawId = String(law.index)
-        if (law.conditions) {
-          if (law.conditions.needCompleted !== 0n) {
-            const targetId = String(law.conditions.needCompleted)
-            if (dependencies.has(targetId)) {
-              dependencies.get(lawId)?.add(targetId)
-              dependents.get(targetId)?.add(lawId)
-            }
-          }
-          if (law.conditions.needNotCompleted !== 0n) {
-            const targetId = String(law.conditions.needNotCompleted)
-            if (dependencies.has(targetId)) {
-              dependencies.get(lawId)?.add(targetId)
-              dependents.get(targetId)?.add(lawId)
-            }
-          }
-          if (law.conditions.readStateFrom !== 0n) {
-            const targetId = String(law.conditions.readStateFrom)
-            if (dependencies.has(targetId)) {
-              dependencies.get(lawId)?.add(targetId)
-              dependents.get(targetId)?.add(lawId)
-            }
-          }
-        }
-      })
-      
-      // Find all connected nodes using traversal
-      const visited = new Set<string>()
-      const traverse = (nodeId: string) => {
-        if (visited.has(nodeId)) return
-        visited.add(nodeId)
-        connectedNodes.add(nodeId)
-        
-        // Add all dependencies
-        const deps = dependencies.get(nodeId) || new Set()
-        deps.forEach(depId => traverse(depId))
-        
-        // Add all dependents  
-        const dependentNodes = dependents.get(nodeId) || new Set()
-        dependentNodes.forEach(depId => traverse(depId))
-      }
-      
-      traverse(selectedLawId)
-    }
-    return connectedNodes
-  }
-
   const fetchChecks = useCallback( 
     async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers, actionLawId, caller})
@@ -210,82 +132,35 @@ export const useChecks = () => {
 
         if (wallets[0] && powers?.contractAddress && law.conditions) { 
           // console.log("fetchChecks triggered, waypoint 1", {law, callData, nonce, wallets, powers, actionLawId, caller})
-          const throttled = await checkThrottledExecution(law)
-          const authorised = await checkAccountAuthorised(law, powers, wallets)
-          const proposalStatus = await checkActionStatus(law, law.index, callData, nonce, [3, 4, 5])
-          const voteActive = await checkActionStatus(law, law.index, callData, nonce, [0])
-          const proposalExists = await checkActionStatus(law, law.index, callData, nonce, [6])
-          const delayed = await checkDelayedExecution(law.index, nonce, callData, powers)
-          // console.log("delay passed at law", law.index, {delayed})
+          const checksData = await Promise.all([
+            checkThrottledExecution(law),
+            checkAccountAuthorised(law, powers, wallets),
+            getActionState(law, law.index, callData, nonce),
+            getActionState(law, law.conditions.needFulfilled, callData, nonce),
+            getActionState(law, law.conditions.needNotFulfilled, callData, nonce),
+            checkDelayedExecution(law.index, nonce, callData, powers)
+          ])
+          const [throttled, authorised, actionState, actionStateNeedFulfilled, actionStateNeedNotFulfilled, delayed] = checksData
 
-          const notCompleted1 = await checkActionStatus(law, law.index, callData, nonce, [5])
-          const notCompleted2 = await checkActionStatus(law, law.conditions.needCompleted, callData, nonce, [5])
-          const notCompleted3 = await checkActionStatus(law, law.conditions.needNotCompleted, callData, nonce, [5])
-
-          // console.log("notCompleted1", {notCompleted1})
-
-            const newChecks: Checks =  {
-              delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
-              throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
-              authorised,
-              proposalExists: law.conditions.quorum == 0n ? true : proposalExists == false,
-              voteActive: law.conditions.quorum == 0n ? true : voteActive,
-              proposalPassed: law.conditions.quorum == 0n ? true : proposalStatus,
-              actionNotCompleted: !notCompleted1,
-              lawCompleted: law.conditions.needCompleted == 0n ? true : notCompleted2, 
-              lawNotCompleted: law.conditions.needNotCompleted == 0n ? true : !notCompleted3 
-            } 
-            newChecks.allPassed =  
-              newChecks.delayPassed && 
-              newChecks.throttlePassed && 
-              newChecks.authorised && 
-              newChecks.proposalExists && 
-              newChecks.proposalPassed && 
-              newChecks.actionNotCompleted && 
-              newChecks.lawCompleted &&
-              newChecks.lawNotCompleted 
+          const newChecks: Checks =  {
+            delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
+            throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
+            authorised,
+            actionExists: law.conditions.quorum == 0n ? true : actionState != 0n,
+            voteActive: law.conditions.quorum == 0n ? true : actionState == 1n,
+            proposalPassed: law.conditions.quorum == 0n ? true : actionState == 5n || actionState == 6n || actionState == 7n,
+            actionNotFulfilled: actionState != 7n,
+            lawFulfilled: law.conditions.needFulfilled == 0n ? true : actionStateNeedFulfilled == 7n, 
+            lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n 
+          } 
+          newChecks.allPassed = Object.values(newChecks).filter(item => item !== undefined).every(item => item === true)
           
-            // console.log("fetchChecks triggered, waypoint 2", {newChecks})
-            setStatus("success") //NB note: after checking status, sets the status back to idle! 
-            return newChecks
+          // console.log("fetchChecks triggered, waypoint 2", {newChecks})
+          setChecks(newChecks)
+          setStatus("success") //NB note: after checking status, sets the status back to idle! 
+          return newChecks
         }       
   }, [ ])
 
-  const fetchChainChecks = useCallback(
-    async (lawId: bigint, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
-      const chainLaws = calculateDependencies(lawId, powers)
-      setChecksStatus({status: "pending", chains: Array.from(chainLaws)})
-      const law: Law | undefined = powers.AdoptedLaws?.find(law => law.index === lawId)
-
-      const checksMap = new Map<string, Checks>()
-      const actionDataMap = new Map<string, Action>()
-      if (chainLaws && law) {
-        try {
-          // For each active law, calculate basic checks
-          for (const lawStrId of chainLaws) {
-            const targetLaw = powers.AdoptedLaws?.find(law => String(law.index) === lawStrId)
-            if (!targetLaw?.conditions) continue
-            const singleChecks = await fetchChecks(targetLaw, callData, nonce, wallets, powers)
-            checksMap.set(lawStrId, singleChecks as Checks)
-
-            const actionId = hashAction(BigInt(lawStrId), callData, nonce)
-            // console.log("@fetchChainChecks: waypoint 1", {actionId})
-            const actionData = await fetchActionData(actionId, powers)
-            // console.log("@fetchChainChecks: waypoint 2", {actionData})
-            actionData ? actionDataMap.set(lawStrId, actionData) : null
-          }
-          // console.log("@fetchChainChecks: waypoint 3", {checksMap, actionDataMap})
-          setChainChecks(checksMap)
-          setActionData( actionDataMap )
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch law checks')
-      } finally {
-        setChecksStatus({status: "success", chains: Array.from(chainLaws)})
-        setStatus("success")
-      }
-    }
-  }, [fetchChecks])
-
-  return {status, error, fetchChecks, fetchChainChecks, checkActionStatus, checkAccountAuthorised, hashAction}
+  return {status, error, checks, fetchChecks, getActionState, checkAccountAuthorised, hashAction}
 }

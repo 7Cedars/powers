@@ -1,10 +1,10 @@
 // ok, what does this need to do? 
 
-import { erc1155Abi, erc20Abi, erc721Abi, ownableAbi } from "@/context/abi"
+import { erc1155Abi, erc20Abi, erc721Abi } from "@/context/abi"
 // import { publicClient } from "@/context/clients"
 import { Powers, Status, Token } from "@/context/types"
 import { useCallback, useState } from "react"
-import { useBalance, useChains } from "wagmi"
+import { useBalance } from "wagmi"
 import { readContract } from "wagmi/actions";
 import { wagmiConfig } from "@/context/wagmiConfig"
 import { parse1155Metadata } from "@/utils/parsers"
@@ -16,12 +16,10 @@ export const useAssets = (powers: Powers | undefined) => {
   const [error, setError] = useState<any | null>(null)
   const [tokens, setTokens] = useState<Token[]>()
   const { chainId } = useParams<{ chainId: string }>()
-  const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const {data: native, status: statusBalance}  = useBalance({
+  const {data: native}  = useBalance({
     address: powers?.contractAddress
   }) 
-  // console.log("@useAssets, supportedChain:", {supportedChain, tokens, status, error})
+  // console.log("@useAssets, tokens, status, error", {tokens, status, error})
 
    const fetchErc20Or721 = async (tokenAddresses: `0x${string}`[], type: "erc20" | "erc721", powers: Powers) => {
      let token: `0x${string}`
@@ -34,7 +32,8 @@ export const useAssets = (powers: Powers | undefined) => {
             const name = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
-              functionName: 'name' 
+              functionName: 'name',
+              chainId: parseChainId(chainId)
             })
             const nameParsed = name as string
             // console.log("@useAssets, nameParsed:", {nameParsed})
@@ -42,7 +41,8 @@ export const useAssets = (powers: Powers | undefined) => {
             const symbol = await readContract(wagmiConfig, {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
-              functionName: 'symbol' 
+              functionName: 'symbol',
+              chainId: parseChainId(chainId)
             })
             const symbolParsed = symbol as string
             // console.log("@useAssets, symbolParsed:", {symbolParsed})
@@ -51,7 +51,8 @@ export const useAssets = (powers: Powers | undefined) => {
               abi: type ==  "erc20" ? erc20Abi : erc721Abi,
               address: token,
               functionName: 'balanceOf', 
-              args: [powers.contractAddress] 
+              args: [powers.contractAddress],
+              chainId: parseChainId(chainId)
             })
             const balanceParsed = balance as bigint
             // console.log("@useAssets, balanceParsed:", {balanceParsed})
@@ -61,7 +62,8 @@ export const useAssets = (powers: Powers | undefined) => {
               const decimal = await readContract(wagmiConfig, {
                 abi: erc20Abi,
                 address: token,
-                functionName: 'decimals'
+                functionName: 'decimals',
+                chainId: parseChainId(chainId)
               })
               decimalParsed = decimal as bigint
             }
@@ -120,7 +122,8 @@ export const useAssets = (powers: Powers | undefined) => {
              abi: erc1155Abi,
              address: token,
              functionName: 'balanceOfBatch', 
-             args: [AccountsToCheck, IdsToCheck] 
+             args: [AccountsToCheck, IdsToCheck],
+             chainId: parseChainId(chainId)
            })
            const balancesParsed: bigint[] = balancesRaw as bigint[]
            
@@ -157,7 +160,8 @@ export const useAssets = (powers: Powers | undefined) => {
              abi: erc1155Abi,
              address: token.address as `0x${string}`,
              functionName: 'uri', 
-             args: [token.tokenId] 
+            args: [token.tokenId],
+             chainId: parseChainId(chainId)
             })
            
              if (uriRaw) {
@@ -175,7 +179,7 @@ export const useAssets = (powers: Powers | undefined) => {
             } return erc1155sMetadata
           } catch (error) {
           setStatus("error") 
-          setError(error)
+          setError(error as Error)
         // }
       }
   }
@@ -200,19 +204,10 @@ export const useAssets = (powers: Powers | undefined) => {
         setStatus("pending")
         setError(null)
         const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
-        const selectedErc20s = powers?.metadatas?.erc20s ? powers?.metadatas?.erc20s : []
-        // console.log("@useAssets, savedErc20s:", {savedErc20s})
-        // console.log("@useAssets, selectedErc20s:", {selectedErc20s})
-        const erc20s: Token[] = await fetchErc20Or721([...selectedErc20s, ...savedErc20s], "erc20", powers)
-        // console.log("@useAssets, erc20s:", {erc20s})
-        // const erc721s: Token[] | undefined =  await fetchErc20Or721(erc721, "erc721")
-        // const erc1155s: Token[] | undefined = await fetchErc1155(erc1155)
-
+        const erc20s: Token[] = await fetchErc20Or721(savedErc20s, "erc20", powers)
         if (erc20s) {
           erc20s.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
-          // console.log("@useAssets, fetchedTokens:", {erc20s})
           setTokens(erc20s) 
-          
         }
         setStatus("success") 
   }, [ ])

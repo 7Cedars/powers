@@ -33,7 +33,7 @@ export function StaticForm({ law, staticDescription = true }: StaticFormProps) {
             name="nonce"
             className="w-full h-8 pe-2 text-xs font-mono text-slate-500 placeholder:text-gray-400 focus:outline focus:outline-0"  
             id="nonce" 
-            value={action.nonce.toString()}
+            value={action?.nonce?.toString()}
             disabled={true}
           />
         </div>

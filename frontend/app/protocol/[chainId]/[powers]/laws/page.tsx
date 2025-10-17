@@ -1,25 +1,21 @@
 "use client";
 
-import React, { useEffect } from "react";
-import {LawList} from "@/app/protocol/[chainId]/[powers]/laws/LawList";
-import { usePowers } from "@/hooks/usePowers";
-import { useParams } from "next/navigation";
+import React from "react";
+import { LawList } from "@/app/protocol/[chainId]/[powers]/laws/LawList";
+import { TitleText } from "@/components/StandardFonts";
+import { usePowersStore } from "@/context/store";
  
 export default function Page() {    
-  const { powers: addressPowers} = useParams<{ powers: string }>()  
-  const { powers, fetchPowers, status } = usePowers()
-
-  // console.log("@laws, waypoint 0", {powers, status})
-
-  useEffect(() => {
-    if (!powers) {
-      fetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [powers])
-
+  const powers = usePowersStore(); 
+  
   return (
-    <main className="w-full min-h-fit flex flex-col justify-start items-center pt-20 ps-2 pe-12 overflow-x-scroll">
-      <LawList powers = {powers} status={status} />
+    <main className="w-full h-fit flex flex-col justify-start items-center pb-20 pt-16 ps-4 pe-12">
+      <TitleText
+        title="Laws"
+        subtitle="View the laws of the organization."
+        size={2}
+      />
+      {powers && <LawList powers={powers} status={status} />}
     </main>
   )
 }

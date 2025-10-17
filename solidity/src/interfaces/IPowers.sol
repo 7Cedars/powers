@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+    // SPDX-License-Identifier: MIT
 
 ///////////////////////////////////////////////////////////////////////////////
 /// This program is free software: you can redistribute it and/or modify    ///
@@ -142,6 +142,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
     //////////////////////////////////////////////////////////////
+    /// @notice Gets the quantity of actions of a law
+    /// @param lawId The id of the law
+    /// @return quantityLawActions The quantity of actions of the law
+    function getQuantityLawActions(uint16 lawId) external view returns (uint256 quantityLawActions);
 
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
@@ -153,11 +157,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param account The address to check
     /// @return hasVoted True if the account has voted, false otherwise
     function hasVoted(uint256 actionId, address account) external view returns (bool hasVoted);
-
-    /// @notice Gets the deadline for voting on a proposal
-    /// @param actionId The unique identifier of the proposal
-    /// @return deadline the block number at which voting ends
-    function getActionDeadline(uint256 actionId) external view returns (uint256 deadline);
 
     /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
@@ -211,11 +210,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return _uri The URI for the action
     function getActionUri(uint256 actionId) external view returns (string memory _uri);
 
-    /// @notice Gets the nonce for a specific action
-    /// @param actionId The unique identifier of the action
-    /// @return nonce The nonce for the action
-    function getActionNonce(uint256 actionId) external view returns (uint256 nonce);
-
     /// @notice Gets the block number since which an account has held a role
     /// @param account The address to check
     /// @param roleId The identifier of the role
@@ -226,6 +220,12 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param roleId The identifier of the role
     /// @return amountMembers the number of role holders
     function getAmountRoleHolders(uint256 roleId) external view returns (uint256 amountMembers);
+
+    /// @notice Gets the holder of a role at a specific index
+    /// @param roleId The identifier of the role
+    /// @param index The index of the role holder
+    /// @return account The address of the role holder
+    function getRoleHolderAtIndex(uint256 roleId, uint256 index) external view returns (address account);
 
     /// @notice Gets the label of a role
     /// @param roleId The identifier of the role
@@ -239,10 +239,16 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return active The active status of the law
     function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
 
+    /// @notice Gets the latest fulfillment of a law
+    /// @param lawId The id of the law
+    /// @return latestFulfillment The latest fulfillment of the law
+    function getLatestFulfillment(uint16 lawId) external view returns (uint48 latestFulfillment);
+
     /// @notice Gets the actions of a law
     /// @param lawId The id of the law
-    /// @return actionIds The actions of the law
-    function getLawActions(uint16 lawId) external view returns (uint256[] memory actionIds);
+    /// @param index The index of the action
+    /// @return actionId The action at the index
+    function getLawActionAtIndex(uint16 lawId, uint256 index) external view returns (uint256 actionId);
 
     /// @notice Gets the conditions of a law
     /// @param lawId The id of the law

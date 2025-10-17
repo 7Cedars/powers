@@ -1,0 +1,36 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
+  "description": 
+    "This example implements a governance system where the previous DAO can adopt and revoke laws one by one, while delegates can veto these actions. It includes electoral laws for delegate nomination and election processes. For an example using packaged upgrades, see Packaged Upgrades in the Deploy Your Powers section.",
+  "website": "",
+  "code-of-conduct": "", 
+  "dispute-resolution": "",
+  "communication-channels": [
+    {
+      "discord": "",
+      "telegram": "",
+      "x": "",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "",
+      "forum": "",
+      "documentation": ""
+    }
+  ],
+  "attributes": [
+    {
+      "trait_type": "optional trait 1",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 2",
+      "value": "none"
+    },
+    {
+      "trait_type": "optional trait 3",
+      "value": "none"
+    }
+  ]
+}

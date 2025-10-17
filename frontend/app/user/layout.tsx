@@ -1,4 +1,4 @@
-import { UserNavigation } from '@/components/UserNavigation'
+import { UserNavigation } from '@/app/user/UserNavigation'
 
 export default function UserLayout({
   children,

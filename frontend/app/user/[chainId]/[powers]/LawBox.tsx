@@ -1,28 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/Button";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains } from 'wagmi'
 import { parseChainId, shorterDescription } from "@/utils/parsers";
 import { Checks, DataType, Execution, InputType, Law, LawSimulation, Powers, Status } from "@/context/types";
-import { SimulationBox } from "@/components/SimulationBox";
-import { useParams, useRouter } from "next/navigation";
-import { hashAction } from "@/utils/hashAction";
+import { useParams } from "next/navigation";
 import HeaderLaw from '@/components/HeaderLaw';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { DynamicForm } from '@/components/DynamicForm';
 import { useActionStore } from "@/context/store";
+import { useWallets } from "@privy-io/react-auth";
+import { useLaw } from "@/hooks/useLaw";
 
 type LawBoxProps = {
   powers: Powers;
   law: Law;
   checks: Checks;
+  statusChecks: Status;
   params: {
     varName: string;
     dataType: DataType;
     }[]; 
-  simulation?: LawSimulation;
   selectedExecution?: Execution | undefined;
   status: Status; 
   // onChange: (input: InputType | InputType[]) => void;
@@ -32,16 +32,23 @@ type LawBoxProps = {
   onPropose?: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
+export function LawBox({powers, law, checks, params, status, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
   const action = useActionStore();
-  const router = useRouter();
+  const {actionVote, fetchVoteData} = useLaw();
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  const {wallets} = useWallets();
+
+  useEffect(() => {
+    if (action.actionId && wallets.length > 0) {
+      fetchVoteData(action, powers as Powers)
+    }
+  }, [action, wallets])
 
   return (
     <main className="w-full" help-nav-item="law-input">
-      <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`} >
+      <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 pb-4`} >
       {/* title - replaced with HeaderLaw */}
       <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
         <HeaderLaw
@@ -72,16 +79,11 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
 
       {/* dynamic form */}
       <DynamicForm
-        powers={powers}
         law={law}
-        checks={checks}
         params={params}
-        simulation={simulation}
-        selectedExecution={selectedExecution}
         status={status}
         onChange={onChange}
         onSimulate={onSimulate}
-        onExecute={onExecute}
       />
 
       {/* Proposal Section - only show when quorum > 0 */}
@@ -90,34 +92,20 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           <div className="w-full">
             <Button 
               size={0} 
-              role={6}
-              onClick={() => {
-                if (checks?.proposalExists && action) {
-                  // console.log("@DynamicForm: Proposal section", {law, action})
-                  const actionId = hashAction(law?.index, action.callData, BigInt(action.nonce))
-                  // Navigate to view the existing proposal
-                  router.push(`/protocol/${chainId}/${law?.powers}/proposals/${actionId}`)
-                } else if (checks?.authorised && onPropose && action) {
-                  // Create a new proposal using the onPropose function
-                  onPropose(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
-                } else if (checks?.authorised) {
-                  // Navigate to create a new proposal (fallback)
-                  router.push(`/protocol/${chainId}/${law?.powers}/proposals/new`)
-                }
-                // Do nothing if not authorized and no proposal exists
-              }}
+              role={6} 
+              onClick={() => onPropose && onPropose(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string) }
               filled={false}
               selected={true}
               statusButton={
-                (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && checks?.authorised) ? 'idle' :  'disabled'
+                (checks?.authorised && action?.upToDate && actionVote?.state == 0) ? status :  'disabled'
               }
             >
-              {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+              {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotFulfilled || !checks?.lawFulfilled || !checks?.lawNotFulfilled
                 ? "Passed check needed to make proposal"
                 : !checks?.authorised 
                   ? "Not authorised to make proposal"
-                  : checks?.proposalExists 
-                    ? "View proposal"
+                  : actionVote?.state != 0 
+                    ? "Action already proposed"
                     : `Create proposal for '${shorterDescription(law?.nameDescription, "short")}'`
               }
             </Button>
@@ -132,18 +120,18 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
             role={6}
             onClick={() => {
               if (checks?.authorised && action) {
-                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce), action.description)
+                onExecute(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
               }
               // Do nothing if not authorized
             }} 
             filled={false}
             selected={true}
             statusButton={
-              (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotCompleted && checks?.lawCompleted && checks?.lawNotCompleted && 
+              (action?.upToDate && checks?.delayPassed && checks?.throttlePassed && checks?.actionNotFulfilled && checks?.lawFulfilled && checks?.lawNotFulfilled && 
                (law?.conditions?.quorum == 0n || checks?.proposalPassed) && 
                checks?.authorised) ? status : 'disabled' 
               }> 
-            {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotCompleted || !checks?.lawCompleted || !checks?.lawNotCompleted
+            {!action?.upToDate || !checks?.delayPassed || !checks?.throttlePassed || !checks?.actionNotFulfilled || !checks?.lawFulfilled || !checks?.lawNotFulfilled
               ? "Passed check needed to execute"
               : law?.conditions?.quorum != 0n && !checks?.proposalPassed
                 ? "Passed proposal needed for execution"

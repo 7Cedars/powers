@@ -25,7 +25,7 @@
 pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../LawUtilities.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 
@@ -80,8 +80,14 @@ contract ElectionSelect is Law {
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        // Step 1: Get current role holders from Powers
-        address[] memory currentRoleHolders = Powers(payable(data.powersContract)).getRoleHolders(data.roleId);
+        // Step 1: get amount role holders: 
+        uint256 amountRoleHolders = Powers(payable(data.powersContract)).getAmountRoleHolders(data.roleId);
+
+        //Get current role holders from Powers
+        address[] memory currentRoleHolders = new address[](amountRoleHolders);
+        for (uint256 i = 0; i < amountRoleHolders; i++) {
+            currentRoleHolders[i] = Powers(payable(data.powersContract)).getRoleHolderAtIndex(data.roleId, i);
+        }
 
         // Step 2: Get nominee ranking and select top candidates
         (address[] memory rankedNominees,) = Erc20DelegateElection(data.ElectionContract).getNomineeRanking();
@@ -99,7 +105,7 @@ contract ElectionSelect is Law {
         // Calculate total number of operations needed:
         // - Revoke all current role holders
         // - Assign role to all newly elected accounts
-        uint256 totalOperations = currentRoleHolders.length + elected.length;
+        uint256 totalOperations = amountRoleHolders + elected.length;
 
         if (totalOperations == 0) {
             // No operations needed, but we still need to create an empty array otherwise action will not be set as fulfilled..

@@ -9,7 +9,7 @@ import { GovernorExecuteProposal } from "../../../src/laws/executive/GovernorExe
 import { AdoptLaws } from "../../../src/laws/executive/AdoptLaws.sol";
 import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { LawUtilities } from "../../../src/LawUtilities.sol";
+import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
@@ -46,12 +46,12 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[3])
-        statementOfIntent = StatementOfIntent(lawAddresses[3]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[7]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[8]);
-        adoptLaws = AdoptLaws(lawAddresses[6]);
-        presetSingleAction = PresetSingleAction(lawAddresses[0]);
+        // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[4])
+        statementOfIntent = StatementOfIntent(lawAddresses[4]);
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]);
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]);
+        adoptLaws = AdoptLaws(lawAddresses[7]);
+        presetSingleAction = PresetSingleAction(lawAddresses[1]);
     }
 
     //////////////////////////////////////////////////////////////

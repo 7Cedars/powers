@@ -4,11 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useActionStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { useLaw } from "@/hooks/useLaw";
-import { Action, Checks, Law, Powers, Status } from "@/context/types";
-import { useProposal } from "@/hooks/useProposal";
+import { Action, Checks, Law, Powers } from "@/context/types";
 import { SimulationBox } from "@/components/SimulationBox";
-import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
-import { useBlockNumber } from "wagmi";
+import { useWallets } from "@privy-io/react-auth";
 import HeaderLaw from '@/components/HeaderLaw';
 import { useChains } from 'wagmi';
 import { parseChainId } from '@/utils/parsers';
@@ -19,20 +17,16 @@ export function ProposalBox({
   powers, 
   lawId, 
   checks, 
-  status, 
-  onCheck, 
   proposalStatus
 }: {
   powers?: Powers, 
   lawId: bigint, 
   checks?: Checks, 
-  status: Status, 
-  onCheck: (law: Law, action: Action, wallets: ConnectedWallet[], powers: Powers) => void, 
   proposalStatus: number,
 }) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposal, error, hasVoted, castVote, checkHasVoted} = useProposal();
+  const {hasVoted, castVote, checkHasVoted} = useLaw();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
   const law = powers?.laws?.find(law => law.index == lawId)
   const chains = useChains();
@@ -40,7 +34,6 @@ export function ProposalBox({
 
   const [logSupport, setLogSupport] = useState<bigint>()
   const {wallets} = useWallets();
-  const {data: blockNumber} = useBlockNumber();
   // console.log("@proposalBox: ", {lawId, action, checks, statusProposal, hasVoted})
 
   const handleCastVote = async (action: Action, support: bigint) => { 
@@ -58,29 +51,19 @@ export function ProposalBox({
     if (action.actionId && wallets.length > 0) {
       simulate(
         action.caller as `0x${string}`,
-        action.callData,
-        BigInt(action.nonce),
+        action.callData as `0x${string}`,
+        BigInt(action.nonce as string),
         law as Law
         )
 
         checkHasVoted(
           BigInt(action.actionId), 
           wallets[0].address as `0x${string}`,
-          powers as Powers
+          powers?.contractAddress as `0x${string}`
         )
       }
   }, [action, wallets])
-
-  useEffect(() => {
-    if (statusProposal == "success" && wallets.length > 0) {
-      checkHasVoted(
-        BigInt(action.actionId), 
-        wallets[0].address as `0x${string}`,
-        powers as Powers
-      )
-      setVoteReceived(true)
-    }
-  }, [statusProposal])
+ 
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
@@ -106,7 +89,7 @@ export function ProposalBox({
 
       {/* execute button */}
         <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
-          { proposalStatus != 0 ?  
+          {/* { proposalStatus != 3 ?  
               <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 
                 Vote has closed  
               </div>
@@ -169,7 +152,7 @@ export function ProposalBox({
                     Abstain
                 </Button>
               </div> 
-          }
+          } */}
         </div>
       </>
       </section>

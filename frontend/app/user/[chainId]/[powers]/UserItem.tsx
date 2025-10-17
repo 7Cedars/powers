@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import React, { useEffect, useState } from "react"; 
 import { useChains } from 'wagmi';
 import { Law, Powers } from "@/context/types";
 import HeaderLaw from '@/components/HeaderLaw';
@@ -40,9 +39,8 @@ export function UserItem({
 
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
-    if (powers?.executedActions) {
-      const lawIndex = Number(law.index);
-      const lawExecutions = powers.executedActions[lawIndex - 1]; // Array is 0-indexed, law indices start at 1
+    if (powers?.laws) {
+      const lawExecutions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(action => action?.lawId == law.index) : []
       
       if (lawExecutions) {
         let targetActionId: bigint | null = null;
@@ -54,19 +52,21 @@ export function UserItem({
         
         if (targetActionId) {
           // Find the specific action in the executions
-          const actionIndex = lawExecutions.actionsIds.findIndex(id => id === targetActionId);
+          const actionIndex = lawExecutions.findIndex(action => BigInt(action?.actionId as string) === targetActionId);
           if (actionIndex !== -1) {
-            const executedAt = lawExecutions.executions[actionIndex];
-            setExecutionData({
-              actionId: targetActionId,
-              executedAt,
-              fulfilled: true // If it's in executedActions, it's fulfilled
-            });
+            const executedAt = lawExecutions[actionIndex]?.fulfilledAt;
+            if (executedAt) {
+              setExecutionData({
+                actionId: targetActionId,
+                executedAt: executedAt,
+                fulfilled: true // If it's in executedActions, it's fulfilled
+              });
+            }
           }
         }
       }
     }
-  }, [actionId, powers?.executedActions, law.index]);
+  }, [actionId, powers?.laws, law.index]);
 
   // Fetch timestamp for execution block
   useEffect(() => {
@@ -150,7 +150,7 @@ export function UserItem({
                 {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      const proposal = powers?.proposals?.find(p => BigInt(p.actionId) === actionId);
+                      const proposal = powers?.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
                       const state = proposal?.state;
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       

@@ -1,11 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Powers } from '@/context/types'
+import { Powers, Role } from '@/context/types'
 import { useChains } from 'wagmi'
-import { parseChainId } from '@/utils/parsers'
 import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { UserItem } from './UserItem'
 import { bigintToRole } from '@/utils/bigintTo'
@@ -91,30 +89,6 @@ export default function About({ powers }: AboutProps) {
             </div>
           )}
 
-          {/* Tokens */}
-          {(powers.metadatas?.erc20s?.length || powers.metadatas?.erc721s?.length || powers.metadatas?.erc1155s?.length) && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">Supported Tokens</h3>
-              <div className="space-y-3">
-                {powers.metadatas?.erc20s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-20:</span> {powers.metadatas.erc20s.length} tokens
-                  </div>
-                )}
-                {powers.metadatas?.erc721s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-721:</span> {powers.metadatas.erc721s.length} tokens
-                  </div>
-                )}
-                {powers.metadatas?.erc1155s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-1155:</span> {powers.metadatas.erc1155s.length} tokens
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Protocol Stats */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">Governance System</h3>
@@ -123,8 +97,8 @@ export default function About({ powers }: AboutProps) {
             <div className="mb-6">
               <h4 className="text-md font-medium text-slate-700 mb-3">Roles</h4>
               <div className="flex flex-wrap gap-3">
-                {powers.roles?.map((role: bigint, index: number) => {
-                  const roleName = bigintToRole(role, powers)
+                {powers.roles?.map((role: Role, index: number) => {
+                  const roleName = bigintToRole(role.roleId, powers as Powers)
                   return (
                     <div
                       key={index}
@@ -132,8 +106,8 @@ export default function About({ powers }: AboutProps) {
                     >
                       <div className="w-18 h-18 bg-slate-50/30 backdrop-blur-sm rounded-lg hover:bg-slate-100/50 transition-colors cursor-pointer p-1">
                         <DynamicThumbnail
-                          roleId={role}
-                          powers={powers}
+                          roleId={role.roleId}
+                          powers={powers as Powers}
                           size={72}
                           className="object-cover rounded-md"
                         />

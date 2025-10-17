@@ -1,18 +1,15 @@
 "use client"
 
-import { LinkedAccountWithMetadata, useConnectWallet, useLogout, usePrivy } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
 import { 
   FingerPrintIcon
 } from '@heroicons/react/24/outline';
 import BlockiesSvg from 'blockies-react-svg'
-import { useSetActiveWallet } from "@privy-io/wagmi";
-import { useAccount } from "wagmi";
 
 export const ConnectButton = () => {
   const {ready: walletsReady, wallets} = useWallets();
-  const {ready, user, authenticated, login, logout, connectWallet, linkWallet} = usePrivy();
-  const { address, isConnected } = useAccount()
+  const {ready, authenticated, login, logout, connectWallet} = usePrivy();
 
   //NB see: 
   // https://github.com/privy-io/wagmi-demo/blob/main/app/page.tsx

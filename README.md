@@ -168,7 +168,7 @@ For detailed information on creating your own laws and organizations, please ref
 * Privy.io
 
 ### Acknowledgements
-* INVCBULL AUDIT GROUP
+* Invcbull Audit Group
 * Arnold Almeida
 * James M 
 * Paulo Fonseca

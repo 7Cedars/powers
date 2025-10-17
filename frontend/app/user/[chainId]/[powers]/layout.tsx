@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { UserNavigation } from '@/components/UserNavigation'
+import { UserNavigation } from '@/app/user/UserNavigation'
 
 interface UserLayoutProps {
   children: React.ReactNode
