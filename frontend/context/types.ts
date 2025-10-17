@@ -108,13 +108,10 @@ export type Metadata = {
   banner: string;
   description: string; 
   website?: string;
-  "code-of-conduct"?: string;
-  "dispute-resolution"?: string;
-  "communication-channels"?: CommunicationChannels[];
-  erc20s: `0x${string}`[];
-  erc721s: `0x${string}`[];
-  erc1155s: `0x${string}`[];
-  attributes: Attribute[]
+  codeOfConduct?: string;
+  disputeResolution?: string;
+  communicationChannels?: CommunicationChannels[];
+  attributes?: Attribute[];
 }
 
 export type BlockRange = {

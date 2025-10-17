@@ -29,9 +29,6 @@ export default function SettingsPage() {
       icon: '/logo1_notext.png',
       banner: '/orgMetadatas/PowersDAO_Banner.png',
       description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
-      erc20s: [],
-      erc721s: [],
-      erc1155s: [],
       attributes: []
     },
     lawCount: 0n,

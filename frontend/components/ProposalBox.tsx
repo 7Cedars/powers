@@ -26,7 +26,7 @@ export function ProposalBox({
 }) {
   const action = useActionStore(); 
   const {simulation, simulate} = useLaw();
-  const {status: statusProposal, hasVoted, castVote, checkHasVoted} = useLaw();
+  const {hasVoted, castVote, checkHasVoted} = useLaw();
   const [voteReceived, setVoteReceived] = useState<boolean>(false);
   const law = powers?.laws?.find(law => law.index == lawId)
   const chains = useChains();
@@ -59,21 +59,11 @@ export function ProposalBox({
         checkHasVoted(
           BigInt(action.actionId), 
           wallets[0].address as `0x${string}`,
-          powers as Powers
+          powers?.contractAddress as `0x${string}`
         )
       }
   }, [action, wallets])
-
-  useEffect(() => {
-    if (statusProposal == "success" && wallets.length > 0) {
-      checkHasVoted(
-        BigInt(action.actionId), 
-        wallets[0].address as `0x${string}`,
-        powers as Powers
-      )
-      setVoteReceived(true)
-    }
-  }, [statusProposal])
+ 
 
   return (
     <main className="w-full flex flex-col justify-start items-center">
@@ -99,7 +89,7 @@ export function ProposalBox({
 
       {/* execute button */}
         <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
-          { proposalStatus != 3 ?  
+          {/* { proposalStatus != 3 ?  
               <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 
                 Vote has closed  
               </div>
@@ -162,7 +152,7 @@ export function ProposalBox({
                     Abstain
                 </Button>
               </div> 
-          }
+          } */}
         </div>
       </>
       </section>

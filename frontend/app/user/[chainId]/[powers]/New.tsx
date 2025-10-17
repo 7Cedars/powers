@@ -17,7 +17,7 @@ import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { useChains } from 'wagmi'   
 import { hashAction } from '@/utils/hashAction'
 
-export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, refetchPowers: (address: `0x${string}`) => void, fetchActions: (powers: Powers) => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
   const { authenticated } = usePrivy()
   const {wallets, ready} = useWallets();
@@ -25,7 +25,7 @@ export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRol
   const supportedChain = chains.find(chain => chain.id === Number(chainId))
   const action = useActionStore();
   const { fetchChecks, status: statusChecks, checks } = useChecks()
-  const { status: statusLaw, error: errorUseLaw, simulation, resetStatus, simulate, propose, request } = useLaw();
+  const { simulation, resetStatus, simulate, propose, request } = useLaw();
 
   console.log("@New:", {powers, action})
   
@@ -96,31 +96,6 @@ export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRol
       resetStatus()
     }
   }, [selectedLaw, action, resetStatus])
-
-  useEffect(() => {
-    if (errorUseLaw) {
-      setError({error: errorUseLaw})
-    }
-  }, [errorUseLaw])
-
-  // Handle reload button click
-  const handleReload = async () => {
-    if (!addressPowers) return
-    
-    setReloading(true)
-    setError({error: null})
-    
-    try {
-      // console.log("@New: Starting reload of laws")
-      await refetchPowers(addressPowers as `0x${string}`)
-      //  console.log("@New: Successfully reloaded laws")
-    } catch (error) {
-      console.error("Error reloading laws:", error)
-      setError({error: error as Error})
-    } finally {
-      setReloading(false)
-    }
-  }
 
   const handleSimulate = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
     if (!selectedLaw) return
@@ -251,10 +226,9 @@ export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRol
               powers={powers as Powers}
               law={selectedLaw}
               checks={checks as Checks}
+              status={statusChecks}
               statusChecks={statusChecks}
               params={selectedLaw.params || []}
-              status={statusLaw}
-              simulation={simulation}
               onChange={() => {
                 setAction({...action, upToDate: false})
               }}
@@ -369,13 +343,6 @@ export default function New({hasRoles, powers, refetchPowers, resetRef}: {hasRol
               <h2 className="text-lg font-semibold text-slate-800">New</h2>
               <p className="text-sm text-slate-600">Available laws for your roles</p>
             </div>
-            <button 
-              onClick={handleReload}
-              disabled={reloading}
-              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`w-5 h-5 ${reloading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
         

@@ -691,16 +691,16 @@ contract TestConstitutions is Test {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](8);
 
-        conditions.allowedRole = type(uint256).max; // anyone can call this law.
-        lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "SelfSelect: A law to self-assign a role 1.",
-            targetLaw: lawAddresses[17], // SelfSelect
-            config: abi.encode(
-                1 // roleId = 1
-            ),
-            conditions: conditions
-        });
-        delete conditions;
+        // conditions.allowedRole = type(uint256).max; // anyone can call this law.
+        // lawInitData[1] = PowersTypes.LawInitData({
+        //     nameDescription: "SelfSelect: A law to self-assign a role 1.",
+        //     targetLaw: lawAddresses[17], // SelfSelect
+        //     config: abi.encode(
+        //         1 // roleId = 1
+        //     ),
+        //     conditions: conditions
+        // });
+        // delete conditions;
 
         dynamicParamsSimple = new string[](1);
         dynamicParamsSimple[0] = "bool NominateMe";

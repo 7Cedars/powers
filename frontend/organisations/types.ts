@@ -1,3 +1,4 @@
+import { Abi } from "viem";
 import { LawConditions } from "./helpers";
 
 /**
@@ -19,7 +20,7 @@ export interface OrganizationField {
   type: string;
   required: boolean;
 }
-
+ 
 /**
  * Metadata for an organization
  */
@@ -34,13 +35,16 @@ export interface OrganizationMetadata {
 }
 
 /**
- * Mock contract that needs to be deployed before the organization
- */
-export interface MockContract {
+ * Contract dpeloyment data */
+export interface DeployableContract {
   name: string;
-  contractName: string;
-  constructorArgs?: any[];
+  abi: Abi;
+  args?: any[];
+  bytecode: `0x${string}`;
+  ownable?: boolean;
 }
+
+export type LawData = { name: string; address: `0x${string}` };
 
 /**
  * Complete organization definition
@@ -48,24 +52,20 @@ export interface MockContract {
 export interface Organization {
   metadata: OrganizationMetadata;
   fields: OrganizationField[];
+  dependencies: DeployableContract[];
   
   /**
    * Generate law initialization data for this organization
    * @param powersAddress - Address of the deployed Powers contract
    * @param formData - User input from deployment form
-   * @param chainId - Chain ID where deployment is happening
+   * @param deployedLaws - List of deployed laws
    */
   createLawInitData: (
     powersAddress: `0x${string}`, 
-    chainId: number
+    deployedLaws: Record<string, `0x${string}`>,
+    deployedMocks: Record<string, `0x${string}`>
   ) => LawInitData[];
-  
-  /**
-   * Optional: Mock contracts that need to be deployed
-   * These will be deployed before the Powers contract
-   */
-  getMockContracts?: (formData: Record<string, any>) => MockContract[];
-  
+
   /**
    * Optional: Validation function for form data
    */

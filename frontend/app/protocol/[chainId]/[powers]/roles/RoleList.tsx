@@ -2,19 +2,18 @@
 
 import React from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Status, Powers, Role } from "@/context/types";
+import { Powers, Role } from "@/context/types";
 import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import DynamicThumbnail from "@/components/DynamicThumbnail";
 
 type RoleListProps = {
-  powers: Powers | undefined,
-  status: Status,
+  powers: Powers | undefined
 }
 
 // Need to add a refetch button ? 
 
-export function RoleList({powers, status}: RoleListProps) {
+export function RoleList({powers}: RoleListProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
 

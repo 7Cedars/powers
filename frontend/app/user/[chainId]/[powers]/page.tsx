@@ -23,13 +23,15 @@ import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
 import About from './About' 
+import { usePowersStore } from '@/context/store'
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
   const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
-  
+  const powers = usePowersStore()
+
   // Refs to store reset functions from child components
   const newResetRef = useRef<(() => void) | null>(null)
   const incomingResetRef = useRef<(() => void) | null>(null)
@@ -41,7 +43,6 @@ export default function UserPage() {
     { id: 'About', label: 'About', icon: InformationCircleIcon }
   ]
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
-  const { refetchPowers, powers, fetchActions } = usePowers()
   const { wallets } = useWallets()
   const { authenticated } = usePrivy()
   const chains = useChains()
@@ -120,12 +121,6 @@ export default function UserPage() {
       }
     }, [PUBLIC_ROLE, addressPowers, chainId])
 
-  const handleFetchActions = useCallback(() => {
-    if (powers) {
-      fetchActions(powers as Powers)
-    }
-  }, [powers, fetchActions])
-
   useEffect(() => {
     validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
@@ -138,12 +133,6 @@ export default function UserPage() {
     }
   }, [wallets, fetchMyRoles, powers?.roles])
 
-  useEffect(() => {
-    // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
-    if (addressPowers) {
-      refetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [addressPowers, refetchPowers])
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -261,10 +250,10 @@ export default function UserPage() {
       {/* Tab Content */}
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
-          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} refetchPowers={refetchPowers} fetchActions={fetchActions} resetRef={newResetRef}/>}
+          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
           {/* NB! Loading still needs to be fixed   */}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} onRefresh={handleFetchActions} resetRef={incomingResetRef}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} fetchAllActions={handleFetchActions} resetRef={fulfilledResetRef}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} resetRef={incomingResetRef}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
           {activeTab === 'About' && <About powers={powers as Powers}/>}
         </div>
       </div>

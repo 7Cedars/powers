@@ -12,10 +12,9 @@ import { setAction } from "@/context/store";
 type ActionsProps = {
   powers: Powers | undefined;
   status: Status;
-  onRefresh: () => void;
 }
 
-export function Actions({ powers, status, onRefresh}: ActionsProps) {
+export function Actions({ powers, status}: ActionsProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
@@ -48,15 +47,6 @@ export function Actions({ powers, status, onRefresh}: ActionsProps) {
           Latest actions
         </div> 
         <div className="flex flex-row gap-2">
-          <button
-            onClick={() => {onRefresh()}}
-            className={`w-full h-full flex justify-center items-center py-1`}  
-          >
-            <ArrowPathIcon 
-              className="w-4 h-4 text-slate-800 aria-selected:animate-spin"
-              aria-selected={status == "pending"}
-            />
-          </button>
           <button
             onClick={() => 
               { 

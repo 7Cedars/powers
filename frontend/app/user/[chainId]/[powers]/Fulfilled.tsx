@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
@@ -9,14 +9,13 @@ import { StaticForm } from '@/components/StaticForm'
 import { setAction } from '@/context/store'
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
-export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, fetchAllActions: () => void, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function Fulfilled({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId } = useParams<{ chainId: string }>()
   const { authenticated } = usePrivy() 
   
   const [selectedItem, setSelectedItem] = useState<Action | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
-  const [reloading, setReloading] = useState(false)
   const [itemsToShow, setItemsToShow] = useState(25)
 
   // Reset function to go back to list view
@@ -32,27 +31,6 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
       resetRef.current = null
     }
   }, [resetSelection, resetRef])
-
-  // Fetch actions on initial load
-  useEffect(() => {
-    if (powers) {
-      fetchAllActions()
-    }
-  }, [powers, fetchAllActions])
-
-  // Handle reload button click
-  const handleReload = useCallback(async () => {
-    if (!powers) return
-    
-    setReloading(true)
-    try {
-      await fetchAllActions()
-    } catch (error) {
-      console.error("Error reloading fulfilled actions:", error)
-    } finally {
-      setReloading(false)
-    }
-  }, [powers, fetchAllActions])
 
   console.log("@Fulfilled, powers", powers)
 
@@ -188,13 +166,6 @@ export default function Fulfilled({hasRoles, powers, fetchAllActions, resetRef}:
               <h2 className="text-lg font-semibold text-slate-800">Fulfilled</h2>
               <p className="text-sm text-slate-600">Completed actions and proposals</p>
             </div>
-            <button 
-              onClick={handleReload}
-              disabled={reloading}
-              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`w-5 h-5 ${reloading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
         

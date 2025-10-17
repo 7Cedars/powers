@@ -43,7 +43,7 @@ export function BlockCounter() {
     <button
       onClick={handleRefresh}
       disabled={isLoading || !publicClient}
-      className="h-full flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-md border border-slate-200 hover:border-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
+      className="h-full flex items-center gap-2 px-3 py-1 rounded-md border border-slate-400 hover:border-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
       title="Refresh block number"
     >
       <div className="flex items-center gap-1">
@@ -52,11 +52,11 @@ export function BlockCounter() {
           {blockNumber ? blockNumber.toString() : '...'}
         </span>
       </div>
-      <div className="pb-0.5 text-slate-600 hover:text-slate-700 transition-colors">
+      {/* <div className="pb-0.5 text-slate-600 hover:text-slate-700 transition-colors">
         <ArrowPathIcon 
           className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} 
         />
-      </div>
+      </div> */}
     </button>
   );
 } 

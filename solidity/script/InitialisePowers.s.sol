@@ -45,11 +45,8 @@ contract InitialisePowers is Script {
 
     function run() external returns (string[] memory names, address[] memory addresses) {
         string memory obj1 = "some key"; 
+        string memory outputJson;
 
-        vm.startBroadcast();
-        (names, addresses) = deployAndRecordLaws(obj1);
-        vm.stopBroadcast();
- 
         vm.startBroadcast();
         address checksAddr = deployLibrary(type(Checks).creationCode, "Checks");
         vm.serializeAddress(obj1, "Checks", checksAddr);
@@ -58,10 +55,16 @@ contract InitialisePowers is Script {
         vm.serializeAddress(obj1, "LawUtilities", lawUtilsAddr);
         vm.stopBroadcast();
         
-        vm.serializeUint(obj1, "chainId", uint256(block.chainid));
-        
-        string memory output = generateAndRecordPowersBytecode(checksAddr);
-        string memory finalJson = vm.serializeString(obj1, "powers", output);        
+        string memory powersBytecode = generatePowersBytecode(checksAddr);
+        vm.serializeString(obj1, "powers", powersBytecode);
+
+        // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
+
+        vm.startBroadcast();
+        (names, addresses, outputJson) = deployAndRecordLaws(obj1);
+        vm.stopBroadcast();
+
+        string memory finalJson = vm.serializeString(obj1, "laws", outputJson);        
 
         outputFile = string.concat("powered/", vm.toString(block.chainid), ".json");
         vm.writeJson(finalJson, outputFile);
@@ -70,7 +73,7 @@ contract InitialisePowers is Script {
     }
 
     /// @notice Uses vm.ffi() and the 'serialize' function to add bytecode to the obj1 string.
-    function generateAndRecordPowersBytecode(
+    function generatePowersBytecode(
         address _checks
     ) internal returns (string memory) { // Must return the modified string
         string[] memory inputs = new string[](5);
@@ -85,23 +88,18 @@ contract InitialisePowers is Script {
         string memory artifactJson = vm.readFile("out/Powers.sol/Powers.json");
         string memory deploymentBytecode = vm.parseJsonString(artifactJson, ".bytecode.object");
 
-        // Serialize the bytecode into the obj1 object
-        string memory obj2 = "second key";
-        string memory modifiedJson = vm.serializeString(obj2, "bytecode", deploymentBytecode);
-        console2.log("Linked bytecode for Powers contract added to obj1 output.");
-        
-        return modifiedJson; // Return the new obj1 string
+        return deploymentBytecode; // Return the new obj1 string
     }
 
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1) internal returns (string[] memory names, address[] memory addresses) { 
+    function deployAndRecordLaws(string memory obj1) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
         names = new string[](19);
         addresses = new address[](19);
         bytes[] memory creationCodes = new bytes[](19);
         bytes[] memory constructorArgs = new bytes[](19);
         
-        names[0] = "PresetSingleAction";
+        names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
         constructorArgs[0] = abi.encode();
         
@@ -179,12 +177,17 @@ contract InitialisePowers is Script {
         creationCodes[18] = type(RenounceRole).creationCode;
         constructorArgs[18] = abi.encode("RenounceRole");
 
-      
+        string memory obj2 = "second key";
+
         for (uint256 i = 0; i < names.length; i++) {
             address lawAddr = deployLaw(creationCodes[i], constructorArgs[i]);
             addresses[i] = lawAddr;
-            vm.serializeAddress(obj1, names[i], lawAddr);
+            vm.serializeAddress(obj2, names[i], lawAddr);
         }
+
+        outputJson = vm.serializeUint(obj2, "chainId", uint256(block.chainid));
+
+        return (names, addresses, outputJson);
     }
 
     /// @dev Deploys a law using CREATE2. Salt is derived from constructor arguments.

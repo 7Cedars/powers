@@ -204,19 +204,10 @@ export const useAssets = (powers: Powers | undefined) => {
         setStatus("pending")
         setError(null)
         const savedErc20s = JSON.parse(localStorage.getItem("powersProtocol_savedErc20s") || "[]")
-        const selectedErc20s = powers?.metadatas?.erc20s ? powers?.metadatas?.erc20s : []
-        // console.log("@useAssets, savedErc20s:", {savedErc20s})
-        // console.log("@useAssets, selectedErc20s:", {selectedErc20s})
-        const erc20s: Token[] = await fetchErc20Or721([...selectedErc20s, ...savedErc20s], "erc20", powers)
-        // console.log("@useAssets, erc20s:", {erc20s})
-        // const erc721s: Token[] | undefined =  await fetchErc20Or721(erc721, "erc721")
-        // const erc1155s: Token[] | undefined = await fetchErc1155(erc1155)
-
+        const erc20s: Token[] = await fetchErc20Or721(savedErc20s, "erc20", powers)
         if (erc20s) {
           erc20s.sort((a: Token, b: Token) => a.balance > b.balance ? 1 : -1)
-          // console.log("@useAssets, fetchedTokens:", {erc20s})
           setTokens(erc20s) 
-          
         }
         setStatus("success") 
   }, [ ])

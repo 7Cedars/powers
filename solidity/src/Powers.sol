@@ -418,7 +418,7 @@ contract Powers is EIP712, IPowers {
     function _adoptLaw(LawInitData memory lawInitData) internal virtual returns (uint256 lawId) {
         // check if added address is indeed a law. Note that this will also revert with address(0).
         if (!ERC165Checker.supportsInterface(lawInitData.targetLaw, type(ILaw).interfaceId)) {
-            revert Powers__IncorrectInterface();
+            revert Powers__IncorrectInterface(lawInitData.targetLaw);
         }
 
         // check if targetLaw is blacklisted

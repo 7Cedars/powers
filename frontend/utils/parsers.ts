@@ -384,18 +384,12 @@ export const parseMetadata = (metadata: unknown): Metadata => {
     'icon' in metadata &&   
     'banner' in metadata &&   
     'description' in metadata && 
-    'erc20s' in metadata &&
-    'erc721s' in metadata &&
-    'erc1155s' in metadata &&
     'attributes' in metadata 
     ) { 
         return ({
           icon: metadata.icon as string,
           banner: metadata.banner as string,
           description: parseDescription(metadata.description),
-          erc20s: parseTokens(metadata.erc20s),
-          erc721s: parseTokens(metadata.erc721s),
-          erc1155s: parseTokens(metadata.erc1155s),
           attributes: parseAttributes(metadata.attributes)
         })
        }

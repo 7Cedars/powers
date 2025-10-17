@@ -10,7 +10,7 @@ import { wagmiConfig } from "@/context/wagmiConfig";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useChains } from "wagmi";
 
-export function MemberList({powers, roleId}: {powers: Powers | undefined, roleId: bigint, status: Status}) {
+export function MemberList({powers, roleId}: {powers: Powers | undefined, roleId: bigint}) {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains();
   const [status, setStatus] = useState<Status>('idle')

@@ -29,6 +29,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 
+  // Full screen layout for landing page -- integrate here? 
+//   <div className="w-full h-full grid grid-cols-1 overflow-y-scroll" id="navigation-bar">
+//   <main className="w-full h-full grid grid-cols-1 overflow-y-scroll">
+//     {children}
+//   </main>
+// </div>
+
+{/* <Footer />  */}
+
   return (
     <html lang="en">
       <head>
@@ -41,12 +50,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="h-dvh w-screen relative bg-slate-100 overflow-hidden">
         <Providers>
-          {/* <ThemeProvider> */}
-            {/* <ProtocolNavigation >  */}
-              {children}
-            {/* </ProtocolNavigation >  */}
-            <PWAInstallPrompt />
-          {/* </ThemeProvider> */}
+          {children}
+          <PWAInstallPrompt />
         </Providers>
       </body>
     </html>

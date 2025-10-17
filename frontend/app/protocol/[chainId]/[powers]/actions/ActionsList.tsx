@@ -5,54 +5,24 @@ import { useRouter, useParams } from "next/navigation";
 import { Action, Powers } from "@/context/types";
 import { parseProposalStatus, shorterDescription } from "@/utils/parsers";
 import { toEurTimeFormat, toFullDateFormat } from "@/utils/toDates";
-import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
 import { useBlocks } from "@/hooks/useBlocks";
 import { setAction } from "@/context/store";
 
-export function ActionsList({powers, status}: {powers: Powers | undefined, status: string}) {
+export function ActionsList({powers}: {powers: Powers | undefined}) {
   const router = useRouter()
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
-  
-  const actionsWithState: Action[] = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions).map((action: Action | undefined) =>  {
-    if (action?.cancelledAt && action.cancelledAt > 0) {
-      return { ...action, state: 2 }
-    }
-    if (action?.fulfilledAt && action.fulfilledAt > 0) {
-      return { ...action, state: 7 }
-    }
-    if (action?.requestedAt && action.requestedAt > 0) {
-      return { ...action, state: 6 }
-    }
-    if (action?.proposedAt && action.proposedAt > 0) {
-      return { ...action, state: 3 }
-    } 
-    return { ...action, state: 0 }
-  }).filter(a => a != undefined && a.state != undefined) as Action[] : []
-    // .filter(a => a != undefined && a.state != undefined) as Action[]
+  const allActions = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions) : []
+  const laws = powers?.laws && powers?.laws?.length > 0 ? powers?.laws : []
 
-  // Fetch timestamps for action blocks
   useEffect(() => {
-    if (!actionsWithState || actionsWithState.length === 0) return
-    const allTimestamps = Array.from(new Set(
-      actionsWithState.flatMap(action => [
-        action?.requestedAt,
-        action?.proposedAt, 
-        action?.fulfilledAt,
-        action?.cancelledAt
-      ].filter((timestamp): timestamp is bigint => 
-        timestamp !== undefined && 
-        timestamp !== null
-      ))
-    ))
-    if (allTimestamps.length > 0) {
-      fetchTimestamps(allTimestamps, chainId)
+    if (allActions) {
+      fetchTimestamps(allActions.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null)), chainId)
     }
-  }, [actionsWithState, chainId, fetchTimestamps])
+  }, [allActions, chainId, fetchTimestamps])
 
   const handleStatusSelection = (actionStatus: string) => {
     let newDeselection: string[] = []
@@ -90,7 +60,7 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
           <LoadingBox /> 
         </div>
         : 
-        actionsWithState && actionsWithState.length > 0 ? 
+        allActions && allActions.length > 0 ? 
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
@@ -99,22 +69,20 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
                     <th className="ps-4 px-2 py-3 font-light w-40"> Date </th>
                     <th className="px-2 py-3 font-light w-32"> Action ID </th>
                     <th className="px-2 py-3 font-light w-auto"> Law </th>
-                    <th className="px-2 py-3 font-light w-24"> Status </th>
-                    <th className="px-2 py-3 font-light w-20"> Role </th>
+                    <th className="px-2 py-3 font-light w-24"> Description </th>
+                    <th className="px-2 py-3 font-light w-24"> Status </th> 
+
                   </tr>
                 </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
-                    actionsWithState
+                    allActions
                       
-                      ?.map((action: Action, i) => {
-                        const law = powers?.laws?.find(law => law.index == action.lawId)
-                        if (!law || law.conditions?.allowedRole == undefined) return null
-                        if (deselectedStatus.includes(String(action.state))) return null
-
+                      ?.map((action: Action | undefined) => {
+                        if (!action) return null
                         return (
                           <tr
-                            key={i}
+                            key={action.actionId}
                             className="text-xs text-left text-slate-800"
                           >
                             {/* Date */}
@@ -182,7 +150,14 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
                             {/* Law */}
                             <td className="px-2 py-3 w-auto">
                               <div className="truncate text-slate-500 text-xs">
-                                {shorterDescription(law.nameDescription, "short")}
+                                {shorterDescription(laws.find(law => law.index == action.lawId)?.nameDescription, "short")}
+                              </div>
+                            </td>
+
+                            {/* Description */}
+                            <td className="px-2 py-3 w-auto">
+                              <div className="truncate text-slate-500 text-xs">
+                                {action.description ? ` ${action.description.length > 20 ? action.description.slice(0, 20) + '...' : action.description}` : 'No description'}
                               </div>
                             </td>
 
@@ -190,13 +165,6 @@ export function ActionsList({powers, status}: {powers: Powers | undefined, statu
                             <td className="px-2 py-3 w-24">
                               <div className="truncate text-slate-500 text-xs">
                                 {parseProposalStatus(String(action.state))}
-                              </div>
-                            </td>
-
-                            {/* Role */}
-                            <td className="px-2 py-3 w-20">
-                              <div className="truncate text-slate-500 text-xs">
-                                {bigintToRole(law.conditions?.allowedRole, powers as Powers)}
                               </div>
                             </td>
                           </tr>

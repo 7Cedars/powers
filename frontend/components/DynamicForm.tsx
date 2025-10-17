@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useActionStore, useErrorStore } from "@/context/store";
+import { useActionStore, useErrorStore, usePowersStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { parseLawError, parseParamValues } from "@/utils/parsers";
 import { DataType, InputType, Law } from "@/context/types";
@@ -27,9 +27,9 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
   const action = useActionStore();
   const error = useErrorStore()
   const dataTypes = params.map(param => param.dataType) 
-
+  const powers = usePowersStore();
   // console.log("@DynamicForm:", {checks, action})
-  console.log("@DynamicForm:", {error})
+  // console.log("@DynamicForm:", {error})
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
@@ -40,28 +40,23 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
   }
 
   useEffect(() => {
+    // Only run if we have valid callData and it's not already processed
+    if (!action.callData || action.callData === '0x0' || action.upToDate) {
+      return;
+    }
+
+    // Additional guard: only process if dataTypes match the law
+    if (dataTypes.length === 0) {
+      return;
+    }
+
     // console.log("useEffect triggered at DynamicForm")
-      try {
-        const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData as `0x${string}`);
-        const valuesParsed = parseParamValues(values) 
-        // console.log("@DynamicForm: useEffect triggered at DynamicForm", {values, valuesParsed})
-        if (dataTypes.length != valuesParsed.length) {
-          // console.log("@DynamicForm: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
-          setAction({...action, paramValues: dataTypes.map(dataType => {
-            const isArray = dataType.indexOf('[]') > -1;
-            if (dataType.indexOf('string') > -1) {
-              return isArray ? [""] : "";
-            } else if (dataType.indexOf('bool') > -1) {
-              return isArray ? [false] : false;
-            } else {
-              return isArray ? [0] : 0;
-            }
-          }), upToDate: true})
-        } else {
-          setAction({...action, paramValues: valuesParsed, upToDate: true})
-        }
-      } catch(error) { 
-        console.error("Error decoding abi parameters at action calldata: ", error)
+    try {
+      const values = decodeAbiParameters(parseAbiParameters(dataTypes.toString()), action.callData as `0x${string}`);
+      const valuesParsed = parseParamValues(values) 
+      // console.log("@DynamicForm: useEffect triggered at DynamicForm", {values, valuesParsed})
+      if (dataTypes.length != valuesParsed.length) {
+        // console.log("@DynamicForm: dataTypes.length != valuesParsed.length", {dataTypes, valuesParsed})
         setAction({...action, paramValues: dataTypes.map(dataType => {
           const isArray = dataType.indexOf('[]') > -1;
           if (dataType.indexOf('string') > -1) {
@@ -72,8 +67,26 @@ export function DynamicForm({law, params, status, onSimulate}: DynamicFormProps)
             return isArray ? [0] : 0;
           }
         }), upToDate: true})
-      }  
-  }, [ , law ])
+      } else {
+        setAction({...action, paramValues: valuesParsed, upToDate: true})
+      }
+    } catch(error) { 
+      console.error("Error decoding abi parameters at action calldata: ", error)
+      // Only set action if we haven't already (prevent infinite loop on decode errors)
+      if (!action.upToDate) {
+        setAction({...action, paramValues: dataTypes.map(dataType => {
+          const isArray = dataType.indexOf('[]') > -1;
+          if (dataType.indexOf('string') > -1) {
+            return isArray ? [""] : "";
+          } else if (dataType.indexOf('bool') > -1) {
+            return isArray ? [false] : false;
+          } else {
+            return isArray ? [0] : 0;
+          }
+        }), upToDate: true})
+      }
+    }  
+  }, [law.index, action.callData, action.upToDate])
 
   return (
     <> 

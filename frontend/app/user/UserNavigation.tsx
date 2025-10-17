@@ -6,8 +6,8 @@ import Image from 'next/image'
 import { 
   HomeIcon 
 } from '@heroicons/react/24/outline'
-import { ConnectButton } from './ConnectButton'
-import { BlockCounter } from './BlockCounter'
+import { ConnectButton } from '../../components/ConnectButton'
+import { BlockCounter } from '../../components/BlockCounter'
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'

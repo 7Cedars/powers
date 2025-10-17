@@ -59,14 +59,12 @@ export const Button = ({
         <div className={`flex flex-row items-center ${fontAlign[align]} text-slate-700 gap-1 w-full h-full px-2 py-1`}>
         {
           statusButton == 'pending' ?  
-          <>
-          <div> 
-            <TwoSeventyRingWithBg />
-            </div>
-            <div>
+
+            <div className="flex flex-row items-center gap-2">
+              {/* <TwoSeventyRingWithBg className="w-2 h-2 animate-spin" color="text-slate-200" /> */}
               Loading...
-              </div>
-            </>
+            </div>
+          
           : 
           statusButton == 'success' ? 
             <>

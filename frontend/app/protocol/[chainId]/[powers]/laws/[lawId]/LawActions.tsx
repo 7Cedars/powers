@@ -18,11 +18,10 @@ const truncateAddress = (address: string | undefined): string => {
 type LawActionsProps = {
   lawId: bigint; 
   powers: Powers | undefined;
-  status: Status;
   onRefresh?: () => void;
 };
 
-export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
+export const LawActions = ({lawId, powers}: LawActionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const router = useRouter() 
@@ -39,7 +38,7 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
       valuesParsed = []
     }
 
-    console.log("@LawActions, waypoint 1", {valuesParsed})
+    // console.log("@LawActions, waypoint 1", {valuesParsed})
 
     setAction({...action, paramValues: valuesParsed, upToDate: true})
     e.preventDefault(); 
@@ -50,7 +49,7 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
   const sortedActions = lawActions?.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
   const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
 
-  console.log("@LawActions, waypoint 0", {lawActions})
+  // console.log("@LawActions, waypoint 0", {lawActions})
   
   useEffect(() => {
     if (sortedActions) {
@@ -67,23 +66,6 @@ export const LawActions = ({lawId, powers, onRefresh}: LawActionsProps) => {
           <div className="text-left text-sm text-slate-600">
             Latest actions
           </div> 
-          <div className="flex flex-row gap-2 items-center">
-            <button
-              className="p-1 hover:bg-slate-200 rounded transition-colors"
-              onClick={() => {
-                if (onRefresh) {
-                  onRefresh()
-                }
-              }}
-            >
-              <ArrowPathIcon
-                className="w-4 h-4 text-slate-800"
-              />
-            </button>
-            <ArrowUpRightIcon
-              className="w-4 h-4 text-slate-800"
-            />
-          </div>
         </div>
       </div>
       

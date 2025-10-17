@@ -6,9 +6,10 @@ import { Powers } from "@/context/types";
 import { useAssets } from "@/hooks/useAssets";
 import { useState } from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { usePowersStore } from "@/context/store";
 
-export function AddAsset({powers, onRefresh}: {powers: Powers | undefined, onRefresh?: () => void}) {
+export function AddAsset() {
+  const powers = usePowersStore(); 
   const [newToken, setNewToken] = useState<`0x${string}`>()
   const {status, error, addErc20} = useAssets(powers as Powers)
 
@@ -19,17 +20,6 @@ export function AddAsset({powers, onRefresh}: {powers: Powers | undefined, onRef
         <div className="text-slate-800 text-center text-lg">
           Add Token
         </div>
-        {onRefresh && (
-          <div className="w-8 h-8">
-            <Button
-              size={0}
-              showBorder={true}
-              onClick={onRefresh}
-            >
-              <ArrowPathIcon className="w-5 h-5" />
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* Content Section - Input Form */}

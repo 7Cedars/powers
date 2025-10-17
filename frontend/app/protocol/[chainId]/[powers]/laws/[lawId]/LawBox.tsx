@@ -35,24 +35,25 @@ type LawBoxProps = {
 
 export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
   const action = useActionStore();
-  const { chainId } = useParams<{ chainId: string }>()
+  const { chainId, powers: powersAddress } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const {wallets} = useWallets();
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const [logSupport, setLogSupport] = useState<bigint>()
-  const { hasVoted, castVote, checkHasVoted } = useLaw();  
+  const { hasVoted, castVote, checkHasVoted } = useLaw(); 
+  const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action.actionId));
 
   // console.log("@LawBox, waypoint 0", {action, checks, law})
 
   useEffect(() => {
-    if (action.actionId && wallets.length > 0) {
+    if (action.actionId && wallets.length > 0 && powersAddress) {
       checkHasVoted(
         BigInt(action.actionId), 
         wallets[0].address as `0x${string}`,
-        powers as Powers
+        powersAddress as `0x${string}`
       )
     }
-  }, [action, wallets])
+  }, [action.actionId, wallets, powersAddress, checkHasVoted])
 
   return (
     <main className="w-full" help-nav-item="law-input">
@@ -99,10 +100,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
       simulation && action?.upToDate && <SimulationBox law = {law} simulation = {simulation} />}
 
       {/* Here dynamic button conditional on status of action  */}
-      <div className="w-full pt-4" help-nav-item="propose-or-vote">
+      <div className="w-full pt-4">
       {
       // option 1: When action does not exist, and needs a vote, create proposal button
-      Number(law?.conditions?.quorum) > 0 && action?.state == 8 && action?.upToDate ? (
+      Number(law?.conditions?.quorum) > 0 && populatedAction?.state == 8 && action?.upToDate ? (
           <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">          
             <div className="w-full">
               <Button 
@@ -121,7 +122,7 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
           </div>
           ) 
         // option 2: When action does not exist and does not need a vote, execute button 
-        : Number(law?.conditions?.quorum) == 0 && action?.state == 8 && action?.upToDate ? (
+        : Number(law?.conditions?.quorum) == 0 && populatedAction?.state == 8 && action?.upToDate ? (
           <div className="w-full h-fit px-6 py-2 pb-6" help-nav-item="execute-action">
             <Button 
               size={0} 
@@ -148,8 +149,15 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
             </Button>
         </div>
         )
+        : 
+        populatedAction?.state == 4 && action?.upToDate ?
+        <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
+          <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 
+            Action defeated  
+          </div>
+        </div>
         // option 3: When action exists, and is active, show vote button
-        : action?.state == 3 && action?.upToDate ? (
+        : populatedAction?.state == 3 && action?.upToDate ? (
           <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
           { hasVoted ? 
               <div className = "w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500"> 
@@ -162,10 +170,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
                   selected={true}
                   filled={false}
                   onClick={() => {
-                    castVote(BigInt(action.actionId), 1n, powers as Powers)
+                    castVote(BigInt(populatedAction.actionId), 1n, powers as Powers)
                     setLogSupport(1n)
                   }} 
-                  statusButton={status == 'pending' && logSupport == 1n ? 'pending' : status} 
+                  statusButton={status == 'pending' && logSupport == 1n ? 'pending' : 'idle'}
                   > 
                   For
                 </Button>
@@ -174,10 +182,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
                   selected={true}
                   filled={false}
                   onClick={() => {
-                    castVote(BigInt(action.actionId), 0n, powers as Powers)
+                    castVote(BigInt(populatedAction.actionId), 0n, powers as Powers)
                     setLogSupport(0n)
                   }} 
-                  statusButton={status == 'pending' && logSupport == 0n ? 'pending' : status} 
+                  statusButton={status == 'pending' && logSupport == 0n ? 'pending' : 'idle'} 
                   >
                     Against
                 </Button>
@@ -186,10 +194,10 @@ export function LawBox({powers, law, checks, params, status, simulation, selecte
                   selected={true}
                   filled={false}
                   onClick={() => {
-                    castVote(BigInt(action.actionId), 2n, powers as Powers)
+                    castVote(BigInt(populatedAction.actionId), 2n, powers as Powers)
                     setLogSupport(2n)
                   }} 
-                  statusButton={status == 'pending' && logSupport == 2n ? 'pending' : status} 
+                  statusButton={status == 'pending' && logSupport == 2n ? 'pending' : 'idle'} 
                   > 
                     Abstain
                 </Button>

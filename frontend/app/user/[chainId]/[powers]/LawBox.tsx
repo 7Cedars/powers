@@ -23,7 +23,6 @@ type LawBoxProps = {
     varName: string;
     dataType: DataType;
     }[]; 
-  simulation?: LawSimulation;
   selectedExecution?: Execution | undefined;
   status: Status; 
   // onChange: (input: InputType | InputType[]) => void;
@@ -33,7 +32,7 @@ type LawBoxProps = {
   onPropose?: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
 };
 
-export function LawBox({powers, law, checks, params, status, simulation, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
+export function LawBox({powers, law, checks, params, status, selectedExecution, onChange, onSimulate, onExecute, onPropose}: LawBoxProps) {
   const action = useActionStore();
   const {actionVote, fetchVoteData} = useLaw();
   const { chainId } = useParams<{ chainId: string }>()

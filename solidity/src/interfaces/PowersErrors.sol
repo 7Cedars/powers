@@ -45,7 +45,7 @@ interface PowersErrors {
     error Powers__LockedRole();
 
     /// @notice Emitted when an incorrect interface is called.
-    error Powers__IncorrectInterface();
+    error Powers__IncorrectInterface(address targetLaw);
 
     /// @notice Emitted when a proposed action is not active.
     error Powers__ProposedActionNotActive();

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/Button'
 import { useParams, useRouter } from 'next/navigation'
 import { parseChainId } from '@/utils/parsers'
-import { usePowers } from '@/hooks/usePowers'
 import { useChains } from 'wagmi'
 import Image from 'next/image'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
@@ -12,18 +11,18 @@ import { Assets } from './Assets'
 import { Roles } from './Roles'
 import { Laws } from './Laws'
 import { Actions } from './Actions'
-import { Powers } from '@/context/types'
 import { MetadataLinks } from '@/components/MetadataLinks'
+import { usePowersStore, useStatusStore } from '@/context/store'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
-  const { fetchPowers, status: statusPowers, powers, fetchActions } = usePowers()
   const router = useRouter()
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  
+  const powers = usePowersStore(); 
+  const statusPowers = useStatusStore();
   // console.log("@home:", {chains, supportedChain, powers})
 
   const validateBannerImage = useCallback(async (url: string | undefined) => {
@@ -48,20 +47,6 @@ export default function FlowPage() {
   useEffect(() => {
       validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
-
-
-  useEffect(() => {
-    // console.log("@useEffect, waypoint 0 fetch powers", {addressPowers})
-    if (addressPowers) {
-      fetchPowers(addressPowers as `0x${string}`)
-    }
-  }, [addressPowers, fetchPowers]) // updateProposals 
-
-  const handleFetchActions = useCallback(() => {
-    if (powers) {
-      fetchActions(powers as Powers)
-    }
-  }, [powers, fetchActions])
 
   const navigateToUserUser = () => {
     router.push(`/user/${chainId}/${addressPowers}`)
@@ -125,20 +110,20 @@ export default function FlowPage() {
     {/* Metadata Links */}
     <MetadataLinks 
       website={powers?.metadatas?.website}
-      codeOfConduct={powers?.metadatas?.["code-of-conduct"]}
-      disputeResolution={powers?.metadatas?.["dispute-resolution"]}
-      communicationChannels={powers?.metadatas?.["communication-channels"]}
+      codeOfConduct={powers?.metadatas?.codeOfConduct}
+      disputeResolution={powers?.metadatas?.disputeResolution}
+      communicationChannels={powers?.metadatas?.communicationChannels}
     />
     
     {/* main body  */}
     <section className="w-full h-fit flex flex-wrap gap-3 justify-between items-start" help-nav-item="home-screen">
-      <Assets status = {statusPowers} powers = {powers}/> 
+      <Assets status = {statusPowers.status} powers = {powers}/> 
       
-      <Actions powers = {powers} status = {statusPowers} onRefresh = {handleFetchActions}/>
+      <Actions powers = {powers} status = {statusPowers.status} />
       
-      <Roles powers = {powers} status = {statusPowers}/>
+      <Roles powers = {powers} status = {statusPowers.status}/>
       
-      <Laws powers = {powers} status = {statusPowers}/>      
+      <Laws powers = {powers} status = {statusPowers.status}/>      
       
     </section>
 

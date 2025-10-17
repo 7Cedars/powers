@@ -1,6 +1,7 @@
 
 import { getConstants } from "@/context/constants";
-import deployedLaws from "../../solidity/broadcast/DeployLaws.s.sol/31337/run-latest.json";
+import { LawData } from "./types";
+
 
 /**
  * Common role constants used across organizations
@@ -50,29 +51,6 @@ export const createConditions = (params: CreateConditionsParams): LawConditions 
   needNotFulfilled: params.needNotFulfilled ?? 0n
 });
 
-export const getLawAddress = (name: string, chainId: number): `0x${string}` => {
-
-  const namesValue: string = deployedLaws.returns.names.value
-  const addressesValue: string = deployedLaws.returns.addresses.value
-  const namesClean = namesValue.replace('[', '').replace(']', '');
-  const addressesClean = addressesValue.replace('[', '').replace(']', '');
-
-  console.log({namesClean});
-  console.log({addressesClean});
-
-  const names: string[] = namesClean.split(",").map((name: string) => name.trim());
-  console.log({names});
-  const addresses: string[] = addressesClean.split(",").map((address: string) => address.trim());
-  console.log({addresses});
-
-  const index = names.indexOf(name);
-  if (index === -1) {
-    console.log(`Law not found for: ${name}`);
-  }
-  return addresses[index] as `0x${string}`;
-
-};
-
 /**
  * Convert days to blocks based on chain-specific block time
  * @param days - Number of days
@@ -114,6 +92,15 @@ export const minutesToBlocks = (minutes: number, chainId: number): bigint => {
 export const isValidAddress = (address: string): boolean => {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 };
+
+export const getLawAddress = (name: string, deployedLaws: Record<string, `0x${string}`>): `0x${string}` => {
+  const law = deployedLaws[name];
+  if (!law) {
+    throw new Error(`Error finding law address for: ${name}`);
+  }
+  return law;
+} 
+
 
 /**
  * Validate a percentage value (0-100)

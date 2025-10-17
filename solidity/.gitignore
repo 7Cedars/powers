@@ -2,14 +2,6 @@
 cache/
 out/
 
-# Do sync the following files (needed to fetch ABI for frontend):
-!out/Powers.sol/Powers.json
-!out/Law.sol/Law.json
-!out/ERC20.sol/ERC20.json
-!out/ERC721.sol/ERC721.json
-!out/ERC1155.sol/ERC1155.json
-!out/Ownable.sol/Ownable.json
-
 # Ignores development broadcast logs
 /broadcast/
 /broadcast/*/31337/

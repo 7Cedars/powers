@@ -7,7 +7,6 @@ import { UserItem } from './UserItem'
 import { useParams } from 'next/navigation'
 import { ProposalBox } from '@/components/ProposalBox'
 import { Voting } from '@/components/Voting'
-import { Votes } from '@/components/Votes'
 import { useChecks } from '@/hooks/useChecks'
 import { setAction } from '@/context/store'
 import { useChains } from 'wagmi'
@@ -155,15 +154,14 @@ const getEnabledActions = async (
 type IncomingProps = {
   hasRoles: {role: bigint, since: bigint}[]
   powers: Powers
-  onRefresh: () => void
   resetRef: React.MutableRefObject<(() => void) | null>
 }
 
-export default function Incoming({hasRoles, powers, onRefresh, resetRef}: IncomingProps) {
+export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const { fetchChecks, status: statusChecks } = useChecks()
   const { actionVote, fetchVoteData } = useLaw()
-  const { status: statusLaw, request, propose } = useLaw()
+  const { request, propose } = useLaw()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
   
@@ -517,8 +515,8 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
                       statusButton={
                         // For enabled actions, check if we have action data and description
                         filteredEnabledActions.some(enabled => enabled.actionId === selectedItem.actionId) 
-                          ? (actionData && dynamicDescription && dynamicDescription.length > 0 ? statusLaw : 'disabled')
-                          : statusLaw
+                          ? (actionData && dynamicDescription && dynamicDescription.length > 0 ? statusChecks : 'disabled')
+                          : statusChecks
                       }
                     > 
                       {law?.conditions?.quorum != 0n ? 'Create proposal' : 'Execute'}
@@ -622,21 +620,10 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
               <div className="w-full flex flex-col lg:flex-row gap-4">
                 <section className="w-full lg:w-1/2">
                   <Voting
-                    powers={powers} 
-                    status={statusChecks as Status}
-                    actionVote={actionVote as ActionVote}
+                    powers={powers}  
                   />
                 </section>
-
-                <section className="w-full lg:w-1/2">
-                  <Votes 
-                    actionId={selectedProposal.actionId}
-                    lawId={BigInt(selectedProposal.lawId)}
-                    action={selectedProposal}
-                    powers={powers}
-                    status={statusChecks as Status} 
-                  />
-                </section>
+ 
               </div>
             </div>
           </div>
@@ -654,13 +641,6 @@ export default function Incoming({hasRoles, powers, onRefresh, resetRef}: Incomi
               <h2 className="text-lg font-semibold text-slate-800">Incoming</h2>
               <p className="text-sm text-slate-600">Active proposals and enabled actions requiring your attention</p>
             </div>
-            <button 
-              onClick={onRefresh}
-              disabled={loadingIncoming}
-              className="p-2 text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`w-5 h-5 ${loadingIncoming ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
         

@@ -36,7 +36,7 @@ import {
   FlagIcon
 } from '@heroicons/react/24/outline'
 import { useParams, usePathname, useRouter } from 'next/navigation'
-import { setAction, useActionStore } from '@/context/store'
+import { setAction, useActionStore, usePowersStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import HeaderLaw from '@/components/HeaderLaw'
 import { hashAction } from '@/utils/hashAction'
@@ -603,10 +603,6 @@ const nodeTypes = {
   lawSchema: LawSchemaNode,
 }
 
-interface PowersFlowProps {
-  powers: Powers
-}
-
 // Helper function to find all nodes connected to a selected node through dependencies
 function findConnectedNodes(powers: Powers, selectedLawId: string): Set<string> {
   const connected = new Set<string>()
@@ -843,7 +839,7 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
   }
 }
 
-const FlowContent: React.FC<PowersFlowProps> = ({ powers }) => {
+const FlowContent: React.FC = () => {
   const { getNodes, getViewport, setViewport } = useReactFlow()
   const { lawId: selectedLawId } = useParams<{lawId: string }>()  
   const router = useRouter()
@@ -851,6 +847,7 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers }) => {
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   const reactFlowInstanceRef = React.useRef<ReturnType<typeof useReactFlow> | null>(null)
   const pathname = usePathname()
+  const powers = usePowersStore()
   
   // Debounced layout saving
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -1306,10 +1303,10 @@ const FlowContent: React.FC<PowersFlowProps> = ({ powers }) => {
   )
 }
 
-export const PowersFlow: React.FC<PowersFlowProps> = React.memo((props) => {
+export const PowersFlow: React.FC = React.memo(() => {
   return (
     <ReactFlowProvider>
-      <FlowContent {...props} />
+      <FlowContent />
     </ReactFlowProvider>
   )
 })

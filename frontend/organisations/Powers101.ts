@@ -1,8 +1,10 @@
 import { Organization } from "./types";
 import { powersAbi } from "@/context/abi";
-import { encodeAbiParameters, encodeFunctionData } from "viem";
-import { getLawAddress, minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions } from "./helpers";
+import { Abi, encodeAbiParameters, encodeFunctionData } from "viem";
+import { minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, getLawAddress } from "./helpers";
 import { LawInitData } from "./types";
+import openElection from "@/context/builds/OpenElection.json"
+ 
 
 /**
  * Powers 101 Organization
@@ -27,11 +29,22 @@ export const Powers101: Organization = {
     disabled: false,
     onlyLocalhost: false
   },
-
   fields: [],
+  dependencies: [
+    {
+      name: "OpenElections", 
+      abi: JSON.parse(JSON.stringify(openElection.abi)) as Abi,
+      args: [],
+      bytecode: JSON.parse(JSON.stringify(openElection.bytecode.object)) as `0x${string}`,
+      ownable: true
+    }
+  ],
 
-  createLawInitData: (powersAddress: `0x${string}`, chainId: number): LawInitData[] => {
+  createLawInitData: (powersAddress: `0x${string}`, deployedLaws: Record<string, `0x${string}`>, deployedMocks: Record<string, `0x${string}`>): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
+
+    console.log("deployedLaws", deployedLaws);
+    console.log("deployedMocks", deployedMocks);
 
     //////////////////////////////////////////////////////////////////
     //                 LAW 1: INITIAL SETUP                         //
@@ -39,7 +52,7 @@ export const Powers101: Organization = {
 
     lawInitData.push({
       nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws and mints tokens. Press the refresh button to see the new labels.",
-      targetLaw: getLawAddress("PresetAction", chainId),
+      targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
       config: encodeAbiParameters(
         [
           { name: 'targets', type: 'address[]' },
@@ -81,101 +94,101 @@ export const Powers101: Organization = {
     //                    EXECUTIVE LAWS                            //
     //////////////////////////////////////////////////////////////////
 
-    const statementOfIntentConfig = encodeAbiParameters(
-      [{ name: 'inputParams', type: 'string[]' }],
-      [["address[] Targets", "uint256[] Values", "bytes[] Calldatas"]]
-    );
+    // const statementOfIntentConfig = encodeAbiParameters(
+    //   [{ name: 'inputParams', type: 'string[]' }],
+    //   [["address[] Targets", "uint256[] Values", "bytes[] Calldatas"]]
+    // );
 
-    // Law 2: Statement of Intent
-    lawInitData.push({
-      nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
-      config: statementOfIntentConfig,
-      conditions: createConditions({
-        allowedRole: 1n,
-        votingPeriod: minutesToBlocks(5, chainId),
-        succeedAt: 51n,
-        quorum: 20n
-      })
-    });
+    // // Law 2: Statement of Intent
+    // lawInitData.push({
+    //   nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
+    //   targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
+    //   config: statementOfIntentConfig,
+    //   conditions: createConditions({
+    //     allowedRole: 1n,
+    //     votingPeriod: minutesToBlocks(5, Number(deployedLaws.chainId)),
+    //     succeedAt: 51n,
+    //     quorum: 20n
+    //   })
+    // });
 
-    // Law 3: Veto an action
-    lawInitData.push({
-      nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
-      targetLaw: getLawAddress("StatementOfIntent", chainId),
-      config: statementOfIntentConfig,
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE,
-        needFulfilled: 2n
-      })
-    });
+    // // Law 3: Veto an action
+    // lawInitData.push({
+    //   nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
+    //   targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
+    //   config: statementOfIntentConfig,
+    //   conditions: createConditions({
+    //     allowedRole: ADMIN_ROLE,
+    //     needFulfilled: 2n
+    //   })
+    // });
 
-    // Law 4: Execute an action
-    lawInitData.push({
-      nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
-      targetLaw: getLawAddress("OpenAction", chainId),
-      config: "0x",
-      conditions: createConditions({
-        allowedRole: 2n,
-        quorum: 50n,
-        succeedAt: 77n,
-        votingPeriod: minutesToBlocks(5, chainId),
-        needFulfilled: 2n,
-        needNotFulfilled: 3n,
-        delayExecution: minutesToBlocks(3, chainId)
-      })
-    });
+    // // Law 4: Execute an action
+    // lawInitData.push({
+    //   nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
+    //   targetLaw: getLawAddress("OpenAction", deployedLaws),
+    //   config: "0x",
+    //   conditions: createConditions({
+    //     allowedRole: 2n,
+    //     quorum: 50n,
+    //     succeedAt: 77n,
+    //     votingPeriod: minutesToBlocks(5, Number(deployedLaws.chainId)),
+    //     needFulfilled: 2n,
+    //     needNotFulfilled: 3n,
+    //     delayExecution: minutesToBlocks(3, Number(deployedLaws.chainId))
+    //   })
+    // });
 
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     //////////////////////////////////////////////////////////////////
 
     // Law 5: Nominate me for delegate
-    lawInitData.push({
-      nameDescription: "Nominate oneself for any role.",
-      targetLaw: getLawAddress("NominateMe", chainId),
-      config: "0x",
-      conditions: createConditions({
-        allowedRole: 1n
-      })
-    });
+    // lawInitData.push({
+    //   nameDescription: "Nominate oneself for any role.",
+    //   targetLaw: getLawAddress("NominateMe", chainId),
+    //   config: "0x",
+    //   conditions: createConditions({
+    //     allowedRole: 1n
+    //   })
+    // });
 
-    // Law 6: Call election for delegate role
-    lawInitData.push({
-      nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
-      targetLaw: getLawAddress("ElectionStart", chainId),
-      config: encodeAbiParameters(
-        [
-          { name: 'ElectionList', type: 'address' },
-          { name: 'ElectionTally', type: 'address' },
-          { name: 'roleId', type: 'uint16' },
-          { name: 'maxToElect', type: 'uint32' }
-        ],
-        [ 
-          getLawAddress("ElectionList", chainId), 
-          getLawAddress("ElectionSelect", chainId),
-          2,
-          5
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE
-      })
-    });
+    // // Law 6: Call election for delegate role
+    // lawInitData.push({
+    //   nameDescription: "Call delegate election!: Please press the refresh button after the election has been deployed.",
+    //   targetLaw: getLawAddress("ElectionStart", chainId),
+    //   config: encodeAbiParameters(
+    //     [
+    //       { name: 'ElectionList', type: 'address' },
+    //       { name: 'ElectionTally', type: 'address' },
+    //       { name: 'roleId', type: 'uint16' },
+    //       { name: 'maxToElect', type: 'uint32' }
+    //     ],
+    //     [ 
+    //       getLawAddress("ElectionList", chainId), 
+    //       getLawAddress("ElectionSelect", chainId),
+    //       2,
+    //       5
+    //     ]
+    //   ),
+    //   conditions: createConditions({
+    //     allowedRole: ADMIN_ROLE
+    //   })
+    // });
 
     // Law 7: Self select as community member
-    lawInitData.push({
-      nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
-      targetLaw: getLawAddress("SelfSelect", chainId),
-      config: encodeAbiParameters(
-        [{ name: 'roleId', type: 'uint256' }],
-        [1n]
-      ),
-      conditions: createConditions({
-        throttleExecution: 25n,
-        allowedRole: PUBLIC_ROLE
-      })
-    });
+    // lawInitData.push({
+    //   nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
+    //   targetLaw: getLawAddress("SelfSelect", deployedLaws),
+    //   config: encodeAbiParameters(
+    //     [{ name: 'roleId', type: 'uint256' }],
+    //     [1n]
+    //   ),
+    //   conditions: createConditions({
+    //     throttleExecution: 25n,
+    //     allowedRole: PUBLIC_ROLE
+    //   })
+    // });
 
     return lawInitData;
   }

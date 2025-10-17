@@ -89,30 +89,6 @@ export default function About({ powers }: AboutProps) {
             </div>
           )}
 
-          {/* Tokens */}
-          {(powers.metadatas?.erc20s?.length || powers.metadatas?.erc721s?.length || powers.metadatas?.erc1155s?.length) && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-3">Supported Tokens</h3>
-              <div className="space-y-3">
-                {powers.metadatas?.erc20s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-20:</span> {powers.metadatas.erc20s.length} tokens
-                  </div>
-                )}
-                {powers.metadatas?.erc721s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-721:</span> {powers.metadatas.erc721s.length} tokens
-                  </div>
-                )}
-                {powers.metadatas?.erc1155s?.length > 0 && (
-                  <div className="text-sm text-slate-600">
-                    <span className="font-medium">ERC-1155:</span> {powers.metadatas.erc1155s.length} tokens
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Protocol Stats */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-3">Governance System</h3>
