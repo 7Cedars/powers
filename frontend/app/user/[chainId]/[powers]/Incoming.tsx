@@ -32,11 +32,11 @@ import { encodeAbiParameters, parseAbiParameters } from "viem"
  * 10. List the action as 'enabled' in the list
  */
 const getEnabledActions = async ( 
-  hasRoles: bigint[]
+  hasRoles: bigint[],
+  powers: Powers,
+  wallets: ConnectedWallet[]
 ): Promise<Action[]> => {
   const enabledActions: Action[] = []
-  const powers = usePowersStore();
-  const { wallets } = useWallets();
   if (!powers.laws || !powers.laws.flatMap(l => l.actions)) {
     return enabledActions
   }
