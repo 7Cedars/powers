@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { powersAbi } from "@/context/abi";
 import { Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { deployContract as wagmiDeployContract, multicall, waitForTransactionReceipt, writeContract } from "@wagmi/core";
+import { deployContract as wagmiDeployContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
@@ -18,14 +18,14 @@ import Image from "next/image";
 type DeployStatus = {
   powersCreate: Status;
   mocksDeploy: { name: string; status: Status }[];
-  multicall: Status;
+  finalTransactions: { name: string; status: Status }[];
 }
 
 export function SectionDeployDemo() {
   const [deployStatus, setDeployStatus] = useState<DeployStatus>({
     powersCreate: "idle",
     mocksDeploy: [],
-    multicall: "idle"
+    finalTransactions: []
   });
   const [currentOrgIndex, setCurrentOrgIndex] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -111,6 +111,28 @@ export function SectionDeployDemo() {
         }
       };
 
+      // Initialize all status items upfront
+      const dependencies = currentOrg.dependencies || [];
+      
+      // Build complete list of final transactions
+      const finalTransactionsList: { name: string; status: Status }[] = [
+        { name: "Constitute Powers", status: "idle" }
+      ];
+      
+      // Add ownership transfer transactions
+      for (const dep of dependencies) {
+        if (dep.ownable) {
+          finalTransactionsList.push({ name: `Transfer ownership: ${dep.name}`, status: "idle" });
+        }
+      }
+
+      // Set all deployment statuses upfront
+      setDeployStatus({
+        powersCreate: "idle",
+        mocksDeploy: dependencies.map(dep => ({ name: dep.name, status: "idle" as Status })),
+        finalTransactions: finalTransactionsList
+      });
+
       // STEP 1: Deploy Powers contract
       console.log("Step 1: Deploying Powers contract...");
       setDeployStatus(prev => ({ ...prev, powersCreate: "pending" }));
@@ -141,9 +163,6 @@ export function SectionDeployDemo() {
 
       // STEP 2: Deploy dependencies (mock contracts)
       console.log("Step 2: Deploying dependencies...");
-      const dependencies = currentOrg.dependencies || [];
-      const mockDeployStatuses = dependencies.map(dep => ({ name: dep.name, status: "pending" as Status }));
-      setDeployStatus(prev => ({ ...prev, mocksDeploy: mockDeployStatuses }));
 
       const deployedDependenciesMap: Record<string, `0x${string}`> = {};
 
@@ -200,95 +219,110 @@ export function SectionDeployDemo() {
       );
       console.log("Law init data created:", lawInitData);
 
-      // STEP 4: Execute constitute + transfer ownership
-      // Use sequential execution for Anvil/Foundry, multicall for other chains
-      console.log(`Step 4: Executing ${isAnvil ? 'sequential' : 'multicall'} transactions...`);
-      setDeployStatus(prev => ({ ...prev, multicall: "pending" }));
+      // STEP 4: Execute constitute + transfer ownership (sequential for all chains)
+      console.log("Step 4: Executing transactions sequentially...");
 
       await delayIfNeeded();
 
-      if (isAnvil) {
-        // Sequential execution for Anvil
-        console.log("Using sequential execution for Anvil chain...");
-        
-        // 4a: Execute constitute
-        console.log("Calling constitute...");
-        const constituteTxHash = await writeContract(wagmiConfig, {
-          address: powersAddress,
-          abi: powersAbi,
-          functionName: 'constitute',
-          args: [lawInitData]
+      let currentTxIndex = 0;
+
+      // 4a: Execute constitute
+      console.log("Calling constitute...");
+      setDeployStatus(prev => ({
+        ...prev,
+        finalTransactions: prev.finalTransactions.map((tx, idx) =>
+          idx === currentTxIndex ? { ...tx, status: "pending" } : tx
+        )
+      }));
+
+      const constituteTxHash = await writeContract(wagmiConfig, {
+        address: powersAddress,
+        abi: powersAbi,
+        functionName: 'constitute',
+        args: [lawInitData]
+      });
+      
+      console.log("Waiting for constitute transaction:", constituteTxHash);
+      const constituteReceipt = await waitForTransactionReceipt(wagmiConfig, { 
+        hash: constituteTxHash,
+        confirmations: isAnvil ? 1 : 2
+      });
+      console.log("Constitute completed successfully!", { 
+        txHash: constituteTxHash, 
+        status: constituteReceipt.status,
+        currentTxIndex 
+      });
+
+      setDeployStatus(prev => {
+        console.log("Updating constitute status to success", { 
+          currentTxIndex, 
+          totalTransactions: prev.finalTransactions.length 
         });
-        
-        console.log("Waiting for constitute transaction:", constituteTxHash);
-        await waitForTransactionReceipt(wagmiConfig, { 
-          hash: constituteTxHash,
-          confirmations: 1
-        });
-        console.log("Constitute completed:", constituteTxHash);
+        return {
+          ...prev,
+          finalTransactions: prev.finalTransactions.map((tx, idx) =>
+            idx === currentTxIndex ? { ...tx, status: "success" } : tx
+          )
+        };
+      });
 
-        await delayIfNeeded();
+      await delayIfNeeded();
+      currentTxIndex++;
+      console.log("Moving to next transaction, currentTxIndex:", currentTxIndex);
 
-        // 4b: Execute transferOwnership for ownable contracts
-        for (const dep of dependencies) {
-          if (dep.ownable && deployedDependenciesMap[dep.name]) {
-            console.log(`Transferring ownership of ${dep.name} to Powers...`);
-            const transferTxHash = await writeContract(wagmiConfig, {
-              address: deployedDependenciesMap[dep.name],
-              abi: dep.abi,
-              functionName: 'transferOwnership',
-              args: [powersAddress]
-            });
-            
-            console.log(`Waiting for ${dep.name} ownership transfer:`, transferTxHash);
-            await waitForTransactionReceipt(wagmiConfig, { 
-              hash: transferTxHash,
-              confirmations: 1
-            });
-            console.log(`${dep.name} ownership transferred:`, transferTxHash);
-
-            await delayIfNeeded();
+      // 4b: Execute transferOwnership for ownable contracts
+      for (const dep of dependencies) {
+        if (dep.ownable) {
+          const depAddress = deployedDependenciesMap[dep.name];
+          if (!depAddress) {
+            console.error(`Missing deployed address for ${dep.name}, skipping ownership transfer`);
+            continue;
           }
+
+          console.log(`Transferring ownership of ${dep.name} to Powers...`);
+          
+          setDeployStatus(prev => ({
+            ...prev,
+            finalTransactions: prev.finalTransactions.map((tx, idx) =>
+              idx === currentTxIndex ? { ...tx, status: "pending" } : tx
+            )
+          }));
+
+          const transferTxHash = await writeContract(wagmiConfig, {
+            address: depAddress,
+            abi: dep.abi,
+            functionName: 'transferOwnership',
+            args: [powersAddress]
+          });
+          
+          console.log(`Waiting for ${dep.name} ownership transfer:`, transferTxHash);
+          await waitForTransactionReceipt(wagmiConfig, { 
+            hash: transferTxHash,
+            confirmations: isAnvil ? 1 : 2
+          });
+          console.log(`${dep.name} ownership transferred:`, transferTxHash);
+
+          setDeployStatus(prev => ({
+            ...prev,
+            finalTransactions: prev.finalTransactions.map((tx, idx) =>
+              idx === currentTxIndex ? { ...tx, status: "success" } : tx
+            )
+          }));
+
+          await delayIfNeeded();
+          currentTxIndex++;
         }
-      } else {
-        // Multicall execution for other chains
-        console.log("Using multicall for non-Anvil chain...");
-        const multicallContracts: any[] = [];
-
-        // 4a: Add constitute call
-        multicallContracts.push({
-          address: powersAddress,
-          abi: powersAbi,
-          functionName: 'constitute',
-          args: [lawInitData]
-        });
-
-        // 4b: Add transferOwnership calls for ownable contracts
-        for (const dep of dependencies) {
-          if (dep.ownable && deployedDependenciesMap[dep.name]) {
-            console.log(`Adding transferOwnership for ${dep.name} to Powers`);
-            multicallContracts.push({
-              address: deployedDependenciesMap[dep.name],
-              abi: dep.abi,
-              functionName: 'transferOwnership',
-              args: [powersAddress]
-            });
-          }
-        }
-
-        console.log("Executing multicall with contracts:", multicallContracts);
-        const multicallResults = await multicall(wagmiConfig, {
-          contracts: multicallContracts
-        });
-        console.log("Multicall results:", multicallResults);
       }
 
-      setDeployStatus(prev => ({ ...prev, multicall: "success" }));
-
       // All done!
+      console.log("All transactions completed! Setting final status...");
       setStatus("success");
       setConstituteCompleted(true);
-      console.log("Deploy sequence completed successfully!");
+      console.log("Deploy sequence completed successfully!", {
+        deployedPowersAddress: powersAddress,
+        constituteCompleted: true,
+        finalStatus: "success"
+      });
 
     } catch (error) {
       console.error("Deploy sequence error:", error);
@@ -306,8 +340,13 @@ export function SectionDeployDemo() {
               m.status === "pending" ? { ...m, status: "error" } : m
             )
           };
-        } else if (prev.multicall === "pending") {
-          return { ...prev, multicall: "error" };
+        } else if (prev.finalTransactions.some(tx => tx.status === "pending")) {
+          return {
+            ...prev,
+            finalTransactions: prev.finalTransactions.map(tx => 
+              tx.status === "pending" ? { ...tx, status: "error" } : tx
+            )
+          };
         }
         return prev;
       });
@@ -330,7 +369,7 @@ export function SectionDeployDemo() {
     setDeployStatus({
       powersCreate: "idle",
       mocksDeploy: [],
-      multicall: "idle"
+      finalTransactions: []
     });
   };
 
@@ -345,7 +384,7 @@ export function SectionDeployDemo() {
   };
 
   return (
-    <section id="deploy" className="min-h-screen grow max-h-screen flex flex-col justify-start items-center pb-8 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 sm:pt-16 pt-4">
+    <section id="deploy" className="min-h-screen grow flex flex-col justify-start items-center pb-20 px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-50 sm:pt-16 pt-4">
       <div className="w-full flex flex-col gap-4 justify-start items-center">
         <section className="flex flex-col justify-center items-center"> 
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
@@ -356,7 +395,7 @@ export function SectionDeployDemo() {
           </div>
         </section>
 
-        <section className="w-full grow max-h-[80vh] flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm">
+        <section className="w-full grow sm:max-h-[80vh] flex flex-col justify-start items-center bg-white border border-slate-200 rounded-md overflow-hidden max-w-4xl shadow-sm">
           {/* Carousel Header */}
           <div className="w-full flex flex-row justify-between items-center py-4 px-6 border-b border-slate-200 flex-shrink-0">
             <button
@@ -595,35 +634,37 @@ export function SectionDeployDemo() {
                 );
               })}
 
-              {/* Step 3: Multicall */}
-              <div className="flex items-center gap-3">
-                {deployStatus.multicall === 'success' ? (
-                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                ) : deployStatus.multicall === 'pending' ? (
-                  <div className="w-6 h-6 flex-shrink-0">
-                    <TwoSeventyRingWithBg className="w-6 h-6" />
-                  </div>
-                ) : deployStatus.multicall === 'error' ? (
-                  <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-slate-300 flex-shrink-0" />
-                )}
-                <span className={`text-sm ${deployStatus.multicall === 'success' ? 'text-green-600 font-medium' : deployStatus.multicall === 'error' ? 'text-red-600' : 'text-slate-600'}`}>
-                  {`Constitute Powers ${currentOrg.dependencies.length > 0 ? `& Transfer Ownership` : ''}`}
-                </span>
-              </div>
+              {/* Step 3: Final Transactions - show all from the start */}
+              {deployStatus.finalTransactions.map((tx, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  {tx.status === 'success' ? (
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  ) : tx.status === 'pending' ? (
+                    <div className="w-6 h-6 flex-shrink-0">
+                      <TwoSeventyRingWithBg className="w-6 h-6" />
+                    </div>
+                  ) : tx.status === 'error' ? (
+                    <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-slate-300 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm ${tx.status === 'success' ? 'text-green-600 font-medium' : tx.status === 'error' ? 'text-red-600' : 'text-slate-600'}`}>
+                    {tx.name}
+                  </span>
+                </div>
+              ))}
             </div>
 
             {error && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md max-h-64 overflow-y-auto">
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md max-h-64 h-full overflow-y-auto">
                 <p className="text-sm text-red-600 break-words break-all whitespace-pre-wrap">
                   <strong>Error:</strong> {error.message}
                 </p>

@@ -6,32 +6,32 @@ import { usePrivy } from '@privy-io/react-auth'
 import { useWallets } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
 import { InputType, Law, Powers, Checks, Action } from '@/context/types'
-import { useActionStore, setError, setAction } from '@/context/store'
+import { useActionStore, setError, setAction, useStatusStore, usePowersStore } from '@/context/store'
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { useChecks } from '@/hooks/useChecks'
 import { useLaw } from '@/hooks/useLaw'
-import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { UserLawBox } from './UserLawBox'
-import HeaderLaw from '@/components/HeaderLaw'
-import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import { useChains } from 'wagmi'   
 import { hashAction } from '@/utils/hashAction'
 
-export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
-  const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()
-  const { authenticated } = usePrivy()
+export default function New({hasRoles, resetRef}: {hasRoles: bigint[], resetRef: React.MutableRefObject<(() => void) | null>}) {
+  const { chainId } = useParams<{ chainId: string }>()
+  const powers = usePowersStore();
   const {wallets, ready} = useWallets();
-  const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id === Number(chainId))
-  const action = useActionStore();
-  const { fetchChecks, status: statusChecks, checks } = useChecks()
-  const { simulation, resetStatus, simulate, propose, request } = useLaw();
+  const { authenticated } = usePrivy()
 
-  console.log("@New:", {powers, action})
+  const [selectedLaw, setSelectedLaw] = useState<Law | null>(null);
+  const { fetchChecks, status: statusChecks, checks } = useChecks()
+  const { simulate, propose, request } = useLaw();
+  const finalFilteredLaws = powers?.laws?.filter(law => 
+    law.active && 
+    law.conditions && 
+    hasRoles.some(role => role === law?.conditions?.allowedRole as bigint)
+  )
+  const status = useStatusStore(); 
+  const action = useActionStore();
   
-  // State to track selected law
-  const [selectedLaw, setSelectedLaw] = useState<Law | null>(null)
-  const [reloading, setReloading] = useState(false)
+  console.log("@New, waypoint 0", {powers, finalFilteredLaws, hasRoles, wallets, ready})
 
   // Reset function to go back to list view
   const resetSelection = useCallback(() => {
@@ -39,112 +39,70 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
   }, [])
 
   // Assign reset function to ref
-  React.useEffect(() => {
-    resetRef.current = resetSelection
-    return () => {
-      resetRef.current = null
-    }
-  }, [resetSelection, resetRef])
-
-  // Filter laws based on criteria
-  // console.log("@New, powers", powers)
-  // console.log("@New, hasRoles", hasRoles)
-  const finalFilteredLaws = powers?.laws?.filter(
-    law => law.conditions?.needFulfilled == 0n && law.active && hasRoles.some(role => role.role == law.conditions?.allowedRole)
-  )
-  // console.log("@New, filteredLaws", finalFilteredLaws)
-
-  // Get laws that will be enabled by executing the selected law
-  const enabledLaws = selectedLaw && powers?.laws ? 
-    powers.laws.filter(law => 
-      law.active && 
-      law.conditions?.needFulfilled == selectedLaw.index
-    ) : []
-
-  // Get laws that will be blocked by executing the selected law
-  const blockedLaws = selectedLaw && powers?.laws ? 
-    powers.laws.filter(law => 
-      law.active && 
-      law.conditions?.needNotFulfilled == selectedLaw.index
-    ) : []
-
-  // console.log("@New, selectedLaw", selectedLaw)
-  // console.log("@New, enabledLaws", enabledLaws)
-  // console.log("@New, blockedLaws", blockedLaws)
-
-  // Reset DynamicForm and fetch executions when switching laws
-  useEffect(() => {
-    if (selectedLaw) {
-      const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != selectedLaw.params?.[index]?.dataType) : [true] 
-      
-      if (dissimilarTypes.find(type => type == true)) {
-        setAction({
-          lawId: selectedLaw.index,
-          dataTypes: selectedLaw.params?.map(param => param.dataType),
-          paramValues: [],
-          nonce: '0',
-          callData: '0x0',
-          upToDate: false
-        })
-      } else {
-        setAction({
-          ...action,  
-          lawId: selectedLaw.index,
-          upToDate: false
-        })
+    useEffect(() => {
+      resetRef.current = resetSelection
+      return () => {
+        resetRef.current = null
       }
-      resetStatus()
-    }
-  }, [selectedLaw, action, resetStatus])
+    }, [resetSelection, resetRef])
 
-  const handleSimulate = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-    if (!selectedLaw) return
-    console.log("@handleSimulate: waypoint 0", {paramValues, nonce, description})
-
-    
+  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    // console.log("Handle Simulate called:", {paramValues, nonce, law})
     setError({error: null})
     let lawCalldata: `0x${string}` | undefined
-    console.log("@handleSimulate: waypoint 1", {paramValues, nonce, description})
-
+    // console.log("Handle Simulate waypoint 1")
     if (paramValues.length > 0 && paramValues) {
       try {
-        lawCalldata = encodeAbiParameters(parseAbiParameters(selectedLaw.params?.map(param => param.dataType).toString() || ""), paramValues); 
+        // console.log("Handle Simulate waypoint 2a")
+        lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+        // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
       } catch (error) {
+        console.log("Handle Simulate waypoint 2c")
         setError({error: error as Error})
       }
     } else {
+      // console.log("Handle Simulate waypoint 2d")
       lawCalldata = '0x0'
     }
-
-    console.log("@handleSimulate: waypoint 1.5", {lawCalldata, ready, wallets, powers})
+    // resetting store
+    // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
     if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-      fetchChecks(selectedLaw, lawCalldata, BigInt(action.nonce as string), wallets, powers)
-      const actionId = hashAction(selectedLaw.index, lawCalldata, BigInt(action.nonce as string)).toString()
-      const actionData = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => a?.actionId === actionId) as Action | undefined
-      : undefined as Action | undefined
-      
-      console.log("@handleSimulate: waypoint 2", {actionData, actionId})
+      fetchChecks(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+      const actionId = hashAction(law.index, lawCalldata, BigInt(action.nonce as string)).toString()
 
-      setAction({
+      const newAction: Action = {
         ...action,
-        lawId: selectedLaw.index,
+        actionId: actionId,
+        state: 0, // non existent
+        lawId: law.index,
         caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
-        dataTypes: selectedLaw.params?.map(param => param.dataType),
+        dataTypes: law.params?.map(param => param.dataType),
         paramValues,
         nonce: nonce.toString(),
         description,
         callData: lawCalldata,
         upToDate: true
-      })
-      
+      }
+
+      // console.log("Handle Simulate waypoint 3b")
+      setAction(newAction)
+      // fetchVoteData(newAction, powers as Powers)
+
       try {
-        simulate(
-          wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
-          action.callData as `0x${string}`,
-          BigInt(action.nonce as string),
-          selectedLaw
+      // simulating law. 
+        const success = await simulate(
+          wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
+          newAction.callData as `0x${string}`,
+          BigInt(newAction.nonce as string),
+          law
         )
+        if (success) { 
+          // setAction({...newAction, state: 8})
+          console.log("Handle Simulate", {newAction})
+        }
+        // fetchAction(newAction, powers as Powers, true)
       } catch (error) {
+        // console.log("Handle Simulate waypoint 3c")
         setError({error: error as Error})
       }
     }
@@ -155,7 +113,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     if (!selectedLaw) return
     
     setError({error: null})
-    let lawCalldata: `0x${string}` | undefined
+    let lawCalldata: `0x${string}` = '0x0'
     
     if (paramValues.length > 0 && paramValues) {
       try {
@@ -168,41 +126,73 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
     }
 
     if (lawCalldata && ready && wallets && powers?.contractAddress) {
-      propose(
+      const success = await propose(
         selectedLaw.index as bigint,
         lawCalldata,
         nonce,
         description,
         powers as Powers
-      )
-      console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
+        )
+      // console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
     }
   };
 
-  const handleExecute = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-    if (!selectedLaw) return
-    
-    setError({error: null})
-    let lawCalldata: `0x${string}` | undefined
-    
-    if (paramValues.length > 0 && paramValues) {
-      try {
-        lawCalldata = encodeAbiParameters(parseAbiParameters(selectedLaw.params?.map(param => param.dataType).toString() || ""), paramValues); 
-      } catch (error) {
-        setError({error: error as Error})
+  const handleExecute = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+      // console.log("Handle Execute called:", {paramValues, nonce})
+      setError({error: null})
+      let lawCalldata: `0x${string}` | undefined
+      // console.log("Handle Simulate waypoint 1")
+      if (paramValues.length > 0 && paramValues) {
+        try {
+          // console.log("Handle Simulate waypoint 2a")
+          lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
+        } catch (error) {
+          // console.log("Handle Simulate waypoint 2c")
+          setError({error: error as Error})
+        }
+      } else {
+        // console.log("Handle Simulate waypoint 2d")
+        lawCalldata = '0x0'
       }
-    } else {
-      lawCalldata = '0x0'
-    }
 
-    request(
-      selectedLaw, 
-      lawCalldata as `0x${string}`,
-      nonce,
-      description
-    )
+      const success = await request(
+        law, 
+        lawCalldata as `0x${string}`,
+        nonce,
+        description
+      )
+      console.log("@handleExecute: waypoint 1", {paramValues, nonce, description})
   };
 
+  // resetting DynamicForm and fetching executions when switching laws: 
+  useEffect(() => {
+    if (selectedLaw) {
+      // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)
+      const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != selectedLaw.params?.[index]?.dataType) : [true] 
+      // console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
+      
+      if (dissimilarTypes.find(type => type == true)) {
+        // console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
+        setAction({
+          lawId: selectedLaw.index,
+          dataTypes: selectedLaw.params?.map(param => param.dataType),
+          paramValues: [],
+          nonce: '0',
+          callData: '0x0',
+          upToDate: false
+        })
+      } else {
+        // console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
+        setAction({
+          ...action,  
+          lawId: selectedLaw.index,
+          upToDate: false
+        })
+      }
+      setError({error: null})
+    }
+  }, [selectedLaw])  
 
   // If a law is selected, show the either LawBox or ProposalBox
   if (selectedLaw) {
@@ -232,17 +222,17 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
               onChange={() => {
                 setAction({...action, upToDate: false})
               }}
-              onSimulate={handleSimulate}
-              onExecute={handleExecute}
+              onSimulate={(paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => handleSimulate(selectedLaw, paramValues, nonce, description)}
+              onExecute={(paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => handleExecute(selectedLaw, paramValues, nonce, description)}
               onPropose={handlePropose}
             />
-            
+
             {/* Enables section */}
-            {enabledLaws.length > 0 && (
+            {/* {selectedLaw.conditions?.needFulfilled && selectedLaw.conditions.needFulfilled.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Execution <b>enables</b> the following laws: </h3>
                 <div className="space-y-2">
-                  {enabledLaws.map((law: Law) => (
+                  {selectedLaw.conditions.enabledLaws.map((law: Law) => (
                     <div 
                       key={`enabled-${law.lawAddress}-${law.index}`}
                       className="w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 opacity-50"
@@ -262,10 +252,10 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
             
             {/* Blocks section */}
-            {blockedLaws.length > 0 && (
+            {/* {blockedLaws.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-sm font-medium text-slate-700 mb-3 italic">Execution <b>blocks</b> the following laws: </h3>
                 <div className="space-y-2">
@@ -289,7 +279,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
@@ -348,7 +338,7 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
         
         {/* Render UserItem components for each filtered law */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
-          {reloading ? (
+          {status.status === "pending" ? (
             <div className="p-4">
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-slate-500">Loading laws...</div>
@@ -361,8 +351,8 @@ export default function New({hasRoles, powers, resetRef}: {hasRoles: {role: bigi
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => setSelectedLaw(law)}
               >
-                <UserItem
-                  powers={powers as Powers}
+                <UserItem 
+     powers={powers}
                   law={law}
                   chainId={chainId as string}
                   showLowerSection={false}

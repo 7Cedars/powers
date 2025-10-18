@@ -9,14 +9,14 @@ export function BlockCounter({ onRefresh, blockNumber }: { onRefresh: () => void
   const statusPowers = useStatusStore();
   const publicClient = usePublicClient();
 
-  return (
+  return (  
     <button
-      onClick={onRefresh}
+      onClick={onRefresh} 
       disabled={statusPowers.status == "pending" || !publicClient}
-      className="h-full flex items-center gap-3 px-3 py-1 rounded-md border border-slate-400 hover:border-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
+      className="h-full flex items-center gap-3 px-2 md:px-3 py-1 rounded-md border border-slate-400 hover:border-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       title="Refresh block number"
     >
-      <div className="flex items-center gap-1">
+      <div className="hidden md:flex items-center gap-1">
         <span className="text-sm text-slate-600 font-mono leading-none">Block {blockNumber ? blockNumber.toString() : '...'}</span>
       </div>
       <div className="flex items-center justify-center rounded-md transition-colors">

@@ -27,7 +27,7 @@ import { usePowersStore } from '@/context/store'
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
-  const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
+  const [hasRoles, setHasRoles] = useState<bigint[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const powers = usePowersStore()
@@ -36,6 +36,7 @@ export default function UserPage() {
   const newResetRef = useRef<(() => void) | null>(null)
   const incomingResetRef = useRef<(() => void) | null>(null)
   const fulfilledResetRef = useRef<(() => void) | null>(null)
+  const aboutResetRef = useRef<(() => void) | null>(null)
   const tabs = [
     { id: 'New', label: 'New', icon: PlusIcon },
     { id: 'Incoming', label: 'Incoming', icon: ArrowDownTrayIcon },
@@ -49,7 +50,6 @@ export default function UserPage() {
   const { chain } = useAccount()
   const { switchChain } = useSwitchChain()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
   // Handle tab click - reset selection if clicking on active tab
   const handleTabClick = useCallback((tabId: string) => {
@@ -89,50 +89,49 @@ export default function UserPage() {
       setIsValidBanner(false)
     }
   }, [])
-
-  // Fetch user roles function
-  const fetchMyRoles = useCallback(
-    async (account: `0x${string}`, roles: bigint[]) => {
-      let role: bigint; 
-      const fetchedHasRole: {role: bigint; since: bigint}[] = [{role: PUBLIC_ROLE, since: 1n}]; 
-      const rolesFiltered = roles.filter(role => role != PUBLIC_ROLE)
-
-      // console.log("@fetchMyRoles, waypoint 0", {roles, addressPowers})
-
-      if (addressPowers) {
-        try {
-          for await (role of rolesFiltered) {
-            const fetchedSince = await readContract(wagmiConfig, {
-                abi: powersAbi,
-                address: addressPowers as `0x${string}`,
-                functionName: 'hasRoleSince', 
-                args: [account, role],
-                chainId: parseChainId(chainId)
-                })
-              // Only include roles where since > 0 (user actually has the role)
-              if ((fetchedSince as bigint) > 0n) {
-                fetchedHasRole.push({role, since: fetchedSince as bigint})
-              }
-            }
-            setHasRoles(fetchedHasRole)
-          } catch (error) {
-          console.error(error)
-        }
-      }
-    }, [PUBLIC_ROLE, addressPowers, chainId])
-
+ 
   useEffect(() => {
     validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
 
+  // Fetch roles for the logged in account
   useEffect(() => {
-    const walletAddress = wallets?.[0]?.address;
-    if (walletAddress && powers?.roles) {
-      // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
-      fetchMyRoles(walletAddress as `0x${string}`, powers.roles.map(role => role.roleId))
-    }
-  }, [wallets, fetchMyRoles, powers?.roles])
+    const fetchUserRoles = async () => {
+      if (!authenticated || !wallets[0]?.address || !powers?.contractAddress || !powers?.roles) {
+        setHasRoles([])
+        return
+      }
 
+      try {
+        const userRoles: {role: bigint; since: bigint}[] = [ {role: 115792089237316195423570985008687907853269984665640564039457584007913129639935n, since: 1n} ]
+        
+        // Check each role in the powers protocol
+        for (const role of powers.roles) {
+          const since = await readContract(wagmiConfig, {
+            address: powers.contractAddress,
+            abi: powersAbi,
+            functionName: 'hasRoleSince',
+            args: [wallets[0].address, role.roleId]
+          }) as bigint
+
+          // If since > 0, user has this role
+          if (since > 0n) {
+            userRoles.push({
+              role: role.roleId,
+              since: since
+            })
+          }
+        }
+
+        setHasRoles(userRoles.map(role => role.role))
+      } catch (error) {
+        console.error('Error fetching user roles:', error)
+        setHasRoles([])
+      }
+    }
+
+    fetchUserRoles()
+  }, [authenticated, wallets, powers?.contractAddress, powers?.roles])
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -150,6 +149,8 @@ export default function UserPage() {
       }
     }
   }, [authenticated, chainId, supportedChain, chain?.id, switchChain])
+
+
 
   return (
     <div className="w-full h-full flex flex-col items-center pb-12 md:pb-0">
@@ -183,13 +184,13 @@ export default function UserPage() {
                   Your roles:
                 </div>
                 <div className="flex flex-row gap-2">
-                  {hasRoles.map((roleData, index) => (
+                  {hasRoles.map((roleId, index) => (
                     <div 
-                      key={`${roleData.role}-${index}`}
+                      key={`${roleId}-${index}`}
                       className="bg-slate-50/30 backdrop-blur-sm rounded-lg"
                     >
                       <DynamicThumbnail
-                        roleId={roleData.role}
+                        roleId={roleId}
                         powers={powers}
                         size={36}
                         className="object-cover rounded-md"
@@ -250,11 +251,11 @@ export default function UserPage() {
       {/* Tab Content */}
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
-          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
+          {activeTab === 'New' && <New hasRoles={hasRoles} resetRef={newResetRef}/>}
           {/* NB! Loading still needs to be fixed   */}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} resetRef={incomingResetRef}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
-          {activeTab === 'About' && <About powers={powers as Powers}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} resetRef={incomingResetRef}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} resetRef={fulfilledResetRef}/>}
+          {activeTab === 'About' && <About resetRef={aboutResetRef}/>}
         </div>
       </div>
     </div>

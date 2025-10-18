@@ -163,7 +163,7 @@ export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFo
         </div>
       }
 
-      { !action.upToDate || checks == undefined &&  (
+      { (!action.upToDate || checks == undefined) &&  (
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
             size={0} 

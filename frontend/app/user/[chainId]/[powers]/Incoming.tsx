@@ -8,9 +8,9 @@ import { useParams } from 'next/navigation'
 import { ProposalBox } from '@/components/ProposalBox'
 import { Voting } from '@/components/Voting'
 import { useChecks } from '@/hooks/useChecks'
-import { setAction } from '@/context/store'
+import { setAction, usePowersStore } from '@/context/store'
 import { useChains } from 'wagmi'
-import { ConnectedWallet } from '@privy-io/react-auth'
+import { ConnectedWallet, useWallets } from '@privy-io/react-auth'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import { hashAction } from '@/utils/hashAction'
 import { StaticForm } from '@/components/StaticForm'
@@ -31,20 +31,20 @@ import { encodeAbiParameters, parseAbiParameters } from "viem"
  * 9. If a needNotFulfilled was set at the law, check if the action has been fulfilled at this needNotFulfilled law
  * 10. List the action as 'enabled' in the list
  */
-const getEnabledActions = async (
-  powers: Powers, 
-  hasRoles: {role: bigint, since: bigint}[], 
+const getEnabledActions = async ( 
+  hasRoles: bigint[]
 ): Promise<Action[]> => {
   const enabledActions: Action[] = []
-  
+  const powers = usePowersStore();
+  const { wallets } = useWallets();
   if (!powers.laws || !powers.laws.flatMap(l => l.actions)) {
     return enabledActions
   }
 
   // Step 4: Per law that the user has access to
-  const userRoleIds = hasRoles.map(role => role.role)
+  const userRoles = powers.roles?.filter(role => role.members?.some(member => member.account === wallets?.[0]?.address)) || []
   const userLaws = powers.laws.filter(law => 
-    law.active && law.conditions && userRoleIds.includes(law.conditions.allowedRole)
+    law.active && law.conditions && userRoles.some(role => role.roleId === law.conditions?.allowedRole as bigint)
   )
   
   for (const law of userLaws) {
@@ -151,18 +151,13 @@ const getEnabledActions = async (
   return enabledActions
 }
 
-type IncomingProps = {
-  hasRoles: {role: bigint, since: bigint}[]
-  powers: Powers
-  resetRef: React.MutableRefObject<(() => void) | null>
-}
 
-export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
+export default function Incoming({hasRoles, resetRef}: {hasRoles: bigint[], resetRef: React.MutableRefObject<(() => void) | null>}) {
   const { chainId } = useParams<{ chainId: string }>()
   const { fetchChecks, status: statusChecks } = useChecks()
-  const { actionVote, fetchVoteData } = useLaw()
   const { request, propose } = useLaw()
   const chains = useChains()
+  const powers = usePowersStore();
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
   
   // State for selected proposal/action
@@ -220,71 +215,6 @@ export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
       law.active && 
       law.conditions?.needNotFulfilled == selectedItem.lawId
     ) : []
-
-  /**
-   * Fetch incoming actions following the new architecture:
-   * 1. Fetch all actions from the laws that the user has access to
-   * 2. Fetch their status
-   * 3. List the actions as 'proposed' in the list (3 = Active)
-   * 4-10. Get enabled actions (handled in getEnabledActions)
-   */
-  useEffect(() => {
-    const fetchIncomingActions = async () => {
-      // console.log("@fetchIncomingActions, waypoint 0", {powers, hasRoles})
-      if (!powers || !powers.laws || !powers.laws.flatMap(l => l.actions) || hasRoles.length === 0) {
-        setProposedActions([])
-        setEnabledActions([])
-        return
-      }
-      // console.log("@fetchIncomingActions, waypoint 1", {powers, hasRoles})
-      setLoadingIncoming(true)
-      
-      try {
-        // console.log("@fetchIncomingActions, waypoint 2", {powers, hasRoles})
-        // Step 1: Get all actions from laws that the user has access to
-        const userRoleIds = hasRoles.map(role => role.role)
-        const userLaws = powers.laws.filter(law => 
-          law.active && law.conditions && userRoleIds.includes(law.conditions.allowedRole)
-        )
-        // console.log("@fetchIncomingActions, waypoint 3", {userLaws})
-        const userLawIds = userLaws.map(law => law.index)
-        const allUserActions = powers.laws.flatMap(l => l.actions).filter(action => 
-          userLawIds.includes(action?.lawId as bigint)
-        ) as Action[]
-        // console.log("@fetchIncomingActions, waypoint 4", {allUserActions})
-        // Step 2 & 3: Fetch their status and filter for proposed actions (Active or Succeeded)
-        const proposedActionsList: Action[] = []
-        for (const action of allUserActions) {
-          try {
-            const completeAction = powers.laws.flatMap(l => l.actions).find(a => a?.actionId === action?.actionId)
-            if (completeAction && (completeAction?.state === 3)) {
-              proposedActionsList.push(completeAction)
-            }
-            console.log("@fetchIncomingActions, waypoint 5", {completeAction})
-          } catch (error) {
-            console.error("Error fetching action state:", error)  
-          }
-        }
-        // console.log("@fetchIncomingActions, waypoint 5", {proposedActionsList})
-        setProposedActions(proposedActionsList)
-        
-        // Steps 4-10: Get enabled actions
-        const enabled = await getEnabledActions(powers, hasRoles)
-        // console.log("@fetchIncomingActions, waypoint 6", {enabled})
-        setEnabledActions(enabled)
-        
-      } catch (error) {
-        console.error("Error fetching incoming actions:", error)
-        setProposedActions([])
-        setEnabledActions([])
-      } finally {
-        // console.log("@fetchIncomingActions, waypoint 7", {loadingIncoming: false})
-        setLoadingIncoming(false)
-      }
-    }
-    
-    fetchIncomingActions()
-  }, [powers, hasRoles])
 
   // Handle proposal click
   const handleProposalClick = (proposal: Action) => {
@@ -419,8 +349,8 @@ export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
             <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`}>
               {/* Header section with UserItem - matching DynamicForm */}
               <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-                <UserItem
-                  powers={powers as Powers}
+                <UserItem 
+     powers={powers}
                   law={law}
                   chainId={chainId as string}
                   actionId={BigInt(selectedItem.actionId)}
@@ -667,8 +597,8 @@ export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => action.state != 3 ? handleItemClick(action) : handleProposalClick(action)}
               >
-                <UserItem
-                  powers={powers}
+                <UserItem 
+     powers={powers}
                   law={powers.laws?.find(law => law.index === BigInt(action.lawId)) as Law}
                   chainId={chainId as string}
                   showLowerSection={false}
@@ -684,8 +614,8 @@ export default function Incoming({hasRoles, powers, resetRef}: IncomingProps) {
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => handleItemClick(action)}
               >
-                <UserItem
-                  powers={powers}
+                <UserItem 
+     powers={powers}
                   law={powers.laws?.find(law => law.index === BigInt(action.lawId)) as Law}
                   chainId={chainId as string}
                   showLowerSection={false}

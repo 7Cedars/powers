@@ -6,10 +6,10 @@ import Image from 'next/image'
 export function Footer() {
 
   return (
-    <section className="w-full flex flex-col justify-between items-center min-h-fit bg-slate-50 snap-end pt-12 pb-6 border-t border-slate-300 snap-end">
+    <section className="w-full flex flex-col justify-between items-center min-h-fit bg-slate-50 snap-end pt-6 md:pt-12 pb-3 md:pb-6 border-t border-slate-300 snap-end">
         
-        <div className = "max-w-7xl w-full flex md:flex-row flex-col justify-between md:items-start items-center text-slate-800 text-sm px-4 gap-16"> 
-            <div className="grid md:grid-cols-3 grid-cols-2 gap-28">
+        <div className = "max-w-7xl w-full flex md:flex-row flex-col justify-between md:items-start items-center text-slate-800 text-sm px-4 gap-8 md:gap-16"> 
+            <div className="grid md:grid-cols-3 grid-cols-2 gap-8 md:gap-28">
                 <div className="flex flex-col gap-3 justify-start items-start">
                     <div className="font-bold"> 
                         DApp
@@ -53,7 +53,7 @@ export function Footer() {
             </div>
 
         <div className="w-full flex flex-row gap-3 md:justify-end justify-center items-end snap-end">
-            <div className="flex flex-col gap-3 justify-start md:items-end items-center pb-12">
+            <div className="flex flex-col gap-3 justify-start md:items-end items-center pb-6 md:pb-12">
             <Image 
             src='/logo1_notext.png' 
             width={48}

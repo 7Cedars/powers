@@ -19,7 +19,7 @@ import {
 
 export default function Page() {          
     return (
-        <main className="w-full h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden bg-slate-50">
+        <main className="w-full min-h-screen flex flex-col overflow-y-auto snap-y snap-mandatory overflow-x-hidden bg-slate-50">
             <section className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-indigo-900 to-indigo-700 snap-start snap-always"> 
             
                 {/* Title and subtitle */}
@@ -29,7 +29,7 @@ export default function Page() {
                         <b>Powers</b>  
                     </div>
                     <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
-                        Separate and distribute on-chain powers through institutional governance.
+                        Separate and distribute power through on-chain institutional governance.
                     </div>
                 </section> 
 
