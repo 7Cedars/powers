@@ -250,7 +250,6 @@ const Page = () => {
           <LawBox 
               powers = {powers as Powers}
               law = {law}
-              checks = {checks as Checks} 
               params = {law.params || []}
               status = {statusPowers.status}
               /> 
