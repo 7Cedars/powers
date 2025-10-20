@@ -4,13 +4,13 @@ import React, { useState } from 'react'
 import { Powers, Role } from '@/context/types'
 import { useChains } from 'wagmi'
 import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { UserItem } from './UserItem'
 import { bigintToRole } from '@/utils/bigintTo'
 import { default as DynamicThumbnail } from '@/components/DynamicThumbnail'
 import { usePowersStore } from '@/context/store'
 
-export default function About({resetRef}: {resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function About() {
   const powers = usePowersStore();
   const [isLawsExpanded, setIsLawsExpanded] = useState(false)
   const router = useRouter()

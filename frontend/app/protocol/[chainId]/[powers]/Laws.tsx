@@ -18,7 +18,7 @@ export function Laws({powers, status}: LawsProps) {
   const activeLaws = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.filter(law => law.active) : [];
 
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
+    <div className="w-fullflex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
       <button
         onClick={() => router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws`) } 
         className="w-full border-b border-slate-300 p-2 bg-slate-100"

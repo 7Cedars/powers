@@ -9,7 +9,7 @@ export default function Page() {
   const powers = usePowersStore(); 
   
   return (
-    <main className="w-full h-fit flex flex-col justify-start items-center pb-20 pt-16 ps-4 pe-12">
+    <main className="w-full h-fit flex flex-col justify-start items-center pb-20 pt-16 ps-4">
       <TitleText
         title="Laws"
         subtitle="View the laws of the organization."
