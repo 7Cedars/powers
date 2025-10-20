@@ -227,16 +227,17 @@ const SidePanel = ({ children }: { children: React.ReactNode }) => {
 
           {/* Panel Content */}
           <div 
-            className={`w-full flex-col transition-opacity duration-200 bg-slate-100 overflow-hidden ${
+            className={`w-full flex flex-col transition-opacity duration-200 bg-slate-100 overflow-hidden ${
               isCollapsed 
                 ? 'opacity-100 delay-200' 
                 : 'opacity-100 delay-0'
             }`}
             style={{
-              width: isCollapsed ? '0px' : 'calc(min(670px, 100vw) - 36px)'
+              width: isCollapsed ? '0px' : 'calc(min(670px, 100vw) - 36px)',
+              height: '100vh'
             }}  
           > 
-            <div className="w-full ">
+            <div className="w-full h-full overflow-y-auto">
               {children}
             </div>
           </div>

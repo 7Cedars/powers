@@ -140,7 +140,7 @@ export default function UserPage() {
   return (
     <div className="w-full h-full flex flex-col items-center pb-12 md:pb-0">
       {/* Protocol Banner */}
-      <div className="w-full flex justify-center relative px-4 pt-24">
+      <div className="w-full flex justify-center relative px-4 pt-20">
         <div className="max-w-6xl w-full relative">
           <div className="relative min-h-fit flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-lg overflow-hidden pb-4">
             {/* Gradient background (always present) */}

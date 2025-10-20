@@ -1,5 +1,0 @@
-{
-    "buildCommand": "cd documentation/powers && yarn install && yarn build",
-    "outputDirectory": "documentation/powers/.vocs/dist",
-    "installCommand": "cd documentation/powers && yarn install"
-  }
