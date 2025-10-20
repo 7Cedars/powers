@@ -62,18 +62,18 @@ To implement a new law:
 
 ## Related Documentation
 
-- [Run Checks When Proposing an Action](./run-checks-when-proposing-an-action.md)
-- [Execute a Law](./execute-a-law.md)
-- [Simulate a Law](./simulate-a-law.md)
-- [Change State](./change-state.md)
-- [Reply to Powers](./reply-to-powers.md)
-- [Specifications](./specs.md)
+- [Run Checks When Proposing an Action](./run-checks-when-proposing-an-action.mdx)
+- [Execute a Law](./execute-a-law.mdx)
+- [Simulate a Law](./simulate-a-law.mdx)
+- [Change State](./change-state.mdx)
+- [Reply to Powers](./reply-to-powers.mdx)
+- [Specifications](./specs.mdx)
 
 ## Governance Space
 
 The Powers protocol ensures that each community can only interact with their adopted instance of a law. For example, the Yellow community cannot interfere with assigning roles in the Red community. This protects governance against outside interference.
 
-<figure><img src="../../.gitbook/assets/image (4).png" alt=""><figcaption><p>Governance space of the Powers protocol </p></figcaption></figure>
+* figure here * 
 
 🚧 **Everythign from here on is still completely work in progress and incomplete.** 🚧
 
@@ -85,3 +85,4 @@ The core functionality of a Law is to receive an input of Powers and to return a
 2. The calldata is decoded and transformed on the function `handleRequest`.
 3. If `handleRequest` returns target contracts to be called by Powers, these are returned by the `_replyPowers` function.
 4. If `handleRequest` returns state data, these are saved by the `_changeState` function.
+
