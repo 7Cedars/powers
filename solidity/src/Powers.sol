@@ -44,10 +44,11 @@ import { Checks } from "./libraries/Checks.sol";
 import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165Checker.sol";
 import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
 import { EIP712 } from "../lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
+import { Context } from "../lib/openzeppelin-contracts/contracts/utils/Context.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
-contract Powers is EIP712, IPowers {
+contract Powers is EIP712, IPowers, Context {
     //////////////////////////////////////////////////////////////
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ contract Powers is EIP712, IPowers {
     //////////////////////////////////////////////////////////////
     /// @notice A modifier that sets a function to only be callable by the {Powers} contract.
     modifier onlyPowers() {
-        if (msg.sender != address(this)) revert Powers__OnlyPowers();
+        if (_msgSender() != address(this)) revert Powers__OnlyPowers();
         _;
     }
 
@@ -106,7 +107,7 @@ contract Powers is EIP712, IPowers {
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
         MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
 
-        _setRole(ADMIN_ROLE, msg.sender, true); // the account that initiates a Powerscontract is set to its admin.
+        _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
 
         emit Powers__Initialized(address(this), name, uri);
     }
@@ -118,7 +119,7 @@ contract Powers is EIP712, IPowers {
     /// @dev No access control on this function.
     receive() external payable virtual {
         if (!payableEnabled) revert Powers__PayableNotEnabled();
-        emit FundsReceived(msg.value, msg.sender);
+        emit FundsReceived(msg.value, _msgSender());
     }
 
     //////////////////////////////////////////////////////////////
@@ -138,11 +139,11 @@ contract Powers is EIP712, IPowers {
         // check 0 is calldata length is too long
         if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
-        // check 1: is msg.sender blacklisted?
-        if (isBlacklisted(msg.sender)) revert Powers__AddressBlacklisted();
+        // check 1: is _msgSender() blacklisted?
+        if (isBlacklisted(_msgSender())) revert Powers__AddressBlacklisted();
 
         // check 2: does caller have access to law being executed?
-        if (!canCallLaw(msg.sender, lawId)) revert Powers__CannotCallLaw();
+        if (!canCallLaw(_msgSender(), lawId)) revert Powers__CannotCallLaw();
 
         // check 3: has action already been set as requested?
         if (_hasBeenRequested(actionId)) revert Powers__ActionAlreadyInitiated();
@@ -158,7 +159,7 @@ contract Powers is EIP712, IPowers {
 
         // If everything passed, set action as requested.
         Action storage action = _actions[actionId];
-        action.caller = msg.sender; // note if caller had been set during proposedAction, it will be overwritten.
+        action.caller = _msgSender(); // note if caller had been set during proposedAction, it will be overwritten.
         action.lawId = lawId;
         action.requestedAt = uint48(block.number);
         action.lawCalldata = lawCalldata;
@@ -166,11 +167,11 @@ contract Powers is EIP712, IPowers {
         action.nonce = nonce;
 
         // execute law.
-        (bool success) = ILaw(law.targetLaw).executeLaw(msg.sender, lawId, lawCalldata, nonce);
+        (bool success) = ILaw(law.targetLaw).executeLaw(_msgSender(), lawId, lawCalldata, nonce);
         if (!success) revert Powers__LawRequestFailed();
 
         // emit event.
-        emit ActionRequested(msg.sender, lawId, lawCalldata, nonce, uriAction);
+        emit ActionRequested(_msgSender(), lawId, lawCalldata, nonce, uriAction);
         
         return actionId;
     }
@@ -188,8 +189,8 @@ contract Powers is EIP712, IPowers {
         // check 1: is law active?
         if (!law.active) revert Powers__LawNotActive();
 
-        // check 2: is msg.sender the targetLaw?
-        if (law.targetLaw != msg.sender) revert Powers__CallerNotTargetLaw();
+        // check 2: is _msgSender() the targetLaw?
+        if (law.targetLaw != _msgSender()) revert Powers__CallerNotTargetLaw();
 
         // check 3: has action already been set as requested?
         if (!_hasBeenRequested(actionId)) revert Powers__ActionNotRequested();
@@ -236,17 +237,17 @@ contract Powers is EIP712, IPowers {
         // check 1: is targetLaw is an active law?
         if (!law.active) revert Powers__LawNotActive();
 
-        // check 2: does msg.sender have access to targetLaw?
-        if (!canCallLaw(msg.sender, lawId)) revert Powers__CannotCallLaw();
+        // check 2: does _msgSender() have access to targetLaw?
+        if (!canCallLaw(_msgSender(), lawId)) revert Powers__CannotCallLaw();
 
         // check 3: is caller blacklisted?
-        if (isBlacklisted(msg.sender)) revert Powers__AddressBlacklisted();
+        if (isBlacklisted(_msgSender())) revert Powers__AddressBlacklisted();
 
         // check 4: is caller too long?
         if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
         // if checks pass: propose.
-        actionId = _propose(msg.sender, lawId, lawCalldata, nonce, uriAction);
+        actionId = _propose(_msgSender(), lawId, lawCalldata, nonce, uriAction);
 
         return actionId;
     }
@@ -311,7 +312,7 @@ contract Powers is EIP712, IPowers {
         uint256 actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
 
         // check: is caller the caller of the proposedAction?
-        if (msg.sender != _actions[actionId].caller) revert Powers__NotProposerAction();
+        if (_msgSender() != _actions[actionId].caller) revert Powers__NotProposerAction();
 
         return _cancel(lawId, lawCalldata, nonce);
     }
@@ -341,12 +342,12 @@ contract Powers is EIP712, IPowers {
 
     /// @inheritdoc IPowers
     function castVote(uint256 actionId, uint8 support) external {
-        return _castVote(actionId, msg.sender, support, "");
+        return _castVote(actionId, _msgSender(), support, "");
     }
 
     /// @inheritdoc IPowers
     function castVoteWithReason(uint256 actionId, uint8 support, string calldata reason) external {
-        return _castVote(actionId, msg.sender, support, reason);
+        return _castVote(actionId, _msgSender(), support, reason);
     }
 
     /// @notice Internal vote casting mechanism.
@@ -378,7 +379,7 @@ contract Powers is EIP712, IPowers {
     /// @inheritdoc IPowers
     function constitute(LawInitData[] memory constituentLaws) external {
         // check 1: only admin can call this function
-        if (roles[ADMIN_ROLE].members[msg.sender] == 0) revert Powers__NotAdmin();
+        if (roles[ADMIN_ROLE].members[_msgSender()] == 0) revert Powers__NotAdmin();
 
         // check 2: this function can only be called once.
         if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();

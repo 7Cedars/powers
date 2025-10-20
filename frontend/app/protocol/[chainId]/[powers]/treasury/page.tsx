@@ -10,7 +10,7 @@ export default function Page() {
   const powers = usePowersStore(); 
    
   return (
-    <main className="w-full h-fit flex flex-col gap-2 justify-center items-center pt-16 ps-4 pe-12">  
+    <main className="w-full h-fit flex flex-col gap-2 justify-center items-center pt-16 ps-4">  
       <TitleText
         title="Treasury"
         subtitle="View and manage the assets held by your Powers."

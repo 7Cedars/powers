@@ -53,9 +53,9 @@ export default function FlowPage() {
   }
   
   return (
-    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pe-10" >
+    <main className="w-full h-full flex flex-col justify-start items-center gap-3 px-2 overflow-x-scroll pt-16 pb-20" >
     {/* hero banner  */}
-    <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative overflow-hidden">
+    <section className="w-full min-h-64 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-md relative">
       {/* Gradient background (always present) */}
       <div className="absolute inset-0 bg-gradient-to-br to-indigo-500 from-orange-400" />
       

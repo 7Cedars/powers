@@ -15,7 +15,7 @@ export function Assets({powers}: {status: Status, powers: Powers | undefined}) {
   ];
   
   return (
-    <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
+    <div className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-300 max-w-full lg:max-w-72 rounded-md overflow-hidden">
       <button
         onClick={() => 
           { 

@@ -23,19 +23,15 @@ import New from './New'
 import Incoming from './Incoming'
 import Fulfilled from './Fulfilled'
 import About from './About' 
-import { usePowersStore } from '@/context/store'
+import { setAction, usePowersStore } from '@/context/store'
 
 export default function UserPage() {
   const [activeTab, setActiveTab] = useState('New')
-  const [hasRoles, setHasRoles] = useState<{role: bigint; since: bigint}[]>([])
+  const [hasRoles, setHasRoles] = useState<bigint[]>([])
   const [isValidBanner, setIsValidBanner] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const powers = usePowersStore()
 
-  // Refs to store reset functions from child components
-  const newResetRef = useRef<(() => void) | null>(null)
-  const incomingResetRef = useRef<(() => void) | null>(null)
-  const fulfilledResetRef = useRef<(() => void) | null>(null)
   const tabs = [
     { id: 'New', label: 'New', icon: PlusIcon },
     { id: 'Incoming', label: 'Incoming', icon: ArrowDownTrayIcon },
@@ -49,24 +45,13 @@ export default function UserPage() {
   const { chain } = useAccount()
   const { switchChain } = useSwitchChain()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
-
-  // Handle tab click - reset selection if clicking on active tab
-  const handleTabClick = useCallback((tabId: string) => {
-    if (tabId === activeTab) {
-      // If clicking on the currently active tab, try to reset selection
-      if (tabId === 'New' && newResetRef.current) {
-        newResetRef.current()
-      } else if (tabId === 'Incoming' && incomingResetRef.current) {
-        incomingResetRef.current()
-      } else if (tabId === 'Fulfilled' && fulfilledResetRef.current) {
-        fulfilledResetRef.current()
-      }
-    } else {
-      // Normal tab switching
-      setActiveTab(tabId)
-    }
-  }, [activeTab])
+  const emptyAction = {
+    actionId: '',
+    lawId: 0n, 
+    nonce: '0',
+    description: '',
+    upToDate: false,
+  }
 
   // console.log("@UserPage, main", {chainId, powers, wallets: wallets[0].address})
 
@@ -89,50 +74,49 @@ export default function UserPage() {
       setIsValidBanner(false)
     }
   }, [])
-
-  // Fetch user roles function
-  const fetchMyRoles = useCallback(
-    async (account: `0x${string}`, roles: bigint[]) => {
-      let role: bigint; 
-      const fetchedHasRole: {role: bigint; since: bigint}[] = [{role: PUBLIC_ROLE, since: 1n}]; 
-      const rolesFiltered = roles.filter(role => role != PUBLIC_ROLE)
-
-      // console.log("@fetchMyRoles, waypoint 0", {roles, addressPowers})
-
-      if (addressPowers) {
-        try {
-          for await (role of rolesFiltered) {
-            const fetchedSince = await readContract(wagmiConfig, {
-                abi: powersAbi,
-                address: addressPowers as `0x${string}`,
-                functionName: 'hasRoleSince', 
-                args: [account, role],
-                chainId: parseChainId(chainId)
-                })
-              // Only include roles where since > 0 (user actually has the role)
-              if ((fetchedSince as bigint) > 0n) {
-                fetchedHasRole.push({role, since: fetchedSince as bigint})
-              }
-            }
-            setHasRoles(fetchedHasRole)
-          } catch (error) {
-          console.error(error)
-        }
-      }
-    }, [PUBLIC_ROLE, addressPowers, chainId])
-
+ 
   useEffect(() => {
     validateBannerImage(powers?.metadatas?.banner)
   }, [powers?.metadatas?.banner, validateBannerImage])
 
+  // Fetch roles for the logged in account
   useEffect(() => {
-    const walletAddress = wallets?.[0]?.address;
-    if (walletAddress && powers?.roles) {
-      // console.log("@useEffect, waypoint 1 fetch my roles", {wallets: wallets[0].address, roles: powers?.roles})
-      fetchMyRoles(walletAddress as `0x${string}`, powers.roles.map(role => role.roleId))
-    }
-  }, [wallets, fetchMyRoles, powers?.roles])
+    const fetchUserRoles = async () => {
+      if (!authenticated || !wallets[0]?.address || !powers?.contractAddress || !powers?.roles) {
+        setHasRoles([])
+        return
+      }
 
+      try {
+        const userRoles: {role: bigint; since: bigint}[] = [ {role: 115792089237316195423570985008687907853269984665640564039457584007913129639935n, since: 1n} ]
+        
+        // Check each role in the powers protocol
+        for (const role of powers.roles) {
+          const since = await readContract(wagmiConfig, {
+            address: powers.contractAddress,
+            abi: powersAbi,
+            functionName: 'hasRoleSince',
+            args: [wallets[0].address, role.roleId]
+          }) as bigint
+
+          // If since > 0, user has this role
+          if (since > 0n) {
+            userRoles.push({
+              role: role.roleId,
+              since: since
+            })
+          }
+        }
+
+        setHasRoles(userRoles.map(role => role.role))
+      } catch (error) {
+        console.error('Error fetching user roles:', error)
+        setHasRoles([])
+      }
+    }
+
+    fetchUserRoles()
+  }, [authenticated, wallets, powers?.contractAddress, powers?.roles])
 
   // Force chain switch to the selected chain
   useEffect(() => {
@@ -151,12 +135,14 @@ export default function UserPage() {
     }
   }, [authenticated, chainId, supportedChain, chain?.id, switchChain])
 
+
+
   return (
     <div className="w-full h-full flex flex-col items-center pb-12 md:pb-0">
       {/* Protocol Banner */}
       <div className="w-full flex justify-center relative px-4 pt-20">
         <div className="max-w-6xl w-full relative">
-          <div className="relative min-h-80 flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-lg overflow-hidden pb-4">
+          <div className="relative min-h-fit flex flex-col justify-between items-end text-slate-50 border border-slate-300 rounded-lg overflow-hidden pb-4">
             {/* Gradient background (always present) */}
             <div className="absolute inset-0 bg-gradient-to-br to-indigo-500 from-orange-400" />
             
@@ -178,18 +164,18 @@ export default function UserPage() {
 
             {/* Role Thumbnails - Top Left */}
             {authenticated && hasRoles.length > 0 && powers && (
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                <div className="text-sm text-slate-50 font-medium" style={{ textShadow: '0 1px 13px rgba(0,0,0,1)' }}>
+              <div className="absolute top-4 left-4 right-4 sm:right-auto flex flex-col gap-2 max-w-full sm:max-w-[45%] md:max-w-xs">
+                <div className="text-xs sm:text-sm text-slate-50 font-medium" style={{ textShadow: '0 1px 13px rgba(0,0,0,1)' }}>
                   Your roles:
                 </div>
-                <div className="flex flex-row gap-2">
-                  {hasRoles.map((roleData, index) => (
+                <div className="flex flex-row flex-wrap gap-2">
+                  {hasRoles.map((roleId, index) => (
                     <div 
-                      key={`${roleData.role}-${index}`}
+                      key={`${roleId}-${index}`}
                       className="bg-slate-50/30 backdrop-blur-sm rounded-lg"
                     >
                       <DynamicThumbnail
-                        roleId={roleData.role}
+                        roleId={roleId}
                         powers={powers}
                         size={36}
                         className="object-cover rounded-md"
@@ -201,10 +187,10 @@ export default function UserPage() {
             )}
 
             {/* Content with shaded text */}
-            <div className="relative w-full max-w-fit h-full max-h-fit text-lg p-6 pt-3 pb-1" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <div className="relative w-full max-w-fit h-full max-h-fit text-sm sm:text-base md:text-lg p-4 sm:p-6 pt-6 sm:pt-8 pb-2" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
               {supportedChain && supportedChain.name}
             </div>
-            <div className="relative w-full max-w-fit h-full max-h-fit text-6xl p-6 pt-1 pb-12" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <div className="relative w-full max-w-fit h-full max-h-fit text-3xl sm:text-4xl md:text-5xl lg:text-6xl p-4 sm:p-6 pt-1 pb-8 sm:pb-12" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
               {powers?.name || 'Unnamed Protocol'}
             </div>
           </div>
@@ -227,7 +213,10 @@ export default function UserPage() {
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
-                      onClick={() => handleTabClick(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id)
+                        setAction(emptyAction)
+                      }}
                       className={`flex-1 px-4 py-2 text-center font-medium transition-colors duration-200 rounded-md relative z-10 flex items-center justify-center gap-2 ${
                         activeTab === tab.id 
                           ? 'text-slate-900' 
@@ -250,11 +239,11 @@ export default function UserPage() {
       {/* Tab Content */}
       <div className="w-full flex justify-center relative px-4 overflow-y-auto z-10">
         <div className="max-w-6xl w-full flex-1 flex flex-col justify-start items-center pt-12 pb-8">
-          {activeTab === 'New' && <New hasRoles={hasRoles} powers={powers as Powers} resetRef={newResetRef}/>}
+          {activeTab === 'New' && <New hasRoles={hasRoles} />}
           {/* NB! Loading still needs to be fixed   */}
-          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles} powers={powers as Powers} resetRef={incomingResetRef}/>}
-          {activeTab === 'Fulfilled' && <Fulfilled hasRoles={hasRoles} powers={powers as Powers} resetRef={fulfilledResetRef}/>}
-          {activeTab === 'About' && <About powers={powers as Powers}/>}
+          {activeTab === 'Incoming' && <Incoming hasRoles={hasRoles}/>}
+          {activeTab === 'Fulfilled' && <Fulfilled />}
+          {activeTab === 'About' && <About />}
         </div>
       </div>
     </div>

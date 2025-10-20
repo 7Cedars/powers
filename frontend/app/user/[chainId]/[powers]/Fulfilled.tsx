@@ -4,37 +4,23 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { usePrivy } from '@privy-io/react-auth'
 import { UserItem } from './UserItem'
-import { Powers, Action } from '@/context/types' 
+import { Action, Powers } from '@/context/types' 
 import { StaticForm } from '@/components/StaticForm'
-import { setAction } from '@/context/store'
-import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { setAction, usePowersStore } from '@/context/store'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
-export default function Fulfilled({hasRoles, powers, resetRef}: {hasRoles: {role: bigint, since: bigint}[], powers: Powers, resetRef: React.MutableRefObject<(() => void) | null>}) {
+export default function Fulfilled() {
   const { chainId } = useParams<{ chainId: string }>()
+  const powers = usePowersStore();
   const { authenticated } = usePrivy() 
-  
   const [selectedItem, setSelectedItem] = useState<Action | null>(null)
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
   const [itemsToShow, setItemsToShow] = useState(25)
 
-  // Reset function to go back to list view
-  const resetSelection = useCallback(() => {
-    setSelectedItem(null)
-    setActionData(null)
-  }, [])
-
-  // Assign reset function to ref
-  useEffect(() => {
-    resetRef.current = resetSelection
-    return () => {
-      resetRef.current = null
-    }
-  }, [resetSelection, resetRef])
-
   console.log("@Fulfilled, powers", powers)
 
-  const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions) : []
+  const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(a => a?.state === 7) : []
   const displayedItems = allActions.slice(0, itemsToShow)
   const hasMoreItems = allActions.length > itemsToShow
 
@@ -92,8 +78,8 @@ export default function Fulfilled({hasRoles, powers, resetRef}: {hasRoles: {role
               {/* Header section with UserItem - matching DynamicForm */}
               {law && (
                 <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
-                  <UserItem
-                    powers={powers}
+                  <UserItem 
+                    powers={powers as Powers}
                     law={law}
                     chainId={chainId as string}
                     actionId={BigInt(selectedItem.actionId)}
@@ -181,7 +167,7 @@ export default function Fulfilled({hasRoles, powers, resetRef}: {hasRoles: {role
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => handleItemClick(action)}
               >
-                <UserItem
+                <UserItem 
                   powers={powers}
                   law={law}
                   chainId={chainId as string}

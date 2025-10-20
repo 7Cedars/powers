@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useActionStore, useErrorStore, usePowersStore } from "@/context/store";
+import { setError, useActionStore, useErrorStore, usePowersStore } from "@/context/store";
 import { Button } from "@/components/Button";
 import { parseLawError, parseParamValues } from "@/utils/parsers";
-import { Checks, DataType, InputType, Law } from "@/context/types";
+import { Action, Checks, DataType, InputType, Law, Powers } from "@/context/types";
 import { DynamicInput } from "@/components/DynamicInput";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
-import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { decodeAbiParameters, encodeAbiParameters, parseAbiParameters } from "viem";
 import { SparklesIcon } from "@heroicons/react/24/outline";
+import { hashAction } from "@/utils/hashAction";
+import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+import { useChecks } from "@/hooks/useChecks";
+import { useLaw } from "@/hooks/useLaw";
+import { SimulationBox } from "./SimulationBox";
 
 type DynamicFormProps = {
   law: Law;
@@ -19,18 +24,16 @@ type DynamicFormProps = {
     }[]; 
   status: Status;
   checks: Checks;
-  // onChange: (input: InputType | InputType[]) => void;
-  onChange: () => void;
-  onSimulate: (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => void;
+  onCheck: (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => void;
 };
 
-export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFormProps) {
+export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormProps) {
   const action = useActionStore();
   const error = useErrorStore()
   const dataTypes = params.map(param => param.dataType) 
   const powers = usePowersStore();
-  // console.log("@DynamicForm:", {checks, action})
-  // console.log("@DynamicForm:", {error})
+  const {wallets, ready} = useWallets();
+  const { simulation, simulate } = useLaw();
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
@@ -88,6 +91,70 @@ export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFo
       }
     }  
   }, [law.index, action.callData, action.upToDate])
+
+
+  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    // console.log("Handle Simulate called:", {paramValues, nonce, law})
+    setError({error: null})
+    let lawCalldata: `0x${string}` | undefined
+    // console.log("Handle Simulate waypoint 1")
+    if (paramValues.length > 0 && paramValues) {
+      try {
+        // console.log("Handle Simulate waypoint 2a")
+        lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
+        // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
+      } catch (error) {
+        console.log("Handle Simulate waypoint 2c")
+        setError({error: error as Error})
+      }
+    } else {
+      // console.log("Handle Simulate waypoint 2d")
+      lawCalldata = '0x0'
+    }
+    // resetting store
+    // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
+    if (lawCalldata && ready && wallets && powers?.contractAddress) { 
+      onCheck(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
+      const actionId = hashAction(law.index, lawCalldata, BigInt(action.nonce as string)).toString()
+
+      const newAction: Action = {
+        ...action,
+        actionId: actionId,
+        state: 0, // non existent
+        lawId: law.index,
+        caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
+        dataTypes: law.params?.map(param => param.dataType),
+        paramValues,
+        nonce: nonce.toString(),
+        description,
+        callData: lawCalldata,
+        upToDate: true
+      }
+
+      // console.log("Handle Simulate waypoint 3b")
+      setAction(newAction)
+      // fetchVoteData(newAction, powers as Powers)
+
+      try {
+      // simulating law. 
+        const success = await simulate(
+          wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
+          newAction.callData as `0x${string}`,
+          BigInt(newAction.nonce as string),
+          law
+        )
+        if (success) { 
+          // setAction({...newAction, state: 8})
+          console.log("Handle Simulate", {newAction})
+        }
+        // fetchAction(newAction, powers as Powers, true)
+      } catch (error) {
+        // console.log("Handle Simulate waypoint 3c")
+        setError({error: error as Error})
+      }
+    }
+};
+
 
   return (
     <> 
@@ -163,7 +230,7 @@ export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFo
         </div>
       }
 
-      { !action.upToDate || checks == undefined &&  (
+      { (!action.upToDate || checks == undefined) &&  (
         <div className="w-full flex flex-row justify-center items-center px-6 py-2 pt-6" help-nav-item="run-checks">
           <Button 
             size={0} 
@@ -173,7 +240,7 @@ export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFo
             selected={true}
             onClick={(e) => {
               e.preventDefault();
-              onSimulate(action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
+              handleSimulate(law, action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
             }}
             statusButton={ status == 'success' ? 'idle' : status } > 
             Check 
@@ -182,7 +249,10 @@ export function DynamicForm({law, params, status, checks, onSimulate}: DynamicFo
         )}
       </form>
       }
-      {/* dynamic form end */}
+      
+      { 
+        simulation && action?.upToDate && <SimulationBox law = {law} simulation = {simulation} />
+      } 
 
     </>
   );

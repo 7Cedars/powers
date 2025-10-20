@@ -7,6 +7,7 @@ import HeaderLaw from '@/components/HeaderLaw';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { useBlocks } from '@/hooks/useBlocks';
 import { toEurTimeFormat, toFullDateFormat } from '@/utils/toDates';
+import { useActionStore } from "@/context/store";
 
 type UserItemProps = {
   powers: Powers;
@@ -19,7 +20,7 @@ type UserItemProps = {
 };
 
 export function UserItem({
-  powers, 
+  powers,
   law, 
   actionId,
   chainId, 
@@ -36,6 +37,8 @@ export function UserItem({
     fulfilled: boolean;
   } | null>(null);
   const [executionTimestamp, setExecutionTimestamp] = useState<number | null>(null);
+  const action = useActionStore(); 
+ 
 
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
@@ -147,14 +150,16 @@ export function UserItem({
                 )}
 
                 {/* Proposal status */}
-                {actionId && !executionData && (
+                {/* {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      const proposal = powers?.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
-                      const state = proposal?.state;
+                      // const proposal = powers?.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
+                      
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       
-                      if (state === 0) {
+                      if (state === undefined || state === null) {
+                        return <div className={`${layout} text-slate-500 bg-slate-100`}>Non Existent</div>;
+                      } else if (state === 0) {
                         return <div className={`${layout} text-blue-500 bg-blue-100`}>Active</div>;
                       } else if (state === 3) {
                         return <div className={`${layout} text-green-500 bg-green-100`}>Succeeded</div>;
@@ -167,13 +172,13 @@ export function UserItem({
                       } else if (state === 5) {
                         return <div className={`${layout} text-slate-700 bg-slate-200`}>Fulfilled</div>;
                       } else if (state === 6) {
-                        return <div className={`${layout} text-slate-500 bg-slate-100`}>NonExistent</div>;
+                        return <div className={`${layout} text-slate-500 bg-slate-100`}>Non Existent</div>;
                       } else {
-                        return <div className="text-xs text-slate-500">Loading...</div>;
+                        return <div className="text-xs text-slate-500">Non Existent</div>;
                       }
                     })()}
                   </div>
-                )}
+                )} */}
               </>
             )}
           </div>

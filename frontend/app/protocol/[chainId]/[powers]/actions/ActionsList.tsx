@@ -36,7 +36,7 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
   }
  
   return (
-    <div className="w-full max-w-xl flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
+    <div className="w-full flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
       {/* Status filter bar */}
       <div className="w-full flex flex-row gap-6 justify-between items-center py-4 overflow-y-scroll border-b border-slate-200 px-4">
       {

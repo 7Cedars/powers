@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { LawBox } from "./LawBox";
+import { LawBox } from "../../../../../../components/LawBox";
 import { setAction, setError, useActionStore, useStatusStore } from "@/context/store";
 import { useLaw } from "@/hooks/useLaw";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
@@ -250,17 +250,8 @@ const Page = () => {
           <LawBox 
               powers = {powers as Powers}
               law = {law}
-              checks = {checks as Checks} 
               params = {law.params || []}
-              status = {statusPowers.status}  
-              onPropose = {(paramValues, nonce, description) => handlePropose(paramValues, nonce, description)}
-              simulation = {simulation} 
-              onChange = {() => { 
-                setAction({...action, upToDate: false})
-                }
-              }
-              onSimulate = {(paramValues, nonce, description) => handleSimulate(law, paramValues, nonce, description)} 
-              onExecute = {(paramValues, nonce, description) => handleExecute(law, paramValues, nonce, description)}
+              status = {statusPowers.status}
               /> 
             }
         </div>

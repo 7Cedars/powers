@@ -41,7 +41,7 @@ To establish institutional governance on-chain, a protocol must provide three co
 
 In the Powers protocol, all actions are executed through laws. As illustrated in Figure 1, a law is fundamentally a smart contract that transforms predefined input data into executable `calldata`, granting the role-holder who calls it the power to act on behalf of the organization. This power is carefully constrained by two factors: **degrees of freedom** and **conditional requirements**.  
 
-**![single-flow](/single-action-flow.png)**
+![single-flow](/single-action-flow.png)
 
 **Degrees of freedom** refers to how much influence a user has over the final executable action. A law that takes no input and simply mints 50 tokens to a preset address offers zero degrees of freedom and hence very limited power over the actions of the organisation. In contrast, a law that allows a user to specify any target contract and arbitrary `calldata` grants them full degrees of freedom and absolute power. By defining the scope of user input, laws grant granular levels of powers to specific roles.
 
@@ -50,12 +50,13 @@ In the Powers protocol, all actions are executed through laws. As illustrated in
 ### *Encoding Power Relations Between Roles*
 
 Institutional governance emerges not just from assigning powers, but from encoding the relationships *between* them. In Powers, these relationships are established through **cross-law conditions**, where the execution of one law is made dependent on the state of another. Since laws are role-restricted, this mechanism allows the actions of one role to directly enable or block the actions of another.  
-![][image2]  
+
+*image 2 here*  
 It is possible to create cross-law conditions because the protocol can **trace a single action across multiple laws**. As shown in Figure 2, different laws can be designed to accept the same input data. Although each law may produce different executable `calldata` (or none at all), the fact that the lawId is the only parameter that differs between user inputs, means that it is possible to calculate the actionId of the same input data to different laws.
 
 These links are used to create **cross-law requirements**. By checking whether an action with the same input has been fulfilled at another law, one law can require an action to be *fulfilled* by a different law before it can execute. Conversely, it can be blocked if another law has already fulfilled the action.
 
-![][image3]
+*image 3 here* 
 
 Figure 3 illustrates a simple separation of powers built with this mechanism:
 

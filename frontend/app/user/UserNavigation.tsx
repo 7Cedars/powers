@@ -1,13 +1,16 @@
 'use client'
 
-import React from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
+import { useRouter, usePathname, useParams } from 'next/navigation'
 import Image from 'next/image'
 import { 
   HomeIcon 
 } from '@heroicons/react/24/outline'
 import { ConnectButton } from '../../components/ConnectButton'
 import { BlockCounter } from '../../components/BlockCounter'
+import { usePublicClient } from 'wagmi'
+import { usePowers } from '@/hooks/usePowers'
+import { usePowersStore } from '@/context/store'
 
 const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
 const layoutIcons: string = 'h-6 w-6'
@@ -21,13 +24,7 @@ const userNavigationConfig = [
     label: 'Home',
     icon: HomeIcon,
     path: '/user',
-  },
-  // {
-  //   id: 'settings',
-  //   label: 'Settings',
-  //   icon: BookOpenIcon,
-  //   path: '/user/settings',
-  // }
+  }
 ]
 
 const UserNavigationBar = () => {
@@ -65,6 +62,22 @@ const UserNavigationBar = () => {
 }
 
 const UserHeader = () => {
+  const publicClient = usePublicClient();
+  const [blockNumber, setBlockNumber] = useState<bigint | null>(null);
+  const { fetchPowers } = usePowers();
+  const { powers: powersAddress } = useParams<{ powers: string }>()
+
+  const fetchBlockNumber = async () => {
+    if (!publicClient) return;
+      
+    try {
+      const number = await publicClient.getBlockNumber();
+      setBlockNumber(number);
+    } catch (error) {
+      console.error('Failed to fetch block number:', error);
+      return null;
+    }
+  };
 
   return (
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">
@@ -81,7 +94,12 @@ const UserHeader = () => {
               >
             </Image>
           </a> 
-          <BlockCounter onRefresh={() => {}} blockNumber={BigInt(0)} />
+          <BlockCounter onRefresh={
+            () => {
+              fetchBlockNumber()
+              fetchPowers(powersAddress as `0x${string}`)
+            }
+          } blockNumber={blockNumber} />
         </div>
         
         <div className="flex flex-row gap-2 items-center">
@@ -109,6 +127,15 @@ interface UserNavigationProps {
 }
 
 export const UserNavigation = ({ children }: UserNavigationProps) => {
+  const { fetchPowers } = usePowers();
+  const { powers: powersAddress } = useParams<{ powers: string }>()
+  
+  useEffect(() => {
+    if (powersAddress && powersAddress != `0x0` && powersAddress != undefined) {
+      fetchPowers(powersAddress as `0x${string}`)
+    }
+  }, [powersAddress])
+
   return (
     <div className="w-full h-full flex flex-col justify-center items-center">
       <UserHeader /> 

@@ -273,7 +273,9 @@ info:
 	@echo "Available tests:"
 	@find test/ -name "*.t.sol" -type f 2>/dev/null || echo "No tests found in test/" 
 
-
+update-builds:
+	@echo "Updating builds..."
+	for contract in Powers Law ERC20 ERC721 ERC1155 Ownable Erc20Taxed ERC20Votes Grant Nominees OpenElection SoulboundErc721 Votes; do cp out/${contract}.sol/${contract}.json ../frontend/context/builds/${contract}.json; done
 
 ###############################
 # 		Deploy Commands  	  # 

@@ -8,20 +8,14 @@ import { useRouter } from 'next/navigation'
 import { UserItem } from './UserItem'
 import { bigintToRole } from '@/utils/bigintTo'
 import { default as DynamicThumbnail } from '@/components/DynamicThumbnail'
+import { usePowersStore } from '@/context/store'
 
-interface AboutProps {
-  powers: Powers
-}
-
-export default function About({ powers }: AboutProps) {
-  const chains = useChains()
-  const router = useRouter()
-  const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
+export default function About() {
+  const powers = usePowersStore();
   const [isLawsExpanded, setIsLawsExpanded] = useState(false)
-
-  const handleGovernanceClick = () => {
-    router.push(`/protocol/${Number(powers.chainId)}/${powers.contractAddress}`)
-  }
+  const router = useRouter()
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -164,7 +158,7 @@ export default function About({ powers }: AboutProps) {
           {/* Governance System Button */}
           <div className="w-full mt-6">
             <button
-              onClick={handleGovernanceClick}
+              onClick={() => router.push(`/protocol/${Number(powers.chainId)}/${powers.contractAddress}`)}
               className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200"
             >
               View Governance System

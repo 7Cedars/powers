@@ -196,7 +196,7 @@ const SidePanel = ({ children }: { children: React.ReactNode }) => {
     <>
       {/* Side Panel with content - mid z-index */}
       <div 
-        className="w-full h-full overflow-hidden transition-all duration-300 ease-in-out z-20 flex flex-row-reverse"
+        className="w-full h-full flex-1 flex-row justify-end transition-all duration-300 ease-in-out z-20 flex flex-row-reverse"
         style={{
           width: isCollapsed ? 'min(36px, 100vw)' : 'min(670px, 100vw)',
           height: '100vh',
@@ -205,39 +205,43 @@ const SidePanel = ({ children }: { children: React.ReactNode }) => {
       >
         {/* Collapse/Expand Button */}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`h-full grow bg-slate-100 border-r border-slate-300 transition-all duration-200 flex items-center justify-start`} 
-          title={isCollapsed ? "Expand panel" : "Collapse panel"}
-          style={{
-            // width: isCollapsed ? 'min(32px, 100vw)' : 'min(670px, 100vw)',
-            borderTopRightRadius: '0',
-            borderBottomRightRadius: '0',
-          }}
-        >
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className={`transform transition-transform duration-300 text-slate-600 ${
-              isCollapsed ? 'rotate-0' : 'rotate-180'
-            }`}>
-              <ChevronRightIcon className="w-6 h-6" />
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`h-full flex-shrink-0 bg-slate-100 border-r border-slate-300 transition-all duration-200 flex items-center justify-start`} 
+            style={{
+              width: '36px',  // Fixed width instead of grow
+              minWidth: '36px',
+              flexShrink: 0,  // Prevent it from shrinking
+              borderTopRightRadius: '0',
+              borderBottomRightRadius: '0',
+            }}
+          >
+          
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className={`transform transition-transform duration-300 text-slate-600 ${
+                isCollapsed ? 'rotate-0' : 'rotate-180'
+              }`}>
+                <ChevronRightIcon className="w-6 h-6" />
+              </div>
+            </div>
+          </button>
+
+          {/* Panel Content */}
+          <div 
+            className={`w-full flex flex-col transition-opacity duration-200 bg-slate-100 overflow-hidden ${
+              isCollapsed 
+                ? 'opacity-100 delay-200' 
+                : 'opacity-100 delay-0'
+            }`}
+            style={{
+              width: isCollapsed ? '0px' : 'calc(min(670px, 100vw) - 36px)',
+              height: '100vh'
+            }}  
+          > 
+            <div className="w-full h-full overflow-y-auto">
+              {children}
             </div>
           </div>
-        </button>
-
-        {/* Panel Content */}
-        <div 
-          className={`grow flex flex-col transition-opacity duration-200 bg-slate-100 ${
-            isCollapsed 
-              ? 'opacity-100 delay-200' 
-              : 'opacity-100 delay-0'
-          }`} 
-        > 
-          <div className="flex-1 overflow-y-auto">
-            {children}
           </div>
-        </div>
-
-
-      </div>
       </>
   )
 }
