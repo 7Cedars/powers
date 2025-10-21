@@ -7,3 +7,6 @@
 [submodule "solidity/lib/hats-protocol"]
 	path = solidity/lib/hats-protocol
 	url = https://github.com/Hats-Protocol/hats-protocol
+[submodule "solidity/lib/allo-v2"]
+	path = solidity/lib/allo-v2
+	url = https://github.com/allo-protocol/allo-v2
