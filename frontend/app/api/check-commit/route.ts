@@ -19,16 +19,23 @@ export async function GET(request: NextRequest) {
     const branch = searchParams.get('branch')
     const commitHash = searchParams.get('commitHash')
     const maxAgeCommitInDays = searchParams.get('maxAgeCommitInDays')
+    // MODIFIED: Added new search parameter for the folder
+    const folderName = searchParams.get('folderName') 
     const githubApiKey = process.env.GITHUB_API_KEY
 
-    if (!repo || !branch || !commitHash || !githubApiKey || !maxAgeCommitInDays) {
+    // MODIFIED: Updated validation check
+    if (!repo || !branch || !commitHash || !githubApiKey || !maxAgeCommitInDays || !folderName) {
       return NextResponse.json(
         { 
-          error: "Missing required parameters: repo, branch, commitHash, maxAgeCommitInDays, or GITHUB_API_KEY environment variable" 
+          error: "Missing required parameters: repo, branch, commitHash, maxAgeCommitInDays, folderName, or GITHUB_API_KEY environment variable" 
         },
         { status: 400 }
       )
     }
+
+    // MODIFIED: Normalize folder name to ensure it ends with a slash for accurate path matching
+    const normalizedFolderName = folderName.endsWith('/') ? folderName : `${folderName}/`;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Step 1: Compare the commit hash to the branch to see if it is part of the branch history  // 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,15 +52,13 @@ export async function GET(request: NextRequest) {
     )
 
     if (!compareResponse.ok) {
-      console.log("GitHub API error:", compareResponse.status, compareResponse.statusText)
+      console.log("GitHub API error (compare):", compareResponse.status, compareResponse.statusText)
       return NextResponse.json(
-        { error: `GitHub API returned status ${compareResponse.status}` },
+        { error: `GitHub API (compare) returned status ${compareResponse.status}` },
         { status: compareResponse.status }
       )
     }
 
-    // The status can be 'diverged', 'ahead', 'behind', or 'identical'.
-    // If the commit is behind or identical, it is part of the branch history.
     const compareDataResponse = await compareResponse.json()
     if (compareDataResponse.status !== 'behind' && compareDataResponse.status !== 'identical') {
       console.log(`Commit ${commitHash} is not in the history of branch ${branch}.`);
@@ -64,10 +69,12 @@ export async function GET(request: NextRequest) {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // Step 2: Get the commit data and check if it is older than the max age                      // 
+    // Step 2: Get commit data, check age, AND check file paths                                  // 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // MODIFIED: Changed endpoint from /git/commits/... to /commits/...
     const commitResponse = await fetch(
-      `https://api.github.com/repos/${repo}/git/commits/${commitHash}`,
+      `https://api.github.com/repos/${repo}/commits/${commitHash}`,
       {
         method: 'GET',
         headers: {
@@ -79,17 +86,22 @@ export async function GET(request: NextRequest) {
     )
 
     if (!commitResponse.ok) {
-      console.log("GitHub API error:", commitResponse.status, commitResponse.statusText)
+      console.log("GitHub API error (commit):", commitResponse.status, commitResponse.statusText)
       return NextResponse.json(
-        { error: `GitHub API returned status ${commitResponse.status}` },
+        { error: `GitHub API (commit) returned status ${commitResponse.status}` },
         { status: commitResponse.status }
       )
     }
 
     const commitData = await commitResponse.json()
-    const commitMessage = commitData.message;
-    const commitDate = new Date(commitData.committer.date);
 
+    // MODIFIED: Data structure is different. Message/date are nested under `commit`
+    const commitMessage = commitData.commit.message;
+    const commitDate = new Date(commitData.commit.committer.date);
+    // MODIFIED: Get the files array from the response
+    const filesChanged = commitData.files; 
+
+    // --- Age Check ---
     const commitDateString = new Date(commitDate)
     const now = new Date();
     const ageInMilliseconds = now.getTime() - commitDateString.getTime();
@@ -100,6 +112,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: `Commit ${commitHash} is older than ${maxAgeCommitInDays} days.` },
         { status: 400 }
+      )
+    }
+
+    // --- MODIFIED: New check for folder path ---
+    if (!Array.isArray(filesChanged)) {
+        console.log(`Could not retrieve file list for commit ${commitHash}.`);
+        return NextResponse.json(
+          { error: `Could not retrieve file list for commit ${commitHash}.` },
+          { status: 500 } // This is unexpected, so 500
+        )
+    }
+
+    // Check if at least one file in the commit starts with the specified folder path
+    const modifiedFolder = filesChanged.some(
+      (file: { filename: string }) => file.filename.startsWith(normalizedFolderName)
+    );
+
+    if (!modifiedFolder) {
+      console.log(`Commit ${commitHash} did not modify any files in ${normalizedFolderName}.`);
+      return NextResponse.json(
+        { error: `Commit ${commitHash} did not modify any files in ${normalizedFolderName}.` },
+        { status: 400 } // 400 because the commit doesn't meet our criteria
       )
     }
 
@@ -134,77 +168,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// export async function POST(request: NextRequest) {
-//   try {
-//     const body = await request.json()
-//     const { repo, path, author } = body
-//     const githubApiKey = process.env.GITHUB_API_KEY
-
-//     // Validate inputs
-//     if (!repo || !path || !author || !githubApiKey) {
-//       return NextResponse.json(
-//         { 
-//           error: "Missing required parameters: repo, path, author, or GITHUB_API_KEY environment variable" 
-//         },
-//         { status: 400 }
-//       )
-//     }
-
-//     // Calculate date 90 days ago in ISO 8601 format
-//     const ninetyDaysAgo = new Date()
-//     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
-//     const sinceDate = ninetyDaysAgo.toISOString()
-
-//     console.log(`Searching for commits by ${author} in path "${path}" since ${sinceDate}`)
-
-//     // Make request to GitHub Repository Commits API
-//     const githubResponse = await fetch(
-//       `https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(path)}&since=${encodeURIComponent(sinceDate)}&per_page=100&sort=committer-date&direction=desc`,
-//       {
-//         method: 'GET',
-//         headers: {
-//           'Accept': 'application/vnd.github+json',
-//           'Authorization': `Bearer ${githubApiKey}`,
-//           'X-GitHub-Api-Version': '2022-11-28'
-//         }
-//       }
-//     ) 
-
-//     if (!githubResponse.ok) {
-//       console.log("GitHub API error:", githubResponse.status, githubResponse.statusText)
-//       return NextResponse.json(
-//         { error: `GitHub API returned status ${githubResponse.status}` },
-//         { status: githubResponse.status }
-//       )
-//     }
-
-//     const commits = await githubResponse.json()
-//     const matchingCommits = (commits as GitHubCommit[]).filter((commit) => 
-//       commit.committer && commit.committer.login === author
-//     )
-
-//     console.log(`Found ${matchingCommits.length} commits by ${author} in path "${path}" in the last 90 days`)
-
-//     return NextResponse.json({
-//       success: true,
-//       data: {
-//         commitCount: matchingCommits.length,
-//         searchParams: {
-//           repo,
-//           path,
-//           author,
-//           sinceDate
-//         }
-//       }
-//     })
-
-//   } catch (error) {
-//     console.error('Error fetching GitHub commits:', error)
-//     return NextResponse.json(
-//       { 
-//         error: `Failed to check GitHub commits: ${error instanceof Error ? error.message : 'Unknown error'}` 
-//       },
-//       { status: 500 }
-//     )
-//   }
-// }
+// ... (rest of your file) ...
