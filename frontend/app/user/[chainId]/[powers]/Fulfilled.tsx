@@ -8,6 +8,7 @@ import { Action, Powers } from '@/context/types'
 import { StaticForm } from '@/components/StaticForm'
 import { setAction, usePowersStore } from '@/context/store'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { useChecks } from '@/hooks/useChecks'
 
 export default function Fulfilled() {
   const { chainId } = useParams<{ chainId: string }>()
@@ -17,7 +18,7 @@ export default function Fulfilled() {
   const [actionData, setActionData] = useState<Action | null>(null)
   const [loadingActionData, setLoadingActionData] = useState(false)
   const [itemsToShow, setItemsToShow] = useState(25)
-
+  const { fetchChecks } = useChecks() 
   console.log("@Fulfilled, powers", powers)
 
   const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(a => a?.state === 7) : []
@@ -95,7 +96,7 @@ export default function Fulfilled() {
                     <div className="text-slate-500">Loading action data...</div>
                   </div>
                 ) : actionData && law ? (
-                  <StaticForm law={law} staticDescription={true} />
+                  <StaticForm law={law} staticDescription={true} onCheck={fetchChecks} />
                 ) : (
                   <div className="text-slate-500 italic">No action data available</div>
                 )}

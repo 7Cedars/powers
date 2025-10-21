@@ -52,6 +52,17 @@ contract RoleByGitSignature is Law, FunctionsClient {
         string source; // The Chainlink Functions source code
     }
 
+    // --- Mem struct for handleRequest ---
+    // (This is just to avoid "stack too deep" errors)
+    struct Mem {
+        bytes32 lawHash;
+        Data data;
+        uint256 roleId;
+        string commitHash;
+        uint256 indexPath;
+        string[] args;
+    }
+
     // @notice Stores data about an in-flight request
     struct Request {
         address caller; // The address that initiated the request
@@ -261,7 +272,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
         // --- Signature Verification ---
 
         // 1. Decode the signature (returned as a hex string "0x...")
-        string memory signatureHex = abi.decode(response, (string));
+        string memory signatureHex = abi.decode(abi.encode(response), (string));
         bytes memory signatureBytes = hexStringToBytes(signatureHex);
 
         // 2. Hash the pre-defined message (EIP-191)
@@ -352,14 +363,5 @@ contract RoleByGitSignature is Law, FunctionsClient {
         revert InvalidHexCharacter();
     }
 
-    // --- Mem struct for handleRequest ---
-    // (This is just to avoid "stack too deep" errors)
-    struct Mem {
-        bytes32 lawHash;
-        Data data;
-        uint256 roleId;
-        string commitHash;
-        uint256 indexPath;
-        string[] args;
-    }
+
 }

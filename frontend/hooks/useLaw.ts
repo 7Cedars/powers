@@ -29,6 +29,7 @@ export const useLaw = () => {
     if (statusReceipt === "success") {
       setStatus({status: "success"})
       fetchPowers(addressPowers)
+      
     }
     if (statusReceipt === "error") setStatus({status: "error"})
   }, [statusReceipt])
