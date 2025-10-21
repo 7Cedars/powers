@@ -18,11 +18,11 @@ Currently, deploying Powers is done in three steps.
 
 Let us expand on these steps. All examples are build in Foundry. If you are not familiar with Foundry, please [see the documentation here](https://book.getfoundry.sh/).
 
-{% hint style="info" %}
+:::info
 You can check out your Powers by navigating to https://powers-protocol.vercel.app\[chain id here]\[address of your Powers here].
 
 For example, a Powers implementation ('Powers 101') that is deployed on the optimism sepolia testnet can be viewed at: [https://powers-protocol.vercel.app/11155420/0x1978d642224e047487DFFAb77FAD3B17f068eB79](https://powers-protocol.vercel.app/11155420/0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D)
-{% endhint %}
+:::
 
 ## Step 1: Deploy Powers.sol
 
@@ -47,7 +47,7 @@ Before we can do that, we need to create the constitution of our Powers implemen
 
 A constitution is an array of LawInitData structs, that is used as input for the constitute function.
 
-{% hint style="info" %}
+:::info
 **IMPORTANT!**
 
 As Powers adopts laws, each law is given an **index**. The index starts at 1, **not zero**. The first law to be adopted gets index 1, the second 2, and so on.
@@ -55,7 +55,7 @@ As Powers adopts laws, each law is given an **index**. The index starts at 1, **
 When referring to laws that need to be completed (`conditions.needFulfilled`), can veto (`conditions.needNotFulfilled`) or record state (`conditions.readStateFrom)` we need to refer to the index the law will have in your Powers deployment - not in your LawInitData array!
 
 To avoid confusion, it is easiest to start populating the LawInitData array at position 1 as well, keeping the locations and law indices the same.
-{% endhint %}
+:::
 
 This is the LawInitData struct:
 
@@ -161,7 +161,7 @@ powers.constitute(lawInitData);
 vm.stopBroadcast(); 
 ```
 
-Et voila! You deployed an on-chain Powers :clap:
+Et voila! You deployed an on-chain Powers 👏
 
 ## Example deploy scripts
 
@@ -171,3 +171,4 @@ The deploy scripts for several example Powers implementations can be found at:&#
 * Separated Powers: [https://github.com/7Cedars/powers/blob/main/solidity/script/DeploySeparatedPowers.s.sol](https://github.com/7Cedars/powers/blob/main/solidity/script/DeploySeparatedPowers.s.sol)
 * Managed Grants: [https://github.com/7Cedars/powers/blob/main/solidity/script/DeployManagedGrants.s.sol](https://github.com/7Cedars/powers/blob/main/solidity/script/DeployManagedGrants.s.sol)
 * Governed Upgrades: [https://github.com/7Cedars/powers/blob/main/solidity/script/DeployGovernedUpgrades.s.sol](https://github.com/7Cedars/powers/blob/main/solidity/script/DeployGovernedUpgrades.s.sol)
+
