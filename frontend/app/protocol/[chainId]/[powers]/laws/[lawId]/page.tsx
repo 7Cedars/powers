@@ -1,29 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { LawBox } from "../../../../../../components/LawBox";
+import React, { useEffect } from "react";
+import { LawBox } from "@/components/LawBox";
 import { setAction, setError, useActionStore, useStatusStore } from "@/context/store";
-import { useLaw } from "@/hooks/useLaw";
-import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { InputType, Law, Powers, Checks, Action, ActionVote, Role } from "@/context/types";
-import { useWallets } from "@privy-io/react-auth";
+import { Powers } from "@/context/types";
 import { useParams } from "next/navigation"; 
 import { LawActions } from "./LawActions";
-import { useChecks } from "@/hooks/useChecks";
 import { TitleText } from "@/components/StandardFonts";
-import { hashAction } from "@/utils/hashAction";
 import { Voting } from "@/components/Voting"; 
 import { usePowersStore  } from "@/context/store";
 
 const Page = () => {
-  const {wallets, ready} = useWallets();
   const action = useActionStore();  
   const { lawId } = useParams<{ lawId: string }>()  
   const powers = usePowersStore();
   const statusPowers = useStatusStore();
-
-  const { fetchChecks, checks } = useChecks()
-  const { simulation, simulate, request, propose } = useLaw();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId)) 
   const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action.actionId));
 
@@ -56,124 +47,6 @@ const Page = () => {
     }
   }, [lawId])
 
-  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      // console.log("Handle Simulate called:", {paramValues, nonce, law})
-      setError({error: null})
-      let lawCalldata: `0x${string}` | undefined
-      // console.log("Handle Simulate waypoint 1")
-      if (paramValues.length > 0 && paramValues) {
-        try {
-          // console.log("Handle Simulate waypoint 2a")
-          lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-          // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
-        } catch (error) {
-          console.log("Handle Simulate waypoint 2c")
-          setError({error: error as Error})
-        }
-      } else {
-        // console.log("Handle Simulate waypoint 2d")
-        lawCalldata = '0x0'
-      }
-      // resetting store
-      // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
-      if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-        fetchChecks(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
-        const actionId = hashAction(law.index, lawCalldata, BigInt(action.nonce as string)).toString()
-
-        const newAction: Action = {
-          ...action,
-          actionId: actionId,
-          state: 0, // non existent
-          lawId: law.index,
-          caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
-          dataTypes: law.params?.map(param => param.dataType),
-          paramValues,
-          nonce: nonce.toString(),
-          description,
-          callData: lawCalldata,
-          upToDate: true
-        }
-
-        // console.log("Handle Simulate waypoint 3b")
-        setAction(newAction)
-        // fetchVoteData(newAction, powers as Powers)
-
-        try {
-        // simulating law. 
-          const success = await simulate(
-            wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
-            newAction.callData as `0x${string}`,
-            BigInt(newAction.nonce as string),
-            law
-          )
-          if (success) { 
-            // setAction({...newAction, state: 8})
-            console.log("Handle Simulate", {newAction})
-          }
-          // fetchAction(newAction, powers as Powers, true)
-        } catch (error) {
-          // console.log("Handle Simulate waypoint 3c")
-          setError({error: error as Error})
-        }
-      }
-  };
-
-  const handlePropose = async (paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-    console.log("@handlePropose: waypoint 0", {paramValues, nonce, description})
-    if (!law) return
-    
-    setError({error: null})
-    let lawCalldata: `0x${string}` = '0x0'
-    
-    if (paramValues.length > 0 && paramValues) {
-      try {
-        lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-      } catch (error) {
-        setError({error: error as Error})
-      }
-    } else {
-      lawCalldata = '0x0'
-    }
- 
-    if (lawCalldata && ready && wallets && powers?.contractAddress) {
-      const success = await propose(
-        law.index as bigint,
-        lawCalldata,
-        nonce,
-        description,
-        powers as Powers
-        )
-      // console.log("@handlePropose: waypoint 1", {paramValues, nonce, description})
-    }
-  };
-
-  const handleExecute = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-      // console.log("Handle Execute called:", {paramValues, nonce})
-      setError({error: null})
-      let lawCalldata: `0x${string}` | undefined
-      // console.log("Handle Simulate waypoint 1")
-      if (paramValues.length > 0 && paramValues) {
-        try {
-          // console.log("Handle Simulate waypoint 2a")
-          lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-          // console.log("Handle Simulate waypoint 2b", {lawCalldata})
-        } catch (error) {
-          // console.log("Handle Simulate waypoint 2c")
-          setError({error: error as Error})
-        }
-      } else {
-        // console.log("Handle Simulate waypoint 2d")
-        lawCalldata = '0x0'
-      }
- 
-      const success = await request(
-        law, 
-        lawCalldata as `0x${string}`,
-        nonce,
-        description
-      )
-      console.log("@handleExecute: waypoint 1", {paramValues, nonce, description})
-  };
 
   // resetting DynamicForm and fetching executions when switching laws: 
   useEffect(() => {

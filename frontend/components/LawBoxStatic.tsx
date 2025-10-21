@@ -4,31 +4,26 @@ import React from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains } from 'wagmi'
 import { parseChainId } from "@/utils/parsers";
-import { Checks, DataType, Execution, Law, Powers, Status } from "@/context/types";
+import { Checks, Execution, Law, Powers } from "@/context/types";
 import { useParams } from "next/navigation";
 import HeaderLaw from '@/components/HeaderLaw';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
-import { DynamicForm } from '@/components/DynamicForm';
 import { DynamicActionButton } from "./DynamicActionButton";
+import { StaticForm } from "./StaticForm";
 import { useChecks } from "@/hooks/useChecks";
 
-type LawBoxProps = {
+type LawBoxStaticProps = {
   powers: Powers;
   law: Law;
-  params: {
-    varName: string;
-    dataType: DataType;
-    }[]; 
   selectedExecution?: Execution | undefined;
-  status: Status; 
 };
 
-export function LawBox({powers, law, params, status, selectedExecution }: LawBoxProps) {
+export function LawBoxStatic({powers, law, selectedExecution }: LawBoxStaticProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
-  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
+  const supportedChain = chains.find(chain => chain.id == parseChainId(chainId)) 
   const { fetchChecks, checks } = useChecks();
-
+  
   return (
     <main className="w-full" help-nav-item="law-input">
       <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600 pb-4`} >
@@ -61,7 +56,7 @@ export function LawBox({powers, law, params, status, selectedExecution }: LawBox
       </div>
 
       {/* dynamic form */}
-      <DynamicForm law={law} params={params} status={status} checks={checks as Checks} onCheck={fetchChecks} />
+      <StaticForm law={law} onCheck={fetchChecks} />
 
       {/* Here dynamic button conditional on status of action  */}
       <DynamicActionButton checks={checks as Checks} /> 

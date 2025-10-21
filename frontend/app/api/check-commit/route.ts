@@ -19,15 +19,20 @@ export async function GET(request: NextRequest) {
     const branch = searchParams.get('branch')
     const commitHash = searchParams.get('commitHash')
     const maxAgeCommitInDays = searchParams.get('maxAgeCommitInDays')
+    const githubApiKey = process.env.GITHUB_API_KEY
+    if (!githubApiKey) {
+      return NextResponse.json(
+        { error: "GITHUB_API_KEY environment variable is not set" },
+        { status: 500 }
+      )
+    }
     // MODIFIED: Added new search parameter for the folder
     const folderName = searchParams.get('folderName') 
-    const githubApiKey = process.env.GITHUB_API_KEY
-
     // MODIFIED: Updated validation check
-    if (!repo || !branch || !commitHash || !githubApiKey || !maxAgeCommitInDays || !folderName) {
+    if (!repo || !branch || !commitHash || !maxAgeCommitInDays || !folderName) {
       return NextResponse.json(
         { 
-          error: "Missing required parameters: repo, branch, commitHash, maxAgeCommitInDays, folderName, or GITHUB_API_KEY environment variable" 
+          error: "Missing required parameters: repo, branch, commitHash, maxAgeCommitInDays, or folderName." 
         },
         { status: 400 }
       )
