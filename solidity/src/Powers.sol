@@ -217,6 +217,11 @@ contract Powers is EIP712, IPowers, Context {
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
+            if (returndata.length <= MAX_CALLDATA_LENGTH) {
+                _actions[actionId].returnDatas.push(returndata); 
+            } else {
+                _actions[actionId].returnDatas.push(abi.encode(0));
+            }
         }
 
         // emit event.
@@ -723,6 +728,11 @@ contract Powers is EIP712, IPowers, Context {
     function getActionCalldata(uint256 actionId) public view virtual returns (bytes memory callData) {
         return _actions[actionId].lawCalldata;
     }
+
+    function getActionReturnData(uint256 actionId, uint256 index) public view virtual returns (bytes memory returnData) {
+        return _actions[actionId].returnDatas[index];
+    }
+
 
     function getActionUri(uint256 actionId) public view virtual returns (string memory _uri) {
         _uri = _actions[actionId].uri;

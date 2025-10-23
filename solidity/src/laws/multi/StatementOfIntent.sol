@@ -38,8 +38,8 @@ contract StatementOfIntent is Law {
         public
         override
     {
-        // Set UI-exposed input parameters: targets, values, calldatas
-        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
+        inputParams = config;
+        
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 

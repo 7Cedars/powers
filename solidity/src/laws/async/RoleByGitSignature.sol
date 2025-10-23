@@ -13,6 +13,7 @@ import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/Conf
 import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
 // OpenZeppelin for signature verification
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
@@ -37,7 +38,6 @@ contract RoleByGitSignature is Law, FunctionsClient {
 
     error UnexpectedRequestID(bytes32 requestId);
     error InvalidSignature();
-    error InvalidHexCharacter();
 
     // @notice Configuration data for each instance of the law
     struct Data {
@@ -56,11 +56,18 @@ contract RoleByGitSignature is Law, FunctionsClient {
     // (This is just to avoid "stack too deep" errors)
     struct Mem {
         bytes32 lawHash;
-        Data data;
+        address powers;
+        uint16 lawId;
+        uint256 actionId;
+        string signatureHex;
+        bytes signatureBytes;
+        address caller;
         uint256 roleId;
         string commitHash;
         uint256 indexPath;
         string[] args;
+        bytes callData;
+        bytes32 requestId;
     }
 
     // @notice Stores data about an in-flight request
@@ -77,6 +84,10 @@ contract RoleByGitSignature is Law, FunctionsClient {
     bytes32 public s_lastRequestId;
     bytes public s_lastResponse;
     bytes public s_lastError;
+    bytes32 private s_messageHash;
+    address private s_signer;
+    // note that the repo is hard coded in the source code of this law. This is to avoid having to pass it as a parameter to the law.
+    string internal constant source = "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
 
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 requestId => Request) public requests;
@@ -86,17 +97,15 @@ contract RoleByGitSignature is Law, FunctionsClient {
     constructor(address router) FunctionsClient(router) {
         // Define the parameters required to configure this law
         bytes memory configParams = abi.encode(
-            "string repo",
             "string branch",
             "string[] paths",
             "uint256[] roleIds",
             "string signatureString",
             "uint64 subscriptionId",
             "uint32 gasLimit",
-            "bytes32 donID",
-            "string source" // The JS source code is now part of config
+            "bytes32 donID"
         );
-        emit Law__Deployed(configParams);
+        emit Law__Deployed(configParams);   
     }
 
     // --- Law Initialization ---
@@ -107,35 +116,35 @@ contract RoleByGitSignature is Law, FunctionsClient {
         bytes memory inputParams,
         bytes memory config
     ) public override {
-        // Decode all configuration parameters
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        
+        // Decode all configuration parameters once
         (
-            string memory repo,
             string memory branch,
             string[] memory paths,
             uint256[] memory roleIds,
             string memory signatureString,
             uint64 subscriptionId,
             uint32 gasLimit,
-            bytes32 donID,
-            string memory source
+            bytes32 donID
         ) = abi.decode(
             config,
-            (string, string, string[], uint256[], string, uint64, uint32, bytes32, string)
+            (string, string[], uint256[], string, uint64, uint32, bytes32)
         );
-
-        // Store configuration
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash] = Data({
-            repo: repo,
-            branch: branch,
-            paths: paths,
-            roleIds: roleIds,
-            signatureString: signatureString,
-            subscriptionId: subscriptionId,
-            gasLimit: gasLimit,
-            donID: donID,
-            source: source
-        });
+        
+        // Store in separate scopes to avoid stack too deep
+        {
+            data[lawHash].branch = branch;
+            data[lawHash].paths = paths;
+            data[lawHash].roleIds = roleIds;
+        }
+        
+        {
+            data[lawHash].signatureString = signatureString;
+            data[lawHash].subscriptionId = subscriptionId;
+            data[lawHash].gasLimit = gasLimit;
+            data[lawHash].donID = donID;
+        }
 
         // Set input parameters for UI
         inputParams = abi.encode("uint256 roleId", "string commitHash");
@@ -153,7 +162,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
     ) public view override returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) {
         Mem memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
-        mem.data = data[mem.lawHash];
+        Data memory data_ = data[mem.lawHash];
 
         // Hash the action
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -162,18 +171,13 @@ contract RoleByGitSignature is Law, FunctionsClient {
         (mem.roleId, mem.commitHash) = abi.decode(lawCalldata, (uint256, string));
 
         // Find the folder path associated with the requested roleId
-        mem.indexPath = findIndex(mem.data.roleIds, mem.roleId);
+        mem.indexPath = findIndex(data_.roleIds, mem.roleId);
 
         // Prepare arguments for Chainlink Functions (githubSigs.js)
-        // args[0]: repo
-        // args[1]: branch
-        // args[2]: commitHash
-        // args[3]: folderName (path)
-        mem.args = new string[](4);
-        mem.args[0] = mem.data.repo;
-        mem.args[1] = mem.data.branch;
-        mem.args[2] = mem.commitHash;
-        mem.args[3] = mem.data.paths[mem.indexPath];
+        mem.args = new string[](3);
+        mem.args[0] = data_.branch;
+        mem.args[1] = mem.commitHash;
+        mem.args[2] = data_.paths[mem.indexPath];
 
         // Create empty arrays for the execution plan
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -199,23 +203,26 @@ contract RoleByGitSignature is Law, FunctionsClient {
         bytes[] memory calldatas
     ) internal override {
         // Decode data from handleRequest
-        bytes memory callData = calldatas[0];
-        (uint256 roleId, address caller, address powers, string[] memory args) =
-            abi.decode(callData, (uint256, address, address, string[]));
+        Mem memory mem;
+        mem.lawId = lawId;
+        mem.actionId = actionId;
+        mem.callData = calldatas[0];
+        (mem.roleId, mem.caller, mem.powers, mem.args) =
+            abi.decode(mem.callData, (uint256, address, address, string[]));
 
         // Get law hash
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        mem.lawHash = LawUtilities.hashLaw(mem.powers, mem.lawId);
 
         // Call Chainlink Functions oracle
-        bytes32 requestId = sendRequest(args, lawHash);
+        mem.requestId = sendRequest(mem.args, mem.lawHash);
 
         // Store the request details for fulfillment
-        requests[requestId] = Request({
-            caller: caller, // Store the original caller
-            roleId: roleId,
-            powers: powers,
-            lawId: lawId,
-            actionId: actionId
+        requests[mem.requestId] = Request({
+            caller: mem.caller, // Store the original caller
+            roleId: mem.roleId,
+            powers: mem.powers,
+            lawId: mem.lawId,
+            actionId: mem.actionId
         });
     }
 
@@ -264,31 +271,33 @@ contract RoleByGitSignature is Law, FunctionsClient {
 
         // Get the pending request
         Request memory request = requests[requestId];
+        /// memory helper 
+        Mem memory mem;
 
         // Get the law's config data
-        bytes32 lawHash = LawUtilities.hashLaw(request.powers, request.lawId);
-        Data memory data_ = data[lawHash];
+        mem.lawHash = LawUtilities.hashLaw(request.powers, request.lawId);
+        Data memory data_ = data[mem.lawHash];
 
         // --- Signature Verification ---
 
         // 1. Decode the signature (returned as a hex string "0x...")
-        string memory signatureHex = abi.decode(abi.encode(response), (string));
-        bytes memory signatureBytes = hexStringToBytes(signatureHex);
+        mem.signatureHex = abi.decode(abi.encode(response), (string));
+        mem.signatureBytes = LawUtilities.hexStringToBytes(mem.signatureHex);
 
         // 2. Hash the pre-defined message (EIP-191)
-        bytes32 messageHash = ECDSA.toEthSignedMessageHash(
+        s_messageHash = MessageHashUtils.toEthSignedMessageHash(
             bytes(data_.signatureString)
         );
 
         // 3. Recover the signer's address
-        address signer = messageHash.recover(signatureBytes);
+        s_signer = s_messageHash.recover(mem.signatureBytes);
 
-        if (signer == address(0)) {
+        if (s_signer == address(0)) {
             revert InvalidSignature();
         }
 
         // 4. Check if the signer matches the original caller
-        if (signer == request.caller) {
+        if (s_signer == request.caller) {
             // Success! Prepare the call to assign the role.
             address[] memory targets = new address[](1);
             uint256[] memory values = new uint256[](1);
@@ -335,33 +344,6 @@ contract RoleByGitSignature is Law, FunctionsClient {
 
     // --- Utility Functions ---
 
-    /**
-     * @notice Converts a hex string (e.g., "0x1a2b...") to bytes.
-     * @dev From https://ethereum.stackexchange.com/a/8171
-     */
-    function hexStringToBytes(string memory hex) internal pure returns (bytes memory) {
-        bytes memory bts = new bytes(bytes(hex).length / 2 - 1);
-        for (uint i = 0; i < bts.length; i++) {
-            bts[i] = bytes1(
-                (hexToByte(bytes(hex)[i * 2 + 2]) << 4) |
-                hexToByte(bytes(hex)[i * 2 + 3])
-            );
-        }
-        return bts;
-    }
-
-    function hexToByte(bytes1 b) internal pure returns (uint8) {
-        if (b >= bytes1(uint8(48)) && b <= bytes1(uint8(57))) { // 0-9
-            return uint8(b) - 48;
-        }
-        if (b >= bytes1(uint8(97)) && b <= bytes1(uint8(102))) { // a-f
-            return uint8(b) - 87;
-        }
-        if (b >= bytes1(uint8(65)) && b <= bytes1(uint8(70))) { // A-F
-            return uint8(b) - 55;
-        }
-        revert InvalidHexCharacter();
-    }
 
 
 }

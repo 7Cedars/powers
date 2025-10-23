@@ -22,7 +22,7 @@ import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
 //               CONSTRUCTOR & RECEIVE                      //
 //////////////////////////////////////////////////////////////
 contract DeployTest is TestSetupPowers {
-    function testDeployPowersMock() public view {
+    function testDeployPowersMock() public {
         assertEq(daoMock.name(), "This is a test DAO");
         assertEq(
             daoMock.uri(),

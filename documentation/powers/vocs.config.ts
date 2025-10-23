@@ -17,18 +17,26 @@ export default defineConfig({
       items: [ 
         {
           text: 'White Paper',
-          link: '/white-paper',
+          link: '/for-developers/white-paper',
         },
         { 
           text: 'Architecture', 
-          link: '/to-do', 
+          link: '/for-developers/architecture', 
         }, 
         { 
-          text: 'Preset Multiple Actions', 
+          text: 'Powers.sol', 
           link: '/to-do', 
         },
         { 
-          text: 'Open Action', 
+          text: 'Law.sol', 
+          link: '/to-do', 
+        },
+        { 
+          text: 'Deploy your Powers', 
+          link: '/to-do', 
+        },
+        { 
+          text: 'Creating a law', 
           link: '/to-do', 
         },
       ], 
@@ -43,27 +51,27 @@ export default defineConfig({
           items: [ 
             { 
               text: 'AIAnalysis', 
-              link: '/laws/async/AIAnalysis', 
+              link: '/to-do', 
             },
             { 
               text: 'AiCcipProxy', 
-              link: '/laws/async/AiCcipProxy', 
+              link:'/to-do', 
             },
             { 
               text: 'RoleByGitCommit', 
-              link: '/laws/async/RoleByGitCommit', 
+              link: '/to-do', 
             },
             { 
               text: 'Snapshot_CheckSnapExists', 
-              link: '/laws/async/Snapshot_CheckSnapExists', 
+              link: '/to-do', 
             },
             { 
               text: 'Snapshot_CheckSnapPassed', 
-              link: '/laws/async/Snapshot_CheckSnapPassed', 
+              link: '/to-do', 
             },
             { 
               text: 'ZKPassportSelect', 
-              link: '/laws/async/ZKPassportSelect', 
+              link: '/to-do', 
             },
           ], 
         }, 
@@ -73,39 +81,39 @@ export default defineConfig({
           items: [ 
             { 
               text: 'BuyAccess', 
-              link: '/laws/electoral/BuyAccess', 
+              link: '/to-do', 
             },
             { 
               text: 'ElectionSelect', 
-              link: '/laws/electoral/ElectionSelect', 
+              link: '/to-do', 
             },
             { 
               text: 'NStrikesRevokesRoles', 
-              link: '/laws/electoral/NStrikesRevokesRoles', 
+              link: '/to-do', 
             },
             { 
               text: 'PeerSelect', 
-              link: '/laws/electoral/PeerSelect', 
+              link: '/to-do', 
             },
             { 
               text: 'RenounceRole', 
-              link: '/laws/electoral/RenounceRole', 
+              link: '/to-do', 
             },
             { 
               text: 'RoleByRoles', 
-              link: '/laws/electoral/RoleByRoles', 
+              link: '/to-do', 
             },
             { 
               text: 'SelfSelect', 
-              link: '/laws/electoral/SelfSelect', 
+              link: '/to-do', 
             },
             { 
               text: 'TaxSelect', 
-              link: '/laws/electoral/TaxSelect', 
+              link: '/to-do', 
             },
             { 
               text: 'VoteInOpenElection', 
-              link: '/laws/electoral/VoteInOpenElection', 
+              link: '/to-do', 
             },
           ], 
         }, 
@@ -115,67 +123,82 @@ export default defineConfig({
           items: [ 
             { 
               text: 'AdoptLaws', 
-              link: '/laws/executive/AdoptLaws', 
+              link: '/to-do', 
             },
             { 
-              text: 'GovernorCreateProposal', 
-              link: '/laws/executive/GovernorCreateProposal', 
+              text: 'RevokeLaws', 
+              link: '/to-do', 
             },
             { 
-              text: 'GovernorExecuteProposal', 
-              link: '/laws/executive/GovernorExecuteProposal', 
+              text: 'BespokeActionAdvanced', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'BespokeActionSimple', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'OpenAction', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'PresetMultipleActions', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'PresetSingleAction', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'StatementOfIntent', 
+              link: '/to-do', 
             },
           ], 
         }, 
         { 
-          text: 'Multi', 
+          text: 'Integrations', 
           collapsed: true, 
           items: [ 
+
             { 
-              text: 'BespokeActionAdvanced', 
-              link: '/laws/multi/BespokeActionAdvanced', 
+              text: 'GovernorCreateProposal', 
+              link: '/to-do', 
             },
             { 
-              text: 'BespokeActionSimple', 
-              link: '/laws/multi/BespokeActionSimple', 
+              text: 'GovernorExecuteProposal', 
+              link: '/to-do', 
             },
             { 
-              text: 'OpenAction', 
-              link: '/laws/multi/OpenAction', 
+              text: 'AlloRPFGGovernance', 
+              link: '/to-do', 
             },
             { 
-              text: 'PresetMultipleActions', 
-              link: '/laws/multi/PresetMultipleActions', 
+              text: 'AlloDistribute', 
+              link: '/to-do', 
             },
             { 
-              text: 'PresetSingleAction', 
-              link: '/laws/multi/PresetSingleAction', 
+              text: 'AlloCreateRPGFPool', 
+              link: '/to-do', 
             },
             { 
-              text: 'StatementOfIntent', 
-              link: '/laws/multi/StatementOfIntent', 
+              text: 'RoleByGitCommit', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'Snapshot_CheckSnapExists', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'Snapshot_CheckSnapPassed', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'ZKPassportSelect', 
+              link: '/to-do', 
             },
           ], 
         }, 
       ], 
     }, 
-    { 
-      text: 'Integrations', 
-      collapsed: false, 
-      items: [ 
-        { 
-          text: 'Preset Single Action', 
-          link: '/to-do', 
-        }, 
-        { 
-          text: 'Preset Multiple Actions', 
-          link: '/to-do', 
-        },
-        { 
-          text: 'Open Action', 
-          link: '/to-do', 
-        },
-      ], 
-    } 
   ],
 })

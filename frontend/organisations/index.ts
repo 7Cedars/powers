@@ -1,6 +1,6 @@
 import { Organization } from "./types";
-import { PowerBase } from "./PowerBase";
 import { Powers101 } from "./Powers101";
+import { PowerBase } from "./PowerBase";
 
 /**
  * Registry of all available organizations

@@ -25,9 +25,10 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
 
   const { request, propose } = useLaw();
   const law = powers?.laws?.find((law) => BigInt(law.index) == BigInt(action.lawId));
-  const populatedAction = law?.actions?.find(
+  const savedAction = law?.actions?.find(
     (a) => BigInt(a.actionId) == BigInt(action.actionId)
   );
+  const populatedAction = savedAction?.state == 0 || savedAction?.state == undefined ? action : savedAction;
 
   console.log("DynamicActionButton:", {checks, law, populatedAction, action})
 

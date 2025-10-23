@@ -5,8 +5,10 @@ libs = ["lib"]
 evm_version = "cancun"
 always_use_create_2_factory = true
 memory_limit = 1342177280
-optimizer_runs = 400
+optimizer_runs = 600
 # dynamic_test_linking = true
+# Auto-detect Solidity versions from pragma statements
+auto_detect_solc = true
 
 fs_permissions = [
     { access = "read", path = "./out"},
@@ -14,7 +16,9 @@ fs_permissions = [
 ]
 
 # Remappings for dependencies
+# NOTE: Order matters! More specific remappings should come first
 remappings = [
+    # Your project's remappings (@ prefixed - these take priority)
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "@forge-std/=lib/forge-std/src/",
@@ -23,7 +27,12 @@ remappings = [
     "@chainlink/contracts/=lib/chainlink-evm/contracts", 
     "@chainlink/contracts-ccip/=lib/chainlink-ccip/chains/evm/contracts",
     "@mocks/=test/mocks/",
-    "@multicall3/=lib/multicall3/src/"
+    "@multicall3/=lib/multicall3/src/",
+    # Allo-v2 remappings (non-@ prefixed - for allo-v2 contracts only)
+    "openzeppelin-contracts-upgradeable/=lib/allo-v2/lib/openzeppelin-contracts-upgradeable/",
+    "openzeppelin-contracts/=lib/allo-v2/lib/openzeppelin-contracts/",
+    "solady/=lib/allo-v2/lib/solady/src/",
+    "forge-std/=lib/allo-v2/lib/forge-std/src/"
 ] 
 
 [fmt]

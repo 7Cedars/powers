@@ -28,6 +28,7 @@ export function LawBox({powers, law, params, status, selectedExecution }: LawBox
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { fetchChecks, checks } = useChecks();
+  console.log(checks);
 
   return (
     <main className="w-full" help-nav-item="law-input">

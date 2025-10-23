@@ -205,6 +205,12 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return callData The calldata for the action
     function getActionCalldata(uint256 actionId) external view returns (bytes memory callData);
 
+    /// @notice Gets the return data for a specific action
+    /// @param actionId The unique identifier of the action
+    /// @param index The index of the return data
+    /// @return returnData The return data for the action
+    function getActionReturnData(uint256 actionId, uint256 index) external view returns (bytes memory returnData);
+
     /// @notice Gets the URI for a specific action
     /// @param actionId The unique identifier of the action
     /// @return _uri The URI for the action

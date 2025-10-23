@@ -13,6 +13,7 @@ import { deployContract as wagmiDeployContract, waitForTransactionReceipt, write
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
+import { isDeployableContract, isFunctionCallDependency } from "@/organisations/types";
 import Image from "next/image";
 
 type DeployStatus = {
@@ -31,7 +32,7 @@ export function SectionDeployDemo() {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<Error | null>(null);
-  const [deployedDependencies, setDeployedMocks] = useState<Record<string, `0x${string}`>>({});
+  const [dependencyReceipts, setDependencyReceipts] = useState<Record<string, any>>({});
   const [deployedPowersAddress, setDeployedPowersAddress] = useState<`0x${string}` | undefined>();
   const [constituteCompleted, setConstituteCompleted] = useState(false);
   const [bytecodePowers, setBytecodePowers] = useState<`0x${string}` | undefined>();
@@ -45,6 +46,9 @@ export function SectionDeployDemo() {
   
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
+
+  console.log("@SectionDeployDemo: formData", formData);
+  // console.log("test formData", formData["docsPoolId"]);
 
   // Get available organizations based on localhost condition
   const availableOrganizations = getEnabledOrganizations(isLocalhost);
@@ -65,6 +69,8 @@ export function SectionDeployDemo() {
     setDeployedLaws(data.laws as Record<string, `0x${string}`>);
   }, []);
 
+  // console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
+
   // Switch chain when selected chain changes
   useEffect(() => {
     if (selectedChainId && chain?.id !== selectedChainId) {
@@ -78,6 +84,7 @@ export function SectionDeployDemo() {
   const currentOrg = availableOrganizations[currentOrgIndex];
 
   const handleInputChange = (fieldName: string, value: string) => {
+    console.log("@SectionDeployDemo: handleInputChange", { fieldName, value });
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
@@ -161,14 +168,14 @@ export function SectionDeployDemo() {
       
       await delayIfNeeded();
 
-      // STEP 2: Deploy dependencies (mock contracts)
-      console.log("Step 2: Deploying dependencies...");
+      // STEP 2: Execute dependencies (contract deployments or function calls)
+      console.log("Step 2: Executing dependencies...");
 
-      const deployedDependenciesMap: Record<string, `0x${string}`> = {};
+      const dependencyReceiptsMap: Record<string, any> = {};
 
       for (let i = 0; i < dependencies.length; i++) {
         const dep = dependencies[i];
-        console.log(`Deploying ${dep.name}...`);
+        console.log(`Executing ${dep.name}...`);
         
         setDeployStatus(prev => ({
           ...prev,
@@ -177,26 +184,41 @@ export function SectionDeployDemo() {
           )
         }));
 
-        const mockTxHash = await wagmiDeployContract(wagmiConfig, {
-          abi: dep.abi,
-          bytecode: dep.bytecode,
-          args: dep.args || []
-        });
+        let txHash: `0x${string}`;
+        let receipt: any;
 
-        console.log(`${dep.name} deployment tx:`, mockTxHash);
+        if (isDeployableContract(dep)) {
+          // Deploy contract
+          console.log(`Deploying contract ${dep.name}...`);
+          txHash = await wagmiDeployContract(wagmiConfig, {
+            abi: dep.abi,
+            bytecode: dep.bytecode,
+            args: dep.args || []
+          });
+        } else if (isFunctionCallDependency(dep)) {
+          // Execute function call
+          console.log(`Calling function ${dep.functionName} on ${dep.target}...`);
+          txHash = await writeContract(wagmiConfig, {
+            address: dep.target,
+            abi: dep.abi,
+            functionName: dep.functionName,
+            args: dep.args || []
+          });
+        } else {
+          const depName = (dep as any).name || 'Unknown';
+          throw new Error(`Unknown dependency type for ${depName}`);
+        }
 
-        const mockReceipt = await waitForTransactionReceipt(wagmiConfig, {
-          hash: mockTxHash,
+        console.log(`${dep.name} transaction:`, txHash);
+
+        receipt = await waitForTransactionReceipt(wagmiConfig, {
+          hash: txHash,
           confirmations: isAnvil ? 1 : 2
         });
 
-        const mockAddress = mockReceipt.contractAddress;
-        if (!mockAddress) {
-          throw new Error(`Failed to get ${dep.name} contract address from receipt`);
-        }
-
-        deployedDependenciesMap[dep.name] = mockAddress;
-        console.log(`${dep.name} deployed at:`, mockAddress);
+        // Store the full receipt for later processing
+        dependencyReceiptsMap[dep.name] = receipt;
+        console.log(`${dep.name} executed successfully:`, receipt);
 
         setDeployStatus(prev => ({
           ...prev,
@@ -208,14 +230,16 @@ export function SectionDeployDemo() {
         await delayIfNeeded();
       }
 
-      setDeployedMocks(deployedDependenciesMap);
+      setDependencyReceipts(dependencyReceiptsMap);
 
-      // STEP 3: Create law init data with deployed addresses
-      console.log("Step 3: Creating law init data...");
+      // STEP 3: Create law init data with dependency receipts
+      console.log("Step 3: Creating law init data...", {powersAddress, formData, deployedLaws, dependencyReceiptsMap, selectedChainId});
       const lawInitData = currentOrg.createLawInitData(
         powersAddress,
+        formData,
         deployedLaws,
-        deployedDependenciesMap
+        dependencyReceiptsMap,
+        selectedChainId
       );
       console.log("Law init data created:", lawInitData);
 
@@ -230,8 +254,8 @@ export function SectionDeployDemo() {
       console.log("Calling constitute...");
       setDeployStatus(prev => ({
         ...prev,
-        finalTransactions: prev.finalTransactions.map((tx, idx) =>
-          idx === currentTxIndex ? { ...tx, status: "pending" } : tx
+        finalTransactions: prev.finalTransactions.map((tx) =>
+          tx.name === "Constitute Powers" ? { ...tx, status: "pending" as Status } : tx
         )
       }));
 
@@ -250,20 +274,22 @@ export function SectionDeployDemo() {
       console.log("Constitute completed successfully!", { 
         txHash: constituteTxHash, 
         status: constituteReceipt.status,
-        currentTxIndex 
+        receipt: constituteReceipt
       });
 
       setDeployStatus(prev => {
         console.log("Updating constitute status to success", { 
-          currentTxIndex, 
+          prevFinalTransactions: prev.finalTransactions,
           totalTransactions: prev.finalTransactions.length 
         });
-        return {
+        const updated = {
           ...prev,
-          finalTransactions: prev.finalTransactions.map((tx, idx) =>
-            idx === currentTxIndex ? { ...tx, status: "success" } : tx
+          finalTransactions: prev.finalTransactions.map((tx) =>
+            tx.name === "Constitute Powers" ? { ...tx, status: "success" as Status } : tx
           )
         };
+        console.log("Updated final transactions:", updated.finalTransactions);
+        return updated;
       });
 
       await delayIfNeeded();
@@ -273,18 +299,34 @@ export function SectionDeployDemo() {
       // 4b: Execute transferOwnership for ownable contracts
       for (const dep of dependencies) {
         if (dep.ownable) {
-          const depAddress = deployedDependenciesMap[dep.name];
-          if (!depAddress) {
-            console.error(`Missing deployed address for ${dep.name}, skipping ownership transfer`);
+          let depAddress: `0x${string}`;
+          
+          if (isDeployableContract(dep)) {
+            // For deployed contracts, get address from receipt
+            const receipt = dependencyReceiptsMap[dep.name];
+            depAddress = receipt.contractAddress;
+            if (!depAddress) {
+              console.error(`Missing contract address in receipt for ${dep.name}, skipping ownership transfer`);
+              continue;
+            }
+          } else if (isFunctionCallDependency(dep)) {
+            // For function calls, use the target address
+            depAddress = dep.target;
+          } else {
+            const depName = (dep as any).name || 'Unknown';
+            console.error(`Unknown dependency type for ${depName}, skipping ownership transfer`);
             continue;
           }
 
           console.log(`Transferring ownership of ${dep.name} to Powers...`);
           
+          const transferTxName = `Transfer ownership: ${dep.name}`;
+          console.log(`Setting ${transferTxName} to pending...`);
+          
           setDeployStatus(prev => ({
             ...prev,
-            finalTransactions: prev.finalTransactions.map((tx, idx) =>
-              idx === currentTxIndex ? { ...tx, status: "pending" } : tx
+            finalTransactions: prev.finalTransactions.map((tx) =>
+              tx.name === transferTxName ? { ...tx, status: "pending" as Status } : tx
             )
           }));
 
@@ -302,12 +344,17 @@ export function SectionDeployDemo() {
           });
           console.log(`${dep.name} ownership transferred:`, transferTxHash);
 
-          setDeployStatus(prev => ({
-            ...prev,
-            finalTransactions: prev.finalTransactions.map((tx, idx) =>
-              idx === currentTxIndex ? { ...tx, status: "success" } : tx
-            )
-          }));
+          console.log(`Setting ${transferTxName} to success...`);
+          setDeployStatus(prev => {
+            const updated = {
+              ...prev,
+              finalTransactions: prev.finalTransactions.map((tx) =>
+                tx.name === transferTxName ? { ...tx, status: "success" as Status } : tx
+              )
+            };
+            console.log(`Updated final transactions after ${transferTxName}:`, updated.finalTransactions);
+            return updated;
+          });
 
           await delayIfNeeded();
           currentTxIndex++;
@@ -351,7 +398,7 @@ export function SectionDeployDemo() {
         return prev;
       });
     }
-  }, [bytecodePowers, selectedChainId, currentOrg, deployedLaws]);
+  }, [bytecodePowers, selectedChainId, currentOrg, deployedLaws, formData]);
 
   const handleSeeYourPowers = () => {
     if (deployedPowersAddress && selectedChainId) {
@@ -364,7 +411,7 @@ export function SectionDeployDemo() {
     setStatus("idle");
     setError(null);
     setDeployedPowersAddress(undefined);
-    setDeployedMocks({});
+    setDependencyReceipts({});
     setFormData({});
     setDeployStatus({
       powersCreate: "idle",
@@ -438,7 +485,7 @@ export function SectionDeployDemo() {
                     alt={`${currentOrg.metadata.title} template`}
                     fill
                     className="rounded-lg"
-                    style={{objectFit: "contain"}}
+                    style={{objectFit: "fill"}}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
@@ -464,7 +511,7 @@ export function SectionDeployDemo() {
                     type={field.type}
                     name={field.name}
                     placeholder={field.placeholder}
-                    className="w-full h-12 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full h-12 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent border border-slate-300"
                     value={formData[field.name] || ''}
                     onChange={(e) => handleInputChange(field.name, e.target.value)}
                     required={field.required}

@@ -1,0 +1,36 @@
+{
+    "icon": "",
+    "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
+    "description": 
+      "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Allo v2 for decentralized grant management and is governed by contributors who are verified via EVM signatures posted in GitHub commits.",
+    "website": "https://powers.docs.vercel.app/",
+    "code-of-conduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
+    "dispute-resolution": "",
+    "communication-channels": [
+      {
+        "discord": "https://discordapp.com/users/1006928106487021638",
+        "telegram": "https://t.me/thd83",
+        "x": "https://x.com/7__Cedars",
+        "paragraph": "https://mirror.xyz/7cedars.eth",
+        "youtube": "",
+        "facebook": "",
+        "github": "https://github.com/7Cedars",
+        "forum": "",
+        "documentation": "https://powers.docs.vercel.app/"
+      }
+    ],
+    "attributes": [
+      {
+        "trait_type": "optional trait 1",
+        "value": "none"
+      },
+      {
+        "trait_type": "optional trait 2",
+        "value": "none"
+      },
+      {
+        "trait_type": "optional trait 3",
+        "value": "none"
+      }
+    ]
+  }

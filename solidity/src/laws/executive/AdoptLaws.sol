@@ -25,16 +25,8 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract AdoptLaws is Law {
-    /// @notice Constructor for AdoptLaws law
-    struct Data {
-        address[] laws;
-        bytes[] lawInitDatas;
-    }
-
-    mapping(bytes32 lawHash => Data data) internal data;
-
     constructor() {
-        bytes memory configParams = abi.encode("address[] laws", "bytes[] lawInitDatas");
+        bytes memory configParams = abi.encode();
         emit Law__Deployed(configParams);
     }
 
@@ -42,13 +34,7 @@ contract AdoptLaws is Law {
         public
         override
     {
-        // Set UI-exposed input parameters: laws and lawInitDatas
-
-        (address[] memory laws_, bytes[] memory lawInitDatas_) = abi.decode(config, (address[], bytes[]));
-        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash] = Data({ laws: laws_, lawInitDatas: lawInitDatas_ });
-
-        inputParams = abi.encode();
+        inputParams = abi.encode("address[] laws", "bytes[] lawInitDatas");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
@@ -62,20 +48,16 @@ contract AdoptLaws is Law {
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        Data memory data_ = data[LawUtilities.hashLaw(powers, lawId)];
+        (address[] memory laws_, bytes[] memory lawInitDatas_) = abi.decode(lawCalldata, (address[], bytes[]));
 
         // Create arrays for the calls to adoptLaw
-        uint256 length = data_.laws.length;
+        uint256 length = laws_.length;
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
         for (uint256 i; i < length; i++) {
-            PowersTypes.LawInitData memory lawInitData = abi.decode(data_.lawInitDatas[i], (PowersTypes.LawInitData));
+            PowersTypes.LawInitData memory lawInitData = abi.decode(lawInitDatas_[i], (PowersTypes.LawInitData));
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
         }
         return (actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 lawHash) public view returns (Data memory) {
-        return data[lawHash];
     }
 }

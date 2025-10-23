@@ -18,7 +18,7 @@ export function AddAsset() {
       {/* Header - matching LogsList.tsx structure */}
       <div className="w-full flex flex-row gap-4 justify-between items-center pt-3 px-4 pb-3">
         <div className="text-slate-800 text-center text-lg">
-          Add Token
+          Add ERC20 Token
         </div>
       </div>
 

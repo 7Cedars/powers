@@ -70,7 +70,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     //////////////////////////////////////////////////////////////
     //                  ROLE CHECKS                              //
     //////////////////////////////////////////////////////////////
-    function testHasRoleCheckPassesWithValidRole() public view {
+    function testHasRoleCheckPassesWithValidRole() public {
         uint32[] memory roles = new uint32[](1);
         roles[0] = uint32(ROLE_ONE);
 

@@ -133,7 +133,7 @@ reset-deps:
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2  --no-git && \
 	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0  --no-git && \
 	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-git && \
-	forge install mds1/multicall3 --no-git
+	forge install allo-protocol/allo-v2 --no-git 
 
 # Documentation
 doc:
@@ -290,14 +290,18 @@ OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --se
 OPT_DEPLOY_ARGS := --rpc-url $(OPT_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(OPTISCAN_API_KEY) --verifier etherscan --chain 10 --verify -vvvv
 MANTLE_SEPOLIA_DEPLOY_ARGS := --rpc-url $(MANTLE_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 5003 --verify -vvvv
 
-anvilTest :; forge test $(ANVIL_ARGS_0)
-arbSepoliaForkedTest :; forge test ${ARB_SEPOLIA_TEST_ARGS}
+anvil-test :; forge test $(ANVIL_ARGS_0)
+arb-sepolia-forked-test :; forge test ${ARB_SEPOLIA_TEST_ARGS}
+
+deploy-allo-anvil:
+	@echo "Deploying Allo..."
+	forge script script/DeployAllo.s.sol:DeployAllo $(ANVIL_ARGS_0) 
 
 # anvil local 
-anvilInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0)
-sepoliaInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
-optSepoliaInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
-arbSepoliaInitialise :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)
+initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0)
+initialise-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
+initialise-op-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
+initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 # optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --verifier etherscan 0x53CB3281823Ea08439Cf9Ac9F403c08FBF94d490 test/mocks/Erc20VotesMock.sol:Erc20VotesMock --watch
 # sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch
