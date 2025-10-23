@@ -34,13 +34,13 @@ export default function Page() {
                     </div>
                 </section> 
 
-                <a className="w-full max-w-3xl flex flex-row justify-center items-center text-center p-4 pb-12 text-2xl text-slate-300 hover:text-slate-100"
+                <a className="w-fit h-fit max-w-3xl flex flex-row justify-center items-center text-center py-3 px-12 text-2xl text-slate-300 hover:text-slate-100 border border-slate-300 hover:border-slate-100 rounded-md text-center"
                     href={`https://powers-docs.vercel.app/for-developers/white-paper`} target="_blank" rel="noopener noreferrer">
-                        Read the white paper 
+                        White paper 
                 </a>
 
                 {/* arrow down */}
-                <div className = "flex flex-col align-center justify-end pb-8"> 
+                <div className = "flex flex-col align-center justify-end pb-8 pt-12"> 
                 <ChevronDownIcon
                     className = "w-16 h-16 text-slate-100" 
                 /> 
