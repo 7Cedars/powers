@@ -16,7 +16,7 @@ const githubRequest = Functions.makeHttpRequest({
     method: "GET",
     headers: {
         'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${secrets.githubApiKey}`,
+        'Authorization': `Bearer ${secrets.githubApiKey}`, 
         'X-GitHub-Api-Version': '2022-11-28'
     },
     params: {

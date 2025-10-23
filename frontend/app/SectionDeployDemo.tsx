@@ -459,7 +459,7 @@ export function SectionDeployDemo() {
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full ${
-                      index === currentOrgIndex ? 'bg-slate-600' : 'bg-slate-300'
+                      index === currentOrgIndex ? 'bg-slate-600' : 'bg-slate-300' 
                     }`}
                   />
                 ))}
