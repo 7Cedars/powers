@@ -34,7 +34,7 @@ export default function Page() {
                     </div>
                 </section> 
 
-                <a className="w-fit h-fit max-w-3xl flex flex-row justify-center items-center text-center py-3 px-12 text-2xl text-slate-300 hover:text-slate-100 border border-slate-300 hover:border-slate-100 rounded-md text-center"
+                <a className="w-fit h-fit max-w-3xl flex flex-row justify-center items-center text-center py-3 px-12 sm:text-2xl text-xl text-slate-300 hover:text-slate-100 border border-slate-300 hover:border-slate-100 rounded-md text-center"
                     href={`https://powers-docs.vercel.app/for-developers/white-paper`} target="_blank" rel="noopener noreferrer">
                         White paper 
                 </a>
