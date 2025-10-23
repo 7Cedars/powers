@@ -31,7 +31,13 @@ This trend, however, exposes the fundamental problem now facing crypto politics:
 What the crypto ecosystem urgently lacks is a protocol for on-chain institutional governance—a system of transparent, enforceable, and programmable rules and processes to direct and control an organization. By enabling communities to encode power relations as modular, role-restricted smart contracts, it becomes possible to formally assign specific powers, create robust on-chain checks and balances, and devolve responsibilities in an accountable manner. Such a framework would allow for the construction of complex, multi-bodied organizations that are not only efficient and agile but also remain true to the foundational ideals of transparency and decentralization that define the blockchain ecosystem.
 
 ## Architecture
-To establish institutional governance on-chain, a protocol must provide three core primitives: the ability to assign powers to specific roles, a mechanism to encode relationships between those roles, and a process for governed reform. The Powers protocol is designed around these principles, using role-restricted smart contracts called "laws" to define and manage power relations within an on-chain organization.
+To establish institutional governance on-chain, a protocol must provide three core primitives: 
+
+1. the ability to assign powers to specific roles 
+2. a mechanism to encode relationships between those roles 
+3. and a process for governed reform. 
+
+The Powers protocol is designed around these principles, using role-restricted smart contracts called "laws" to define and manage power relations within an on-chain organization.
 
 ### Encoding Power Through Laws
 In the Powers protocol, all actions are executed through laws. As illustrated in Figure 1, a law is fundamentally a smart contract that transforms predefined input data into executable calldata, granting the role-holder who calls it the power to act on behalf of the organization. This power is carefully constrained by two factors: degrees of freedom and conditional requirements.

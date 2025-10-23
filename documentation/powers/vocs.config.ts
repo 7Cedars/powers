@@ -200,5 +200,23 @@ export default defineConfig({
         }, 
       ], 
     }, 
+    { 
+      text: 'Organisations', 
+      collapsed: false, 
+      items: [ 
+        {
+          text: 'Power 101',
+          link: '/to-do',
+        },
+        { 
+          text: 'Power Base', 
+          link: '/to-do', 
+        }, 
+        { 
+          text: 'Power To Nouns', 
+          link: '/to-do', 
+        },
+      ], 
+    }, 
   ],
 })

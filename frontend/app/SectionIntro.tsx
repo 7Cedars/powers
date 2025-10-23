@@ -35,7 +35,7 @@ export function SectionIntro() {
           <section className="w-full max-w-4xl flex flex-row justify-center items-center border border-slate-300 hover:border-slate-600 rounded-md bg-slate-100 text-center p-4"> 
               <div className="flex flex-row"> 
                 <a
-                  href={`https://7cedars.gitbook.io/powers-protocol`} target="_blank" rel="noopener noreferrer"
+                  href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"
                   className="text-2xl text-slate-700 font-bold"
                 >
                   Read the documentation

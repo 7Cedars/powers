@@ -45,7 +45,7 @@ export const PowerBase: Organization = {
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
     description: "Power Base uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
     disabled: false,
-    onlyLocalhost: true
+    onlyLocalhost: false
   },
   fields: [
     // Fields needed for RoleByGitSignature
@@ -282,7 +282,7 @@ export const PowerBase: Organization = {
     // Law 20: Assign Contributor Role via Git Signature
     lawCount++;
     lawInitData.push({
-      nameDescription: "Claim Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository, verified by an EVM signature of the the word 'signed' in their commit message. Role id 2 is for contributors to the documentation folder, 3 is for contributors to the frontend, and 4 is for contributors to the protocol one.",
+      nameDescription: "Claim Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository.",
       targetLaw: getLawAddress("RoleByGitSignature", deployedLaws),
       config: encodeAbiParameters(
         [
