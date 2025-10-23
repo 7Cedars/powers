@@ -1,1 +1,41 @@
-# Welcome
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  The Powers protocol is under development. The protocol, app and documentation are a work in progress. They can break at any time.
+</Callout>
+
+# 💪 Welcome to Powers protocol
+
+## What it is
+
+The Powers protocol offers a role-based governance system for on-chain organizations. It allows for the separation and distribution of decision-making power by codifying relationships between stakeholders.
+
+Using Powers, a single decision can be guided through multiple role-restricted modules, with each their own conditional checks and voting mechanisms. Together, the create completely modular, transparent and asynchronous governance paths.
+
+## Components
+
+The protocol combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
+
+* **Powers** manages assigning roles to addresses and governance flows.
+* **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.
+* **Actions** consist of calldata and a unique nonce that is send to a target law.
+
+Crucially, Powers allows the **same action** to be send to **different laws**: the execution of law A can be conditional on the execution of the same action at law B.
+
+## Quick links
+
+* [The white paper](https://powers-docs.vercel.app/for-developers/white-paper)
+* [The github repository](https://github.com/7Cedars/powers)
+* [The Powers app](https://powers-protocol.vercel.app/)
+
+## Use cases
+
+Powers enables a wide range of applications, moving beyond the limitations of monolithic token voting to support sophisticated and resilient organizational structures. The protocol addresses several common challenges in the DAO ecosystem:
+
+**🔐 Devolved Responsibilities**: Establish specialized bodies—such as grants committees, treasury management councils, or technical working groups—by assigning them specific, role-restricted powers. Actions are transparently recorded on-chain, and powers can be modified or revoked by the parent organization at any time, ensuring responsibility comes with direct accountability.
+
+**⚖️ Separation of Powers**: Implement classic checks and balances on-chain, preventing the concentration of power in any single entity. Distribute authority across multiple roles to create robust governance frameworks that are resistant to capture and ensure no single actor can push through decisions unilaterally.
+
+**🌐 Asynchronous Coordination**: Manage interactions that span multiple environments through the protocol's inherently asynchronous architecture. Handle processes involving time delays, external events, or cross-chain communication, enabling true operational coordination between the digital and physical worlds.
+
+**🔄 Gradual Governance Reforms**: Upgrade existing on-chain organizations without requiring complete overhaul. Integrate traditional token-governed DAOs into a Powers system as role-holders, then gradually introduce new roles and devolve responsibilities in a modular fashion, building confidence over time before fully transitioning.

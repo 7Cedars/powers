@@ -2,8 +2,7 @@ import { Organization } from "./types";
 import { powersAbi } from "@/context/abi";
 import { Abi, encodeAbiParameters, encodeFunctionData } from "viem";
 import { minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, getLawAddress } from "./helpers";
-import { LawInitData } from "./types";
-import openElection from "@/context/builds/OpenElection.json"
+import { LawInitData } from "./types"; 
  
 
 /**
@@ -30,21 +29,19 @@ export const Powers101: Organization = {
     onlyLocalhost: false
   },
   fields: [],
-  dependencies: [
-    // {
-    //   name: "Open Election", 
-    //   abi: JSON.parse(JSON.stringify(openElection.abi)) as Abi,
-    //   args: [],
-    //   bytecode: JSON.parse(JSON.stringify(openElection.bytecode.object)) as `0x${string}`,
-    //   ownable: true
-    // }
-  ],
+  dependencies: [ ],
 
-  createLawInitData: (powersAddress: `0x${string}`, deployedLaws: Record<string, `0x${string}`>, deployedDependencies: Record<string, `0x${string}`>): LawInitData[] => {
+  createLawInitData: (
+    powersAddress: `0x${string}`, 
+    formData: Record<string, any>,
+    deployedLaws: Record<string, `0x${string}`>,
+    dependencyReceipts: Record<string, any>,
+    chainId: number,
+  ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
 
-    console.log("deployedLaws", deployedLaws);
-    console.log("deployedDependencies", deployedDependencies);
+    console.log("deployedLaws @Powers101", deployedLaws);
+    console.log("deployedDependencies @Powers101", deployedLaws);
 
     //////////////////////////////////////////////////////////////////
     //                 LAW 1: INITIAL SETUP                         //

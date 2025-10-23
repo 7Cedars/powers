@@ -6,7 +6,7 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demo: "Split Governance",
-    address: "0x024a19ee74c650960b8ff73659a8fa7d16450d68",
+    address: "0x0000000000000000000000000000000000000000",
     chainId: "11155420"
   }, 
   {
@@ -17,7 +17,7 @@ export const useCases = [
     ],
     demo: "Powers 101",
     address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9",
-    chainId: "11155111"
+    chainId: "11155420"
   },  
   {
     title: "Allow granular upgrades",
@@ -26,7 +26,7 @@ export const useCases = [
       "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demo: "Single Upgrades",
-    address: "0x8d02c5be03515c4a6f21e13c1b5ea3ff16c0812b",
+    address: "0x0000000000000000000000000000000000000000",
     chainId: "11155420"
   },
   {
@@ -36,7 +36,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demo: "Managed Grants",
-    address: "0xbc7fed20eeee2369b50e3a76978693fb9f9d1c0b",
+    address: "0x0000000000000000000000000000000000000000",
     chainId: "421614"
   },
   {
@@ -45,7 +45,7 @@ export const useCases = [
       "Build on-chain systems that seamlessly integrate off- and on-chain actions."
     ],
     demo: "Bridging Governance",
-    address: "0x85c910398b1fc2c1ec5859ae5bbe8ea8b952ec00",
+    address: "0x0000000000000000000000000000000000000000",
     chainId: "11155420"
   },
   {
@@ -56,7 +56,7 @@ export const useCases = [
       "Create checks and balances."
     ],
     demo: "Separated Powers",
-    address: "0xA2bC87A810cf3B6B18e4Dc9Fb18bc74640207f15",
+    address: "0x0000000000000000000000000000000000000000",
     chainId: "11155420"
 
   }, 

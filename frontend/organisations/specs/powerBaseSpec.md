@@ -1,351 +1,334 @@
-# Power Base Organisation Specification
+# **Power Base Organisation Specification (Allo v2 Revision)**
 
-## Organisational Structure & Context
+## **Organisational Structure & Context**
 
-### *Vision & Mission*
+### ***Vision & Mission***
 
 Power Base is the non-profit on-chain organisation that shepherds the development of the Powers protocol.
 
-### *Treasury Management*
+### ***Treasury Management***
 
-Its principle task is to distribute funding into three development areas: protocol, frontend, and documentation. It does this through allocating grants in these areas by the people that are active in these areas themselves. Decisions on how to distribute available funds *between* these three areas are taken collectively by members.
+Its principle task is to distribute funding into three development areas: **protocol**, **frontend**, and **documentation**. It does this using Allo v2 pools governed by the Powers protocol. Decisions on how to distribute available funds *between* these three areas are taken collectively by members.
 
-The organization deploys three separate instances of the `Grant.sol` contract (all owned by the Powers.sol instance):
-- **Documentation Grant** - Manages documentation-related grants
-- **Frontend Grant** - Manages frontend development grants  
-- **Protocol Grant** - Manages protocol development grants
+The organization manages three separate Allo v2 pools, each utilizing the DirectGrantsLiteStrategy:
 
-Each Grant instance enforces budget constraints independently and enables milestone-based payouts for its respective development area.
+* **Documentation Pool** \- Manages documentation-related grants. Pool managers are Documentation Contributors (Role 2).  
+* **Frontend Pool** \- Manages frontend development grants. Pool managers are Frontend Contributors (Role 3).  
+* **Protocol Pool** \- Manages protocol development grants. Pool managers are Protocol Contributors (Role 4).
 
-### *Funding Policy*
+Each pool is funded independently based on Member proposals and Admin execution. Grant recipients register with the relevant pool, and allocations are made by the designated Pool Managers (the contributor groups).
 
-The funding policy outlines the distribution of grants across three key development areas: protocol, frontend, and documentation. Decisions regarding the allocation of available funds between these areas are made collectively by active participants. Each development area has its own dedicated Grant.sol instance with independent budgets, ensuring fair distribution and preventing one area from depleting funds intended for others.
+### ***Funding Policy***
 
-## Roles
+The funding policy outlines the distribution of funds into three Allo v2 pools: protocol, frontend, and documentation. Decisions regarding the allocation of available funds *between* these pools are made collectively by Members. Each pool operates independently, ensuring fair distribution and preventing one area from depleting funds intended for others.
 
-| *Role Id* | *Role name* | *Selection criteria.*  |
+## **Roles**
+
+| Role Id | Role name | Selection criteria. |
 | :---- | :---- | :---- |
-| 0 | Admin | Admin role assigned at deployment.  |
-| 1 | Funders | An account that has transferred funds in either native currency or whitelisted token during the last 90 days.  |
-| 2 | Documentation Contributors | An account that has made a contribution to the gitbook folder in the Powers repo during the last 90 days.   |
-| 3 | Frontend Contributors | An account that has made a contribution to the frontend folder in the Powers repo during the last 90 days.   |
-| 4 | Protocol Contributors | An account that has made a contribution to the solidity folder in the Powers repo during the last 90 days.   |
-| 5 | Members | An account that holds role 1, 2, 3 or 4.  |
-| … | Public | Everyone.  |
+| 0 | Admin | Admin role assigned at deployment. |
+| 1 | Funders | An account that has transferred funds in either native currency or whitelisted token during the last 90 days. |
+| 2 | Documentation Contributors | An account that has made a contribution to the gitbook folder in the Powers repo during the last 90 days. Acts as Pool Manager/Allocator for the Documentation Pool. |
+| 3 | Frontend Contributors | An account that has made a contribution to the frontend folder in the Powers repo during the last 90 days. Acts as Pool Manager/Allocator for the Frontend Pool. |
+| 4 | Protocol Contributors | An account that has made a contribution to the solidity folder in the Powers repo during the last 90 days. Acts as Pool Manager/Allocator for the Protocol Pool. |
+| 5 | Members | An account that holds role 1, 2, 3 or 4\. |
+| 6 | Grantees | Accounts registered as recipients in one of the Allo pools. |
+| … | Public | Everyone. |
 
-## On-chain Laws
+## **On-chain Laws**
 
-### *Executive Laws (executing actions)*
+### ***Executive Laws (executing actions)***
 
-#### Budget Management
+#### **Pool Management & Funding**
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+*(Note: Pool creation happens once at setup or via a constitutional process. Funding is ongoing.)*
+
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Members | Propose Documentation Budget | StatementOfIntent.sol | "address TokenAddress", "uint256 Budget" | none | 51% success, 33% quorum, 7 day period |
-| Members | Propose Frontend Budget | StatementOfIntent.sol | "address TokenAddress", "uint256 Budget" | none | 51% success, 33% quorum, 7 day period |
-| Members | Propose Protocol Budget | StatementOfIntent.sol | "address TokenAddress", "uint256 Budget" | none | 51% success, 33% quorum, 7 day period |
-| Funders | Veto Budget Proposal | StatementOfIntent.sol | "address TokenAddress", "uint256 Budget" | none | 66% success, 50% quorum, 3 day period, budget proposal must exist |
-| Admin | Set Documentation Budget | BespokeActionSimple.sol | "address TokenAddress", "uint256 Budget" | `DocsGrant.updateTokenBudget()` | Documentation Budget proposal fulfilled, veto not fulfilled |
-| Admin | Set Frontend Budget | BespokeActionSimple.sol | "address TokenAddress", "uint256 Budget" | `FrontendGrant.updateTokenBudget()` | Frontend Budget proposal fulfilled, veto not fulfilled |
-| Admin | Set Protocol Budget | BespokeActionSimple.sol | "address TokenAddress", "uint256 Budget" | `ProtocolGrant.updateTokenBudget()` | Protocol Budget proposal fulfilled, veto not fulfilled |
-| Admin | Whitelist Token (Docs) | BespokeActionSimple.sol | "address Token" | `DocsGrant.whitelistToken()` | Admin only |
-| Admin | Whitelist Token (Frontend) | BespokeActionSimple.sol | "address Token" | `FrontendGrant.whitelistToken()` | Admin only |
-| Admin | Whitelist Token (Protocol) | BespokeActionSimple.sol | "address Token" | `ProtocolGrant.whitelistToken()` | Admin only |
+| Members | Propose Documentation Funding | StatementOfIntent.sol | "address TokenAddress", "uint256 Amount" | none | 51% success, 33% quorum, 7 day period |
+| Members | Propose Frontend Funding | StatementOfIntent.sol | "address TokenAddress", "uint256 Amount" | none | 51% success, 33% quorum, 7 day period |
+| Members | Propose Protocol Funding | StatementOfIntent.sol | "address TokenAddress", "uint256 Amount" | none | 51% success, 33% quorum, 7 day period |
+| Funders | Veto Funding Proposal | StatementOfIntent.sol | "address TokenAddress", "uint256 Amount" | none | 66% success, 50% quorum, 3 day period, funding proposal must exist |
+| Admin | Fund Documentation Pool | BespokeActionSimple.sol | "address TokenAddress", "uint256 Amount" | Allo.fundPool(docsPoolId, amount) | Documentation Funding proposal fulfilled, veto not fulfilled |
+| Admin | Fund Frontend Pool | BespokeActionSimple.sol | "address TokenAddress", "uint256 Amount" | Allo.fundPool(frontendPoolId, amount) | Frontend Funding proposal fulfilled, veto not fulfilled |
+| Admin | Fund Protocol Pool | BespokeActionSimple.sol | "address TokenAddress", "uint256 Amount" | Allo.fundPool(protocolPoolId, amount) | Protocol Funding proposal fulfilled, veto not fulfilled |
 
-#### Documentation Grants
+#### **Documentation Grants (via Allo Pool)**
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Public | Submit Documentation Grant Proposal | BespokeActionSimple.sol | "string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens" | `DocsGrant.submitProposal()` | Public access |
-| Members | Veto Documentation Grant | StatementOfIntent.sol | "uint256 proposalId" | none | 66% success, 25% quorum, 3 day period |
-| Doc Contributors | Approve Documentation Grant | BespokeActionSimple.sol | "uint256 proposalId" | `DocsGrant.approveProposal()` | 51% success, 50% quorum, 7 day period, proposal must exist, veto not fulfilled |
-| Doc Contributors | Release Documentation Milestone | BespokeActionSimple.sol | "uint256 proposalId", "uint256 milestoneIndex" | `DocsGrant.releaseMilestone()` | Grant approved, milestone block reached |
-| Doc Contributors | Reject Documentation Grant | BespokeActionSimple.sol | "uint256 proposalId" | `DocsGrant.rejectProposal()` | 51% success, 50% quorum, 7 day period |
+| Public | Register as Recipient (Docs) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(docsPoolId, data) | Public access |
+| Members | Veto Recipient Registration (Docs) | StatementOfIntent.sol | "address recipientId" | none | 66% success, 25% quorum, 3 day period. (Note: Enforcement requires off-chain coordination or a subsequent law to remove allocator approval if veto passes after registration) |
+| Doc Contributors | Allocate Funds (Docs) | BespokeActionSimple.sol | "address recipientId", "uint256 amount", "address token" | Allo.allocate(docsPoolId, recipientId, amount, token, address(this)) | Recipient must be registered, Veto not fulfilled (checked off-chain or via conditions if applicable) |
 
-#### Frontend Grants
+#### **Frontend Grants (via Allo Pool)**
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Public | Submit Frontend Grant Proposal | BespokeActionSimple.sol | "string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens" | `FrontendGrant.submitProposal()` | Public access |
-| Members | Veto Frontend Grant | StatementOfIntent.sol | "uint256 proposalId" | none | 66% success, 25% quorum, 3 day period |
-| Frontend Contributors | Approve Frontend Grant | BespokeActionSimple.sol | "uint256 proposalId" | `FrontendGrant.approveProposal()` | 51% success, 50% quorum, 7 day period, proposal must exist, veto not fulfilled |
-| Frontend Contributors | Release Frontend Milestone | BespokeActionSimple.sol | "uint256 proposalId", "uint256 milestoneIndex" | `FrontendGrant.releaseMilestone()` | Grant approved, milestone block reached |
-| Frontend Contributors | Reject Frontend Grant | BespokeActionSimple.sol | "uint256 proposalId" | `FrontendGrant.rejectProposal()` | 51% success, 50% quorum, 7 day period |
+| Public | Register as Recipient (Frontend) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(frontendPoolId, data) | Public access |
+| Members | Veto Recipient Registration (Frontend) | StatementOfIntent.sol | "address recipientId" | none | 66% success, 25% quorum, 3 day period. (Note: Enforcement requires off-chain coordination or a subsequent law) |
+| Frontend Contributors | Allocate Funds (Frontend) | BespokeActionSimple.sol | "address recipientId", "uint256 amount", "address token" | Allo.allocate(frontendPoolId, recipientId, amount, token, address(this)) | Recipient must be registered, Veto not fulfilled |
 
-#### Protocol Grants
+#### **Protocol Grants (via Allo Pool)**
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Public | Submit Protocol Grant Proposal | BespokeActionSimple.sol | "string uri", "uint256[] milestoneBlocks", "uint256[] milestoneAmounts", "address[] tokens" | `ProtocolGrant.submitProposal()` | Public access |
-| Members | Veto Protocol Grant | StatementOfIntent.sol | "uint256 proposalId" | none | 66% success, 25% quorum, 3 day period |
-| Protocol Contributors | Approve Protocol Grant | BespokeActionSimple.sol | "uint256 proposalId" | `ProtocolGrant.approveProposal()` | 51% success, 50% quorum, 7 day period, proposal must exist, veto not fulfilled |
-| Protocol Contributors | Release Protocol Milestone | BespokeActionSimple.sol | "uint256 proposalId", "uint256 milestoneIndex" | `ProtocolGrant.releaseMilestone()` | Grant approved, milestone block reached |
-| Protocol Contributors | Reject Protocol Grant | BespokeActionSimple.sol | "uint256 proposalId" | `ProtocolGrant.rejectProposal()` | 51% success, 50% quorum, 7 day period |
+| Public | Register as Recipient (Protocol) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(protocolPoolId, data) | Public access |
+| Members | Veto Recipient Registration (Protocol) | StatementOfIntent.sol | "address recipientId" | none | 66% success, 25% quorum, 3 day period. (Note: Enforcement requires off-chain coordination or a subsequent law) |
+| Protocol Contributors | Allocate Funds (Protocol) | BespokeActionSimple.sol | "address recipientId", "uint256 amount", "address token" | Allo.allocate(protocolPoolId, recipientId, amount, token, address(this)) | Recipient must be registered, Veto not fulfilled |
 
-### *Electoral Laws (assigning roles)*
+### ***Electoral Laws (assigning roles)***
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+*(Unchanged from original spec)*
+
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Github to EVM | StringToAddress.sol | "string githubUsername" | Maps GitHub to EVM address | Public access |
-| Public | Github to Role | RoleByGitCommit.sol | | Assigns roles 2, 3, 4 | Github to EVM mapping must exist |
+| Public | Github to Role | RoleByGitCommit.sol |  | Assigns roles 2, 3, 4 | Github to EVM mapping must exist |
 | Public | Fund Development | BuyAccess.sol | "uint256 amount" | Assigns role 1 (Funder) | Public access, requires token transfer |
-| Public | Apply for Membership | RoleByRoles.sol | | Assigns role 5 (Member) | Must have role 1, 2, 3, or 4 |
+| Public | Apply for Membership | RoleByRoles.sol |  | Assigns role 5 (Member) | Must have role 1, 2, 3, or 4 |
 | Members | Remove Role | DirectDeselect.sol | "address[] accounts", "uint256 roleId" | Revokes role from accounts | 51% success, 5% quorum, 5 day period, 5 day delay, not vetoed |
 | Admin | Veto Role Revocation | StatementOfIntent.sol | "address[] accounts" | none | Admin only |
 
-### *Constitutional Laws (adopting and revoking laws)*
+### ***Constitutional Laws (adopting and revoking laws)***
 
-| *Role* | *Name & Description* | *Base contract* | *User Input* | *Executable Output* | *Conditions* |
+*(Unchanged from original spec)*
+
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Propose Law Package | StatementOfIntent.sol | "address[] laws", "bytes[] lawInitDatas" | none | 51% success, 50% quorum, 7 day period |
 | Funders | Veto Law Package | StatementOfIntent.sol | "address[] laws", "bytes[] lawInitDatas" | none | 33% success, 50% quorum, 3 day period, proposal must exist |
 | Admin | Adopt Law Package | AdoptLaws.sol | (from proposal) | Adopts new laws | Proposal fulfilled, veto not fulfilled |
 
-## Off-chain Operations
+## **Off-chain Operations**
 
-### *Dispute Resolution*
+*(Largely unchanged, references updated)*
 
-Disputes regarding ambiguous law conditions or malicious actions by role-holders will be addressed through community discussion in the official communication channels, with final arbitration by the Admin role if consensus cannot be reached.
+### ***Dispute Resolution***
 
-### *Code of Conduct / Ethics*
+Disputes regarding ambiguous law conditions, Allo pool operations, or malicious actions by role-holders will be addressed through community discussion in the official communication channels, with final arbitration by the Admin role if consensus cannot be reached.
 
-All participants are expected to act in good faith to further the mission of Power Base. This includes respectful communication, constructive feedback, and responsible use of powers. Grant proposals should clearly articulate their value to the project and include realistic milestones.
+### ***Code of Conduct / Ethics***
 
-### *Communication Channels*
+All participants are expected to act in good faith to further the mission of Power Base. This includes respectful communication, constructive feedback, and responsible use of powers. Grant applications (recipient registrations) should clearly articulate their value and include realistic goals. Allocators (Contributor groups) should review registrations diligently.
 
-Official proposals, discussions, and announcements take place on the Power Base Discord server and community forum. Grant proposals should be discussed in these channels before submission.
+### ***Communication Channels***
 
-### *Budget Proposal Coordination*
+Official proposals, discussions, and announcements take place on the Power Base Discord server and community forum. Recipient registrations should be discussed in these channels before submission.
 
-While budget proposals are submitted as three separate on-chain laws (one per development area), the community is encouraged to discuss and coordinate budget allocation across all three areas in off-chain channels before submitting proposals. This ensures balanced funding distribution that reflects the collective priorities of the organization.
+### ***Budget Proposal Coordination***
 
-## Description of Governance
+While funding proposals are submitted as three separate on-chain laws (one per development area), the community is encouraged to discuss and coordinate funding allocation across all three areas in off-chain channels before submitting proposals. This ensures balanced funding distribution that reflects the collective priorities of the organization.
 
-Power Base is a decentralized organization focused on the development of the Powers protocol. Its governance model is designed to empower contributors and stakeholders.
+## **Description of Governance**
 
-*   **Remit**: The primary function is to manage and distribute funds for protocol, frontend, and documentation development through a milestone-based grant system. Three separate `Grant.sol` contract instances provide independent treasuries for each development area.
-*   **Roles**: Roles are assigned based on contributions. Committing code to relevant repositories grants contributor roles for Documentation, Frontend, or Protocol. Funding the DAO grants a Funder role. Having any of these roles makes one a Member. An Admin role manages core functions.
-*   **Executive Paths**: Key processes are governed by on-chain laws that interact with three separate Grant.sol instances:
-    - **Budget Setting**: Members propose budgets for each development area separately (maintaining collective responsibility through the Member role), Funders can veto any proposal, and Admins execute the budget updates to each Grant instance
-    - **Grant Lifecycle**: Anyone can submit proposals to the relevant Grant instance, Members can veto, and the relevant contributor group approves grants and releases milestone payments
-    - **Token Management**: Admins manage the whitelist of acceptable ERC20 tokens on each Grant instance
-*   **Summary**: The governance structure leverages three separate `Grant.sol` contracts as secure, budget-constrained treasuries that enforce milestone-based disbursements. Each development area has its own dedicated Grant instance with independent budgets, ensuring fair distribution between areas. The Powers protocol provides the governance layer that determines who can perform which operations on each Grant contract, creating a complete decentralized grant management system.
+Power Base is a decentralized organization focused on the development of the Powers protocol, now utilizing Allo v2 for grant distribution.
 
-## Governance Flow Diagrams
+* **Remit**: The primary function is to manage and distribute funds for protocol, frontend, and documentation development via three dedicated Allo v2 pools using the DirectGrantsLiteStrategy.  
+* **Roles**: Roles are assigned based on contributions (code commits for Contributors, funding for Funders). Contributor groups (Docs, Frontend, Protocol) act as allocators for their respective Allo pools. Having any contributor or funder role makes one a Member. An Admin role manages core functions.  
+* **Executive Paths**: Key processes are governed by on-chain laws interacting with the Allo v2 contract:  
+  * **Pool Funding**: Members propose funding amounts for each pool separately, Funders can veto any proposal, and Admins execute the funding via Allo.fundPool.  
+  * **Grant Lifecycle**: Anyone can register as a recipient in a relevant pool (Allo.registerRecipient), Members can signal intent to veto, and the relevant Contributor group (acting as allocators) approves and sends funds by calling Allo.allocate.  
+* **Summary**: The governance structure leverages Allo v2 pools (DirectGrantsLiteStrategy) as secure, independently funded mechanisms for grant distribution. The Powers protocol provides the governance layer determining who proposes funding, who executes funding, who can register, and who allocates funds within each pool, creating a complete decentralized grant management system.
 
-### Budget Process
+## **Governance Flow Diagrams**
+
+### **Pool Funding Process**
 
 ```mermaid
-flowchart TB
-    RM(( Members )):::user0
-    RF(( Funders )):::user1
-    RAdmin(( Admin )):::user5
-    
-    DocsGrant[(Docs Grant)]:::contract
-    FrontendGrant[(Frontend Grant)]:::contract
-    ProtocolGrant[(Protocol Grant)]:::contract
+flowchart TB  
+    RM(( Members )):::user0  
+    RF(( Funders )):::user1  
+    RAdmin(( Admin )):::user5  
+      
+    Allo[(Allo V2)]:::contract  
+    DocsPool([Docs Pool]):::pool  
+    FrontendPool([Frontend Pool]):::pool  
+    ProtocolPool([Protocol Pool]):::pool
 
-    A1[#2 Propose Docs Budget]
-    A2[#3 Propose Frontend Budget]
-    A3[#4 Propose Protocol Budget]
-    B[#5 Veto Budget]
-    C1[#6 Set Docs Budget]
-    C2[#7 Set Frontend Budget]
-    C3[#8 Set Protocol Budget]
-    D1[#9 Whitelist Token Docs]
-    D2[#10 Whitelist Token Frontend]
-    D3[#11 Whitelist Token Protocol]
+    A1[Propose Docs Funding]  
+    A2[Propose Frontend Funding]  
+    A3[Propose Protocol Funding]  
+    B[Veto Funding]  
+    C1[Fund Docs Pool]  
+    C2[Fund Frontend Pool]  
+    C3[Fund Protocol Pool]
 
-    RM -- Vote 51% success 33% quorum --> A1
-    RM -- Vote 51% success 33% quorum --> A2
-    RM -- Vote 51% success 33% quorum --> A3
-    RF -- Veto 66% success 50% quorum --> B
-    RAdmin -- Execute --> C1
-    RAdmin -- Execute --> C2
+    RM -- Vote 51% success 33% quorum --> A1  
+    RM -- Vote 51% success 33% quorum --> A2  
+    RM -- Vote 51% success 33% quorum --> A3  
+    RF -- Veto 66% success 50% quorum --> B  
+    RAdmin -- Execute --> C1  
+    RAdmin -- Execute --> C2  
     RAdmin -- Execute --> C3
-    RAdmin -- Execute --> D1
-    RAdmin -- Execute --> D2
-    RAdmin -- Execute --> D3
 
-    A1 -- enables --> B
-    A2 -- enables --> B
-    A3 -- enables --> B
-    A1 -- enables --> C1
-    A2 -- enables --> C2
-    A3 -- enables --> C3
-    B -- blocks --> C1
-    B -- blocks --> C2
-    B -- blocks --> C3
-    
-    C1 -- updateTokenBudget --> DocsGrant
-    C2 -- updateTokenBudget --> FrontendGrant
-    C3 -- updateTokenBudget --> ProtocolGrant
-    D1 -- whitelistToken --> DocsGrant
-    D2 -- whitelistToken --> FrontendGrant
-    D3 -- whitelistToken --> ProtocolGrant
+    A1 -- enables --> B  
+    A2 -- enables --> B  
+    A3 -- enables --> B  
+    A1 -- enables --> C1  
+    A2 -- enables --> C2  
+    A3 -- enables --> C3  
+    B -- blocks --> C1  
+    B -- blocks --> C2  
+    B -- blocks --> C3  
+      
+    C1 -- calls Allo.fundPool --> Allo -- funds --> DocsPool  
+    C2 -- calls Allo.fundPool --> Allo -- funds --> FrontendPool  
+    C3 -- calls Allo.fundPool --> Allo -- funds --> ProtocolPool
 
-    classDef user0 fill:#8dcfec
-    classDef user1 fill:#f8d568
-    classDef user5 fill:#ffcdd2
-    classDef contract fill:#ffd700,stroke:#333,stroke-width:3px
+    classDef user0 fill:#8dcfec  
+    classDef user1 fill:#f8d568  
+    classDef user5 fill:#ffcdd2  
+    classDef contract fill:#90caf9,stroke:\#333,stroke-width:2px  
+    classDef pool fill:#a5d6a7,stroke:\#333,stroke-width:2px
 ```
 
-### Documentation Grant Process
-
+### **Documentation Grant Process (Allo V2)**
 ```mermaid
-flowchart LR
-    RPublic(( Public )):::user7
-    RM(( Members )):::user0
-    RDoc(( Doc Contrib. )):::user2
-    DocsGrant[(Docs Grant)]:::contract
 
-    A[Submit Proposal]
-    B[Veto Proposal]
-    C[Approve Grant]
-    D[Release Milestone]
-    E[Reject Grant]
+flowchart LR  
+    RPublic(( Public )):::user7  
+    RM(( Members )):::user0  
+    RDoc(( Doc Contrib. )):::user2  
+    Allo[(Allo V2)]:::contract  
+    DocsPool([Docs Pool]):::pool
 
-    RPublic -- Submit --> A
-    RM -- Veto Vote 66%/25% --> B
-    RDoc -- Approve Vote 51%/50% --> C
-    RDoc -- Execute --> D
-    RDoc -- Reject Vote 51%/50% --> E
+    A[Register Recipient]  
+    B[Veto Recipient]  
+    C[Allocate Funds]
 
-    A -- enables --> B
-    A -- enables --> C
-    A -- enables --> E
-    B -- blocks --> C
-    C -- calls approveProposal --> DocsGrant
-    C -- enables --> D
-    D -- calls releaseMilestone --> DocsGrant
-    E -- calls rejectProposal --> DocsGrant
+    RPublic -- Submit --> A  
+    RM -- Veto Vote 66%/25% --> B  
+    RDoc -- Execute --> C
 
-    classDef user0 fill:#8dcfec
-    classDef user2 fill:#b3e5fc
-    classDef user7 fill:#e0e0e0
-    classDef contract fill:#ffd700,stroke:#333,stroke-width:3px
+    A -- calls Allo.registerRecipient --> Allo -- registers in --> DocsPool  
+    A -- enables --> B  
+    A -- enables --> C  
+    B -- signals disapproval --> C  
+    C -- calls Allo.allocate --> Allo -- allocates from --> DocsPool
+
+    classDef user0 fill:#8dcfec  
+    classDef user2 fill:#b3e5fc  
+    classDef user7 fill:#e0e0e0  
+    classDef contract fill:#90caf9,stroke:\#333,stroke-width:2px  
+    classDef pool fill:#a5d6a7,stroke:\#333,stroke-width:2px
 ```
 
-### Frontend Grant Process
+### **Frontend Grant Process (Allo V2)**
+
 
 ```mermaid
-flowchart LR
-    RPublic(( Public )):::user7
-    RM(( Members )):::user0
-    RFe(( Frontend Contrib. )):::user3
-    FrontendGrant[(Frontend Grant)]:::contract
+flowchart LR  
+    RPublic(( Public )):::user7  
+    RM(( Members )):::user0  
+    RFe(( Frontend Contrib. )):::user3  
+    Allo[(Allo V2)]:::contract  
+    FrontendPool([Frontend Pool]):::pool
 
-    A[Submit Proposal]
-    B[Veto Proposal]
-    C[Approve Grant]
-    D[Release Milestone]
-    E[Reject Grant]
+    A[Register Recipient]  
+    B[Veto Recipient]  
+    C[Allocate Funds]
 
-    RPublic -- Submit --> A
-    RM -- Veto Vote 66%/25% --> B
-    RFe -- Approve Vote 51%/50% --> C
-    RFe -- Execute --> D
-    RFe -- Reject Vote 51%/50% --> E
+    RPublic -- Submit --> A  
+    RM -- Veto Vote 66%/25% --> B  
+    RFe -- Execute --> C
 
-    A -- enables --> B
-    A -- enables --> C
-    A -- enables --> E
-    B -- blocks --> C
-    C -- calls approveProposal --> FrontendGrant
-    C -- enables --> D
-    D -- calls releaseMilestone --> FrontendGrant
-    E -- calls rejectProposal --> FrontendGrant
+    A -- calls Allo.registerRecipient --> Allo -- registers in --> FrontendPool  
+    A -- enables --> B  
+    A -- enables --> C  
+    B -- signals disapproval --> C  
+    C -- calls Allo.allocate --> Allo -- allocates from --> FrontendPool
 
-    classDef user0 fill:#8dcfec
-    classDef user3 fill:#c8e6c9
-    classDef user7 fill:#e0e0e0
-    classDef contract fill:#ffd700,stroke:#333,stroke-width:3px
+    classDef user0 fill:#8dcfec  
+    classDef user3 fill:#c8e6c9  
+    classDef user7 fill:#e0e0e0  
+    classDef contract fill:#90caf9,stroke:\#333,stroke-width:2px  
+    classDef pool fill:#a5d6a7,stroke:\#333,stroke-width:2px
 ```
 
-### Protocol Grant Process
+### **Protocol Grant Process (Allo V2)**
 
 ```mermaid
-flowchart LR
-    RPublic(( Public )):::user7
-    RM(( Members )):::user0
-    RProto(( Protocol Contrib. )):::user4
-    ProtocolGrant[(Protocol Grant)]:::contract
+flowchart LR  
+    RPublic(( Public )):::user7  
+    RM(( Members )):::user0  
+    RProto(( Protocol Contrib. )):::user4  
+    Allo[(Allo V2)]:::contract  
+    ProtocolPool([Protocol Pool]):::pool
 
-    A[Submit Proposal]
-    B[Veto Proposal]
-    C[Approve Grant]
-    D[Release Milestone]
-    E[Reject Grant]
+    A[Register Recipient]  
+    B[Veto Recipient]  
+    C[Allocate Funds]
 
-    RPublic -- Submit --> A
-    RM -- Veto Vote 66%/25% --> B
-    RProto -- Approve Vote 51%/50% --> C
-    RProto -- Execute --> D
-    RProto -- Reject Vote 51%/50% --> E
+    RPublic -- Submit --> A  
+    RM -- Veto Vote 66%/25% --> B  
+    RProto -- Execute --> C
 
-    A -- enables --> B
-    A -- enables --> C
-    A -- enables --> E
-    B -- blocks --> C
-    C -- calls approveProposal --> ProtocolGrant
-    C -- enables --> D
-    D -- calls releaseMilestone --> ProtocolGrant
-    E -- calls rejectProposal --> ProtocolGrant
+    A -- calls Allo.registerRecipient --> Allo -- registers in --> ProtocolPool  
+    A -- enables --> B  
+    A -- enables --> C  
+    B -- signals disapproval --> C  
+    C -- calls Allo.allocate --> Allo -- allocates from --> ProtocolPool
 
-    classDef user0 fill:#8dcfec
-    classDef user4 fill:#d1c4e9
-    classDef user7 fill:#e0e0e0
-    classDef contract fill:#ffd700,stroke:#333,stroke-width:3px
+    classDef user0 fill:#8dcfec  
+    classDef user4 fill:#d1c4e9  
+    classDef user7 fill:#e0e0e0  
+    classDef contract fill:#90caf9,stroke:\#333,stroke-width:2px  
+    classDef pool fill:#a5d6a7,stroke:\#333,stroke-width:2px
 ```
 
-### Constitutional Process
+### **Constitutional Process**
+
+*(Unchanged from original spec)*
 
 ```mermaid
-flowchart LR
-    RM(( Members )):::user0
-    RF(( Funders )):::user1
+
+flowchart LR  
+    RM(( Members )):::user0  
+    RF(( Funders )):::user1  
     RAdmin(( Admin )):::user5
 
-    I[Propose Law Package]
-    J[Veto Law Package]
+    I[Propose Law Package]  
+    J[Veto Law Package]  
     K[Adopt Law Package]
 
-    RM -- Vote 51% success 50% quorum --> I
-    RF -- Veto 33% success 50% quorum --> J
+    RM -- Vote 51% success 50% quorum --> I  
+    RF -- Veto 33% success 50% quorum --> J  
     RAdmin -- Execute --> K
 
-    I -- enables --> J
-    I -- enables --> K
+    I -- enables --> J  
+    I -- enables --> K  
     J -- blocks --> K
 
-    classDef user0 fill:#8dcfec
-    classDef user1 fill:#f8d568
+    classDef user0 fill:#8dcfec  
+    classDef user1 fill:#f8d568  
     classDef user5 fill:#ffcdd2
 ```
 
-### Electoral Process
+### **Electoral Process**
 
 ```mermaid
-flowchart LR
-    RPublic(( Public )):::user7
-    RM(( Members )):::user0
+flowchart LR  
+    RPublic(( Public )):::user7  
+    RM(( Members )):::user0  
     RAdmin(( Admin )):::user5
 
-    L[Assign Contributor Roles]
-    M[Assign Funder Role]
-    N[Assign Member Role]
-    O[Revoke Role]
+    L[Assign Contributor Roles]  
+    M[Assign Funder Role]  
+    N[Assign Member Role]  
+    O[Revoke Role]  
     P[Veto Role Revocation]
 
-    RPublic -- On-chain action --> L
-    RPublic -- On-chain action --> M
-    RPublic -- On-chain action --> N
-    RM -- Vote 51% success 5% quorum --> O
+    RPublic -- On-chain action --> L  
+    RPublic -- On-chain action --> M  
+    RPublic -- On-chain action --> N  
+    RM -- Vote 51% success 5% quorum --> O  
     RAdmin -- Veto --> P
 
     P -- blocks --> O
 
-    classDef user0 fill:#8dcfec
-    classDef user5 fill:#ffcdd2
+    classDef user0 fill:#8dcfec  
+    classDef user5 fill:#ffcdd2  
     classDef user7 fill:#e0e0e0
-```
+``` 
+

@@ -94,9 +94,10 @@ export const isValidAddress = (address: string): boolean => {
 };
 
 export const getLawAddress = (name: string, deployedLaws: Record<string, `0x${string}`>): `0x${string}` => {
+  
   const law = deployedLaws[name];
   if (!law) {
-    throw new Error(`Error finding law address for: ${name}`);
+    throw new Error(`Error finding law address for: ${name} with deployedLaws: ${JSON.stringify(deployedLaws)}`);
   }
   return law;
 } 

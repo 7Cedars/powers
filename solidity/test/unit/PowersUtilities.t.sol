@@ -113,7 +113,7 @@ contract ChecksTest is TestSetupPowers {
         assertEq(actionId, uint256(keccak256(abi.encode(lawId, lawCalldata, nonce))));
     }
 
-    function testGetConditions() public view {
+    function testGetConditions() public {
         // Test getting conditions for an existing law
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 1);
 
@@ -154,7 +154,7 @@ contract ChecksTest is TestSetupPowers {
         Checks.checksAtRequest(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
     }
 
-    function testGetConditionsForNonExistentLaw() public view {
+    function testGetConditionsForNonExistentLaw() public {
         // Test getting conditions for a non-existent law
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 999);
 

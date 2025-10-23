@@ -124,17 +124,19 @@ const Header = () => {
   const publicClient = usePublicClient();
   const [blockNumber, setBlockNumber] = useState<bigint | null>(null);
 
-  const fetchBlockNumber = async () => {
-    if (!publicClient) return;
-    
-    try {
-      const number = await publicClient.getBlockNumber();
-      setBlockNumber(number);
-    } catch (error) {
-      console.error('Failed to fetch block number:', error);
-      return null;
+  useEffect(() => {
+    const fetchBlockNumber = async () => {
+      if (powers)  
+      try {
+        const number = await publicClient?.getBlockNumber() ?? null;
+        setBlockNumber(number as bigint);
+      } catch (error) {
+        console.error('Failed to fetch block number:', error);
+        return null;
+      }
     }
-  };
+    fetchBlockNumber();
+  }, [publicClient, powers])
 
   console.log("@HEADER:", {powersAddress, status: statusPowers.status, error: errorPowers.error, action: action, powers: powers})
 
@@ -155,7 +157,7 @@ const Header = () => {
         </a> 
         <BlockCounter onRefresh={() => {
           fetchPowers(powersAddress as `0x${string}`);
-          fetchBlockNumber();
+          // fetchBlockNumber();
         }} blockNumber={blockNumber} />
         {/* <button
           onClick={() => fetchPowers(powersAddress as `0x${string}`)}

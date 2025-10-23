@@ -34,7 +34,7 @@ contract Erc20DelegateElectionTest is TestSetupPowers {
         delegateElection = Erc20DelegateElection(mockAddresses[10]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(address(delegateElection.owner()), address(daoMock));
     }
 
@@ -179,7 +179,7 @@ contract FlagActionsTest is TestSetupPowers {
         );
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(flagActions.owner(), address(daoMock));
     }
 
@@ -536,7 +536,7 @@ contract GrantTest is TestSetupPowers {
         testToken = makeAddr("testToken");
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(grant.owner(), address(daoMock));
     }
 
@@ -1191,7 +1191,7 @@ contract OpenElectionTest is TestSetupPowers {
         openElection = OpenElection(mockAddresses[9]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(openElection.owner(), address(daoMock));
         assertEq(openElection.currentElectionId(), 0);
         assertEq(openElection.nomineesCount(), 0);
@@ -1672,7 +1672,7 @@ contract DonationsTest is TestSetupPowers {
         testToken = makeAddr("testToken");
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(donations.owner(), address(daoMock));
     }
 
@@ -2140,7 +2140,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token = SimpleErc20Votes(mockAddresses[0]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(token.name(), "Votes");
         assertEq(token.symbol(), "VTS");
         assertEq(token.decimals(), 18);
@@ -2269,7 +2269,7 @@ contract SimpleGovernorTest is TestSetupPowers {
         governor = SimpleGovernor(payable(mockAddresses[4]));
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(governor.name(), "SimpleGovernor");
         assertEq(governor.votingDelay(), 25);
         assertEq(governor.votingPeriod(), 50);
@@ -2277,37 +2277,37 @@ contract SimpleGovernorTest is TestSetupPowers {
         assertEq(governor.quorum(0), 0); // No votes cast yet
     }
 
-    function testProposalThreshold() public view {
+    function testProposalThreshold() public  {
         assertEq(governor.proposalThreshold(), 0);
     }
 
-    function testVotingDelay() public view {
+    function testVotingDelay() public  {
         assertEq(governor.votingDelay(), 25);
     }
 
-    function testVotingPeriod() public view {
+    function testVotingPeriod() public  {
         assertEq(governor.votingPeriod(), 50);
     }
 
-    function testQuorumFraction() public view {
+    function testQuorumFraction() public  {
         // Quorum fraction is 4, so quorum should be 4% of total supply
         // But since no votes are cast, quorum should be 0
         assertEq(governor.quorum(0), 0);
     }
 
-    function testVotingToken() public view {
+    function testVotingToken() public  {
         assertEq(address(governor.token()), address(token));
     }
 
-    function testClock() public view {
+    function testClock() public  {
         assertEq(governor.clock(), block.number);
     }
 
-    function testCLOCK_MODE() public view {
+    function testCLOCK_MODE() public  {
         assertEq(governor.CLOCK_MODE(), "mode=blocknumber&from=default");
     }
 
-    function testHasVoted() public view {
+    function testHasVoted() public  {
         assertFalse(governor.hasVoted(0, alice));
     }
 
@@ -2420,7 +2420,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         token = Erc20Taxed(mockAddresses[1]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(token.name(), "Taxed");
         assertEq(token.symbol(), "TAX");
         assertEq(token.decimals(), 18);
@@ -2654,7 +2654,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         nft = SoulboundErc721(mockAddresses[2]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(nft.name(), "Soulbound");
         assertEq(nft.symbol(), "SB");
         assertEq(nft.owner(), address(daoMock));
@@ -2802,7 +2802,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         assertEq(nft.tokenURI(tokenId), "");
     }
 
-    function testSupportsInterface() public view {
+    function testSupportsInterface() public  {
         // Should support ERC721 interface
         assertTrue(nft.supportsInterface(0x80ac58cd)); // ERC721
         assertTrue(nft.supportsInterface(0x5b5e139f)); // ERC721Metadata
@@ -2947,13 +2947,13 @@ contract SimpleErc1155Test is TestSetupPowers {
         token.safeTransferFrom(alice, charlotte, COIN_ID, 500, "");
     }
 
-    function testSupportsInterface() public view {
+    function testSupportsInterface() public  {
         // Should support ERC1155 interface
         assertTrue(token.supportsInterface(0xd9b67a26)); // ERC1155
         assertTrue(token.supportsInterface(0x01ffc9a7)); // ERC165
     }
 
-    function testURI() public view {
+    function testURI() public  {
         string memory expectedURI =
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi";
         assertEq(token.uri(COIN_ID), expectedURI);
@@ -2988,7 +2988,7 @@ contract NomineesTest is TestSetupPowers {
         nomineesContract = Nominees(mockAddresses[8]);
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         assertEq(nomineesContract.owner(), address(daoMock));
         assertEq(nomineesContract.nomineesCount(), 0);
     }
@@ -3199,7 +3199,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         emptyTargetsLaw = new EmptyTargetsLaw();
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         // EmptyTargetsLaw inherits from Law, so we can test basic functionality
         assertTrue(address(emptyTargetsLaw) != address(0));
     }
@@ -3284,7 +3284,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         mockTargetsLaw = new MockTargetsLaw();
     }
 
-    function testConstructor() public view {
+    function testConstructor() public  {
         // MockTargetsLaw inherits from Law, so we can test basic functionality
         assertTrue(address(mockTargetsLaw) != address(0));
     }

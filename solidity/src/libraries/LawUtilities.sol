@@ -142,4 +142,33 @@ library LawUtilities {
             mstore(0x40, add(add(boolArray, 0x20), mul(numBools, 0x20)))
         }
     }
+
+    /**
+     * @notice Converts a hex string (e.g., "0x1a2b...") to bytes.
+     * @dev From https://ethereum.stackexchange.com/a/8171
+     */
+    function hexStringToBytes(string memory hexString) internal pure returns (bytes memory) {
+        bytes memory bts = new bytes(bytes(hexString).length / 2 - 1);
+        for (uint256 i = 0; i < bts.length; i++) {
+            bts[i] = bytes1(
+                (hexToByte(bytes(hexString)[i * 2 + 2]) << 4) |
+                hexToByte(bytes(hexString)[i * 2 + 3])
+            );
+        }
+        return bts;
+    }
+
+    function hexToByte(bytes1 b) internal pure returns (uint8) {
+        if (b >= bytes1(uint8(48)) && b <= bytes1(uint8(57))) { // 0-9
+            return uint8(b) - 48;
+        }
+        if (b >= bytes1(uint8(97)) && b <= bytes1(uint8(102))) { // a-f
+            return uint8(b) - 87;
+        }
+        if (b >= bytes1(uint8(65)) && b <= bytes1(uint8(70))) { // A-F
+            return uint8(b) - 55;
+        }
+        revert("Invalid hex character");
+    }
+
 }

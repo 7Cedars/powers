@@ -69,8 +69,8 @@ export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
   }, [simulation])
 
   return (
-    <section className="mx-auto flex flex-col gap-6 justify-start items-center px-6 pt-4">
-      <div className="max-w-lg mx-auto flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
+    <section className="w-full mx-auto flex flex-col gap-6 justify-start items-center px-6 pt-4">
+      <div className="w-full flex flex-col gap-0 justify-start items-center bg-slate-50 border rounded-md border-slate-300 overflow-hidden">
         <div className="w-full text-xs text-center font-medium text-slate-600 p-2 bg-slate-100 border-b border-slate-300">
           Calls to be executed by Powers  
         </div>

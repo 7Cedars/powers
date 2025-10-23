@@ -217,19 +217,19 @@ contract LawHelperTest is TestSetupLaw {
         delete inputParams; // clean up
     }
 
-    function testGetNameDescriptionRevertsForNonExistentLaw() public view {
+    function testGetNameDescriptionRevertsForNonExistentLaw() public  {
         // act & assert: verify getting name for non-existent law returns empty string
         string memory retrievedName = testLaw.getNameDescription(address(daoMock), 999);
         assertEq(retrievedName, "");
     }
 
-    function testGetInputParamsRevertsForNonExistentLaw() public view {
+    function testGetInputParamsRevertsForNonExistentLaw() public  {
         // act & assert: verify getting params for non-existent law returns empty bytes
         bytes memory retrievedParams = testLaw.getInputParams(address(daoMock), 999);
         assertEq(retrievedParams.length, 0);
     }
 
-    function testGetConfigRevertsForNonExistentLaw() public view {
+    function testGetConfigRevertsForNonExistentLaw() public  {
         // act & assert: verify getting config for non-existent law returns empty bytes
         bytes memory retrievedConfig = testLaw.getConfig(address(daoMock), 999);
         assertEq(retrievedConfig.length, 0);
@@ -247,7 +247,7 @@ contract LawInterfaceTest is TestSetupLaw {
         testLaw = new OpenAction();
     }
 
-    function testSupportsILawInterface() public view {
+    function testSupportsILawInterface() public  {
         // act: check if contract supports ILaw interface
         bool supportsILaw = testLaw.supportsInterface(type(ILaw).interfaceId);
 
@@ -255,7 +255,7 @@ contract LawInterfaceTest is TestSetupLaw {
         assertTrue(supportsILaw);
     }
 
-    function testSupportsERC165Interface() public view {
+    function testSupportsERC165Interface() public  {
         // act: check if contract supports ERC165 interface
         bool supportsERC165 = testLaw.supportsInterface(type(IERC165).interfaceId);
 
@@ -263,7 +263,7 @@ contract LawInterfaceTest is TestSetupLaw {
         assertTrue(supportsERC165);
     }
 
-    function testDoesNotSupportRandomInterface() public view {
+    function testDoesNotSupportRandomInterface() public  {
         // act: check if contract supports random interface
         bool supportsRandom = testLaw.supportsInterface(0x12345678);
 

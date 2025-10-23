@@ -69,6 +69,7 @@ interface PowersTypes {
         uint256 nonce;
         // --- Dynamic/Mapping Types (do not take up static slots) ---
         bytes lawCalldata;
+        bytes[] returnDatas;
         string uri;
         mapping(address => bool) hasVoted;
     }

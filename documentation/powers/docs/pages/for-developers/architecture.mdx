@@ -1,71 +1,121 @@
 # Architecture
 
-The Powers protocol consists of two elements: **Powers** and **Laws**. Together they manage how **actions** are governed.
+The Powers protocol consists of two elements: **Powers** and **Laws**. Together they manage how **actions** are governed. The protocol offers a solution to the challenge of off-chain governance by enabling communities to institutionalize their power relations directly on-chain.
 
-### ⚡ Powers
 
-`Powers.sol` is the engine of the protocol that manages governance flows. It has the following functionalities:
+## Core Primitives
+To establish institutional governance on-chain, the Powers protocol provides three core primitives:
 
-* Executing actions.
+* The ability to assign powers to specific roles.
+* A mechanism to encode power relationships between those roles6.
+* A process for governed reform of the system itself.
+
+These principles are managed through a combination of the `Powers.sol` engine and role-restricted smart contracts called "Laws".
+
+## ⚡ Powers
+
+Powers.sol is the engine of the protocol that manages governance flows9. It has the following primary functionalities:
+
+* Executing actions. 
 * Proposing actions.
 * Voting on proposals.
-* Assigning, revoking and labeling roles.
+* Assigning, revoking, and labeling roles.
 * Adopting and revoking laws.
 
-In addition there is a `constitute` function that allows adopting multiple laws at once. This function can only be called by the admin, and only once.
+In addition, there is a constitute function that allows adopting multiple laws at once. This function can only be called by the admin, and only once. 
+
+### Encoding Reforms
+
+Since laws encode power relations, the ability to adopt or revoke laws is the power to reform the governance system itself. In the Powers protocol, reform is treated like any other executive action and is managed through a designated law. This allows for a granular and modular approach to organizational change, all subject to the on-chain rules of its constitution.
+
+
+## 📜 Laws
+
+Laws define under what conditions a role is allowed to execute which actions. In the Powers protocol, all actions are executed through laws. A law is fundamentally a smart contract that transforms predefined input data into executable calldata.
+
+Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting law.sol and only have to be deployed once. One law can be adopted by multiple `Powers.sol` instances.
+
+The power a law grants is constrained by two key factors: conditional requirements and degrees of freedom.
+
+
+### Conditional Requirements
+
+Conditional requirements are the rules that restrict a law's execution. These checks can include:
+
+* **Role Restriction**: Laws are restricted by a single role.
+* **Voting**: A law can be conditional on a successful vote.
+* **Time Delays**: A law can be throttled to execute only once per month, for example.
+* **Cross-Law Conditions**: A law can check if an action has passed at another law.
+
+
+### Degrees of Freedom
+
+Degrees of freedom refers to how much influence a user has over the final executable action.
+
+* A law that takes no input and simply mints 50 tokens to a preset address offers zero degrees of freedom.
+* A law that allows a user to specify any target contract and arbitrary calldata grants them full degrees of freedom and absolute power.
+
+By defining the scope of user input, laws grant granular levels of power to specific roles. In practice, laws that grant a high degree of freedom should be paired with strict conditional requirements to ensure security.
+
+
+## 🏛️ Powers + Laws = Institutional Governance
+
+Institutional governance emerges not just from assigning powers, but from encoding the relationships between them. In Powers, these relationships are established through cross-law conditions, where the execution of one law is made dependent on the state of anothe.
+
+Since laws are role-restricted, this mechanism allows the actions of one role to directly enable or block the actions of another.
+
+This is possible because the protocol can trace a single action across multiple laws. Different laws can accept the same input data. By checking whether an action with the same input has been fulfilled at another law, one law can require an action to be fulfilled by a different law before it can execute.
+
+
+### Example: Separation of Powers
+
+This mechanism allows for on-chain checks and balances:
+
+* **Role A (Initiative)**: Can propose an action via Law 1, which becomes active only after a successful vote.
+* **Role B (Veto)**: Can block the action by executing it through Law 2, which produces no external call but prevents Law 3 from running.
+* **Role C (Execution)**: Can only execute the action via Law 3 if it has been fulfilled by Law 1 (the proposal passed) and not fulfilled by Law 2 (it was not vetoed).
+
+This structure highlights a core feature: its inherently asynchronous nature. Because the protocol checks the state of different laws rather than requiring a single transaction, governance steps can be separated by time and triggered by different actors.
+
+Together, Powers and Laws allow communities to build any governance structure that fits their needs. A community starts by deploying a `Powers.sol` instance, configuring laws, and adopting them in their `Powers.sol` instance.
+
+This DAO is deployed as [Powers 101](powers-protocol.vercel.app/protocol/11155420/0x7f62d52c9b176dc6c27e2870bba57ff67adb28c2) on Optimism sepolia.
+
+## 🌊 Technical Flow: `Powers.sol` and `ilaw.sol`
+
+While the protocol is flexible, the core interactions are strictly defined.
+
+### Governance Flow Restrictions
 
 The governance flow is defined by the following restrictions:
 
 * All actions are executed via Powers' execute function in reference to a law. There are no exceptions.
-* Executing, proposing and voting can only be done in reference to a role restricted law.
+* Executing, proposing, and voting can only be done in reference to a role-restricted law.
 * Roles and laws can only be assigned and revoked through the execute function of the protocol itself.
 
-### 📜 Laws
+### `executeLaw` Interaction
 
-Laws define under what conditions a role is allowed to execute which actions.
+What is not flexible is how `Powers.sol` interacts with a law. This is always done through the `executeLaw` function. When this function is called, it performs the following steps:
 
-Example:
+::::steps 
 
-> Any account that has been assigned a 'senior' role can propose to mint tokens at contract X, but the proposal will only be accepted if 20 percent of all seniors vote in favor.
+##### Runs the checks.
 
-Laws are contracts that follow the `ilaw.sol` interface. They can be created by inheriting `law.sol` and only have to be deployed once. One law can be adopted by multiple Powers.sol instances.
+##### Decodes input calldata.
 
-Laws have the following functionalities:
+##### Computes return function calls (which can include running additional checks).
 
-* They are role restricted by a single role.
-* They have multiple (optional) checks, including if an action has passed at another law.
-* They have an `initializeLaw` function, that is called when the law is adopted.
-* They have an `executeLaw` function, that is called when the law executes an action.
-* They can save a state.
-* They can return three arrays to the Powers contract: targets laws, values and function calls.
-* All functionalities are restricted along the `Powers.sol` deployment that adopted the law by calling `initializeLaw`.
+##### Returns the computed function call to the `Powers.sol` deployment for execution.
+::::
 
-Many elements of laws can be changed: the input parameters, the function call that is returned, which checks need to pass, what state (if any) is saved. All these changes are specific to the Powers protocol that adopted the law. Laws are the meat on the bones provided by Powers engine.
+### Law Functionalities
 
-What is not flexible, is how Powers interacts with a law. This is done through the `executeLaw` function. When this function is called, the function:
+Laws also have the following specific technical functionalities:
 
-1. Decodes the Powers deployment that calls the law.
-2. Runs the checks.
-3. Decodes input calldata.
-4. Computes return function calls and state change. This can include running additional checks.
-5. Saves any state change to the law.
-6. Returns the computed function call to the Powers deployment for execution.
+* They have an `initializeLaw` function, which is called when the law is adopted.
+* They have an `executeLaw` function, which is called when the law executes an action.
+* They can return three arrays to the Powers contract: targets, values, and function calls.
+* All functionalities are restricted along the `Powers.sol` deployment that adopted the law by calling initializeLaw.
+* Many elements of laws can be changed (inputs, function call returned, checks, state), but these changes are specific to the `Powers.sol` protocol that adopted the law.
 
-### 🏛️ Powers + Laws = Governance
-
-Together, Powers and Laws allow communities to build any governance structure that fit their needs. A community starts by deploying a Powers.sol instance, configuring laws, and adopting them in their Powers.sol instance.
-
-The result can be something like this:
-
-* figure here * 
-
-This DAO is deployed as [Powers 101](https://powers-protocol.vercel.app/11155420/0x96408bf4E5c6eD4C64F6B2f6677F058A0e53499D) on Optimism sepolia.
-
-## Detailed Governance Flow
-
-The above is possible because laws provide a modular governance layer around the Powers.sol engine. Each governance action is initiated in reference to a law, and is executed in line with its role restriction, checks and allowed actions.
-
-The following is a  detailed diagram of the governance flow in the Powers protocol:
-
-* figure here * 
 

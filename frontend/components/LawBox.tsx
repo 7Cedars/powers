@@ -1,15 +1,14 @@
 "use client";
 
-import React, {  useEffect, useState } from "react";
+import React from "react";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { useChains } from 'wagmi'
 import { parseChainId } from "@/utils/parsers";
-import { Action, Checks, DataType, Execution, Law, Powers, Status } from "@/context/types";
+import { Checks, DataType, Execution, Law, Powers, Status } from "@/context/types";
 import { useParams } from "next/navigation";
 import HeaderLaw from '@/components/HeaderLaw';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { DynamicForm } from '@/components/DynamicForm';
-import { useActionStore } from "@/context/store";
 import { DynamicActionButton } from "./DynamicActionButton";
 import { useChecks } from "@/hooks/useChecks";
 
@@ -25,34 +24,11 @@ type LawBoxProps = {
 };
 
 export function LawBox({powers, law, params, status, selectedExecution }: LawBoxProps) {
-  const action = useActionStore();
-  const { chainId, powers: powersAddress } = useParams<{ chainId: string, powers: `0x${string}` }>()
+  const { chainId } = useParams<{ chainId: string }>()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const [populatedAction, setPopulatedAction] = useState<Action | undefined>(undefined);
   const { fetchChecks, checks } = useChecks();
-
-  console.log("@LawBox, waypoint 0", {action, checks, law, populatedAction})
-
-  useEffect(() => {
-    if (action.upToDate && action.actionId) {
-      // First try to find the action in law.actions (for actions that exist on chain)
-      const actionFromLaw = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
-      
-      // If found in law.actions, use it (it has full data from chain)
-      // Otherwise, use the action from store (for newly simulated actions not yet on chain)
-      if (actionFromLaw) {
-        setPopulatedAction(actionFromLaw);
-      } else {
-        // Convert store action to Action type with state from store
-        setPopulatedAction({
-          ...action,
-          state: action.state || 0,
-          actionId: action.actionId
-        } as Action);
-      }
-    }
-  }, [action.upToDate, law?.actions, action.actionId, action.state, action])
+  console.log(checks);
 
   return (
     <main className="w-full" help-nav-item="law-input">

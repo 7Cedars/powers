@@ -2,20 +2,16 @@
 
 import React from 'react'
 import { useParams } from 'next/navigation'
-import { usePrivy } from '@privy-io/react-auth'
-import { useWallets } from '@privy-io/react-auth'
+import { usePrivy } from '@privy-io/react-auth' 
 import { UserItem } from './UserItem'
-import { Law, Powers, Checks } from '@/context/types'
+import { Law, Powers } from '@/context/types'
 import { useActionStore, setAction, useStatusStore, usePowersStore } from '@/context/store'
-import { useChecks } from '@/hooks/useChecks'
-import { useLaw } from '@/hooks/useLaw'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { LawBox } from '@/components/LawBox'
 
 export default function New({hasRoles}: {hasRoles: bigint[]}) {
   const { chainId } = useParams<{ chainId: string }>()
   const powers = usePowersStore();
-  const {wallets, ready} = useWallets();
   const { authenticated } = usePrivy()
 
   // const { fetchChecks, status: statusChecks, checks } = useChecks()
@@ -29,7 +25,7 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
   const action = useActionStore();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(action.lawId))
   
-  console.log("@New, waypoint 0", {action, law, powers, finalFilteredLaws, hasRoles, wallets, ready})
+  console.log("@New, waypoint 0", {action, law, powers, finalFilteredLaws, hasRoles})
 
   // If a law is selected, show the either LawBox or ProposalBox
   if (law) {
