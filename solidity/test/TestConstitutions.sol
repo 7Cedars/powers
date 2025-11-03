@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
-import { Law } from "../src/Law.sol";
-import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
-// test setup
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { BaseSetup } from "./TestSetup.t.sol";
-
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
 import { Nominees } from "@mocks/Nominees.sol";
 
 contract TestConstitutions is Test {
@@ -49,7 +44,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](8);
+        lawInitData = new PowersTypes.LawInitData[](7);
 
         // dummy call.
         targets = new address[](1);
@@ -61,53 +56,25 @@ contract TestConstitutions is Test {
         // Note: I leave the first slot empty, so that numbering is equal to how laws are registered in IPowers.sol.
         // Counting starts at 1, so the first law is lawId = 1.
 
-        staticParams = new bytes[](1);
-        staticParams[0] = abi.encode(1);
-        dynamicParams = new string[](1);
-        dynamicParams[0] = "address Account";
-        indexDynamicParams = new uint8[](1);
-        indexDynamicParams[0] = 1;
-
+        // slef select as communtiy member
         conditions.allowedRole = type(uint256).max;
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Assign role 1: A law to assign a role 1 to an account directly.",
-            targetLaw: lawAddresses[5], // bespokeActionAdvanced
-            config: abi.encode(
-                daoMock,
-                IPowers.assignRole.selector,
-                staticParams, // static params = roleId
-                dynamicParams, // dynamic params = account
-                indexDynamicParams // indexDynamicParams = account
-            ),
+            nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
+            targetLaw: lawAddresses[18], // selfSelct
+            config: abi.encode( 
+                1 // community member role ID
+            ), 
             conditions: conditions
         });
         delete conditions;
 
-        dynamicParamsSimple = new string[](1);
-        dynamicParamsSimple[0] = "bool NominateMe";
-
+        // self Select as delegate 
         conditions.allowedRole = type(uint256).max;
         lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Nominate Me: Nominate themselves yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
-            targetLaw: lawAddresses[6], // bespokeActionSimple
-            config: abi.encode(
-                mockAddresses[10], // = Erc20DelegateElection
-                Nominees.nominate.selector,
-                dynamicParamsSimple
-            ),
-            conditions: conditions
-        });
-        delete conditions;
-
-        // delegateSelect
-        conditions.allowedRole = 1; // = role that can call this law.
-        lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time.",
-            targetLaw: lawAddresses[8], // delegateSelect
-            config: abi.encode(
-                mockAddresses[10], // = Erc20DelegateElection
-                2, // role to be elected.
-                3 // max number role holders
+            nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this law.",
+            targetLaw: lawAddresses[18], // selfSelct
+            config: abi.encode( 
+                2 // delegeate member role ID
             ),
             conditions: conditions
         });
@@ -125,7 +92,7 @@ contract TestConstitutions is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.throttleExecution = 5000;
         conditions.delayExecution = 250; // = 250 blocks to wait after proposal success before execution
-        lawInitData[4] = PowersTypes.LawInitData({
+        lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetLaw: lawAddresses[4], // statementOfIntent
             config: abi.encode(inputParams),
@@ -134,8 +101,8 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 0; // = admin.
-        conditions.needFulfilled = 4; // = law that must be completed before this one.
-        lawInitData[5] = PowersTypes.LawInitData({
+        conditions.needFulfilled = 3; // = law that must be completed before this one.
+        lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetLaw: lawAddresses[4], // statementOfIntent
             config: abi.encode(inputParams),
@@ -144,9 +111,9 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 2; // = role that can call this law.
-        conditions.needFulfilled = 4; // = law that must be completed before this one.
-        conditions.needNotFulfilled = 5; // = law that must not be completed before this one.
-        lawInitData[6] = PowersTypes.LawInitData({
+        conditions.needFulfilled = 3; // = law that must be completed before this one.
+        conditions.needNotFulfilled = 4; // = law that must not be completed before this one.
+        lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
             targetLaw: lawAddresses[3], // openAction.
             config: abi.encode(), // empty config.
@@ -164,11 +131,11 @@ contract TestConstitutions is Test {
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
-        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 7); // revoke law after use.
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 6); // revoke law after use.
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
-        lawInitData[7] = PowersTypes.LawInitData({
+        lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetLaw: lawAddresses[1], // presetSingleAction
             config: abi.encode(targets, values, calldatas),
@@ -301,7 +268,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "ElectionSelect: A law to run delegate elections and assign roles based on results.",
-            targetLaw: lawAddresses[10], // ElectionSelect (electoral law)
+            targetLaw: lawAddresses[11], // ElectionSelect (electoral law)
             config: abi.encode(
                 mockAddresses[10], // Erc20DelegateElection contract
                 3, // roleId to be elected
@@ -315,7 +282,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "PeerSelect: A law to select roles by peer votes from nominees.",
-            targetLaw: lawAddresses[11], // PeerSelect (electoral law)
+            targetLaw: lawAddresses[12], // PeerSelect (electoral law)
             config: abi.encode(
                 2, // max role holders
                 4, // roleId to be assigned
@@ -330,7 +297,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "VoteInOpenElection: A law to vote in open elections.",
-            targetLaw: lawAddresses[12], // VoteInOpenElection (electoral law)
+            targetLaw: lawAddresses[13], // VoteInOpenElection (electoral law)
             config: abi.encode(mockAddresses[9], 1), // OpenElection contract, max votes per voter
             conditions: conditions
         });
@@ -340,7 +307,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "TaxSelect: A law to assign roles based on tax payments.",
-            targetLaw: lawAddresses[14], // TaxSelect (electoral law)
+            targetLaw: lawAddresses[15], // TaxSelect (electoral law)
             config: abi.encode(
                 mockAddresses[1], // Erc20Taxed mock
                 1000, // threshold tax paid
@@ -361,7 +328,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "BuyAccess: A law to buy role access with ERC20 tokens.",
-            targetLaw: lawAddresses[15], // BuyAccess (electoral law)
+            targetLaw: lawAddresses[16], // BuyAccess (electoral law)
             config: abi.encode(
                 mockAddresses[5], // Donations contract
                 tokens,
@@ -376,7 +343,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "SelfSelect: A law to self-assign a role.",
-            targetLaw: lawAddresses[17], // SelfSelect (electoral law)
+            targetLaw: lawAddresses[18], // SelfSelect (electoral law)
             config: abi.encode(4), // roleId to be assigned
             conditions: conditions
         });
@@ -389,7 +356,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[7] = PowersTypes.LawInitData({
             nameDescription: "RenounceRole: A law to renounce specific roles.",
-            targetLaw: lawAddresses[18], // RenounceRole (electoral law)
+            targetLaw: lawAddresses[19], // RenounceRole (electoral law)
             config: abi.encode(roles), // roles that can be renounced
             conditions: conditions
         });
@@ -398,7 +365,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[8] = PowersTypes.LawInitData({
             nameDescription: "NStrikesRevokesRoles: A law to revoke roles after N strikes.",
-            targetLaw: lawAddresses[13], // NStrikesRevokesRoles (electoral law)
+            targetLaw: lawAddresses[14], // NStrikesRevokesRoles (electoral law)
             config: abi.encode(
                 3, // roleId to be revoked.
                 2, // number of strikes needed to be revoked.
@@ -415,7 +382,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max;
         lawInitData[9] = PowersTypes.LawInitData({
             nameDescription: "RoleByRoles: A law to assign roles based on existing role holders.",
-            targetLaw: lawAddresses[16], // RoleByRoles (electoral law)
+            targetLaw: lawAddresses[17], // RoleByRoles (electoral law)
             config: abi.encode(
                 4, // target role (what gets assigned)
                 roleIdsNeeded // roles that are needed to be assigned
@@ -457,7 +424,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](6);
+        lawInitData = new PowersTypes.LawInitData[](7);
 
         // StatementOfIntent - for proposing actions
         conditions.allowedRole = type(uint256).max;
@@ -473,7 +440,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; // role 1 can create proposals
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "GovernorCreateProposal: A law to create governance proposals on a Governor contract.",
-            targetLaw: lawAddresses[8], // GovernorCreateProposal (executive law)
+            targetLaw: lawAddresses[9], // GovernorCreateProposal (executive law)
             config: abi.encode(mockAddresses[4]), // SimpleGovernor mock address
             conditions: conditions
         });
@@ -483,7 +450,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; // role 1 can execute proposals
         lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "GovernorExecuteProposal: A law to execute governance proposals on a Governor contract.",
-            targetLaw: lawAddresses[9], // GovernorExecuteProposal (executive law)
+            targetLaw: lawAddresses[10], // GovernorExecuteProposal (executive law)
             config: abi.encode(mockAddresses[4]), // SimpleGovernor mock address
             conditions: conditions
         });
@@ -519,8 +486,8 @@ contract TestConstitutions is Test {
 
         conditions.allowedRole = type(uint256).max; // public role can adopt laws
         lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "AdoptLaws: A law to adopt new laws into the DAO.",
-            targetLaw: lawAddresses[7], // AdoptLaws (executive law)
+            nameDescription: "AdoptLawPackage: A law to adopt new laws into the DAO.",
+            targetLaw: lawAddresses[8], // AdoptLaws (executive law)
             config: abi.encode(lawsToAdopt, lawInitDatas),
             conditions: conditions
         });
@@ -536,7 +503,7 @@ contract TestConstitutions is Test {
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
-        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 7); // revoke law after use.
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 5); // revoke law after use.
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
@@ -544,6 +511,16 @@ contract TestConstitutions is Test {
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetLaw: lawAddresses[1], // presetSingleAction
             config: abi.encode(targets, values, calldatas),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // OpenAction - for executing any action
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[6] = PowersTypes.LawInitData({
+            nameDescription: "OpenAction: A law to execute any action with full power.",
+            targetLaw: lawAddresses[3], // OpenAction (multi law)
+            config: abi.encode(), // empty config
             conditions: conditions
         });
         delete conditions;
@@ -691,22 +668,11 @@ contract TestConstitutions is Test {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](8);
 
-        // conditions.allowedRole = type(uint256).max; // anyone can call this law.
-        // lawInitData[1] = PowersTypes.LawInitData({
-        //     nameDescription: "SelfSelect: A law to self-assign a role 1.",
-        //     targetLaw: lawAddresses[17], // SelfSelect
-        //     config: abi.encode(
-        //         1 // roleId = 1
-        //     ),
-        //     conditions: conditions
-        // });
-        // delete conditions;
-
         dynamicParamsSimple = new string[](1);
         dynamicParamsSimple[0] = "bool NominateMe";
 
         conditions.allowedRole = type(uint256).max;
-        lawInitData[2] = PowersTypes.LawInitData({
+        lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Nominate Me: Nominate yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
             targetLaw: lawAddresses[6], // bespokeActionSimple
             config: abi.encode(
@@ -720,7 +686,7 @@ contract TestConstitutions is Test {
 
         // delegateSelect
         conditions.allowedRole = type(uint256).max; // = role that can call this law.
-        lawInitData[3] = PowersTypes.LawInitData({
+        lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
             targetLaw: lawAddresses[10], // ElectionSelect
             config: abi.encode(
@@ -742,7 +708,7 @@ contract TestConstitutions is Test {
         conditions.quorum = 20; // = 30% quorum needed
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
         conditions.votingPeriod = 1200; // = number of blocks
-        lawInitData[4] = PowersTypes.LawInitData({
+        lawInitData[3] = PowersTypes.LawInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetLaw: lawAddresses[4], // statementOfIntent
             config: abi.encode(inputParams),
@@ -751,8 +717,8 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = 0; // = admin.
-        conditions.needFulfilled = 4; // = law that must be completed before this one.
-        lawInitData[5] = PowersTypes.LawInitData({
+        conditions.needFulfilled = 3; // = law that must be completed before this one.
+        lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetLaw: lawAddresses[4], // statementOfIntent
             config: abi.encode(inputParams),
@@ -764,9 +730,9 @@ contract TestConstitutions is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.succeedAt = 66; // = 51% simple majority needed for executing an action.
         conditions.quorum = 20; // = 30% quorum needed
-        conditions.needFulfilled = 4; // = law that must be completed before this one.
-        conditions.needNotFulfilled = 5; // = law that must not be completed before this one.
-        lawInitData[6] = PowersTypes.LawInitData({
+        conditions.needFulfilled = 3; // = law that must be completed before this one.
+        conditions.needNotFulfilled = 4; // = law that must not be completed before this one.
+        lawInitData[5] = PowersTypes.LawInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
             targetLaw: lawAddresses[3], // openAction.
             config: abi.encode(), // empty config.
@@ -784,11 +750,11 @@ contract TestConstitutions is Test {
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
-        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 7); // revoke law after use.
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 6); // revoke law after use.
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
-        lawInitData[7] = PowersTypes.LawInitData({
+        lawInitData[6] = PowersTypes.LawInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetLaw: lawAddresses[1], // presetSingleAction
             config: abi.encode(targets, values, calldatas),

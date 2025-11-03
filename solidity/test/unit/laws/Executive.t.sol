@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
 import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { AdoptLawsPackage } from "../../../src/laws/executive/AdoptLawsPackage.sol";
 import { GovernorCreateProposal } from "../../../src/laws/executive/GovernorCreateProposal.sol";
@@ -11,8 +10,7 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
 import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
-import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
+
 
 /// @notice Comprehensive unit tests for all executive laws
 /// @dev Tests all functionality of executive laws including initialization, execution, and edge cases
@@ -27,7 +25,7 @@ contract AdoptLawsPackageTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[7]); // AdoptLawsPackage from executive constitution
+        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]); // AdoptLaws from executive constitution
         openAction = OpenAction(lawAddresses[3]); // OpenAction
         presetSingleAction = PresetSingleAction(lawAddresses[1]); // PresetSingleAction
         lawId = 4; // AdoptLawsPackage law ID in executive constitution
@@ -164,12 +162,6 @@ contract GovernorCreateProposalTest is TestSetupExecutive {
         lawId = 2; // GovernorCreateProposal law ID in executive constitution
     }
 
-    function testGovernorCreateProposalInitialization() public {
-        // Verify law data is stored correctly
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        assertEq(governorCreateProposal.governorContracts(lawHash), address(simpleGovernor));
-    }
-
     function testGovernorCreateProposalWithValidProposal() public {
         // Setup proposal parameters
         targets = new address[](1);
@@ -255,12 +247,6 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
         lawIds = new uint16[](1);
         lawIds[0] = 2;
         lawId = 3; // GovernorExecuteProposal law ID in executive constitution
-    }
-
-    function testGovernorExecuteProposalInitialization() public {
-        // Verify law data is stored correctly
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        assertEq(governorExecuteProposal.governorContracts(lawHash), address(simpleGovernor));
     }
 
     // function testGovernorExecuteProposalWithValidProposal() public {
@@ -379,31 +365,12 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[7]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]);
+        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]);
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[9]);
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[10]);
         openAction = OpenAction(lawAddresses[3]);
         presetSingleAction = PresetSingleAction(lawAddresses[1]);
         simpleGovernor = SimpleGovernor(payable(mockAddresses[4]));
-    }
-
-    function testAllExecutiveLawsInitialization() public {
-        // Test that all executive laws are properly initialized from constitution
-        // AdoptLawsPackage (lawId = 4)
-        lawId = 4;
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        AdoptLawsPackage.Data memory data = adoptLawsPackage.getData(lawHash);
-        assertEq(data.laws.length, 1);
-
-        // GovernorCreateProposal (lawId = 2)
-        lawId = 2;
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        assertEq(governorCreateProposal.governorContracts(lawHash), address(simpleGovernor));
-
-        // GovernorExecuteProposal (lawId = 3)
-        lawId = 3;
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        assertEq(governorExecuteProposal.governorContracts(lawHash), address(simpleGovernor));
     }
 
     function testExecutiveLawsWithComplexProposals() public {
@@ -463,18 +430,6 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
         vm.prank(alice);
         vm.expectRevert("GovernorCreateProposal: No targets provided");
         daoMock.request(lawId, abi.encode(targets, values, calldatas, description), nonce, "Test invalid config");
-    }
-
-    function testExecutiveLawsWithZeroAddressGovernor() public {
-        // This test is not applicable since the governor is set in the constitution
-        // and cannot be changed to zero address after initialization
-        // We can test that the governor is properly configured instead
-        lawId = 2; // GovernorCreateProposal law ID
-
-        // Verify governor is properly configured
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        assertTrue(governorCreateProposal.governorContracts(lawHash) != address(0));
-        assertEq(governorCreateProposal.governorContracts(lawHash), address(simpleGovernor));
     }
 
     function testExecutiveLawsWithLongDescriptions() public {

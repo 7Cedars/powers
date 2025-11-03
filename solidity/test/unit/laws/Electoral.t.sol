@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
@@ -33,7 +32,7 @@ contract ElectionSelectTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        electionSelect = ElectionSelect(lawAddresses[10]);
+        electionSelect = ElectionSelect(lawAddresses[11]);
         delegateElection = Erc20DelegateElection(mockAddresses[10]); // Erc20DelegateElection
         lawId = 1;
     }
@@ -42,7 +41,7 @@ contract ElectionSelectTest is TestSetupElectoral {
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
         ElectionSelect.Data memory data = electionSelect.getData(lawHash);
-        assertEq(data.ElectionContract, address(delegateElection));
+        assertEq(data.electionContract, address(delegateElection));
         assertEq(data.roleId, 3);
         assertEq(data.maxRoleHolders, 3);
     }
@@ -85,7 +84,7 @@ contract PeerSelectTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        peerSelect = PeerSelect(lawAddresses[11]);
+        peerSelect = PeerSelect(lawAddresses[12]);
         nomineesContract = Nominees(mockAddresses[8]); // Nominees
         lawId = 2;
     }
@@ -260,7 +259,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        voteInOpenElection = VoteInOpenElection(lawAddresses[12]);
+        voteInOpenElection = VoteInOpenElection(lawAddresses[13]);
         openElection = OpenElection(mockAddresses[9]); // OpenElection
         nomineesContract = new Nominees();
         lawId = 3;
@@ -280,7 +279,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[12],
+                targetLaw: lawAddresses[13],
                 config: configBytes,
                 conditions: conditions
             })
@@ -318,7 +317,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[12],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // openElection address
                     1 // 1 vote allowed
@@ -357,7 +356,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[12],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // openElection address
                     1 // 1 vote allowed
@@ -396,7 +395,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[12],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // openElection address
                     1 // 1 vote allowed
@@ -426,7 +425,7 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[13]);
+        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[14]);
         flagActions = FlagActions(mockAddresses[6]); // FlagActions
         lawId = 8;
 
@@ -484,7 +483,7 @@ contract TaxSelectTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        taxSelect = TaxSelect(lawAddresses[14]);
+        taxSelect = TaxSelect(lawAddresses[15]);
         erc20Taxed = Erc20Taxed(mockAddresses[1]);
         lawId = 4;
     }
@@ -528,7 +527,7 @@ contract BuyAccessTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        buyAccess = BuyAccess(lawAddresses[15]);
+        buyAccess = BuyAccess(lawAddresses[16]);
         donations = Donations(payable(mockAddresses[5])); // Donations
     }
 
@@ -709,10 +708,14 @@ contract BuyAccessTest is TestSetupElectoral {
             })
         );
 
+        vm.prank(address(daoMock));
+        donations.setWhitelistedToken(address(0), true);
+
         // Make a small donation (insufficient)
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.001 ether }(""); // Very small donation
+        (bool success,) = payable(address(donations)).call{ value: 0.001 ether }(""); // Very small donation
+        assertTrue(success);
 
         // Execute with insufficient donation
         vm.prank(alice);
@@ -757,7 +760,7 @@ contract RoleByRolesTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
         lawId = 9;
-        roleByRoles = RoleByRoles(lawAddresses[16]);
+        roleByRoles = RoleByRoles(lawAddresses[17]);
     }
 
     function testRoleByRolesInitialization() public {
@@ -806,7 +809,7 @@ contract SelfSelectTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
         lawId = 6;
-        selfSelect = SelfSelect(lawAddresses[17]);
+        selfSelect = SelfSelect(lawAddresses[18]);
     }
 
     function testSelfSelectInitialization() public {
@@ -846,7 +849,7 @@ contract RenounceRoleTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
         lawId = 7;
-        renounceRole = RenounceRole(lawAddresses[18]);
+        renounceRole = RenounceRole(lawAddresses[19]);
     }
 
     function testRenounceRoleInitialization() public {

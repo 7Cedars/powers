@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { Law } from "../../src/Law.sol";
 import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";

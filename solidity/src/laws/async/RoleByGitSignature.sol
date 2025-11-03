@@ -9,7 +9,6 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 
 // Chainlink Functions
 import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
-import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
 // OpenZeppelin for signature verification
@@ -48,7 +47,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
         string signatureString; // The message that must be signed
         uint64 subscriptionId;
         uint32 gasLimit;
-        bytes32 donID;
+        bytes32 donId;
         string source; // The Chainlink Functions source code
     }
 
@@ -81,13 +80,13 @@ contract RoleByGitSignature is Law, FunctionsClient {
 
     // --- State Variables ---
 
-    bytes32 public s_lastRequestId;
-    bytes public s_lastResponse;
-    bytes public s_lastError;
-    bytes32 private s_messageHash;
-    address private s_signer;
+    bytes32 public sLastRequestId;
+    bytes public sLastResponse;
+    bytes public sLastError;
+    bytes32 private sMessageHash;
+    address private sSigner;
     // note that the repo is hard coded in the source code of this law. This is to avoid having to pass it as a parameter to the law.
-    string internal constant source = "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
+    string internal constant SOURCE = "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
 
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 requestId => Request) public requests;
@@ -126,7 +125,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
             string memory signatureString,
             uint64 subscriptionId,
             uint32 gasLimit,
-            bytes32 donID
+            bytes32 donId
         ) = abi.decode(
             config,
             (string, string[], uint256[], string, uint64, uint32, bytes32)
@@ -143,7 +142,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
             data[lawHash].signatureString = signatureString;
             data[lawHash].subscriptionId = subscriptionId;
             data[lawHash].gasLimit = gasLimit;
-            data[lawHash].donID = donID;
+            data[lawHash].donId = donId;
         }
 
         // Set input parameters for UI
@@ -241,13 +240,13 @@ contract RoleByGitSignature is Law, FunctionsClient {
         if (args.length > 0) req.setArgs(args);
 
         // Send the request
-        s_lastRequestId = _sendRequest(
+        sLastRequestId = _sendRequest(
             req.encodeCBOR(),
             data_.subscriptionId,
             data_.gasLimit,
-            data_.donID
+            data_.donId
         );
-        return s_lastRequestId;
+        return sLastRequestId;
     }
 
     /**
@@ -255,12 +254,12 @@ contract RoleByGitSignature is Law, FunctionsClient {
      * @dev This is where the signature verification happens
      */
     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
-        if (s_lastRequestId != requestId) {
+        if (sLastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
 
-        s_lastResponse = response;
-        s_lastError = err;
+        sLastResponse = response;
+        sLastError = err;
 
         if (err.length > 0) {
             revert(string(err));
@@ -285,19 +284,19 @@ contract RoleByGitSignature is Law, FunctionsClient {
         mem.signatureBytes = LawUtilities.hexStringToBytes(mem.signatureHex);
 
         // 2. Hash the pre-defined message (EIP-191)
-        s_messageHash = MessageHashUtils.toEthSignedMessageHash(
+        sMessageHash = MessageHashUtils.toEthSignedMessageHash(
             bytes(data_.signatureString)
         );
 
         // 3. Recover the signer's address
-        s_signer = s_messageHash.recover(mem.signatureBytes);
+        sSigner = sMessageHash.recover(mem.signatureBytes);
 
-        if (s_signer == address(0)) {
+        if (sSigner == address(0)) {
             revert InvalidSignature();
         }
 
         // 4. Check if the signer matches the original caller
-        if (s_signer == request.caller) {
+        if (sSigner == request.caller) {
             // Success! Prepare the call to assign the role.
             address[] memory targets = new address[](1);
             uint256[] memory values = new uint256[](1);

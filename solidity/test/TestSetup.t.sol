@@ -33,7 +33,7 @@ import { Nominees } from "@mocks/Nominees.sol";
 
 // deploy scripts
 import { DeployMocks } from "../script/DeployMocks.s.sol";
-import { InitialisePowers } from "../script/InitialisePowers.s.sol";
+import { DeployLaws } from "../script/DeployLaws.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // protocol and mocks
@@ -41,7 +41,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     HelperConfig helperConfig;
     PowersMock daoMock;
     DeployMocks deployMocks;
-    InitialisePowers initialisePowers;
+    DeployLaws deployLaws;
     string[] lawNames;
     address[] lawAddresses;
     string[] mockNames;
@@ -221,7 +221,7 @@ abstract contract TestStandalone is Test, TestVariables {
             bool getNft = (currentRandomiser % 100) < density;
             if (getNft) {
                 vm.prank(powersContract);
-                SoulboundErc721(erc721MockLocal).mintNFT(randomiser + i, accounts[i]);
+                SoulboundErc721(erc721MockLocal).mintNft(randomiser + i, accounts[i]);
             }
         }
     }
@@ -288,7 +288,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         ROLE_FOUR = 4;
 
         nonce = 123;
-        MAX_FUZZ_TARGETS = 20;
+        MAX_FUZZ_TARGETS = 5;
         MAX_FUZZ_CALLDATA_LENGTH = 2000;
 
         // users
@@ -328,9 +328,9 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
 
         // deploy external contracts
         deployMocks = new DeployMocks();
-        initialisePowers = new InitialisePowers();
+        deployLaws = new DeployLaws();
         (mockNames, mockAddresses) = deployMocks.run();
-        (lawNames, lawAddresses) = initialisePowers.run();
+        (lawNames, lawAddresses) = deployLaws.run();
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());

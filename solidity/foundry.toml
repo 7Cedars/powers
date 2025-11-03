@@ -9,6 +9,7 @@ optimizer_runs = 600
 # dynamic_test_linking = true
 # Auto-detect Solidity versions from pragma statements
 auto_detect_solc = true
+ffi = true
 
 fs_permissions = [
     { access = "read", path = "./out"},

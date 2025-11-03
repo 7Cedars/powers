@@ -43,9 +43,15 @@ library Checks {
     /// @param lawCalldata The calldata of the law
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the law
-    function checksAtPropose(uint16 lawId, bytes memory lawCalldata, address powers, uint256 nonce) public view {
+    /// @param latestFulfillment The latest fulfillment of the law
+    function check(
+        uint16 lawId,
+        bytes memory lawCalldata,
+        address powers,
+        uint256 nonce,
+        uint48 latestFulfillment
+    ) external view {
         PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
-
         // Check if parent law completion is required
         if (conditions.needFulfilled != 0) {
             PowersTypes.ActionState stateLog =
@@ -63,25 +69,7 @@ library Checks {
                 revert Checks__ParentLawBlocksCompletion();
             }
         }
-    }
 
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
-    /// @param lawId The id of the law
-    /// @param lawCalldata The calldata of the law
-    /// @param powers The address of the Powers contract
-    /// @param nonce The nonce of the law
-    /// @param latestFulfillment The latest fulfillment of the law
-    function checksAtRequest(
-        uint16 lawId,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce,
-        uint48 latestFulfillment
-    ) external view {
-        checksAtPropose(lawId, lawCalldata, powers, nonce);
-
-        PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
             if (

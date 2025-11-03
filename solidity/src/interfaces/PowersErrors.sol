@@ -122,6 +122,9 @@ interface PowersErrors {
     /// @notice Emitted when a max call data length is invalid.
     error Powers__InvalidMaxCallDataLength();
 
+    /// @notice Emitted when a max call data length is invalid.
+    error Powers__InvalidReturnCallDataLength();
+
     /// @notice Emitted when a max executions length is invalid.
     error Powers__InvalidMaxExecutionsLength();
 

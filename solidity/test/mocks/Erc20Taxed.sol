@@ -2,9 +2,6 @@
 pragma solidity 0.8.26;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Erc20Taxed is ERC20, Ownable {
@@ -17,14 +14,14 @@ contract Erc20Taxed is ERC20, Ownable {
     bool public faucetPaused;
     uint256 public immutable AMOUNT_FAUCET = 1 * 10 ** 18;
     uint8 public immutable DENOMINATOR;
-    uint48 public immutable epochDuration;
+    uint48 public immutable EPOCH_DURATION;
     mapping(uint48 epoch => mapping(address account => uint256 taxPaid)) public taxLogs;
 
     constructor() ERC20("Taxed", "TAX") Ownable(msg.sender) {
         // Note: hard coded values for testing.
         taxRate = 10;
         DENOMINATOR = 100;
-        epochDuration = 900; // 900 blocks, about 30 minutes on optimism sepolia, about 3 hours on arbitrum and mainnet sepolia.
+        EPOCH_DURATION = 900; // 900 blocks, about 30 minutes on optimism sepolia, about 3 hours on arbitrum and mainnet sepolia.
         _mint(msg.sender, 1 * 10 ** 18); // start with one million tokens.
     }
 
@@ -78,7 +75,7 @@ contract Erc20Taxed is ERC20, Ownable {
             _transfer(from, owner(), tax);
 
             // register tax in contract.
-            uint48 currentEpoch = uint48(block.number) / epochDuration;
+            uint48 currentEpoch = uint48(block.number) / EPOCH_DURATION;
             taxLogs[currentEpoch][from] += tax;
         }
 
@@ -91,7 +88,7 @@ contract Erc20Taxed is ERC20, Ownable {
     ////////////////////////////////////////////
 
     function getTaxLogs(uint48 blockNumber, address account) external view returns (uint256 taxPaid) {
-        uint48 epoch = blockNumber / epochDuration;
+        uint48 epoch = blockNumber / EPOCH_DURATION;
         return taxLogs[epoch][account];
     }
 

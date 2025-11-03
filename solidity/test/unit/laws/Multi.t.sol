@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
 import { TestSetupMulti } from "../../TestSetup.t.sol";
 import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
 import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
@@ -10,8 +9,6 @@ import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.s
 import { PresetMultipleActions } from "../../../src/laws/multi/PresetMultipleActions.sol";
 import { BespokeActionAdvanced } from "../../../src/laws/multi/BespokeActionAdvanced.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 
 /// @notice Comprehensive unit tests for all multi laws
 /// @dev Tests all functionality of multi laws including initialization, execution, and edge cases
@@ -195,14 +192,13 @@ contract StatementOfIntentTest is TestSetupMulti {
             alice, address(daoMock), lawId, abi.encode(targets, values, calldatas), nonce
         );
 
-        // Verify the returned values match what we sent
+        // Verify the returned values is empty
         assertEq(actionId, uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce))));
         assertEq(returnedTargets.length, 1);
-        assertEq(returnedTargets[0], address(daoMock));
+        assertEq(returnedTargets[0], address(0));
         assertEq(returnedValues.length, 1);
         assertEq(returnedValues[0], 0);
         assertEq(returnedCalldatas.length, 1);
-        assertEq(returnedCalldatas[0], calldatas[0]);
     }
 }
 

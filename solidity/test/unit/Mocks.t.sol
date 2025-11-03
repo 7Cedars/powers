@@ -20,149 +20,6 @@ import { EmptyTargetsLaw } from "@mocks/LawMocks.sol";
 import { MockTargetsLaw } from "@mocks/LawMocks.sol";
 
 /// @notice Unit tests for helper contracts
-
-//////////////////////////////////////////////////////////////
-//               DELEGATE ELECTION TESTS                    //
-//////////////////////////////////////////////////////////////
-contract Erc20DelegateElectionTest is TestSetupPowers {
-    Erc20DelegateElection delegateElection;
-    SimpleErc20Votes token;
-
-    function setUp() public override {
-        super.setUp();
-        token = SimpleErc20Votes(mockAddresses[0]);
-        delegateElection = Erc20DelegateElection(mockAddresses[10]);
-    }
-
-    function testConstructor() public  {
-        assertEq(address(delegateElection.owner()), address(daoMock));
-    }
-
-    function testConstructorRevertsWithZeroToken() public {
-        // This test is no longer applicable since we're using deployed contracts
-        // The constructor validation would have happened during deployment
-        assertTrue(true); // Placeholder assertion
-    }
-
-    function testNominate() public {
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-
-        assertTrue(delegateElection.nominations(address(daoMock)));
-        assertTrue(delegateElection.isNominee(address(daoMock)));
-        assertEq(delegateElection.nomineesCount(), 1);
-    }
-
-    function testNominateRevertsWhenAlreadyNominated() public {
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-
-        vm.expectRevert("already nominated");
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-    }
-
-    function testRevokeNomination() public {
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), false);
-
-        assertFalse(delegateElection.nominations(address(daoMock)));
-        assertFalse(delegateElection.isNominee(address(daoMock)));
-        assertEq(delegateElection.nomineesCount(), 0);
-    }
-
-    function testRevokeNominationRevertsWhenNotNominated() public {
-        vm.expectRevert("not nominated");
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), false);
-    }
-
-    function testNominateRevertsWhenNotCalledByOwner() public {
-        vm.expectRevert();
-        vm.prank(alice);
-        delegateElection.nominate(alice, true);
-    }
-
-    function testGetNominees() public {
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-
-        nominees = delegateElection.getNominees();
-        assertEq(nominees.length, 1);
-        assertEq(nominees[0], address(daoMock));
-    }
-
-    function testGetNomineeRanking() public {
-        // Setup: Give tokens to users and delegate
-        vm.prank(alice);
-        token.mintVotes(1000);
-        vm.prank(bob);
-        token.mintVotes(2000);
-        vm.prank(charlotte);
-        token.mintVotes(500);
-
-        vm.prank(alice);
-        token.delegate(alice);
-        vm.prank(bob);
-        token.delegate(bob);
-        vm.prank(charlotte);
-        token.delegate(charlotte);
-
-        // Nominate users
-        vm.prank(address(daoMock));
-        delegateElection.nominate(address(daoMock), true);
-
-        vm.prank(alice);
-        vm.expectRevert();
-        delegateElection.nominate(alice, true);
-
-        // Test ranking
-        (address[] memory nominees2, uint256[] memory votes) = delegateElection.getNomineeRanking();
-        assertEq(nominees2.length, 1);
-        assertEq(votes.length, 1);
-        assertEq(nominees2[0], address(daoMock));
-        assertEq(votes[0], 0); // daoMock has no delegated votes
-    }
-
-    function testNomineeRankingWithMultipleNominees() public {
-        // Use the deployed contract for testing
-        Erc20DelegateElection testElection = delegateElection;
-
-        // Give tokens and delegate
-        vm.prank(alice);
-        token.mintVotes(1000);
-        vm.prank(bob);
-        token.mintVotes(2000);
-        vm.prank(charlotte);
-        token.mintVotes(500);
-
-        vm.prank(alice);
-        token.delegate(alice);
-        vm.prank(bob);
-        token.delegate(bob);
-        vm.prank(charlotte);
-        token.delegate(charlotte);
-
-        // Nominate multiple users
-        vm.startPrank(address(daoMock));
-        testElection.nominate(alice, true);
-        testElection.nominate(bob, true);
-        vm.stopPrank();
-
-        // Test with multiple nominees
-        (address[] memory nominees2, uint256[] memory votes) = testElection.getNomineeRanking();
-        assertEq(nominees2.length, 2);
-        assertEq(votes.length, 2);
-        assertEq(nominees2[0], bob); // bob has more votes (2000) than alice (1000)
-        assertEq(nominees2[1], alice);
-        assertEq(votes[0], 2000);
-        assertEq(votes[1], 1000);
-    }
-}
-
 //////////////////////////////////////////////////////////////
 //               FLAG ACTIONS TESTS                        //
 //////////////////////////////////////////////////////////////
@@ -1737,8 +1594,8 @@ contract DonationsTest is TestSetupPowers {
         vm.prank(address(daoMock));
         donations.setWhitelistedToken(testToken, true);
 
-        vm.expectRevert("Amount must be greater than 0");
         vm.prank(alice);
+        vm.expectRevert(bytes("Amount must be greater than 0"));
         donations.donateToken(testToken, 0);
     }
 
@@ -1779,16 +1636,16 @@ contract DonationsTest is TestSetupPowers {
     function testDonateNativeRevertsWhenNotWhitelisted() public {
         vm.expectRevert("Native currency not whitelisted");
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        (bool success,) = payable(address(donations)).call{ value: 0.5 ether }("");
     }
 
     function testDonateNativeRevertsWhenAmountZero() public {
         vm.prank(address(daoMock));
         donations.setWhitelistedToken(address(0), true);
 
-        vm.expectRevert("Amount must be greater than 0");
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0 }("");
+        (bool success,) = payable(address(donations)).call{ value: 0 }("");
+        assertTrue(!success, "Native donation with zero amount should fail");
     }
 
     function testGetAllDonations() public {
@@ -1810,11 +1667,13 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        (bool success1,) = payable(address(donations)).call{ value: 0.5 ether }("");
+        assertTrue(success1);
 
         vm.deal(bob, 1 ether);
         vm.prank(bob);
-        payable(address(donations)).call{ value: 0.3 ether }("");
+        (bool success2,) = payable(address(donations)).call{ value: 0.3 ether }("");
+        assertTrue(success2);
 
         // Get all donations
         Donations.Donation[] memory allDonations = donations.getAllDonations();
@@ -1851,12 +1710,14 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        (bool success1,) = payable(address(donations)).call{ value: 0.5 ether }("");
+        assertTrue(success1);
 
         // Bob makes one donation
         vm.deal(bob, 1 ether);
         vm.prank(bob);
-        payable(address(donations)).call{ value: 0.3 ether }("");
+        (bool success2,) = payable(address(donations)).call{ value: 0.3 ether }("");
+        assertTrue(success2);
 
         // Check Alice's donations
         uint256[] memory aliceDonations = donations.getDonorDonations(alice);
@@ -1893,7 +1754,8 @@ contract DonationsTest is TestSetupPowers {
             if (i % 2 == 0) {
                 donations.donateToken(testToken, 1000 + i);
             } else {
-                payable(address(donations)).call{ value: 0.1 ether }("");
+                (bool success,) = payable(address(donations)).call{ value: 0.1 ether }("");
+                assertTrue(success);
             }
         }
 
@@ -1915,7 +1777,8 @@ contract DonationsTest is TestSetupPowers {
         donations.setWhitelistedToken(address(0), true);
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.1 ether }("");
+        (bool success,) = payable(address(donations)).call{ value: 0.1 ether }("");
+        assertTrue(success);
 
         // Test invalid ranges
         vm.expectRevert("Start index out of bounds");
@@ -1949,14 +1812,16 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        (bool success, ) = payable(address(donations)).call{ value: 0.5 ether }("");
+        assertTrue(success);
 
         vm.deal(bob, 1 ether);
         vm.prank(bob);
         donations.donateToken(testToken, 2000);
 
         vm.prank(bob);
-        payable(address(donations)).call{ value: 0.3 ether }("");
+        (bool success2, ) = payable(address(donations)).call{ value: 0.3 ether }("");
+        assertTrue(success2);
 
         // Check totals
         assertEq(donations.getTotalDonatedForToken(testToken), 3000);
@@ -1974,12 +1839,14 @@ contract DonationsTest is TestSetupPowers {
 
         // Make donations
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.1 ether }("");
+        (bool success1,) = payable(address(donations)).call{ value: 0.1 ether }("");
+        assertTrue(success1);
 
         assertEq(donations.getTotalDonations(), 1);
 
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.2 ether }("");
+        (bool success2,) = payable(address(donations)).call{ value: 0.2 ether }("");
+        assertTrue(success2);
 
         assertEq(donations.getTotalDonations(), 2);
     }
@@ -2020,7 +1887,8 @@ contract DonationsTest is TestSetupPowers {
 
         // Normal donation should work
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.1 ether }("");
+        (bool success,) = payable(address(donations)).call{ value: 0.1 ether }("");
+        assertTrue(success);
 
         assertEq(donations.getTotalDonations(), 1);
     }
@@ -2051,13 +1919,15 @@ contract DonationsTest is TestSetupPowers {
         donations.donateToken(testToken, 1000);
 
         vm.prank(bob);
-        payable(address(donations)).call{ value: 0.2 ether }("");
+        (bool success1,) = payable(address(donations)).call{ value: 0.2 ether }("");
+        assertTrue(success1);
 
         vm.prank(charlotte);
         donations.donateToken(testToken, 2000);
 
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.3 ether }("");
+        (bool success2,) = payable(address(donations)).call{ value: 0.3 ether }("");
+        assertTrue(success2);
 
         // Verify all donations
         assertEq(donations.getTotalDonations(), 4);
@@ -2105,7 +1975,8 @@ contract DonationsTest is TestSetupPowers {
         vm.expectEmit(true, false, false, true);
         emit Donations.NativeCurrencyReceived(alice, 0.5 ether);
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        (bool success,) = payable(address(donations)).call{ value: 0.5 ether }("");
+        assertTrue(success);
     }
 
     function testGetDonationRevertsWithInvalidIndex() public {
@@ -2117,7 +1988,8 @@ contract DonationsTest is TestSetupPowers {
         donations.setWhitelistedToken(address(0), true);
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.1 ether }("");
+        (bool success,) = payable(address(donations)).call{ value: 0.1 ether }("");
+        assertTrue(success);
 
         // Test valid index
         Donations.Donation memory donation = donations.getDonation(0);
@@ -2426,7 +2298,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         assertEq(token.decimals(), 18);
         assertEq(token.taxRate(), 10);
         assertEq(token.DENOMINATOR(), 100);
-        assertEq(token.epochDuration(), 900);
+        assertEq(token.EPOCH_DURATION(), 900);
         assertEq(token.AMOUNT_FAUCET(), 1 * 10 ** 18);
         assertFalse(token.faucetPaused());
     }
@@ -2664,7 +2536,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         assertEq(nft.ownerOf(tokenId), alice);
         assertEq(nft.balanceOf(alice), 1);
@@ -2674,29 +2546,29 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         vm.expectRevert("Nft already exists");
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, bob);
+        nft.mintNft(tokenId, bob);
     }
 
     function testMintNFTRevertsWhenNotOwner() public {
         vm.expectRevert();
         vm.prank(alice);
-        nft.mintNFT(1, alice);
+        nft.mintNft(1, alice);
     }
 
-    function testBurnNFT() public {
+    function testburnNft() public {
         uint256 tokenId = 1;
 
         // First mint the NFT
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         // Then burn it
         vm.prank(address(daoMock));
-        nft.burnNFT(tokenId, alice);
+        nft.burnNft(tokenId, alice);
 
         // Check that the NFT is burned
         vm.expectRevert();
@@ -2705,33 +2577,33 @@ contract SoulboundErc721Test is TestSetupPowers {
         assertEq(nft.balanceOf(alice), 0);
     }
 
-    function testBurnNFTRevertsWithIncorrectAccount() public {
+    function testburnNftRevertsWithIncorrectAccount() public {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         vm.expectRevert("Incorrect account token pair");
         vm.prank(address(daoMock));
-        nft.burnNFT(tokenId, bob);
+        nft.burnNft(tokenId, bob);
     }
 
-    function testBurnNFTRevertsWhenNotOwner() public {
+    function testburnNftRevertsWhenNotOwner() public {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         vm.expectRevert();
         vm.prank(alice);
-        nft.burnNFT(tokenId, alice);
+        nft.burnNft(tokenId, alice);
     }
 
     function testTransferReverts() public {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         // Try to transfer the NFT (should revert)
         vm.expectRevert("Non transferable");
@@ -2743,7 +2615,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         // Try to approve the NFT (should revert)
         vm.expectRevert("Non transferable");
@@ -2755,7 +2627,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         // Try to set approval for all (should revert)
         vm.expectRevert("Non transferable");
@@ -2768,10 +2640,10 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId2 = 2;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId1, alice);
+        nft.mintNft(tokenId1, alice);
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId2, bob);
+        nft.mintNft(tokenId2, bob);
 
         assertEq(nft.ownerOf(tokenId1), alice);
         assertEq(nft.ownerOf(tokenId2), bob);
@@ -2783,7 +2655,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         assertEq(nft.getApproved(tokenId), address(0));
     }
@@ -2796,7 +2668,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         uint256 tokenId = 1;
 
         vm.prank(address(daoMock));
-        nft.mintNFT(tokenId, alice);
+        nft.mintNft(tokenId, alice);
 
         // TokenURI should return empty string by default
         assertEq(nft.tokenURI(tokenId), "");

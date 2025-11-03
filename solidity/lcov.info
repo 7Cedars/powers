@@ -826,8 +826,8 @@ DA:63,235
 BRDA:63,3,0,66
 DA:64,66
 DA:76,3138
-FN:76,PowersUtilities.checksAtRequest
-FNDA:3138,PowersUtilities.checksAtRequest
+FN:76,PowersUtilities.check
+FNDA:3138,PowersUtilities.check
 DA:83,3138
 DA:85,2940
 DA:87,2940
@@ -2996,8 +2996,8 @@ BRDA:17,0,0,1
 DA:18,1
 DA:20,14
 DA:23,3
-FN:23,SoulboundErc721.burnNFT
-FNDA:3,SoulboundErc721.burnNFT
+FN:23,SoulboundErc721.burnNft
+FNDA:3,SoulboundErc721.burnNft
 DA:24,2
 BRDA:24,1,0,1
 DA:25,1

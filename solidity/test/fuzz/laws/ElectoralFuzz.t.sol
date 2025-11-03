@@ -70,15 +70,15 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        electionSelect = ElectionSelect(lawAddresses[10]);
-        peerSelect = PeerSelect(lawAddresses[11]);
-        voteInOpenElection = VoteInOpenElection(lawAddresses[12]);
-        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[13]);
-        taxSelect = TaxSelect(lawAddresses[14]);
-        buyAccess = BuyAccess(lawAddresses[15]);
-        roleByRoles = RoleByRoles(lawAddresses[16]);
-        selfSelect = SelfSelect(lawAddresses[17]);
-        renounceRole = RenounceRole(lawAddresses[18]);
+        electionSelect = ElectionSelect(lawAddresses[11]);
+        peerSelect = PeerSelect(lawAddresses[12]);
+        voteInOpenElection = VoteInOpenElection(lawAddresses[13]);
+        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[14]);
+        taxSelect = TaxSelect(lawAddresses[15]);
+        buyAccess = BuyAccess(lawAddresses[16]);
+        roleByRoles = RoleByRoles(lawAddresses[17]);
+        selfSelect = SelfSelect(lawAddresses[18]);
+        renounceRole = RenounceRole(lawAddresses[19]);
 
         // Initialize mock contract instances
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
@@ -412,7 +412,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter
@@ -467,10 +467,6 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         }
         lawCalldata = abi.encode(votesArray);
 
-        for (j = 0; j < votesArray.length; j++) {
-            console.log("votesArray[%s] = %s", j, votesArray[j]);
-        }
-
         vm.roll(block.number + 1);
 
         // step 2: initialise a NEW VoteInOpenElection law with multiple votes allowed
@@ -481,7 +477,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election Multiple",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     3 // max votes per voter increased to 3
@@ -797,7 +793,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election Large",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter

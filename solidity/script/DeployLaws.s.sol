@@ -40,67 +40,14 @@ import { RoleByGitSignature } from "../src/laws/async/RoleByGitSignature.sol";
 import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
 import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
 import { AlloRPFGGovernance } from "../src/laws/integrations/AlloRPFGGovernance.sol";
-
-// mocks used 
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-
-/// @title InitialisePowers
+ 
+/// @title DeployLaws
 /// @notice Deploys all library and law contracts deterministically using CREATE2
 /// and saves their names and addresses to a obj1 file.
-contract InitialisePowers is Script { 
+contract DeployLaws is Script { 
     string outputFile;
 
     function run() external returns (string[] memory names, address[] memory addresses) {
-        string memory obj1 = "some key"; 
-        string memory outputJson;
-
-        vm.startBroadcast();
-        address checksAddr = deployLibrary(type(Checks).creationCode, "Checks");
-        vm.serializeAddress(obj1, "Checks", checksAddr);
-
-        address lawUtilsAddr = deployLibrary(type(LawUtilities).creationCode, "LawUtilities");
-        vm.serializeAddress(obj1, "LawUtilities", lawUtilsAddr);
-        vm.stopBroadcast();
-        
-        string memory powersBytecode = generatePowersBytecode(checksAddr);
-        vm.serializeString(obj1, "powers", powersBytecode);
-
-        // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
-
-        vm.startBroadcast();
-        (names, addresses, outputJson) = deployAndRecordLaws(obj1);
-        vm.stopBroadcast();
-
-        string memory finalJson = vm.serializeString(obj1, "laws", outputJson);        
-
-        outputFile = string.concat("powered/", vm.toString(block.chainid), ".json");
-        vm.writeJson(finalJson, outputFile);
-        console2.log("Success! All deployment data saved to:", outputFile);
- 
-    }
-
-    /// @notice Uses vm.ffi() and the 'serialize' function to add bytecode to the obj1 string.
-    function generatePowersBytecode(
-        address _checks
-    ) internal returns (string memory) { // Must return the modified string
-        string[] memory inputs = new string[](5);
-        inputs[0] = "forge";
-        inputs[1] = "build";
-        inputs[2] = "--libraries";
-        inputs[3] = string.concat("src/libraries/Checks.sol:Checks:", vm.toString(_checks));
-        inputs[4] = "--force";
-
-        vm.ffi(inputs);
-
-        string memory artifactJson = vm.readFile("out/Powers.sol/Powers.json");
-        string memory deploymentBytecode = vm.parseJsonString(artifactJson, ".bytecode.object");
-
-        return deploymentBytecode; // Return the new obj1 string
-    }
-
-
-    /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
         names = new string[](26);   
         addresses = new address[](26);
         bytes[] memory creationCodes = new bytes[](26);
@@ -206,25 +153,20 @@ contract InitialisePowers is Script {
         creationCodes[23] = type(RoleByGitSignature).creationCode;
         constructorArgs[23] = abi.encode("RoleByGitSignature");
 
-        names[24] = "Erc20Taxed";
-        creationCodes[24] = type(Erc20Taxed).creationCode;
+        names[24] = "EmptySlot";
+        creationCodes[24] = type(RevokeLaws).creationCode;
         constructorArgs[24] = abi.encode();
 
         names[25] = "RevokeLaws";
         creationCodes[25] = type(RevokeLaws).creationCode;
         constructorArgs[25] = abi.encode("RevokeLaws");
 
-        string memory obj2 = "second key";
-
         for (uint256 i = 0; i < names.length; i++) {
             address lawAddr = deployLaw(creationCodes[i], constructorArgs[i]);
             addresses[i] = lawAddr;
-            vm.serializeAddress(obj2, names[i], lawAddr);
         }
 
-        outputJson = vm.serializeUint(obj2, "chainId", uint256(block.chainid));
-
-        return (names, addresses, outputJson);
+        return (names, addresses);
     }
 
     /// @dev Deploys a law using CREATE2. Salt is derived from constructor arguments.
@@ -233,24 +175,14 @@ contract InitialisePowers is Script {
         bytes memory deploymentData = abi.encodePacked(creationCode, constructorArgs);
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY); 
 
-        if (computedAddress.code.length == 0) { 
-            address deployedAddress = Create2.deploy(0, salt, deploymentData); 
-            require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
-            return deployedAddress;
+        if (computedAddress.code.length == 0) {
+            vm.startBroadcast();
+            address mockAddress = Create2.deploy(0, salt, abi.encodePacked(deploymentData));
+            vm.stopBroadcast();
+            return mockAddress;
+        } else {
+            return computedAddress;
         }
-        return computedAddress; 
     }
-
-    /// @dev Deploys a library using CREATE2. Salt is derived from the library name.
-    function deployLibrary(bytes memory creationCode, string memory name) internal returns (address) { 
-        bytes32 salt = bytes32(abi.encodePacked(name));
-        address computedAddress = Create2.computeAddress(salt, keccak256(creationCode), CREATE2_FACTORY);
-
-        if (computedAddress.code.length == 0) { 
-            address deployedAddress = Create2.deploy(0, salt, creationCode); 
-            require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
-            return deployedAddress;
-        }
-        return computedAddress; 
-    }
+ 
 }

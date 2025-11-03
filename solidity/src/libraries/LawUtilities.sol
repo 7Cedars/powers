@@ -21,8 +21,6 @@ pragma solidity 0.8.26;
 
 import { ERC721 } from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import { Powers } from "../Powers.sol";
-import { ILaw } from "../interfaces/ILaw.sol";
-import { PowersTypes } from "../interfaces/PowersTypes.sol";
 
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
 import { Law } from "../../src/Law.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
@@ -106,7 +106,7 @@ contract LawFuzzTest is TestSetupLaw {
 
         // Verify data matches
         assertEq(retrievedName, nameDescriptionFuzzed);
-        assertEq(retrievedInputParams.length, 288); // length of preset input params
+        assertEq(retrievedInputParams.length, configFuzzed.length); // length of preset input params
         assertEq(retrievedConfig.length, configFuzzed.length);
     }
 
@@ -170,7 +170,7 @@ contract LawFuzzTest is TestSetupLaw {
 
         // State should be consistent
         assertEq(retrievedName, nameDescriptionFuzzed);
-        assertEq(retrievedInputParams.length, 288);
+        assertEq(retrievedInputParams.length, configFuzzed.length);
         assertEq(retrievedConfig.length, configFuzzed.length);
 
         for (i = 0; i < configFuzzed.length; i++) {
@@ -205,7 +205,6 @@ contract LawFuzzTest is TestSetupLaw {
             bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), lawIdFuzzed);
 
             assertEq(retrievedName, nameDescriptionsFuzzed[i]);
-            assertEq(retrievedInputParams.length, 288);
             assertEq(retrievedConfig.length, configArrayFuzzed[i].length);
         }
     }

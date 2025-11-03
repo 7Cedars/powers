@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { Powers } from "../../src/Powers.sol";
 import { IPowers } from "../../src/interfaces/IPowers.sol";
@@ -32,7 +32,7 @@ contract PowersFuzzTest is TestSetupPowers {
         daoMock.assignRole(ROLE_ONE, alice);
 
         // Create a valid action first
-        lawId = 4; // this law needs a vote.
+        lawId = 3; // this law needs a vote.
         lawCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
         nonce = 123;
 
@@ -94,7 +94,7 @@ contract PowersFuzzTest is TestSetupPowers {
         uint32 numberVotesCast = 0;
 
         // Create a valid action first
-        lawId = 4; // this law needs a vote. needs ROLE_ONE.
+        lawId = 3; // this law needs a vote. needs ROLE_ONE.
         lawCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
         nonce = 123;
 

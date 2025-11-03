@@ -23,7 +23,6 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { Powers } from "../../Powers.sol";
 
 contract BespokeActionSimple is Law {
     /// @dev Mapping from law hash to target contract address for each law instance

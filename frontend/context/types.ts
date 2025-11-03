@@ -3,7 +3,7 @@ import { Log } from "viem";
 
 export type SupportedChains = 421614 | 11155111 | 31337 | 5003 | undefined
 export type Status = "idle" | "pending" | "error" | "success"
-export type Vote = 0n | 1n | 2n  // = against, for, abstain  
+export type Vote = 0n | 1n | 2n  // = against, FOR, ABSTAIN  
 // 'string | number | bigint | boolean | ByteArray 
 export type OrganizationType = 'Powers 101' | 'Bridging Off-Chain Governance' | 'Grants Manager' | 'Split Governance' | 'Packaged Upgrades' | 'Single Upgrades' | 'PowersDAO'
 export type InputType = boolean | string | number | bigint | `0x${string}`

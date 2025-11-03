@@ -12,14 +12,14 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 contract SoulboundErc721 is ERC721, Ownable {
     constructor() ERC721("Soulbound", "SB") Ownable(msg.sender) { }
 
-    function mintNFT(uint256 tokenId, address account) public onlyOwner {
+    function mintNft(uint256 tokenId, address account) public onlyOwner {
         if (_ownerOf(tokenId) != address(0)) {
             revert("Nft already exists");
         }
         _safeMint(account, tokenId);
     }
 
-    function burnNFT(uint256 tokenId, address account) public onlyOwner {
+    function burnNft(uint256 tokenId, address account) public onlyOwner {
         if (_ownerOf(tokenId) != account) {
             revert("Incorrect account token pair");
         }

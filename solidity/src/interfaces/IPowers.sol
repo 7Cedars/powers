@@ -21,7 +21,6 @@ pragma solidity 0.8.26;
 import { PowersErrors } from "./PowersErrors.sol";
 import { PowersEvents } from "./PowersEvents.sol";
 import { PowersTypes } from "./PowersTypes.sol";
-import { ILaw } from "./ILaw.sol";
 
 interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
@@ -56,6 +55,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
+    /// @dev note that no checks are run. If account has acces to law and it requires a vote - the account wil be able to create proposals.  
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action

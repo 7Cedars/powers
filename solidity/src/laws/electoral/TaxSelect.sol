@@ -109,7 +109,7 @@ contract TaxSelect is Law {
         (address account) = abi.decode(lawCalldata, (address));
 
         // step 1: retrieve data
-        mem.epochDuration = Erc20Taxed(data[mem.lawHash].erc20Taxed).epochDuration();
+        mem.epochDuration = Erc20Taxed(data[mem.lawHash].erc20Taxed).EPOCH_DURATION();
         mem.currentEpoch = uint48(block.number) / mem.epochDuration;
 
         if (mem.currentEpoch == 0) {

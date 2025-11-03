@@ -19,7 +19,7 @@
 
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
@@ -55,7 +55,7 @@ contract LawUtilitiesTest is TestSetupLaw {
     function testNftCheckPassesWithValidToken() public {
         // Setup: Mint an NFT to alice
         vm.prank(address(daoMock));
-        SoulboundErc721(mockAddresses[2]).mintNFT(1, alice);
+        SoulboundErc721(mockAddresses[2]).mintNft(1, alice);
 
         // Should not revert when alice owns an NFT
         LawUtilities.nftCheck(alice, mockAddresses[2]);
