@@ -298,7 +298,7 @@ deploy-allo-anvil:
 	forge script script/DeployAllo.s.sol:DeployAllo $(ANVIL_ARGS_0) 
 
 # anvil local 
-initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0)
+initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) 
 initialise-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
 initialise-op-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
 initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)

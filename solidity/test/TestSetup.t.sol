@@ -30,6 +30,7 @@ import { OpenElection } from "@mocks/OpenElection.sol";
 import { Donations } from "@mocks/Donations.sol";
 import { FlagActions } from "@mocks/FlagActions.sol";
 import { Nominees } from "@mocks/Nominees.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 // deploy scripts
 import { DeployMocks } from "../script/DeployMocks.s.sol";
@@ -169,6 +170,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // Fuzz test variables
     uint256 MAX_FUZZ_TARGETS;
     uint256 MAX_FUZZ_CALLDATA_LENGTH;
+    bytes CREATE2_FACTORY_BYTECODE; 
+
 }
 
 abstract contract TestStandalone is Test, TestVariables {
@@ -322,7 +325,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         vm.deal(oracle, 10 ether);
 
         users = [alice, bob, charlotte, david, eve, frank, gary, helen, ian, jacob, kate, lisa];
-
+ 
         // deploy mock powers
         daoMock = new PowersMock();
 

@@ -2,6 +2,14 @@ import { defineConfig } from 'vocs'
 
 export default defineConfig({
   title: 'Powers',
+  theme: {
+    variables: {
+      content: {
+        horizontalPadding: '1.5rem',
+        verticalPadding: '3rem'
+      },
+    },
+  },
   sidebar: [
     {
       text: 'Welcome',
@@ -206,11 +214,11 @@ export default defineConfig({
       items: [ 
         {
           text: 'Power 101',
-          link: '/to-do',
+          link: '/organisations/powers101',
         },
         { 
           text: 'Power Base', 
-          link: '/to-do', 
+          link: '/organisations/powerBase', 
         }, 
         { 
           text: 'Power To Nouns', 

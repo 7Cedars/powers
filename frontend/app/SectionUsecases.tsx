@@ -27,7 +27,7 @@ export function SectionUsecases() {
         {/* info blocks */}
         <section className="w-full flex flex-wrap gap-4 max-w-6xl justify-center items-start overflow-y-auto">  
               {useCases.map((useCase, index) => (
-                    <div className="w-72 min-h-64 max-h-64 flex flex-col justify-between items-between border border-slate-300 rounded-md bg-slate-50 overflow-hidden" key={index}>  
+                    <div className="w-72 min-h-64 max-h-64 flex flex-col justify-between items-between border border-slate-300 rounded-md bg-slate-50" key={index}>  
                       <div className="w-full font-bold text-slate-700 p-3 ps-5 border-b border-slate-300 bg-slate-100">
                           {useCase.title}
                       </div> 
@@ -39,7 +39,7 @@ export function SectionUsecases() {
                       </ul>
                       <div className="w-full max-w-4xl flex flex-row justify-between items-center text-center ps-3 pe-2 p-3 relative"> 
                         <button 
-                          className="flex flex-row justify-between items-center w-full border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
+                          className="flex flex-row justify-between bg-slate-50 items-center w-full border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                           onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}
                           disabled={useCase.demos.length === 0 || useCase.demos.every(demo => demo.address === "0x0000000000000000000000000000000000000000")}
                         >
@@ -47,11 +47,11 @@ export function SectionUsecases() {
                           <ChevronDownIcon className="w-4 h-4 m-1 text-slate-700" />
                         </button>
                         {openDropdownIndex === index && (
-                          <ul className="absolute bottom-full mb-2 w-[calc(100%-1rem)] bg-white border border-slate-300 rounded-md shadow-lg z-10">
+                          <ul className="absolute top-full w-[calc(100%-1rem)] bg-slate-50 border divide-y divide-slate-300 border-slate-300 rounded-md shadow-xl z-10">
                             {useCase.demos.map((demo, demoIndex) => (
                               <li 
                                 key={demoIndex} 
-                                className={`p-2 hover:bg-slate-100 flex justify-between items-center ${demo.address === "0x0000000000000000000000000000000000000000" ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                                className={`p-2 hover:bg-slate-100 flex justify-between items-center ${demo.address === "0x0000000000000000000000000000000000000000" ? "cursor-not-allowed text-slate-300" : "cursor-pointer"}`}
                                 onClick={() => {
                                   if (demo.address !== "0x0000000000000000000000000000000000000000") {
                                     router.push(`/protocol/${demo.chainId}/${demo.address}`);
@@ -60,9 +60,9 @@ export function SectionUsecases() {
                                 }}
                               >
                                 <span>{demo.name}</span>
-                                {demo.address !== "0x0000000000000000000000000000000000000000" && (
+                                {/* {demo.address !== "0x0000000000000000000000000000000000000000" && (
                                   <ArrowUpRightIcon className="w-4 h-4 text-slate-700" />
-                                )}
+                                )} */}
                               </li>
                             ))}
                           </ul>

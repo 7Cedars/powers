@@ -1,9 +1,3 @@
-type Usecase = { 
-  title: string;
-  details: string[];
-  demos: { name: string; address: `0x${string}`; chainId: string }[];
-}
-
 export const useCases = [
   {
     title: "Increase efficiency", 
@@ -12,8 +6,8 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demos: [
-      { name: "Split Governance", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" },
-      { name: "Example 2", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }, 
+      { name: "Split Governance", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" },
+      { name: "Example 2", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" }, 
       { name: "Example 3", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }, 
     ]
   }, 
@@ -25,7 +19,7 @@ export const useCases = [
     ],
     demos: 
     [
-      { name: "Powers 101", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }
+      { name: "Powers 101", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" }
     ],
   },  
   {
