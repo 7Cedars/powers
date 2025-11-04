@@ -1,4 +1,11 @@
-# **Power Base Organisation Specification (Allo v2 Revision)**
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  Powers Base is under development. The organisational specs are subject to change.
+</Callout>
+
+
+# **Power Base Organisational Specs**
 
 ## **Organisational Structure & Context**
 
@@ -24,7 +31,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 ## **Roles**
 
-<div class="table-div">
+<div class="table-roles">
 | **Role Id** | **Role name** | **Selection criteria** |
 | :---- | :---- | :---- |
 | 0 | Admin | Admin role assigned at deployment. |
@@ -46,7 +53,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 *(Note: Pool creation happens once at setup or via a constitutional process. Funding is ongoing.)*
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Propose Documentation Funding | StatementOfIntent.sol | "address TokenAddress", "uint256 Amount" | none | 51% success, 33% quorum, 7 day period |
@@ -60,7 +67,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 #### **Documentation Grants (via Allo Pool)**
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Register as Recipient (Docs) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(docsPoolId, data) | Public access |
@@ -70,7 +77,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 #### **Frontend Grants (via Allo Pool)**
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :-- | :-- | :--------------------- |
 | Public | Register as Recipient (Frontend) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(frontendPoolId, data) | Public access |
@@ -80,7 +87,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 #### **Protocol Grants (via Allo Pool)**
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Register as Recipient (Protocol) | BespokeActionSimple.sol | bytes data (includes recipient address, metadata) | Allo.registerRecipient(protocolPoolId, data) | Public access |
@@ -90,7 +97,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 ### ***Electoral Laws (assigning roles)***
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Github to EVM | StringToAddress.sol | "string githubUsername" | Maps GitHub to EVM address | Public access |
@@ -103,7 +110,7 @@ The funding policy outlines the distribution of funds into three Allo v2 pools: 
 
 ### ***Constitutional Laws (adopting and revoking laws)***
 
-<div class="table-div">
+<div class="table-laws">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Propose Law Package | StatementOfIntent.sol | "address[] laws", "bytes[] lawInitDatas" | none | 51% success, 50% quorum, 7 day period |
@@ -197,7 +204,7 @@ flowchart TB
 ### **Documentation Grant Process (Allo V2)**
 
 ```mermaid
-flowchart LR
+flowchart TB
     RPublic(( Public )):::user7
     RM(( Members )):::user0
     RDoc(( Doc Contrib. )):::user2
@@ -228,7 +235,7 @@ flowchart LR
 ### **Frontend Grant Process (Allo V2)**
 
 ```mermaid
-flowchart LR
+flowchart TB
     RPublic(( Public )):::user7
     RM(( Members )):::user0
     RFe(( Frontend Contrib. )):::user3
@@ -259,7 +266,7 @@ flowchart LR
 ### **Protocol Grant Process (Allo V2)**
 
 ```mermaid
-flowchart LR
+flowchart TB
     RPublic(( Public )):::user7
     RM(( Members )):::user0
     RProto(( Protocol Contrib. )):::user4
@@ -292,7 +299,7 @@ flowchart LR
 *(Unchanged from original spec)*
 
 ```mermaid
-flowchart LR
+flowchart TB
     RM(( Members )):::user0
     RF(( Funders )):::user1
     RAdmin(( Admin )):::user5
@@ -317,7 +324,7 @@ flowchart LR
 ### **Electoral Process**
 
 ```mermaid
-flowchart LR
+flowchart TB
     RPublic(( Public )):::user7
     RM(( Members )):::user0
     RAdmin(( Admin )):::user5
@@ -349,3 +356,11 @@ Allo V2 is a (very) complex protocol...
 
 ### Additional risks 
 Additional risk descriptions here. 
+
+## Deployments
+
+<div class="table-chains">
+| **Chain name** | **Chain Id** | **Address** |
+| :---- | :---- | :---- |
+| Optimism Sepolia | 11155420 | 0x00...  |
+</div> 

@@ -221,8 +221,12 @@ export default defineConfig({
           link: '/organisations/powerBase', 
         }, 
         { 
-          text: 'Power To Nouns', 
-          link: '/to-do', 
+          text: 'Powers To Nouns', 
+          link: '/organisations/powers2Nouns', 
+        },
+        { 
+          text: 'Bridged Powers', 
+          link: '/organisations/bridgedPowers', 
         },
       ], 
     }, 
