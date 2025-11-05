@@ -41,7 +41,7 @@ export const PowerBase: Organization = {
   metadata: {
     id: "power-base-allo",
     title: "Power Base",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihseorlowhkh3tbtrp2y6pd3s6zdiampreq7uotscppmiee3yjfki",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreifp5dpekvznezajivjjxt7ig65dr5qbrxqnuefdhkuzpu5ea4elxi",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
     description: "Power Base uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
     disabled: false,
