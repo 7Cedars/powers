@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Action, Powers, Status } from '../context/types'
+import { Action, CommunicationChannels, Powers, Status } from '../context/types'
 
 // Action Store
 type PowersStore = Powers;
@@ -15,7 +15,7 @@ const initialStatePowers: PowersStore = {
     website: "",
     codeOfConduct: "",
     disputeResolution: "",
-    communicationChannels: [],
+    communicationChannels: {} as CommunicationChannels,
     attributes: []
   },
   lawCount: 0n,

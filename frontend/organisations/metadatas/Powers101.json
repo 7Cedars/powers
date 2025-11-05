@@ -5,16 +5,16 @@
     "A base example of an on-chain organisation that uses the Powers protocol to govern itself and create a simple check and balance system.",
   "website": "https://powers-docs.vercel.app/organisations/powers101",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
-  "disputeResolution": "test",
+  "disputeResolution": "",
   "communicationChannels": {
       "discord": "https://discordapp.com/users/1006928106487021638",
       "telegram": "https://t.me/thd83",
       "x": "https://x.com/7__Cedars",
-      "paragraph": "https://mirror.xyz/7cedars.eth",
-      "youtube": "test",
-      "facebook": "test",
-      "github": "https://github.com/7Cedars",
-      "forum": "test",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers",
+      "forum": "",
       "documentation": "https://powers.docs.vercel.app/"
   },
   "attributes": [
