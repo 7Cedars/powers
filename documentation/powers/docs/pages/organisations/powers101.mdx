@@ -80,6 +80,31 @@ Powers 101 is a decentralized organization designed to showcase the fundamental 
 
 ## Governance Flow Diagrams
 
+### Proposal Process
+
+```mermaid
+flowchart TB
+    RM(( Members )):::user0
+    RAdmin(( Admin )):::user5
+    RD(( Delegates )):::user2
+
+    A[#2 Propose Action]
+    B[#3 Veto Action]
+    C[#4 Execute Action]
+
+    RM -- Vote 51% success 20% quorum --> A
+    RAdmin -- Veto --> B
+    RD -- Vote 77% success 50% quorum --> C
+
+    A -- enables --> B
+    A -- enables --> C
+    B -- blocks --> C
+
+    classDef user0 fill:#8dcfec
+    classDef user5 fill:#ffcdd2
+    classDef user2 fill:#b3e5fc
+```
+
 ## Risk Assessment 
 
 ### No checks on role assignment
