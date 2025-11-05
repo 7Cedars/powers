@@ -110,7 +110,7 @@ export type Metadata = {
   website?: string;
   codeOfConduct?: string;
   disputeResolution?: string;
-  communicationChannels?: CommunicationChannels[];
+  communicationChannels?: CommunicationChannels;
   attributes?: Attribute[];
 }
 

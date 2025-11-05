@@ -196,7 +196,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
     const currentLawAction = chainActionData.get(String(law.index))
-    console.log("currentLawAction", currentLawAction)
+    // console.log("currentLawAction", currentLawAction)
     
     switch (itemKey) {
       case 'needFulfilled':
