@@ -6,9 +6,10 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demos: [
-      { name: "Split Governance", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" },
-      { name: "Example 2", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" }, 
-      { name: "Example 3", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }, 
+      // these are placeholder links for now. 
+      { name: "Power Base, Law 3-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/3"},
+      { name: "Power Base, Law 8", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/8"},
+      { name: "More coming soon.", link: ""}, 
     ]
   }, 
   {
@@ -19,7 +20,9 @@ export const useCases = [
     ],
     demos: 
     [
-      { name: "Powers 101", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" }
+      { name: "Powers 101, Laws 2-4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/2"},
+      { name: "Power Base, Laws 4-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/4"},
+      { name: "More coming soon.", link: ""}
     ],
   },  
   {
@@ -29,7 +32,7 @@ export const useCases = [
       "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demos: [
-      { name: "Single Upgrades", address: "0x9478ab247f91eacbcaa1d120d5e35240d294aca9", chainId: "11155420" }
+      { name: "Bridged Powers, coming soon", link: ""}
     ]
   },
   {
@@ -39,7 +42,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demos: [
-      { name: "Managed Grants", address: "0x0000000000000000000000000000000000000000", chainId: "421614" }
+      { name: "Powers 101, law 4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/4"}
     ]
   },
   {
@@ -48,7 +51,7 @@ export const useCases = [
       "Build on-chain systems that seamlessly integrate off- and on-chain actions."
     ],
     demos: [
-      { name: "Bridging Governance", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }
+      { name: "Power Base, law 5", link: "" }
     ]
   },
   {
@@ -59,7 +62,8 @@ export const useCases = [
       "Create checks and balances."
     ],
     demos: [
-      { name: "Separated Powers", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }
+      { name: "Powers 101, Laws 2-4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/2"},
+      { name: "Power Base, Laws 3-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/3"},
     ]
   }, 
   {
@@ -69,7 +73,10 @@ export const useCases = [
       "Hats Protocol, Governor.sol, etc." 
     ],
     demos: [
-      { name: "Powers to Hats", address: "0x0000000000000000000000000000000000000000", chainId: "421614" }
+      { name: "Power Base, (Allo v2)", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/6"},
+      { name: "Powers to Nouns, (Nouns)", link: ""},
+      { name: "Bridged Powers, (Governor.sol)", link: ""},
+      { name: "More coming soon.", link: ""}
     ]
   },
   {
@@ -79,7 +86,9 @@ export const useCases = [
       "Use Powers as modular add-ons for existing DAOs."
     ],
     demos: [
-      { name: "Sub/Super DAOs", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }
+      { name: "Bridged Powers Parent on Optimmism Sepolia", link: ""},
+      { name: "Bridged Powers Child on base", link: ""},
+      { name: "Bridged Powers on Zora", link: ""}
     ]
   },
   {
@@ -89,7 +98,9 @@ export const useCases = [
       "Token, quadratic, conviction, list based voting, etc."
     ],
     demos: [
-      { name: "Voting Mechanisms", address: "0x0000000000000000000000000000000000000000", chainId: "11155420" }
+      { name: "Bridged Powers: Token delegations", link: ""},
+      { name: "Bridged Powers: List elections", link: ""},
+      { name: "Bridged Powers: Attestations", link: ""},
     ]
   },
 ]

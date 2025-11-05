@@ -1,7 +1,7 @@
 "use client";
 
 import { useCases } from  "../public/useCases";
-import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export function SectionUsecases() {
         </div>
 
         {/* info blocks */}
-        <section className="w-full flex flex-wrap gap-4 max-w-6xl justify-center items-start overflow-y-auto">  
+        <section className="w-full flex flex-wrap gap-4 max-w-6xl justify-center items-start overflow-y-auto">   
               {useCases.map((useCase, index) => (
                     <div className="w-72 min-h-64 max-h-64 flex flex-col justify-between items-between border border-slate-300 rounded-md bg-slate-50" key={index}>  
                       <div className="w-full font-bold text-slate-700 p-3 ps-5 border-b border-slate-300 bg-slate-100">
@@ -41,20 +41,20 @@ export function SectionUsecases() {
                         <button 
                           className="flex flex-row justify-between bg-slate-50 items-center w-full border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
                           onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}
-                          disabled={useCase.demos.length === 0 || useCase.demos.every(demo => demo.address === "0x0000000000000000000000000000000000000000")}
+                          disabled={useCase.demos.length === 0 || useCase.demos.every(demo => demo.link === "")}
                         >
-                          <span>Demos</span>
-                          <ChevronDownIcon className="w-4 h-4 m-1 text-slate-700" />
+                          <span>Examples</span>
+                          <ChevronUpIcon className="w-4 h-4 m-1 text-slate-700" />
                         </button>
                         {openDropdownIndex === index && (
-                          <ul className="absolute top-full w-[calc(100%-1rem)] bg-slate-50 border divide-y divide-slate-300 border-slate-300 rounded-md shadow-xl z-10">
+                          <ul className="absolute bottom-full w-[calc(100%-1rem)] bg-slate-50 border divide-y divide-slate-300 border-slate-300 rounded-md shadow-xl z-10">
                             {useCase.demos.map((demo, demoIndex) => (
                               <li 
                                 key={demoIndex} 
-                                className={`p-2 hover:bg-slate-100 flex justify-between items-center ${demo.address === "0x0000000000000000000000000000000000000000" ? "cursor-not-allowed text-slate-300" : "cursor-pointer"}`}
+                                className={`p-2 hover:bg-slate-100 flex justify-between items-center ${demo.link === "" ? "cursor-not-allowed text-slate-300" : "cursor-pointer"}`}
                                 onClick={() => {
-                                  if (demo.address !== "0x0000000000000000000000000000000000000000") {
-                                    router.push(`/protocol/${demo.chainId}/${demo.address}`);
+                                  if (demo.link !== "") {
+                                    router.push(`/protocol/${demo.link}`);
                                     setOpenDropdownIndex(null);
                                   }
                                 }}

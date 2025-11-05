@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { act, useCallback, useEffect, useMemo } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -19,11 +19,11 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Law, Powers, Action } from '@/context/types'
+import { Law, Powers, Action, Status } from '@/context/types'
 import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
 import { useBlocks } from '@/hooks/useBlocks'
 import { parseChainId } from '@/utils/parsers'
-import { useBlockNumber, useChains } from 'wagmi'
+import { State, useBlockNumber, useChains } from 'wagmi'
 import {
   CalendarDaysIcon,
   QueueListIcon,  
@@ -40,7 +40,8 @@ import { setAction, useActionStore, usePowersStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
 import HeaderLaw from '@/components/HeaderLaw'
 import { hashAction } from '@/utils/hashAction'
-import { usePowers } from '@/hooks/usePowers'
+import { useChecks } from '@/hooks/useChecks'
+import { useWallets } from '@privy-io/react-auth'
 
 // Default colors for all nodes
 const DEFAULT_NODE_COLOR = '#475569' // slate-600
@@ -100,12 +101,15 @@ interface LawSchemaNodeData {
 
 const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers, chainActionData } = data
+  const action  = useActionStore()
   const { timestamps, fetchTimestamps } = useBlocks()
   const chainId = useParams().chainId as string
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
-  
+  const { checks, fetchChecks } = useChecks()
+  const { wallets } = useWallets()
+
   // Get action data for this law from the chain action data
   const currentLawAction = chainActionData.get(String(law.index))
 
@@ -113,6 +117,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   React.useEffect(() => {
     // console.log("LAW schema node triggered", {law, chainActionData})
     const currentLawAction = chainActionData.get(String(law.index))
+    // console.log( "@PowersFlow: ", {currentLawAction} )
     if (currentLawAction) {
       const blockNumbers: bigint[] = []
       
@@ -187,68 +192,11 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       return null
     }
   }
-  
-  // Helper function to calculate when delay will pass with time remaining info
-  const calculateDelayPassTime = (requestedAtBlock: bigint | undefined, delaySeconds: bigint): string | null => {
-    if (!requestedAtBlock || requestedAtBlock === 0n || delaySeconds === 0n) {
-      return null
-    }
-    
-    try {
-      // First, get the timestamp for the requestedAt block
-      const cacheKey = `${chainId}:${requestedAtBlock}`
-      const cachedTimestamp = timestamps.get(cacheKey)
-      
-      if (cachedTimestamp && cachedTimestamp.timestamp) {
-        // Add the delay in seconds to the requested timestamp
-        const requestedAtTimestamp = Number(cachedTimestamp.timestamp)
-        const delayPassTimestamp = requestedAtTimestamp + Number(delaySeconds)
-        
-        // Check if delay has already passed by comparing with current time
-        const currentTimestamp = Math.floor(Date.now() / 1000)
-        const isDelayInFuture = delayPassTimestamp > currentTimestamp
-        
-        // If delay is in the future and we have current block number, calculate time remaining
-        if (isDelayInFuture && blockNumber) {
-          // Calculate how many seconds remain
-          const secondsRemaining = delayPassTimestamp - currentTimestamp
-          
-          // Convert to hours and minutes
-          const hoursRemaining = Math.floor(secondsRemaining / 3600)
-          const minutesRemaining = Math.floor((secondsRemaining % 3600) / 60)
-          
-          // Format the date/time when delay will pass
-          const dateStr = toFullDateFormat(delayPassTimestamp)
-          const timeStr = toEurTimeFormat(delayPassTimestamp)
-          
-          // Add time remaining info
-          let timeRemainingStr = ''
-          if (hoursRemaining > 0) {
-            timeRemainingStr = ` (${hoursRemaining}h ${minutesRemaining}m left)`
-          } else {
-            timeRemainingStr = ` (${minutesRemaining}m left)`
-          }
-          
-          return `${dateStr}: ${timeStr}${timeRemainingStr}`
-        } else {
-          // Delay has passed or no current block info, just show the date/time
-          const dateStr = toFullDateFormat(delayPassTimestamp)
-          const timeStr = toEurTimeFormat(delayPassTimestamp)
-          return `${dateStr}: ${timeStr}`
-        }
-      }
-      
-      // If timestamp not available yet, return null
-      return null
-    } catch (error) {
-      return null
-    }
-  }
 
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
     const currentLawAction = chainActionData.get(String(law.index))
-    // console.log("currentLawAction", currentLawAction)
+    console.log("currentLawAction", currentLawAction)
     
     switch (itemKey) {
       case 'needFulfilled':
@@ -301,22 +249,34 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         }
         return null
       }
+
+      case 'delay': {
+        // Calculate delay pass time if requestedAt exists and delay > 0
+        // Only show if current law has action data with requestedAt
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && law.conditions.delayExecution != 0n) {
+          // Get the timestamp for proposedAt block
+          const cacheKey = `${chainId}:${currentLawAction.proposedAt}`
+          const cachedTimestamp = timestamps.get(cacheKey)
+          
+          if (cachedTimestamp && cachedTimestamp.timestamp) {
+            // Add voting period to get vote end time
+            const proposedTimestamp = Number(cachedTimestamp.timestamp)
+            const voteEndTimestamp = proposedTimestamp + Number(law.conditions.votingPeriod) + Number(law.conditions.delayExecution)
+            
+            const dateStr = toFullDateFormat(voteEndTimestamp)
+            const timeStr = toEurTimeFormat(voteEndTimestamp)
+            return `${dateStr}: ${timeStr}`
+          }
+        }
+        // Return null if no action data or no delay condition
+        return null
+      }
       
       case 'requested': {
         // Use requestedAt field - show when proposal was requested (after vote passed)
         if (currentLawAction && currentLawAction.requestedAt && currentLawAction.requestedAt != 0n) {
           return formatBlockNumberOrTimestamp(currentLawAction.requestedAt)
         }
-        return null
-      }
-      
-      case 'delay': {
-        // Calculate delay pass time if requestedAt exists and delay > 0
-        // Only show if current law has action data with requestedAt
-        if (law.conditions && law.conditions.delayExecution != 0n && currentLawAction?.requestedAt) {
-          return calculateDelayPassTime(currentLawAction.requestedAt, law.conditions.delayExecution)
-        }
-        // Return null if no action data or no delay condition
         return null
       }
       
@@ -354,6 +314,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       key: string
       label: string
       blockNumber?: bigint
+      state?: Status
       hasHandle: boolean
       targetLaw?: bigint
       edgeType?: string
@@ -369,6 +330,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
           key: 'needFulfilled', 
           label: `Law ${law.conditions.needFulfilled} Fulfilled`, 
           blockNumber: dependentAction?.fulfilledAt,
+          state: dependentAction?.fulfilledAt && dependentAction.fulfilledAt > 0n ? "success" : "pending",
           hasHandle: true,
           targetLaw: law.conditions.needFulfilled,
           edgeType: 'needFulfilled'
@@ -377,12 +339,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       
       if (law.conditions.needNotFulfilled > 0n) {
         const dependentAction = chainActionData.get(String(law.conditions.needNotFulfilled))
-        // For needNotFulfilled, show green when the dependent law is NOT fulfilled (blockNumber is 0 or undefined)
-        const notFulfilledBlockNumber = (!dependentAction?.fulfilledAt || dependentAction.fulfilledAt === 0n) ? 1n : 0n
+        // For needNotFulfilled, show green when the dependent law is NOT fulfilled (blockNumber is 0 or undefined) 
         items.push({ 
           key: 'needNotFulfilled', 
           label: `Law ${law.conditions.needNotFulfilled} Not Fulfilled`, 
-          blockNumber: notFulfilledBlockNumber,
+          blockNumber: dependentAction?.fulfilledAt,
+          state: dependentAction?.fulfilledAt && dependentAction.fulfilledAt > 0n ? "error" : "success",
           hasHandle: true,
           targetLaw: law.conditions.needNotFulfilled,
           edgeType: 'needNotFulfilled'
@@ -393,10 +355,14 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
     // 2. Throttle check - show only if throttle condition exists (throttleExecution > 0)
     if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) {
       // Show as completed if we have action data (simplified - could be enhanced with actual throttle check)
+      const latestFulfilledAction =  Math.max(...law.actions?.map(action => Number(action.fulfilledAt)) || [0])
+      const throttledPassed = latestFulfilledAction + Number(law.conditions.throttleExecution) < (blockNumber || 0)
+
       items.push({ 
         key: 'throttle', 
         label: 'Throttle Passed', 
-        blockNumber: currentLawAction ? 1n : 0n, // Simplified: assume passed if action exists
+        blockNumber: BigInt(latestFulfilledAction + Number(law.conditions.throttleExecution)),
+        state: throttledPassed ? "success" : "pending",
         hasHandle: false
       })
     }
@@ -407,6 +373,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         key: 'proposalCreated', 
         label: 'Proposal Created', 
         blockNumber: currentLawAction?.proposedAt,
+        state: currentLawAction?.proposedAt && currentLawAction.proposedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
       
@@ -415,6 +382,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         label: 'Vote Started', 
         // Vote started is the same as proposal created
         blockNumber: currentLawAction?.proposedAt,
+        state: currentLawAction?.proposedAt && currentLawAction.proposedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
       
@@ -423,34 +391,42 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         label: 'Vote Ended', 
         // Show as completed if we have proposedAt (vote will end at proposedAt + votingPeriod)
         blockNumber: currentLawAction?.proposedAt,
+        state: 
+          currentLawAction?.state && currentLawAction?.state == 4 ? "error" :
+          currentLawAction?.state && currentLawAction?.state >= 5 ? "success" :
+          "pending",
         hasHandle: false
       })
+
+          
+      // 4. Delay - show only if delayExecution > 0
+      if (law.conditions && law.conditions.delayExecution != null && currentLawAction?.proposedAt && law.conditions.delayExecution > 0n) {
+        items.push({ 
+          key: 'delay', 
+          label: 'Delay Passed', 
+          // For delay, we use proposedAt as the reference block (the delay is calculated from it: proposedAt + votingPeriod + delay)
+          blockNumber: currentLawAction?.proposedAt,
+          state: currentLawAction?.proposedAt + law.conditions.votingPeriod + law.conditions.delayExecution < BigInt(blockNumber || 0) ? "success" : "pending",
+          hasHandle: false
+        })
+      }
       
       items.push({ 
         key: 'requested', 
         label: 'Requested', 
         // Show green if action has been requested (requestedAt > 0)
         blockNumber: currentLawAction?.requestedAt || 0n,
+        state: currentLawAction?.requestedAt && currentLawAction.requestedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
     }
-    
-    // 4. Delay - show only if delayExecution > 0
-    if (law.conditions && law.conditions.delayExecution != null && law.conditions.delayExecution > 0n) {
-      items.push({ 
-        key: 'delay', 
-        label: 'Delay Passed', 
-        // For delay, we use requestedAt as the reference block (the delay is calculated from it)
-        blockNumber: currentLawAction?.requestedAt,
-        hasHandle: false
-      })
-    }
-    
+
     // 5. Fulfilled - always show
     items.push({ 
       key: 'fulfilled', 
       label: 'Fulfilled', 
       blockNumber: currentLawAction?.fulfilledAt,
+      state: currentLawAction?.fulfilledAt && currentLawAction.fulfilledAt > 0n ? "success" : "pending",
       hasHandle: false
     })
     
@@ -491,9 +467,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
           <div className="relative bg-slate-50">
             {checkItems.map((item, index) => {
               // Determine if this step is completed based on blockNumber
-              const isCompleted = item.blockNumber != null && item.blockNumber > 0n
-              const iconColor = isCompleted ? 'text-green-600' : 'text-black'
-              
+              const iconColor = item.state === "success" ? 'text-green-600' : item.state === "error" ? 'text-red-600' : 'text-black'
+
               return (
               <div key={item.key} className="relative">
                 <div className="px-4 py-2 flex items-center justify-between text-xs relative">
@@ -1110,7 +1085,7 @@ const FlowContent: React.FC = () => {
         // Check if the source law's action is fulfilled
         const sourceAction = chainActionData.get(sourceId)
         const isSourceFulfilled = sourceAction && sourceAction.fulfilledAt && sourceAction.fulfilledAt > 0n
-        const edgeColor = isSourceFulfilled ? '#16a34a' : '#6B7280' // green-600 if fulfilled, gray otherwise
+        const edgeColor = '#6B7280' // green-600 if fulfilled, gray otherwise // turned off for now: isSourceFulfilled ? '#16a34a' :
         
         // Edge from needFulfilled check to target law
         if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
