@@ -33,16 +33,16 @@ import { Nominees } from "@mocks/Nominees.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 // deploy scripts
-import { DeployMocks } from "../script/DeployMocks.s.sol";
-import { DeployLaws } from "../script/DeployLaws.s.sol";
+import { DeployMocks } from "../script/DeployMocks.s.sol"; 
+import { InitialisePowers } from "../script/InitialisePowers.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // protocol and mocks
     Powers powers;
     HelperConfig helperConfig;
     PowersMock daoMock;
-    DeployMocks deployMocks;
-    DeployLaws deployLaws;
+    DeployMocks deployMocks; 
+    InitialisePowers initialisePowers;
     string[] lawNames;
     address[] lawAddresses;
     string[] mockNames;
@@ -331,9 +331,9 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
 
         // deploy external contracts
         deployMocks = new DeployMocks();
-        deployLaws = new DeployLaws();
+        initialisePowers = new InitialisePowers();
         (mockNames, mockAddresses) = deployMocks.run();
-        (lawNames, lawAddresses) = deployLaws.run();
+        (lawNames, lawAddresses) = initialisePowers.getDeployedLaws();
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());

@@ -48,7 +48,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
         uint64 subscriptionId;
         uint32 gasLimit;
         bytes32 donId;
-        string source; // The Chainlink Functions source code
+        // string source; // The Chainlink Functions source code
     }
 
     // --- Mem struct for handleRequest ---
@@ -236,7 +236,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
 
         FunctionsRequest.Request memory req;
         // Initialize request with the source code from config
-        req.initializeRequestForInlineJavaScript(data_.source);
+        req.initializeRequestForInlineJavaScript(SOURCE);
         if (args.length > 0) req.setArgs(args);
 
         // Send the request

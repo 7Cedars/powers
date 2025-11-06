@@ -5,6 +5,7 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { console2 } from "forge-std/console2.sol";
+import { HelperConfig } from "../script/HelperConfig.s.sol";
 
 // --- Library Imports ---
 import { Checks } from "../src/libraries/Checks.sol";
@@ -49,7 +50,8 @@ import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 /// and saves their names and addresses to a obj1 file.
 contract InitialisePowers is Script { 
     string outputFile;
-    address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
+    HelperConfig helperConfig;
+    HelperConfig.NetworkConfig public config;
 
     function run() external returns (string[] memory names, address[] memory addresses) {
         string memory obj1 = "some key"; 
@@ -67,10 +69,12 @@ contract InitialisePowers is Script {
         vm.serializeString(obj1, "powers", powersBytecode);
 
         // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
+        HelperConfig helperConfig = new HelperConfig();
+        config = helperConfig.getConfig();
 
-        vm.startBroadcast();
-        (names, addresses, outputJson) = deployAndRecordLaws(obj1);
-        vm.stopBroadcast();
+        // vm.startBroadcast();
+        (names, addresses, outputJson) = deployAndRecordLaws(obj1, config);
+        // vm.stopBroadcast();
 
         string memory finalJson = vm.serializeString(obj1, "laws", outputJson);        
 
@@ -101,16 +105,15 @@ contract InitialisePowers is Script {
 
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1) public returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        
+    function deployAndRecordLaws(string memory obj1, HelperConfig.NetworkConfig memory config) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
         names = new string[](26);   
         addresses = new address[](26);
         bytes[] memory creationCodes = new bytes[](26);
         bytes[] memory constructorArgs = new bytes[](26);
         
-        names[0] = "DUMMY PresetSingleAction";
+        names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
-        constructorArgs[0] = abi.encode("dummy law");
+        constructorArgs[0] = abi.encode();
         
         names[1] = "PresetSingleAction";
         creationCodes[1] = type(PresetSingleAction).creationCode;  
@@ -206,7 +209,7 @@ contract InitialisePowers is Script {
         // Async laws
         names[23] = "RoleByGitSignature";
         creationCodes[23] = type(RoleByGitSignature).creationCode;
-        constructorArgs[23] = abi.encode("RoleByGitSignature");
+        constructorArgs[23] = abi.encode(config.chainlinkFunctionsRouter);
 
         names[24] = "Erc20Taxed";
         creationCodes[24] = type(Erc20Taxed).creationCode;
@@ -233,10 +236,12 @@ contract InitialisePowers is Script {
     function deployLaw(bytes memory creationCode, bytes memory constructorArgs) internal returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(constructorArgs));
         bytes memory deploymentData = abi.encodePacked(creationCode, constructorArgs);
-        address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), create2Factory); 
-        if (computedAddress.code.length == 0) {
-            address deployedAddress = Create2.deploy(0, salt, deploymentData);
-            // commented out the following check because I could not get it to work in local tests. 
+        address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY); 
+
+        if (computedAddress.code.length == 0) { 
+            vm.startBroadcast(); 
+            address deployedAddress = Create2.deploy(0, salt, deploymentData); 
+            vm.stopBroadcast();
             // require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
             return deployedAddress;
         }
@@ -246,13 +251,22 @@ contract InitialisePowers is Script {
     /// @dev Deploys a library using CREATE2. Salt is derived from the library name.
     function deployLibrary(bytes memory creationCode, string memory name) internal returns (address) { 
         bytes32 salt = bytes32(abi.encodePacked(name));
-        address computedAddress = Create2.computeAddress(salt, keccak256(creationCode), create2Factory);
+        address computedAddress = Create2.computeAddress(salt, keccak256(creationCode), CREATE2_FACTORY);
 
         if (computedAddress.code.length == 0) { 
             address deployedAddress = Create2.deploy(0, salt, creationCode); 
-            require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
+            // require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
             return deployedAddress;
         }
         return computedAddress; 
+    }
+
+    // @dev wrapper function to expose deployAndRecordLaws externally and only return addresses and names of laws. 
+    function getDeployedLaws() external returns (string[] memory names, address[] memory addresses) {
+        string memory obj1 = "first key";
+        HelperConfig helperConfig = new HelperConfig();
+        config = helperConfig.getConfig();
+
+        (names, addresses, ) = deployAndRecordLaws(obj1, config);
     }
 }

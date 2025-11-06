@@ -59,153 +59,120 @@ export default defineConfig({
           items: [ 
             { 
               text: 'AIAnalysis', 
-              link: '/to-do', 
+              link: '/laws/async/AIAnalysis', 
             },
             { 
               text: 'AiCcipProxy', 
-              link:'/to-do', 
+              link: '/laws/async/AiCcipProxy', 
             },
             { 
               text: 'RoleByGitCommit', 
-              link: '/to-do', 
+              link: '/laws/async/RoleByGitCommit', 
             },
             { 
               text: 'Snapshot_CheckSnapExists', 
-              link: '/to-do', 
+              link: '/laws/async/Snapshot_CheckSnapExists', 
             },
             { 
               text: 'Snapshot_CheckSnapPassed', 
-              link: '/to-do', 
+              link: '/laws/async/Snapshot_CheckSnapPassed', 
             },
             { 
               text: 'ZKPassportSelect', 
-              link: '/to-do', 
+              link: '/laws/async/ZKPassportSelect', 
             },
           ], 
-        }, 
+        },
         { 
           text: 'Electoral', 
           collapsed: true, 
           items: [ 
             { 
               text: 'BuyAccess', 
-              link: '/to-do', 
+              link: '/laws/electoral/BuyAccess', 
             },
             { 
               text: 'ElectionSelect', 
-              link: '/to-do', 
+              link: '/laws/electoral/ElectionSelect', 
             },
             { 
               text: 'NStrikesRevokesRoles', 
-              link: '/to-do', 
+              link: '/laws/electoral/NStrikesRevokesRoles', 
             },
             { 
               text: 'PeerSelect', 
-              link: '/to-do', 
+              link: '/laws/electoral/PeerSelect', 
             },
             { 
               text: 'RenounceRole', 
-              link: '/to-do', 
+              link: '/laws/electoral/RenounceRole', 
             },
             { 
               text: 'RoleByRoles', 
-              link: '/to-do', 
+              link: '/laws/electoral/RoleByRoles', 
             },
             { 
               text: 'SelfSelect', 
-              link: '/to-do', 
+              link: '/laws/electoral/SelfSelect', 
             },
             { 
               text: 'TaxSelect', 
-              link: '/to-do', 
+              link: '/laws/electoral/TaxSelect', 
             },
             { 
               text: 'VoteInOpenElection', 
-              link: '/to-do', 
+              link: '/laws/electoral/VoteInOpenElection', 
             },
           ], 
-        }, 
+        },
         { 
           text: 'Executive', 
           collapsed: true, 
           items: [ 
             { 
               text: 'AdoptLaws', 
-              link: '/to-do', 
+              link: '/laws/executive/AdoptLaws', 
             },
             { 
-              text: 'RevokeLaws', 
-              link: '/to-do', 
+              text: 'GovernorCreateProposal', 
+              link: '/laws/executive/GovernorCreateProposal', 
             },
             { 
-              text: 'BespokeActionAdvanced', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'BespokeActionSimple', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'OpenAction', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'PresetMultipleActions', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'PresetSingleAction', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'StatementOfIntent', 
-              link: '/to-do', 
+              text: 'GovernorExecuteProposal', 
+              link: '/laws/executive/GovernorExecuteProposal', 
             },
           ], 
         }, 
         { 
-          text: 'Integrations', 
+          text: 'Multi', 
           collapsed: true, 
           items: [ 
-
             { 
-              text: 'GovernorCreateProposal', 
-              link: '/to-do', 
+              text: 'BespokeActionAdvanced', 
+              link: '/laws/multi/BespokeActionAdvanced', 
             },
             { 
-              text: 'GovernorExecuteProposal', 
-              link: '/to-do', 
+              text: 'BespokeActionSimple', 
+              link: '/laws/multi/BespokeActionSimple', 
             },
             { 
-              text: 'AlloRPFGGovernance', 
-              link: '/to-do', 
+              text: 'OpenAction', 
+              link: '/laws/multi/OpenAction', 
             },
             { 
-              text: 'AlloDistribute', 
-              link: '/to-do', 
+              text: 'PresetMultipleActions', 
+              link: '/laws/multi/PresetMultipleActions', 
             },
             { 
-              text: 'AlloCreateRPGFPool', 
-              link: '/to-do', 
+              text: 'PresetSingleAction', 
+              link: '/laws/multi/PresetSingleAction', 
             },
             { 
-              text: 'RoleByGitCommit', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'Snapshot_CheckSnapExists', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'Snapshot_CheckSnapPassed', 
-              link: '/to-do', 
-            },
-            { 
-              text: 'ZKPassportSelect', 
-              link: '/to-do', 
+              text: 'StatementOfIntent', 
+              link: '/laws/multi/StatementOfIntent', 
             },
           ], 
-        }, 
+        },
       ], 
     }, 
     { 
