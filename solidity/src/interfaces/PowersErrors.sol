@@ -130,4 +130,7 @@ interface PowersErrors {
 
     /// @notice Emitted when an index is invalid.
     error Powers__InvalidIndex();
+
+    /// notice Emitted when trying to set the treasury to the zero address.
+    error Powers__CannotSetZeroAddress(); 
 }

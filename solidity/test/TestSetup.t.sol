@@ -369,7 +369,6 @@ abstract contract TestSetupPowers is BaseSetup {
         daoMock.constitute(lawInitData_);
 
         vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
@@ -391,8 +390,7 @@ abstract contract TestSetupLaw is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -413,8 +411,7 @@ abstract contract TestSetupElectoral is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -435,8 +432,7 @@ abstract contract TestSetupExecutive is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -457,8 +453,7 @@ abstract contract TestSetupMulti is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -512,8 +507,7 @@ abstract contract TestSetupPowers101 is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_ONE, charlotte);

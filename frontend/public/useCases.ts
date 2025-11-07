@@ -20,7 +20,7 @@ export const useCases = [
     ],
     demos: 
     [
-      { name: "Powers 101, Laws 2-4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/2"},
+      { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
       { name: "Power Base, Laws 4-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/4"},
       { name: "More coming soon.", link: ""}
     ],
@@ -42,7 +42,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demos: [
-      { name: "Powers 101, law 4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/4"}
+      { name: "Powers 101, law 4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/4"}
     ]
   },
   {
@@ -62,7 +62,7 @@ export const useCases = [
       "Create checks and balances."
     ],
     demos: [
-      { name: "Powers 101, Laws 2-4", link: "11155420/0x5bc86df296f5504ca655b56fb55a5678d722b5a2/laws/2"},
+      { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
       { name: "Power Base, Laws 3-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/3"},
     ]
   }, 

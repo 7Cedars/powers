@@ -36,7 +36,8 @@ import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 // async laws
-import { RoleByGitSignature } from "../src/laws/async/RoleByGitSignature.sol";
+import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
+import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol";
 // Integration Laws 
 import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
 import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
@@ -106,10 +107,10 @@ contract InitialisePowers is Script {
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
     function deployAndRecordLaws(string memory obj1, HelperConfig.NetworkConfig memory config) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](26);   
-        addresses = new address[](26);
-        bytes[] memory creationCodes = new bytes[](26);
-        bytes[] memory constructorArgs = new bytes[](26);
+        names = new string[](27);   
+        addresses = new address[](27);
+        bytes[] memory creationCodes = new bytes[](27);
+        bytes[] memory constructorArgs = new bytes[](27);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -207,8 +208,8 @@ contract InitialisePowers is Script {
         constructorArgs[22] = abi.encode("AlloRPFGGovernance");
 
         // Async laws
-        names[23] = "RoleByGitSignature";
-        creationCodes[23] = type(RoleByGitSignature).creationCode;
+        names[23] = "ClaimRoleWithGitSig";
+        creationCodes[23] = type(ClaimRoleWithGitSig).creationCode;
         constructorArgs[23] = abi.encode(config.chainlinkFunctionsRouter);
 
         names[24] = "Erc20Taxed";
@@ -218,6 +219,10 @@ contract InitialisePowers is Script {
         names[25] = "RevokeLaws";
         creationCodes[25] = type(RevokeLaws).creationCode;
         constructorArgs[25] = abi.encode("RevokeLaws");
+
+        names[26] = "AssignRoleWithGitSig";
+        creationCodes[26] = type(AssignRoleWithGitSig).creationCode;
+        constructorArgs[26] = abi.encode();
 
         string memory obj2 = "second key";
 

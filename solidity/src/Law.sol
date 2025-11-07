@@ -144,6 +144,8 @@ abstract contract Law is ERC165, ILaw {
         uint256[] memory values,
         bytes[] memory calldatas
     ) internal virtual {
+        // NB Important for async calls! Leave the targets array empty in the replyPowers function and thereby disallow _replyPowers returning data to Powers. 
+        // If data is send to Powers, the actionId will be set to fulfilled and the callback function will fail.  
         if (targets.length > 0) {
             IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
         }

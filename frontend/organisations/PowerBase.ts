@@ -43,7 +43,7 @@ export const PowerBase: Organization = {
     title: "Power Base",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreifp5dpekvznezajivjjxt7ig65dr5qbrxqnuefdhkuzpu5ea4elxi",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
-    description: "Power Base uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
+    description: "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
     disabled: false,
     onlyLocalhost: false
   },
@@ -150,7 +150,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: daysToBlocks(7, chainId), succeedAt: 51n, quorum: 33n
+        votingPeriod: daysToBlocks(1, chainId), succeedAt: 51n, quorum: 33n
       })
     });
 
@@ -161,7 +161,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 1n, // Funders veto
-        votingPeriod: daysToBlocks(3, chainId), succeedAt: 66n, quorum: 50n,
+        votingPeriod: daysToBlocks(1, chainId), succeedAt: 66n, quorum: 50n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -173,7 +173,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 2n, // First Doc Contributors ok the proposal
-        votingPeriod: daysToBlocks(7, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: daysToBlocks(1, chainId), succeedAt: 51n, quorum: 33n,
         needNotFulfilled: lawCount - 1n, // Can only ok if vetoed
         needFulfilled: lawCount - 2n // Can only veto if proposed
       })
@@ -186,7 +186,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 3n, // Second Frontend Contributors ok the proposal
-        votingPeriod: daysToBlocks(7, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: daysToBlocks(1, chainId), succeedAt: 51n, quorum: 33n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -208,9 +208,10 @@ export const PowerBase: Organization = {
       ),
       // inputParams: encodeAbiParameters(parseAbiParameters('string[] params'), [['address token', 'uint256 amount', 'uint16 managerRoleId']]), // Define expected input for this instance
       conditions: createConditions({
-        allowedRole: 4n, // Third Protocol Contributors executes the proposal
-        votingPeriod: daysToBlocks(7, chainId), succeedAt: 51n, quorum: 33n,
-        needFulfilled: lawCount - 1n
+        allowedRole: 0n // 4n, // Third Protocol Contributors executes the proposal
+        // NB! took out needFulfilled + voting for testing purposes. NEED TO REINSTATE AFTERWARDS! 
+        // votingPeriod: daysToBlocks(1, chainId), succeedAt: 51n, quorum: 33n,
+        // needFulfilled: lawCount - 1n
       })
     });
 
@@ -245,7 +246,7 @@ export const PowerBase: Organization = {
       ), // Matches proposal input partially
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: daysToBlocks(3, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 33n,
         quorum: 50n
       })
@@ -268,10 +269,10 @@ export const PowerBase: Organization = {
       ),
       conditions: createConditions({ 
         allowedRole: 5n, // Members
-        votingPeriod: daysToBlocks(5, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 51n,
         quorum: 50n,
-        delayExecution: daysToBlocks(5, chainId),
+        delayExecution: daysToBlocks(1, chainId),
         needNotFulfilled: lawCount - 1n, // Can only list if not vetoed
       })
     });
@@ -279,11 +280,10 @@ export const PowerBase: Organization = {
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     /////////////////////////////////////////////////////////////////
-    // Law 20: Assign Contributor Role via Git Signature
     lawCount++;
     lawInitData.push({
       nameDescription: "Claim Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository.",
-      targetLaw: getLawAddress("RoleByGitSignature", deployedLaws),
+      targetLaw: getLawAddress("ClaimRoleWithGitSig", deployedLaws),
       config: encodeAbiParameters(
         [
           { name: 'branch', type: 'string' },
@@ -296,7 +296,7 @@ export const PowerBase: Organization = {
         ],
         [ 
           "develop",
-          ["gitbook", "frontend", "solidity"],
+          ["documentation", "frontend", "solidity"],
           [2n, 3n, 4n],
           "signed",
           formData["chainlinkSubscriptionId"] as bigint,
@@ -305,6 +305,17 @@ export const PowerBase: Organization = {
         ]
       ),
       conditions: createConditions({ allowedRole: PUBLIC_ROLE })
+    });
+
+    lawCount++;
+    lawInitData.push({
+      nameDescription: "Assign Contributor Role following a call to the claim law.",
+      targetLaw: getLawAddress("AssignRoleWithGitSig", deployedLaws),
+      config: "0x",
+      conditions: createConditions({ 
+        allowedRole: PUBLIC_ROLE,
+        needFulfilled: lawCount - 1n
+      })
     });
     
     lawCount++;
@@ -366,10 +377,10 @@ export const PowerBase: Organization = {
       ),
       conditions: createConditions({
         allowedRole: 5n, // Members propose/vote
-        votingPeriod: daysToBlocks(5, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 51n,
         quorum: 5n, // Note: low quorum
-        delayExecution: daysToBlocks(5, chainId),
+        delayExecution: daysToBlocks(1, chainId),
         needNotFulfilled: lawCount - 1n // Link dependency to veto law
       })
     });
@@ -392,7 +403,7 @@ export const PowerBase: Organization = {
       config: adoptLawsConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -406,7 +417,7 @@ export const PowerBase: Organization = {
       config: adoptLawsConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: daysToBlocks(3, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: lawCount - 1n
@@ -441,7 +452,7 @@ export const PowerBase: Organization = {
       config: revokeLawsConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: daysToBlocks(7, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -455,7 +466,7 @@ export const PowerBase: Organization = {
       config: revokeLawsConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: daysToBlocks(3, chainId),
+        votingPeriod: daysToBlocks(1, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: lawCount - 1n

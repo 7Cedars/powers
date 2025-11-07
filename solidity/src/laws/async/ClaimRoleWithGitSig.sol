@@ -16,7 +16,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
- * @title RoleByGitSignature
+ * @title ClaimRoleWithGitSig
  * @notice A law that assigns a role to a user if they can prove ownership
  * of a specific GitHub commit via a signed message.
  *
@@ -31,12 +31,17 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  * - It recovers the signer's address from the signature using a pre-defined `signatureString`.
  * - If the recovered address matches the original `caller`, the law grants them the role.
  */
-contract RoleByGitSignature is Law, FunctionsClient {
+contract ClaimRoleWithGitSig is Law, FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
     using ECDSA for bytes32;
 
     error UnexpectedRequestID(bytes32 requestId);
     error InvalidSignature();
+
+    struct Reply {
+        uint16 roleId;
+        string errorMessage;
+    }
 
     // @notice Configuration data for each instance of the law
     struct Data {
@@ -45,9 +50,10 @@ contract RoleByGitSignature is Law, FunctionsClient {
         string[] paths; // Folder paths, indexed by roleId
         uint256[] roleIds;
         string signatureString; // The message that must be signed
+        bytes32 messageHash; // the hash of the message that must be signed. 
         uint64 subscriptionId;
         uint32 gasLimit;
-        bytes32 donId;
+        bytes32 donId; 
         // string source; // The Chainlink Functions source code
     }
 
@@ -55,11 +61,10 @@ contract RoleByGitSignature is Law, FunctionsClient {
     // (This is just to avoid "stack too deep" errors)
     struct Mem {
         bytes32 lawHash;
+        bytes32 messageHash;
         address powers;
         uint16 lawId;
         uint256 actionId;
-        string signatureHex;
-        bytes signatureBytes;
         address caller;
         uint256 roleId;
         string commitHash;
@@ -76,6 +81,7 @@ contract RoleByGitSignature is Law, FunctionsClient {
         address powers;
         uint16 lawId;
         uint256 actionId;
+        bytes32 messageHash; 
     }
 
     // --- State Variables ---
@@ -83,11 +89,12 @@ contract RoleByGitSignature is Law, FunctionsClient {
     bytes32 public sLastRequestId;
     bytes public sLastResponse;
     bytes public sLastError;
-    bytes32 private sMessageHash;
     address private sSigner;
     // note that the repo is hard coded in the source code of this law. This is to avoid having to pass it as a parameter to the law.
     string internal constant SOURCE = "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
 
+    mapping(bytes32 lawHash => mapping(address => bytes errorMessage)) internal chainlinkErrors;
+    mapping(bytes32 lawHash => mapping(address => uint256 roleId)) internal chainlinkReplies;
     mapping(bytes32 lawHash => Data) internal data;
     mapping(bytes32 requestId => Request) public requests;
 
@@ -136,6 +143,9 @@ contract RoleByGitSignature is Law, FunctionsClient {
             data[lawHash].branch = branch;
             data[lawHash].paths = paths;
             data[lawHash].roleIds = roleIds;
+            data[lawHash].messageHash = MessageHashUtils.toEthSignedMessageHash(
+                bytes(signatureString)
+            );
         }
         
         {
@@ -186,7 +196,8 @@ contract RoleByGitSignature is Law, FunctionsClient {
             mem.roleId,
             caller, // Pass the original caller
             powers,
-            mem.args
+            mem.args,
+            data_.messageHash
         );
 
         return (actionId, targets, values, calldatas);
@@ -206,8 +217,8 @@ contract RoleByGitSignature is Law, FunctionsClient {
         mem.lawId = lawId;
         mem.actionId = actionId;
         mem.callData = calldatas[0];
-        (mem.roleId, mem.caller, mem.powers, mem.args) =
-            abi.decode(mem.callData, (uint256, address, address, string[]));
+        (mem.roleId, mem.caller, mem.powers, mem.args, mem.messageHash) =
+            abi.decode(mem.callData, (uint256, address, address, string[], bytes32));
 
         // Get law hash
         mem.lawHash = LawUtilities.hashLaw(mem.powers, mem.lawId);
@@ -221,7 +232,8 @@ contract RoleByGitSignature is Law, FunctionsClient {
             roleId: mem.roleId,
             powers: mem.powers,
             lawId: mem.lawId,
-            actionId: mem.actionId
+            actionId: mem.actionId,
+            messageHash: mem.messageHash
         });
     }
 
@@ -257,78 +269,59 @@ contract RoleByGitSignature is Law, FunctionsClient {
         if (sLastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
+        // Get the pending request
+        Request memory request = requests[requestId];
+
+        bytes32 lawHash = LawUtilities.hashLaw(request.powers, request.lawId);
 
         sLastResponse = response;
         sLastError = err;
 
+        // if error is returned, set error 
         if (err.length > 0) {
-            revert(string(err));
+            chainlinkErrors[lawHash][request.caller] = err;
+            return;  
         }
-        if (response.length == 0) {
-            revert("No response from the API");
-        }
-
-        // Get the pending request
-        Request memory request = requests[requestId];
-        /// memory helper 
-        Mem memory mem;
-
-        // Get the law's config data
-        mem.lawHash = LawUtilities.hashLaw(request.powers, request.lawId);
-        Data memory data_ = data[mem.lawHash];
 
         // --- Signature Verification ---
-
         // 1. Decode the signature (returned as a hex string "0x...")
-        mem.signatureHex = abi.decode(abi.encode(response), (string));
-        mem.signatureBytes = LawUtilities.hexStringToBytes(mem.signatureHex);
+        bytes memory signatureBytes = LawUtilities.hexStringToBytes(abi.decode(abi.encode(response), (string)));
 
-        // 2. Hash the pre-defined message (EIP-191)
-        sMessageHash = MessageHashUtils.toEthSignedMessageHash(
-            bytes(data_.signatureString)
-        );
+        // 2. Recover the signer's address using message Hash (calculated at initialisaiton of law)
+        sSigner = request.messageHash.recover(signatureBytes);
 
-        // 3. Recover the signer's address
-        sSigner = sMessageHash.recover(mem.signatureBytes);
-
-        if (sSigner == address(0)) {
-            revert InvalidSignature();
-        }
-
-        // 4. Check if the signer matches the original caller
+        // 4. Check if the signer matches the original caller. If so, save roleId to state. 
         if (sSigner == request.caller) {
-            // Success! Prepare the call to assign the role.
-            address[] memory targets = new address[](1);
-            uint256[] memory values = new uint256[](1);
-            bytes[] memory calldatas = new bytes[](1);
-
-            targets[0] = request.powers;
-            calldatas[0] = abi.encodeWithSelector(
-                Powers.assignRole.selector,
-                request.roleId,
-                request.caller // Grant role to the original caller
-            );
-
-            // Fulfill the action
-            IPowers(payable(request.powers)).fulfill(
-                request.lawId,
-                request.actionId,
-                targets,
-                values,
-                calldatas
-            );
+            chainlinkReplies[lawHash][request.caller] = request.roleId; 
         }
-        // If signer != caller, we simply do nothing. The request times out.
-        // An event could be emitted here for off-chain monitoring.
     }
 
     // --- View Functions ---
 
-    function getData(bytes32 lawHash) public view returns (Data memory) {
+    function getData(bytes32 lawHash) external view returns (Data memory) {
         return data[lawHash];
     }
 
-    function getRouter() public view returns (address) {
+    // returns latest reply, after deleting its data. Can only be called once per chainlink call. 
+    // NB THIS NEEDS ANOTHER CHECK! ANYONE CAN CALL THIS! 
+    function getLatestReply(bytes32 lawHash, address caller) external view returns (bytes memory errorMessage, uint256 roleId) {
+        // return reply 
+        return (chainlinkErrors[lawHash][caller], chainlinkReplies[lawHash][caller]);
+    }
+
+    function resetReply(address powers, uint16 lawId, address caller) external returns (bool success) {
+        if (msg.sender != powers) {
+            revert ("Unauthorised call"); 
+        }
+
+        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
+        chainlinkErrors[lawHash][caller] = abi.encode(0);
+        chainlinkReplies[lawHash][caller] = type(uint256).max;
+
+        return true;  
+    }
+
+    function getRouter() external view returns (address) {
         return address(i_router);
     }
 

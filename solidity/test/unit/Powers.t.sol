@@ -33,36 +33,7 @@ contract DeployTest is TestSetupPowers {
 
         assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
     }
-
-    function testReceive() public {
-        // first enable payable.
-        vm.prank(address(daoMock));
-        daoMock.setPayableEnabled(true);
-
-        vm.deal(alice, 1 ether);
-
-        vm.prank(alice);
-        vm.expectEmit(true, false, false, false);
-        emit FundsReceived(1 ether, alice);
-        (bool success,) = address(daoMock).call{ value: 1 ether }("");
-
-        assertTrue(success);
-        assertEq(address(daoMock).balance, 1 ether);
-    }
-
-    function testReceiveRevertsWhenNotEnabled() public {
-        vm.deal(alice, 1 ether);
-        vm.prank(address(daoMock));
-        daoMock.setPayableEnabled(false);
-
-        vm.prank(alice);
-        vm.expectRevert(Powers__PayableNotEnabled.selector);
-        (bool success,) = address(daoMock).call{ value: 1 ether }("");
-
-        assertTrue(success);
-        assertEq(address(daoMock).balance, 0);
-    }
-
+ 
     function testDeployProtocolEmitsEvent() public {
         vm.expectEmit(true, false, false, false);
 
@@ -457,7 +428,7 @@ contract ExecuteTest is TestSetupPowers {
         // Check initial state - role labels should be empty
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "");
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "");
-        assertTrue(daoMock.canCallLaw(alice, lawId)); // Alice is admin and can call law 7
+        assertTrue(daoMock.canCallLaw(alice, lawId)); // Alice is admin and can call law 6
 
         vm.prank(alice);
         daoMock.request(lawId, lawCalldata, nonce, description);

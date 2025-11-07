@@ -70,7 +70,7 @@ contract Powers is EIP712, IPowers, Context {
     uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO. // note can be altered
-    bool public payableEnabled; // is payable enabled?
+    address payable private treasury; // address to the treasury of the organisation. 
     bool private _constituteExecuted; // has the constitute function been called before?
 
     //////////////////////////////////////////////////////////////
@@ -123,16 +123,6 @@ contract Powers is EIP712, IPowers, Context {
         emit Powers__Initialized(address(this), name, uri);
     }
 
-    /// @notice receive function enabling ETH deposits.
-    ///
-    /// @dev This is a virtual function, and can be overridden in the DAO implementation.
-    /// @dev If payable is enabled, anyone can send funds in native currency into the contract.
-    /// @dev No access control on this function.
-    receive() external payable virtual {
-        if (!payableEnabled) revert Powers__PayableNotEnabled();
-        emit FundsReceived(msg.value, _msgSender());
-    }
-
     //////////////////////////////////////////////////////////////
     //                  GOVERNANCE LOGIC                        //
     //////////////////////////////////////////////////////////////
@@ -140,7 +130,6 @@ contract Powers is EIP712, IPowers, Context {
     /// @dev The request -> fulfill functions follow a call-and-return mechanism. This allows for async execution of laws.
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
-        payable
         onlyAdoptedLaw(lawId)
         returns (uint256 actionId)
     {
@@ -194,7 +183,7 @@ contract Powers is EIP712, IPowers, Context {
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas
-    ) external payable onlyAdoptedLaw(lawId) {
+    ) external onlyAdoptedLaw(lawId) {
         AdoptedLaw memory law = laws[lawId];
 
         // check 1: is law active?
@@ -522,17 +511,18 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @inheritdoc IPowers
-    function setPayableEnabled(bool payableEnabled_) public onlyPowers {
-        payableEnabled = payableEnabled_;
-    }
-
-    /// @inheritdoc IPowers
     function setUri(string memory newUri) public onlyPowers {
         uri = newUri;
     }
 
+    /// @inheritdoc IPowers
+    function setTreasury(address payable newTreasury) public onlyPowers {
+        if (newTreasury == address(0)) revert Powers__CannotSetZeroAddress();
+        treasury = newTreasury;
+    }
+
     //////////////////////////////////////////////////////////////
-    //                     HELPER FUNCTIONS                     //
+    //               INTERNAL HELPER FUNCTIONS                  //
     //////////////////////////////////////////////////////////////
     /// @notice internal function {quorumReached} that checks if the quorum for a given proposedAction has been reached.
     ///
@@ -781,6 +771,11 @@ contract Powers is EIP712, IPowers, Context {
     /// @inheritdoc IPowers
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[lawId].conditions;
+    }
+
+    /// @inheritdoc IPowers
+    function getTreasury() external view returns (address payable) {
+        return treasury;
     }
 
     /// @inheritdoc IPowers

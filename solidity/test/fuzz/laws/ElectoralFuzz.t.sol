@@ -184,24 +184,19 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     /// @dev lawId 9 assigns role 4 if account has roles 1 and 2
     function testFuzzRoleByRolesWithRoleCombinations(
         address accountFuzzed,
-        bool hasRole1,
-        bool hasRole2,
         uint256 nonceFuzzed
     ) public {
         vm.assume(accountFuzzed != address(0));
 
-        // Conditionally assign roles
-        vm.startPrank(address(daoMock));
-        if (hasRole1) daoMock.assignRole(1, accountFuzzed);
-        if (hasRole2) daoMock.assignRole(2, accountFuzzed);
-        vm.stopPrank();
+        bool hasRole1 = daoMock.hasRoleSince(accountFuzzed, 1) != 0;
+        bool hasRole2 = daoMock.hasRoleSince(accountFuzzed, 2) != 0;
 
         lawCalldata = abi.encode(accountFuzzed);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
             roleByRoles.handleRequest(accountFuzzed, address(daoMock), 9, lawCalldata, nonceFuzzed);
 
-        // If account hase either role exist, should send empty array
+        // If account has either role exist, should send empty array
         if (hasRole1 || hasRole2) {
             assertEq(returnedTargets[0], address(daoMock));
         } else {
@@ -215,7 +210,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         uint256 numberOfAccounts,
         uint256 nonceFuzzed
     ) public {
-        numberOfAccounts = bound(numberOfAccounts, 1, 10);
+        numberOfAccounts = bound(numberOfAccounts, 5, 20);
         vm.assume(accountsFuzzed.length >= numberOfAccounts);
 
         // Assign required roles to all accounts

@@ -123,15 +123,16 @@ contract TestConstitutions is Test {
 
         // PresetSingleAction
         // Set config
-        targets = new address[](3);
-        values = new uint256[](3);
-        calldatas = new bytes[](3);
+        targets = new address[](4);
+        values = new uint256[](4);
+        calldatas = new bytes[](4);
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = daoMock; // = Powers contract.
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
-        calldatas[2] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 6); // revoke law after use.
+        calldatas[2] = abi.encodeWithSelector(IPowers.assignRole.selector, 5, makeAddr("alice"));
+        calldatas[3] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 6); // revoke law after use.
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .

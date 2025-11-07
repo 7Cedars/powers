@@ -34,7 +34,7 @@ contract AdoptLaws is Law {
         public
         override
     {
-        inputParams = abi.encode("address[] laws", "bytes[] lawInitDatas");
+        inputParams = abi.encode("address[] lawAddress", "bytes[] lawInitData");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
