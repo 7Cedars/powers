@@ -13,18 +13,18 @@ import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 
 // --- Law Contract Imports ---
 // Multi laws
-import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../src/laws/multi/PresetMultipleActions.sol";
-import { OpenAction } from "../src/laws/multi/OpenAction.sol";
-import { StatementOfIntent } from "../src/laws/multi/StatementOfIntent.sol";
-import { BespokeActionAdvanced } from "../src/laws/multi/BespokeActionAdvanced.sol";
-import { BespokeActionSimple } from "../src/laws/multi/BespokeActionSimple.sol";
+import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../src/laws/executive/PresetMultipleActions.sol";
+import { OpenAction } from "../src/laws/executive/OpenAction.sol";
+import { StatementOfIntent } from "../src/laws/executive/StatementOfIntent.sol";
+import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanced.sol";
+import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
 // Executive laws
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
 import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
 import { AdoptLawsPackage } from "../src/laws/executive/AdoptLawsPackage.sol";
-import { GovernorCreateProposal } from "../src/laws/executive/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../src/laws/executive/GovernorExecuteProposal.sol";
+import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 // Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";

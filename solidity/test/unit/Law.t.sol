@@ -8,8 +8,8 @@ import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { IERC165 } from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
-import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
 import { EmptyTargetsLaw, MockTargetsLaw } from "../mocks/LawMocks.sol";
 
 /// @notice Comprehensive unit tests for Law.sol contract

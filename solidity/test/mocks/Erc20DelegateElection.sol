@@ -3,7 +3,7 @@
 pragma solidity 0.8.26;
 
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import { Nominees } from "./Nominees.sol";
+import { Nominees } from "../../src/helpers/Nominees.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 

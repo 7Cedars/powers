@@ -11,10 +11,10 @@ import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
+import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
 
 /// @notice Unit tests for the core Powers protocol (updated v0.4)
 

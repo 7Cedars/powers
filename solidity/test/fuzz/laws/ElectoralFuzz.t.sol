@@ -15,11 +15,11 @@ import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevoke
 import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Nominees } from "@mocks/Nominees.sol";
+import { OpenElection } from "../../../src/helpers/OpenElection.sol";
+import { Nominees } from "../../../src/helpers/Nominees.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
+import { Donations } from "../../../src/helpers/Donations.sol";
+import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 
 /// @title Electoral Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for all electoral law implementations using pre-initialized laws

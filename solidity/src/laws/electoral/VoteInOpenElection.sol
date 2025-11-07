@@ -26,7 +26,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
+import { OpenElection } from "../../helpers/OpenElection.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract VoteInOpenElection is Law {

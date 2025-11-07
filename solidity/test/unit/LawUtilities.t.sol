@@ -25,7 +25,7 @@ import { TestSetupLaw } from "../TestSetup.t.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Law } from "../../src/Law.sol";
 
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
+import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 contract LawUtilitiesTest is TestSetupLaw {

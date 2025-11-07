@@ -16,15 +16,16 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
+
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
-// law contracts from @mocks/
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
-import { Grant } from "@mocks/Grant.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Nominees } from "@mocks/Nominees.sol";
+// helper contracts
+import { Donations } from "../../src/helpers/Donations.sol";
+import { FlagActions } from "../../src/helpers/FlagActions.sol";
+import { Grant } from "../../src/helpers/Grant.sol";
+import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
+import { OpenElection } from "../../src/helpers/OpenElection.sol";
+import { Nominees } from "../../src/helpers/Nominees.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol"; 
 
 // @dev this script is used to deploy the mocks to the chain.

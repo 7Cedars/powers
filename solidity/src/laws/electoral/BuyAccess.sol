@@ -24,7 +24,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { Donations } from "@mocks/Donations.sol";
+import { Donations } from "../../helpers/Donations.sol";
 
 // import "forge-std/Test.sol"; // only for testing
 

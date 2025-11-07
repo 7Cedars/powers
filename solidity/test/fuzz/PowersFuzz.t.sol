@@ -7,8 +7,8 @@ import { Powers } from "../../src/Powers.sol";
 import { IPowers } from "../../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
-import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
+import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
 /// @title Powers Core Fuzz Tests
 /// @notice Deep fuzz testing for core Powers.sol functionality

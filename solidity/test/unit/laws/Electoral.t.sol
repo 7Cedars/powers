@@ -12,11 +12,11 @@ import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Donations } from "@mocks/Donations.sol";
+import { OpenElection } from "../../../src/helpers/OpenElection.sol";
+import { Donations } from "../../../src/helpers/Donations.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Nominees } from "@mocks/Nominees.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
+import { Nominees } from "../../../src/helpers/Nominees.sol";
+import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 

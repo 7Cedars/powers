@@ -6,11 +6,11 @@ import { TestSetupLaw } from "../TestSetup.t.sol";
 import { Law } from "../../src/Law.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
-import { PresetSingleAction } from "../../src/laws/multi/PresetSingleAction.sol";
-import { OpenAction } from "../../src/laws/multi/OpenAction.sol";
-import { StatementOfIntent } from "../../src/laws/multi/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../src/laws/multi/BespokeActionSimple.sol";
-import { BespokeActionAdvanced } from "../../src/laws/multi/BespokeActionAdvanced.sol";
+import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
+import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import { StatementOfIntent } from "../../src/laws/executive/StatementOfIntent.sol";
+import { BespokeActionSimple } from "../../src/laws/executive/BespokeActionSimple.sol";
+import { BespokeActionAdvanced } from "../../src/laws/executive/BespokeActionAdvanced.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /// @title Law Fuzz Tests

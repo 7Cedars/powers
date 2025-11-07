@@ -5,8 +5,8 @@ import { Test } from "forge-std/Test.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
-import { Nominees } from "@mocks/Nominees.sol";
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { Nominees } from "../src/helpers/Nominees.sol";
 
 contract TestConstitutions is Test {
     uint256[] milestoneDisbursements;

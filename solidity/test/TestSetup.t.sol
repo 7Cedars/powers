@@ -13,24 +13,26 @@ import { PowersErrors } from "../src/interfaces/PowersErrors.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
+import { TestConstitutions } from "./TestConstitutions.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
+// law. 
+import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
 
 // external contracts
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Grant } from "@mocks/Grant.sol";
+import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
+import { Grant } from "../src/helpers/Grant.sol";
+import { OpenElection } from "../src/helpers/OpenElection.sol";
+import { Donations } from "../src/helpers/Donations.sol";
+import { FlagActions } from "../src/helpers/FlagActions.sol";
+import { Nominees } from "../src/helpers/Nominees.sol";
 
-import { TestConstitutions } from "./TestConstitutions.sol";
-import { PowersMock } from "./mocks/PowersMock.sol";
+// mocks  
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
-import { Nominees } from "@mocks/Nominees.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { PowersMock } from "./mocks/PowersMock.sol";
+import { SimpleErc1155 } from "./mocks/SimpleErc1155.sol";
+import { SimpleErc20Votes } from "./mocks/SimpleErc20Votes.sol";
+import { Erc20Taxed } from "./mocks/Erc20Taxed.sol";
 
 // deploy scripts
 import { DeployMocks } from "../script/DeployMocks.s.sol"; 
