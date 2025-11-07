@@ -23,9 +23,8 @@ contract TreasuryPoolsGovernance is Law {
     /// @dev Configuration for this law adoption law. Includes addresses of base laws to adopt.
     struct ConfigData {
         address treasuryPools; // The TreasuryPools contract
-        address statementOfIntentAddress; // Address of the deployed StatementOfIntent law contract
-        address bespokeActionSimpleAddress; // Address of the deployed BespokeActionSimple law contract
-        uint16 createPoolLawId; // The Law ID of the *specific instance* of the law that creates the pool
+        address statementOfIntent; // Address of the deployed StatementOfIntent law contract
+        address bespokeActionAdvanced; // Address of the deployed BespokeActionAdvanced law contract
     }
 
     /// @dev Mapping law hash => configuration.
@@ -45,21 +44,30 @@ contract TreasuryPoolsGovernance is Law {
         bytes createPoolActionCalldata;
         uint256 managerRoleId;
         uint16 counter;
-        uint16 proposeLawId;
-        uint16 vetoLawId;
-        uint16 executeLawId;
-        string proposeName;
-        string vetoName;
-        string executeName;
+        
         string[] transferInputParams;
         bytes encodedParams;
-        PowersTypes.Conditions proposeCondition;
-        PowersTypes.Conditions vetoCondition;
-        PowersTypes.Conditions executeCondition;
-        PowersTypes.LawInitData proposeLawData;
-        PowersTypes.LawInitData vetoLawData;
-        PowersTypes.LawInitData executeLawData;
         bytes executeConfig;
+        
+        // mem propose law 
+        uint16 proposeLawId;
+        string proposeName;
+        PowersTypes.LawInitData proposeLawData;
+        PowersTypes.Conditions proposeCondition;
+        
+        // mem veto law 
+        uint16 vetoLawId;
+        string vetoName;
+        PowersTypes.LawInitData vetoLawData;
+        PowersTypes.Conditions vetoCondition;
+        
+        // mem execute law 
+        uint16 executeLawId;
+        string executeName;
+        PowersTypes.LawInitData executeLawData;
+        PowersTypes.Conditions executeCondition;
+        
+
     }
 
     /// @notice Error if the referenced action ID is invalid or not fulfilled.
@@ -70,6 +78,15 @@ contract TreasuryPoolsGovernance is Law {
     error CannotDecodeSourceInputs();
      /// @notice Error if the law instance is not configured.
     error LawNotConfigured();
+
+    constructor() {
+        bytes memory configParams = abi.encode(
+            "address TreasuryPools",
+            "address statementOfIntent",
+            "address bespokeActionAdvanced"
+        );
+        emit Law__Deployed(configParams);
+    }
 
     /// @notice Standard initializer for Powers laws.
     /// @param index The unique index assigned by Powers.sol.
@@ -82,24 +99,20 @@ contract TreasuryPoolsGovernance is Law {
         bytes memory inputParams, // Expected: abi.encode(string[]("uint256 createPoolActionId"))
         bytes memory config
     ) public override {
-        // Ensure config data is provided
-        if (config.length == 0) revert("Config required");
         (
             address treasuryPoolsAddress_,
-            address statementOfIntentAddress_,
-            address bespokeActionSimpleAddress_,
-            uint16 createPoolLawId_
-        ) = abi.decode(config, (address, address, address, uint16));
+            address statementOfIntent_,
+            address bespokeActionAdvanced_
+        ) = abi.decode(config, (address, address, address));
 
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
 
-        inputParams = abi.encode("uint256 createPoolActionId"); 
+        inputParams = abi.encode("address TokenAddress", "uint256 Budget", "uint256 ManagerRoleId");
 
         lawConfig[lawHash_] = ConfigData({
             treasuryPools: treasuryPoolsAddress_,
-            statementOfIntentAddress: statementOfIntentAddress_,
-            bespokeActionSimpleAddress: bespokeActionSimpleAddress_,
-            createPoolLawId: createPoolLawId_
+            statementOfIntent: statementOfIntent_,
+            bespokeActionAdvanced: bespokeActionAdvanced_
         });
 
         super.initializeLaw(index, nameDescription, inputParams, config);
@@ -128,31 +141,28 @@ contract TreasuryPoolsGovernance is Law {
         bytes[] memory calldatas
     ) {
         bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
-        ConfigData memory config_ = lawConfig[lawHash_];
-        if(config_.treasuryPools == address(0)) revert LawNotConfigured();
+        ConfigData memory config_ = lawConfig[lawHash_]; 
+        if(config_.treasuryPools == address(0)) revert ("Law Not Configured");
         Mem memory m;
 
-        (m.createPoolActionId) = abi.decode(lawCalldata, (uint256));
-
-        // --- Fetch and Validate Source Action (Pool Creation Action) ---
+        // First get the law Id of the law that created the pool
+        IPowers.Conditions memory conditions = IPowers(powers).getConditions(lawId);
+        if(conditions.needFulfilled == 0) revert ("Fulfilled not set");
+        
+        // Then retrieve the source action data
+        m.createPoolActionId = LawUtilities.hashActionId(conditions.needFulfilled, lawCalldata, nonce);
         (m.sourceActionLawId, , , m.sourceActionFulfilledAt, , , ) = IPowers(powers).getActionData(m.createPoolActionId);
 
         // Check if action exists, is fulfilled, and came from the correct law type
-        if (
-            m.sourceActionLawId != config_.createPoolLawId ||
-            m.sourceActionFulfilledAt == 0 
-        ) {
-            revert InvalidSourceAction();
-        }
+        if ( m.sourceActionFulfilledAt == 0 ) { revert InvalidSourceAction(); }
 
-        // --- Decode necessary data ---
+        // --- Decode necessary data, get the poolId ---
         m.createPoolActionReturnData = IPowers(powers).getActionReturnData(m.createPoolActionId, 0);
         (m.poolId) = abi.decode(m.createPoolActionReturnData, (uint256));
-        if(m.poolId == 0) revert CannotDecodePoolId();
+        if(m.poolId == 0) revert("Cannot decode poolId");
 
-        m.createPoolActionCalldata = IPowers(powers).getActionCalldata(m.createPoolActionId);
-        (,,m.managerRoleId) = abi.decode(m.createPoolActionCalldata, (address, uint256, uint256));
-
+        // m.createPoolActionCalldata = IPowers(powers).getActionCalldata(m.createPoolActionId);
+        // (,,m.managerRoleId) = abi.decode(m.createPoolActionCalldata, (address, uint256, uint256));
 
         // --- Predict the upcoming Law IDs ---
         m.counter = Powers(payable(powers)).lawCounter();
@@ -160,7 +170,9 @@ contract TreasuryPoolsGovernance is Law {
         m.vetoLawId = m.counter + 1;
         m.executeLawId = m.counter + 2; 
 
-        // --- Prepare LawData for the 3 new laws ---
+        //////////////////////////////////////////////////////////////
+        //             BUILDING GOVERNANCE CHAIN                    //
+        //////////////////////////////////////////////////////////////
 
         // 1. Propose Transfer Law (StatementOfIntent)
         m.proposeName = string.concat("Pool ", Strings.toString(m.poolId), ": Propose Transfer");
@@ -175,7 +187,7 @@ contract TreasuryPoolsGovernance is Law {
         m.proposeCondition.quorum = 10;           // Example: 10% participation needed
  
         m.proposeLawData = PowersTypes.LawInitData({
-            targetLaw: config_.statementOfIntentAddress,
+            targetLaw: config_.statementOfIntent,
             nameDescription: m.proposeName,
             config: m.encodedParams,
             conditions: m.proposeCondition
@@ -190,31 +202,35 @@ contract TreasuryPoolsGovernance is Law {
         m.vetoCondition.needFulfilled = m.proposeLawId; // Must fulfill the propose law first
 
         m.vetoLawData = PowersTypes.LawInitData({
-            targetLaw: config_.statementOfIntentAddress,
+            targetLaw: config_.statementOfIntent,
             nameDescription: m.vetoName,
             config: m.encodedParams, // Same config structure as propose
             conditions: m.vetoCondition
         });
 
-        // 3. Execute Transfer Law (BespokeActionSimple)
+        // 3. Execute Transfer Law (BespokeActionAdvanced)
         m.executeName = string.concat("Pool ", Strings.toString(m.poolId), ": Execute Transfer");
         string[] memory b_inputParams = new string[](3);
-        b_inputParams[0] = "uint256 poolId";
         b_inputParams[1] = "address to";
         b_inputParams[2] = "uint256 amount";
+        uint8[] memory b_indexDynamicParams = new uint8[](2);
+        b_indexDynamicParams[0] = 1; // to
+        b_indexDynamicParams[1] = 2; // amount
 
         m.executeConfig = abi.encode(
-            config_.treasuryPools, 
+            config_.treasuryPools,
             TreasuryPools.transfer.selector,
-            b_inputParams
+            abi.encode(m.poolId), // Static param: poolId
+            b_inputParams,
+            b_indexDynamicParams
         );
 
         m.executeCondition.allowedRole = m.managerRoleId; // Use roleId from Law A's input
         m.executeCondition.needFulfilled = m.proposeLawId;    // Propose must pass
         m.executeCondition.needNotFulfilled = m.vetoLawId;     // Veto must NOT pass
-  
+
         m.executeLawData = PowersTypes.LawInitData({
-            targetLaw: config_.bespokeActionSimpleAddress,
+            targetLaw: config_.bespokeActionAdvanced,
             nameDescription: m.executeName,
             config: m.executeConfig,
             conditions: m.executeCondition
@@ -222,8 +238,9 @@ contract TreasuryPoolsGovernance is Law {
 
         // --- Prepare the calls to Powers.adoptLaw ---
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(3);
-        targets[0] = targets[1] = targets[2] = powers;
-        values[0] = values[1] = values[2] = 0;
+        targets[0] = powers; 
+        targets[1] = powers; 
+        targets[2] = powers;
         calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.proposeLawData);
         calldatas[1] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.vetoLawData);
         calldatas[2] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.executeLawData);

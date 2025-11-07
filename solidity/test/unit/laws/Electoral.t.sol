@@ -529,7 +529,7 @@ contract BuyAccessTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
         buyAccess = BuyAccess(lawAddresses[16]);
-        treasury = new TreasurySimple();
+        treasury = TreasurySimple(payable(mockAddresses[11]));
     }
 
     function testBuyAccessInitialization() public {
@@ -671,8 +671,11 @@ contract BuyAccessTest is TestSetupElectoral {
         unconfiguredToken.mint(1000 ether);
         unconfiguredToken.transfer(alice, 500 ether);
 
+        vm.prank(address(daoMock));
+        treasury.setWhitelist(address(unconfiguredToken), true);
+
         vm.startPrank(alice);
-        unconfiguredToken.approve(address(treasury), 100 ether);
+        unconfiguredToken.approve(address(treasury), 100 ether); 
         treasury.deposit(address(unconfiguredToken), 100 ether);
         vm.stopPrank();
 
@@ -735,6 +738,9 @@ contract BuyAccessTest is TestSetupElectoral {
         Erc20Taxed unconfiguredToken = new Erc20Taxed();
         unconfiguredToken.mint(1000 ether);
         unconfiguredToken.transfer(alice, 500 ether);
+
+        vm.prank(address(daoMock));
+        treasury.setWhitelist(address(unconfiguredToken), true);
 
         vm.startPrank(alice);
         unconfiguredToken.approve(address(treasury), 100 ether);

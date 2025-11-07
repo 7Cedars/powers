@@ -22,19 +22,16 @@ contract TreasuryPools is TreasurySimple {
     struct Pool {
         address tokenAddress;
         uint256 budget;
-        uint256 roleId;
     }
 
     uint256 public poolCount;
     mapping(uint256 => Pool) public pools;
     mapping(address => uint256) public totalAllocatedBudgets;
 
-    event PoolCreated(uint256 indexed poolId, address indexed tokenAddress, uint256 budget, uint256 roleId);
+    event PoolCreated(uint256 indexed poolId, address indexed tokenAddress, uint256 budget);
     event BudgetIncreased(uint256 indexed poolId, uint256 amount);
     event PoolDeleted(uint256 indexed poolId);
     event Transferred(uint256 indexed poolId, address indexed to, uint256 amount);
-    
-
 
     function deposit(address _token, uint256 _amount) public override {
         super.deposit(_token, _amount);
@@ -54,15 +51,16 @@ contract TreasuryPools is TreasurySimple {
         emit Transferred(_poolId, _to, _amount);
     }
 
-    function createPool(address _tokenAddress, uint256 _initialBudget, uint256 _roleId) external onlyOwner {
+    function createPool(address _tokenAddress, uint256 _initialBudget) external onlyOwner returns (uint256 poolId) {
         uint256 currentBalance = getBalance(_tokenAddress);
         require(totalAllocatedBudgets[_tokenAddress] + _initialBudget <= currentBalance, "BUDGET_EXCEEDS_BALANCE");
         
         poolCount++;
-        pools[poolCount] = Pool(_tokenAddress, _initialBudget, _roleId);
+        pools[poolCount] = Pool(_tokenAddress, _initialBudget);
         totalAllocatedBudgets[_tokenAddress] += _initialBudget;
-        
-        emit PoolCreated(poolCount, _tokenAddress, _initialBudget, _roleId);
+
+        emit PoolCreated(poolCount, _tokenAddress, _initialBudget);
+        return poolCount;
     }
 
     function increaseBudget(uint256 _poolId, uint256 _amount) external onlyOwner {

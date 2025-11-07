@@ -3,15 +3,20 @@ import { powersAbi } from "@/context/abi"; // Assuming allo ABI is also availabl
 import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, keccak256, encodePacked, toFunctionSelector } from "viem";
 import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createLawInitData } from "./helpers";
 import treasuryPools from "@/context/builds/TreasuryPools.json";
+import treasurySimple from "@/context/builds/TreasurySimple.json";
 import erc20Taxed from "@/context/builds/Erc20Taxed.json";
 import easyRPGFStrategyBuild from "@/context/builds/EasyRPGFStrategy.json";
+import donations from "@/context/builds/Donations.json";
 import registry from "@/context/builds/Registry.json";
 import { getConstants } from "@/context/constants";
 
 /**
  * Helper function to extract contract address from receipt
  */
-function getContractAddressFromReceipt(receipt: any): `0x${string}` | undefined {
+function getContractAddressFromReceipt(receipt: any, contractName: string): `0x${string}` {
+  if (!receipt || !receipt.contractAddress) {
+    throw new Error(`Failed to get contract address for ${contractName} from receipt.`);
+  }
   return receipt.contractAddress;
 }
 
@@ -79,7 +84,9 @@ export const PowerBase: Organization = {
     const registryAbi: Abi = JSON.parse(JSON.stringify(registry.abi)) 
     let lawCount = 0n; 
     // Extract contract addresses from receipts
-    const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"]);  
+    const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"], "Treasury");
+    const treasuryAbi = JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi;
+    console.log("deployedLaws @ PowerBase", treasuryAddress);
 
     console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     //////////////////////////////////////////////////////////////////
@@ -92,7 +99,7 @@ export const PowerBase: Organization = {
     } as const;
 
     lawInitData.push({ // law 1 : Initial setup
-      nameDescription: "INITIAL SETUP: Label roles, registers Powers to Allo v2 registry & revokes itself after execution",
+      nameDescription: "INITIAL SETUP: Set treasury, label roles, registers Powers to Allo v2 registry & revokes itself after execution",
       targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
       config: encodeAbiParameters(
         [
@@ -102,19 +109,12 @@ export const PowerBase: Organization = {
         ],
         [
           [
-            getConstants(chainId).ALLO_V2_REGISTRY_ADDRESS as `0x${string}`, 
-            powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, powersAddress],
+            powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, powersAddress],
           [
-            0n, 
-            0n, 0n, 0n, 0n, 0n, 0n],
+            0n, 0n, 0n, 0n, 0n, 0n, 0n],
           [
-            encodeFunctionData({ abi: registryAbi, functionName: "createProfile", args: [
-              12345n, 
-              "Powers", 
-              protocolMetadata,
-              powersAddress as `0x${string}`, 
-              [powersAddress as `0x${string}`]] 
-            }),
+            encodeFunctionData({ abi: powersAbi, functionName: "setTreasury", args: [treasuryAddress] }),
+            // call here to create pool 1, pool 2, pool 3. 
             encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [1n, "Funders"] }),
             encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [2n, "Doc Contributors"] }),
             encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [3n, "Frontend Contributors"] }),
@@ -200,7 +200,7 @@ export const PowerBase: Organization = {
         [
           treasuryAddress as `0x${string}`, 
           `0xb039ddf6` as `0x${string}`, // function selector for createPool function
-          ["address TokenAddress", "uint256 Budget", "uint256 ManagerRoleId"]
+          ["address TokenAddress", "uint256 Budget", "uint256 ManagerRoleId"] // Note the extra ManagerRoleId param
         ]
       ),
       // inputParams: encodeAbiParameters(parseAbiParameters('string[] params'), [['address token', 'uint256 amount', 'uint256 ManagerRoleId']]), // Define expected input for this instance
@@ -214,9 +214,16 @@ export const PowerBase: Organization = {
 
     lawCount++; 
     lawInitData.push({ // Law 7: Execute Governance Adoption (Law B Instance)
-      nameDescription: "Adopt Governance Pools: After pool is created, anyone can implement the governance flow for the pool.",
+      nameDescription: "Adopt Pool Governance: After pool is created, anyone can implement the governance flow for the pool.",
       targetLaw: getLawAddress("TreasuryPoolsGovernance", deployedLaws), // Base implementation of Law B
-      config:  inputParamsPoolCreation, 
+      config: encodeAbiParameters(
+        parseAbiParameters("address TreasuryPools, address StatementOfIntent, address BespokeActionAdvanced"),
+        [
+          treasuryAddress as `0x${string}`, 
+          getLawAddress("StatementOfIntent", deployedLaws), 
+          getLawAddress("BespokeActionAdvanced", deployedLaws)
+        ], 
+      ), 
       conditions: createConditions({
         allowedRole: PUBLIC_ROLE, // Anybody can execute this law. It has already been approved by the contributors. Everyone had their say. 
         needFulfilled: lawCount - 1n
@@ -272,7 +279,8 @@ export const PowerBase: Organization = {
         needFulfilled: lawCount - 2n // 
       })
     });
- 
+
+    /// I should have a dedicated law for people to fund the protocol. // todo
     
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //

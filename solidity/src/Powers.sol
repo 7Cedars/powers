@@ -104,6 +104,7 @@ contract Powers is EIP712, IPowers, Context {
     /// @param name_ name of the contract
     /// @param uri_ uri of the contract
     /// @param maxCallDataLength_ maximum length of calldata for a law
+    /// @param maxReturnDataLength_ maximum length of return data for a law
     /// @param maxExecutionsLength_ maximum length of executions for a law
     constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxReturnDataLength_, uint256 maxExecutionsLength_)
         EIP712(name_, version())

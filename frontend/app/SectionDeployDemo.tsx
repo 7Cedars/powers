@@ -147,7 +147,7 @@ export function SectionDeployDemo() {
       const powersTxHash = await wagmiDeployContract(wagmiConfig, {
         abi: powersAbi,
         bytecode: bytecodePowers,
-        args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10_000n, 25n]
+        args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10_000n, 10_000n, 25n]
       });
 
       console.log("Powers deployment tx:", powersTxHash);

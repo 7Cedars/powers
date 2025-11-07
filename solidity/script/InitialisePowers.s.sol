@@ -42,6 +42,7 @@ import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol
 import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
 import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
 import { AlloRPFGGovernance } from "../src/laws/integrations/AlloRPFGGovernance.sol";
+import { TreasuryPoolsGovernance } from "../src/laws/integrations/TreasuryPoolsGovernance.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -107,10 +108,10 @@ contract InitialisePowers is Script {
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
     function deployAndRecordLaws(string memory obj1, HelperConfig.NetworkConfig memory config) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](27);   
-        addresses = new address[](27);
-        bytes[] memory creationCodes = new bytes[](27);
-        bytes[] memory constructorArgs = new bytes[](27);
+        names = new string[](28);   
+        addresses = new address[](28);
+        bytes[] memory creationCodes = new bytes[](28);
+        bytes[] memory constructorArgs = new bytes[](28);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -223,6 +224,10 @@ contract InitialisePowers is Script {
         names[26] = "AssignRoleWithGitSig";
         creationCodes[26] = type(AssignRoleWithGitSig).creationCode;
         constructorArgs[26] = abi.encode();
+
+        names[27] = "TreasuryPoolsGovernance";
+        creationCodes[27] = type(TreasuryPoolsGovernance).creationCode;
+        constructorArgs[27] = abi.encode();
 
         string memory obj2 = "second key";
 
