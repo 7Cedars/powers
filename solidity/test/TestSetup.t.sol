@@ -23,7 +23,7 @@ import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol
 import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
 import { Grant } from "../src/helpers/Grant.sol";
 import { OpenElection } from "../src/helpers/OpenElection.sol";
-import { Donations } from "../src/helpers/Donations.sol";
+import { TreasurySimple} from "../src/helpers/TreasurySimple.sol";
 import { FlagActions } from "../src/helpers/FlagActions.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
 
@@ -341,7 +341,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());
         Erc20Taxed(mockAddresses[1]).transferOwnership(address(daoMock));
         SoulboundErc721(mockAddresses[2]).transferOwnership(address(daoMock));
-        Donations(payable(mockAddresses[5])).transferOwnership(address(daoMock));
+        TreasurySimple(payable(mockAddresses[11])).transferOwnership(address(daoMock));
         FlagActions(mockAddresses[6]).transferOwnership(address(daoMock));
         Grant(mockAddresses[7]).transferOwnership(address(daoMock));
         Nominees(mockAddresses[8]).transferOwnership(address(daoMock));
@@ -519,6 +519,24 @@ abstract contract TestSetupPowers101 is BaseSetup {
         daoMock.assignRole(ROLE_TWO, david);
         daoMock.assignRole(ROLE_TWO, eve);
         daoMock.assignRole(ROLE_TWO, frank);
+        vm.stopPrank();
+    }
+}
+
+abstract contract TestSetupHelpers is BaseSetup {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate helpers constitution
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.helpersTestConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
+
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_);
+
+        vm.startPrank(address(daoMock)); 
+        daoMock.assignRole(ADMIN_ROLE, alice);
         vm.stopPrank();
     }
 }

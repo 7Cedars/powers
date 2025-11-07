@@ -12,8 +12,8 @@
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/// @notice Assign roles based on the latest donation an account made to the Donations contract.
-/// @dev At setup, a role ID is set, the donations contract address, and multiple tokens with their respective
+/// @notice Assign roles based on the latest donation an account made to a Treasury contract.
+/// @dev At setup, a role ID is set, the treasury contract address, and multiple tokens with their respective
 /// amounts per block. When an account claims a role, it checks the most recent donation and assigns/revokes the role
 /// based on whether access is still valid past the current block. Donations do not add up—only the most recent donation
 /// determines access duration. Different tokens can have different rates for the access duration calculation.
@@ -24,7 +24,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { Donations } from "../../helpers/Donations.sol";
+import { TreasurySimple } from "../../helpers/TreasurySimple.sol";
 
 // import "forge-std/Test.sol"; // only for testing
 
@@ -35,7 +35,7 @@ contract BuyAccess is Law {
     }
 
     struct Data {
-        address donationsContract; // Donations contract address
+        address treasuryContract; // TreasurySimple contract address
         TokenConfig[] tokenConfigs; // token configurations for supported tokens
         uint16 roleIdToSet; // role id to assign/revoke
     }
@@ -56,7 +56,7 @@ contract BuyAccess is Law {
 
     constructor() {
         bytes memory configParams =
-            abi.encode("address DonationsContract", "address[] Tokens", "uint256[] TokensPerBlock", "uint16 RoleId");
+            abi.encode("address TreasuryContract", "address[] Tokens", "uint256[] TokensPerBlock", "uint16 RoleId");
         emit Law__Deployed(configParams);
     }
 
@@ -64,7 +64,7 @@ contract BuyAccess is Law {
         public
         override
     {
-        (address donationsContract_, address[] memory tokens_, uint256[] memory tokensPerBlock_, uint16 roleIdToSet_) =
+        (address treasuryContract_, address[] memory tokens_, uint256[] memory tokensPerBlock_, uint16 roleIdToSet_) =
             abi.decode(config, (address, address[], uint256[], uint16));
 
         // Validate that arrays have the same length
@@ -76,7 +76,7 @@ contract BuyAccess is Law {
         }
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash].donationsContract = donationsContract_;
+        data[lawHash].treasuryContract = treasuryContract_;
         data[lawHash].roleIdToSet = roleIdToSet_;
 
         // Store token configurations
@@ -116,7 +116,7 @@ contract BuyAccess is Law {
 
         // Check donations and determine if role should be assigned or revoked
         mem.shouldAssignRole =
-            _checkDonationAccess(mem.account, mem.data.donationsContract, mem.data.tokenConfigs, mem.currentBlock);
+            _checkDonationAccess(mem.account, mem.data.treasuryContract, mem.data.tokenConfigs, mem.currentBlock);
 
         // Create arrays for execution
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
@@ -138,45 +138,55 @@ contract BuyAccess is Law {
 
     /// @notice Check if an account has sufficient donations to maintain role access
     /// @param account The account to check donations for
-    /// @param donationsContract The address of the Donations contract
+    /// @param treasuryContract The address of the TreasurySimple contract
     /// @param tokenConfigs Array of token configurations with their respective rates
     /// @param currentBlock The current block number
     /// @return shouldAssign True if the account should have the role assigned
     function _checkDonationAccess(
         address account,
-        address donationsContract,
+        address treasuryContract,
         TokenConfig[] memory tokenConfigs,
         uint48 currentBlock
     ) internal view returns (bool shouldAssign) {
-        // Get all donations for the account
-        uint256[] memory donationIndices = Donations(payable(donationsContract)).getDonorDonations(account);
-
-        if (donationIndices.length == 0) {
-            return false; // No donations, no access
+        // Get the transfer count for the account from the treasury contract
+        uint256 transferCount = TreasurySimple(payable(treasuryContract)).transferCount();
+        if (transferCount == 0) {
+            return false; // No transfers, no access
         }
 
-        // Find the most recent donation (donations don't add up)
-        uint256 mostRecentDonationIndex = donationIndices[donationIndices.length - 1];
-        Donations.Donation memory mostRecentDonation =
-            Donations(payable(donationsContract)).getDonation(mostRecentDonationIndex);
+        // Find the most recent transfer from the account
+        TreasurySimple.TransferLog memory mostRecentTransfer;
+        bool foundTransfer = false;
+        for (uint256 i = transferCount; i > 0; i--) {
+            TreasurySimple.TransferLog memory transferLog = TreasurySimple(payable(treasuryContract)).getTransfer(i - 1);
+            if (transferLog.from == account) {
+                mostRecentTransfer = transferLog;
+                foundTransfer = true;
+                break;
+            }
+        }
 
-        // Find the token configuration for the most recent donation
-        TokenConfig memory tokenConfig = _findTokenConfig(mostRecentDonation.token, tokenConfigs);
+        if (!foundTransfer) {
+            return false; // No transfers from this account
+        }
+
+        // Find the token configuration for the most recent transfer
+        TokenConfig memory tokenConfig = _findTokenConfig(mostRecentTransfer.token, tokenConfigs);
 
         // If token is not configured, no access
-        if (tokenConfig.token == address(0) && mostRecentDonation.token != address(0)) {
+        if (tokenConfig.token == address(0) && mostRecentTransfer.token != address(0)) {
             return false; // Token not configured
         }
 
-        // Calculate how many blocks of access this donation provides
-        uint48 blocksOfAccess = uint48(mostRecentDonation.amount / tokenConfig.tokensPerBlock);
+        // Calculate how many blocks of access this transfer provides
+        uint48 blocksOfAccess = uint48(mostRecentTransfer.amount / tokenConfig.tokensPerBlock);
 
         if (blocksOfAccess == 0) {
-            return false; // Donation too small for any access
+            return false; // Transfer too small for any access
         }
 
         // Calculate when access expires
-        uint48 accessUntilBlock = uint48(mostRecentDonation.blockNumber) + blocksOfAccess;
+        uint48 accessUntilBlock = uint48(mostRecentTransfer.blockNumber) + blocksOfAccess;
 
         // Check if access is still valid
         return currentBlock < accessUntilBlock;

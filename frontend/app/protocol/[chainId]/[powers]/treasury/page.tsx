@@ -16,6 +16,15 @@ export default function Page() {
         subtitle="View and manage the assets held by your Powers."
         size={2}
       />
+      {powers.treasury ? (
+        <div className="text-slate-500 text-sm">
+          Treasury Address: {powers.treasury}
+        </div>
+      ) : (
+        <div className="text-slate-500 text-sm">
+          No Treasury Address Available
+        </div>
+      )}
       <AssetList />
       <AddAsset /> 
     </main>

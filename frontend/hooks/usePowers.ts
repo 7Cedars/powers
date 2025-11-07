@@ -33,7 +33,7 @@ export const usePowers = () => {
     const powersPopulated: Powers | undefined = powers
     console.log("@fetchPowersData, waypoint 0", {powers})
     try { 
-      const [ namePowers, uriPowers, lawCountPowers] = await readContracts(wagmiConfig, {
+      const [ namePowers, uriPowers, lawCountPowers, treasuryPowers] = await readContracts(wagmiConfig, {
         allowFailure: false,
         contracts: [
           {
@@ -53,14 +53,21 @@ export const usePowers = () => {
             abi: powersAbi,
             functionName: 'lawCounter',
             chainId: parseChainId(chainId)
+          },
+          {
+            address: powers.contractAddress as `0x${string}`,
+            abi: powersAbi,
+            functionName: 'getTreasury',
+            chainId: parseChainId(chainId)
           }
         ]
-      }) as [string, string, bigint]
+      }) as [string, string, bigint, `0x${string}`]
 
       console.log("@fetchPowersData, waypoint 1", {namePowers, uriPowers, lawCountPowers})
       powersPopulated.lawCount = lawCountPowers as bigint
       powersPopulated.name = namePowers as string
       powersPopulated.uri = uriPowers as string
+      powersPopulated.treasury = treasuryPowers as `0x${string}`
       console.log("@fetchPowersData, waypoint 2", {powersPopulated})
       return powersPopulated
 
@@ -552,6 +559,7 @@ export const usePowers = () => {
             name: data.name,
             metadatas: metaData,
             uri: data.uri,
+            treasury: data.treasury,
             lawCount: data.lawCount,
             laws: lawWithActions,
             roles: roles,

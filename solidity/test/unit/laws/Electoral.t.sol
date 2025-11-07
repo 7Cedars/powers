@@ -13,7 +13,7 @@ import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "../../../src/helpers/OpenElection.sol";
-import { Donations } from "../../../src/helpers/Donations.sol";
+import { TreasurySimple } from "../../../src/helpers/TreasurySimple.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Nominees } from "../../../src/helpers/Nominees.sol";
 import { FlagActions } from "../../../src/helpers/FlagActions.sol";
@@ -524,12 +524,12 @@ contract TaxSelectTest is TestSetupElectoral {
 //////////////////////////////////////////////////
 contract BuyAccessTest is TestSetupElectoral {
     BuyAccess buyAccess;
-    Donations donations;
+    TreasurySimple treasury;
 
     function setUp() public override {
         super.setUp();
         buyAccess = BuyAccess(lawAddresses[16]);
-        donations = Donations(payable(mockAddresses[5])); // Donations
+        treasury = new TreasurySimple();
     }
 
     function testBuyAccessInitialization() public {
@@ -539,12 +539,12 @@ contract BuyAccessTest is TestSetupElectoral {
         tokens[0] = mockAddresses[3];
         tokens[1] = address(0); // native currency
         tokensPerBlock[0] = 1000;
-        tokensPerBlock[0] = 100_000;
+        tokensPerBlock[1] = 100_000;
 
         // Test law initialization
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
-        configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
+        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
         conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
@@ -560,24 +560,24 @@ contract BuyAccessTest is TestSetupElectoral {
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
         BuyAccess.Data memory data = buyAccess.getData(lawHash);
-        assertEq(data.donationsContract, address(donations));
+        assertEq(data.treasuryContract, address(treasury));
         assertEq(data.roleIdToSet, 4);
         assertEq(data.tokenConfigs.length, 2);
     }
 
-    function testBuyAccessWithNoDonations() public {
+    function testBuyAccessWithNoDeposits() public {
         // Setup token configs
         address[] memory tokens = new address[](2);
         uint256[] memory tokensPerBlock = new uint256[](2);
         tokens[0] = mockAddresses[3];
         tokens[1] = address(0); // native currency
         tokensPerBlock[0] = 1000;
-        tokensPerBlock[0] = 100_000;
+        tokensPerBlock[1] = 100_000;
 
         // Test law initialization
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
-        configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
+        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
         conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
@@ -590,7 +590,7 @@ contract BuyAccessTest is TestSetupElectoral {
             })
         );
 
-        // Execute with no donations
+        // Execute with no deposits
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
 
@@ -599,19 +599,19 @@ contract BuyAccessTest is TestSetupElectoral {
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
 
-    function testBuyAccessWithDonations() public {
+    function testBuyAccessWithDeposits() public {
         // Setup token configs
         address[] memory tokens = new address[](2);
         uint256[] memory tokensPerBlock = new uint256[](2);
         tokens[0] = mockAddresses[3];
         tokens[1] = address(0); // native currency
         tokensPerBlock[0] = 1000;
-        tokensPerBlock[0] = 100_000;
+        tokensPerBlock[1] = 100_000;
 
         // Test law initialization
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
-        configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
+        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
         conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
@@ -624,12 +624,12 @@ contract BuyAccessTest is TestSetupElectoral {
             })
         );
 
-        // Make a donation
+        // Make a deposit
         vm.deal(alice, 1 ether);
         vm.prank(alice);
-        payable(address(donations)).call{ value: 0.5 ether }("");
+        treasury.depositNative{ value: 0.5 ether }();
 
-        // Execute with donations
+        // Execute with deposits
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
 
@@ -646,7 +646,7 @@ contract BuyAccessTest is TestSetupElectoral {
         // Test law initialization should revert
         lawId = daoMock.lawCounter();
         nameDescription = "Test Buy Access";
-        configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
+        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
         conditions.allowedRole = PUBLIC_ROLE;
 
         vm.prank(address(daoMock));
@@ -665,19 +665,18 @@ contract BuyAccessTest is TestSetupElectoral {
         // Use the preset BuyAccess law from electoralTestConstitution (lawId = 5)
         lawId = 5;
 
-        // Whitelist a token that's not in the preset configuration
-        vm.prank(address(daoMock));
-        donations.setWhitelistedToken(mockAddresses[0], true);
-
-        // Make a donation with a different token (unconfigured)
+        // Make a deposit with a different token (unconfigured)
         // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[1]
+        Erc20Taxed unconfiguredToken = new Erc20Taxed();
+        unconfiguredToken.mint(1000 ether);
+        unconfiguredToken.transfer(alice, 500 ether);
+
         vm.startPrank(alice);
-        SimpleErc20Votes(mockAddresses[0]).mintVotes(100_000);
-        SimpleErc20Votes(mockAddresses[0]).approve(address(donations), 10_000);
-        donations.donateToken(mockAddresses[0], 1000); // Different token
+        unconfiguredToken.approve(address(treasury), 100 ether);
+        treasury.deposit(address(unconfiguredToken), 100 ether);
         vm.stopPrank();
 
-        // Execute with unconfigured token donation
+        // Execute with unconfigured token deposit
         vm.prank(alice);
         daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
 
@@ -731,20 +730,19 @@ contract BuyAccessTest is TestSetupElectoral {
         // Use the preset BuyAccess law from electoralTestConstitution (lawId = 5)
         lawId = 5;
 
-        // Whitelist a token that's not in the preset configuration
-        vm.prank(address(daoMock));
-        donations.setWhitelistedToken(mockAddresses[0], true);
-
-        // Make a donation with a token that's not in the preset config
+        // Make a deposit with a token that's not in the preset config
         // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[2]
-        vm.startPrank(alice);
-        SimpleErc20Votes(mockAddresses[0]).mintVotes(100_000);
-        SimpleErc20Votes(mockAddresses[0]).approve(address(donations), 10_000);
-        donations.donateToken(mockAddresses[0], 1000); // Token not in preset config
+        Erc20Taxed unconfiguredToken = new Erc20Taxed();
+        unconfiguredToken.mint(1000 ether);
+        unconfiguredToken.transfer(alice, 500 ether);
 
-        // Execute with unconfigured token donation - this will test _findTokenConfig
-        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
+        vm.startPrank(alice);
+        unconfiguredToken.approve(address(treasury), 100 ether);
+        treasury.deposit(address(unconfiguredToken), 100 ether);
         vm.stopPrank();
+
+        // Execute with unconfigured token deposit - this will test _findTokenConfig
+        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
 
         // Should succeed but revoke role (token not found in config)
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
@@ -992,13 +990,14 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         uint256[] memory tokensPerBlock = new uint256[](1);
         tokens[0] = mockAddresses[3];
         tokensPerBlock[0] = 1000;
+        TreasurySimple newTreasury = new TreasurySimple();
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Buy Access",
                 targetLaw: address(buyAccess),
                 config: abi.encode(
-                    mockAddresses[5], // Donations contract
+                    address(newTreasury), // TreasurySimple contract
                     tokens,
                     tokensPerBlock,
                     4 // roleId to be assigned
@@ -1077,6 +1076,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         tokens[0] = mockAddresses[3];
         tokens[1] = mockAddresses[3];
         tokensPerBlock[0] = 1000;
+        TreasurySimple newTreasury2 = new TreasurySimple();
 
         vm.prank(address(daoMock));
         vm.expectRevert("Tokens and TokensPerBlock arrays must have the same length");
@@ -1085,7 +1085,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
                 nameDescription: "Buy Access",
                 targetLaw: address(buyAccess),
                 config: abi.encode(
-                    mockAddresses[5], // Donations contract
+                    address(newTreasury2), // TreasurySimple contract
                     tokens,
                     tokensPerBlock,
                     4 // roleId to be assigned

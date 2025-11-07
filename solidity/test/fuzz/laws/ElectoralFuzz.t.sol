@@ -17,8 +17,7 @@ import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "../../../src/helpers/OpenElection.sol";
 import { Nominees } from "../../../src/helpers/Nominees.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Donations } from "../../../src/helpers/Donations.sol";
+import { Erc20Taxed } from "@mocks/Erc20Taxed.sol"; 
 import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 
 /// @title Electoral Law Fuzz Tests
@@ -51,7 +50,6 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     OpenElection openElection;
     Nominees nomineesContract;
     Erc20Taxed erc20Taxed;
-    Donations donations;
     FlagActions flagActions;
 
     // State variables to avoid stack too deep errors
@@ -84,8 +82,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
         openElection = OpenElection(mockAddresses[9]);
         nomineesContract = Nominees(mockAddresses[8]);
-        erc20Taxed = Erc20Taxed(mockAddresses[1]);
-        donations = Donations(payable(mockAddresses[5]));
+        erc20Taxed = Erc20Taxed(mockAddresses[1]); 
         flagActions = FlagActions(mockAddresses[6]);
     }
 

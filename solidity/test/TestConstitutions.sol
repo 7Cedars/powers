@@ -331,7 +331,7 @@ contract TestConstitutions is Test {
             nameDescription: "BuyAccess: A law to buy role access with ERC20 tokens.",
             targetLaw: lawAddresses[16], // BuyAccess (electoral law)
             config: abi.encode(
-                mockAddresses[5], // Donations contract
+                mockAddresses[11], // Treasury simple
                 tokens,
                 tokensPerBlock,
                 4 // roleId to be assigned
@@ -850,4 +850,37 @@ contract TestConstitutions is Test {
     //                      MORE ORGS TBI                       //
     //////////////////////////////////////////////////////////////
     // ...
+
+    //////////////////////////////////////////////////////////////
+    //                 HELPERS CONSTITUTION                     //
+    //////////////////////////////////////////////////////////////
+    function helpersTestConstitution(
+        string[] memory, /*lawNames*/
+        address[] memory lawAddresses,
+        string[] memory, /*mockNames*/
+        address[] memory mockAddresses,
+        address payable daoMock
+    ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
+        lawInitData = new PowersTypes.LawInitData[](2);
+
+        // dummy call.
+        targets = new address[](1);
+        values = new uint256[](1);
+        calldatas = new bytes[](1);
+        targets[0] = address(123);
+        calldatas[0] = abi.encode("mockCall");
+
+        // Note: I leave the first slot empty, so that numbering is equal to how laws are registered in IPowers.sol.
+        // Counting starts at 1, so the first law is lawId = 1.
+
+        // openAction
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Open Action: Execute any action.",
+            targetLaw: lawAddresses[3], // openAction
+            config: abi.encode(), 
+            conditions: conditions
+        });
+        delete conditions;
+    }
 }

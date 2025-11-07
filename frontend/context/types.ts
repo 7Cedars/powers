@@ -135,6 +135,7 @@ export type Powers = {
   chainId: bigint;
   name?: string;
   uri?: string;
+  treasury?: `0x${string}`;
   metadatas?: Metadata; 
   lawCount?: bigint;
   laws?: Law[];
