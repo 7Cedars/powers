@@ -34,21 +34,23 @@ contract TreasurySimple is Ownable {
         _depositNative();
     }
 
-    function deposit(address _token, uint256 _amount) public virtual {
+    function deposit(address _token, uint256 _amount) public virtual returns (uint256 receiptId) {
         require(whitelistedTokens[_token], "TOKEN_NOT_WHITELISTED");
         require(_token != address(0), "INVALID_TOKEN");
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         transfers.push(TransferLog(msg.sender, _token, _amount, block.number));
+        receiptId = transferCount;
         transferCount++;
         emit Deposited(msg.sender, _token, _amount);
     }
 
-    function depositNative() external payable {
-        _depositNative();
+    function depositNative() external payable returns (uint256 receiptId) {
+        receiptId = _depositNative();
     }
 
-    function _depositNative() internal {
+    function _depositNative() internal returns (uint256 receiptId) {
         transfers.push(TransferLog(msg.sender, address(0), msg.value, block.number));
+        receiptId = transferCount;
         transferCount++;
         emit Deposited(msg.sender, address(0), msg.value);
     }

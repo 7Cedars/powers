@@ -8,6 +8,7 @@ import {Powers} from "../../Powers.sol";
 import {LawUtilities} from "../../libraries/LawUtilities.sol"; 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {BespokeActionSimple} from "../executive/BespokeActionSimple.sol";
+import {SelectedPoolTransfer} from "../integrations/SelectedPoolTransfer.sol";
 import {TreasuryPools} from "../../helpers/TreasuryPools.sol";
 
 /**
@@ -22,17 +23,15 @@ contract TreasuryPoolsGovernance is Law {
 
     /// @dev Configuration for this law adoption law. Includes addresses of base laws to adopt.
     struct ConfigData {
+        address selectedPoolTransfer; // The SelectedPoolTransfer law
         address treasuryPools; // The TreasuryPools contract
-        address statementOfIntent; // Address of the deployed StatementOfIntent law contract
-        address bespokeActionAdvanced; // Address of the deployed BespokeActionAdvanced law contract
+        uint16 proposeLawId;   // Law ID for the Proposal law
+        uint16 vetoLawId;      // Law ID for the Veto law
     }
 
     /// @dev Mapping law hash => configuration.
     mapping(bytes32 lawHash => ConfigData data) public lawConfig;
 
-    // --- Powers Constants ---
-    uint256 public constant PUBLIC_ROLE = type(uint256).max;
-    uint256 public constant MEMBER_ROLE = 5; // Assuming Role 5 is 'Members' as per PowerBase spec
 
     // State memory accumulator to avoid stack too deep errors
     struct Mem {
@@ -43,30 +42,17 @@ contract TreasuryPoolsGovernance is Law {
         uint256 poolId;
         bytes createPoolActionCalldata;
         uint256 managerRoleId;
-        uint16 counter;
+        
         
         string[] transferInputParams;
+
+        // mem law 
+        uint16 counter;
+        string lawName;
         bytes encodedParams;
-        bytes executeConfig;
-        
-        // mem propose law 
-        uint16 proposeLawId;
-        string proposeName;
-        PowersTypes.LawInitData proposeLawData;
-        PowersTypes.Conditions proposeCondition;
-        
-        // mem veto law 
-        uint16 vetoLawId;
-        string vetoName;
-        PowersTypes.LawInitData vetoLawData;
-        PowersTypes.Conditions vetoCondition;
-        
-        // mem execute law 
-        uint16 executeLawId;
-        string executeName;
-        PowersTypes.LawInitData executeLawData;
-        PowersTypes.Conditions executeCondition;
-        
+        bytes lawConfig;
+        PowersTypes.LawInitData lawInitData;
+        PowersTypes.Conditions lawCondition;
 
     }
 
@@ -81,9 +67,10 @@ contract TreasuryPoolsGovernance is Law {
 
     constructor() {
         bytes memory configParams = abi.encode(
-            "address TreasuryPools",
-            "address statementOfIntent",
-            "address bespokeActionAdvanced"
+            "address selectedPoolTransfer",
+            "address TreasuryPools", 
+            "uint16 proposalLawId",
+            "uint16 vetoLawId"
         );
         emit Law__Deployed(configParams);
     }
@@ -100,19 +87,21 @@ contract TreasuryPoolsGovernance is Law {
         bytes memory config
     ) public override {
         (
+            address selectedPoolTransferAddress_,
             address treasuryPoolsAddress_,
-            address statementOfIntent_,
-            address bespokeActionAdvanced_
-        ) = abi.decode(config, (address, address, address));
+            uint16 proposeLawId_,
+            uint16 vetoLawId_
+        ) = abi.decode(config, (address, address, uint16, uint16));
 
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
 
         inputParams = abi.encode("address TokenAddress", "uint256 Budget", "uint256 ManagerRoleId");
 
         lawConfig[lawHash_] = ConfigData({
+            selectedPoolTransfer: selectedPoolTransferAddress_,
             treasuryPools: treasuryPoolsAddress_,
-            statementOfIntent: statementOfIntent_,
-            bespokeActionAdvanced: bespokeActionAdvanced_
+            proposeLawId: proposeLawId_,
+            vetoLawId: vetoLawId_
         });
 
         super.initializeLaw(index, nameDescription, inputParams, config);
@@ -159,91 +148,41 @@ contract TreasuryPoolsGovernance is Law {
         // --- Decode necessary data, get the poolId ---
         m.createPoolActionReturnData = IPowers(powers).getActionReturnData(m.createPoolActionId, 0);
         (m.poolId) = abi.decode(m.createPoolActionReturnData, (uint256));
-        if(m.poolId == 0) revert("Cannot decode poolId");
+        if(m.poolId == 0) revert("Cannot decode poolId"); // NB! PoolId 0 is invalid
 
         // m.createPoolActionCalldata = IPowers(powers).getActionCalldata(m.createPoolActionId);
-        // (,,m.managerRoleId) = abi.decode(m.createPoolActionCalldata, (address, uint256, uint256));
+        (,,m.managerRoleId) = abi.decode(lawCalldata, (address, uint256, uint256));
 
         // --- Predict the upcoming Law IDs ---
         m.counter = Powers(payable(powers)).lawCounter();
-        m.proposeLawId = m.counter;
-        m.vetoLawId = m.counter + 1;
-        m.executeLawId = m.counter + 2; 
 
         //////////////////////////////////////////////////////////////
-        //             BUILDING GOVERNANCE CHAIN                    //
+        //             BUILDING SELECTED POOL TRANSFER LAW          //
         //////////////////////////////////////////////////////////////
 
-        // 1. Propose Transfer Law (StatementOfIntent)
-        m.proposeName = string.concat("Pool ", Strings.toString(m.poolId), ": Propose Transfer");
-        m.transferInputParams = new string[](2);
-        m.transferInputParams[0] = "address to";
-        m.transferInputParams[1] = "uint256 amount";
-        m.encodedParams = abi.encode(m.transferInputParams); 
-        
-        m.proposeCondition.allowedRole = PUBLIC_ROLE; // Anyone can propose
-        m.proposeCondition.votingPeriod = 100; // Blocks, example:  
-        m.proposeCondition.succeedAt = 51;        // Example: 51% needed to pass
-        m.proposeCondition.quorum = 10;           // Example: 10% participation needed
- 
-        m.proposeLawData = PowersTypes.LawInitData({
-            targetLaw: config_.statementOfIntent,
-            nameDescription: m.proposeName,
-            config: m.encodedParams,
-            conditions: m.proposeCondition
-        });
-
-        // 2. Veto Transfer Law (StatementOfIntent)
-        m.vetoName = string.concat("Pool ", Strings.toString(m.poolId), ": Veto Transfer");
-        m.vetoCondition.allowedRole = MEMBER_ROLE; // Members can veto
-        m.vetoCondition.votingPeriod = 100; // Blocks, example
-        m.vetoCondition.succeedAt = 66;        // Example: Higher threshold to veto
-        m.vetoCondition.quorum = 25;           // Example: Higher quorum to veto
-        m.vetoCondition.needFulfilled = m.proposeLawId; // Must fulfill the propose law first
-
-        m.vetoLawData = PowersTypes.LawInitData({
-            targetLaw: config_.statementOfIntent,
-            nameDescription: m.vetoName,
-            config: m.encodedParams, // Same config structure as propose
-            conditions: m.vetoCondition
-        });
-
-        // 3. Execute Transfer Law (BespokeActionAdvanced)
-        m.executeName = string.concat("Pool ", Strings.toString(m.poolId), ": Execute Transfer");
-        string[] memory b_inputParams = new string[](3);
-        b_inputParams[1] = "address to";
-        b_inputParams[2] = "uint256 amount";
-        uint8[] memory b_indexDynamicParams = new uint8[](2);
-        b_indexDynamicParams[0] = 1; // to
-        b_indexDynamicParams[1] = 2; // amount
-
-        m.executeConfig = abi.encode(
+        // 3. Execute Transfer Law (SelectedPoolTransfer)
+        m.lawName = string.concat("Pool ", Strings.toString(m.poolId), ": Execute Transfer");
+    
+        m.lawConfig = abi.encode(
             config_.treasuryPools,
-            TreasuryPools.transfer.selector,
-            abi.encode(m.poolId), // Static param: poolId
-            b_inputParams,
-            b_indexDynamicParams
+            m.poolId
         );
 
-        m.executeCondition.allowedRole = m.managerRoleId; // Use roleId from Law A's input
-        m.executeCondition.needFulfilled = m.proposeLawId;    // Propose must pass
-        m.executeCondition.needNotFulfilled = m.vetoLawId;     // Veto must NOT pass
+        m.lawCondition.allowedRole = m.managerRoleId; // Use roleId from Law A's input
+        m.lawCondition.needFulfilled = config_.proposeLawId;    // Propose must pass
+        m.lawCondition.needNotFulfilled = config_.vetoLawId;     // Veto must NOT pass
 
         m.executeLawData = PowersTypes.LawInitData({
-            targetLaw: config_.bespokeActionAdvanced,
-            nameDescription: m.executeName,
-            config: m.executeConfig,
-            conditions: m.executeCondition
+            targetLaw: config_.selectedPoolTransfer,
+            nameDescription: m.lawName,
+            config: m.lawConfig,
+            conditions: m.lawCondition
         });
 
         // --- Prepare the calls to Powers.adoptLaw ---
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(3);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers; 
-        targets[1] = powers; 
-        targets[2] = powers;
         calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.proposeLawData);
-        calldatas[1] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.vetoLawData);
-        calldatas[2] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.executeLawData);
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         // Powers.fulfill will execute these calls

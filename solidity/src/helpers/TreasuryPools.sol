@@ -24,7 +24,7 @@ contract TreasuryPools is TreasurySimple {
         uint256 budget;
     }
 
-    uint256 public poolCount;
+    uint256 public poolCount = 1; // starts at 1, poolId 0 is invalid
     mapping(uint256 => Pool) public pools;
     mapping(address => uint256) public totalAllocatedBudgets;
 
@@ -32,16 +32,11 @@ contract TreasuryPools is TreasurySimple {
     event BudgetIncreased(uint256 indexed poolId, uint256 amount);
     event PoolDeleted(uint256 indexed poolId);
     event Transferred(uint256 indexed poolId, address indexed to, uint256 amount);
-
-    function deposit(address _token, uint256 _amount) public override {
-        super.deposit(_token, _amount);
-    }
-
  
-    function transfer(uint256 _poolId, address payable _to, uint256 _amount) public onlyOwner {
+    function poolTransfer(uint256 _poolId, address payable _to, uint256 _amount) public onlyOwner {
         // Note: This function assumes an external mechanism for role-based access control, as included in the Powers protocol.
         Pool storage pool = pools[_poolId];
-        require(pool.tokenAddress != address(0) || pool.budget > 0, "POOL_DELETED");
+        require(pool.tokenAddress != address(0) || pool.budget > 0, "POOL_EMPTY");
         require(_amount <= pool.budget, "AMOUNT_EXCEEDS_BUDGET");
 
         pool.budget -= _amount;
@@ -49,6 +44,10 @@ contract TreasuryPools is TreasurySimple {
         super.transfer(pool.tokenAddress, _to, _amount);
 
         emit Transferred(_poolId, _to, _amount);
+    }
+
+    function transfer(address _token, address payable _to, uint256 _amount) public view override onlyOwner {
+        revert("NOT IMPLEMENTED: USE_POOL_TRANSFER");
     }
 
     function createPool(address _tokenAddress, uint256 _initialBudget) external onlyOwner returns (uint256 poolId) {
