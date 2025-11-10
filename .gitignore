@@ -13,6 +13,7 @@
 /solidity/cache/
 /solidity/out/
 /solidity/broadcast/
+/solidity/lib/
 
 # Logs
 logs
