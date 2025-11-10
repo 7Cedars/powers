@@ -20,7 +20,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
         vm.startPrank(address(daoMock));
         erc20.mint(1000 ether);
         erc20.transfer(alice, 500 ether);
-        treasury.setWhitelist(address(erc20), true);
+        treasury.setWhitelistToken(address(erc20), true);
         vm.stopPrank();
     }
 
@@ -66,7 +66,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
 
     function testTransferErc20() public {
         vm.prank(treasury.owner());
-        treasury.setWhitelist(address(erc20), true);
+        treasury.setWhitelistToken(address(erc20), true);
         vm.startPrank(alice);
         erc20.approve(address(treasury), 100 ether);
         treasury.deposit(address(erc20), 100 ether);
@@ -95,7 +95,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
         assertEq(treasury.getBalance(address(0)), 1 ether);
 
         vm.prank(treasury.owner());
-        treasury.setWhitelist(address(erc20), true);
+        treasury.setWhitelistToken(address(erc20), true);
         vm.startPrank(alice);
         erc20.approve(address(treasury), 100 ether);
         treasury.deposit(address(erc20), 100 ether);
@@ -106,7 +106,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
 
     function testWhitelist() public {
         vm.prank(treasury.owner());
-        treasury.setWhitelist(address(erc20), true);
+        treasury.setWhitelistToken(address(erc20), true);
         assertTrue(treasury.whitelistedTokens(address(erc20)));
     }
 
@@ -132,7 +132,7 @@ contract TreasuryPoolsTest is TestSetupHelpers {
         vm.startPrank(address(daoMock)); 
         erc20.mint(1000 ether);
         erc20.transfer(alice, 500 ether);
-        treasury.setWhitelist(address(erc20), true);
+        treasury.setWhitelistToken(address(erc20), true);
         vm.stopPrank();
 
         vm.prank(alice);
@@ -178,7 +178,7 @@ contract TreasuryPoolsTest is TestSetupHelpers {
         vm.prank(treasury.owner());
         treasury.createPool(address(0), 1 ether);
         vm.prank(treasury.owner());
-        treasury.transfer(1, payable(bob), 0.5 ether);
+        treasury.poolTransfer(1, payable(bob), 0.5 ether);
         TreasuryPools.Pool memory pool = treasury.getPool(1);
         assertEq(pool.budget, 0.5 ether);
         assertEq(bob.balance, 10.5 ether);
@@ -188,7 +188,7 @@ contract TreasuryPoolsTest is TestSetupHelpers {
         vm.prank(treasury.owner());
         treasury.createPool(address(erc20), 50 ether);
         vm.prank(treasury.owner());
-        treasury.transfer(1, payable(bob), 20 ether);
+        treasury.poolTransfer(1, payable(bob), 20 ether);
         TreasuryPools.Pool memory pool = treasury.getPool(1);
         assertEq(pool.budget, 30 ether);
         assertEq(erc20.balanceOf(bob), 20 ether);
@@ -198,7 +198,7 @@ contract TreasuryPoolsTest is TestSetupHelpers {
         vm.prank(treasury.owner());
         treasury.createPool(address(0), 1 ether);
         vm.prank(treasury.owner());
-        vm.expectRevert("AMOUNT_EXCEEDS_BUDGET");
-        treasury.transfer(1, payable(bob), 1.5 ether);
+        vm.expectRevert("Amount_exceeds_budget");
+        treasury.poolTransfer(1, payable(bob), 1.5 ether);
     }
 }

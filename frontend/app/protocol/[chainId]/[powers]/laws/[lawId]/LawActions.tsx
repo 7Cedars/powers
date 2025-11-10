@@ -26,7 +26,7 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
   const sortedActions = lawActions?.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
   // const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
   const router = useRouter()
-  console.log("@LawActions, waypoint 0", {timestamps, sortedActions})
+  // console.log("@LawActions, waypoint 0", {timestamps, sortedActions})
   
   useEffect(() => {
     if (sortedActions && sortedActions.length > 0) {

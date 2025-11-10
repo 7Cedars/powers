@@ -8,18 +8,18 @@ import {Powers} from "../../Powers.sol";
 import {LawUtilities} from "../../libraries/LawUtilities.sol"; 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {BespokeActionSimple} from "../executive/BespokeActionSimple.sol";
-import {SelectedPoolTransfer} from "../integrations/SelectedPoolTransfer.sol";
+import {TreasuryPoolTransfer} from "./TreasuryPoolTransfer.sol";
 import {TreasuryPools} from "../../helpers/TreasuryPools.sol";
 
 /**
- * @title TreasuryPoolsGovernance
+ * @title TreasuryPoolGovernance
  * @notice Law B: Adopts the standard 3 governance laws (Propose, Veto, Execute Transfer) for a Treasury Pool
  * after it was created by a Law A action (e.g., via a law that calls TreasuryPools.createPool).
  * @dev Reads the poolId from the stored return data of the pool creation action (Law A).
  * @dev Reads the managerRoleId from the original input calldata of the pool creation action (Law A).
  * @dev Condition `needFulfilled` must point to the specific Law A instance.
  */
-contract TreasuryPoolsGovernance is Law {
+contract TreasuryPoolGovernance is Law {
 
     /// @dev Configuration for this law adoption law. Includes addresses of base laws to adopt.
     struct ConfigData {
@@ -27,6 +27,9 @@ contract TreasuryPoolsGovernance is Law {
         address treasuryPools; // The TreasuryPools contract
         uint16 proposeLawId;   // Law ID for the Proposal law
         uint16 vetoLawId;      // Law ID for the Veto law
+        uint32 votingPeriod;
+        uint8 succeedAt;
+        uint8 quorum;
     }
 
     /// @dev Mapping law hash => configuration.
@@ -70,7 +73,10 @@ contract TreasuryPoolsGovernance is Law {
             "address selectedPoolTransfer",
             "address TreasuryPools", 
             "uint16 proposalLawId",
-            "uint16 vetoLawId"
+            "uint16 vetoLawId",
+            "uint32 votingPeriod",
+            "uint8 succeedAt",
+            "uint8 quorum"
         );
         emit Law__Deployed(configParams);
     }
@@ -90,9 +96,11 @@ contract TreasuryPoolsGovernance is Law {
             address selectedPoolTransferAddress_,
             address treasuryPoolsAddress_,
             uint16 proposeLawId_,
-            uint16 vetoLawId_
-        ) = abi.decode(config, (address, address, uint16, uint16));
-
+            uint16 vetoLawId_,
+            uint32 votingPeriod_,
+            uint8 succeedAt_,
+            uint8 quorum_
+        ) = abi.decode(config, (address, address, uint16, uint16, uint32, uint8, uint8));
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
 
         inputParams = abi.encode("address TokenAddress", "uint256 Budget", "uint256 ManagerRoleId");
@@ -101,14 +109,17 @@ contract TreasuryPoolsGovernance is Law {
             selectedPoolTransfer: selectedPoolTransferAddress_,
             treasuryPools: treasuryPoolsAddress_,
             proposeLawId: proposeLawId_,
-            vetoLawId: vetoLawId_
+            vetoLawId: vetoLawId_,
+            votingPeriod: votingPeriod_,
+            succeedAt: succeedAt_,
+            quorum: quorum_
         });
 
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
     /// @notice Prepares the calls to adopt the three governance laws.
-    /// @param caller The original caller (not used).
+    /// @param /* caller */ The original caller (not used).
     /// @param powers The address of the Powers contract instance.
     /// @param lawId The ID of this specific law instance.
     /// @param lawCalldata ABI encoded input data: abi.encode(uint256 createPoolActionId).
@@ -118,7 +129,7 @@ contract TreasuryPoolsGovernance is Law {
     /// @return values Array containing 0 three times.
     /// @return calldatas Array containing the three encoded calls to Powers.adoptLaw.
     function handleRequest(
-        address caller,
+        address /* caller */,
         address powers,
         uint16 lawId,
         bytes memory lawCalldata, // Contains createPoolActionId
@@ -161,7 +172,7 @@ contract TreasuryPoolsGovernance is Law {
         //////////////////////////////////////////////////////////////
 
         // 3. Execute Transfer Law (SelectedPoolTransfer)
-        m.lawName = string.concat("Pool ", Strings.toString(m.poolId), ": Execute Transfer");
+        m.lawName = string.concat("Pool ", Strings.toString(m.poolId), " Execute Transfer");
     
         m.lawConfig = abi.encode(
             config_.treasuryPools,
@@ -169,10 +180,13 @@ contract TreasuryPoolsGovernance is Law {
         );
 
         m.lawCondition.allowedRole = m.managerRoleId; // Use roleId from Law A's input
+        m.lawCondition.votingPeriod = config_.votingPeriod; // No voting period for Execute Transfer
+        m.lawCondition.succeedAt = config_.succeedAt;
+        m.lawCondition.quorum = config_.quorum;
         m.lawCondition.needFulfilled = config_.proposeLawId;    // Propose must pass
         m.lawCondition.needNotFulfilled = config_.vetoLawId;     // Veto must NOT pass
 
-        m.executeLawData = PowersTypes.LawInitData({
+        m.lawInitData = PowersTypes.LawInitData({
             targetLaw: config_.selectedPoolTransfer,
             nameDescription: m.lawName,
             config: m.lawConfig,
@@ -182,7 +196,7 @@ contract TreasuryPoolsGovernance is Law {
         // --- Prepare the calls to Powers.adoptLaw ---
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers; 
-        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.proposeLawData);
+        calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.lawInitData);
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         // Powers.fulfill will execute these calls

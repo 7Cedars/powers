@@ -26,7 +26,7 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { TreasuryPools } from "../../helpers/TreasuryPools.sol";
  
-contract SelectedPoolTransfer is Law {
+contract TreasuryPoolTransfer is Law {
     /// @dev Mapping from law hash to target contract address for each law instance
     mapping(bytes32 lawHash => address targetContract) public targetContract;
     /// @dev Mapping from law hash to target function selector for each law instance
@@ -42,13 +42,12 @@ contract SelectedPoolTransfer is Law {
         public
         override
     {
-        (address targetContract_, bytes4 targetFunction_, uint256 poolId_) =
-            abi.decode(config, (address, bytes4, uint256));
+        (address targetContract_, uint256 poolId_) =
+            abi.decode(config, (address, uint256));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         
         poolIds[lawHash] = poolId_;
-        targetContract[lawHash] = targetContract_;
-        targetFunction[lawHash] = targetFunction_;
+        targetContract[lawHash] = targetContract_; 
         
         inputParams = abi.encode("uint256 PoolId", "address payableTo", "uint256 Amount");
 

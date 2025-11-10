@@ -355,8 +355,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
     // 2. Throttle check - show only if throttle condition exists (throttleExecution > 0)
     if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) {
       // Show as completed if we have action data (simplified - could be enhanced with actual throttle check)
-      const latestFulfilledAction =  Math.max(...law.actions?.map(action => Number(action.fulfilledAt)) || [0])
+      const latestFulfilledAction = Math.max(...(law.actions?.map(action => Number(action.fulfilledAt)), 0) || [0])
+      // const testFulfilled0 = law.actions?.map(action => Number(action.fulfilledAt)) 
+      // const testFulfilled =  Math.max(...(law.actions?.map(action => Number(action.fulfilledAt)), 0) || [0])
       const throttledPassed = latestFulfilledAction + Number(law.conditions.throttleExecution) < (blockNumber || 0)
+
+      console.log("Throttle check", {latestFulfilledAction, throttledPassed, blockNumber, law})
 
       items.push({ 
         key: 'throttle', 

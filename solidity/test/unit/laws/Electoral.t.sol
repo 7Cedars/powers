@@ -6,8 +6,7 @@ import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
-import { BuyAccess } from "../../../src/laws/electoral/BuyAccess.sol";
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol"; 
 import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
@@ -518,244 +517,7 @@ contract TaxSelectTest is TestSetupElectoral {
     //     assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     // }
 }
-
-//////////////////////////////////////////////////
-//              BUY ACCESS TESTS               //
-//////////////////////////////////////////////////
-contract BuyAccessTest is TestSetupElectoral {
-    BuyAccess buyAccess;
-    TreasurySimple treasury;
-
-    function setUp() public override {
-        super.setUp();
-        buyAccess = BuyAccess(lawAddresses[16]);
-        treasury = TreasurySimple(payable(mockAddresses[11]));
-    }
-
-    function testBuyAccessInitialization() public {
-        // Setup token configs
-        address[] memory tokens = new address[](2);
-        uint256[] memory tokensPerBlock = new uint256[](2);
-        tokens[0] = mockAddresses[3];
-        tokens[1] = address(0); // native currency
-        tokensPerBlock[0] = 1000;
-        tokensPerBlock[1] = 100_000;
-
-        // Test law initialization
-        lawId = daoMock.lawCounter();
-        nameDescription = "Test Buy Access";
-        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
-        conditions.allowedRole = PUBLIC_ROLE;
-
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: nameDescription,
-                targetLaw: address(buyAccess),
-                config: configBytes,
-                conditions: conditions
-            })
-        );
-
-        // Verify law data is stored correctly
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        BuyAccess.Data memory data = buyAccess.getData(lawHash);
-        assertEq(data.treasuryContract, address(treasury));
-        assertEq(data.roleIdToSet, 4);
-        assertEq(data.tokenConfigs.length, 2);
-    }
-
-    function testBuyAccessWithNoDeposits() public {
-        // Setup token configs
-        address[] memory tokens = new address[](2);
-        uint256[] memory tokensPerBlock = new uint256[](2);
-        tokens[0] = mockAddresses[3];
-        tokens[1] = address(0); // native currency
-        tokensPerBlock[0] = 1000;
-        tokensPerBlock[1] = 100_000;
-
-        // Test law initialization
-        lawId = daoMock.lawCounter();
-        nameDescription = "Test Buy Access";
-        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
-        conditions.allowedRole = PUBLIC_ROLE;
-
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: "Buy Access",
-                targetLaw: address(buyAccess),
-                config: configBytes,
-                conditions: conditions
-            })
-        );
-
-        // Execute with no deposits
-        vm.prank(alice);
-        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-
-        // Should succeed (revoke role)
-        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-
-    function testBuyAccessWithDeposits() public {
-        // Setup token configs
-        address[] memory tokens = new address[](2);
-        uint256[] memory tokensPerBlock = new uint256[](2);
-        tokens[0] = mockAddresses[3];
-        tokens[1] = address(0); // native currency
-        tokensPerBlock[0] = 1000;
-        tokensPerBlock[1] = 100_000;
-
-        // Test law initialization
-        lawId = daoMock.lawCounter();
-        nameDescription = "Test Buy Access";
-        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
-        conditions.allowedRole = PUBLIC_ROLE;
-
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: "Buy Access",
-                targetLaw: address(buyAccess),
-                config: configBytes,
-                conditions: conditions
-            })
-        );
-
-        // Make a deposit
-        vm.deal(alice, 1 ether);
-        vm.prank(alice);
-        treasury.depositNative{ value: 0.5 ether }();
-
-        // Execute with deposits
-        vm.prank(alice);
-        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-
-        // Should succeed
-        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-
-    function testBuyAccessRevertsWithEmptyTokenConfig() public {
-        // Setup empty token configs
-        address[] memory tokens = new address[](0);
-        uint256[] memory tokensPerBlock = new uint256[](0);
-
-        // Test law initialization should revert
-        lawId = daoMock.lawCounter();
-        nameDescription = "Test Buy Access";
-        configBytes = abi.encode(address(treasury), tokens, tokensPerBlock, 4);
-        conditions.allowedRole = PUBLIC_ROLE;
-
-        vm.prank(address(daoMock));
-        vm.expectRevert("At least one token configuration is required");
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: "Buy Access",
-                targetLaw: address(buyAccess),
-                config: configBytes,
-                conditions: conditions
-            })
-        );
-    }
-
-    function testBuyAccessWithUnconfiguredToken() public {
-        // Use the preset BuyAccess law from electoralTestConstitution (lawId = 5)
-        lawId = 5;
-
-        // Make a deposit with a different token (unconfigured)
-        // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[1]
-        Erc20Taxed unconfiguredToken = new Erc20Taxed();
-        unconfiguredToken.mint(1000 ether);
-        unconfiguredToken.transfer(alice, 500 ether);
-
-        vm.prank(address(daoMock));
-        treasury.setWhitelist(address(unconfiguredToken), true);
-
-        vm.startPrank(alice);
-        unconfiguredToken.approve(address(treasury), 100 ether); 
-        treasury.deposit(address(unconfiguredToken), 100 ether);
-        vm.stopPrank();
-
-        // Execute with unconfigured token deposit
-        vm.prank(alice);
-        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-
-        // Should not succeed but revoke role (no access due to unconfigured token)
-        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-
-    // function testBuyAccessWithInsufficientDonation() public {
-    //     // Setup token configs with high threshold
-    //     address[] memory tokens = new address[](1);
-    //     uint256[] memory tokensPerBlock = new uint256[](1);
-    //     tokens[0] = address(0); // native currency
-    //     tokensPerBlock[0] = 1_000_000; // Very high threshold
-
-    //     // Test law initialization
-    //     lawId = daoMock.lawCounter();
-    //     nameDescription = "Test Buy Access";
-    //     configBytes = abi.encode(mockAddresses[5], tokens, tokensPerBlock, 4); // Donations
-    //     conditions.allowedRole = PUBLIC_ROLE;
-
-    //     vm.prank(address(daoMock));
-    //     daoMock.adoptLaw(
-    //         PowersTypes.LawInitData({
-    //             nameDescription: "Buy Access",
-    //             targetLaw: address(buyAccess),
-    //             config: configBytes,
-    //             conditions: conditions
-    //         })
-    //     );
-
-    //     vm.prank(address(daoMock));
-    //     donations.setWhitelistedToken(address(0), true);
-
-    //     // Make a small donation (insufficient)
-    //     vm.deal(alice, 1 ether);
-    //     vm.prank(alice);
-    //     (bool success,) = payable(address(donations)).call{ value: 0.001 ether }(""); // Very small donation
-    //     assertTrue(success);
-
-    //     // Execute with insufficient donation
-    //     vm.prank(alice);
-    //     daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-
-    //     // Should succeed but revoke role (insufficient donation)
-    //     actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
-    //     assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    // }
-
-    function testBuyAccessFindTokenConfigFunction() public {
-        // Use the preset BuyAccess law from electoralTestConstitution (lawId = 5)
-        lawId = 5;
-
-        // Make a deposit with a token that's not in the preset config
-        // The preset config uses mockAddresses[3] and address(0), so we'll use mockAddresses[2]
-        Erc20Taxed unconfiguredToken = new Erc20Taxed();
-        unconfiguredToken.mint(1000 ether);
-        unconfiguredToken.transfer(alice, 500 ether);
-
-        vm.prank(address(daoMock));
-        treasury.setWhitelist(address(unconfiguredToken), true);
-
-        vm.startPrank(alice);
-        unconfiguredToken.approve(address(treasury), 100 ether);
-        treasury.deposit(address(unconfiguredToken), 100 ether);
-        vm.stopPrank();
-
-        // Execute with unconfigured token deposit - this will test _findTokenConfig
-        daoMock.request(lawId, abi.encode(alice), nonce, "Test buy access");
-
-        // Should succeed but revoke role (token not found in config)
-        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-}
-
+ 
 //////////////////////////////////////////////////
 //              ROLE BY ROLES TESTS            //
 //////////////////////////////////////////////////
@@ -900,8 +662,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
     PeerSelect peerSelect;
     VoteInOpenElection voteInOpenElection;
     NStrikesRevokesRoles nStrikesRevokesRoles;
-    TaxSelect taxSelect;
-    BuyAccess buyAccess;
+    TaxSelect taxSelect; 
     RoleByRoles roleByRoles;
     SelfSelect selfSelect;
     RenounceRole renounceRole;
@@ -913,8 +674,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         peerSelect = new PeerSelect();
         voteInOpenElection = new VoteInOpenElection();
         nStrikesRevokesRoles = new NStrikesRevokesRoles();
-        taxSelect = new TaxSelect();
-        buyAccess = new BuyAccess();
+        taxSelect = new TaxSelect(); 
         roleByRoles = new RoleByRoles();
         selfSelect = new SelfSelect();
         renounceRole = new RenounceRole();
@@ -924,10 +684,10 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
     function testAllElectoralLawsInitialization() public {
         // Test that all electoral laws can be initialized
         lawId = daoMock.lawCounter();
+        conditions.allowedRole = type(uint256).max;
 
         // ElectionSelect
         configBytes = abi.encode(mockAddresses[10], 3, 3); // Erc20DelegateElection
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -940,7 +700,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         // PeerSelect
         configBytes = abi.encode(2, 4, 1, mockAddresses[8]); // Nominees
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -953,7 +712,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         // VoteInOpenElection
         configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -966,7 +724,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         // NStrikesRevokesRoles
         configBytes = abi.encode(3, 2, address(flagActions));
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -979,7 +736,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         // TaxSelect
         configBytes = abi.encode(mockAddresses[1], 1000, 4);
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -990,31 +746,8 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
             })
         );
 
-        // BuyAccess
-        conditions.allowedRole = type(uint256).max;
-        address[] memory tokens = new address[](1);
-        uint256[] memory tokensPerBlock = new uint256[](1);
-        tokens[0] = mockAddresses[3];
-        tokensPerBlock[0] = 1000;
-        TreasurySimple newTreasury = new TreasurySimple();
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: "Buy Access",
-                targetLaw: address(buyAccess),
-                config: abi.encode(
-                    address(newTreasury), // TreasurySimple contract
-                    tokens,
-                    tokensPerBlock,
-                    4 // roleId to be assigned
-                ),
-                conditions: conditions
-            })
-        );
-
         // RoleByRoles
         configBytes = abi.encode(4, 1);
-        conditions.allowedRole = type(uint256).max;
         uint256[] memory roleIdsNeeded = new uint256[](1);
         roleIdsNeeded[0] = 1;
         vm.prank(address(daoMock));
@@ -1032,7 +765,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
         // SelfSelect
         configBytes = abi.encode(4);
-        conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
@@ -1044,7 +776,6 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         );
 
         // RenounceRole
-        conditions.allowedRole = type(uint256).max;
         uint256[] memory allowedRoleIds = new uint256[](1);
         allowedRoleIds[0] = 1;
         vm.prank(address(daoMock));
@@ -1058,7 +789,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         );
 
         // Verify all laws were initialized
-        assertEq(daoMock.lawCounter(), lawId + 9);
+        assertEq(daoMock.lawCounter(), lawId + 8);
     }
 
     function testElectoralLawsWithEmptyInputs() public {
@@ -1072,32 +803,5 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
-
-    function testElectoralLawsWithInvalidConfigs() public {
-        lawId = 5; // = buy access
-
-        // BuyAccess with mismatched array lengths
-        address[] memory tokens = new address[](2);
-        uint256[] memory tokensPerBlock = new uint256[](1);
-        tokens[0] = mockAddresses[3];
-        tokens[1] = mockAddresses[3];
-        tokensPerBlock[0] = 1000;
-        TreasurySimple newTreasury2 = new TreasurySimple();
-
-        vm.prank(address(daoMock));
-        vm.expectRevert("Tokens and TokensPerBlock arrays must have the same length");
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: "Buy Access",
-                targetLaw: address(buyAccess),
-                config: abi.encode(
-                    address(newTreasury2), // TreasurySimple contract
-                    tokens,
-                    tokensPerBlock,
-                    4 // roleId to be assigned
-                ),
-                conditions: conditions
-            })
-        );
-    }
+ 
 }

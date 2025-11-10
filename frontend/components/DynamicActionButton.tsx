@@ -30,7 +30,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   );
   const populatedAction = savedAction?.state == 0 || savedAction?.state == undefined ? action : savedAction;
 
-  console.log("DynamicActionButton:", {checks, law, populatedAction, action})
+  // console.log("DynamicActionButton:", {checks, law, populatedAction, action})
 
   const { powers: powersAddress } = useParams<{
     chainId: string;

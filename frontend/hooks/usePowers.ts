@@ -31,7 +31,7 @@ export const usePowers = () => {
   // Everytime powers is fetched these functions are called. 
   const fetchPowersData = async(powers: Powers): Promise<Powers | undefined> => {
     const powersPopulated: Powers | undefined = powers
-    console.log("@fetchPowersData, waypoint 0", {powers})
+    // console.log("@fetchPowersData, waypoint 0", {powers})
     try { 
       const [ namePowers, uriPowers, lawCountPowers, treasuryPowers] = await readContracts(wagmiConfig, {
         allowFailure: false,
@@ -63,12 +63,12 @@ export const usePowers = () => {
         ]
       }) as [string, string, bigint, `0x${string}`]
 
-      console.log("@fetchPowersData, waypoint 1", {namePowers, uriPowers, lawCountPowers})
+      // console.log("@fetchPowersData, waypoint 1", {namePowers, uriPowers, lawCountPowers})
       powersPopulated.lawCount = lawCountPowers as bigint
       powersPopulated.name = namePowers as string
       powersPopulated.uri = uriPowers as string
       powersPopulated.treasury = treasuryPowers as `0x${string}`
-      console.log("@fetchPowersData, waypoint 2", {powersPopulated})
+      // console.log("@fetchPowersData, waypoint 2", {powersPopulated})
       return powersPopulated
 
     } catch (error) {

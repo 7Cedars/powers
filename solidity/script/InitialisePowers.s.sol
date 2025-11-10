@@ -12,37 +12,40 @@ import { Checks } from "../src/libraries/Checks.sol";
 import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 
 // --- Law Contract Imports ---
-// Multi laws
+// Executive laws
 import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
 import { PresetMultipleActions } from "../src/laws/executive/PresetMultipleActions.sol";
 import { OpenAction } from "../src/laws/executive/OpenAction.sol";
 import { StatementOfIntent } from "../src/laws/executive/StatementOfIntent.sol";
 import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanced.sol";
 import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
-// Executive laws
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
 import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
 import { AdoptLawsPackage } from "../src/laws/executive/AdoptLawsPackage.sol";
-import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
+
 // Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../src/laws/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../src/laws/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
-import { BuyAccess } from "../src/laws/electoral/BuyAccess.sol";
 import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
+
 // async laws
 import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
 import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol";
+
 // Integration Laws 
 import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
 import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
 import { AlloRPFGGovernance } from "../src/laws/integrations/AlloRPFGGovernance.sol";
-import { TreasuryPoolsGovernance } from "../src/laws/integrations/TreasuryPoolsGovernance.sol";
+import { TreasuryPoolGovernance } from "../src/laws/integrations/TreasuryPoolGovernance.sol";
+import { TreasuryRoleWithTransfer } from "../src/laws/integrations/TreasuryRoleWithTransfer.sol";
+import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTransfer.sol";
+import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -108,10 +111,10 @@ contract InitialisePowers is Script {
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
     function deployAndRecordLaws(string memory obj1, HelperConfig.NetworkConfig memory config) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](28);   
-        addresses = new address[](28);
-        bytes[] memory creationCodes = new bytes[](28);
-        bytes[] memory constructorArgs = new bytes[](28);
+        names = new string[](29);   
+        addresses = new address[](29);
+        bytes[] memory creationCodes = new bytes[](29);
+        bytes[] memory constructorArgs = new bytes[](29);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -179,9 +182,9 @@ contract InitialisePowers is Script {
         creationCodes[15] = type(TaxSelect).creationCode; 
         constructorArgs[15] = abi.encode("TaxSelect");
 
-        names[16] = "BuyAccess";
-        creationCodes[16] = type(BuyAccess).creationCode; 
-        constructorArgs[16] = abi.encode("BuyAccess");
+        names[16] = "TreasuryRoleWithTransfer";
+        creationCodes[16] = type(TreasuryRoleWithTransfer).creationCode; 
+        constructorArgs[16] = abi.encode("TreasuryRoleWithTransfer");
 
         names[17] = "RoleByRoles";
         creationCodes[17] = type(RoleByRoles).creationCode;
@@ -225,9 +228,13 @@ contract InitialisePowers is Script {
         creationCodes[26] = type(AssignRoleWithGitSig).creationCode;
         constructorArgs[26] = abi.encode();
 
-        names[27] = "TreasuryPoolsGovernance";
-        creationCodes[27] = type(TreasuryPoolsGovernance).creationCode;
+        names[27] = "TreasuryPoolTransfer";
+        creationCodes[27] = type(TreasuryPoolTransfer).creationCode;
         constructorArgs[27] = abi.encode();
+
+        names[28] = "TreasuryPoolGovernance";
+        creationCodes[28] = type(TreasuryPoolGovernance).creationCode;
+        constructorArgs[28] = abi.encode();
 
         string memory obj2 = "second key";
 

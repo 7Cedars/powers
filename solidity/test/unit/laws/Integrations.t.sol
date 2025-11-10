@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { GovernorCreateProposal } from "../../../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../../../src/laws/integrations/GovernorExecuteProposal.sol";
-import { TreasuryPoolsGovernance } from "../../../src/laws/integrations/TreasuryPoolsGovernance.sol";
+import { TreasuryPoolGovernance } from "../../../src/laws/integrations/TreasuryPoolGovernance.sol";
 import { TreasuryPools } from "../../../src/helpers/TreasuryPools.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol"; 
@@ -224,18 +224,18 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
 //////////////////////////////////////////////////
 //       TREASURY POOLS GOVERNANCE TESTS        //
 //////////////////////////////////////////////////
-contract TreasuryPoolsGovernanceTest is TestSetupExecutive {
-    TreasuryPoolsGovernance treasuryPoolsGovernance;
+contract TreasuryPoolGovernanceTest is TestSetupExecutive {
+    TreasuryPoolGovernance treasuryPoolGovernance;
     TreasuryPools treasuryPools;
 
     function setUp() public override {
         super.setUp();
         treasuryPools = new TreasuryPools();
-        // The TreasuryPoolsGovernance law is not in the executive constitution, so we deploy it manually
-        treasuryPoolsGovernance = new TreasuryPoolsGovernance();
+        // The TreasuryPoolGovernance law is not in the executive constitution, so we deploy it manually
+        treasuryPoolGovernance = new TreasuryPoolGovernance();
     }
 
-    // function testTreasuryPoolsGovernanceAdoptsLaws() public {
+    // function testTreasuryPoolGovernanceAdoptsLaws() public {
     //     // 1. Adopt a law to create a treasury pool
     //     lawId = daoMock.lawCounter();
     //     bytes memory createPoolConfig = abi.encode(
@@ -268,7 +268,7 @@ contract TreasuryPoolsGovernanceTest is TestSetupExecutive {
     //     daoMock.request(lawId, createPoolCalldata, nonce, "Create a new pool");
     //     uint256 createPoolActionId = LawUtilities.hashActionId(lawId, createPoolCalldata, nonce);
 
-    //     // 3. Adopt the TreasuryPoolsGovernance law
+    //     // 3. Adopt the TreasuryPoolGovernance law
     //     uint16 governanceLawId = daoMock.lawCounter();
     //     bytes memory governanceConfig = abi.encode(
     //         address(treasuryPools),
@@ -276,7 +276,7 @@ contract TreasuryPoolsGovernanceTest is TestSetupExecutive {
     //         lawAddresses[5]  // BespokeActionAdvanced
     //     );
     //     PowersTypes.LawInitData memory governanceLawData = PowersTypes.LawInitData({
-    //         targetLaw: address(treasuryPoolsGovernance),
+    //         targetLaw: address(treasuryPoolGovernance),
     //         nameDescription: "Treasury Pools Governance",
     //         config: governanceConfig,
     //         conditions: PowersTypes.Conditions({

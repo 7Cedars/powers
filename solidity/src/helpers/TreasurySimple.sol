@@ -26,7 +26,7 @@ contract TreasurySimple is Ownable {
         whitelistedTokens[address(0)] = true;
     }
 
-    function setWhitelist(address _token, bool _isWhitelisted) external onlyOwner {
+    function setWhitelistToken(address _token, bool _isWhitelisted) external onlyOwner {
         whitelistedTokens[_token] = _isWhitelisted;
     }
 
@@ -75,7 +75,7 @@ contract TreasurySimple is Ownable {
         }
     }
 
-    function getTransfer(uint256 _index) external view returns (TransferLog memory) {
-        return transfers[_index];
+    function getTransfer(uint256 receiptId) external view returns (TransferLog memory) {
+        return transfers[receiptId];
     }
 }
