@@ -4,11 +4,14 @@ out = "out"
 libs = ["lib"]
 evm_version = "cancun"
 always_use_create_2_factory = true
+create2_deployer = "0x4e59b44847b379578588920ca78fbf26c0b4956c"
+
 memory_limit = 1342177280
 optimizer_runs = 600
 # dynamic_test_linking = true
 # Auto-detect Solidity versions from pragma statements
 auto_detect_solc = true
+ffi = true 
 
 fs_permissions = [
     { access = "read", path = "./out"},

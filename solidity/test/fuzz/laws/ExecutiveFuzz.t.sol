@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test, console } from "forge-std/Test.sol";
+// import { Console } from "forge-std/console.sol";
 import { TestSetupExecutive } from "../../TestSetup.t.sol";
-import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
-import { GovernorCreateProposal } from "../../../src/laws/executive/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../../../src/laws/executive/GovernorExecuteProposal.sol";
+import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
+import { GovernorCreateProposal } from "../../../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../../../src/laws/integrations/GovernorExecuteProposal.sol";
 import { AdoptLawsPackage } from "../../../src/laws/executive/AdoptLawsPackage.sol";
-import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
+import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
+import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
@@ -28,7 +30,8 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     GovernorCreateProposal governorCreateProposal;
     GovernorExecuteProposal governorExecuteProposal;
     AdoptLawsPackage adoptLawsPackage;
-    PresetSingleAction presetSingleAction;
+    PresetSingleAction presetSingleAction; 
+    OpenAction openAction;
 
     // State variables to avoid stack too deep errors
     uint256 returnedActionId;
@@ -48,10 +51,11 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         // Initialize law instances from deployed addresses
         // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[4])
         statementOfIntent = StatementOfIntent(lawAddresses[4]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[8]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[9]);
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[7]);
+        governorCreateProposal = GovernorCreateProposal(lawAddresses[9]);
+        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[10]);
+        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]);
         presetSingleAction = PresetSingleAction(lawAddresses[1]);
+        openAction = OpenAction(lawAddresses[3]);
     }
 
     //////////////////////////////////////////////////////////////
@@ -59,7 +63,7 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     //////////////////////////////////////////////////////////////
 
     /// @notice Fuzz test StatementOfIntent (lawId 1) with random data
-    function testFuzzStatementOfIntentWithRandomData(
+    function testFuzzStatementOfIntentWithRandomDataAtExecutive(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
         bytes[] memory calldatasFuzzed,
@@ -85,12 +89,9 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
             statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
 
-        // Verify data is passed through unchanged
-        assertEq(returnedTargets.length, arrayLength);
-        for (i = 0; i < arrayLength; i++) {
-            assertEq(returnedTargets[i], targets[i]);
-            assertEq(returnedCalldatas[i], calldatas[i]);
-        }
+        // Verify that return data is empty
+        assertEq(returnedTargets.length, 1);
+        assertEq(returnedTargets[0], address(0)); 
     }
 
     /// @notice Fuzz test StatementOfIntent with large calldata
@@ -114,7 +115,7 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         lawCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
 
         assertEq(returnedCalldatas[0].length, calldataLength);
     }
@@ -547,7 +548,7 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
 
         // Test StatementOfIntent with large data
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed); // calls open action
 
         assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
         assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
@@ -608,8 +609,8 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         string memory testDescription = "Large Values Test";
         lawCalldata = abi.encode(targets, values, calldatas, testDescription);
 
-        (, address[] memory returnedTargets, uint256[] memory returnedValues,) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+        (, returnedTargets, returnedValues,) =
+            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
 
         // Verify large values are preserved
         for (i = 0; i < arrayLength; i++) {
@@ -631,8 +632,8 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
 
         lawCalldata = abi.encode(targets, values, calldatas);
 
-        (,,, bytes[] memory returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+        (,,, returnedCalldatas) =
+            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
 
         // Should preserve random bytes
         assertEq(returnedCalldatas[0], randomBytesFuzzed);

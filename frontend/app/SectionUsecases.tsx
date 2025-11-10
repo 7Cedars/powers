@@ -1,11 +1,13 @@
 "use client";
 
 import { useCases } from  "../public/useCases";
-import { ArrowUpRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function SectionUsecases() { 
   const router = useRouter()
+  const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null);
 
   return (
     <main className="w-full min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-blue-500 to-slate-100 snap-start snap-always py-12 px-2"
@@ -23,9 +25,9 @@ export function SectionUsecases() {
         </div>
 
         {/* info blocks */}
-        <section className="w-full flex flex-wrap gap-4 max-w-6xl justify-center items-start overflow-y-auto">  
+        <section className="w-full flex flex-wrap gap-4 max-w-6xl justify-center items-start overflow-y-auto">   
               {useCases.map((useCase, index) => (
-                    <div className="w-72 min-h-64 max-h-64 flex flex-col justify-between items-between border border-slate-300 rounded-md bg-slate-50 overflow-hidden" key={index}>  
+                    <div className="w-72 min-h-64 max-h-64 flex flex-col justify-between items-between border border-slate-300 rounded-md bg-slate-50" key={index}>  
                       <div className="w-full font-bold text-slate-700 p-3 ps-5 border-b border-slate-300 bg-slate-100">
                           {useCase.title}
                       </div> 
@@ -35,17 +37,36 @@ export function SectionUsecases() {
                           useCase.details.map((detail, i) => <li key={i}> {detail} </li> )
                         }
                       </ul>
-                      <div className="w-full max-w-4xl flex flex-row justify-between items-center text-center ps-3 pe-2 p-3"> 
-                          <button className="flex flex-row justify-between items-start border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
-                            disabled={useCase.address === "0x0000000000000000000000000000000000000000" ? true : false}
-                            onClick={() => {
-                                router.push(`/protocol/${useCase.chainId}/${useCase.address}`)
-                            }}> 
-                            {useCase.demo}
-                            <ArrowUpRightIcon
-                              className="w-4 h-4 m-1 text-slate-700 text-center font-bold"
-                            />
-                          </button>
+                      <div className="w-full max-w-4xl flex flex-row justify-between items-center text-center ps-3 pe-2 p-3 relative"> 
+                        <button 
+                          className="flex flex-row justify-between bg-slate-50 items-center w-full border border-slate-300 hover:border-slate-600 rounded-md p-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-300"
+                          onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}
+                          disabled={useCase.demos.length === 0 || useCase.demos.every(demo => demo.link === "")}
+                        >
+                          <span>Examples</span>
+                          <ChevronUpIcon className="w-4 h-4 m-1 text-slate-700" />
+                        </button>
+                        {openDropdownIndex === index && (
+                          <ul className="absolute bottom-full w-[calc(100%-1rem)] bg-slate-50 border divide-y divide-slate-300 border-slate-300 rounded-md shadow-xl z-10">
+                            {useCase.demos.map((demo, demoIndex) => (
+                              <li 
+                                key={demoIndex} 
+                                className={`p-2 hover:bg-slate-100 flex justify-between items-center ${demo.link === "" ? "cursor-not-allowed text-slate-300" : "cursor-pointer"}`}
+                                onClick={() => {
+                                  if (demo.link !== "") {
+                                    router.push(`/protocol/${demo.link}`);
+                                    setOpenDropdownIndex(null);
+                                  }
+                                }}
+                              >
+                                <span>{demo.name}</span>
+                                {/* {demo.address !== "0x0000000000000000000000000000000000000000" && (
+                                  <ArrowUpRightIcon className="w-4 h-4 text-slate-700" />
+                                )} */}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     </div> 
                 ))

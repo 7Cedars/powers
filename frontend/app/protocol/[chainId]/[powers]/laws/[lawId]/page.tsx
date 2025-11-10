@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { LawBox } from "@/components/LawBox";
 import { setAction, setError, useActionStore, useStatusStore } from "@/context/store";
-import { Powers } from "@/context/types";
+import { Action, Powers } from "@/context/types";
 import { useParams } from "next/navigation"; 
 import { LawActions } from "./LawActions";
 import { TitleText } from "@/components/StandardFonts";
@@ -16,9 +16,9 @@ const Page = () => {
   const powers = usePowersStore();
   const statusPowers = useStatusStore();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId)) 
-  const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action.actionId));
+  const [populatedAction, setPopulatedAction] = useState<Action | undefined>();
 
-  // console.log("@Page: waypoint 0", {law, action, actionVote, statusLaw, statusPowers, errorUseLaw, powers, checks})
+  // console.log("@Page: waypoint 0", {populatedAction, action})
 
   // Helper function to map state numbers to their labels
   const getStateLabel = (state: number | undefined): string => {
@@ -44,9 +44,25 @@ const Page = () => {
         state: 0,
         upToDate: false
       })
+      setPopulatedAction(action);
     }
   }, [lawId])
 
+  // resetting action state when action is changed,
+  useEffect(() => {
+    if (action) {
+      const newPopulatedAction = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
+      setPopulatedAction(newPopulatedAction);
+    }
+  }, [action.actionId, law]);
+
+  // useEffect(() => {
+  //   if (!action.upToDate ) {
+  //     setPopulatedAction(
+  //       {...action, state: 0}
+  //     );
+  //   }
+  // }, [action])
 
   // resetting DynamicForm and fetching executions when switching laws: 
   useEffect(() => {
@@ -108,7 +124,7 @@ const Page = () => {
                   populatedAction?.state === 4 ? 'text-red-600 bg-red-100' : // Defeated
                   populatedAction?.state === 5 ? 'text-green-600 bg-green-100' : // Succeeded
                   populatedAction?.state === 6 ? 'text-blue-600 bg-blue-100' : // Requested
-                  populatedAction?.state === 7 ? 'text-green-600 bg-green-100' : // Fulfilled
+                  populatedAction?.state === 7 ? 'text-green-800 bg-green-200' : // Fulfilled
                   'text-slate-500 bg-slate-100'
                 }`}>
                   {getStateLabel(populatedAction?.state)}

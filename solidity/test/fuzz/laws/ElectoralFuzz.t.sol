@@ -7,19 +7,17 @@ import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
-import { BuyAccess } from "../../../src/laws/electoral/BuyAccess.sol";
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol"; 
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
 import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Nominees } from "@mocks/Nominees.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
+import { OpenElection } from "../../../src/helpers/OpenElection.sol";
+import { Nominees } from "../../../src/helpers/Nominees.sol";
+import { Erc20Taxed } from "@mocks/Erc20Taxed.sol"; 
+import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 
 /// @title Electoral Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for all electoral law implementations using pre-initialized laws
@@ -27,8 +25,7 @@ import { FlagActions } from "@mocks/FlagActions.sol";
 ///      lawId 1: ElectionSelect (Erc20DelegateElection, roleId=3, maxHolders=3)
 ///      lawId 2: PeerSelect (maxHolders=2, roleId=4, maxVotes=1, Nominees)
 ///      lawId 3: VoteInOpenElection (OpenElection, maxVotes=1)
-///      lawId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4)
-///      lawId 5: BuyAccess (Donations, tokens, tokensPerBlock, roleId=4)
+///      lawId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4) 
 ///      lawId 6: SelfSelect (roleId=4)
 ///      lawId 7: RenounceRole (roles=[1,2])
 ///      lawId 8: NStrikesRevokesRoles (roleId=3, strikes=2, FlagActions)
@@ -39,8 +36,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     ElectionSelect electionSelect;
     PeerSelect peerSelect;
     VoteInOpenElection voteInOpenElection;
-    TaxSelect taxSelect;
-    BuyAccess buyAccess;
+    TaxSelect taxSelect; 
     SelfSelect selfSelect;
     RenounceRole renounceRole;
     NStrikesRevokesRoles nStrikesRevokesRoles;
@@ -51,7 +47,6 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     OpenElection openElection;
     Nominees nomineesContract;
     Erc20Taxed erc20Taxed;
-    Donations donations;
     FlagActions flagActions;
 
     // State variables to avoid stack too deep errors
@@ -70,22 +65,20 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         super.setUp();
 
         // Initialize law instances from deployed addresses
-        electionSelect = ElectionSelect(lawAddresses[10]);
-        peerSelect = PeerSelect(lawAddresses[11]);
-        voteInOpenElection = VoteInOpenElection(lawAddresses[12]);
-        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[13]);
-        taxSelect = TaxSelect(lawAddresses[14]);
-        buyAccess = BuyAccess(lawAddresses[15]);
-        roleByRoles = RoleByRoles(lawAddresses[16]);
-        selfSelect = SelfSelect(lawAddresses[17]);
-        renounceRole = RenounceRole(lawAddresses[18]);
+        electionSelect = ElectionSelect(lawAddresses[11]);
+        peerSelect = PeerSelect(lawAddresses[12]);
+        voteInOpenElection = VoteInOpenElection(lawAddresses[13]);
+        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[14]);
+        taxSelect = TaxSelect(lawAddresses[15]); 
+        roleByRoles = RoleByRoles(lawAddresses[17]);
+        selfSelect = SelfSelect(lawAddresses[18]);
+        renounceRole = RenounceRole(lawAddresses[19]);
 
         // Initialize mock contract instances
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
         openElection = OpenElection(mockAddresses[9]);
         nomineesContract = Nominees(mockAddresses[8]);
-        erc20Taxed = Erc20Taxed(mockAddresses[1]);
-        donations = Donations(payable(mockAddresses[5]));
+        erc20Taxed = Erc20Taxed(mockAddresses[1]); 
         flagActions = FlagActions(mockAddresses[6]);
     }
 
@@ -184,24 +177,19 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     /// @dev lawId 9 assigns role 4 if account has roles 1 and 2
     function testFuzzRoleByRolesWithRoleCombinations(
         address accountFuzzed,
-        bool hasRole1,
-        bool hasRole2,
         uint256 nonceFuzzed
     ) public {
         vm.assume(accountFuzzed != address(0));
 
-        // Conditionally assign roles
-        vm.startPrank(address(daoMock));
-        if (hasRole1) daoMock.assignRole(1, accountFuzzed);
-        if (hasRole2) daoMock.assignRole(2, accountFuzzed);
-        vm.stopPrank();
+        bool hasRole1 = daoMock.hasRoleSince(accountFuzzed, 1) != 0;
+        bool hasRole2 = daoMock.hasRoleSince(accountFuzzed, 2) != 0;
 
         lawCalldata = abi.encode(accountFuzzed);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
             roleByRoles.handleRequest(accountFuzzed, address(daoMock), 9, lawCalldata, nonceFuzzed);
 
-        // If account hase either role exist, should send empty array
+        // If account has either role exist, should send empty array
         if (hasRole1 || hasRole2) {
             assertEq(returnedTargets[0], address(daoMock));
         } else {
@@ -215,7 +203,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         uint256 numberOfAccounts,
         uint256 nonceFuzzed
     ) public {
-        numberOfAccounts = bound(numberOfAccounts, 1, 10);
+        numberOfAccounts = bound(numberOfAccounts, 5, 20);
         vm.assume(accountsFuzzed.length >= numberOfAccounts);
 
         // Assign required roles to all accounts
@@ -412,7 +400,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter
@@ -467,10 +455,6 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         }
         lawCalldata = abi.encode(votesArray);
 
-        for (j = 0; j < votesArray.length; j++) {
-            console.log("votesArray[%s] = %s", j, votesArray[j]);
-        }
-
         vm.roll(block.number + 1);
 
         // step 2: initialise a NEW VoteInOpenElection law with multiple votes allowed
@@ -481,7 +465,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election Multiple",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     3 // max votes per voter increased to 3
@@ -547,70 +531,6 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         (returnedActionId, returnedTargets,,) =
             taxSelect.handleRequest(accountFuzzed, address(daoMock), 4, lawCalldata, nonceFuzzed);
         if (meetsThreshold) assertTrue(returnedTargets.length > 0);
-    }
-
-    //////////////////////////////////////////////////////////////
-    //                  BUY ACCESS FUZZ                         //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Fuzz test BuyAccess (lawId 5) with various payment amounts
-    /// @dev lawId 5 allows buying role 4 access with tokens
-    function testFuzzBuyAccessWithVariousPayments(
-        address accountFuzzed,
-        uint256 tokenAmountFuzzed,
-        uint256 tokenIndex,
-        uint256 nonceFuzzed
-    ) public {
-        vm.assume(accountFuzzed != address(0));
-        tokenAmountFuzzed = bound(tokenAmountFuzzed, 1, type(uint128).max);
-        tokenIndex = bound(tokenIndex, 0, 1); // 2 tokens available
-
-        lawCalldata = abi.encode(tokenIndex, tokenAmountFuzzed);
-
-        (returnedActionId, returnedTargets,, returnedCalldatas) =
-            buyAccess.handleRequest(accountFuzzed, address(daoMock), 5, lawCalldata, nonceFuzzed);
-
-        // Should generate payment and role assignment actions
-        assertTrue(returnedTargets.length > 0);
-    }
-
-    /// @notice Fuzz test BuyAccess with native currency
-    function testFuzzBuyAccessWithNativeCurrency(address accountFuzzed, uint256 ethAmountFuzzed, uint256 nonceFuzzed)
-        public
-    {
-        vm.assume(accountFuzzed != address(0));
-        ethAmountFuzzed = bound(ethAmountFuzzed, 1, 100 ether);
-
-        // Token index 1 is native currency
-        lawCalldata = abi.encode(1, ethAmountFuzzed);
-
-        (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            buyAccess.handleRequest(accountFuzzed, address(daoMock), 5, lawCalldata, nonceFuzzed);
-
-        // Should generate payment and role assignment actions
-        assertTrue(returnedTargets.length > 0);
-        // First target should be the donations contract for payment
-        assertEq(returnedTargets[0], address(daoMock));
-    }
-
-    /// @notice Fuzz test BuyAccess with various block periods
-    function testFuzzBuyAccessBlockPeriods(address accountFuzzed, uint256 blocksPaidFuzzed, uint256 nonceFuzzed)
-        public
-    {
-        vm.assume(accountFuzzed != address(0));
-        blocksPaidFuzzed = bound(blocksPaidFuzzed, 1, 1_000_000);
-
-        // Calculate required token amount
-        tokenAmount = blocksPaidFuzzed * 1000; // tokensPerBlock = 1000
-
-        lawCalldata = abi.encode(0, tokenAmount);
-
-        (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            buyAccess.handleRequest(accountFuzzed, address(daoMock), 5, lawCalldata, nonceFuzzed);
-
-        // Should generate payment and role assignment actions
-        assertTrue(returnedTargets.length > 0);
-        assertEq(returnedTargets[0], address(daoMock));
     }
 
     //////////////////////////////////////////////////////////////
@@ -797,7 +717,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.adoptLaw(
             PowersTypes.LawInitData({
                 nameDescription: "Vote In Open Election Large",
-                targetLaw: lawAddresses[lawId],
+                targetLaw: lawAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter

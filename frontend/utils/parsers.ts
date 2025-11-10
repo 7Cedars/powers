@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { InputType, DataType, Metadata, Attribute, Token } from "../context/types"
+import { InputType, DataType, Metadata, Attribute, Token, CommunicationChannels } from "../context/types"
 import { type UseReadContractsReturnType } from 'wagmi'
 import { hexToString } from 'viem'
 
@@ -79,7 +79,7 @@ const parseTokens = (tokens: unknown): `0x${string}`[] => {
   return result 
 }
 
-const parseDescription = (description: unknown): string => {
+const parseString = (description: unknown): string => {
   if (!isString(description)) {
     throw new Error(`Incorrect description, not a string: ${description}`);
   }
@@ -380,16 +380,27 @@ export const parseMetadata = (metadata: unknown): Metadata => {
     throw new Error('Incorrect or missing data');
   }
 
+  console.log("@parseMetadata: waypoint 0", {metadata})
+
   if ( 
     'icon' in metadata &&   
-    'banner' in metadata &&   
+    'banner' in metadata &&
     'description' in metadata && 
+    'website' in metadata &&
+    'codeOfConduct' in metadata &&
+    'disputeResolution' in metadata &&
+    'communicationChannels' in metadata &&
+
     'attributes' in metadata 
     ) { 
         return ({
-          icon: metadata.icon as string,
-          banner: metadata.banner as string,
-          description: parseDescription(metadata.description),
+          icon: parseString(metadata.icon),
+          banner: parseString(metadata.banner),
+          website: parseString(metadata.website),
+          codeOfConduct: parseString(metadata.codeOfConduct),
+          disputeResolution: parseString(metadata.disputeResolution),
+          communicationChannels: metadata.communicationChannels as CommunicationChannels, // This should actually also have a proper parser. 
+          description: parseString(metadata.description),
           attributes: parseAttributes(metadata.attributes)
         })
        }

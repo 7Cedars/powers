@@ -24,15 +24,25 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
   const { timestamps, fetchTimestamps } = useBlocks()
   const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
   const sortedActions = lawActions?.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
-  const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
+  // const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
   const router = useRouter()
-  // console.log("@LawActions, waypoint 0", {lawActions})
+  // console.log("@LawActions, waypoint 0", {timestamps, sortedActions})
   
   useEffect(() => {
-    if (sortedActions) {
-      fetchTimestamps(allTimestamps, chainId)
+    if (sortedActions && sortedActions.length > 0) {
+      const allTimestamps = Array.from(new Set(
+        sortedActions.flatMap(action => 
+          [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt]
+            .filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null)
+        )
+      ))
+      
+      if (allTimestamps.length > 0) {
+        fetchTimestamps(allTimestamps, chainId)
+      }
     }
   }, [sortedActions, chainId, fetchTimestamps])
+
 
   return (
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden" help-nav-item="latest-executions">
@@ -64,7 +74,7 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                         key={index}
                         className="text-sm text-left text-slate-800"
                       >
-                        {/* Executed at */}
+                        {/* Proposed at OR requested at, which ever is bigger */}
                         <td className="px-2 py-3 w-32">
                           <a
                             href="#"
@@ -77,12 +87,8 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                             className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
                           >
                             {(() => {
-                              // Ensure consistent block number format for lookup
-                              const executedAtBlock = typeof action.fulfilledAt === 'bigint' 
-                                ? action.fulfilledAt 
-                                : BigInt(0)
-                              
-                              const timestampData = timestamps.get(`${chainId}:${executedAtBlock}`)
+                              const timestampToUse = action.requestedAt ? action.requestedAt : action.proposedAt ? action.proposedAt : 0n
+                              const timestampData = timestamps.get(`${chainId}:${timestampToUse}`)
                               const timestamp = timestampData?.timestamp
                               
                               if (!timestamp || timestamp <= 0n) {

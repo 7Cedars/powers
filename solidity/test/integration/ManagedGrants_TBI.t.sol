@@ -10,7 +10,7 @@ pragma solidity 0.8.26;
 // import { Law } from "../../../src/Law.sol";
 // import { ILaw } from "../../../src/interfaces/ILaw.sol";
 
-// import { SoulboundErc721 } from "../@mocks/SoulboundErc721.sol";
+// import { SoulboundErc721 } from "../../../src/helpers/SoulboundErc721.sol";
 // import { SimpleErc1155 } from "../@mocks/SimpleErc1155.sol";
 // import { Erc20Taxed } from "../@mocks/Erc20Taxed.sol";
 // import { StringsArray } from "../../../src/laws/state/StringsArray.sol";

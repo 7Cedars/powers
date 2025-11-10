@@ -1,0 +1,96 @@
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  Powers 101 is under development. The organisational specs are subject to change.
+</Callout>
+
+# Powers 101 Specification
+
+## Organisational Structure & Context
+
+### *Vision & Mission*
+
+Powers 101 is a simple DAO designed to demonstrate the core concepts of the Powers protocol. It provides a basic governance structure with a separation of powers between delegates, members, and an admin, making it an ideal starting point for understanding how the protocol works.
+
+### *Treasury Management*
+
+The organization's actions (including treasury management) are managed through proposals initiated by members and executed by delegates. This model allows for a decentralized approach to treasury management, where the community can propose actions and the elected delegates are responsible for carrying them out. 
+
+Note that for demonstration purposes, there are no checks on allocation of roles. 
+
+## Roles
+
+<div class="table-laws">
+| **Role Id** | **Role name** | **Selection criteria** |
+| :--- | :--- | :--- |
+| 0 | Admin | Admin role assigned at deployment. |
+| 1 | Members | Anyone can self-select to become a member. |
+| 2 | Delegates | Anyone can self-select to become a delegate. |
+| … | Public | Everyone. |
+</div> 
+
+## On-chain Laws
+
+### *Executive Laws (executing actions)*
+
+<div class="table-laws">
+| **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Members | Propose Action | StatementOfIntent.sol | "address[] Targets", "uint256[] Values", "bytes[] Calldatas" | none | 51% success, 20% quorum, 5 minute voting period |
+| Admin | Veto Action | StatementOfIntent.sol | "address[] Targets", "uint256[] Values", "bytes[] Calldatas" | none | Proposal must exist |
+| Delegates | Execute Action | OpenAction.sol | (from proposal) | Executes the proposed action | 77% success, 50% quorum, 5 minute voting period, 3 minute delay, proposal must exist, not vetoed |
+</div> 
+
+### *Electoral Laws (assigning roles)*
+
+<div class="table-laws">
+| **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Public | Become a Member | SelfSelect.sol | "uint256 roleId" | Assigns the caller the member role. | Public access, 25 block throttle. |
+| Public | Become a Delegate | SelfSelect.sol | "uint256 roleId" | Assigns the caller the delegate role. | Public access, 25 block throttle. |
+</div> 
+
+### *Constitutional Laws (adopting and revoking laws)*
+
+There are no specific constitutional laws defined in the Powers 101 organization. Law management is handled by the Admin role.
+
+## Off-chain Operations
+
+### *Dispute Resolution*
+
+Disputes regarding ambiguous law conditions or malicious actions by role-holders will be addressed through community discussion in the official communication channels, with final arbitration by the Admin role if consensus cannot be reached.
+
+### *Code of Conduct / Ethics*
+
+All participants are expected to act in good faith to further the mission of Powers 101. This includes respectful communication, constructive feedback, and responsible use of powers.
+
+### *Communication Channels*
+
+Official proposals, discussions, and announcements take place on the Powers 101 Discord server and community forum.
+
+## Description of Governance
+
+Powers 101 is a decentralized organization designed to showcase the fundamental governance principles of the Powers protocol.
+
+* **Remit**: The primary function is to provide a simple, transparent, and educational platform for users to learn about decentralized governance.
+* **Roles**: Roles are straightforward: anyone can become a **Member**, members can nominate themselves to be **Delegates**, and an **Admin** role manages the system.
+* **Executive Paths**:
+  * **Proposal Lifecycle**: Members propose actions, the Admin can veto them, and Delegates execute approved proposals.
+* **Summary**: The governance structure of Powers 101 is a minimalist implementation of the Powers protocol, demonstrating a clear separation of powers and providing a hands-on learning experience for decentralized governance.
+
+## Risk Assessment 
+
+### No checks on role assignment
+Risk description here. 
+
+### Additional risks 
+Additional risk descriptions here. 
+
+## Deployments
+
+<div class="table-chains">
+| **Chain name** | **Chain Id** | **Address** |
+| :---- | :---- | :---- |
+| Optimism Sepolia | 11155420 | 0x00...  |
+</div> 
+

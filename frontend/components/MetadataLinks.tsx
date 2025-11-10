@@ -58,7 +58,7 @@ type MetadataLinksProps = {
   website?: string;
   codeOfConduct?: string;
   disputeResolution?: string;
-  communicationChannels?: CommunicationChannels[];
+  communicationChannels?: CommunicationChannels;
 }
 
 export function MetadataLinks({ 
@@ -67,8 +67,7 @@ export function MetadataLinks({
   disputeResolution, 
   communicationChannels 
 }: MetadataLinksProps) {
-  // Extract the first communication channels object (if it exists)
-  const channels = communicationChannels?.[0]
+  // Extract the first communication communicationChannels object (if it exists)
 
   // Helper function to check if a value is a valid link
   const isValidLink = (link?: string): link is string => {
@@ -82,17 +81,17 @@ export function MetadataLinks({
     { url: disputeResolution, icon: ScaleIcon, label: 'Dispute Resolution' }
   ].filter(link => isValidLink(link.url))
 
-  // Communication channels configuration
-  const socialLinks = channels ? [
-    { url: channels.discord, icon: DiscordIcon, label: 'Discord' },
-    { url: channels.telegram, icon: TelegramIcon, label: 'Telegram' },
-    { url: channels.x, icon: XIcon, label: 'X (Twitter)' },
-    { url: channels.paragraph, icon: ParagraphIcon, label: 'Paragraph' },
-    { url: channels.youtube, icon: YoutubeIcon, label: 'YouTube' },
-    { url: channels.facebook, icon: FacebookIcon, label: 'Facebook' },
-    { url: channels.github, icon: GithubIcon, label: 'GitHub' },
-    { url: channels.forum, icon: ChatBubbleLeftRightIcon, label: 'Forum' },
-    { url: channels.documentation, icon: BookOpenIcon, label: 'Documentation' }
+  // Communication communicationChannels configuration
+  const socialLinks = communicationChannels ? [
+    { url: communicationChannels.discord, icon: DiscordIcon, label: 'Discord' },
+    { url: communicationChannels.telegram, icon: TelegramIcon, label: 'Telegram' },
+    { url: communicationChannels.x, icon: XIcon, label: 'X (Twitter)' },
+    { url: communicationChannels.paragraph, icon: ParagraphIcon, label: 'Paragraph' },
+    { url: communicationChannels.youtube, icon: YoutubeIcon, label: 'YouTube' },
+    { url: communicationChannels.facebook, icon: FacebookIcon, label: 'Facebook' },
+    { url: communicationChannels.github, icon: GithubIcon, label: 'GitHub' },
+    { url: communicationChannels.forum, icon: ChatBubbleLeftRightIcon, label: 'Forum' },
+    { url: communicationChannels.documentation, icon: BookOpenIcon, label: 'Documentation' }
   ].filter(link => isValidLink(link.url)) : []
 
   // Don't render anything if there are no valid links
@@ -124,12 +123,12 @@ export function MetadataLinks({
         </div>
       )}
 
-      {/* Communication Channels */}
+      {/* Communication communicationChannels */}
       {socialLinks.length > 0 && (
         <div className="w-full">
-          <div className="text-sm font-medium text-slate-600 mb-2">
-            Communication Channels
-          </div>
+          {/* <div className="text-sm font-medium text-slate-600 mb-2">
+            Communication communicationChannels
+          </div> */}
           <div className="flex flex-wrap gap-2 items-center">
             {socialLinks.map((link, index) => {
               const Icon = link.icon

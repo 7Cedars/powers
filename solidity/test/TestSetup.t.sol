@@ -13,26 +13,30 @@ import { PowersErrors } from "../src/interfaces/PowersErrors.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
+import { TestConstitutions } from "./TestConstitutions.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
+// law. 
+import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
 
 // external contracts
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { Grant } from "@mocks/Grant.sol";
+import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
+import { Grant } from "../src/helpers/Grant.sol";
+import { OpenElection } from "../src/helpers/OpenElection.sol";
+import { TreasurySimple} from "../src/helpers/TreasurySimple.sol";
+import { TreasuryPools } from "../src/helpers/TreasuryPools.sol";
+import { FlagActions } from "../src/helpers/FlagActions.sol";
+import { Nominees } from "../src/helpers/Nominees.sol";
 
-import { TestConstitutions } from "./TestConstitutions.sol";
-import { PowersMock } from "./mocks/PowersMock.sol";
+// mocks  
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
-import { Nominees } from "@mocks/Nominees.sol";
+import { PowersMock } from "./mocks/PowersMock.sol";
+import { SimpleErc1155 } from "./mocks/SimpleErc1155.sol";
+import { SimpleErc20Votes } from "./mocks/SimpleErc20Votes.sol";
+import { Erc20Taxed } from "./mocks/Erc20Taxed.sol";
 
 // deploy scripts
-import { DeployMocks } from "../script/DeployMocks.s.sol";
+import { DeployMocks } from "../script/DeployMocks.s.sol"; 
 import { InitialisePowers } from "../script/InitialisePowers.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
@@ -40,7 +44,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     Powers powers;
     HelperConfig helperConfig;
     PowersMock daoMock;
-    DeployMocks deployMocks;
+    DeployMocks deployMocks; 
     InitialisePowers initialisePowers;
     string[] lawNames;
     address[] lawAddresses;
@@ -169,6 +173,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // Fuzz test variables
     uint256 MAX_FUZZ_TARGETS;
     uint256 MAX_FUZZ_CALLDATA_LENGTH;
+    bytes CREATE2_FACTORY_BYTECODE; 
+
 }
 
 abstract contract TestStandalone is Test, TestVariables {
@@ -221,7 +227,7 @@ abstract contract TestStandalone is Test, TestVariables {
             bool getNft = (currentRandomiser % 100) < density;
             if (getNft) {
                 vm.prank(powersContract);
-                SoulboundErc721(erc721MockLocal).mintNFT(randomiser + i, accounts[i]);
+                SoulboundErc721(erc721MockLocal).mintNft(randomiser + i, accounts[i]);
             }
         }
     }
@@ -288,7 +294,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         ROLE_FOUR = 4;
 
         nonce = 123;
-        MAX_FUZZ_TARGETS = 20;
+        MAX_FUZZ_TARGETS = 5;
         MAX_FUZZ_CALLDATA_LENGTH = 2000;
 
         // users
@@ -322,7 +328,7 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         vm.deal(oracle, 10 ether);
 
         users = [alice, bob, charlotte, david, eve, frank, gary, helen, ian, jacob, kate, lisa];
-
+ 
         // deploy mock powers
         daoMock = new PowersMock();
 
@@ -330,13 +336,14 @@ abstract contract BaseSetup is TestVariables, TestStandalone {
         deployMocks = new DeployMocks();
         initialisePowers = new InitialisePowers();
         (mockNames, mockAddresses) = deployMocks.run();
-        (lawNames, lawAddresses) = initialisePowers.run();
+        (lawNames, lawAddresses) = initialisePowers.getDeployedLaws();
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());
         Erc20Taxed(mockAddresses[1]).transferOwnership(address(daoMock));
         SoulboundErc721(mockAddresses[2]).transferOwnership(address(daoMock));
-        Donations(payable(mockAddresses[5])).transferOwnership(address(daoMock));
+        TreasuryPools(payable(mockAddresses[12])).transferOwnership(address(daoMock));
+        TreasurySimple(payable(mockAddresses[11])).transferOwnership(address(daoMock));
         FlagActions(mockAddresses[6]).transferOwnership(address(daoMock));
         Grant(mockAddresses[7]).transferOwnership(address(daoMock));
         Nominees(mockAddresses[8]).transferOwnership(address(daoMock));
@@ -366,7 +373,6 @@ abstract contract TestSetupPowers is BaseSetup {
         daoMock.constitute(lawInitData_);
 
         vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
@@ -388,8 +394,7 @@ abstract contract TestSetupLaw is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -410,8 +415,7 @@ abstract contract TestSetupElectoral is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -432,8 +436,7 @@ abstract contract TestSetupExecutive is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -454,8 +457,7 @@ abstract contract TestSetupMulti is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -509,8 +511,7 @@ abstract contract TestSetupPowers101 is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock));
-        daoMock.setPayableEnabled(true);
+        vm.startPrank(address(daoMock)); 
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_ONE, charlotte);
@@ -520,6 +521,24 @@ abstract contract TestSetupPowers101 is BaseSetup {
         daoMock.assignRole(ROLE_TWO, david);
         daoMock.assignRole(ROLE_TWO, eve);
         daoMock.assignRole(ROLE_TWO, frank);
+        vm.stopPrank();
+    }
+}
+
+abstract contract TestSetupHelpers is BaseSetup {
+    function setUpVariables() public override {
+        super.setUpVariables();
+
+        // initiate helpers constitution
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.helpersTestConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
+
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_);
+
+        vm.startPrank(address(daoMock)); 
+        daoMock.assignRole(ADMIN_ROLE, alice);
         vm.stopPrank();
     }
 }

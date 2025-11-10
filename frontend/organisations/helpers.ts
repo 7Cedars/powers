@@ -1,6 +1,8 @@
 
 import { getConstants } from "@/context/constants";
 import { LawData } from "./types";
+import { Conditions } from "@/context/types";
+import { encodeAbiParameters, parseAbiParameters } from "viem";
 
 
 /**
@@ -260,3 +262,57 @@ export const createBespokeActionConfig = (
   );
 };
 
+/**
+ * Helper to create LawInitData for AdoptLawsPackage
+ */
+export const createLawInitData = (
+  nameDescription: string,
+  targetLaw: `0x${string}`,
+  config: `0x${string}`,
+  conditions: LawConditions
+): `0x${string}` => {
+  const lawInitData = {
+    nameDescription,
+    targetLaw,
+    config,
+    conditions: {
+      allowedRole: conditions.allowedRole,
+      votingPeriod: Number(conditions.votingPeriod),
+      delayExecution: Number(conditions.delayExecution),
+      throttleExecution: Number(conditions.throttleExecution),
+      needFulfilled: Number(conditions.needFulfilled),
+      needNotFulfilled: Number(conditions.needNotFulfilled),
+      quorum: Number(conditions.quorum),
+      succeedAt: Number(conditions.succeedAt),
+    }
+  };
+
+  return encodeAbiParameters(
+    [
+      {
+        name: "lawInitData",
+        type: "tuple",
+        components: [
+          { name: "nameDescription", type: "string" },
+          { name: "targetLaw", type: "address" },
+          { name: "config", type: "bytes" },
+          {
+            name: "conditions",
+            type: "tuple",
+            components: [
+              { name: "allowedRole", type: "uint256" },
+              { name: "votingPeriod", type: "uint32" },
+              { name: "delayExecution", type: "uint32" },
+              { name: "throttleExecution", type: "uint32" },
+              { name: "needFulfilled", type: "uint16" },
+              { name: "needNotFulfilled", type: "uint16" },
+              { name: "quorum", type: "uint8" },
+              { name: "succeedAt", type: "uint8" },
+            ],
+          },
+        ],
+      },
+    ],
+    [lawInitData]
+  );
+};

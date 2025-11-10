@@ -32,7 +32,7 @@ import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 contract ElectionSelect is Law {
     struct Data {
         address powersContract;
-        address ElectionContract;
+        address electionContract;
         uint256 roleId;
         uint256 maxRoleHolders;
     }
@@ -41,7 +41,7 @@ contract ElectionSelect is Law {
 
     /// @notice Constructor for ElectionSelect law
     constructor() {
-        bytes memory configParams = abi.encode("address ElectionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
+        bytes memory configParams = abi.encode("address electionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
         emit Law__Deployed(configParams);
     }
 
@@ -49,14 +49,14 @@ contract ElectionSelect is Law {
         public
         override
     {
-        (address ElectionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
+        (address electionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
             abi.decode(config, (address, uint256, uint256));
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
 
         _data[lawHash] = Data({
             powersContract: msg.sender,
-            ElectionContract: ElectionContract_,
+            electionContract: electionContract_,
             roleId: roleId_,
             maxRoleHolders: maxRoleHolders_
         });
@@ -90,7 +90,7 @@ contract ElectionSelect is Law {
         }
 
         // Step 2: Get nominee ranking and select top candidates
-        (address[] memory rankedNominees,) = Erc20DelegateElection(data.ElectionContract).getNomineeRanking();
+        (address[] memory rankedNominees,) = Erc20DelegateElection(data.electionContract).getNomineeRanking();
 
         // Select top candidates based on maxRoleHolders
         uint256 numNominees = rankedNominees.length;

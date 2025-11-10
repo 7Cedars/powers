@@ -26,7 +26,7 @@ pragma solidity 0.8.26;
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
+import { FlagActions } from "../../helpers/FlagActions.sol";
 
 // import "forge-std/console2.sol"; // only for testing purposes. Comment out for production.
 

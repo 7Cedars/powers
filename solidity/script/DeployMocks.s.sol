@@ -16,16 +16,19 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { SoulboundErc721 } from "@mocks/SoulboundErc721.sol";
+import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
+
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
-// law contracts from @mocks/
-import { Donations } from "@mocks/Donations.sol";
-import { FlagActions } from "@mocks/FlagActions.sol";
-import { Grant } from "@mocks/Grant.sol";
-import { OpenElection } from "@mocks/OpenElection.sol";
-import { Nominees } from "@mocks/Nominees.sol";
-import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol"; 
+// helper contracts
+import { Donations } from "../src/helpers/Donations.sol";
+import { FlagActions } from "../src/helpers/FlagActions.sol";
+import { Grant } from "../src/helpers/Grant.sol";
+import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
+import { OpenElection } from "../src/helpers/OpenElection.sol";
+import { Nominees } from "../src/helpers/Nominees.sol";
+import { TreasurySimple } from "../src/helpers/TreasurySimple.sol";
+import { TreasuryPools } from "../src/helpers/TreasuryPools.sol";
 
 // @dev this script is used to deploy the mocks to the chain.
 // Note: we do not return addresses of the deployed mocks. -- I am thinking about scrapping it. It is more trouble than its worth
@@ -34,9 +37,9 @@ contract DeployMocks is Script {
     address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
 
     function run() external returns (string[] memory names, address[] memory addresses) {
-        names = new string[](11);
-        addresses = new address[](11);
-        bytes[] memory creationCodes = new bytes[](11);
+        names = new string[](13);
+        addresses = new address[](13);
+        bytes[] memory creationCodes = new bytes[](13);
 
         names[0] = "SimpleErc20Votes";
         creationCodes[0] = type(SimpleErc20Votes).creationCode;
@@ -84,6 +87,14 @@ contract DeployMocks is Script {
         names[10] = "Erc20DelegateElection";
         creationCodes[10] = abi.encodePacked(type(Erc20DelegateElection).creationCode, abi.encode(addresses[0]));
         addresses[10] = deployMock(creationCodes[10], names[10]);
+
+        names[11] = "TreasurySimple";
+        creationCodes[11] = type(TreasurySimple).creationCode;
+        addresses[11] = deployMock(creationCodes[11], names[11]);
+
+        names[12] = "TreasuryPools";
+        creationCodes[12] = abi.encodePacked(type(TreasuryPools).creationCode, abi.encode(addresses[0]));
+        addresses[12] = deployMock(creationCodes[12], names[12]);
     }
 
     //////////////////////////////////////////////////////////////

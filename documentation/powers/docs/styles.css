@@ -1,0 +1,87 @@
+.table-laws {
+  overflow-x: auto;
+}
+
+.table-laws table {
+  table-layout: fixed;
+  width: 100%;  /* or a specific width like 60rem */
+}
+
+.table-laws table th:nth-child(1),
+.table-laws table td:nth-child(1) {
+  min-width: 10rem;
+}
+
+.table-laws table th:nth-child(2),
+.table-laws table td:nth-child(2) {
+  min-width: 15rem;
+}
+
+.table-laws table th:nth-child(3),
+.table-laws table td:nth-child(3) {
+  min-width: 10rem;
+}
+
+.table-laws table th:nth-child(4),
+.table-laws table td:nth-child(4) {
+  min-width: 15rem;
+}
+
+.table-laws table th:nth-child(5),
+.table-laws table td:nth-child(5) {
+  min-width: 15rem;
+}
+
+.table-laws table th:nth-child(6),
+.table-laws table td:nth-child(6) {
+  min-width: 25rem;
+}
+
+.table-roles {
+  overflow-x: auto;
+}
+
+.table-roles table {
+  table-layout: fixed;
+  width: 100%;  /* or a specific width like 60rem */
+}
+
+.table-roles table th:nth-child(1),
+.table-roles table td:nth-child(1) {
+  min-width: 10rem;
+}
+
+.table-roles table th:nth-child(2),
+.table-roles table td:nth-child(2) {
+  min-width: 15rem;
+}
+
+.table-roles table th:nth-child(3),
+.table-roles table td:nth-child(3) {
+  min-width: 40rem;
+}
+
+
+.table-chains {
+  overflow-x: auto;
+}
+
+.table-chains table {
+  table-layout: fixed;
+  width: 100%;  /* or a specific width like 60rem */
+}
+
+.table-chains table th:nth-child(1),
+.table-chains table td:nth-child(1) {
+  min-width: 10rem;
+}
+
+.table-chains table th:nth-child(2),
+.table-chains table td:nth-child(2) {
+  min-width: 10rem;
+}
+
+.table-chains table th:nth-child(3),
+.table-chains table td:nth-child(3) {
+  min-width: 30rem;
+}

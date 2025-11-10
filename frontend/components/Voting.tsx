@@ -58,10 +58,12 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const action = useActionStore()
   const law = powers?.laws?.find(law => law.index == action?.lawId)
   const roleHolders = Number(powers?.roles?.find(role => BigInt(role.roleId) == BigInt(law?.conditions?.allowedRole || 0))?.amountHolders) || 0
-  const populatedAction = law?.actions?.find(action => BigInt(action.actionId) == BigInt(action?.actionId))
+  const [populatedAction, setPopulatedAction] = useState<Action | undefined>()
   const {actionVote, fetchVoteData} = useLaw();
 
   // console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
+
+  
  
   // Votes state
   const { timestamps, fetchTimestamps } = useBlocks()
@@ -81,6 +83,14 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const threshold = roleHolders > 0 ? Math.floor((roleHolders * Number(law?.conditions?.succeedAt || 0)) / 100) : 0
   const deadline = Number(actionVote?.voteEnd || 0)
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
+
+  // resetting action state when action is changed,
+  useEffect(() => {
+    if (action) {
+      const newPopulatedAction = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
+      setPopulatedAction(newPopulatedAction);
+    }
+  }, [action.actionId, law]);
 
   useEffect(() => {
     if (action?.actionId) {
@@ -165,16 +175,6 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
             <div className="text-left text-sm text-slate-600">
               Voting
             </div>
-            <button
-              onClick={fetchVotes}
-              disabled={loading}
-              className="flex items-center justify-center rounded-md p-1.5 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Refresh Votes"
-            >
-              <ArrowPathIcon 
-                className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`}
-              />
-            </button>
           </div>
         </div>
 
@@ -202,7 +202,7 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
                 <div className={`${layout} text-slate-700 bg-slate-200`}> Requested </div>
               :
               populatedAction?.state === 7 ? 
-                <div className={`${layout} text-slate-700 bg-slate-200`}> Fulfilled </div>
+                <div className={`${layout} text-green-800 bg-green-200`}> Fulfilled </div>
               :
               populatedAction?.state === 0 ? 
                 <div className={`${layout} text-slate-500 bg-slate-100`}> NonExistent </div>
@@ -285,6 +285,16 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
             <div className="text-left text-sm text-slate-600">
               Votes Cast ({votes.length})
             </div>
+            <button
+              onClick={fetchVotes}
+              disabled={loading}
+              className="flex items-center justify-center rounded-md p-1.5 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh Votes"
+            >
+              <ArrowPathIcon 
+                className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`}
+              />
+            </button>
           </div>
         </div>
 

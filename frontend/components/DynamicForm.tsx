@@ -36,7 +36,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
   const { simulation, simulate } = useLaw();
 
   const handleChange = (input: InputType | InputType[], index: number) => {
-    // console.log("@handleChange: ", {input, index, action})
+    console.log("@handleChange: ", {input, index, action})
     let currentInput = action.paramValues 
     currentInput ? currentInput[index] = input : currentInput = [input]
     
@@ -90,7 +90,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
         }), upToDate: true})
       }
     }  
-  }, [law.index, action.callData, action.upToDate])
+  }, [law.index, action.callData])
 
 
   const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {

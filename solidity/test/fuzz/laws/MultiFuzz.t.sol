@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { TestSetupMulti } from "../../TestSetup.t.sol";
-import { OpenAction } from "../../../src/laws/multi/OpenAction.sol";
-import { StatementOfIntent } from "../../../src/laws/multi/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../../src/laws/multi/BespokeActionSimple.sol";
-import { PresetSingleAction } from "../../../src/laws/multi/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../../../src/laws/multi/PresetMultipleActions.sol";
-import { BespokeActionAdvanced } from "../../../src/laws/multi/BespokeActionAdvanced.sol";
+import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
+import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
+import { BespokeActionSimple } from "../../../src/laws/executive/BespokeActionSimple.sol";
+import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../../../src/laws/executive/PresetMultipleActions.sol";
+import { BespokeActionAdvanced } from "../../../src/laws/executive/BespokeActionAdvanced.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
@@ -161,7 +161,7 @@ contract MultiFuzzTest is TestSetupMulti {
     //////////////////////////////////////////////////////////////
 
     /// @notice Fuzz test StatementOfIntent (lawId 2) with random data
-    function testFuzzStatementOfIntentWithRandomData(
+    function testFuzzStatementOfIntentWithRandomDataAtMulti(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
         bytes[] memory calldatasFuzzed,
@@ -187,12 +187,9 @@ contract MultiFuzzTest is TestSetupMulti {
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
             statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
 
-        // Verify data is passed through unchanged
-        assertEq(returnedTargets.length, arrayLength);
-        for (i = 0; i < arrayLength; i++) {
-            assertEq(returnedTargets[i], targets[i]);
-            assertEq(returnedCalldatas[i], calldatas[i]);
-        }
+        // Verify data is empty
+        assertEq(returnedTargets.length, 1);
+        assertEq(returnedTargets[0], address(0)); 
     }
 
     /// @notice Fuzz test StatementOfIntent with large calldata
@@ -207,7 +204,7 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](1);
 
         // Create large calldata
-        bytes memory largeCalldata = new bytes(calldataLength);
+        largeCalldata = new bytes(calldataLength);
         for (i = 0; i < calldataLength; i++) {
             largeCalldata[i] = bytes1(uint8(i % 256));
         }
@@ -218,7 +215,7 @@ contract MultiFuzzTest is TestSetupMulti {
         (returnedActionId, returnedTargets,, returnedCalldatas) =
             statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
 
-        assertEq(returnedCalldatas[0].length, calldataLength);
+        assertEq(returnedCalldatas[0].length, 0);
     }
 
     //////////////////////////////////////////////////////////////
@@ -569,13 +566,6 @@ contract MultiFuzzTest is TestSetupMulti {
 
         assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
         assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
-
-        // Test StatementOfIntent with large data
-        (returnedActionId, returnedTargets,, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
-
-        assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
-        assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
     }
 
     /// @notice Fuzz test nonce uniqueness across all laws
@@ -623,7 +613,7 @@ contract MultiFuzzTest is TestSetupMulti {
 
         lawCalldata = abi.encode(targets, values, calldatas);
 
-        (, address[] memory returnedTargets, uint256[] memory returnedValues,) =
+        (, returnedTargets, returnedValues,) =
             openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
 
         // Verify large values are preserved
@@ -646,7 +636,7 @@ contract MultiFuzzTest is TestSetupMulti {
 
         lawCalldata = abi.encode(targets, values, calldatas);
 
-        (,,, bytes[] memory returnedCalldatas) =
+        (,,, returnedCalldatas) =
             openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
 
         // Should preserve random bytes

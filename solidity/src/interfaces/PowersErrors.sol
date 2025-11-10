@@ -122,9 +122,15 @@ interface PowersErrors {
     /// @notice Emitted when a max call data length is invalid.
     error Powers__InvalidMaxCallDataLength();
 
+    /// @notice Emitted when a max call data length is invalid.
+    error Powers__InvalidReturnCallDataLength();
+
     /// @notice Emitted when a max executions length is invalid.
     error Powers__InvalidMaxExecutionsLength();
 
     /// @notice Emitted when an index is invalid.
     error Powers__InvalidIndex();
+
+    /// notice Emitted when trying to set the treasury to the zero address.
+    error Powers__CannotSetZeroAddress(); 
 }

@@ -9,7 +9,7 @@ interface HeaderLawProps {
   numHolders: number | string;
   description: string;
   contractAddress: string;
-  blockExplorerUrl?: string; // Optional, for dynamic linking
+  blockExplorerUrl?: string; // Optional, FOR dynamic linking
   className?: string;
 }
 

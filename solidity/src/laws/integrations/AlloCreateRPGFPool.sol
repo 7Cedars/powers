@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import {Law} from "../../Law.sol"; 
-import {IPowers} from "../../interfaces/IPowers.sol"; 
 import {LawUtilities} from "../../libraries/LawUtilities.sol";  
 
 
@@ -24,7 +23,7 @@ contract AlloCreateRPGFPool is Law {
     struct ConfigData {
         address allo;
         bytes32 profileId;
-        address easyRPGFStrategy; // The specific EasyRPGF strategy implementation address
+        address easyRpgfStrategy; // The specific EasyRPGF strategy implementation address
     }
 
     /// @dev Mapping law hash => configuration.
@@ -55,7 +54,7 @@ contract AlloCreateRPGFPool is Law {
         (
             address alloAddress,
             bytes32 profileId_,
-            address easyRPGFStrategy_
+            address easyRpgfStrategy_
         ) = abi.decode(config, (address, bytes32, address));
 
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
@@ -65,7 +64,7 @@ contract AlloCreateRPGFPool is Law {
         lawConfig[lawHash_] = ConfigData({
             allo: alloAddress,
             profileId: profileId_,
-            easyRPGFStrategy: easyRPGFStrategy_
+            easyRpgfStrategy: easyRpgfStrategy_
         });
 
         // Store standard law data, including the input description needed for propose/fulfill
@@ -119,7 +118,7 @@ contract AlloCreateRPGFPool is Law {
         m.alloCalldata = abi.encodeWithSelector(
             0xe1007d4a, // IAllo.createPoolWithCustomStrategy.selector,
             config_.profileId,          // _profileId
-            config_.easyRPGFStrategy,   // _strategy (the implementation contract)
+            config_.easyRpgfStrategy,   // _strategy (the implementation contract)
             m.initStrategyData,         // _initStrategyData
             m.tokenAddress,             // _token
             m.tokenAmount,              // _amount

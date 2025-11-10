@@ -13,6 +13,7 @@ import { Laws } from './Laws'
 import { Actions } from './Actions'
 import { MetadataLinks } from '@/components/MetadataLinks'
 import { usePowersStore, useStatusStore } from '@/context/store'
+import { CommunicationChannels } from '@/context/types'
 
 export default function FlowPage() {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: string }>()  
@@ -112,7 +113,7 @@ export default function FlowPage() {
       website={powers?.metadatas?.website}
       codeOfConduct={powers?.metadatas?.codeOfConduct}
       disputeResolution={powers?.metadatas?.disputeResolution}
-      communicationChannels={powers?.metadatas?.communicationChannels}
+      communicationChannels={powers?.metadatas?.communicationChannels as CommunicationChannels}
     />
     
     {/* main body  */}

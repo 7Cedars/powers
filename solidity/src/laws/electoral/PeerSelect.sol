@@ -26,7 +26,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
-import { Nominees } from "@mocks/Nominees.sol";
+import { Nominees } from "../../helpers/Nominees.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 

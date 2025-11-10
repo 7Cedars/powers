@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Powers, Role } from '@/context/types'
+import { CommunicationChannels, Powers, Role } from '@/context/types'
 import { useChains } from 'wagmi'
 import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
@@ -9,6 +9,7 @@ import { UserItem } from './UserItem'
 import { bigintToRole } from '@/utils/bigintTo'
 import { default as DynamicThumbnail } from '@/components/DynamicThumbnail'
 import { usePowersStore } from '@/context/store'
+import { MetadataLinks } from '@/components/MetadataLinks'
 
 export default function About() {
   const powers = usePowersStore();
@@ -17,21 +18,33 @@ export default function About() {
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
 
+  console.log("@AboutPage:", {powers})
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Protocol Header */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm mb-6 overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
         {/* Protocol Details */}
         <div className="p-6">
           {/* Description */}
           {powers.metadatas?.description && (
-            <div className="mb-6">
+            <>
               <h3 className="text-lg font-semibold text-slate-800 mb-3">Description</h3>
               <p className="text-slate-600 leading-relaxed">
                 {powers.metadatas.description}
               </p>
-            </div>
+              </>
           )}
+
+          {/* Metadata Links */}
+          <div className='mb-6 pt-2'> 
+          <MetadataLinks 
+            website={powers?.metadatas?.website}
+            codeOfConduct={powers?.metadatas?.codeOfConduct}
+            disputeResolution={powers?.metadatas?.disputeResolution}
+            communicationChannels={powers?.metadatas?.communicationChannels as CommunicationChannels}
+          />
+          </div>
 
           {/* Contract Information */}
           <div className="mb-3">
@@ -62,8 +75,7 @@ export default function About() {
             </div>
           </div>
 
-          
-          {/* Metadata URI */}
+ 
           {powers.uri && (
             <div className="mb-6">
               <div className="flex items-center justify-between">
@@ -159,7 +171,7 @@ export default function About() {
           <div className="w-full mt-6">
             <button
               onClick={() => router.push(`/protocol/${Number(powers.chainId)}/${powers.contractAddress}`)}
-              className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200"
+              className="w-full text-slate-700 font-semibold py-4 px-8 border border-slate-300 hover:border-slate-500 rounded-lg text-lg transition-colors duration-200"
             >
               View Governance System
             </button>

@@ -32,41 +32,12 @@ export function SectionIntro() {
           </section>
 
           {/* documentation link */}
-          <section className="w-full max-w-4xl flex flex-row justify-center items-center border border-slate-300 hover:border-slate-600 rounded-md bg-slate-100 text-center p-4"> 
-              <div className="flex flex-row"> 
-                <a
-                  href={`https://7cedars.gitbook.io/powers-protocol`} target="_blank" rel="noopener noreferrer"
-                  className="text-2xl text-slate-700 font-bold"
-                >
-                  Read the documentation
-                </a>
-                <ArrowUpRightIcon
-                  className="w-6 h-6 m-1 text-slate-700 text-center font-bold" 
-                />
-              </div>
+          <section className="w-full max-w-4xl flex flex-row justify-center items-center p-4"> 
+              <a className="w-full h-fit flex flex-row justify-center items-center text-center py-3 px-12 sm:text-2xl text-xl text-slate-200 hover:text-slate-50 border border-slate-200 hover:border-slate-50 rounded-md text-center"
+                    href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer">
+                        Read the documentation 
+              </a>
           </section>
-
-          {/* Bottom text */}
-          {/* <section className="w-full flex flex-col gap-2 justify-center items-center md:text-xl text-lg text-slate-100 max-w-4xl text-center">
-              <p>
-                Powers provides the infrastructure to guide decisions across multiple stakeholders and voting mechanisms. Completely modular, async, transparant and trustless. 
-                It can be integrated into any on-chain organisation, and can be used to govern any type of decision. 
-              </p> */}
-              {/* <p>
-                It combines a governance engine, <span className="font-bold">Powers</span>, with role restricted and modular contracts, called <span className="font-bold">laws</span>.
-              </p>
-              <div className="flex flex-col gap-0">
-                <p>              
-                  <span className="font-bold">Laws</span> define what actions can be taken by which roles under what conditions. 
-                </p>
-                <p>
-                  <span className="font-bold">Powers</span> manages assigning roles to addresses and executing actions. 
-                </p>
-              </div>
-              <p>
-                Together they create a governance protocol that is modular, upgradable and asynchronous.
-              </p> */}
-          {/* </section> */}
 
       {/* arrow down */}
       <div className = "flex flex-col align-center justify-end pb-8"> 

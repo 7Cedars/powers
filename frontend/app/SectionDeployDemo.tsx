@@ -69,7 +69,7 @@ export function SectionDeployDemo() {
     setDeployedLaws(data.laws as Record<string, `0x${string}`>);
   }, []);
 
-  // console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
+  console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
 
   // Switch chain when selected chain changes
   useEffect(() => {
@@ -129,7 +129,7 @@ export function SectionDeployDemo() {
       // Add ownership transfer transactions
       for (const dep of dependencies) {
         if (dep.ownable) {
-          finalTransactionsList.push({ name: `Transfer ownership: ${dep.name}`, status: "idle" });
+          finalTransactionsList.push({ name: `Transfer ownership to Powers: ${dep.name}`, status: "idle" });
         }
       }
 
@@ -141,13 +141,13 @@ export function SectionDeployDemo() {
       });
 
       // STEP 1: Deploy Powers contract
-      console.log("Step 1: Deploying Powers contract...");
+      console.log("Step 1: Deploying Powers contract...", { bytecodePowers, powersAbi, formData, selectedChainId, currentOrg });
       setDeployStatus(prev => ({ ...prev, powersCreate: "pending" }));
       
       const powersTxHash = await wagmiDeployContract(wagmiConfig, {
         abi: powersAbi,
         bytecode: bytecodePowers,
-        args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10_000n, 25n]
+        args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10_000n, 10_000n, 25n]
       });
 
       console.log("Powers deployment tx:", powersTxHash);
@@ -459,7 +459,7 @@ export function SectionDeployDemo() {
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full ${
-                      index === currentOrgIndex ? 'bg-slate-600' : 'bg-slate-300' 
+                      index === currentOrgIndex ? 'bg-slate-600' : 'bg-slate-300'
                     }`}
                   />
                 ))}
@@ -484,8 +484,7 @@ export function SectionDeployDemo() {
                     src={currentOrg.metadata.banner} 
                     alt={`${currentOrg.metadata.title} template`}
                     fill
-                    className="rounded-lg"
-                    style={{objectFit: "fill"}}
+                    className="rounded-lg object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}

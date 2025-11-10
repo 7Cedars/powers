@@ -21,7 +21,6 @@ pragma solidity 0.8.26;
 import { PowersErrors } from "./PowersErrors.sol";
 import { PowersEvents } from "./PowersEvents.sol";
 import { PowersTypes } from "./PowersTypes.sol";
-import { ILaw } from "./ILaw.sol";
 
 interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
@@ -36,7 +35,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param nonce The nonce for the action
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
         external
-        payable
         returns (uint256 actionId);
 
     /// @notice Completes an action by executing the actual calls
@@ -52,10 +50,11 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas
-    ) external payable;
+    ) external;
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
+    /// @dev note that no checks are run. If account has acces to law and it requires a vote - the account wil be able to create proposals.  
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action
@@ -128,16 +127,17 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param newUri The new URI string
     function setUri(string memory newUri) external;
 
+    /// @notice Sets the treasury address
+    /// @dev Can only be called through the protocol itself
+    /// @param newTreasury The new treasury address
+    function setTreasury(address payable newTreasury) external;
+
     /// @notice Blacklists an account
     /// @dev Can only be called through the protocol itself
     /// @param account The address to blacklist
     /// @param blacklisted The blacklisted status of the account
     function blacklistAddress(address account, bool blacklisted) external;
 
-    /// @notice Sets the payable enabled status
-    /// @dev IMPORTANT: When payable is enabled, ether can be sent to the protocol. If there is no law to retrieve the funds - and no law to adopt new laws - the funds will be locked in the protocol for ever.
-    /// @param payableEnabled The payable enabled status
-    function setPayableEnabled(bool payableEnabled) external;
 
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
@@ -260,6 +260,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param lawId The id of the law
     /// @return conditions The conditions of the law
     function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
+
+    /// @notice Getter for treasury address.
+    /// @return The treasury address
+    function getTreasury() external view returns (address payable); 
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

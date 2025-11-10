@@ -16,7 +16,7 @@ export const optimismSepolia = defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'Blockscout',
+      name: 'Etherscan',
       url: 'https://sepolia-optimism.etherscan.io/',
       apiUrl: 'https://sepolia-optimism.etherscan.io/api',
     },

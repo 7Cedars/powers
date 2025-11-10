@@ -64,12 +64,6 @@ export const Button = ({
               {/* <TwoSeventyRingWithBg className="w-2 h-2 animate-spin" color="text-slate-200" /> */}
               Loading...
             </div>
-          
-          : 
-          statusButton == 'success' ? 
-            <>
-            Success! 
-            </>
           :
           statusButton == 'error' ? 
             <>

@@ -30,7 +30,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   );
   const populatedAction = savedAction?.state == 0 || savedAction?.state == undefined ? action : savedAction;
 
-  console.log("DynamicActionButton:", {checks, law, populatedAction, action})
+  // console.log("DynamicActionButton:", {checks, law, populatedAction, action})
 
   const { powers: powersAddress } = useParams<{
     chainId: string;
@@ -137,6 +137,8 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   return (
     <div className="w-full pt-4">
       {
+        //NB: note that the 'Check' button is managed in the DynamicForm component
+        
         // option 1: When action does not exist, and needs a vote, create proposal button
         Number(law?.conditions?.quorum) > 0 &&
         (populatedAction?.state == 0 || populatedAction?.state == undefined) &&

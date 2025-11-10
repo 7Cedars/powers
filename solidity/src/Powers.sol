@@ -22,7 +22,7 @@
 /// Note several key differences from openzeppelin's {Governor.sol}.
 /// 1 - Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw} interface.
 /// 2 - Proposing, voting, cancelling and executing actions are role restricted along the target law that is called.
-/// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, for instance, still need to be executed through the {execute} function.
+/// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, FOR instance, still need to be executed through the {execute} function.
 /// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote. Accounts vote with their roles, not with their tokens.
 /// 5 - The core protocol is intentionally minimalistic. Any complexities (multi-chain governance, oracle based governance, timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
 ///
@@ -63,13 +63,14 @@ contract Powers is EIP712, IPowers, Context {
     uint256 public constant DENOMINATOR = 100; // == 100%
 
     uint256 public immutable MAX_CALLDATA_LENGTH;
+    uint256 public immutable MAX_RETURN_DATA_LENGTH;
     uint256 public immutable MAX_EXECUTIONS_LENGTH;
 
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO. // note can be altered
-    bool public payableEnabled; // is payable enabled?
+    address payable private treasury; // address to the treasury of the organisation. 
     bool private _constituteExecuted; // has the constitute function been called before?
 
     //////////////////////////////////////////////////////////////
@@ -77,14 +78,22 @@ contract Powers is EIP712, IPowers, Context {
     //////////////////////////////////////////////////////////////
     /// @notice A modifier that sets a function to only be callable by the {Powers} contract.
     modifier onlyPowers() {
-        if (_msgSender() != address(this)) revert Powers__OnlyPowers();
+        _onlyPowers();
         _;
+    }
+
+    function _onlyPowers() internal {
+        if (_msgSender() != address(this)) revert Powers__OnlyPowers();
     }
 
     /// @notice A modifier that sets a function to only be callable by the {Powers} contract.
     modifier onlyAdoptedLaw(uint16 lawId) {
-        if (laws[lawId].active == false) revert Powers__LawNotActive();
+        _onlyAdoptedLaw(lawId);
         _;
+    }
+
+    function _onlyAdoptedLaw(uint16 lawId) internal {
+        if (laws[lawId].active == false) revert Powers__LawNotActive();
     }
 
     //////////////////////////////////////////////////////////////
@@ -95,31 +104,24 @@ contract Powers is EIP712, IPowers, Context {
     /// @param name_ name of the contract
     /// @param uri_ uri of the contract
     /// @param maxCallDataLength_ maximum length of calldata for a law
+    /// @param maxReturnDataLength_ maximum length of return data for a law
     /// @param maxExecutionsLength_ maximum length of executions for a law
-    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxExecutionsLength_)
+    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxReturnDataLength_, uint256 maxExecutionsLength_)
         EIP712(name_, version())
     {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
         if (maxCallDataLength_ == 0) revert Powers__InvalidMaxCallDataLength();
+        if (maxReturnDataLength_ == 0) revert Powers__InvalidReturnCallDataLength();
         if (maxExecutionsLength_ == 0) revert Powers__InvalidMaxExecutionsLength();
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
+        MAX_RETURN_DATA_LENGTH = maxReturnDataLength_;
         MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
 
         _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
 
         emit Powers__Initialized(address(this), name, uri);
-    }
-
-    /// @notice receive function enabling ETH deposits.
-    ///
-    /// @dev This is a virtual function, and can be overridden in the DAO implementation.
-    /// @dev If payable is enabled, anyone can send funds in native currency into the contract.
-    /// @dev No access control on this function.
-    receive() external payable virtual {
-        if (!payableEnabled) revert Powers__PayableNotEnabled();
-        emit FundsReceived(msg.value, _msgSender());
     }
 
     //////////////////////////////////////////////////////////////
@@ -129,7 +131,6 @@ contract Powers is EIP712, IPowers, Context {
     /// @dev The request -> fulfill functions follow a call-and-return mechanism. This allows for async execution of laws.
     function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
         external
-        payable
         onlyAdoptedLaw(lawId)
         returns (uint256 actionId)
     {
@@ -152,7 +153,7 @@ contract Powers is EIP712, IPowers, Context {
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
         // check 5: do checks pass?
-        Checks.checksAtRequest(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
+        Checks.check(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
 
         // if not registered yet, register actionId at law.
         if (_actions[actionId].lawId == 0) laws[lawId].actionIds.push(actionId);
@@ -183,7 +184,7 @@ contract Powers is EIP712, IPowers, Context {
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas
-    ) external payable onlyAdoptedLaw(lawId) {
+    ) external onlyAdoptedLaw(lawId) {
         AdoptedLaw memory law = laws[lawId];
 
         // check 1: is law active?
@@ -217,7 +218,7 @@ contract Powers is EIP712, IPowers, Context {
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
-            if (returndata.length <= MAX_CALLDATA_LENGTH) {
+            if (returndata.length <= MAX_RETURN_DATA_LENGTH) {
                 _actions[actionId].returnDatas.push(returndata); 
             } else {
                 _actions[actionId].returnDatas.push(abi.encode(0));
@@ -276,9 +277,6 @@ contract Powers is EIP712, IPowers, Context {
 
         // check 2: do we have a proposedAction with the same targetLaw and lawCalldata?
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
-
-        // check 3: do proposedAction checks of the law pass?
-        Checks.checksAtPropose(lawId, lawCalldata, address(this), nonce);
 
         // register actionId at law.
         laws[lawId].actionIds.push(actionId);
@@ -487,7 +485,7 @@ contract Powers is EIP712, IPowers, Context {
         // add role if role requested and account does not already have role.
         if (access && newMember) {
             roles[roleId].members[account] = roles[roleId].membersArray.length + 1; // 'index of new member is length of array + 1. index = 0 is used a 'undefined' value..
-            roles[roleId].membersArray.push(Member(account, uint48(block.number)));
+            roles[roleId].membersArray.push(Member({ account: account, since: uint48(block.number) }));
             // remove role if access set to false and account has role.
         } else if (!access && !newMember) {
             uint256 indexEnd = roles[roleId].membersArray.length - 1;
@@ -514,17 +512,18 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @inheritdoc IPowers
-    function setPayableEnabled(bool payableEnabled_) public onlyPowers {
-        payableEnabled = payableEnabled_;
-    }
-
-    /// @inheritdoc IPowers
     function setUri(string memory newUri) public onlyPowers {
         uri = newUri;
     }
 
+    /// @inheritdoc IPowers
+    function setTreasury(address payable newTreasury) public onlyPowers {
+        if (newTreasury == address(0)) revert Powers__CannotSetZeroAddress();
+        treasury = newTreasury;
+    }
+
     //////////////////////////////////////////////////////////////
-    //                     HELPER FUNCTIONS                     //
+    //               INTERNAL HELPER FUNCTIONS                  //
     //////////////////////////////////////////////////////////////
     /// @notice internal function {quorumReached} that checks if the quorum for a given proposedAction has been reached.
     ///
@@ -570,7 +569,7 @@ contract Powers is EIP712, IPowers, Context {
         return conditions.quorum == 0 || amountMembers * conditions.succeedAt <= proposedAction.forVotes * DENOMINATOR;
     }
 
-    /// @notice internal function {countVote} that counts against, for, and abstain votes for a given proposedAction.
+    /// @notice internal function {countVote} that counts against, FOR, and abstain votes for a given proposedAction.
     ///
     /// @dev In this module, the support follows the `VoteType` enum (from Governor Bravo).
     /// @dev It does not check if account has roleId referenced in actionId. This has to be done by {Powers.castVote} function.
@@ -773,6 +772,11 @@ contract Powers is EIP712, IPowers, Context {
     /// @inheritdoc IPowers
     function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
         return laws[lawId].conditions;
+    }
+
+    /// @inheritdoc IPowers
+    function getTreasury() external view returns (address payable) {
+        return treasury;
     }
 
     /// @inheritdoc IPowers

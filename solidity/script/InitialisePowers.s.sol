@@ -5,45 +5,47 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { console2 } from "forge-std/console2.sol";
-import { stdJson } from "forge-std/StdJson.sol"; // Your file is correct
+import { HelperConfig } from "../script/HelperConfig.s.sol";
 
 // --- Library Imports ---
 import { Checks } from "../src/libraries/Checks.sol";
 import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 
-// --- Core Protocol Import ---
-import { Powers } from "../src/Powers.sol";
-
 // --- Law Contract Imports ---
-// Multi laws
-import { PresetSingleAction } from "../src/laws/multi/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../src/laws/multi/PresetMultipleActions.sol";
-import { OpenAction } from "../src/laws/multi/OpenAction.sol";
-import { StatementOfIntent } from "../src/laws/multi/StatementOfIntent.sol";
-import { BespokeActionAdvanced } from "../src/laws/multi/BespokeActionAdvanced.sol";
-import { BespokeActionSimple } from "../src/laws/multi/BespokeActionSimple.sol";
 // Executive laws
+import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../src/laws/executive/PresetMultipleActions.sol";
+import { OpenAction } from "../src/laws/executive/OpenAction.sol";
+import { StatementOfIntent } from "../src/laws/executive/StatementOfIntent.sol";
+import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanced.sol";
+import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
 import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
 import { AdoptLawsPackage } from "../src/laws/executive/AdoptLawsPackage.sol";
-import { GovernorCreateProposal } from "../src/laws/executive/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../src/laws/executive/GovernorExecuteProposal.sol";
+
 // Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../src/laws/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../src/laws/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
-import { BuyAccess } from "../src/laws/electoral/BuyAccess.sol";
 import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
+
 // async laws
-import { RoleByGitSignature } from "../src/laws/async/RoleByGitSignature.sol";
+import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
+import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol";
+
 // Integration Laws 
 import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
 import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
 import { AlloRPFGGovernance } from "../src/laws/integrations/AlloRPFGGovernance.sol";
+import { TreasuryPoolGovernance } from "../src/laws/integrations/TreasuryPoolGovernance.sol";
+import { TreasuryRoleWithTransfer } from "../src/laws/integrations/TreasuryRoleWithTransfer.sol";
+import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTransfer.sol";
+import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -53,6 +55,8 @@ import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 /// and saves their names and addresses to a obj1 file.
 contract InitialisePowers is Script { 
     string outputFile;
+    HelperConfig helperConfig;
+    HelperConfig.NetworkConfig public config;
 
     function run() external returns (string[] memory names, address[] memory addresses) {
         string memory obj1 = "some key"; 
@@ -70,10 +74,12 @@ contract InitialisePowers is Script {
         vm.serializeString(obj1, "powers", powersBytecode);
 
         // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
+        helperConfig = new HelperConfig();
+        config = helperConfig.getConfig();
 
-        vm.startBroadcast();
-        (names, addresses, outputJson) = deployAndRecordLaws(obj1);
-        vm.stopBroadcast();
+        // vm.startBroadcast();
+        (names, addresses, outputJson) = deployAndRecordLaws(config);
+        // vm.stopBroadcast();
 
         string memory finalJson = vm.serializeString(obj1, "laws", outputJson);        
 
@@ -104,11 +110,11 @@ contract InitialisePowers is Script {
 
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](26);   
-        addresses = new address[](26);
-        bytes[] memory creationCodes = new bytes[](26);
-        bytes[] memory constructorArgs = new bytes[](26);
+    function deployAndRecordLaws(HelperConfig.NetworkConfig memory config_) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
+        names = new string[](29);   
+        addresses = new address[](29);
+        bytes[] memory creationCodes = new bytes[](29);
+        bytes[] memory constructorArgs = new bytes[](29);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -176,9 +182,9 @@ contract InitialisePowers is Script {
         creationCodes[15] = type(TaxSelect).creationCode; 
         constructorArgs[15] = abi.encode("TaxSelect");
 
-        names[16] = "BuyAccess";
-        creationCodes[16] = type(BuyAccess).creationCode; 
-        constructorArgs[16] = abi.encode("BuyAccess");
+        names[16] = "TreasuryRoleWithTransfer";
+        creationCodes[16] = type(TreasuryRoleWithTransfer).creationCode; 
+        constructorArgs[16] = abi.encode("TreasuryRoleWithTransfer");
 
         names[17] = "RoleByRoles";
         creationCodes[17] = type(RoleByRoles).creationCode;
@@ -206,9 +212,9 @@ contract InitialisePowers is Script {
         constructorArgs[22] = abi.encode("AlloRPFGGovernance");
 
         // Async laws
-        names[23] = "RoleByGitSignature";
-        creationCodes[23] = type(RoleByGitSignature).creationCode;
-        constructorArgs[23] = abi.encode("RoleByGitSignature");
+        names[23] = "ClaimRoleWithGitSig";
+        creationCodes[23] = type(ClaimRoleWithGitSig).creationCode;
+        constructorArgs[23] = abi.encode(config_.chainlinkFunctionsRouter);
 
         names[24] = "Erc20Taxed";
         creationCodes[24] = type(Erc20Taxed).creationCode;
@@ -217,6 +223,18 @@ contract InitialisePowers is Script {
         names[25] = "RevokeLaws";
         creationCodes[25] = type(RevokeLaws).creationCode;
         constructorArgs[25] = abi.encode("RevokeLaws");
+
+        names[26] = "AssignRoleWithGitSig";
+        creationCodes[26] = type(AssignRoleWithGitSig).creationCode;
+        constructorArgs[26] = abi.encode();
+
+        names[27] = "TreasuryPoolTransfer";
+        creationCodes[27] = type(TreasuryPoolTransfer).creationCode;
+        constructorArgs[27] = abi.encode();
+
+        names[28] = "TreasuryPoolGovernance";
+        creationCodes[28] = type(TreasuryPoolGovernance).creationCode;
+        constructorArgs[28] = abi.encode();
 
         string memory obj2 = "second key";
 
@@ -238,8 +256,10 @@ contract InitialisePowers is Script {
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY); 
 
         if (computedAddress.code.length == 0) { 
+            vm.startBroadcast(); 
             address deployedAddress = Create2.deploy(0, salt, deploymentData); 
-            require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
+            vm.stopBroadcast();
+            // require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
             return deployedAddress;
         }
         return computedAddress; 
@@ -252,9 +272,16 @@ contract InitialisePowers is Script {
 
         if (computedAddress.code.length == 0) { 
             address deployedAddress = Create2.deploy(0, salt, creationCode); 
-            require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
+            // require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
             return deployedAddress;
         }
         return computedAddress; 
+    }
+
+    // @dev wrapper function to expose deployAndRecordLaws externally and only return addresses and names of laws. 
+    function getDeployedLaws() external returns (string[] memory names, address[] memory addresses) {
+        helperConfig = new HelperConfig();
+        config = helperConfig.getConfig();
+        (names, addresses, ) = deployAndRecordLaws(config);
     }
 }

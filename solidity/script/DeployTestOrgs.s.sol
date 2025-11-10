@@ -2,14 +2,8 @@
 pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-// import { console2 } from "forge-std/console2.sol";
 // core protocol
 import { Powers } from "../src/Powers.sol";
-import { Law } from "../src/Law.sol";
-import { ILaw } from "../src/interfaces/ILaw.sol";
-import { LawUtilities } from "../src/libraries/LawUtilities.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 import { TestConstitutions } from "../test/TestConstitutions.sol";
@@ -44,7 +38,7 @@ contract DeployTestOrgs is Script {
             
             // Powers 101
             vm.startBroadcast();
-            powers = new Powers("Test Org", "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq", 10_000, 25);
+            powers = new Powers("Test Org", "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq", 10_000, 10_000, 25);
             vm.stopBroadcast();
             
             (PowersTypes.LawInitData[] memory lawInitData) = testConstitutions.powers101Constitution(
