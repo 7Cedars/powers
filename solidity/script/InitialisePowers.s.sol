@@ -74,11 +74,11 @@ contract InitialisePowers is Script {
         vm.serializeString(obj1, "powers", powersBytecode);
 
         // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
-        HelperConfig helperConfig = new HelperConfig();
+        helperConfig = new HelperConfig();
         config = helperConfig.getConfig();
 
         // vm.startBroadcast();
-        (names, addresses, outputJson) = deployAndRecordLaws(obj1, config);
+        (names, addresses, outputJson) = deployAndRecordLaws(config);
         // vm.stopBroadcast();
 
         string memory finalJson = vm.serializeString(obj1, "laws", outputJson);        
@@ -110,7 +110,7 @@ contract InitialisePowers is Script {
 
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(string memory obj1, HelperConfig.NetworkConfig memory config) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
+    function deployAndRecordLaws(HelperConfig.NetworkConfig memory config_) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
         names = new string[](29);   
         addresses = new address[](29);
         bytes[] memory creationCodes = new bytes[](29);
@@ -214,7 +214,7 @@ contract InitialisePowers is Script {
         // Async laws
         names[23] = "ClaimRoleWithGitSig";
         creationCodes[23] = type(ClaimRoleWithGitSig).creationCode;
-        constructorArgs[23] = abi.encode(config.chainlinkFunctionsRouter);
+        constructorArgs[23] = abi.encode(config_.chainlinkFunctionsRouter);
 
         names[24] = "Erc20Taxed";
         creationCodes[24] = type(Erc20Taxed).creationCode;
@@ -280,10 +280,8 @@ contract InitialisePowers is Script {
 
     // @dev wrapper function to expose deployAndRecordLaws externally and only return addresses and names of laws. 
     function getDeployedLaws() external returns (string[] memory names, address[] memory addresses) {
-        string memory obj1 = "first key";
-        HelperConfig helperConfig = new HelperConfig();
+        helperConfig = new HelperConfig();
         config = helperConfig.getConfig();
-
-        (names, addresses, ) = deployAndRecordLaws(obj1, config);
+        (names, addresses, ) = deployAndRecordLaws(config);
     }
 }

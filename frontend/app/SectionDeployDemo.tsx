@@ -69,7 +69,7 @@ export function SectionDeployDemo() {
     setDeployedLaws(data.laws as Record<string, `0x${string}`>);
   }, []);
 
-  // console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
+  console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
 
   // Switch chain when selected chain changes
   useEffect(() => {
@@ -141,7 +141,7 @@ export function SectionDeployDemo() {
       });
 
       // STEP 1: Deploy Powers contract
-      console.log("Step 1: Deploying Powers contract...");
+      console.log("Step 1: Deploying Powers contract...", { bytecodePowers, powersAbi, formData, selectedChainId, currentOrg });
       setDeployStatus(prev => ({ ...prev, powersCreate: "pending" }));
       
       const powersTxHash = await wagmiDeployContract(wagmiConfig, {
