@@ -3,11 +3,6 @@ import { powersAbi } from "@/context/abi"; // Assuming allo ABI is also availabl
 import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, keccak256, encodePacked, toFunctionSelector } from "viem";
 import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createLawInitData } from "./helpers";
 import treasuryPools from "@/context/builds/TreasuryPools.json";
-import treasurySimple from "@/context/builds/TreasurySimple.json";
-import erc20Taxed from "@/context/builds/Erc20Taxed.json";
-import easyRPGFStrategyBuild from "@/context/builds/EasyRPGFStrategy.json";
-import donations from "@/context/builds/Donations.json";
-import registry from "@/context/builds/Registry.json";
 import { getConstants } from "@/context/constants";
 
 /**
@@ -46,7 +41,7 @@ export const PowerBase: Organization = {
   metadata: {
     id: "power-base-allo",
     title: "Power Base",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreifp5dpekvznezajivjjxt7ig65dr5qbrxqnuefdhkuzpu5ea4elxi",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiamywxjb6kddwboempkqka37lkdmuljc2t7oju4bzfuxdlau575zu",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
     description: "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
     disabled: false,
@@ -81,12 +76,11 @@ export const PowerBase: Organization = {
     chainId: number,
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
-    const registryAbi: Abi = JSON.parse(JSON.stringify(registry.abi)) 
     let lawCount = 0n; 
     // Extract contract addresses from receipts
     const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"], "Treasury");
     const treasuryAbi = JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi;
-    console.log("deployedLaws @ PowerBase", treasuryAddress);
+    console.log("deployedLaws @ PowerBase", deployedLaws);
 
     console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     //////////////////////////////////////////////////////////////////

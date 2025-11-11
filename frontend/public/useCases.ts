@@ -6,10 +6,10 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demos: [
-      // these are placeholder links for now. 
-      { name: "Power Base, Law 3-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/3"},
-      { name: "Power Base, Law 8", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/8"},
-      { name: "More coming soon.", link: ""}, 
+      { name: "Power Base: Docs = Pool 1", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/4"},
+      { name: "Power Base: Frontend = Pool 2", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/5"},
+      { name: "Power Base: Protocol = Pool 3", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/6"},
+      { name: "Power Base: Admin adopts laws", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/25"},
     ]
   }, 
   {
@@ -21,8 +21,8 @@ export const useCases = [
     demos: 
     [
       { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
-      { name: "Power Base, Laws 4-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/4"},
-      { name: "More coming soon.", link: ""}
+      { name: "Power Base, Laws 7-12", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/7"},
+      { name: "Power Base, Laws 13-17", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/13"}
     ],
   },  
   {
@@ -32,17 +32,18 @@ export const useCases = [
       "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demos: [
-      { name: "Bridged Powers, coming soon", link: ""}
+      { name: "Power Base: Adopting Laws", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/23"}
     ]
   },
   {
     title: "Increase transparency",
-    details: [
-      "All votes and decisions are logged on-chain.",
+    details: [  
+      "All role allocations, votes and decisions are logged on-chain.",
       "Decisions can be traced back along governance paths."
     ],
     demos: [
-      { name: "Powers 101, law 4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/4"}
+      { name: "Powers 101", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/4"}, 
+      { name: "Power Base: Role allocations", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/18"},
     ]
   },
   {
@@ -51,7 +52,7 @@ export const useCases = [
       "Build on-chain systems that seamlessly integrate off- and on-chain actions."
     ],
     demos: [
-      { name: "Power Base, law 5", link: "" }
+      { name: "Power Base: Github commits", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/5"}
     ]
   },
   {
@@ -62,8 +63,8 @@ export const useCases = [
       "Create checks and balances."
     ],
     demos: [
-      { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
-      { name: "Power Base, Laws 3-6", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/3"},
+      { name: "Powers 101, Laws 2-4", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/2"},
+      { name: "Power Base, Laws 3-6", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/3"},
     ]
   }, 
   {
@@ -73,10 +74,9 @@ export const useCases = [
       "Hats Protocol, Governor.sol, etc." 
     ],
     demos: [
-      { name: "Power Base, (Allo v2)", link: "11155420/0x8398dfa76068391850412909cb8dc1a9118be9f1/laws/6"},
-      { name: "Powers to Nouns, (Nouns)", link: ""},
-      { name: "Bridged Powers, (Governor.sol)", link: ""},
-      { name: "More coming soon.", link: ""}
+      { name: "Power Base, (Chainlink Functions)", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/6"},
+      { name: "Powers to Nouns, (Nouns & Allo V2)", link: ""},
+      { name: "Bridged Powers, (Governor.sol)", link: ""}
     ]
   },
   {
@@ -98,9 +98,9 @@ export const useCases = [
       "Token, quadratic, conviction, list based voting, etc."
     ],
     demos: [
-      { name: "Bridged Powers: Token delegations", link: ""},
-      { name: "Bridged Powers: List elections", link: ""},
-      { name: "Bridged Powers: Attestations", link: ""},
+      { name: "Powers102: Token delegations", link: ""},
+      { name: "Powers102: List elections", link: ""},
+      { name: "Powers102: Attestations", link: ""},
     ]
   },
 ]

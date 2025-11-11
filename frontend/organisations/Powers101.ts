@@ -22,7 +22,7 @@ export const Powers101: Organization = {
   metadata: {
     id: "powers-101",
     title: "Powers 101",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreigcbq7wf3ycdyhnpxx2ht7cmavqcqoapqpaghg2jpemnjb4lkqnw4",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicbh6txnypkoy6ivngl3l2k6m646hruupqspyo7naf2jpiumn2jqe",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeickdiqcdmjjwx6ah6ckuveufjw6n2g6qdvatuhxcsbmkub3pvshnm",
     description: "A simple DAO with basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
     disabled: false,

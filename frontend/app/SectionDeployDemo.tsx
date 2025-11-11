@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { powersAbi } from "@/context/abi";
 import { Status } from "@/context/types";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { deployContract as wagmiDeployContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
+import { deployContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { usePrivy } from "@privy-io/react-auth";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
@@ -110,10 +110,10 @@ export function SectionDeployDemo() {
       setError(null);
       setConstituteCompleted(false);
 
-      // Helper function to add delay for Anvil
+      // Helper function to add delay for Anvil 
       const isAnvil = selectedChainId === 31337;
       const delayIfNeeded = async () => {
-        if (isAnvil) {
+        if (selectedChainId === 31337 || selectedChainId === 11155111 || selectedChainId === 421614) {
           await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for Anvil
         }
       };
@@ -144,7 +144,7 @@ export function SectionDeployDemo() {
       console.log("Step 1: Deploying Powers contract...", { bytecodePowers, powersAbi, formData, selectedChainId, currentOrg });
       setDeployStatus(prev => ({ ...prev, powersCreate: "pending" }));
       
-      const powersTxHash = await wagmiDeployContract(wagmiConfig, {
+      const powersTxHash = await deployContract(wagmiConfig, {
         abi: powersAbi,
         bytecode: bytecodePowers,
         args: [currentOrg.metadata.title, currentOrg.metadata.uri, 10_000n, 10_000n, 25n]
@@ -190,7 +190,7 @@ export function SectionDeployDemo() {
         if (isDeployableContract(dep)) {
           // Deploy contract
           console.log(`Deploying contract ${dep.name}...`);
-          txHash = await wagmiDeployContract(wagmiConfig, {
+          txHash = await deployContract(wagmiConfig, {
             abi: dep.abi,
             bytecode: dep.bytecode,
             args: dep.args || []

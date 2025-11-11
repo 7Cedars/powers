@@ -496,7 +496,7 @@ export const shorterDescription = (message: string | undefined, output: "short" 
 
 // would be great to make this more dynamic. 
 export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined => {
-  // console.log("@parseChainId: waypoint 0", {chainId})
+  console.log("@parseChainId: waypoint 0", {chainId})
   if (!chainId) {
     return undefined
   }

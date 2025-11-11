@@ -253,7 +253,8 @@ export const useLaw = () => {
             abi: powersAbi,
             address: law.powers as `0x${string}`,
             functionName: 'request',
-            args: [law.index, lawCalldata, nonce, description]
+            args: [law.index, lawCalldata, nonce, description],
+            chainId: parseChainId(chainId)
           })
           
           if (simulatedRequest) {

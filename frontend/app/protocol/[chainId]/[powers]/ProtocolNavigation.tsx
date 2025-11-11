@@ -18,7 +18,8 @@ import { PowersFlow } from '../../../../components/PowersFlow';
 import { usePowers } from '@/hooks/usePowers';
 import { useEffect, useState } from 'react';
 import { useStatusStore, usePowersStore, useErrorStore, setStatus, setError, setAction, useActionStore } from '@/context/store';
-import { usePublicClient } from 'wagmi';
+import { useAccount, usePublicClient, useSwitchChain } from 'wagmi';
+import { switchChain } from '@wagmi/core/actions';
 
 // Navigation styling constants
 const layoutIconBox = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
@@ -252,8 +253,17 @@ export const ProtocolNavigation: React.FC<{ children: React.ReactNode }> = ({ ch
   const { powers: powersAddress } = useParams<{ chainId: string, powers: string }>()
   const pathname = usePathname();
   const powers = usePowersStore();
+  const { chainId } = useParams<{ chainId: string }>()
   const { fetchPowers } = usePowers();
-
+  const { switchChain } = useSwitchChain();
+  const { chain } = useAccount();
+  
+  // Switch chain when selected chain changes
+  useEffect(() => {
+    if (chainId && chain?.id !== Number(chainId)) {
+      switchChain({ chainId: Number(chainId) });
+    }
+  }, [chainId, chain?.id, switchChain]);
 
   useEffect(() => {
     if (powers.contractAddress == undefined || powers.contractAddress == `0x0` || powers.contractAddress != powersAddress) {
