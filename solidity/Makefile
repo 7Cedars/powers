@@ -124,7 +124,7 @@ install-deps:
 	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit --no-git && \
 	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0 --no-commit --no-git && \
 	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-commit --no-git && \
-	forge install mds1/multicall3 --no-commit --no-git
+	forge install allo-protocol/allo-v2 --no-git 
 
 reset-deps:
 	@echo "Resetting dependencies..."
@@ -275,7 +275,7 @@ info:
 
 update-builds:
 	@echo "Updating builds..."
-	for contract in Powers Law ERC20 ERC721 ERC1155 Ownable Erc20Taxed ERC20Votes Grant Nominees OpenElection SoulboundErc721 Votes; do cp out/${contract}.sol/${contract}.json ../frontend/context/builds/${contract}.json; done
+	for contract in ERC20 Erc20Taxed ERC20Votes Law Ownable Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
 
 ###############################
 # 		Deploy Commands  	  # 
