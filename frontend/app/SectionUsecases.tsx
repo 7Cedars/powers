@@ -59,7 +59,7 @@ export function SectionUsecases() {
                                   }
                                 }}
                               >
-                                <span>{demo.name}</span>
+                                <span className="text-left">{demo.name}</span>
                                 {/* {demo.address !== "0x0000000000000000000000000000000000000000" && (
                                   <ArrowUpRightIcon className="w-4 h-4 text-slate-700" />
                                 )} */}

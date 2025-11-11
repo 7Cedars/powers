@@ -110,10 +110,10 @@ export function SectionDeployDemo() {
       setError(null);
       setConstituteCompleted(false);
 
-      // Helper function to add delay for Anvil
+      // Helper function to add delay for Anvil 
       const isAnvil = selectedChainId === 31337;
       const delayIfNeeded = async () => {
-        if (isAnvil) {
+        if (selectedChainId === 31337 || selectedChainId === 11155111 || selectedChainId === 421614) {
           await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for Anvil
         }
       };

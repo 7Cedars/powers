@@ -96,11 +96,14 @@ export const isValidAddress = (address: string): boolean => {
 };
 
 export const getLawAddress = (name: string, deployedLaws: Record<string, `0x${string}`>): `0x${string}` => {
-  
+  console.log("Getting law address for:", { name, deployedLaws });
+
   const law = deployedLaws[name];
-  if (!law) {
+  console.log("Found law address:", law);
+  if (!law || law === undefined || law === null) {
     throw new Error(`Error finding law address for: ${name} with deployedLaws: ${JSON.stringify(deployedLaws)}`);
   }
+  console.log(`Returning law address for ${name}:`, law);
   return law;
 } 
 

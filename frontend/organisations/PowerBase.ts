@@ -80,7 +80,7 @@ export const PowerBase: Organization = {
     // Extract contract addresses from receipts
     const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"], "Treasury");
     const treasuryAbi = JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi;
-    console.log("deployedLaws @ PowerBase", treasuryAddress);
+    console.log("deployedLaws @ PowerBase", deployedLaws);
 
     console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     //////////////////////////////////////////////////////////////////

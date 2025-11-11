@@ -304,12 +304,7 @@ deploy-mocks-anvil :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_
 fund-treasury-anvil :; forge script script/FundTreasury.s.sol:FundTreasury $(ANVIL_ARGS_0) 
 
 initialise-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
-
-
 initialise-op-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
-deploy-mocks-op-sepolia :; forge script script/DeployMocks.s.sol:DeployMocks $(OPT_SEPOLIA_DEPLOY_ARGS)
-create-powers-op-sepolia :; forge script script/DeployTestOrgs.s.sol:DeployTestOrgs $(OPT_SEPOLIA_DEPLOY_ARGS)
-
 initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --verifier etherscan 0xE0c0E749b3BB0c9210A9aEBd51FAB621E29cAea5 test/mocks/Donations.sol:Donations --watch
