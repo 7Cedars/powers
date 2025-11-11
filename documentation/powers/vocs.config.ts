@@ -183,6 +183,10 @@ export default defineConfig({
           text: 'Power 101',
           link: '/organisations/powers101',
         },
+        {
+          text: 'Power 102',
+          link: '/organisations/powers102',
+        },
         { 
           text: 'Power Base', 
           link: '/organisations/powerBase', 
