@@ -19,7 +19,7 @@ contract TreasurySimple is Ownable {
     uint256 public transferCount;
     mapping(address => bool) public whitelistedTokens;
 
-    event Deposited(address indexed from, address indexed token, uint256 amount);
+    event Deposited(address indexed from, address indexed token, uint256 amount, uint256 receiptId);
     event Transferred(address indexed to, address indexed token, uint256 amount);
 
     constructor() Ownable(msg.sender) {
@@ -39,9 +39,9 @@ contract TreasurySimple is Ownable {
         require(_token != address(0), "INVALID_TOKEN");
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         transfers.push(TransferLog(msg.sender, _token, _amount, block.number));
-        receiptId = transferCount;
         transferCount++;
-        emit Deposited(msg.sender, _token, _amount);
+        receiptId = transferCount;
+        emit Deposited(msg.sender, _token, _amount, receiptId);
     }
 
     function depositNative() external payable returns (uint256 receiptId) {
@@ -50,9 +50,9 @@ contract TreasurySimple is Ownable {
 
     function _depositNative() internal returns (uint256 receiptId) {
         transfers.push(TransferLog(msg.sender, address(0), msg.value, block.number));
-        receiptId = transferCount;
         transferCount++;
-        emit Deposited(msg.sender, address(0), msg.value);
+        receiptId = transferCount;
+        emit Deposited(msg.sender, address(0), msg.value, receiptId);
     }
 
     function transfer(address _token, address payable _to, uint256 _amount) public virtual onlyOwner {
@@ -76,6 +76,6 @@ contract TreasurySimple is Ownable {
     }
 
     function getTransfer(uint256 receiptId) external view returns (TransferLog memory) {
-        return transfers[receiptId];
+        return transfers[receiptId - 1];
     }
 }

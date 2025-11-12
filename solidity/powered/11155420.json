@@ -27,9 +27,9 @@
     "SelfSelect": "0xD963f0fED7E56A3983a3333b2457aCe7caF6F8d1",
     "StatementOfIntent": "0x7343E884D095448dafB296cED3FBED4F9Af2F99E",
     "TaxSelect": "0x37366C4449166AEccde5328eeD87F293fC099677",
-    "TreasuryPoolGovernance": "0xB1FaA3bd7Db691EadE2873BEEAEF63f4633E73Eb",
-    "TreasuryPoolTransfer": "0x9eBB1B73521dB8e304e749041638A814CD32799F",
-    "TreasuryRoleWithTransfer": "0x7639D4154e0c7FB8AC2b1714E0C2001598aD1867",
+    "TreasuryPoolGovernance": "0xB12BBE51F0A06BD537Fc4c53aa03c5A8e589Fbe4",
+    "TreasuryPoolTransfer": "0xe9D589BDD71ac0B67A3E272414E57882cfbAD8F4",
+    "TreasuryRoleWithTransfer": "0x4c04A9a08fb60C879552B0B9f9dc786f39091F2d",
     "VoteInOpenElection": "0x64681E16E1BA18a89fD99A01e5D113315b500733",
     "chainId": 11155420
   },

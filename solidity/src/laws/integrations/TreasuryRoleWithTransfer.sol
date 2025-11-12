@@ -94,7 +94,7 @@ contract TreasuryRoleWithTransfer is Law {
     /// @return targets The target addresses for the action
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(address caller, address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
         view
         virtual
@@ -105,6 +105,8 @@ contract TreasuryRoleWithTransfer is Law {
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         mem.data = data[mem.lawHash];
 
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+
         mem.caller = msg.sender;
         (mem.receiptId) = abi.decode(lawCalldata, (uint256));
         mem.selectedTransfer = TreasurySimple(payable(mem.data.treasuryContract)).getTransfer(mem.receiptId);
@@ -114,7 +116,7 @@ contract TreasuryRoleWithTransfer is Law {
             revert("Transfer does not exist");
         }
         // check if transfer is from the caller
-        if (mem.selectedTransfer.from != mem.caller) {
+        if (mem.selectedTransfer.from != caller) {
             revert("Transfer not from caller");
         }
         // check if number of blocks bought bring it across current block.number. 
@@ -135,7 +137,7 @@ contract TreasuryRoleWithTransfer is Law {
         // If all checks passed: Create arrays for execution and assign role
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.data.roleIdToSet, mem.account);
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.data.roleIdToSet, caller);
         
         return (actionId, targets, values, calldatas);
     }

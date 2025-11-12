@@ -34,7 +34,7 @@ export const getConstants = (chainId: number): Constants => {
       }
     case 11155420: // optimism sepolia
       return {
-        BLOCKS_PER_HOUR: 18, // 1800, divide by 100 for testing purposes. 
+        BLOCKS_PER_HOUR: 1800,  
         CHAINLINK_GAS_LIMIT: 300_000,
         CHAINLINK_FUNCTIONS_SUBSCRIPTION_ID: 256n, 
         CHAINLINK_DON_ID: "0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000",
