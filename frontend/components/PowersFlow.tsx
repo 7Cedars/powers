@@ -109,8 +109,6 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
-  const { checks, fetchChecks } = useChecks()
-  const { wallets } = useWallets()
 
   // Get action data for this law from the chain action data
   const currentLawAction = chainActionData.get(String(law.index))
@@ -242,7 +240,9 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
           const voteEndBlock = BigInt(currentLawAction.proposedAt) + BigInt(law.conditions.votingPeriod)
           
           // Use fromFutureBlockToDateTime to get human-readable format
+         
           return fromFutureBlockToDateTime(voteEndBlock, BigInt(blockNumber), parsedChainId)
+   
         }
         return null
       }

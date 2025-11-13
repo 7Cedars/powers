@@ -33,15 +33,15 @@ export default defineConfig({
         }, 
         { 
           text: 'Powers.sol', 
-          link: '/to-do', 
+          link: '/for-developers/powers', 
         },
         { 
           text: 'Law.sol', 
-          link: '/to-do', 
+          link: '/for-developers/law', 
         },
         { 
           text: 'Deploy your Powers', 
-          link: '/to-do', 
+          link: '/for-developers/deploy-your-powers', 
         },
         { 
           text: 'Creating a law', 
