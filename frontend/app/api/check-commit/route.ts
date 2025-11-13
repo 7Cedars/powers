@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     )
 
     if (!compareResponse.ok) {
-      console.log("GitHub API error (compare):", compareResponse.status, compareResponse.statusText)
+      // console.log("GitHub API error (compare):", compareResponse.status, compareResponse.statusText)
       return NextResponse.json(
         { error: `GitHub API (compare) returned status ${compareResponse.status}` },
         { status: compareResponse.status }
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     const compareDataResponse = await compareResponse.json()
     if (compareDataResponse.status !== 'behind' && compareDataResponse.status !== 'identical') {
-      console.log(`Commit ${commitHash} is not in the history of branch ${branch}.`);
+      // console.log(`Commit ${commitHash} is not in the history of branch ${branch}.`);
       return NextResponse.json(
         { error: `Commit ${commitHash} is not in the history of branch ${branch}.` },
         { status: 400 }

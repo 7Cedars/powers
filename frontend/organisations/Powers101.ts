@@ -2,7 +2,8 @@ import { Organization } from "./types";
 import { powersAbi } from "@/context/abi";
 import { Abi, encodeAbiParameters, encodeFunctionData } from "viem";
 import { minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, getLawAddress } from "./helpers";
-import { LawInitData } from "./types"; 
+import { LawInitData } from "./types";
+import { sepolia, arbitrumSepolia, optimismSepolia, mantleSepoliaTestnet, foundry } from "@wagmi/core/chains";
  
 
 /**
@@ -30,6 +31,17 @@ export const Powers101: Organization = {
   },
   fields: [],
   dependencies: [ ],
+  allowedChains: [
+    sepolia.id,
+    arbitrumSepolia.id,
+    optimismSepolia.id
+  ],
+  allowedChainsLocally: [
+    sepolia.id,
+    arbitrumSepolia.id,
+    optimismSepolia.id,
+    foundry.id
+  ],
 
   createLawInitData: (
     powersAddress: `0x${string}`, 
@@ -40,8 +52,8 @@ export const Powers101: Organization = {
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
 
-    console.log("deployedLaws @Powers101", deployedLaws);
-    console.log("deployedDependencies @Powers101", deployedLaws);
+    // console.log("deployedLaws @Powers101", deployedLaws);
+    // console.log("deployedDependencies @Powers101", deployedLaws);
 
     //////////////////////////////////////////////////////////////////
     //                 LAW 1: INITIAL SETUP                         //

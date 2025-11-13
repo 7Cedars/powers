@@ -4,7 +4,9 @@ import {
   useActionStore,
   useStatusStore,
   usePowersStore,
+  useErrorStore,
   setError,
+  setStatus,
 } from "@/context/store";
 import { useChecks } from "@/hooks/useChecks";
 import { useLaw } from "@/hooks/useLaw";
@@ -22,6 +24,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   const action = useActionStore();
   const powers = usePowersStore();
   const status = useStatusStore();
+  const error = useErrorStore(); 
 
   const { request, propose } = useLaw();
   const law = powers?.laws?.find((law) => BigInt(law.index) == BigInt(action.lawId));
@@ -30,25 +33,10 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   );
   const populatedAction = savedAction?.state == 0 || savedAction?.state == undefined ? action : savedAction;
 
-  // console.log("DynamicActionButton:", {checks, law, populatedAction, action})
-
-  const { powers: powersAddress } = useParams<{
-    chainId: string;
-    powers: `0x${string}`;
-  }>();
+  // console.log("DynamicActionButton:", {checks, law, populatedAction, action, status, error})
 
   const [logSupport, setLogSupport] = useState<bigint>();
-  const { hasVoted, castVote, checkHasVoted } = useLaw();
-
-  useEffect(() => {
-    if (action.actionId && wallets.length > 0 && powersAddress) {
-      checkHasVoted(
-        BigInt(action.actionId),
-        wallets[0].address as `0x${string}`,
-        powersAddress as `0x${string}`
-      );
-    }
-  }, [action.actionId, wallets, powersAddress, checkHasVoted]);
+  const { castVote } = useLaw();
 
   const handlePropose = async (
     paramValues: (InputType | InputType[])[],
@@ -63,6 +51,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
     if (!law) return;
 
     setError({ error: null });
+    // setStatus({ status: "idle" });
     let lawCalldata: `0x${string}` = "0x0";
 
     if (paramValues.length > 0 && paramValues) {
@@ -100,6 +89,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   ) => {
     // console.log("Handle Execute called:", {paramValues, nonce})
     setError({ error: null });
+    // setStatus({ status: "idle" });
     let lawCalldata: `0x${string}` | undefined;
     // console.log("Handle Simulate waypoint 1")
     if (paramValues.length > 0 && paramValues) {
@@ -131,7 +121,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
       paramValues,
       nonce,
       description,
-    });
+    }); 
   };
 
   return (
@@ -242,7 +232,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
         ) : // option 3: When action exists, and is active, show vote button
         populatedAction?.state == 3 && action?.upToDate ? (
           <div className="w-full h-fit px-6 min-h-16 flex flex-col justify-center items-center">
-            {hasVoted ? (
+            {checks && checks.hasVoted ? (
               <div className="w-full flex text-sm flex-row justify-center items-center gap-2 text-slate-500">
                 Account has voted
               </div>

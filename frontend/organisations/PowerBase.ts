@@ -4,6 +4,7 @@ import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, kecca
 import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createLawInitData, minutesToBlocks } from "./helpers";
 import treasuryPools from "@/context/builds/TreasuryPools.json";
 import { getConstants } from "@/context/constants";
+import { sepolia, arbitrumSepolia, optimismSepolia, mantleSepoliaTestnet, foundry } from "@wagmi/core/chains";
 
 /**
  * Helper function to extract contract address from receipt
@@ -36,6 +37,8 @@ function getReturnValueFromReceipt(receipt: any): any {
  * - Contributor roles assigned via RoleByGitSignature.sol (Chainlink Functions)
  * - Funder participation through token purchases
  * - Constitutional amendment process
+ * 
+ * Note that for testing purposes, daysToBlocks has been replaced with minutesToBlocks. In reality every minute is a day. 
  */
 export const PowerBase: Organization = {
   metadata: {
@@ -60,6 +63,15 @@ export const PowerBase: Organization = {
       ownable: true
     }
   ],
+  allowedChains: [
+    arbitrumSepolia.id,
+    optimismSepolia.id,
+  ],
+  allowedChainsLocally: [
+    arbitrumSepolia.id,
+    optimismSepolia.id,
+    foundry.id
+  ],
  
   createLawInitData: (
     powersAddress: `0x${string}`,
@@ -73,9 +85,9 @@ export const PowerBase: Organization = {
     // Extract contract addresses from receipts
     const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"], "Treasury");
     const treasuryAbi = JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi;
-    console.log("deployedLaws @ PowerBase", deployedLaws);
+    // console.log("deployedLaws @ PowerBase", deployedLaws);
 
-    console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
+    // console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     //////////////////////////////////////////////////////////////////
     //                 INITIAL SETUP & ROLE LABELS                  //
     //////////////////////////////////////////////////////////////////
@@ -141,7 +153,8 @@ export const PowerBase: Organization = {
       config: inputParamsPoolBudgetIncrease,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n
+        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
     const proposalLawIndex = lawCount;
@@ -203,7 +216,8 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n
+        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
 
@@ -304,7 +318,8 @@ export const PowerBase: Organization = {
       config: inputParamsPoolFunding,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n
+        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
 

@@ -20,7 +20,7 @@ export const useCases = [
     ],
     demos: 
     [
-      { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
+      { name: "Powers 101, Laws 2-4", link: "11155420/0x7bf197a08235cdc3eaf42820dab0547b12f680a2/laws/2"},
       { name: "Power Base, Laws 7-12", link: "11155420/0x9c2b8e09610f05595589d14322ad9eea0a6178b5/laws/7"},
       { name: "Power Base, Laws 13-17", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/13"}
     ],
@@ -42,7 +42,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demos: [
-      { name: "Powers 101", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/4"}, 
+      { name: "Powers 101", link: "11155420/0x7bf197a08235cdc3eaf42820dab0547b12f680a2/laws/4"}, 
       { name: "Power Base: Role allocations", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/18"},
     ]
   },

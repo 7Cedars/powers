@@ -14,7 +14,7 @@ export const useChecks = () => {
   const [checks, setChecks] = useState<Checks | undefined>()
   const [status, setStatus ] = useState<Status>("idle")
   const [error, setError] = useState<any | null>(null) 
-  // note: the state of checks is not stored here, it is stored in the Zustnd store
+  // note: the state of checks is not stored here, it is stored in the Zustand store
 
   // console.log("useChecks: waypoint 0", {error, status})
 
@@ -124,6 +124,29 @@ export const useChecks = () => {
     }
   }
 
+
+  // note: I did not implement castVoteWithReason -- to much work for now. 
+  const checkHasVoted = useCallback( 
+    async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers, account: `0x${string}`): Promise<boolean> => {
+      const actionId = hashAction(lawId, calldata, nonce)
+      // console.log("checkHasVoted triggered")
+        // setStatus({status: "pending"})
+        try {
+          const result = await readContract(wagmiConfig, {
+            abi: powersAbi,
+            address: powers.contractAddress as `0x${string}`,
+            functionName: 'hasVoted', 
+            args: [actionId, account],
+            chainId: parseChainId(chainId)
+          })
+          return result as boolean
+      } catch (error) {
+          setStatus("error") 
+          setError({error: error as Error})
+          return false
+      }
+  }, [chainId])
+
   const fetchChecks = useCallback( 
     async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
       // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers, actionLawId, caller})
@@ -138,9 +161,10 @@ export const useChecks = () => {
             getActionState(law, law.index, callData, nonce),
             getActionState(law, law.conditions.needFulfilled, callData, nonce),
             getActionState(law, law.conditions.needNotFulfilled, callData, nonce),
-            checkDelayedExecution(law.index, nonce, callData, powers)
+            checkDelayedExecution(law.index, nonce, callData, powers), 
+            checkHasVoted(law.index, nonce, callData, powers, wallets[0].address as `0x${string}`)
           ])
-          const [throttled, authorised, actionState, actionStateNeedFulfilled, actionStateNeedNotFulfilled, delayed] = checksData
+          const [throttled, authorised, actionState, actionStateNeedFulfilled, actionStateNeedNotFulfilled, delayed, hasVoted] = checksData
 
           const newChecks: Checks =  {
             delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
@@ -150,10 +174,11 @@ export const useChecks = () => {
             proposalPassed: law.conditions.quorum == 0n ? true : actionState == 5n || actionState == 6n || actionState == 7n,
             actionNotFulfilled: actionState != 7n,
             lawFulfilled: law.conditions.needFulfilled == 0n ? true : actionStateNeedFulfilled == 7n, 
-            lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n 
+            lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n
           } 
           newChecks.allPassed = Object.values(newChecks).filter(item => item !== undefined).every(item => item === true)
           newChecks.voteActive = law.conditions.quorum == 0n ? true : actionState == 1n
+          newChecks.hasVoted = hasVoted
 
           // console.log("fetchChecks triggered, waypoint 2", {newChecks})
           setChecks(newChecks)

@@ -3,6 +3,7 @@ import { getConstants } from "@/context/constants";
 import { LawData } from "./types";
 import { Conditions } from "@/context/types";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
+import { toEurTimeFormat, toFullDateAndTimeFormat, toFullDateFormat } from "@/utils/toDates";
 
 
 /**
@@ -87,6 +88,36 @@ export const minutesToBlocks = (minutes: number, chainId: number): bigint => {
 };
 
 /**
+ * Convert future block number to human-readable date-time
+ * @param futureBlock 
+ * @param chainId 
+ */
+export const fromFutureBlockToDateTime = (futureBlock: bigint, currentBlock: bigint, chainId: number): string => {
+  const constants = getConstants(chainId);
+  const secondsUntil = (Number(futureBlock - currentBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / blocksPerHour)
+  
+  const futureDate = (Date.now() / 1000) + secondsUntil
+
+  return toFullDateAndTimeFormat(futureDate);
+}
+
+/**
+ * Convert future block number to human-readable time until that block
+ * @param futureBlock 
+ * @param chainId 
+ */
+export const howLongTillFutureBlock = (futureBlock: bigint, currentBlock: bigint, chainId: number): string => {
+  const constants = getConstants(chainId);
+  const minutesUntil = Number(futureBlock - currentBlock) * 60 / constants.BLOCKS_PER_HOUR;
+  const hoursUntil = minutesUntil % 60;
+  const daysUntil = hoursUntil % 24;
+  
+  const reply = `Vote will end in ${daysUntil > 0 ? `${daysUntil} days, ` : null } ${hoursUntil > 0 ? `${hoursUntil} hours and ` : `${minutesUntil} minutes.` } `
+
+  return reply
+}
+
+/**
  * Validate an Ethereum address format
  * @param address - Address to validate
  * @returns True if valid Ethereum address
@@ -96,14 +127,14 @@ export const isValidAddress = (address: string): boolean => {
 };
 
 export const getLawAddress = (name: string, deployedLaws: Record<string, `0x${string}`>): `0x${string}` => {
-  console.log("Getting law address for:", { name, deployedLaws });
+  // console.log("Getting law address for:", { name, deployedLaws });
 
   const law = deployedLaws[name];
-  console.log("Found law address:", law);
+  // console.log("Found law address:", law);
   if (!law || law === undefined || law === null) {
     throw new Error(`Error finding law address for: ${name} with deployedLaws: ${JSON.stringify(deployedLaws)}`);
   }
-  console.log(`Returning law address for ${name}:`, law);
+  // console.log(`Returning law address for ${name}:`, law);
   return law;
 } 
 

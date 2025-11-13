@@ -4,7 +4,7 @@ import React from "react";
 import { TwoSeventyRingWithBg } from "react-svg-spinners";
 
 type ButtonProps = {
-  statusButton?: 'pending' | 'success' | 'error' | 'disabled' | 'idle';
+  statusButton?: 'pending' | 'success' | 'error' | 'disabled' | 'idle' | string;
   showBorder?: boolean;
   selected?: boolean;
   size?: 0 | 1 | 2;   

@@ -12,9 +12,13 @@ export const useAssets = (powers: Powers | undefined) => {
   const [error, setError] = useState<string | null>(null);
   const [tokens, setTokens] = useState<Token[]>();
   const { chainId } = useParams<{ chainId: string }>();
+  
   const { data: native } = useBalance({
-    address: powers?.contractAddress,
+    address: powers?.treasury,
+    chainId: parseChainId(chainId),
   });
+
+  // console.log("Native balance:", native);
 
   const fetchErc20s = async (
     tokenAddresses: `0x${string}`[],
@@ -81,33 +85,23 @@ export const useAssets = (powers: Powers | undefined) => {
     setError(null);
 
     try {
-      const treasuryAddress = (await readContract(wagmiConfig, {
-        abi: powersAbi,
-        address: powers.contractAddress,
-        functionName: "getTreasury",
-        chainId: parseChainId(chainId),
-      })) as `0x${string}`;
-
-      if (treasuryAddress === "0x0000000000000000000000000000000000000000") {
-        setError("No treasury address found.");
-        setStatus("error");
-        return;
-      }
-
       const savedErc20s = JSON.parse(
         localStorage.getItem("powersProtocol_savedErc20s") || "[]"
       );
-      const erc20s: Token[] = await fetchErc20s(savedErc20s, treasuryAddress);
+      if (powers.treasury) {  
+        const erc20s: Token[] = await fetchErc20s(savedErc20s, powers.treasury);
 
-      if (erc20s) {
-        erc20s.sort((a: Token, b: Token) => (a.balance > b.balance ? -1 : 1));
-        setTokens(erc20s);
+        if (erc20s) {
+          erc20s.sort((a: Token, b: Token) => (a.balance > b.balance ? -1 : 1));
+          setTokens(erc20s);
+        }
+        setStatus("success");
       }
-      setStatus("success");
     } catch (e) {
       setError("Failed to fetch treasury address.");
       setStatus("error");
     }
+   
   }, [chainId]);
 
   const addErc20 = (erc20: `0x${string}`) => {
