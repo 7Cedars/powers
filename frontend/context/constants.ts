@@ -24,7 +24,7 @@ export const getConstants = (chainId: number): Constants => {
     }
     case 421614: // arb sepolia
       return {
-        BLOCKS_PER_HOUR: 300,
+        BLOCKS_PER_HOUR: 14400, // 4 blocks per second
         CHAINLINK_GAS_LIMIT: 300_000,
         CHAINLINK_FUNCTIONS_SUBSCRIPTION_ID: 384n,
         CHAINLINK_DON_ID: "0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000",

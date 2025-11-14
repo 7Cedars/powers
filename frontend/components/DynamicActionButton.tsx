@@ -188,7 +188,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
                   : "disabled"
               }
             >
-              Execute {checks?.allPassed ? "" : " (checks not passed yet)"}
+              Execute {checks?.allPassed ? "" : " (checks did not pass)"}
             </Button>
           </div>
         ) : // option 2: When action does exist and has a succeeded state, execute button
@@ -220,7 +220,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
                   : "disabled"
               }
             >
-              Execute {checks?.allPassed ? "" : " (checks not passed yet)"}
+              Execute {checks?.allPassed ? "" : " (checks did not pass)"}
             </Button>
           </div>
         ) : populatedAction?.state == 4 && action?.upToDate ? (

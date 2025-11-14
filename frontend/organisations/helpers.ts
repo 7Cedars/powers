@@ -94,7 +94,6 @@ export const minutesToBlocks = (minutes: number, chainId: number): bigint => {
  */
 export const fromFutureBlockToDateTime = (futureBlock: bigint, currentBlock: bigint, chainId: number): string => {
   const constants = getConstants(chainId);
-  let secondsUntil = 0;
   if (futureBlock > currentBlock) {
     const secondsUntil = (Number(futureBlock - currentBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / blocksPerHour)
     return toFullDateAndTimeFormat((Date.now() / 1000) + secondsUntil);
