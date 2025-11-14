@@ -139,7 +139,7 @@ const Header = () => {
     fetchBlockNumber();
   }, [publicClient, powers])
 
-  console.log("@HEADER:", {powersAddress, status: statusPowers.status, error: errorPowers.error, action: action, powers: powers})
+  // console.log("@HEADER:", {powersAddress, status: statusPowers.status, error: errorPowers.error, action: action, powers: powers})
 
   return (
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">

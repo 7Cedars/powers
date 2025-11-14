@@ -357,7 +357,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       const latestFulfilledAction = law.actions ? Math.max(...law.actions.map(action => Number(action.fulfilledAt))) || 0 : 0
       const throttledPassed = (latestFulfilledAction + Number(law.conditions.throttleExecution)) < Number(blockNumber)
 
-      console.log("Throttle check", {law, latestFulfilledAction, throttledPassed, blockNumber})
+      // console.log("Throttle check", {law, latestFulfilledAction, throttledPassed, blockNumber})
 
       items.push({ 
         key: 'throttle', 

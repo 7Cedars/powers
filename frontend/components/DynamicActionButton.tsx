@@ -43,11 +43,11 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
     nonce: bigint,
     description: string
   ) => {
-    console.log("@handlePropose: waypoint 0", {
-      paramValues,
-      nonce,
-      description,
-    });
+    // console.log("@handlePropose: waypoint 0", {
+    //   paramValues,
+    //   nonce,
+    //   description,
+    // });
     if (!law) return;
 
     setError({ error: null });
@@ -117,11 +117,11 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
       nonce,
       description
     );
-    console.log("@handleExecute: waypoint 1", {
-      paramValues,
-      nonce,
-      description,
-    }); 
+    // console.log("@handleExecute: waypoint 1", {
+    //   paramValues,
+    //   nonce,
+    //   description,
+    // }); 
   };
 
   return (

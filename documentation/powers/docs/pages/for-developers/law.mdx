@@ -17,30 +17,24 @@ The execution of a law is a multi-step process managed by the `executeLaw` funct
 
 ::::steps
 
-### Proposing an Action & Running Checks (`checksAtPropose`)
 
-Before an action is formally proposed, the `checksAtPropose` function runs to ensure validity.
-- **Base Checks**: Verifies parent law completion or block conditions.
-- **Custom Checks**: Laws can implement custom logic to check role permissions, validate input parameters, and check state-dependent or time-based conditions.
-
-### Simulating the Law (`handleRequest`)
-
-To allow for off-chain simulation and validation, the `handleRequest` view function processes a request and returns the expected outcome without modifying state.
-- It generates a unique `actionId`.
-- It processes input parameters and prepares the target contract calls, values, and calldata.
-- It returns the target contract calls, values, and calldata without making any state changes.
 
 ### Executing the Law (`executeLaw`)
 
 This is the main function that orchestrates the entire process.
 1.  **Initial Validation**: Checks that the caller is the `Powers` contract.
-2.  **Proposal & Execution Checks**: Calls `checksAtPropose` and `checksAtExecute` to validate all conditions.
-3.  **Execution**: Calls `handleRequest` to get the action details.
-4.  **State Change**: If `handleRequest` returns state change data, it calls `_changeState`.
-5.  **Reply to Powers**: If `handleRequest` returns execution targets, it calls `_replyPowers`.
-6.  **Tracking**: Records the execution details.
+2.  **Translation**: Calls `handleRequest` to get the action details on basis of input calldata. 
+3.  **Execution**: If `handleRequest` returns execution targets, it proceeds to `_replyPowers`.
 
-### Replying to Powers (`_replyPowers`)
+### Simulating the Law (`handleRequest`)
+
+To allow for off-chain simulation and validation, the `handleRequest` view function processes a request and returns the expected outcome without modifying state.
+- It generates a unique `actionId`.
+- Runs any additional checks specific to the law.
+- It processes input parameters and prepares the target contract calls, values, and calldata.
+- It returns the target contract calls, values, and calldata without making any state changes.
+
+### Returning calldata (`_replyPowers`)
 
 The internal `_replyPowers` function sends the execution data (targets, values, calldatas) back to the `Powers.sol` contract's `fulfill` function, which executes the actual on-chain calls.
 
