@@ -22,8 +22,8 @@
     <!--TO DO: UPDATE LINKS AFTERUPDATING ORGS -->  
     <a href=" ">White paper</a> ·
     <a href="/solidity">Solidity protocol</a> ·
-    <a href="https://powers-protocol.vercel.app/421614/0x8fa86ae26fad52bcd2bdac1e9dbbe1ad77b50e36">Demo</a> ·
-    <a href="https://7cedars.gitbook.io/powers-protocol">Documentation</a>
+    <a href="https://powers-protocol.vercel.app/11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9">Demo</a> ·
+    <a href="https://powers-docs.vercel.app/welcome">Documentation</a>
   </p>
 </div>
 
@@ -97,9 +97,9 @@ Powers v0.4 enables three key governance patterns that solve common on-chain org
 3. **Deploy contracts and mocks**
    ```bash
    cd solidity
-   make anvilDeployAll
+   make initialise-anvil
    ```
-   This deploys all laws and mock contracts to your local Anvil chain.
+   This deploys all law contracts to your local Anvil chain.
 
 4. **Start the frontend application**
    ```bash
@@ -109,25 +109,35 @@ Powers v0.4 enables three key governance patterns that solve common on-chain org
 
 5. **Access the application**
    - Open your browser and navigate to `http://localhost:3000`
-   - Select "Anvil" from the chain dropdown
-   - Additional test organizations will be available for local development
+   - Scroll down to the 'Deploy a Demo' section
+   - Select a demo organisation and the "Anvil" from the chain dropdown
+   - When deployment is succesful you will be able to navigate to your organisation. 
 
 ### Building Custom Laws and Organizations
 
-For detailed information on creating your own laws and organizations, please refer to the [GitBook documentation](https://7cedars.gitbook.io/powers-protocol):
-- [Law Development Guide](https://7cedars.gitbook.io/powers-protocol/for-developers/law.sol/)
-- [Powers Protocol Guide](https://7cedars.gitbook.io/powers-protocol/for-developers/powers.sol/)
-- [Setting up a New Law](https://7cedars.gitbook.io/powers-protocol/for-developers/setting-up-a-new-law)
+For detailed information on creating your own organization, please refer to the [documentation](https://powers-docs.vercel.app/welcome):
+- [Powers Protocol Guide](https://powers-docs.vercel.app/for-developers/powers)
+- [Law Guide](https://powers-docs.vercel.app/for-developers/law)
+- [Setting up your own organisation](https://powers-docs.vercel.app/for-developers/deploy-your-powers)
 
 ## Important files and folders
 
 ```
 .
+├── documentation/powers/  # Vocs Documentation
+│   ... 
+│   ├── for-developers/    # Developer documentation
+│   ├── laws/              # Example law implementations
+│   ├── organisations/     # Example organisations  
+│   ├── integrations/      # Integration guides
+│   └── welcome.mdx        # Welcome page documentation
+│
 ├── frontend/         # Next.js dApp workspace
 │   ├── app/          # Next.js app router pages and components
 │   ├── components/   # Reusable React components
 │   ├── context/      # React context providers and contract ABIs
 │   ├── hooks/        # Custom React hooks
+│   ├── organisation/ # Organisation deploy scripts 
 │   ├── public/       # Static assets for the dApp
 │   ├── utils/        # Utility functions
 │   └── README.md     # Frontend setup and development guide
@@ -138,13 +148,6 @@ For detailed information on creating your own laws and organizations, please ref
 │   ├── script/       # Deployment scripts
 │   ├── broadcast/    # Deployment artifacts
 │   └── README.md     # Solidity development guide
-│
-├── gitbook/          # Documentation
-│   ├── for-developers/    # Developer documentation
-│   ├── example-laws/      # Example law implementations
-│   ├── deployed-laws/     # Deployed law documentation
-│   ├── integrations/      # Integration guides
-│   └── README.md          # Documentation overview
 │
 ├── public/           # Project images and assets
 │

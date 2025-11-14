@@ -2,7 +2,7 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/7Cedars/separated-powers"> 
+  <a href="https://github.com/7Cedars/powers"> 
     <img src="../public/logo.png" alt="Logo" width="300" height="300">
   </a>
 
@@ -27,13 +27,13 @@
 
 First, install the dependencies 
 ```bash
-npm install
+yarn install
 ```
 
 Then, run the development server:
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see dashboard. 
@@ -42,5 +42,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see das
 
 A live version can be seen on [vercel](https://powers-protocol.vercel.app/).  
 
-Please note that the front end is in active development, and that it currently shows a 'Work in Progress' message. 
 
