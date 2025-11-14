@@ -23,6 +23,8 @@ import { Law, Powers, Action, Status } from '@/context/types'
 import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
 import { useBlocks } from '@/hooks/useBlocks'
 import { parseChainId } from '@/utils/parsers'
+import { fromFutureBlockToDateTime } from '@/organisations/helpers'
+import { getConstants } from '@/context/constants'
 import { State, useBlockNumber, useChains } from 'wagmi'
 import {
   CalendarDaysIcon,
@@ -107,8 +109,6 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
-  const { checks, fetchChecks } = useChecks()
-  const { wallets } = useWallets()
 
   // Get action data for this law from the chain action data
   const currentLawAction = chainActionData.get(String(law.index))
@@ -231,42 +231,33 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       }
       
       case 'voteEnded': {
-        // Calculate vote end time using proposedAt + votingPeriod
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod) {
-          // Get the timestamp for proposedAt block
-          const cacheKey = `${chainId}:${currentLawAction.proposedAt}`
-          const cachedTimestamp = timestamps.get(cacheKey)
+        // Calculate vote end time using proposedAt + votingPeriod (converted to blocks)
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && blockNumber != null) {
+          const parsedChainId = parseChainId(chainId)
+          if (parsedChainId == null) return null
           
-          if (cachedTimestamp && cachedTimestamp.timestamp) {
-            // Add voting period to get vote end time
-            const proposedTimestamp = Number(cachedTimestamp.timestamp)
-            const voteEndTimestamp = proposedTimestamp + Number(law.conditions.votingPeriod)
-            
-            const dateStr = toFullDateFormat(voteEndTimestamp)
-            const timeStr = toEurTimeFormat(voteEndTimestamp)
-            return `${dateStr}: ${timeStr}`
-          }
+          // Calculate future block when vote will end
+          const voteEndBlock = BigInt(currentLawAction.proposedAt) + BigInt(law.conditions.votingPeriod)
+          
+          // Use fromFutureBlockToDateTime to get human-readable format
+         
+          return fromFutureBlockToDateTime(voteEndBlock, BigInt(blockNumber), parsedChainId)
+   
         }
         return null
       }
 
       case 'delay': {
-        // Calculate delay pass time if requestedAt exists and delay > 0
-        // Only show if current law has action data with requestedAt
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && law.conditions.delayExecution != 0n) {
-          // Get the timestamp for proposedAt block
-          const cacheKey = `${chainId}:${currentLawAction.proposedAt}`
-          const cachedTimestamp = timestamps.get(cacheKey)
+        // Calculate delay pass time using proposedAt + votingPeriod + delayExecution (converted to blocks)
+        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && law.conditions.delayExecution != 0n && blockNumber != null) {
+          const parsedChainId = parseChainId(chainId)
+          if (parsedChainId == null) return null
           
-          if (cachedTimestamp && cachedTimestamp.timestamp) {
-            // Add voting period to get vote end time
-            const proposedTimestamp = Number(cachedTimestamp.timestamp)
-            const voteEndTimestamp = proposedTimestamp + Number(law.conditions.votingPeriod) + Number(law.conditions.delayExecution)
-            
-            const dateStr = toFullDateFormat(voteEndTimestamp)
-            const timeStr = toEurTimeFormat(voteEndTimestamp)
-            return `${dateStr}: ${timeStr}`
-          }
+          // Calculate future block when delay will pass
+          const delayEndBlock = BigInt(currentLawAction.proposedAt) + BigInt(law.conditions.votingPeriod) + BigInt(law.conditions.delayExecution)
+          
+          // Use fromFutureBlockToDateTime to get human-readable format
+          return fromFutureBlockToDateTime(delayEndBlock, BigInt(blockNumber), parsedChainId)
         }
         // Return null if no action data or no delay condition
         return null
@@ -281,6 +272,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       }
       
       case 'throttle':
+        if (law.conditions?.throttleExecution && blockNumber != null) {  
+          const latestFulfilledAction = law.actions ? Math.max(...law.actions.map(action => Number(action.fulfilledAt))) || 0 : 0
+          const parsedChainId = parseChainId(chainId)
+          if (parsedChainId == null) return null
+
+          const throttlePassBlock = BigInt(latestFulfilledAction + Number(law.conditions.throttleExecution))
+          return fromFutureBlockToDateTime(throttlePassBlock, BigInt(blockNumber), parsedChainId)
+        }
+        
         // Keep as null for now
         return null
       
@@ -353,20 +353,17 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
     }
     
     // 2. Throttle check - show only if throttle condition exists (throttleExecution > 0)
-    if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) {
-      // Show as completed if we have action data (simplified - could be enhanced with actual throttle check)
-      const latestFulfilledAction = Math.max(...(law.actions?.map(action => Number(action.fulfilledAt)), 0) || [0])
-      // const testFulfilled0 = law.actions?.map(action => Number(action.fulfilledAt)) 
-      // const testFulfilled =  Math.max(...(law.actions?.map(action => Number(action.fulfilledAt)), 0) || [0])
-      const throttledPassed = latestFulfilledAction + Number(law.conditions.throttleExecution) < (blockNumber || 0)
+    if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) { 
+      const latestFulfilledAction = law.actions ? Math.max(...law.actions.map(action => Number(action.fulfilledAt))) || 0 : 0
+      const throttledPassed = (latestFulfilledAction + Number(law.conditions.throttleExecution)) < Number(blockNumber)
 
-      console.log("Throttle check", {latestFulfilledAction, throttledPassed, blockNumber, law})
+      // console.log("Throttle check", {law, latestFulfilledAction, throttledPassed, blockNumber})
 
       items.push({ 
         key: 'throttle', 
         label: 'Throttle Passed', 
         blockNumber: BigInt(latestFulfilledAction + Number(law.conditions.throttleExecution)),
-        state: throttledPassed ? "success" : "pending",
+        state: throttledPassed ? "success" : "error",
         hasHandle: false
       })
     }
@@ -404,13 +401,13 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
 
           
       // 4. Delay - show only if delayExecution > 0
-      if (law.conditions && law.conditions.delayExecution != null && currentLawAction?.proposedAt && law.conditions.delayExecution > 0n) {
+      if (law.conditions && law.conditions.delayExecution != null && law.conditions?.quorum != null && law.conditions.delayExecution > 0n) {
         items.push({ 
           key: 'delay', 
           label: 'Delay Passed', 
           // For delay, we use proposedAt as the reference block (the delay is calculated from it: proposedAt + votingPeriod + delay)
           blockNumber: currentLawAction?.proposedAt,
-          state: currentLawAction?.proposedAt + law.conditions.votingPeriod + law.conditions.delayExecution < BigInt(blockNumber || 0) ? "success" : "pending",
+          state: currentLawAction?.proposedAt ? currentLawAction?.proposedAt + law.conditions.votingPeriod + law.conditions.delayExecution < BigInt(blockNumber || 0) ? "success" : "pending" : "pending",
           hasHandle: false
         })
       }
@@ -1290,4 +1287,4 @@ export const PowersFlow: React.FC = React.memo(() => {
   )
 })
 
-export default PowersFlow 
+export default PowersFlow

@@ -1,2 +1,0 @@
-# Hats Protocol
-

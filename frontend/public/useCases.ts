@@ -6,8 +6,8 @@ export const useCases = [
       "Streamline decision making processes."
     ],
     demos: [
-      { name: "Power Base: Docs = Pool 1", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/4"},
-      { name: "Power Base: Frontend = Pool 2", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/5"},
+      { name: "Power Base: Docs = Pool 1", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/4"},
+      { name: "Power Base: Frontend = Pool 2", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/5"},
       { name: "Power Base: Protocol = Pool 3", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/6"},
       { name: "Power Base: Admin adopts laws", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/25"},
     ]
@@ -20,8 +20,8 @@ export const useCases = [
     ],
     demos: 
     [
-      { name: "Powers 101, Laws 2-4", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/2"},
-      { name: "Power Base, Laws 7-12", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/7"},
+      { name: "Powers 101, Laws 2-4", link: "11155420/0x7bf197a08235cdc3eaf42820dab0547b12f680a2/laws/2"},
+      { name: "Power Base, Laws 7-12", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/7"},
       { name: "Power Base, Laws 13-17", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/13"}
     ],
   },  
@@ -32,7 +32,7 @@ export const useCases = [
       "Upgrades can be packaged as a single action and executed in one transaction."
     ],
     demos: [
-      { name: "Power Base: Adopting Laws", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/23"}
+      { name: "Power Base: Adopting Laws", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/23"}
     ]
   },
   {
@@ -42,7 +42,7 @@ export const useCases = [
       "Decisions can be traced back along governance paths."
     ],
     demos: [
-      { name: "Powers 101", link: "11155420/0xe1af9f0a68c08de471566b6107cc393fe3b2c018/laws/4"}, 
+      { name: "Powers 101", link: "11155420/0x7bf197a08235cdc3eaf42820dab0547b12f680a2/laws/4"}, 
       { name: "Power Base: Role allocations", link: "421614/0xe2c66afd9219b120cf03b071e18125f7826677df/laws/18"},
     ]
   },
@@ -52,7 +52,7 @@ export const useCases = [
       "Build on-chain systems that seamlessly integrate off- and on-chain actions."
     ],
     demos: [
-      { name: "Power Base: Github commits", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/5"}
+      { name: "Power Base: Github commits", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/5"}
     ]
   },
   {
@@ -74,7 +74,7 @@ export const useCases = [
       "Hats Protocol, Governor.sol, etc." 
     ],
     demos: [
-      { name: "Power Base, (Chainlink Functions)", link: "11155420/0xbe2c2a6965268b118727a9a5105af98653d739f2/laws/6"},
+      { name: "Power Base, (Chainlink Functions)", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/6"},
       { name: "Powers to Nouns, (Nouns & Allo V2)", link: ""},
       { name: "Bridged Powers, (Governor.sol)", link: ""}
     ]

@@ -24,9 +24,8 @@
 - A fully functional proof-of-concept of the Powers governance protocol (v0.4). It allows for the creation of modular and flexible rule based governance in on-chain organisations.  
 - Electoral laws that enable different ways to assign roles to accounts. 
 - Executive laws that enable different ways to role restrict and call external functions.
-- Multi-action laws that provide flexible execution patterns for complex governance operations.
-- Example constitutions and founders documents needed to initialize DAOs.
-- Example implementations of DAOs building on the Powers protocol.
+- Example constitutions and founders documents needed to initialize organisations.
+- Example implementations of organisations building on the Powers protocol.
 - Comprehensive unit, integration, fuzz and invariant tests.
 
 ## How it works
@@ -55,6 +54,7 @@ The combination of checks and execution logics allows for creating almost any ty
 ```
 solidity/
 ├── .github/                                   # GitHub configuration
+├── audits/                                    # Security audit reports
 ├── broadcast/                                 # Deployment broadcast files
 ├── cache/                                     # Foundry cache
 ├── lib/                                       # Installed dependencies
@@ -62,86 +62,32 @@ solidity/
 │    └── openzeppelin-contracts/               # OpenZeppelin contracts
 │
 ├── out/                                       # Compilation output
+├── powered/                                   # Chain specific deployment addresses of protocol contracts
 ├── script/                                    # Deployment scripts
-│    ├── DeployLaws.s.sol                      # Deploys law contracts
 │    ├── DeployMocks.s.sol                     # Deploys mock contracts
-│    └── HelperConfig.s.sol                    # Helper configuration
+│    ├── DeployTestOrgs.s.sol                  # Deploys a test organisation
+│    ├── FundTreasury.s.sol                    # Funds a treasury
+│    ├── HelperConfig.s.sol                    # Helper configuration
+│    └── InitialisePowers.s.sol                # Initialises the Powers protocol
 │
 ├── src/                                       # Protocol resources
+│    ├── helpers/                              # Helper contracts
 │    ├── interfaces/                           # Protocol interfaces
-│    │    ├── ILaw.sol                         # Law interface
-│    │    ├── IPowers.sol                      # Powers interface
-│    │    ├── LawErrors.sol                    # Law errors
-│    │    ├── PowersErrors.sol                 # Powers errors
-│    │    ├── PowersEvents.sol                 # Powers events
-│    │    └── PowersTypes.sol                  # Powers data types
-│    │
 │    ├── laws/                                 # Law implementations
+│    │    ├── async/                           # Asynchronous laws
 │    │    ├── electoral/                       # Electoral laws
-│    │    │    ├── BuyAccess.sol               # Role assignment based on donations
-│    │    │    ├── ElectionSelect.sol          # Role assignment via elections
-│    │    │    ├── NStrikesRevokesRoles.sol    # Role revocation after strikes
-│    │    │    ├── PeerSelect.sol              # Peer-based role selection
-│    │    │    ├── RenounceRole.sol            # Role renunciation
-│    │    │    ├── RoleByRoles.sol             # Role assignment based on other roles
-│    │    │    ├── SelfSelect.sol              # Self-selection for roles
-│    │    │    ├── TaxSelect.sol               # Role assignment based on tax payments
-│    │    │    └── VoteInOpenElection.sol      # Voting in external elections
-│    │    │
 │    │    ├── executive/                       # Executive laws
-│    │    │    ├── AdoptLaws.sol               # Adopt multiple laws at once
-│    │    │    ├── GovernorCreateProposal.sol  # Create governance proposals
-│    │    │    └── GovernorExecuteProposal.sol # Execute governance proposals
-│    │    │
-│    │    ├── multi/                           # Multi-action laws
-│    │    │    ├── BespokeActionAdvanced.sol   # Advanced custom actions
-│    │    │    ├── BespokeActionSimple.sol     # Simple custom actions
-│    │    │    ├── OpenAction.sol              # Open action execution
-│    │    │    ├── PresetMultipleActions.sol   # Multiple preset actions
-│    │    │    ├── PresetSingleAction.sol      # Single preset action
-│    │    │    └── StatementOfIntent.sol       # Statement of intent
-│    │    │
-│    │    ├── Law.sol                          # Core Law contract
-│    │    ├── LawUtilities.sol                 # Law utility functions
-│    │    ├── Powers.sol                       # Core protocol contract
-│    │    └── PowersUtilities.sol              # Powers utility functions
+│    │    ├── integrations/                    # Integration laws
+│    │    └── metadata/                        # Metadata for laws
+│    ├── libraries/                            # Solidity libraries
+│    ├── Law.sol                               # Core Law contract
+│    └── Powers.sol                            # Core protocol contract
 │
 ├── test/                                      # Tests
 │    ├── fuzz/                                 # Fuzz tests
-│    │    ├── LawFuzz.t.sol                    # Law fuzz tests
-│    │    ├── PowersFuzz.t.sol                 # Powers fuzz tests
-│    │    └── laws/                            # Law-specific fuzz tests
-│    │        ├── ElectoralFuzz.t.sol          # Electoral law fuzz tests
-│    │        ├── ExecutiveFuzz.t.sol          # Executive law fuzz tests
-│    │        └── MultiFuzz.t.sol              # Multi-action law fuzz tests
-│    │
 │    ├── integration/                          # Integration tests
-│    │    ├── Powers101.t.sol                  # Powers 101 integration tests
-│    │    ├── ManagedGrants_TBI.t.sol          # Managed grants tests (TBI)
-│    │    ├── OpenElections_TBI.t.sol          # Open elections tests (TBI)
-│    │    └── SplitGovernance_TBI.t.sol        # Split governance tests (TBI)
-│    │
 │    ├── mocks/                                # Mock contracts for testing
-│    │    ├── Donations.sol                    # Mock donations contract
-│    │    ├── Erc20DelegateElection.sol        # Mock ERC20 delegate election
-│    │    ├── Erc20Taxed.sol                   # Mock taxed ERC20
-│    │    ├── FlagActions.sol                  # Mock flag actions contract
-│    │    ├── Nominees.sol                     # Mock nominees contract
-│    │    ├── OpenElection.sol                 # Mock open election contract
-│    │    ├── SimpleGovernor.sol               # Mock simple governor
-│    │    └── ...                              # Additional mock contracts
-│    │
 │    ├── unit/                                 # Unit tests
-│    │    ├── Law.t.sol                        # Core Law contract tests
-│    │    ├── LawUtilities.t.sol               # Law utilities tests
-│    │    ├── Powers.t.sol                     # Core Powers contract tests
-│    │    ├── PowersUtilities.t.sol            # Powers utilities tests
-│    │    ├── Mocks.t.sol                      # Mock contract tests
-│    │    └── laws/                            # Law-specific unit tests
-│    │        ├── Electoral.t.sol              # Electoral law tests
-│    │        ├── Executive.t.sol              # Executive law tests
-│    │        └── Multi.t.sol                  # Multi-action law tests
-│    │
 │    ├── TestConstitutions.sol                 # Constitution tests
 │    └── TestSetup.t.sol                       # Test environment setup
 │
@@ -151,7 +97,7 @@ solidity/
 ├── foundry.toml                               # Foundry configuration
 ├── lcov.info                                  # Test coverage information
 ├── Makefile                                   # Build and test commands
-└── README.md                                  # Project documentation 
+└── README.md                                  # Project documentation
 
 ```
 
@@ -188,7 +134,3 @@ forge test
 
 ## Acknowledgements 
 Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol. The Powers protocol (v0.4) represents a significant evolution in role-based governance systems for on-chain organ.
-
-
-
-

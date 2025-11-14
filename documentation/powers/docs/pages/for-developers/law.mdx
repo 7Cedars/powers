@@ -1,0 +1,69 @@
+# The Law.sol Contract
+
+`Law.sol` is the base implementation for Powers Protocol Laws. It provides the core functionality for creating modular, role-restricted governance actions that serve as the building blocks of the Powers protocol. Each law is a singleton contract that can be used by multiple Powers protocols.
+
+## 1. Core Concepts
+
+Laws serve five key functions in the Powers protocol:
+
+1.  **Role Restriction**: Enforce role-based access control for community actions.
+2.  **Data Transformation**: Transform input data into executable calls.
+3.  **Validation**: Validate proposal and execution conditions.
+4.  **Data Return**: Return execution data to the `Powers.sol` protocol.
+
+## 2. The Law Execution Flow
+
+The execution of a law is a multi-step process managed by the `executeLaw` function, which is the main entry point and can only be called by an authorized `Powers.sol` contract.
+
+::::steps
+
+
+
+### Executing the Law (`executeLaw`)
+
+This is the main function that orchestrates the entire process.
+1.  **Initial Validation**: Checks that the caller is the `Powers` contract.
+2.  **Translation**: Calls `handleRequest` to get the action details on basis of input calldata. 
+3.  **Execution**: If `handleRequest` returns execution targets, it proceeds to `_replyPowers`.
+
+### Simulating the Law (`handleRequest`)
+
+To allow for off-chain simulation and validation, the `handleRequest` view function processes a request and returns the expected outcome without modifying state.
+- It generates a unique `actionId`.
+- Runs any additional checks specific to the law.
+- It processes input parameters and prepares the target contract calls, values, and calldata.
+- It returns the target contract calls, values, and calldata without making any state changes.
+
+### Returning calldata (`_replyPowers`)
+
+The internal `_replyPowers` function sends the execution data (targets, values, calldatas) back to the `Powers.sol` contract's `fulfill` function, which executes the actual on-chain calls.
+
+:::: 
+
+## 3. Technical Specifications
+
+### Source
+- **GitHub Repo**: [Law.sol](https://github.com/7Cedars/powers/blob/main/solidity/src/Law.sol)
+
+### Key Functions
+- **Execution**: `initializeLaw`, `executeLaw`, `handleRequest`, `_changeState`, `_replyPowers`
+- **Validation**: `checksAtPropose`, `checksAtExecute`
+- **Helpers**: `getConditions`, `getExecutions`, `getInputParams`, `getNameDescription`
+
+### State Variables
+- `laws`: `mapping(bytes32 lawHash => LawData) public laws;`
+
+### Structs
+- **`LawData`**: Tracks a law's configuration (name, input params) and state (conditions, executions).
+- **`Conditions`**: Defines execution conditions like `allowedRole`, `votingPeriod`, `quorum`, parent law requirements (`needFulfilled`, `needNotFulfilled`), and time constraints (`delayExecution`, `throttleExecution`).
+- **`Executions`**: Tracks a law's execution history, including the `powers` contract address, config, `actionsIds`, and execution block numbers.
+
+### Events & Errors
+- **Events**: `Law__Deployed`, `Law__Initialized`
+- **Errors**: `Law__OnlyPowers`, `Law__ProposalNotSucceeded`, `Law__ParentNotCompleted`, etc.
+
+## 4. Implementation Best Practices
+
+- **Security**: Laws should be thoroughly tested. Validate all inputs and ensure proper access controls.
+- **Gas Optimization**: Minimize state changes, use efficient data structures, and order checks from least to most expensive.
+- **Clarity**: Use clear and descriptive names for laws and their parameters. Document all conditions and requirements.

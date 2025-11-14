@@ -84,6 +84,16 @@ export interface Organization {
   dependencies: ExecutableDependency[];
   
   /**
+   * Allowed chains for public deployment
+   */
+  allowedChains: number[];
+  
+  /**
+   * Allowed chains when deployed locally (localhost)
+   */
+  allowedChainsLocally: number[];
+  
+  /**
    * Generate law initialization data for this organization
    * @param powersAddress - Address of the deployed Powers contract
    * @param formData - User input from deployment form
@@ -104,4 +114,3 @@ export interface Organization {
    */
   validateFormData?: (formData: Record<string, any>) => { valid: boolean; errors?: string[] };
 }
-

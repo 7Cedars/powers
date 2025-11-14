@@ -2,7 +2,8 @@ import { Organization } from "./types";
 import { powersAbi } from "@/context/abi";
 import { Abi, encodeAbiParameters, encodeFunctionData } from "viem";
 import { minutesToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, getLawAddress } from "./helpers";
-import { LawInitData } from "./types"; 
+import { LawInitData } from "./types";
+import { sepolia, arbitrumSepolia, optimismSepolia, mantleSepoliaTestnet, foundry } from "@wagmi/core/chains";
  
 
 /**
@@ -30,6 +31,17 @@ export const Powers101: Organization = {
   },
   fields: [],
   dependencies: [ ],
+  allowedChains: [
+    sepolia.id,
+    arbitrumSepolia.id,
+    optimismSepolia.id
+  ],
+  allowedChainsLocally: [
+    sepolia.id,
+    arbitrumSepolia.id,
+    optimismSepolia.id,
+    foundry.id
+  ],
 
   createLawInitData: (
     powersAddress: `0x${string}`, 
@@ -40,15 +52,15 @@ export const Powers101: Organization = {
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
 
-    console.log("deployedLaws @Powers101", deployedLaws);
-    console.log("deployedDependencies @Powers101", deployedLaws);
+    // console.log("deployedLaws @Powers101", deployedLaws);
+    // console.log("deployedDependencies @Powers101", deployedLaws);
 
     //////////////////////////////////////////////////////////////////
     //                 LAW 1: INITIAL SETUP                         //
     //////////////////////////////////////////////////////////////////
 
     lawInitData.push({
-      nameDescription: "RUN THIS LAW FIRST: It assigns labels to laws and mints tokens. Press the refresh button to see the new labels.",
+      nameDescription: "Initial Setup: Assign role labels (Members, Delegates) and revoke itself after execution",
       targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
       config: encodeAbiParameters(
         [
@@ -98,7 +110,7 @@ export const Powers101: Organization = {
 
     // Law 2: Statement of Intent
     lawInitData.push({
-      nameDescription: "Statement of Intent: Create an SoI for an action that can later be executed by Delegates.",
+      nameDescription: "Propose Action: Members propose actions through a Statement of Intent that Delegates can later execute",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: statementOfIntentConfig,
       conditions: createConditions({
@@ -111,7 +123,7 @@ export const Powers101: Organization = {
 
     // Law 3: Veto an action
     lawInitData.push({
-      nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
+      nameDescription: "Veto Action: Admin can veto actions proposed by the community",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: statementOfIntentConfig,
       conditions: createConditions({
@@ -122,7 +134,7 @@ export const Powers101: Organization = {
 
     // Law 4: Execute an action
     lawInitData.push({
-      nameDescription: "Execute an action: Execute an action that has been proposed by the community.",
+      nameDescription: "Execute Action: Delegates approve and execute actions proposed by the community",
       targetLaw: getLawAddress("OpenAction", deployedLaws),
       config: "0x",
       conditions: createConditions({
@@ -142,7 +154,7 @@ export const Powers101: Organization = {
 
     // Law 5: Self select as community member
     lawInitData.push({
-      nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
+      nameDescription: "Join as Member: Anyone can self-select to become a community member",
       targetLaw: getLawAddress("SelfSelect", deployedLaws),
       config: encodeAbiParameters(
         [{ name: 'roleId', type: 'uint256' }],
@@ -156,7 +168,7 @@ export const Powers101: Organization = {
 
     // Law 6: Self select as delegate
     lawInitData.push({
-      nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this law.",
+      nameDescription: "Become Delegate: Community members can self-select to become a Delegate",
       targetLaw: getLawAddress("SelfSelect", deployedLaws),
       config: encodeAbiParameters(
         [{ name: 'roleId', type: 'uint256' }],
@@ -171,4 +183,3 @@ export const Powers101: Organization = {
     return lawInitData;
   }
 };
-

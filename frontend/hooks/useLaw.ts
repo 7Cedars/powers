@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { lawAbi, powersAbi } from "../context/abi";
-import { LawSimulation, Law, Powers, Action, ActionVote } from "../context/types"
+import { LawSimulation, Law, Powers, Action, ActionVote, Status } from "../context/types"
 import { readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
-import { useWaitForTransactionReceipt } from "wagmi";
+import { useTransactionReceipt, useWaitForTransactionReceipt, useTransactionConfirmations } from "wagmi";
 import { parseChainId } from "@/utils/parsers";
 import { useParams } from "next/navigation";
 import { setStatus, setError } from "@/context/store";
@@ -12,26 +12,32 @@ import { usePowers } from "./usePowers";
 export const useLaw = () => {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const { fetchPowers } = usePowers();
-  const [simulation, setSimulation ] = useState<LawSimulation>() 
-  const [hasVoted, setHasVoted] = useState<boolean | undefined>()
-  const [actionVote, setActionVote] = useState<ActionVote | undefined>()
+  const [simulation, setSimulation ] = useState<LawSimulation>()  
+  const [actionVote, setActionVote] = useState<ActionVote | undefined>() 
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
-  const {error: errorReceipt, status: statusReceipt} = useWaitForTransactionReceipt({
-    confirmations: 2, 
+  const {data: dataReceipt, error: errorReceipt, status: statusReceipt} = useTransactionConfirmations({
+    // confirmations: 1, 
     hash: transactionHash,
+    chainId: parseChainId(chainId) 
   })
 
-  // console.log("@useLaw, waypoint 0", {actionVote, statusReceipt})
+  // console.log("@useLaw, waypoint 0", {dataReceipt})
  
   // NB: here the powers object is updated after a transaction is successful.
   useEffect(() => {
+    if (statusReceipt === "pending") {
+      setStatus({status: "pending"})
+      fetchPowers(addressPowers)
+    }
     if (statusReceipt === "success") {
       setStatus({status: "success"})
       fetchPowers(addressPowers)
-      
     }
-    if (statusReceipt === "error") setStatus({status: "error"})
+    if (statusReceipt === "error") {
+      setStatus({status: "error"})
+      setError({error: errorReceipt as Error})
+    }
   }, [statusReceipt])
 
   // reset // 
@@ -62,7 +68,7 @@ export const useLaw = () => {
           if (simulatedRequest) {
             const result = await writeContract(wagmiConfig, simulatedRequest)
             setTransactionHash(result)
-            setStatus({status: "success"})
+            // setStatus({status: "success"})
             return true
           }
         } catch (error) {
@@ -89,7 +95,7 @@ export const useLaw = () => {
             chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
-          setStatus({status: "success"})
+          // setStatus({status: "success"})
           return true
       } catch (error) {
           setStatus({status: "error"}) 
@@ -115,37 +121,10 @@ export const useLaw = () => {
             chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
-          setStatus({status: "success"})
+          // setStatus({status: "success"})
           return true
       } catch (error) {
           setStatus({status: "error"}) 
-          setError({error: error as Error})
-          return false
-      }
-  }, [chainId])
-
-  // note: I did not implement castVoteWithReason -- to much work for now. 
-  const checkHasVoted = useCallback( 
-    async (
-      actionId: bigint,
-      account: `0x${string}`,
-      powersAddress: `0x${string}`
-    ): Promise<boolean> => {
-      // console.log("checkHasVoted triggered")
-        // setStatus({status: "pending"})
-        try {
-          const result = await readContract(wagmiConfig, {
-            abi: powersAbi,
-            address: powersAddress,
-            functionName: 'hasVoted', 
-            args: [actionId, account],
-            chainId: parseChainId(chainId)
-          })
-          setHasVoted(result as boolean )
-          // setStatus({status: "success"}) 
-          return result as boolean
-      } catch (error) {
-          //  setStatus({status: "error"}) 
           setError({error: error as Error})
           return false
       }
@@ -204,7 +183,7 @@ export const useLaw = () => {
         setStatus({status: "success"})
         return vote
       } catch (error) {
-        console.log("@fetchVoteData, waypoint 3", {error})
+        // console.log("@fetchVoteData, waypoint 3", {error})
         setStatus({status: "error"})
         setError({error: error as Error})
         return undefined
@@ -265,7 +244,7 @@ export const useLaw = () => {
             return true
           }
         } catch (error) {
-          setStatus({status: "error"}) 
+          // setStatus({status: "error"}) 
           setError({error: error as Error})
           // console.log("@execute: waypoint 5", {error}) 
           return false
@@ -274,5 +253,5 @@ export const useLaw = () => {
         return false
       }, [chainId])
 
-  return {simulation, hasVoted, actionVote, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, checkHasVoted, fetchVoteData}
+  return {simulation, actionVote, transactionHash, resetStatus, simulate, request, propose, cancel, castVote, fetchVoteData}
 }

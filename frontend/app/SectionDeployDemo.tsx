@@ -15,6 +15,7 @@ import { TwoSeventyRingWithBg } from "react-svg-spinners";
 import { getEnabledOrganizations } from "@/organisations";
 import { isDeployableContract, isFunctionCallDependency } from "@/organisations/types";
 import Image from "next/image";
+import { sepolia, arbitrumSepolia, optimismSepolia, mantleSepoliaTestnet, foundry } from "@wagmi/core/chains";
 
 type DeployStatus = {
   powersCreate: Status;
@@ -53,12 +54,19 @@ export function SectionDeployDemo() {
   // Get available organizations based on localhost condition
   const availableOrganizations = getEnabledOrganizations(isLocalhost);
 
-  const chains = [
-    { name: "Ethereum Sepolia", id: 11155111 },
-    { name: "Optimism Sepolia", id: 11155420 },
-    { name: "Arbitrum Sepolia", id: 421614 },
-    ...(isLocalhost ? [{ name: "Foundry", id: 31337 }] : [])
+  // Mapping of chain IDs to chain info
+  const allChains = [
+    { name: "Ethereum Sepolia", id: sepolia.id },
+    { name: "Optimism Sepolia", id: optimismSepolia.id },
+    { name: "Arbitrum Sepolia", id: arbitrumSepolia.id },
+    { name: "Mantle Sepolia", id: mantleSepoliaTestnet.id },
+    { name: "Foundry", id: foundry.id }
   ];
+
+  // Get chains allowed for current organization
+  const currentOrg = availableOrganizations[currentOrgIndex];
+  const allowedChainIds = isLocalhost ? currentOrg.allowedChainsLocally : currentOrg.allowedChains;
+  const chains = allChains.filter(chain => allowedChainIds.includes(chain.id));
 
   // Get the current selected chain ID
   const selectedChainId = chains.find(c => c.name === selectedChain)?.id;
@@ -71,6 +79,14 @@ export function SectionDeployDemo() {
 
   console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
 
+  // Ensure selected chain is valid when organization changes
+  useEffect(() => {
+    const isSelectedChainAvailable = chains.some(c => c.name === selectedChain);
+    if (!isSelectedChainAvailable && chains.length > 0) {
+      setSelectedChain(chains[0].name);
+    }
+  }, [currentOrgIndex, isLocalhost]);
+
   // Switch chain when selected chain changes
   useEffect(() => {
     if (selectedChainId && chain?.id !== selectedChainId) {
@@ -80,8 +96,6 @@ export function SectionDeployDemo() {
       getPowered(selectedChainId);
     }
   }, [selectedChainId, chain?.id, switchChain]);
-
-  const currentOrg = availableOrganizations[currentOrgIndex];
 
   const handleInputChange = (fieldName: string, value: string) => {
     console.log("@SectionDeployDemo: handleInputChange", { fieldName, value });
@@ -113,8 +127,8 @@ export function SectionDeployDemo() {
       // Helper function to add delay for Anvil 
       const isAnvil = selectedChainId === 31337;
       const delayIfNeeded = async () => {
-        if (selectedChainId === 31337 || selectedChainId === 11155111 || selectedChainId === 421614) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for Anvil
+        if (selectedChainId === 31337 || selectedChainId === 11155111 || selectedChainId === 421614 || selectedChainId === 11155420) {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // 500ms delay for Anvil
         }
       };
 
@@ -151,11 +165,15 @@ export function SectionDeployDemo() {
       });
 
       console.log("Powers deployment tx:", powersTxHash);
+
+      await delayIfNeeded();
       
       const powersReceipt = await waitForTransactionReceipt(wagmiConfig, {
         hash: powersTxHash,
         confirmations: isAnvil ? 1 : 2
       });
+
+      await delayIfNeeded();
 
       const powersAddress = powersReceipt.contractAddress;
       if (!powersAddress) {
@@ -730,4 +748,3 @@ export function SectionDeployDemo() {
     </section>
   );
 }
-

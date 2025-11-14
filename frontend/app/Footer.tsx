@@ -2,6 +2,7 @@
 
 import { HeartIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image'
+import { DiscordIcon, TelegramIcon, GithubIcon } from '@/components/MetadataLinks'; 
 
 export function Footer() {
 
@@ -15,13 +16,13 @@ export function Footer() {
                         DApp
                     </div>
                     <a
-                        href={`https://7cedars.gitbook.io/separated-powers/using-the-app`} target="_blank" rel="noopener noreferrer"
+                        href={`https://powers-protocol.vercel.app/`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Docs
                     </a>
                     <a
-                        href={`https://github.com/7Cedars/separated-powers/tree/main/frontend`} target="_blank" rel="noopener noreferrer"
+                        href={`https://github.com/7Cedars/powers/tree/main/frontend`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Github repo
@@ -32,19 +33,19 @@ export function Footer() {
                         Protocol
                     </div>
                     <a
-                        href={`https://7cedars.gitbook.io/powers-protocol`} target="_blank" rel="noopener noreferrer"
+                        href={`https://powers-docs.vercel.app/for-developers/white-paper`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        About
+                        White Paper
                     </a>
                     <a
-                        href={`https://7cedars.gitbook.io/powers-protocol`} target="_blank" rel="noopener noreferrer"
+                        href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Docs
                     </a>
                     <a
-                        href={`https://github.com/7Cedars/separated-powers/tree/main/solidity`} target="_blank" rel="noopener noreferrer"
+                        href={`https://github.com/7Cedars/powers/tree/main/solidity`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Github repo
@@ -61,7 +62,7 @@ export function Footer() {
             alt="Logo Separated Powers"
             >
             </Image>
-            <div className="text-md font-bold flex flex-row gap-1">
+            <div className="text-md font-bold flex flex-row gap-1 pb-2">
                 <p>Made with</p> 
                 <HeartIcon className="w-4 h-4 text-red-700" />
                 <p>by 7Cedars</p>
@@ -69,27 +70,21 @@ export function Footer() {
             <div className="flex flex-row gap-2">
                 <a
                     href={`https://discordapp.com/users/1006928106487021638`} target="_blank" rel="noopener noreferrer"
-                    className="text-slate-500"
+                    className="text-slate-700"
                 >
-                    discord
-                </a>
-                <a
-                    href={`https://mirror.xyz/7cedars.eth`} target="_blank" rel="noopener noreferrer"
-                    className="text-slate-500"
-                >
-                    mirror.xyz
+                    <DiscordIcon className="w-5 h-5 text-slate-700" /> 
                 </a>
                 <a
                     href={`https://t.me/thd83`} target="_blank" rel="noopener noreferrer"
-                    className="text-slate-500"
+                    className="text-slate-700"
                 >
-                    telegram
+                    <TelegramIcon className="w-5 h-5 text-slate-700" />
                 </a>
                 <a
                     href={`https://github.com/7Cedars`} target="_blank" rel="noopener noreferrer"
-                    className="text-slate-500"
+                    className="text-slate-700"
                 >
-                    github
+                    <GithubIcon className="w-5 h-5 text-slate-700" />
                 </a>
             </div>
             </div>

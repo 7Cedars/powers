@@ -37,7 +37,7 @@ export function StaticForm({ law, staticDescription = true, onCheck }: StaticFor
         lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
         // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
       } catch (error) {
-        console.log("Handle Simulate waypoint 2c")
+        // console.log("Handle Simulate waypoint 2c")
         setError({error: error as Error})
       }
     } else {
@@ -78,7 +78,7 @@ export function StaticForm({ law, staticDescription = true, onCheck }: StaticFor
         )
         if (success) { 
           // setAction({...newAction, state: 8})
-          console.log("Handle Simulate", {newAction})
+          // console.log("Handle Simulate", {newAction})
         }
         // fetchAction(newAction, powers as Powers, true)
       } catch (error) {

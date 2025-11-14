@@ -63,8 +63,6 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
 
   // console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
 
-  
- 
   // Votes state
   const { timestamps, fetchTimestamps } = useBlocks()
   const [votes, setVotes] = useState<VoteData[]>([])
@@ -92,17 +90,16 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
     }
   }, [action.actionId, law]);
 
-  useEffect(() => {
-    if (action?.actionId) {
-      fetchVotes()
-    }
-  }, [action.actionId])
+  // useEffect(() => {
+  //   if (powers && law && populatedAction) {
+  //     fetchVotes()
+  //   }
+  // }, [powers, law, populatedAction])
 
   const fetchVotes = async () => {
     if (!populatedAction?.actionId) return;
     
     setLoading(true)
-    setError(null)
     fetchVoteData(populatedAction as Action, powers as Powers)
     
     try {
@@ -175,6 +172,16 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
             <div className="text-left text-sm text-slate-600">
               Voting
             </div>
+              <button
+              onClick={fetchVotes}
+              disabled={loading}
+              className="flex items-center justify-center rounded-md p-1.5 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh Votes"
+            >
+              <ArrowPathIcon 
+                className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`}
+              />
+            </button>
           </div>
         </div>
 
@@ -285,16 +292,6 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
             <div className="text-left text-sm text-slate-600">
               Votes Cast ({votes.length})
             </div>
-            <button
-              onClick={fetchVotes}
-              disabled={loading}
-              className="flex items-center justify-center rounded-md p-1.5 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Refresh Votes"
-            >
-              <ArrowPathIcon 
-                className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`}
-              />
-            </button>
           </div>
         </div>
 

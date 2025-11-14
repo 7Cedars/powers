@@ -1,0 +1,102 @@
+# Deploying Your Own Organisation
+
+This guide explains how to deploy your own organisation using the Powers protocol. While there are no no-code solutions yet, we have simplified the process through a frontend interface and deployment scripts.
+
+## 1. General Logic
+
+The fundamental deployment logic is the same whether you use the frontend or smart contract scripts. It follows a three-step process:
+
+::::steps
+
+#### Deploy a vanilla `Powers.sol` contract
+This is the core contract for your organisation, initialized with basic metadata like its name and URI.
+
+#### Deploy Dependencies 
+Any dependency smart contracts (like a treasury) are deployed.
+
+#### Configure Laws and Dependencies 
+The initial set of laws for your organisation are configured with the addresses of these dependencies.
+
+#### Constitute the Organisation
+The `constitute` function on your `Powers.sol` contract is called with the law configurations. This function initializes all the laws, officially establishing the governance structure of your organisation.
+
+::::
+
+This sequence ensures that the core contract is set up first, followed by its specific rules and extensions, and is finally activated in a single, atomic transaction.
+
+## 2. Frontend Deployment
+
+The simplest way to deploy an organisation is through the Powers frontend. The entire logic for an organisation's deployment is encapsulated in a single TypeScript file located in the `frontend/organisations/` directory.
+
+Good examples to study are `Powers101.ts` (a simple DAO) and `PowerBase.ts` (a more complex organisation for protocol funding).
+
+### The Organisation File Structure
+
+Each organisation file defines an `Organization` object with several key properties:
+
+-   `metadata`: Contains information like the organisation's `id`, `title`, `description`, and banner image URI.
+-   `fields`: An array defining input fields that will be rendered on the deployment page. This allows for user-configurable parameters, such as a Chainlink Subscription ID in `PowerBase.ts`.
+-   `dependencies`: An array of other smart contracts that need to be deployed before the organisation can be constituted. For example, `PowerBase.ts` depends on a `Treasury` contract.
+-   `allowedChains`: An array of chain IDs where the organisation can be deployed.
+-   `createLawInitData`: This is the core function. It takes the addresses of the newly deployed `Powers` contract and its dependencies, along with any user input from the `fields`, and returns the structured data needed to call the `constitute` function.
+
+### Create your .ts file 
+
+Using the provided examples, you can create your own organisation file by defining its metadata, required fields, dependencies, and the logic for initializing its laws.
+
+::::steps
+
+#### Copy an Example
+Start by copying an existing organisation file like `Powers101.ts` or `PowerBase.ts` into a new file in the `frontend/organisations/` directory.
+
+#### Define Metadata and Fields
+Update the `metadata` property with your organisation's details. Define any input fields needed for configuration. 
+
+#### Check existing Laws
+The `powered` folder contains json files for chains and the reusable `Law.sol` contracts that are deployed on them. Identify which laws you want to include in your organisation. 
+
+The `solidity/src/laws/` folder contains the source code for these laws.
+
+#### Define Dependencies
+If your organisation requires additional contracts (like a treasury), define them in the `dependencies` array.
+
+#### Create your own custom createLawInitData function
+This function should prepare and return the `LawInitData` array, linking each law contract to its configuration based on the deployed addresses and any user input. 
+
+#### Add the organisation to the Frontend
+Finally, register your new organisation file in the frontend's organisation list so it appears on the deploy a demo page.
+This is done by adding it to the 'organizations' array in `frontend/organisations/index.ts`.
+
+#### Deploy via the Frontend
+Once your organisation file is set up and registered, you can deploy it through the Powers frontend interface. 
+
+::::
+
+## 3. Smart Contract Deployment
+
+For developers who prefer a programmatic approach, organisations can be deployed using smart contract scripts with a framework like Foundry. The `solidity/script/DeployTestOrgs.s.sol` script provides a clear example of this process.
+
+### The Scripting Logic
+
+The script follows the same fundamental logic as the frontend:
+
+::::steps
+
+#### Deploy Dependencies
+The script first deploys any necessary mock contracts or dependencies. In `DeployTestOrgs.s.sol`, this is handled by `DeployMocks.s.sol`.
+
+#### Deploy Law Contracts
+It deploys the individual `Law` contracts that will be used by the organisation. This is handled by `InitialisePowers.s.sol`.
+
+#### Deploy Powers Contract
+A new, unconfigured `Powers.sol` contract is deployed.
+
+#### Prepare Constitution Data
+A helper contract or function (like `TestConstitutions.sol` in the example) is used to generate the `LawInitData` array, linking the law contracts to their configurations.
+
+#### Constitute the Organisation
+The `constitute` function on the `Powers` contract is called with the prepared `lawInitData`.
+
+::::
+
+This method offers more control and is ideal for automated testing, complex setups, or integrating Powers deployment into a larger scripted workflow. By examining the test and script files in the `solidity/` directory, you can build a robust deployment script for your own custom organisation.

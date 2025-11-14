@@ -16,6 +16,10 @@ export default defineConfig({
       link: '/welcome',
     },
     {
+      text: 'Use Cases',
+      link: '/use-cases',
+    },
+    {
       text: 'Development',
       link: '/development',
     },
@@ -33,15 +37,15 @@ export default defineConfig({
         }, 
         { 
           text: 'Powers.sol', 
-          link: '/to-do', 
+          link: '/for-developers/powers', 
         },
         { 
           text: 'Law.sol', 
-          link: '/to-do', 
+          link: '/for-developers/law', 
         },
         { 
           text: 'Deploy your Powers', 
-          link: '/to-do', 
+          link: '/for-developers/deploy-your-powers', 
         },
         { 
           text: 'Creating a law', 
@@ -58,28 +62,28 @@ export default defineConfig({
           collapsed: true, 
           items: [ 
             { 
-              text: 'AIAnalysis', 
-              link: '/laws/async/AIAnalysis', 
+              text: 'CheckExternalState', 
+              link: '/to-do', 
             },
             { 
-              text: 'AiCcipProxy', 
-              link: '/laws/async/AiCcipProxy', 
+              text: 'AssignRoleWithGitCommit', 
+              link: '/to-do', 
             },
             { 
-              text: 'RoleByGitCommit', 
-              link: '/laws/async/RoleByGitCommit', 
+              text: 'ClaimRoleWithGitCommit', 
+              link: '/to-do', 
             },
             { 
               text: 'Snapshot_CheckSnapExists', 
-              link: '/laws/async/Snapshot_CheckSnapExists', 
+              link: '/laws/Snapshot_CheckSnapExists', 
             },
             { 
               text: 'Snapshot_CheckSnapPassed', 
-              link: '/laws/async/Snapshot_CheckSnapPassed', 
+              link: '/laws/Snapshot_CheckSnapPassed', 
             },
             { 
               text: 'ZKPassportSelect', 
-              link: '/laws/async/ZKPassportSelect', 
+              link: '/to-do', 
             },
           ], 
         },
@@ -88,40 +92,36 @@ export default defineConfig({
           collapsed: true, 
           items: [ 
             { 
-              text: 'BuyAccess', 
-              link: '/laws/electoral/BuyAccess', 
-            },
-            { 
               text: 'ElectionSelect', 
-              link: '/laws/electoral/ElectionSelect', 
+              link: '/laws/ElectionSelect', 
             },
             { 
               text: 'NStrikesRevokesRoles', 
-              link: '/laws/electoral/NStrikesRevokesRoles', 
+              link: '/laws/NStrikesRevokesRoles', 
             },
             { 
               text: 'PeerSelect', 
-              link: '/laws/electoral/PeerSelect', 
+              link: '/laws/PeerSelect', 
             },
             { 
               text: 'RenounceRole', 
-              link: '/laws/electoral/RenounceRole', 
+              link: '/laws/RenounceRole', 
             },
             { 
               text: 'RoleByRoles', 
-              link: '/laws/electoral/RoleByRoles', 
+              link: '/laws/RoleByRoles', 
             },
             { 
               text: 'SelfSelect', 
-              link: '/laws/electoral/SelfSelect', 
+              link: '/laws/SelfSelect', 
             },
             { 
               text: 'TaxSelect', 
-              link: '/laws/electoral/TaxSelect', 
+              link: '/laws/TaxSelect', 
             },
             { 
               text: 'VoteInOpenElection', 
-              link: '/laws/electoral/VoteInOpenElection', 
+              link: '/laws/VoteInOpenElection', 
             },
           ], 
         },
@@ -131,45 +131,69 @@ export default defineConfig({
           items: [ 
             { 
               text: 'AdoptLaws', 
-              link: '/laws/executive/AdoptLaws', 
+              link: '/laws/AdoptLaws', 
             },
             { 
-              text: 'GovernorCreateProposal', 
-              link: '/laws/executive/GovernorCreateProposal', 
+              text: 'BespokeActionAdvanced', 
+              link: '/laws/BespokeActionAdvanced', 
             },
             { 
-              text: 'GovernorExecuteProposal', 
-              link: '/laws/executive/GovernorExecuteProposal', 
+              text: 'BespokeActionSimple', 
+              link: '/laws/BespokeActionSimple', 
+            },
+            { 
+              text: 'OpenAction', 
+              link: '/laws/OpenAction', 
+            },
+            { 
+              text: 'PresetMultipleActions', 
+              link: '/laws/PresetMultipleActions', 
+            },
+            { 
+              text: 'PresetSingleAction', 
+              link: '/laws/PresetSingleAction', 
+            },
+            { 
+              text: 'StatementOfIntent', 
+              link: '/laws/StatementOfIntent', 
             },
           ], 
         }, 
         { 
-          text: 'Multi', 
+          text: 'Integrations', 
           collapsed: true, 
           items: [ 
             { 
-              text: 'BespokeActionAdvanced', 
-              link: '/laws/multi/BespokeActionAdvanced', 
+              text: 'AlloCreateRPFGPool', 
+              link: '/to-do', 
             },
             { 
-              text: 'BespokeActionSimple', 
-              link: '/laws/multi/BespokeActionSimple', 
+              text: 'AlloDistribute', 
+              link: '/to-do', 
             },
             { 
-              text: 'OpenAction', 
-              link: '/laws/multi/OpenAction', 
+              text: 'AlloRPFGGovernance', 
+              link: '/to-do', 
             },
             { 
-              text: 'PresetMultipleActions', 
-              link: '/laws/multi/PresetMultipleActions', 
+              text: 'GovernorCreateProposal', 
+              link: '/laws/GovernorCreateProposal', 
             },
             { 
-              text: 'PresetSingleAction', 
-              link: '/laws/multi/PresetSingleAction', 
+              text: 'GovernorExecuteProposal', 
+              link: '/laws/GovernorExecuteProposal', 
             },
             { 
-              text: 'StatementOfIntent', 
-              link: '/laws/multi/StatementOfIntent', 
+              text: 'TreasuryPoolGovernance', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'TreasuryPoolTransfer', 
+              link: '/to-do', 
+            },
+            { 
+              text: 'TreasuryRoleWithTransfer', 
+              link: '/to-do', 
             },
           ], 
         },
