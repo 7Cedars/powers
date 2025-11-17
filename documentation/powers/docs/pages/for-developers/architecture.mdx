@@ -112,17 +112,20 @@ What is not flexible is how `Powers.sol` interacts with `Law.sol` implementation
 
 ::::steps 
 
-##### A user calls `Powers::Request` to request an action. 
+##### Request an action 
+A user calls `Powers::Request` to request an action. 
 
-##### The `Request` function runs checks. If all checks pass, it calls `Law::executeLaw`.  
+##### Run Standard Checks
+The `Powers::Request` function runs checks.  
 
-##### `Powers` calls `Law::executeLaw` to  an action. 
+##### Call ExecuteLaw 
+If all checks pass, it calls `Law::executeLaw` to execute an action. 
 
-##### The `Law::executeLaw` decodes input calldata, runs any optional additional checks and computes return function calls.
+##### Translate Input to Output Function Calls 
+The `Law::executeLaw` decodes input calldata, runs any optional additional checks and computes return function calls to `Powers::Fulfill`. 
 
-##### The `Law::executeLaw` calls `Powers::Fulfill` with the computed return function calls.
-
-##### The `Fulfill` function executes the returned function calls and stores any resulting state changes.
+##### Fulfilling an Action
+`Powers::Fulfill` executes the returned function calls and stores any resulting state changes.
 
 ::::
 

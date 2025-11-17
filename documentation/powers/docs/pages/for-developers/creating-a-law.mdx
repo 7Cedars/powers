@@ -1,0 +1,28 @@
+import { Callout } from 'vocs/components'
+
+# Creating a Law
+
+This guide provides instructions for developers on how to create and implement their own custom laws for the Powers protocol.
+
+<Callout type="info">
+  Currently, there is no no-code solution for creating laws. This process requires some knowledge of Solidity.
+</Callout>
+
+## 1. Understand the General Logic
+
+Before creating your own law, it is essential to understand the fundamental logic of how a law works within the Powers protocol.
+
+-   **`Law.sol` Contract**: This is the base implementation for all laws. It provides the core functionality and interface that your custom law will need to inherit. You can find the source code in the `solidity/src/Law.sol` file.
+-   **Law Documentation**: For a detailed explanation of the `Law.sol` contract, its functions, and best practices, please refer to the [The Law.sol Contract](./law) documentation page.
+
+## 2. Check Existing Examples
+
+The best way to learn how to implement a specific law is by studying the existing examples. The `solidity/src/laws` directory in the repository contains various implementations that you can use as a reference.
+
+These examples demonstrate how to implement different types of conditions and degrees of freedom, from simple role-based execution to complex voting mechanisms.
+
+## 3. Future Documentation
+
+<Callout type="info">
+  More extensive documentation on how to create your own law, including step-by-step tutorials and more detailed examples, will be provided in the future.
+</Callout>
