@@ -34,7 +34,7 @@ contract AdoptLaws is Law {
         public
         override
     {
-        inputParams = abi.encode("address[] lawAddress", "bytes[] lawInitData");
+        inputParams = abi.encode("address[] lawAddress", "uint256[] roleIds");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
@@ -48,13 +48,21 @@ contract AdoptLaws is Law {
     {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        (address[] memory laws_, bytes[] memory lawInitDatas_) = abi.decode(lawCalldata, (address[], bytes[]));
+        (address[] memory laws_, uint256[] memory roleIds_) = abi.decode(lawCalldata, (address[], uint256[]));
 
         // Create arrays for the calls to adoptLaw
         uint256 length = laws_.length;
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
+        PowersTypes.Conditions memory conditions;
+        
         for (uint256 i; i < length; i++) {
-            PowersTypes.LawInitData memory lawInitData = abi.decode(lawInitDatas_[i], (PowersTypes.LawInitData));
+            conditions.allowedRole = roleIds_[i];
+            PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
+                nameDescription: "Reform law",
+                targetLaw: laws_[i], 
+                config: abi.encode(),
+                conditions: conditions
+            });
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
         }

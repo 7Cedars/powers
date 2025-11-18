@@ -7,7 +7,6 @@ import { TestSetupExecutive } from "../../TestSetup.t.sol";
 import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
 import { GovernorCreateProposal } from "../../../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../../../src/laws/integrations/GovernorExecuteProposal.sol";
-import { AdoptLawsPackage } from "../../../src/laws/executive/AdoptLawsPackage.sol";
 import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
@@ -22,14 +21,12 @@ import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 ///      lawId 1: StatementOfIntent
 ///      lawId 2: GovernorCreateProposal
 ///      lawId 3: GovernorExecuteProposal
-///      lawId 4: AdoptLawsPackage
 ///      lawId 5: PresetSingleAction
 contract ExecutiveFuzzTest is TestSetupExecutive {
     // Law instances for testing
     StatementOfIntent statementOfIntent;
     GovernorCreateProposal governorCreateProposal;
     GovernorExecuteProposal governorExecuteProposal;
-    AdoptLawsPackage adoptLawsPackage;
     PresetSingleAction presetSingleAction; 
     OpenAction openAction;
 
@@ -42,7 +39,6 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     address[] lawsToAdopt;
     string[] descriptions;
     PowersTypes.LawInitData adoptLawData;
-    AdoptLawsPackage.Data adoptData;
     PresetSingleAction.Data presetDataSingle;
 
     function setUp() public override {
@@ -53,7 +49,6 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         statementOfIntent = StatementOfIntent(lawAddresses[4]);
         governorCreateProposal = GovernorCreateProposal(lawAddresses[9]);
         governorExecuteProposal = GovernorExecuteProposal(lawAddresses[10]);
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]);
         presetSingleAction = PresetSingleAction(lawAddresses[1]);
         openAction = OpenAction(lawAddresses[3]);
     }
@@ -334,68 +329,6 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         // Should revert due to empty description
         vm.expectRevert("GovernorExecuteProposal: Description cannot be empty");
         governorExecuteProposal.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
-    }
-
-    //////////////////////////////////////////////////////////////
-    //                    ADOPT LAWS FUZZ                       //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Fuzz test AdoptLawsPackage (lawId 4) returns preset adoption data regardless of input
-    /// @dev lawId 4 is configured to adopt a single PresetSingleAction law
-    function testFuzzAdoptLawsPackageIgnoresInput(bytes memory inputCalldataFuzzed, uint256 nonceFuzzed) public {
-        // Bound inputs
-        vm.assume(inputCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
-
-        // Get preset data for lawId 4
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(4)));
-        adoptData = adoptLawsPackage.getData(lawHash);
-
-        // Call with different inputs - should return same preset data
-        (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            adoptLawsPackage.handleRequest(alice, address(daoMock), 4, inputCalldataFuzzed, nonceFuzzed);
-
-        // Store first call results
-        address[] memory firstTargets = returnedTargets;
-        uint256[] memory firstValues = returnedValues;
-        bytes[] memory firstCalldatas = returnedCalldatas;
-
-        bytes memory differentInput = abi.encode("completely different");
-        (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            adoptLawsPackage.handleRequest(alice, address(daoMock), 4, differentInput, nonceFuzzed);
-
-        // Both should return same preset data
-        assertEq(firstTargets.length, returnedTargets.length);
-        assertEq(firstTargets.length, adoptData.laws.length);
-
-        for (i = 0; i < firstTargets.length; i++) {
-            assertEq(firstTargets[i], returnedTargets[i]);
-            assertEq(firstTargets[i], address(daoMock)); // Should target the daoMock
-            assertEq(firstValues[i], returnedValues[i]);
-            assertEq(firstValues[i], 0); // Values should be 0
-        }
-    }
-
-    /// @notice Fuzz test AdoptLawsPackage with various nonces
-    function testFuzzAdoptLawsPackageWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
-        vm.assume(nonce1 != nonce2);
-
-        lawCalldata = abi.encode();
-
-        (returnedActionId, returnedTargets,,) = adoptLawsPackage.handleRequest(alice, address(daoMock), 4, lawCalldata, nonce1);
-
-        uint256 firstActionId = returnedActionId;
-        address[] memory firstTargets = returnedTargets;
-
-        (returnedActionId, returnedTargets,,) = adoptLawsPackage.handleRequest(alice, address(daoMock), 4, lawCalldata, nonce2);
-
-        // Different nonces should produce different action IDs
-        assertTrue(firstActionId != returnedActionId);
-
-        // But same targets
-        assertEq(firstTargets.length, returnedTargets.length);
-        for (i = 0; i < firstTargets.length; i++) {
-            assertEq(firstTargets[i], returnedTargets[i]);
-        }
     }
 
     //////////////////////////////////////////////////////////////

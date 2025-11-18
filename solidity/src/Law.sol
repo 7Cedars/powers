@@ -110,7 +110,6 @@ abstract contract Law is ERC165, ILaw {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // Empty implementation - must be overridden
-        revert("HandleRequest not implemented");
     }
 
     /// @notice Meant to be used to call an external contract. Especially usefull in the case of async laws.
