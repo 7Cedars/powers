@@ -148,9 +148,9 @@ contract InitialisePowers is Script {
         creationCodes[7] = type(AdoptLaws).creationCode;
         constructorArgs[7] = abi.encode("AdoptLaws");
 
-        names[8] = "CcipHelper";
-        creationCodes[8] = type(CcipHelper).creationCode;
-        constructorArgs[8] = abi.encode("");
+        names[8] = "EMPTY SLOT";
+        creationCodes[8] = type(GovernorExecuteProposal).creationCode;
+        constructorArgs[8] = abi.encode("EMPTY SLOT");
 
         names[9] = "GovernorCreateProposal";
         creationCodes[9] = type(GovernorCreateProposal).creationCode; 

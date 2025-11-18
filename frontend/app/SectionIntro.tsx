@@ -14,7 +14,8 @@ export function SectionIntro() {
               Encode stakeholder relations
               </div>
               <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-4xl text-center pt-1">
-                Powers allows a single action to travel along multiple stakeholders through a modular, asynchronous and trustless governance path before it is executed.
+                {/* Powers allows a single action to travel along multiple stakeholders through a modular, asynchronous and trustless governance path before it is executed. */}
+                Separate and distribute power through through a modular, asynchronous and trustless governance systsems.
               </div>
           </section>
 
