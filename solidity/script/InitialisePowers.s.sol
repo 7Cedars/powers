@@ -21,7 +21,6 @@ import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanc
 import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
 import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
-import { AdoptLawsPackage } from "../src/laws/executive/AdoptLawsPackage.sol";
 
 // Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
@@ -149,9 +148,9 @@ contract InitialisePowers is Script {
         creationCodes[7] = type(AdoptLaws).creationCode;
         constructorArgs[7] = abi.encode("AdoptLaws");
 
-        names[8] = "AdoptLawsPackage";
-        creationCodes[8] = type(AdoptLawsPackage).creationCode;
-        constructorArgs[8] = abi.encode("AdoptLawsPackage");
+        names[8] = "EMPTY SLOT";
+        creationCodes[8] = type(GovernorExecuteProposal).creationCode;
+        constructorArgs[8] = abi.encode("EMPTY SLOT");
 
         names[9] = "GovernorCreateProposal";
         creationCodes[9] = type(GovernorCreateProposal).creationCode; 

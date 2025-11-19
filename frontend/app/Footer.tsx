@@ -15,8 +15,14 @@ export function Footer() {
                     <div className="font-bold"> 
                         DApp
                     </div>
-                    <a
+                     <a
                         href={`https://powers-protocol.vercel.app/`} target="_blank" rel="noopener noreferrer"
+                        className="text-slate-500"
+                    >
+                        Landing
+                    </a>
+                    <a
+                        href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Docs

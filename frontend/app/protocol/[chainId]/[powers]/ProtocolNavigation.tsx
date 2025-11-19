@@ -124,6 +124,8 @@ const Header = () => {
   const { fetchPowers } = usePowers(); 
   const publicClient = usePublicClient();
   const [blockNumber, setBlockNumber] = useState<bigint | null>(null);
+  const pathname = usePathname()
+  const isProtocolPage = pathname === '/protocol' 
 
   useEffect(() => {
     const fetchBlockNumber = async () => {
@@ -145,7 +147,7 @@ const Header = () => {
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">
     <section className="grow flex flex-row gap-1 justify-between pe-2">
       <div className="flex flex-row gap-2 items-center"> 
-        <a href="/"  
+        <a href="/protocol"  
             className="flex flex-row justify-center items-center rounded-md p-1 px-2"
             >  
           <Image 
@@ -156,10 +158,12 @@ const Header = () => {
             >
           </Image>
         </a> 
-        <BlockCounter onRefresh={() => {
-          fetchPowers(powersAddress as `0x${string}`);
-          // fetchBlockNumber();
-        }} blockNumber={blockNumber} />
+        {!isProtocolPage && 
+          <BlockCounter onRefresh={() => {
+            fetchPowers(powersAddress as `0x${string}`);
+            // fetchBlockNumber();
+          }} blockNumber={blockNumber} />
+        }
         {/* <button
           onClick={() => fetchPowers(powersAddress as `0x${string}`)}
           disabled={statusPowers.status == "pending"}

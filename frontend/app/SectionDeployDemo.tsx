@@ -48,7 +48,7 @@ export function SectionDeployDemo() {
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [selectedChain, setSelectedChain] = useState("Optimism Sepolia");
 
-  console.log("@SectionDeployDemo: formData", formData);
+  // console.log("@SectionDeployDemo: formData", formData);
   // console.log("test formData", formData["docsPoolId"]);
 
   // Get available organizations based on localhost condition
@@ -77,7 +77,7 @@ export function SectionDeployDemo() {
     setDeployedLaws(data.laws as Record<string, `0x${string}`>);
   }, []);
 
-  console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
+  // console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
 
   // Ensure selected chain is valid when organization changes
   useEffect(() => {
@@ -98,7 +98,7 @@ export function SectionDeployDemo() {
   }, [selectedChainId, chain?.id, switchChain]);
 
   const handleInputChange = (fieldName: string, value: string) => {
-    console.log("@SectionDeployDemo: handleInputChange", { fieldName, value });
+    // console.log("@SectionDeployDemo: handleInputChange", { fieldName, value });
     setFormData(prev => ({
       ...prev,
       [fieldName]: value

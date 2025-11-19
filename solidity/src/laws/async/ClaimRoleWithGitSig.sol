@@ -192,6 +192,8 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
 
         // Pack data needed for the _externalCall and fulfillRequest
+        // calldatas = new bytes[](1);
+
         calldatas[0] = abi.encode(
             mem.roleId,
             caller, // Pass the original caller
@@ -294,6 +296,18 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         if (sSigner == request.caller) {
             chainlinkReplies[lawHash][request.caller] = request.roleId; 
         }
+
+        // executing this in the callback function fails because it takes too much gas.
+        // leaving it here to remember. 
+        // (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
+
+        // Powers(request.powers).fulfill(
+        //     request.lawId,
+        //     request.actionId,
+        //     targets,
+        //     values,
+        //     calldatas
+        // );
     }
 
     // --- View Functions ---

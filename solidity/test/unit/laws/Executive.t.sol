@@ -2,7 +2,6 @@
 pragma solidity 0.8.26;
 
 import { TestSetupExecutive, TestSetupMulti } from "../../TestSetup.t.sol";
-import { AdoptLawsPackage } from "../../../src/laws/executive/AdoptLawsPackage.sol"; 
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
@@ -626,150 +625,16 @@ contract MultiEdgeCaseTest is TestSetupMulti {
     // }
 }
 
-
-//////////////////////////////////////////////////
-//              ADOPT LAWS TESTS               //
-//////////////////////////////////////////////////
-contract AdoptLawsPackageTest is TestSetupExecutive {
-    AdoptLawsPackage adoptLawsPackage;
-    OpenAction openAction;
-    PresetSingleAction presetSingleAction;
-
-    function setUp() public override {
-        super.setUp();
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]); // AdoptLaws from executive constitution
-        openAction = OpenAction(lawAddresses[3]); // OpenAction
-        presetSingleAction = PresetSingleAction(lawAddresses[1]); // PresetSingleAction
-        lawId = 4; // AdoptLawsPackage law ID in executive constitution
-    }
-
-    function testAdoptLawsPackageInitialization() public {
-        // Setup laws to adopt
-        address[] memory lawsToAdopt = new address[](2);
-        lawsToAdopt[0] = address(openAction);
-        lawsToAdopt[1] = address(presetSingleAction);
-
-        // Create law init data for adoption
-        PowersTypes.LawInitData memory lawInitData1 = PowersTypes.LawInitData({
-            nameDescription: "Test Law 1",
-            targetLaw: address(openAction),
-            config: abi.encode(),
-            conditions: PowersTypes.Conditions({
-                allowedRole: type(uint256).max,
-                quorum: 0,
-                succeedAt: 0,
-                votingPeriod: 0,
-                delayExecution: 0,
-                throttleExecution: 0,
-                needFulfilled: 0,
-                needNotFulfilled: 0
-            })
-        });
-
-        PowersTypes.LawInitData memory lawInitData2 = PowersTypes.LawInitData({
-            nameDescription: "Test Law 2",
-            targetLaw: address(presetSingleAction),
-            config: abi.encode(new address[](1), new uint256[](1), new bytes[](1)),
-            conditions: PowersTypes.Conditions({
-                allowedRole: type(uint256).max,
-                quorum: 0,
-                succeedAt: 0,
-                votingPeriod: 0,
-                delayExecution: 0,
-                throttleExecution: 0,
-                needFulfilled: 0,
-                needNotFulfilled: 0
-            })
-        });
-
-        bytes[] memory lawInitDatas = new bytes[](2);
-        lawInitDatas[0] = abi.encode(lawInitData1);
-        lawInitDatas[1] = abi.encode(lawInitData2);
-
-        // Test law initialization
-        lawId = daoMock.lawCounter();
-        nameDescription = "Test Adopt Laws";
-        configBytes = abi.encode(lawsToAdopt, lawInitDatas);
-
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
-                nameDescription: nameDescription,
-                targetLaw: address(adoptLawsPackage),
-                config: configBytes,
-                conditions: conditions
-            })
-        );
-
-        // Verify law data is stored correctly
-        lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        AdoptLawsPackage.Data memory data = adoptLawsPackage.getData(lawHash);
-        assertEq(data.laws.length, 2);
-        assertEq(data.laws[0], address(openAction));
-        assertEq(data.laws[1], address(presetSingleAction));
-        assertEq(data.lawInitDatas.length, 2);
-    }
-
-    function testAdoptLawsPackageExecution() public {
-        // Setup laws to adopt
-        address[] memory lawsToAdopt = new address[](1);
-        lawsToAdopt[0] = address(openAction);
-
-        // Create mock law call ]
-        targets = new address[](1);
-        targets[0] = address(mockAddresses[0]);
-        values = new uint256[](1);
-        values[0] = 0;
-        calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSelector(SimpleErc20Votes.mintVotes.selector, 1000);
-        bytes memory lawCallData = abi.encode(targets, values, calldatas);
-
-        PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            nameDescription: "Test Adopted Law",
-            targetLaw: address(openAction),
-            config: abi.encode(),
-            conditions: PowersTypes.Conditions({
-                allowedRole: type(uint256).max,
-                quorum: 0,
-                succeedAt: 0,
-                votingPeriod: 0,
-                delayExecution: 0,
-                throttleExecution: 0,
-                needFulfilled: 0,
-                needNotFulfilled: 0
-            })
-        });
-
-        bytes[] memory lawInitDatas = new bytes[](1);
-        lawInitDatas[0] = abi.encode(lawInitData);
-
-        // Setup law
-        lawId = daoMock.lawCounter();
-        vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
-
-        // Execute adoption
-        vm.prank(alice);
-        daoMock.request(lawId, lawCallData, nonce, "Test adopt laws");
-
-        // Should succeed
-        actionId = uint256(keccak256(abi.encode(lawId, lawCallData, nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-}
- 
 //////////////////////////////////////////////////
 //              EDGE CASE TESTS                //
 //////////////////////////////////////////////////
 contract ExecutiveEdgeCaseTest is TestSetupExecutive {
-    AdoptLawsPackage adoptLawsPackage; 
     OpenAction openAction;
     PresetSingleAction presetSingleAction;
     SimpleGovernor simpleGovernor;
 
     function setUp() public override {
         super.setUp();
-        adoptLawsPackage = AdoptLawsPackage(lawAddresses[8]); 
         openAction = OpenAction(lawAddresses[3]);
         presetSingleAction = PresetSingleAction(lawAddresses[1]);
         simpleGovernor = SimpleGovernor(payable(mockAddresses[4]));
@@ -803,19 +668,6 @@ contract ExecutiveEdgeCaseTest is TestSetupExecutive {
 
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas, description), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-
-    function testExecutiveLawsWithEmptyInputs() public {
-        // Test that laws handle empty inputs gracefully
-        lawId = 4; // AdoptLawsPackage law ID
-
-        // Execute with empty input
-        vm.prank(alice);
-        daoMock.request(lawId, abi.encode(), nonce, "Test empty input");
-
-        // Should succeed
-        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
 

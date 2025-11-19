@@ -25,7 +25,7 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
   const action = useActionStore();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(action.lawId))
   
-  console.log("@New, waypoint 0", {action, law, powers, finalFilteredLaws, hasRoles})
+  // console.log("@New, waypoint 0", {action, law, powers, finalFilteredLaws, hasRoles})
 
   // If a law is selected, show the either LawBox or ProposalBox
   if (law) {

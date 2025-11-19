@@ -49,7 +49,7 @@ export default defineConfig({
         },
         { 
           text: 'Creating a law', 
-          link: '/to-do', 
+          link: '/for-developers/creating-a-law', 
         },
       ], 
     }, 

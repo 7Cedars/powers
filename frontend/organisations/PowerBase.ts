@@ -507,7 +507,7 @@ export const PowerBase: Organization = {
     // //////////////////////////////////////////////////////////////////
     const adoptLawsConfig = encodeAbiParameters(
       parseAbiParameters('string[] inputParams'),
-      [["address[] laws", "bytes[] lawInitDatas"]]
+      [["address[] laws", "uint256[] roleIds"]]
     );
 
     // Adopt Laws flow. 

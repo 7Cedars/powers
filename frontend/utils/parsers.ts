@@ -311,6 +311,8 @@ export const parseLawError = (rawReply: unknown): string => {
     return "."
   }
 
+  console.log("@parseLawError: ", {rawReply})
+
   // Convert to string for processing
   let errorString: string
   try {

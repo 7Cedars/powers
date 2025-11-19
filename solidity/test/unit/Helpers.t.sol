@@ -29,7 +29,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
         treasury.depositNative{value: 1 ether}();
         assertEq(address(treasury).balance, 1 ether);
         assertEq(treasury.transferCount(), 1);
-        TreasurySimple.TransferLog memory log = treasury.getTransfer(0);
+        TreasurySimple.TransferLog memory log = treasury.getTransfer(1);
         (address from, address token, uint256 amount, uint256 blockNumber) = (log.from, log.token, log.amount, log.blockNumber);
         assertEq(from, alice);
         assertEq(token, address(0));
@@ -45,7 +45,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
 
         assertEq(erc20.balanceOf(address(treasury)), 100 ether);
         assertEq(treasury.transferCount(), 1);
-        TreasurySimple.TransferLog memory log = treasury.getTransfer(0);
+        TreasurySimple.TransferLog memory log = treasury.getTransfer(1); // transfer log starts at 1. 
         (address from, address token, uint256 amount, uint256 blockNumber) = (log.from, log.token, log.amount, log.blockNumber);
         assertEq(from, alice);
         assertEq(token, address(erc20));
