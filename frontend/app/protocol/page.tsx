@@ -6,9 +6,9 @@ import { Powers } from '@/context/types'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Footer } from '@/app/Footer'
+import { ProtocolListingLayout } from './ProtocolListingLayout'
 
-export default function ProfilePage() {
+export default function ProtocolPage() {
   const [savedProtocols, setSavedProtocols] = useState<Powers[]>([])
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [protocolToDelete, setProtocolToDelete] = useState<Powers | null>(null)
@@ -72,7 +72,7 @@ export default function ProfilePage() {
 
   const handleProtocolClick = (protocol: Powers) => {
     const chainId = protocol.chainId ? Number(protocol.chainId).toString() : '11155111'
-    router.push(`/user/${chainId}/${protocol.contractAddress}`)
+    router.push(`/protocol/${chainId}/${protocol.contractAddress}`)
   }
 
   const handleDeleteClick = (e: React.MouseEvent, protocol: Powers) => {
@@ -98,7 +98,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col justify-between items-center overflow-y-auto">
+    <ProtocolListingLayout>
       <div className="w-full flex-1 flex flex-col items-center p-4 pt-20">
         <div className="max-w-6xl w-full">
           {/* <h1 className="text-3xl font-bold text-slate-800 mb-3 text-center">
@@ -156,8 +156,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <Footer />
-
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && protocolToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -207,6 +205,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </div>
+    </ProtocolListingLayout>
   )
 }

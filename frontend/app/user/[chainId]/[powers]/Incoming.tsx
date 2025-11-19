@@ -27,7 +27,7 @@ const getIncomingActions = (
   const incomingActions: Action[] = []
   
   // Step 1: get the user roles and laws 
-  const allActionIds = powers.laws?.flatMap(l => l.actions?.map(a => a?.actionId as unknown as bigint)) || []
+  const allActionIds = powers.laws?.flatMap(l => l.actions?.map(a => BigInt(a.actionId))) || []
   const userLaws = powers.laws?.filter(law => 
     law.active && law.conditions && hasRoles.some(role => role === law.conditions?.allowedRole as bigint)
   )
@@ -60,7 +60,7 @@ const getIncomingActions = (
         action.callData as `0x${string}`,
         BigInt(action.nonce as string)
       )
-      const isNotActionId = !allActionIds.includes(actionId as unknown as bigint)
+      const isNotActionId = !allActionIds.includes(actionId)
       console.log("waypoint 4: ", {actionId, isNotActionId, allActionIds})
 
       if (isNotActionId) {

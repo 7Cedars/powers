@@ -30,7 +30,8 @@ export default function Page() {
                         <b>Powers</b>  
                     </div>
                     <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
-                        Separate and distribute power through on-chain institutional governance.
+                        {/* Separate and distribute power through on-chain institutional governance. */}
+                        Trustless Rule of Law for On-chain Institutions
                     </div>
                 </section> 
 
