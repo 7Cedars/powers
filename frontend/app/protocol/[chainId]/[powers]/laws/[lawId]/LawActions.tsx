@@ -80,7 +80,9 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                             href="#"
                             onClick={e => { 
                               const paramValues = callDataToActionParams(action, powers)
-                              setAction({...action, paramValues: paramValues, upToDate: false})
+                              const law = powers?.laws?.find(l => l.index === action.lawId)
+                              const dataTypes = law?.params?.map(p => p.dataType)
+                              setAction({...action, paramValues: paramValues, dataTypes: dataTypes, upToDate: false})
                               e.preventDefault()
                               router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
                             }}
