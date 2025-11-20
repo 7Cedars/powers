@@ -56,23 +56,15 @@ const Page = () => {
     }
   }, [action.actionId, law]);
 
-  // useEffect(() => {
-  //   if (!action.upToDate ) {
-  //     setPopulatedAction(
-  //       {...action, state: 0}
-  //     );
-  //   }
-  // }, [action])
-
   // resetting DynamicForm and fetching executions when switching laws: 
   useEffect(() => {
     if (law) {
       // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)
-      const dissimilarTypes = action.dataTypes ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
-      // console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
+      const dissimilarTypes = action.dataTypes && action.dataTypes.length != 0 ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
+      console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
       
-      if (dissimilarTypes.find(type => type == true)) {
-        // console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
+      if (dissimilarTypes.find(type => type == true) || !action.dataTypes) {
+        console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
         setAction({
           lawId: law.index,
           dataTypes: law.params?.map(param => param.dataType),
@@ -82,7 +74,7 @@ const Page = () => {
           upToDate: false
         })
       } else {
-        // console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
+        console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
         setAction({
           ...action,  
           lawId: law.index,
