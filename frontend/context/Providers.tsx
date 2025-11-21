@@ -2,7 +2,7 @@
 
 import React from "react";
 import { PrivyClientConfig, PrivyProvider } from '@privy-io/react-auth';
-import { arbitrumSepolia, baseSepolia, foundry, optimismSepolia, sepolia } from '@wagmi/core/chains'
+import { arbitrumSepolia, baseSepolia, foundry, optimismSepolia, sepolia, zksyncSepoliaTestnet } from '@wagmi/core/chains'
 import { wagmiConfig } from './wagmiConfig'  
 import { WagmiProvider } from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -14,6 +14,10 @@ const isLocalhost = typeof window !== 'undefined' && window.location.hostname ==
 const privyConfig: PrivyClientConfig = {
   defaultChain: arbitrumSepolia,
   supportedChains: [
+    zksyncSepoliaTestnet,
+    optimismSepolia,
+    baseSepolia,
+    sepolia,
     arbitrumSepolia,
     ...(isLocalhost ? [foundry] : [])
   ],

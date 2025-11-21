@@ -306,6 +306,8 @@ fund-treasury-anvil :; forge script script/FundTreasury.s.sol:FundTreasury $(ANV
 initialise-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
 initialise-op-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
 initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)
+# initialise-base-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
+# initialise-zksync-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 
 deploy-lawPackages-op-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(OPT_SEPOLIA_DEPLOY_ARGS)
 

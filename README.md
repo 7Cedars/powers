@@ -21,7 +21,7 @@
     <br />
     <!--TO DO: UPDATE LINKS AFTERUPDATING ORGS -->  
     <a href=" ">6 min intro clip</a> ·
-    <a href=" ">White paper</a> ·
+    <a href=" ">Litepaper</a> ·
     <a href="/solidity">Solidity protocol</a> ·
     <a href="https://powers-protocol.vercel.app/11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9">Demo</a> ·
     <a href="https://powers-docs.vercel.app/welcome">Documentation</a>

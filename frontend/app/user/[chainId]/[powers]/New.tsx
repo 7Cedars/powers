@@ -8,11 +8,15 @@ import { Law, Powers } from '@/context/types'
 import { useActionStore, setAction, useStatusStore, usePowersStore } from '@/context/store'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { LawBox } from '@/components/LawBox'
+import { LawDependenciesList } from '@/components/LawDependenciesList'
+import { useChains } from 'wagmi'
 
 export default function New({hasRoles}: {hasRoles: bigint[]}) {
   const { chainId } = useParams<{ chainId: string }>()
   const powers = usePowersStore();
   const { authenticated } = usePrivy()
+  const chains = useChains()
+  const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
 
   // const { fetchChecks, status: statusChecks, checks } = useChecks()
   const finalFilteredLaws = powers?.laws?.filter(law => 
@@ -24,13 +28,27 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
   const status = useStatusStore(); 
   const action = useActionStore();
   const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(action.lawId))
+
+    // Get laws that will be enabled by executing the selected item's law
+  const enabledLaws = action.actionId && powers?.laws ? 
+    powers.laws.filter(law => 
+      law.active && 
+      law.conditions?.needFulfilled == action.lawId
+    ) : []
+
+  // Get laws that will be blocked by executing the selected item's law
+  const blockedLaws = action.actionId && powers?.laws ? 
+    powers.laws.filter(law => 
+      law.active && 
+      law.conditions?.needNotFulfilled == action.lawId
+    ) : []
   
   // console.log("@New, waypoint 0", {action, law, powers, finalFilteredLaws, hasRoles})
 
   // If a law is selected, show the either LawBox or ProposalBox
   if (law) {
     return (
-      <div className="w-full mx-auto">
+      <div className="w-full mx-auto pb-12">
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
           <div className="p-4 border-b border-slate-100">
             <div className="flex items-center gap-3">
@@ -50,6 +68,20 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
               law={law}
               status={status.status}
               params={law.params || []}
+            />
+
+             <LawDependenciesList
+              laws={enabledLaws}
+              mode="enables"
+              powers={powers as Powers}
+              blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
+            />
+
+            <LawDependenciesList
+              laws={blockedLaws}
+              mode="blocks"
+              powers={powers as Powers}
+              blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
             />
 
           </div>
@@ -80,7 +112,7 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
 
   ///  List of laws for the selected roles /// 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto pb-12">
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
         <div className="p-4 border-b border-slate-200">
           <div className="flex items-center justify-between">
@@ -92,7 +124,7 @@ export default function New({hasRoles}: {hasRoles: bigint[]}) {
         </div>
         
         {/* Render UserItem components for each filtered law */}
-        <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
+        <div className="max-h-[calc(100vh-200px)] divide-y divide-slate-200">
           {status.status === "pending" ? (
             <div className="p-4">
               <div className="flex items-center justify-center py-8">

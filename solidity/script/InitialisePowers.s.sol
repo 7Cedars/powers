@@ -131,7 +131,7 @@ contract InitialisePowers is Script {
         creationCodes[3] = type(OpenAction).creationCode; 
         constructorArgs[3] = abi.encode("OpenAction");
 
-        names[4] = "StatementOfIntent";
+        names[4] = "StatementOfIntent"; 
         creationCodes[4] = type(StatementOfIntent).creationCode;
         constructorArgs[4] = abi.encode("StatementOfIntent");
 

@@ -39,10 +39,10 @@ export function Footer() {
                         Protocol
                     </div>
                     <a
-                        href={`https://powers-docs.vercel.app/for-developers/white-paper`} target="_blank" rel="noopener noreferrer"
+                        href={`https://powers-docs.vercel.app/for-developers/litepaper`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        White Paper
+                        Litepaper
                     </a>
                     <a
                         href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"

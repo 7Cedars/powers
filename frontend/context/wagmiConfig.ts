@@ -1,6 +1,6 @@
 import { createConfig, http, webSocket } from '@wagmi/core'
 import { injected, coinbaseWallet } from '@wagmi/connectors'
-import { foundry, sepolia, polygonMumbai, baseSepolia, arbitrumSepolia, mainnet, xLayerTestnet, mantleSepoliaTestnet } from '@wagmi/core/chains' 
+import { foundry, sepolia, baseSepolia, arbitrumSepolia, zksyncSepoliaTestnet, surgeTestnet } from '@wagmi/core/chains' 
 import { defineChain } from 'viem'
 
 const sourceId = 11_155_111 // sepolia
@@ -58,8 +58,10 @@ export const wagmiConfig = createConfig({
   chains: [
     arbitrumSepolia, 
     sepolia, 
-    optimismSepolia,
-    mantleSepoliaTestnet,
+    optimismSepolia, 
+    baseSepolia,
+    zksyncSepoliaTestnet,
+    surgeTestnet,
     ...(isLocalhost ? [foundry] : [])
   ],
   // batch: { multicall: true }, 
@@ -68,8 +70,9 @@ export const wagmiConfig = createConfig({
     [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_ARB_SEPOLIA_HTTPS), 
     [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_HTTPS), 
     [optimismSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_OPT_SEPOLIA_HTTPS),
-    [mantleSepoliaTestnet.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_MANTLE_SEPOLIA_HTTPS),
-    // [baseSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_BASE_SEPOLIA_HTTPS),
+    [baseSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_BASE_SEPOLIA_HTTPS),
+    [zksyncSepoliaTestnet.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_ZKSYNC_SEPOLIA_HTTPS),
+    [surgeTestnet.id]: http(),
     [foundry.id]: http("http://localhost:8545"),   
   },
   ssr: true,

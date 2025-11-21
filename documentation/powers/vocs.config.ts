@@ -28,8 +28,8 @@ export default defineConfig({
       collapsed: false, 
       items: [ 
         {
-          text: 'White Paper',
-          link: '/for-developers/white-paper',
+          text: 'Litepaper',
+          link: '/for-developers/litepaper',
         },
         { 
           text: 'Architecture', 

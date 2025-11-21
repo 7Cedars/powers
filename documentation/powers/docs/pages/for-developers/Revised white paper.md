@@ -1,4 +1,4 @@
-# White Paper: Powers v0.4
+# Litepaper: Powers v0.4
 
 ## Trustless Rule of Law for On-chain Institutions 
 
