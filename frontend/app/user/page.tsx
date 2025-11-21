@@ -18,9 +18,9 @@ export default function ProfilePage() {
 
   // Default Powers 101 protocol
   const defaultPowers101: Powers = {
-    contractAddress: '0x0000000000000000000000000000000000000001' as `0x${string}`,
-    chainId: 11155111n,
-    name: 'Powers 101',
+    contractAddress: '0x15c7ce6f92d62266800c625caa16556c4bf0d08b' as `0x${string}`,
+    chainId: 11155420n,
+    name: 'Powers Base',
     uri: 'https://powers-protocol.com/metadata/powers101.json',
     metadatas: {
       icon: '/logo1_notext.png',
@@ -33,6 +33,21 @@ export default function ProfilePage() {
     roles: [],
   }
 
+  const defaultPowerBase: Powers = {
+    contractAddress: '0x15c7ce6f92d62266800c625caa16556c4bf0d08b' as `0x${string}`,
+    chainId: 11155420n,
+    name: 'Powers Base',
+    uri: 'https://powers-protocol.com/metadata/powers101.json',
+    metadatas: {
+      icon: '/logo1_notext.png',
+      banner: '/orgMetadatas/PowersDAO_Banner.png',
+      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
+      attributes: []
+    },
+    lawCount: 0n,
+    laws: [],
+    roles: [],
+  }
   useEffect(() => {
     const loadSavedProtocols = () => {
       try {

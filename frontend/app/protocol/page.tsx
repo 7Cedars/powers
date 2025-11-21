@@ -18,14 +18,30 @@ export default function ProtocolPage() {
 
   // Default Powers 101 protocol
   const defaultPowers101: Powers = {
-    contractAddress: '0x0000000000000000000000000000000000000001' as `0x${string}`,
-    chainId: 11155111n,
+    contractAddress: '0x7bf197a08235cdc3eaf42820dab0547b12f680a2' as `0x${string}`,
+    chainId: 11155420n,
     name: 'Powers 101',
-    uri: 'https://powers-protocol.com/metadata/powers101.json',
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicbh6txnypkoy6ivngl3l2k6m646hruupqspyo7naf2jpiumn2jqe",
     metadatas: {
       icon: '/logo1_notext.png',
-      banner: '/orgMetadatas/PowersDAO_Banner.png',
-      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
+      banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeickdiqcdmjjwx6ah6ckuveufjw6n2g6qdvatuhxcsbmkub3pvshnm",
+      description: "A simple DAO with basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
+      attributes: []
+    },
+    lawCount: 0n,
+    laws: [],
+    roles: [],
+  }
+
+  const defaultPowerBase: Powers = {
+    contractAddress: '0x15c7ce6f92d62266800c625caa16556c4bf0d08b' as `0x${string}`,
+    chainId: 11155420n,
+    name: 'Power Base',
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiamywxjb6kddwboempkqka37lkdmuljc2t7oju4bzfuxdlau575zu",
+    metadatas: {
+      icon: '/logo1_notext.png',
+      banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
+      description: "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Allo v2 for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
       attributes: []
     },
     lawCount: 0n,
@@ -45,15 +61,19 @@ export default function ProtocolPage() {
 
         // Check if Powers 101 already exists
         const powers101Exists = protocols.some(p => p.name === 'Powers 101')
+        const powerBaseExists = protocols.some(p => p.name === 'Power Base')
         
         if (!powers101Exists) {
           // Add Powers 101 to the list
           protocols.unshift(defaultPowers101) 
+        }
+        if (!powerBaseExists) {
+          // Add Power Base to the list
+          protocols.unshift(defaultPowerBase) 
           localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           ))
         }
-
         setSavedProtocols(protocols)
       } catch (error) {
         console.error('Error loading saved protocols:', error)
