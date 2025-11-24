@@ -153,7 +153,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolBudgetIncrease,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
@@ -166,7 +166,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolBudgetIncrease,
       conditions: createConditions({
         allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 66n, quorum: 50n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -193,7 +193,7 @@ export const PowerBase: Organization = {
         ),
         conditions: createConditions({
           allowedRole: role.id,
-          votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 25n,
+          votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 25n,
           needNotFulfilled: vetoLawIndex, // Must not be vetoed
           needFulfilled: proposalLawIndex    // Must be proposed
         })
@@ -216,7 +216,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
@@ -228,7 +228,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 66n, quorum: 50n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -240,7 +240,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 2n, // First Doc Contributors ok the proposal
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needNotFulfilled: lawCount - 1n, // Can only ok if vetoed
         needFulfilled: lawCount - 2n // Can only veto if proposed
       })
@@ -253,7 +253,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolCreation,
       conditions: createConditions({
         allowedRole: 3n, // Second Frontend Contributors ok the proposal
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -274,7 +274,7 @@ export const PowerBase: Organization = {
       conditions: createConditions({
         allowedRole: 4n, // 4n, // Third Protocol Contributors executes the proposal
         // NB! took out needFulfilled + voting for testing purposes. NEED TO REINSTATE AFTERWARDS! 
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needFulfilled: lawCount - 1n
       })
     });
@@ -290,7 +290,7 @@ export const PowerBase: Organization = {
           treasuryAddress as `0x${string}`,
           Number(proposalLawIndex),
           Number(vetoLawIndex),
-          Number(minutesToBlocks(3, chainId)), 
+          Number(minutesToBlocks(10, chainId)), 
           51, 
           25
         ]
@@ -318,7 +318,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolFunding,
       conditions: createConditions({
         allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
       })
     });
@@ -330,7 +330,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolFunding,
       conditions: createConditions({
         allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 66n, quorum: 50n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -342,7 +342,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolFunding,
       conditions: createConditions({
         allowedRole: 2n, // First Doc Contributors ok the proposal
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needNotFulfilled: lawCount - 1n, // Can only ok if vetoed
         needFulfilled: lawCount - 2n // Can only veto if proposed
       })
@@ -355,7 +355,7 @@ export const PowerBase: Organization = {
       config: inputParamsPoolFunding,
       conditions: createConditions({
         allowedRole: 3n, // Second Frontend Contributors ok the proposal
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needFulfilled: lawCount - 1n // Can only veto if proposed
       })
     });
@@ -376,7 +376,7 @@ export const PowerBase: Organization = {
       conditions: createConditions({
         allowedRole: 4n, // 4n, // Third Protocol Contributors executes the proposal
         // NB! took out needFulfilled + voting for testing purposes. NEED TO REINSTATE AFTERWARDS! 
-        votingPeriod: minutesToBlocks(3, chainId), succeedAt: 51n, quorum: 33n,
+        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
         needFulfilled: lawCount - 1n
       })
     });
@@ -493,7 +493,7 @@ export const PowerBase: Organization = {
       ),
       conditions: createConditions({
         allowedRole: 5n, // Members propose/vote
-        votingPeriod: minutesToBlocks(3, chainId),
+        votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 51n,
         quorum: 5n, // Note: low quorum
         delayExecution: minutesToBlocks(3, chainId),
@@ -519,7 +519,7 @@ export const PowerBase: Organization = {
       config: adoptLawsConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(3, chainId),
+        votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -533,7 +533,7 @@ export const PowerBase: Organization = {
       config: adoptLawsConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(3, chainId),
+        votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: lawCount - 1n
@@ -567,7 +567,7 @@ export const PowerBase: Organization = {
       config: revokeLawsConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(3, chainId),
+        votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -581,7 +581,7 @@ export const PowerBase: Organization = {
       config: revokeLawsConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(3, chainId),
+        votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: lawCount - 1n
