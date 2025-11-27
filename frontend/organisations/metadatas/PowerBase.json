@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
   "description": 
-    "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Allo v2 for decentralized grant management and is governed by contributors who are verified via EVM signatures posted in GitHub commits.",
+    "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Safe Smart Accounts for decentralized grant management and is governed by contributors who are verified via EVM signatures posted in GitHub commits.",
   "website": "https://powers-docs.vercel.app/organisations/powerBase",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 

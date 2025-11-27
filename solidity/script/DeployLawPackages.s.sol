@@ -9,7 +9,7 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 import { InitialisePowers } from "./InitialisePowers.s.sol";
-import { LawPackage } from "../src/laws/executive/LawPackage.sol";
+import { LawPackage } from "../src/laws/reform/LawPackage.sol";
 
 // @dev this script deploys custom law packages to the chain.
 contract DeployLawPackages is Script {

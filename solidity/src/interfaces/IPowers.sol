@@ -1,16 +1,6 @@
     // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and contracts have not been extensively audited.   ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
+
 
 /// @title Powers Protocol Interface
 /// @notice Interface for Powers, a protocol implementing Institutional Governance.

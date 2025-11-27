@@ -31,7 +31,6 @@ remappings = [
     "@chainlink/contracts-ccip/=lib/chainlink-ccip/chains/evm/contracts",
     "@mocks/=test/mocks/",
     "@multicall3/=lib/multicall3/src/",
-    # Allo-v2 remappings (non-@ prefixed - for allo-v2 contracts only)
     "openzeppelin-contracts-upgradeable/=lib/allo-v2/lib/openzeppelin-contracts-upgradeable/",
     "openzeppelin-contracts/=lib/allo-v2/lib/openzeppelin-contracts/",
     "solady/=lib/allo-v2/lib/solady/src/",

@@ -31,15 +31,13 @@ import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
 import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
+import { AssignExternalRole } from "../src/laws/electoral/AssignExternalRole.sol";
 
 // async laws
 import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
 import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol";
 
 // Integration Laws 
-import { AlloCreateRPGFPool } from "../src/laws/integrations/AlloCreateRPGFPool.sol";
-import { AlloDistribute } from "../src/laws/integrations/AlloDistribute.sol";
-import { AlloRPFGGovernance } from "../src/laws/integrations/AlloRPFGGovernance.sol";
 import { TreasuryPoolGovernance } from "../src/laws/integrations/TreasuryPoolGovernance.sol";
 import { TreasuryRoleWithTransfer } from "../src/laws/integrations/TreasuryRoleWithTransfer.sol";
 import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTransfer.sol";
@@ -110,10 +108,10 @@ contract InitialisePowers is Script {
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
     function deployAndRecordLaws(HelperConfig.NetworkConfig memory config_) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](29);   
-        addresses = new address[](29);
-        bytes[] memory creationCodes = new bytes[](29);
-        bytes[] memory constructorArgs = new bytes[](29);
+        names = new string[](30);   
+        addresses = new address[](30);
+        bytes[] memory creationCodes = new bytes[](30);
+        bytes[] memory constructorArgs = new bytes[](30);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -147,8 +145,8 @@ contract InitialisePowers is Script {
         names[7] = "AdoptLaws";
         creationCodes[7] = type(AdoptLaws).creationCode;
         constructorArgs[7] = abi.encode("AdoptLaws");
-
-        names[8] = "EMPTY SLOT";
+    
+        names[8] = "EMPTY SLOT0";
         creationCodes[8] = type(GovernorExecuteProposal).creationCode;
         constructorArgs[8] = abi.encode("EMPTY SLOT");
 
@@ -198,18 +196,17 @@ contract InitialisePowers is Script {
         constructorArgs[19] = abi.encode("RenounceRole");
 
         // Integration laws
-        names[20] = "AlloCreateRPGFPool";
-        creationCodes[20] = type(AlloCreateRPGFPool).creationCode;
-        constructorArgs[20] = abi.encode("AlloCreateRPGFPool");
+        names[20] = "EMTPY SLOT1";
+        creationCodes[20] = type(SelfSelect).creationCode;
+        constructorArgs[20] = abi.encode("EMPTY SLOT"); 
 
-        names[21] = "AlloDistribute";
-        creationCodes[21] = type(AlloDistribute).creationCode;
-        constructorArgs[21] = abi.encode("AlloDistribute");
+        names[21] = "EMTPY SLOT2";
+        creationCodes[21] = type(SelfSelect).creationCode;
+        constructorArgs[21] = abi.encode("EMPTY SLOT");
         
-        names[22] = "AlloRPFGGovernance";
-        creationCodes[22] = type(AlloRPFGGovernance).creationCode;
-        constructorArgs[22] = abi.encode("AlloRPFGGovernance");
-
+        names[22] = "EMTPY SLOT3";
+        creationCodes[22] = type(SelfSelect).creationCode;
+        constructorArgs[22] = abi.encode("EMPTY SLOT");
         // Async laws
         names[23] = "ClaimRoleWithGitSig";
         creationCodes[23] = type(ClaimRoleWithGitSig).creationCode;
@@ -234,6 +231,10 @@ contract InitialisePowers is Script {
         names[28] = "TreasuryPoolGovernance";
         creationCodes[28] = type(TreasuryPoolGovernance).creationCode;
         constructorArgs[28] = abi.encode();
+
+        names[29] = "AssignExternalRole";
+        creationCodes[29] = type(AssignExternalRole).creationCode;
+        constructorArgs[29] = abi.encode("AssignExternalRole");
 
         string memory obj2 = "second key";
 

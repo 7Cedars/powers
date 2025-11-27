@@ -1,17 +1,5 @@
 // // SPDX-License-Identifier: MIT
 
-// ///////////////////////////////////////////////////////////////////////////////
-// /// This program is free software: you can redistribute it and/or modify    ///
-// /// it under the terms of the MIT Public License.                           ///
-// ///                                                                         ///
-// /// This is a Proof Of Concept and is not intended for production use.      ///
-// /// Tests are incomplete and it contracts have not been audited.            ///
-// ///                                                                         ///
-// /// It is distributed in the hope that it will be useful and insightful,    ///
-// /// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-// /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-// ///////////////////////////////////////////////////////////////////////////////
-
 // /// @notice A law that analyzes addresses using AI via cross-chain communication
 // /// @dev This law sends msg.sender to AiCCIPProxy for AI analysis and assigns roles based on results
 // /// @author 7Cedars

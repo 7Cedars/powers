@@ -263,7 +263,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](11);
+        lawInitData = new PowersTypes.LawInitData[](12);
 
         // ElectionSelect - for delegate elections
         conditions.allowedRole = type(uint256).max;
@@ -410,6 +410,19 @@ contract TestConstitutions is Test {
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetLaw: lawAddresses[1], // presetSingleAction
             config: abi.encode(targets, values, calldatas),
+            conditions: conditions
+        });
+        delete conditions;
+
+        // AssignExternalRole
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[11] = PowersTypes.LawInitData({
+            nameDescription: "AssignExternalRole: A law to assign a role if the account has a role on an external contract.",
+            targetLaw: lawAddresses[29], // AssignExternalRole (electoral law)
+            config: abi.encode(
+                daoMock, // external Powers contract (using self for test)
+                1 // roleId to be checked
+            ),
             conditions: conditions
         });
         delete conditions;
