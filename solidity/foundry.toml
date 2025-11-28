@@ -27,14 +27,10 @@ remappings = [
     "@forge-std/=lib/forge-std/src/",
     "@solady/=lib/solady/src/",
     "@solbase/=lib/solbase/src/",
+    "@safe/=lib/safe-smart-account/contracts/",
     "@chainlink/contracts/=lib/chainlink-evm/contracts", 
     "@chainlink/contracts-ccip/=lib/chainlink-ccip/chains/evm/contracts",
-    "@mocks/=test/mocks/",
-    "@multicall3/=lib/multicall3/src/",
-    "openzeppelin-contracts-upgradeable/=lib/allo-v2/lib/openzeppelin-contracts-upgradeable/",
-    "openzeppelin-contracts/=lib/allo-v2/lib/openzeppelin-contracts/",
-    "solady/=lib/allo-v2/lib/solady/src/",
-    "forge-std/=lib/allo-v2/lib/forge-std/src/"
+    "@mocks/=test/mocks/"
 ] 
 
 [fmt]

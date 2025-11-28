@@ -43,6 +43,7 @@ import { TreasuryRoleWithTransfer } from "../src/laws/integrations/TreasuryRoleW
 import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTransfer.sol";
 import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
+import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -141,14 +142,13 @@ contract InitialisePowers is Script {
         creationCodes[6] = type(BespokeActionSimple).creationCode; 
         constructorArgs[6] = abi.encode("BespokeActionSimple");
 
-        // Executive laws
         names[7] = "AdoptLaws";
         creationCodes[7] = type(AdoptLaws).creationCode;
         constructorArgs[7] = abi.encode("AdoptLaws");
     
-        names[8] = "EMPTY SLOT0";
-        creationCodes[8] = type(GovernorExecuteProposal).creationCode;
-        constructorArgs[8] = abi.encode("EMPTY SLOT");
+        names[8] = "SafeExecTransaction";
+        creationCodes[8] = type(SafeExecTransaction).creationCode;
+        constructorArgs[8] = abi.encode("SafeExecTransaction");
 
         names[9] = "GovernorCreateProposal";
         creationCodes[9] = type(GovernorCreateProposal).creationCode; 

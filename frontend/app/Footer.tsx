@@ -6,6 +6,7 @@ import { DiscordIcon, TelegramIcon, GithubIcon } from '@/components/MetadataLink
 
 export function Footer() {
 
+
   return (
     <section className="w-full flex flex-col justify-between items-center min-h-fit bg-slate-50 snap-end pt-6 md:pt-12 pb-3 md:pb-6 border-t border-slate-300 snap-end">
         
@@ -16,10 +17,10 @@ export function Footer() {
                         DApp
                     </div>
                      <a
-                        href={`https://powers-protocol.vercel.app/`} target="_blank" rel="noopener noreferrer"
+                        href={`/#deploy`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        Landing
+                        Deploy
                     </a>
                     <a
                         href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"

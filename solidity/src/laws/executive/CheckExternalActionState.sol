@@ -10,7 +10,7 @@ contract CheckExternalActionState is Law {
     error ActionNotFulfilled();
 
     constructor() {
-        bytes memory configParams = abi.encode("string[] inputParams");
+        bytes memory configParams = abi.encode("address powersAddress", "uint16 lawId", "string[] inputParams");
         emit Law__Deployed(configParams);
     }
 
@@ -18,11 +18,8 @@ contract CheckExternalActionState is Law {
         public
         override
     {
-        bytes memory finalInputParams = abi.encodePacked(
-            config,
-            abi.encode("address powersAddress", "uint16 lawId")
-        );
-        super.initializeLaw(index, nameDescription, finalInputParams, config);
+        ( , , string[] memory inputParams) = abi.decode(config, (address, uint16, string[])); // validate config
+        super.initializeLaw(index, nameDescription, abi.encode(inputParams), config);
     }
 
     function handleRequest(

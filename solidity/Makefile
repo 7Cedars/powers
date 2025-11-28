@@ -120,18 +120,23 @@ update-deps:
 
 install-deps:
 	@echo "Installing dependencies..."
-	forge install foundry-rs/forge-std --no-commit --no-git && \
-	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit --no-git && \
-	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0 --no-commit --no-git && \
-	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-commit --no-git
+	forge install foundry-rs/forge-std --no-commit --no-git || exit 1
+	forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit --no-git || exit 1
+	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0 --no-commit --no-git || exit 1
+	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-commit --no-git || exit 1
+	forge install safe-fndn/safe-smart-account@v1.4.1 --no-commit --no-git || exit 1
 
 reset-deps:
 	@echo "Resetting dependencies..."
-	rm -rf lib/
-	forge install foundry-rs/forge-std --no-git && \
-	forge install openzeppelin/openzeppelin-contracts@v5.0.2  --no-git && \
-	forge install smartcontractkit/chainlink-evm@contracts-v1.4.0  --no-git && \
-	forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-git
+	@rm -rf lib/
+	@mkdir -p lib
+	@forge install foundry-rs/forge-std --no-git || exit 1
+	@forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-git || exit 1
+	@forge install smartcontractkit/chainlink-evm@contracts-v1.4.0 --no-git || exit 1
+	@forge install smartcontractkit/chainlink-ccip@contracts-ccip-v1.6.0 --no-git || exit 1
+	@forge install safe-fndn/safe-smart-account@v1.4.1 --no-git || exit 1
+	@forge install safe-fndn/safe-modules --no-git || exit 1
+	@echo "Dependencies reset complete. All libs installed without git metadata."
 
 # Documentation
 doc:
@@ -298,6 +303,7 @@ deploy-allo-anvil:
 
 # anvil local 
 initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) 
+initialise-safe-allowance-anvil :; forge script script/InitialiseSafeWIthAllowance.s.sol:InitialiseSafeWIthAllowance $(ANVIL_ARGS_0) 
 deploy-mocks-anvil :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0) 
 fund-treasury-anvil :; forge script script/FundTreasury.s.sol:FundTreasury $(ANVIL_ARGS_0) 
 
@@ -307,8 +313,12 @@ initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialiseP
 # initialise-base-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 # initialise-zksync-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 
+deploy-lawPackages-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(SEPOLIA_DEPLOY_ARGS)
 deploy-lawPackages-op-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(OPT_SEPOLIA_DEPLOY_ARGS)
 
 # sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch
 optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --compiler-version 0.8.26 --num-of-optimizations 600 --verifier etherscan 0x6f8c6ac58a467836D85548Bf2Fef473D5efcFeA4 src/helpers/TreasuryPools.sol:TreasuryPools --watch
 arbSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 421614 --compiler-version 0.8.26 --num-of-optimizations 600 --verifier etherscan 0xb1fe867eE7919887EB381c4626bdbAe003969683 src/helpers/TreasuryPools.sol:TreasuryPools --watch
+
+# Deploy Safe with Allowance Module
+deploy-safe-allowance-op-sepolia :; forge script script/InitialiseSafeWIthAllowance.s.sol:InitialiseSafeWIthAllowance --sig "run(address)" 0x9a59c253957b09f1d80289febe1eb65442f937c2 $(OPT_SEPOLIA_DEPLOY_ARGS)
