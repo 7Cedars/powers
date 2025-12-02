@@ -87,7 +87,7 @@ export const PowerBaseDocs: Organization = {
       ),  
       conditions: createConditions({
         allowedRole: 3n,
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(10, chainId), 
         succeedAt: 67n,
         quorum: 50n, // Note: high quorum
         delayExecution: minutesToBlocks(3, chainId)

@@ -303,7 +303,7 @@ deploy-allo-anvil:
 
 # anvil local 
 initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) 
-initialise-safe-allowance-anvil :; forge script script/InitialiseSafeWIthAllowance.s.sol:InitialiseSafeWIthAllowance $(ANVIL_ARGS_0) 
+initialise-safe-allowance-anvil :; forge script script/InitialiseSafe.s.sol:InitialiseSafe $(ANVIL_ARGS_0) 
 deploy-mocks-anvil :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0) 
 fund-treasury-anvil :; forge script script/FundTreasury.s.sol:FundTreasury $(ANVIL_ARGS_0) 
 
@@ -321,4 +321,11 @@ optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCA
 arbSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 421614 --compiler-version 0.8.26 --num-of-optimizations 600 --verifier etherscan 0xb1fe867eE7919887EB381c4626bdbAe003969683 src/helpers/TreasuryPools.sol:TreasuryPools --watch
 
 # Deploy Safe with Allowance Module
-deploy-safe-allowance-op-sepolia :; forge script script/InitialiseSafeWIthAllowance.s.sol:InitialiseSafeWIthAllowance --sig "run(address)" 0x9a59c253957b09f1d80289febe1eb65442f937c2 $(OPT_SEPOLIA_DEPLOY_ARGS)
+deploy-safe-allowance-op-sepolia :; forge script script/InitialiseSafe.s.sol:InitialiseSafe --sig "run(address)" 0x9a59c253957b09f1d80289febe1eb65442f937c2 $(OPT_SEPOLIA_DEPLOY_ARGS)
+deploy-safe-allowance-sepolia :; forge script script/InitialiseSafe.s.sol:InitialiseSafe --sig "run(address)" 0x9a59c253957b09f1d80289febe1eb65442f937c2 $(SEPOLIA_DEPLOY_ARGS)
+
+
+# Create forked anvil test chain. 
+fork-sepolia-anvil :
+	@echo "Starting Anvil forked from Sepolia..."
+	anvil --fork-url $(SEPOLIA_RPC_URL) --block-time 12

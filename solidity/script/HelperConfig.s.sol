@@ -16,6 +16,9 @@ contract HelperConfig is Script {
         uint64 chainlinkFunctionsSubscriptionId;
         uint32 chainlinkFunctionsGasLimit;
         bytes32 chainlinkFunctionsDonId;
+        address SafeCanonical;
+        address SafeL2Canonical;
+        address SafeAllowanceModule;
         string chainlinkFunctionsEncryptedSecretsEndpoint;
     }
 
@@ -62,6 +65,10 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.SafeCanonical = 0x41675C099F32341bf84BFc5382aF534df5C7461a; 
+        networkConfig.SafeL2Canonical = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
+        networkConfig.SafeAllowanceModule = 0xAA46724893dedD72658219405185Fb0Fc91e091C; 
+
         return networkConfig;
     }
 
@@ -76,6 +83,9 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsGasLimit = 300_000;
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
+
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
 
         return networkConfig;
     }
@@ -92,6 +102,9 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+
         return networkConfig;
     }
 
@@ -106,6 +119,9 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsGasLimit = 300_000;
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
+
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
 
         return networkConfig;
     }
@@ -122,6 +138,9 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+
         return networkConfig;
     }
 
@@ -130,6 +149,9 @@ contract HelperConfig is Script {
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
+
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
 
         return networkConfig;
     }

@@ -3,6 +3,7 @@
 pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // protocol
 import { Powers } from "../src/Powers.sol";
@@ -177,7 +178,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
 
 }
 
-abstract contract TestStandalone is Test, TestVariables {
+abstract contract TestHelperFunctions is Test, TestVariables {
     function test() public { }
 
     function hashProposal(address targetLaw, bytes memory lawCalldataLocal, uint256 nonceLocal)
@@ -270,9 +271,19 @@ abstract contract TestStandalone is Test, TestVariables {
             }
         }
     }
+
+    function findLawAddress(string memory name) internal view returns (address) {
+        for (uint i = 0; i < lawNames.length; i++) {
+            if (Strings.equal(lawNames[i], name)) {
+                return lawAddresses[i];
+            }
+        }
+        return address(0);
+    }
+    
 }
 
-abstract contract BaseSetup is TestVariables, TestStandalone {
+abstract contract BaseSetup is TestVariables, TestHelperFunctions {
     function setUp() public virtual {
         vm.roll(block.number + 10);
         setUpVariables();
@@ -524,6 +535,69 @@ abstract contract TestSetupPowers101 is BaseSetup {
         vm.stopPrank();
     }
 }
+
+abstract contract TestSetupPowerBaseSafes is BaseSetup {
+    function setUpVariables() public override {
+        // Check if the Safe Allowance module address is populated. If not, skip the test.
+        if (address(0xAA46724893dedD72658219405185Fb0Fc91e091C).code.length == 0) {
+            vm.skip(true);
+            return;
+        }
+        super.setUpVariables();
+
+        // initiate multi constitution
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerBaseSafesConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
+
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_);
+
+        vm.startPrank(address(daoMock)); 
+        daoMock.assignRole(ADMIN_ROLE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, charlotte);
+        daoMock.assignRole(ROLE_ONE, david);
+        daoMock.assignRole(ROLE_ONE, eve);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        daoMock.assignRole(ROLE_TWO, eve);
+        daoMock.assignRole(ROLE_TWO, frank);
+        vm.stopPrank();
+    }
+}
+
+abstract contract TestSetupPowerBaseChild is BaseSetup {
+    function setUpVariables() public override {
+        // Check if the Safe Allowance module address is populated. If not, skip the test.
+        if (address(0xAA46724893dedD72658219405185Fb0Fc91e091C).code.length == 0) {
+            vm.skip(true);
+            return;
+        }
+        super.setUpVariables();
+
+        // initiate multi constitution
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerBaseSafesConstitution(
+            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        );
+
+        // constitute daoMock.
+        daoMock.constitute(lawInitData_);
+
+        vm.startPrank(address(daoMock)); 
+        daoMock.assignRole(ADMIN_ROLE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, charlotte);
+        daoMock.assignRole(ROLE_ONE, david);
+        daoMock.assignRole(ROLE_ONE, eve);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        daoMock.assignRole(ROLE_TWO, eve);
+        daoMock.assignRole(ROLE_TWO, frank);
+        vm.stopPrank();
+    }
+}
+
 
 abstract contract TestSetupHelpers is BaseSetup {
     function setUpVariables() public override {

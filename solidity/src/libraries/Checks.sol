@@ -27,8 +27,7 @@ library Checks {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
+    /// @notice Runs checks before executing a law
     /// @param lawId The id of the law
     /// @param lawCalldata The calldata of the law
     /// @param powers The address of the Powers contract
@@ -88,6 +87,11 @@ library Checks {
             }
         }
     }
+
+    ///////////////////////////////////////////////////////////// 
+    //                  SIGNATURE VALIDATION                   //
+    /////////////////////////////////////////////////////////////
+    
 
     /////////////////////////////////////////////////////////////
     //                  HELPER FUNCTIONS                        //

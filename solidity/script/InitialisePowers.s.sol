@@ -44,6 +44,8 @@ import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTrans
 import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
+import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
+import { PowerBaseSafeSetup } from "../src/laws/reform/PowerBaseSafeSetup.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -196,13 +198,13 @@ contract InitialisePowers is Script {
         constructorArgs[19] = abi.encode("RenounceRole");
 
         // Integration laws
-        names[20] = "EMTPY SLOT1";
-        creationCodes[20] = type(SelfSelect).creationCode;
-        constructorArgs[20] = abi.encode("EMPTY SLOT"); 
+        names[20] = "SafeAllowanceAction";
+        creationCodes[20] = type(SafeAllowanceAction).creationCode;
+        constructorArgs[20] = abi.encode("SafeAllowanceAction"); 
 
-        names[21] = "EMTPY SLOT2";
-        creationCodes[21] = type(SelfSelect).creationCode;
-        constructorArgs[21] = abi.encode("EMPTY SLOT");
+        names[21] = "PowerBaseSafeSetup";
+        creationCodes[21] = type(PowerBaseSafeSetup).creationCode;
+        constructorArgs[21] = abi.encode("PowerBaseSafeSetup");
         
         names[22] = "EMTPY SLOT3";
         creationCodes[22] = type(SelfSelect).creationCode;
