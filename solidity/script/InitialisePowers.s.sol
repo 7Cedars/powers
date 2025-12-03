@@ -46,6 +46,7 @@ import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecut
 import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
 import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
 import { PowerBaseSafeSetup } from "../src/laws/reform/PowerBaseSafeSetup.sol";
+import { SafeSetup } from "../src/laws/integrations/SafeSetup.sol";
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -197,7 +198,6 @@ contract InitialisePowers is Script {
         creationCodes[19] = type(RenounceRole).creationCode;
         constructorArgs[19] = abi.encode("RenounceRole");
 
-        // Integration laws
         names[20] = "SafeAllowanceAction";
         creationCodes[20] = type(SafeAllowanceAction).creationCode;
         constructorArgs[20] = abi.encode("SafeAllowanceAction"); 
@@ -206,10 +206,10 @@ contract InitialisePowers is Script {
         creationCodes[21] = type(PowerBaseSafeSetup).creationCode;
         constructorArgs[21] = abi.encode("PowerBaseSafeSetup");
         
-        names[22] = "EMTPY SLOT3";
-        creationCodes[22] = type(SelfSelect).creationCode;
-        constructorArgs[22] = abi.encode("EMPTY SLOT");
-        // Async laws
+        names[22] = "SafeSetup";
+        creationCodes[22] = type(SafeSetup).creationCode;
+        constructorArgs[22] = abi.encode("SafeSetup");
+
         names[23] = "ClaimRoleWithGitSig";
         creationCodes[23] = type(ClaimRoleWithGitSig).creationCode;
         constructorArgs[23] = abi.encode(config_.chainlinkFunctionsRouter);

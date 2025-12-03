@@ -18,6 +18,7 @@ contract HelperConfig is Script {
         bytes32 chainlinkFunctionsDonId;
         address SafeCanonical;
         address SafeL2Canonical;
+        address SafeProxyFactory;
         address SafeAllowanceModule;
         string chainlinkFunctionsEncryptedSecretsEndpoint;
     }
@@ -67,6 +68,7 @@ contract HelperConfig is Script {
 
         networkConfig.SafeCanonical = 0x41675C099F32341bf84BFc5382aF534df5C7461a; 
         networkConfig.SafeL2Canonical = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
+        networkConfig.SafeProxyFactory = 0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67;
         networkConfig.SafeAllowanceModule = 0xAA46724893dedD72658219405185Fb0Fc91e091C; 
 
         return networkConfig;

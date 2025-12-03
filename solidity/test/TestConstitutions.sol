@@ -9,6 +9,8 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
 import { TreasuryPools } from "../src/helpers/TreasuryPools.sol";
 
+import { HelperConfig } from "../script/HelperConfig.s.sol";
+
 contract TestConstitutions is Test {
     uint256[] milestoneDisbursements;
     uint256 PrevActionId;
@@ -33,6 +35,9 @@ contract TestConstitutions is Test {
     bytes[] lawInitDatas;
     string[] descriptions;
     string[] params;
+
+    HelperConfig helperConfig = new HelperConfig();
+    HelperConfig.NetworkConfig config = helperConfig.getConfig(); 
 
     //////////////////////////////////////////////////////////////
     //                 POWERS CONSTITUTION                      //
@@ -789,35 +794,23 @@ contract TestConstitutions is Test {
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](3); // Index 0 is empty
-
-        // Law 1: Initial Setup
-        targets = new address[](6);
-        values = new uint256[](6);
-        calldatas = new bytes[](6);
         
-        for(uint i=0; i<6; i++) {
-            targets[i] = daoMock;
-            values[i] = 0;
-        }
+        // Law 2: Create a SafeProxy and register as treasury for Powers 
+        address[] memory configParams = new address[](2);
+        configParams[0] = config.SafeProxyFactory;
+        configParams[1] = config.SafeL2Canonical;
 
-        calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Funders");
-        calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Doc Contributors");
-        calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Frontend Contributors");
-        calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Protocol Contributors");
-        calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Members");
-        calldatas[5] = abi.encodeWithSelector(IPowers.revokeLaw.selector, 1);
-
-        conditions.allowedRole = 0; // Admin role
+        conditions.allowedRole = type(uint256).max; // Public
         lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Initial Setup: Assign roles labels.",
-            targetLaw: lawAddresses[1], // PresetSingleAction
-            config: abi.encode(targets, values, calldatas),
+            nameDescription: "Create SafeProxy: Creates the safe and registers it as the organization treasury.",
+            targetLaw: lawAddresses[22], // PowerBaseSafeSetup law
+            config: abi.encode(configParams), 
             conditions: conditions
         });
         delete conditions;
 
-        // Law 2: Setup Safe
-        address[] memory configParams = new address[](4);
+        // Law 2: Setup Power Base Safe
+        configParams = new address[](4);
         configParams[0] = lawAddresses[4]; // StatementOfIntent
         configParams[1] = lawAddresses[8]; // SafeExecTransaction
         configParams[2] = lawAddresses[1]; // PresetSingleAction
@@ -825,7 +818,7 @@ contract TestConstitutions is Test {
 
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Setup Safe: Setup the safe, governance paths and central treasury.",
+            nameDescription: "Setup Safe: Setup the allowance module and governance paths.",
             targetLaw: lawAddresses[21], // PowerBaseSafeSetup law
             config: abi.encode(configParams), 
             conditions: conditions

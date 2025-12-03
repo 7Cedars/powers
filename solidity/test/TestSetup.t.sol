@@ -348,6 +348,8 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
         initialisePowers = new InitialisePowers();
         (mockNames, mockAddresses) = deployMocks.run();
         (lawNames, lawAddresses) = initialisePowers.getDeployedLaws();
+        HelperConfig helperConfig = new HelperConfig();
+        config = helperConfig.getConfigByChainId(block.chainid);
 
         // transfer ownership to daoMock
         vm.startPrank(SoulboundErc721(mockAddresses[2]).owner());
@@ -559,10 +561,6 @@ abstract contract TestSetupPowerBaseSafes is BaseSetup {
         daoMock.assignRole(ROLE_ONE, charlotte);
         daoMock.assignRole(ROLE_ONE, david);
         daoMock.assignRole(ROLE_ONE, eve);
-        daoMock.assignRole(ROLE_TWO, charlotte);
-        daoMock.assignRole(ROLE_TWO, david);
-        daoMock.assignRole(ROLE_TWO, eve);
-        daoMock.assignRole(ROLE_TWO, frank);
         vm.stopPrank();
     }
 }
