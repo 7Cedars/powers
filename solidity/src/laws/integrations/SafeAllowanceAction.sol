@@ -6,7 +6,7 @@ import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 
-import { console2 } from "forge-std/console2.sol"; // only for testing/debugging
+// import { console2 } from "forge-std/console2.sol"; // only for testing/debugging
 
 contract SafeAllowanceAction is Law {
     /// @dev Configuration for this law adoption.
@@ -73,14 +73,7 @@ contract SafeAllowanceAction is Law {
         bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
         ConfigData memory config = lawConfig[lawHash_];
 
-        console2.log("CONFIG: selector, safe, module");
-        console2.logBytes4(config.functionSelector);
-        console2.logAddress(config.safeProxy);
-        console2.logAddress(config.allowanceModule);
-
-        (address delegateAddress) = abi.decode(lawCalldata, (address));
-        console2.log("delegate address:");
-        console2.logAddress(delegateAddress); 
+        // (address delegateAddress) = abi.decode(lawCalldata, (address));
 
         // Construct the `v=1` signature.
         // This indicatesa) = abi.decode(lawCalldata) = abi.decode(lawCalldat that the `msg.sender` of this transaction (the `powers` contract)
@@ -89,21 +82,15 @@ contract SafeAllowanceAction is Law {
         // s = 0
         // v = 1
         bytes memory powersSignature = abi.encodePacked(uint256(uint160(powers)), uint256(0), uint8(1));
-        console2.log("powersSignature:");
-        console2.logBytes(powersSignature); 
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-
         // NB: We call the execTransaction function in our SafeL2 proxy to make the call to the Allowance Module.
         targets[0] = config.safeProxy;
         calldatas[0] = abi.encodeWithSelector(
             Safe.execTransaction.selector, 
-            config.safeProxy, // The internal transaction's destination
+            config.allowanceModule, // The internal transaction's destination: the Allowance Module. 
             0, // The internal transaction's value in this law is always 0. To transfer Eth use a different law.
-            abi.encodeWithSelector( // the call to be executed by the Safe. The function selector is dynamic.
-                config.functionSelector,
-                delegateAddress
-                ),
+            abi.encodePacked(config.functionSelector, lawCalldata), 
             0, // operation = Call
             0, // safeTxGas
             0, // baseGas

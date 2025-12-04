@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import { TestSetupPowers } from "../../TestSetup.t.sol";
-import { console2 } from "forge-std/console2.sol";
+// import { console2 } from "forge-std/console2.sol";
  
 import { LawUtilities } from "../../../src/libraries/LawUtilities.sol"; 
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -35,7 +35,7 @@ contract RoleByGitCommitTest is TestSetupPowers {
         // 2. Recover the signer's address using message Hash (calculated at initialisaiton of law)
         address sSigner = messageHash.recover(signatureBytes);
 
-        console2.log(sSigner);
+        // console2.log(sSigner);
     }
  
 }

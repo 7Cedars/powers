@@ -2,6 +2,7 @@
 pragma solidity 0.8.26;
 
 import { Test } from "forge-std/Test.sol";
+import { console2 } from "lib/forge-std/src/console2.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
@@ -795,22 +796,18 @@ contract TestConstitutions is Test {
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](3); // Index 0 is empty
         
-        // Law 2: Create a SafeProxy and register as treasury for Powers 
-        address[] memory configParams = new address[](2);
-        configParams[0] = config.SafeProxyFactory;
-        configParams[1] = config.SafeL2Canonical;
-
+        // Law 1: Create a SafeProxy and register as treasury for Powers  
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Create SafeProxy: Creates the safe and registers it as the organization treasury.",
-            targetLaw: lawAddresses[22], // PowerBaseSafeSetup law
-            config: abi.encode(configParams), 
+            targetLaw: lawAddresses[22], // PowerBaseSafeConfig law
+            config: abi.encode(config.SafeProxyFactory, config.SafeL2Canonical), 
             conditions: conditions
         });
         delete conditions;
 
         // Law 2: Setup Power Base Safe
-        configParams = new address[](4);
+        address[] memory configParams = new address[](4);
         configParams[0] = lawAddresses[4]; // StatementOfIntent
         configParams[1] = lawAddresses[8]; // SafeExecTransaction
         configParams[2] = lawAddresses[1]; // PresetSingleAction
@@ -819,8 +816,8 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Setup Safe: Setup the allowance module and governance paths.",
-            targetLaw: lawAddresses[21], // PowerBaseSafeSetup law
-            config: abi.encode(configParams), 
+            targetLaw: lawAddresses[21], // PowerBaseSafeConfig law
+            config: abi.encode(configParams, config.SafeAllowanceModule), 
             conditions: conditions
         });
         delete conditions;

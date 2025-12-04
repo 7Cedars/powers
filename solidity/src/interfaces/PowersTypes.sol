@@ -72,7 +72,7 @@ interface PowersTypes {
         NonExistent, // - 0: log this
         Proposed, // - 1: log this
         Cancelled, // - 2: log this
-        Active, // - 3: calculate this -- wait what is difference between this and Proposed? CHECK! 
+        Active, // - 3: calculate this
         Defeated, // - 4: calculate this
         Succeeded, // - 5: calculate this
         Requested, // - 6: log this

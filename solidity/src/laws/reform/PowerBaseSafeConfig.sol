@@ -28,7 +28,7 @@ import { MessageHashUtils } from "../../../lib/openzeppelin-contracts/contracts/
 
 // import { console2 } from "forge-std/console2.sol"; // only for testing purposes. 
 
-contract PowerBaseSafeSetup is Law {
+contract PowerBaseSafeConfig is Law {
     struct Mem {
         uint16 lawCount;
         address safeProxy;

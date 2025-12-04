@@ -13,6 +13,8 @@ import { SafeProxyFactory } from "lib/safe-smart-account/contracts/proxies/SafeP
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 
+// import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
+
 contract SafeSetup is Law {
     /// @dev Configuration for this law adoption.
     struct ConfigData {
@@ -80,13 +82,12 @@ contract SafeSetup is Law {
     ) internal override virtual {
 
         // step 1: creating a SafeProxy with Powers as owner 
-        
-        address powers = abi.decode(calldatas[0], (address)); 
+        address powers = abi.decode(calldatas[0], (address));
         ConfigData memory config = lawConfig[LawUtilities.hashLaw(powers, lawId)];
 
         address[] memory owners = new address[](1);
         owners[0] = powers; 
-        
+
         address safeProxyAddress = address(SafeProxyFactory(config.safeProxyFactory).createProxyWithNonce(
             config.safeL2Singleton,
             abi.encodeWithSelector(

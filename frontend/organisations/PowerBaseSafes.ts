@@ -76,51 +76,38 @@ export const PowerBaseSafes: Organization = {
     //////////////////////////////////////////////////////////////////
     //                 INITIAL SETUP & ROLE LABELS                  //
     //////////////////////////////////////////////////////////////////
-    lawInitData.push({ // law 1 : Initial setup
-      nameDescription: "Initial Setup: Assign roles labels.",
-      targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
-      config: encodeAbiParameters(
-        [
-          { name: 'targets', type: 'address[]' },
-          { name: 'values', type: 'uint256[]' },
-          { name: 'calldatas', type: 'bytes[]' }
-        ], 
-        [
-          [ 
-            powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, 
-            powersAddress
-          ],
-          [
-            0n, 0n, 0n, 0n, 0n, 
-            0n
-          ],
-          [
-            // setting role labels
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [1n, "Funders"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [2n, "Doc Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [3n, "Frontend Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [4n, "Protocol Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [5n, "Members"] }), 
-            // revoking itself
-            encodeFunctionData({ abi: powersAbi, functionName: "revokeLaw", args: [1n]}) // Revokes itself after execution
-          ]
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE
-      })
-    });
- 
     lawInitData.push({
-      nameDescription: "Setup Safe: Setup the safe, governance paths and central treasury.",
-      targetLaw: "0xb4Ad76571DB0121d8A5572AC77F65627fD7cae08" as `0x${string}`, // will be saved in constants later on. 
+      nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
+      targetLaw: getLawAddress("SafeSetup", deployedLaws),
       config: `0x`, // No config needed as all data is in the commit signatures  
       conditions: createConditions({ 
         allowedRole: PUBLIC_ROLE
       })
     });
 
-    
+    lawInitData.push({ // law 1 : Initial setup
+      nameDescription: "Configure Organisation: Adopt allowance module to SafeProxy, assign role labels and create governance flows.",
+      targetLaw: getLawAddress("PowerBaseSafeConfig", deployedLaws),
+      config: encodeAbiParameters(
+        [
+          { name: 'lawDependencies', type: 'address[]' },
+          { name: 'safeAllowanceModule', type: 'address' }
+        ], 
+        [
+          [ 
+            getLawAddress("StatementOfIntent", deployedLaws), 
+            getLawAddress("SafeExecTransaction", deployedLaws), 
+            getLawAddress("PresetSingleAction", deployedLaws), 
+            getLawAddress("SafeAllowanceAction", deployedLaws), 
+          ], 
+          getConstants(chainId).SAFE_ALLOWANCE_MODULE as `0x${string}`,
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE
+      })
+    });
+     
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     /////////////////////////////////////////////////////////////////

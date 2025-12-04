@@ -10,7 +10,7 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 import { InitialisePowers } from "./InitialisePowers.s.sol";
 import { LawPackage } from "../src/laws/reform/LawPackage.sol";
-import { PowerBaseSafeSetup } from "../src/laws/reform/PowerBaseSafeSetup.sol";
+import { PowerBaseSafeConfig } from "../src/laws/reform/PowerBaseSafeConfig.sol";
 
 // @dev this script deploys custom law packages to the chain.
 contract DeployLawPackages is Script {
@@ -20,7 +20,7 @@ contract DeployLawPackages is Script {
 
     Powers powers;
 
-    // PowerBaseSafeSetup 
+    // PowerBaseSafeConfig 
     function run() external returns (address lawPackage) {
         initialisePowers = new InitialisePowers();
 
@@ -36,7 +36,7 @@ contract DeployLawPackages is Script {
         console2.logAddress(selectedAddresses[1]);
         console2.logAddress(selectedAddresses[2]);
 
-        bytes memory deploymentData = abi.encodePacked(type(PowerBaseSafeSetup).creationCode, abi.encode(selectedAddresses));
+        bytes memory deploymentData = abi.encodePacked(type(PowerBaseSafeConfig).creationCode, abi.encode(selectedAddresses));
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), create2Factory); 
 
         if (computedAddress.code.length == 0) { 

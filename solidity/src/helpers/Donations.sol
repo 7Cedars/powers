@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import { console2 } from "forge-std/console2.sol";
+// import { console2 } from "forge-std/console2.sol";
 
 /// @title Donations - Standalone Donation Management Contract
 /// @notice Allows users to donate ERC20 tokens or native currency to the contract owner
@@ -42,9 +42,9 @@ contract Donations is Ownable, ReentrancyGuard {
         if (msg.value == 0) revert("Amount must be greater than 0");
 
         // Transfer native currency to contract owner
-        console2.log("Transferring native currency to contract owner");
-        console2.log("Owner:", owner());
-        console2.log("Value:", msg.value);
+        // console2.log("Transferring native currency to contract owner");
+        // console2.log("Owner:", owner());
+        // console2.log("Value:", msg.value);
 
         (bool success,) = payable(owner()).call{ value: msg.value }("");
         if (!success) revert("Native currency transfer failed");

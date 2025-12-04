@@ -45,7 +45,7 @@ import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateP
 import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
 import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
-import { PowerBaseSafeSetup } from "../src/laws/reform/PowerBaseSafeSetup.sol";
+import { PowerBaseSafeConfig } from "../src/laws/reform/PowerBaseSafeConfig.sol";
 import { SafeSetup } from "../src/laws/integrations/SafeSetup.sol";
 
 // mocks used 
@@ -202,9 +202,9 @@ contract InitialisePowers is Script {
         creationCodes[20] = type(SafeAllowanceAction).creationCode;
         constructorArgs[20] = abi.encode("SafeAllowanceAction"); 
 
-        names[21] = "PowerBaseSafeSetup";
-        creationCodes[21] = type(PowerBaseSafeSetup).creationCode;
-        constructorArgs[21] = abi.encode("PowerBaseSafeSetup");
+        names[21] = "PowerBaseSafeConfig";
+        creationCodes[21] = type(PowerBaseSafeConfig).creationCode;
+        constructorArgs[21] = abi.encode("PowerBaseSafeConfig");
         
         names[22] = "SafeSetup";
         creationCodes[22] = type(SafeSetup).creationCode;

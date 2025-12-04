@@ -16,11 +16,11 @@ contract HelperConfig is Script {
         uint64 chainlinkFunctionsSubscriptionId;
         uint32 chainlinkFunctionsGasLimit;
         bytes32 chainlinkFunctionsDonId;
+        string chainlinkFunctionsEncryptedSecretsEndpoint;
         address SafeCanonical;
         address SafeL2Canonical;
         address SafeProxyFactory;
         address SafeAllowanceModule;
-        string chainlinkFunctionsEncryptedSecretsEndpoint;
     }
 
     uint256 constant LOCAL_CHAIN_ID = 31_337;
