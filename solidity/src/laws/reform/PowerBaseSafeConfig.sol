@@ -37,9 +37,12 @@ contract PowerBaseSafeConfig is Law {
     address[] private lawAddresses;
     address private allowanceModuleAddress;
     uint16 constant public NUMBER_OF_CALLS = 17; // total number of calls in handleRequest
+    uint48 immutable public blocksPerHour;
     
     // in this case lawAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction]
-    constructor() {
+    constructor(uint48 blocksPerHour_) {
+        blocksPerHour = blocksPerHour_;
+
         emit Law__Deployed(abi.encode("address[] lawDependencies", "address AllowanceModule")
         );
     }
@@ -130,7 +133,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 5; // = Members can call this law.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // 
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Propose to add a new Child Powers as a delegate to the Safe Treasury.",
                 targetLaw: lawAddresses[0], // statementOfIntent
@@ -145,7 +148,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 1; // = funders.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 1; // = law that must be completed before this one.
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Veto adding a new Child Powers as a delegate to the Safe Treasury.",
@@ -161,7 +164,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 2; // = doc contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 2; // = the proposal law.
             conditions.needNotFulfilled = mem.lawCount - 1; // = the funders veto law.
             lawInitData = PowersTypes.LawInitData({
@@ -178,8 +181,8 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 3; // = frontend contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
-            conditions.needFulfilled = mem.lawCount - 1; // = the proposal law.
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
+            conditions.needFulfilled = mem.lawCount - 1;   // = the proposal law.
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "OK adding a new Child Powers as a delegate to the Safe Treasury.",
                 targetLaw: lawAddresses[0], // statementOfIntent.
@@ -194,7 +197,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 4; // = protocol contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(10); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 1; // = the proposal law.
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Execute and adopt new child Powers as a delegate to the Safe treasury.",
@@ -227,7 +230,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 5; // = Members can call this law.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Propose to set allowance for a Powers Child at the Safe Treasury.",
                 targetLaw: lawAddresses[0], // statementOfIntent
@@ -242,7 +245,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 1; // = funders.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 1; // = law that must be completed before this one.
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Veto setting allowance for a Powers Child at the Safe Treasury.",
@@ -258,7 +261,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 2; // = doc contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 2; // = the proposal law.
             conditions.needNotFulfilled = mem.lawCount - 1; // = the funders veto law.
             lawInitData = PowersTypes.LawInitData({
@@ -275,7 +278,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 3; // = frontend contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 1; // = the proposal law. 
             delete conditions.needNotFulfilled; // = no veto law.
             lawInitData = PowersTypes.LawInitData({
@@ -292,7 +295,7 @@ contract PowerBaseSafeConfig is Law {
             conditions.allowedRole = 4; // = protocol contributors.
             conditions.quorum = 20; // = 30% quorum needed
             conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-            conditions.votingPeriod = 1200; // = number of blocks
+            conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
             conditions.needFulfilled = mem.lawCount - 1; // = the proposal law. 
             lawInitData = PowersTypes.LawInitData({
                 nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
@@ -310,6 +313,10 @@ contract PowerBaseSafeConfig is Law {
 
             
         return (actionId, targets, values, calldatas);
+    }
+
+    function minutesToBlocks(uint48 mins) internal view returns (uint32) {
+        return uint32((mins * blocksPerHour) / 60);
     }
 }
  

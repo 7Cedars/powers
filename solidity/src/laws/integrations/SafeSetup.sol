@@ -105,12 +105,15 @@ contract SafeSetup is Law {
         )); 
 
         // step 2: register the SafeProxy as treasury in Powers ./
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
         targets[0] = msg.sender;
         calldatas[0] = abi.encodeWithSelector(
             IPowers.setTreasury.selector,
             safeProxyAddress
         ); 
+        targets[1] = msg.sender;
+        calldatas[1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId); 
+
         IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
     }
 }

@@ -21,6 +21,7 @@ import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanc
 import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
 import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
 import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
+import { CheckExternalActionState } from "../src/laws/executive/CheckExternalActionState.sol";
 
 // Electoral laws
 import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
@@ -47,6 +48,7 @@ import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransactio
 import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
 import { PowerBaseSafeConfig } from "../src/laws/reform/PowerBaseSafeConfig.sol";
 import { SafeSetup } from "../src/laws/integrations/SafeSetup.sol";
+import { SafeAllowanceTransfer } from "../src/laws/integrations/SafeAllowanceTransfer.sol"; 
 
 // mocks used 
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -112,10 +114,10 @@ contract InitialisePowers is Script {
 
     /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
     function deployAndRecordLaws(HelperConfig.NetworkConfig memory config_) internal returns (string[] memory names, address[] memory addresses, string memory outputJson) { 
-        names = new string[](30);   
-        addresses = new address[](30);
-        bytes[] memory creationCodes = new bytes[](30);
-        bytes[] memory constructorArgs = new bytes[](30);
+        names = new string[](32);   
+        addresses = new address[](32);
+        bytes[] memory creationCodes = new bytes[](32);
+        bytes[] memory constructorArgs = new bytes[](32);
         
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -204,7 +206,7 @@ contract InitialisePowers is Script {
 
         names[21] = "PowerBaseSafeConfig";
         creationCodes[21] = type(PowerBaseSafeConfig).creationCode;
-        constructorArgs[21] = abi.encode("PowerBaseSafeConfig");
+        constructorArgs[21] = abi.encode(config_.blocksPerHour);
         
         names[22] = "SafeSetup";
         creationCodes[22] = type(SafeSetup).creationCode;
@@ -237,6 +239,15 @@ contract InitialisePowers is Script {
         names[29] = "AssignExternalRole";
         creationCodes[29] = type(AssignExternalRole).creationCode;
         constructorArgs[29] = abi.encode("AssignExternalRole");
+
+        names[30] = "SafeAllowanceTransfer";
+        creationCodes[30] = type(SafeAllowanceTransfer).creationCode;
+        constructorArgs[30] = abi.encode("SafeAllowanceTransfer");
+
+        names[31] = "CheckExternalActionState";
+        creationCodes[31] = type(CheckExternalActionState).creationCode;
+        constructorArgs[31] = abi.encode("CheckExternalActionState");
+
 
         string memory obj2 = "second key";
 

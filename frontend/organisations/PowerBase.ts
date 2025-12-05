@@ -1,5 +1,5 @@
 import { Organization, LawInitData, isDeployableContract, isFunctionCallDependency, DeployableContract } from "./types";
-import { powersAbi } from "@/context/abi";  
+import { powersAbi, safeL2Abi, safeProxyFactoryAbi } from "@/context/abi";  
 import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, keccak256, encodePacked, toFunctionSelector } from "viem";
 import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createLawInitData, minutesToBlocks } from "./helpers";
 import treasuryPools from "@/context/builds/TreasuryPools.json";
@@ -44,32 +44,21 @@ export const PowerBase: Organization = {
   metadata: {
     id: "power-base",
     title: "Power Base",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiamywxjb6kddwboempkqka37lkdmuljc2t7oju4bzfuxdlau575zu",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
-    description: "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Safe Smart Accounts for decentralized grant management. It is governed by contributors that are verified via EVM signatures posted in github commits.",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieiaf44y7krxtej64npspwjskcv2fns4fjndjxlqqy4q4hx7ol25m",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
+    description: "TEMP: This is a temporary placeholder org, meant to create PowerBase using Safes.",
     disabled: false,
-    onlyLocalhost: false
+    onlyLocalhost: true
   },
   fields: [
-    // Fields needed for chianlink functions setup
     { name: "chainlinkSubscriptionId", placeholder: "Chainlink Functions Subscription ID", type: "number", required: true },
   ],
-  dependencies:  [
-    {
-      name: "Treasury", 
-      abi: JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi,
-      args: [],
-      bytecode: JSON.parse(JSON.stringify(treasuryPools.bytecode.object)) as `0x${string}`,
-      ownable: true
-    }
-  ],
+  dependencies:  [ ],
   allowedChains: [
-    arbitrumSepolia.id,
-    optimismSepolia.id,
+    sepolia.id,
   ],
   allowedChainsLocally: [
-    arbitrumSepolia.id,
-    optimismSepolia.id,
+    sepolia.id, 
     foundry.id
   ],
  
@@ -81,311 +70,60 @@ export const PowerBase: Organization = {
     chainId: number,
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
-    let lawCount = 0n; 
-    // Extract contract addresses from receipts
-    const treasuryAddress = getContractAddressFromReceipt(dependencyReceipts["Treasury"], "Treasury");
-    const treasuryAbi = JSON.parse(JSON.stringify(treasuryPools.abi)) as Abi;
+    let lawCounter = 0;
     // console.log("deployedLaws @ PowerBase", deployedLaws);
-
     // console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
+    
     //////////////////////////////////////////////////////////////////
     //                 INITIAL SETUP & ROLE LABELS                  //
     //////////////////////////////////////////////////////////////////
-    lawCount++;
-    lawInitData.push({ // law 1 : Initial setup
-      nameDescription: "Initial Setup: Configure treasury, whitelist token, create three pools (Docs, Frontend, Protocol), label all roles, and revoke itself after execution",
-      targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
+    lawCounter++;
+    lawInitData.push({
+      nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
+      targetLaw: getLawAddress("SafeSetup", deployedLaws),
       config: encodeAbiParameters(
         [
-          { name: 'targets', type: 'address[]' },
-          { name: 'values', type: 'uint256[]' },
-          { name: 'calldatas', type: 'bytes[]' }
-        ],
+          { name: 'safeProxyFactory', type: 'address' },
+          { name: 'safeL2Singleton', type: 'address' }
+        ], 
         [
-          [
-            powersAddress,
-            treasuryAddress, 
-            treasuryAddress, treasuryAddress, treasuryAddress,  
-            powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, 
-            powersAddress],
-            
-          [
-            0n, 
-            0n, 
-            0n, 0n, 0n,
-            0n, 0n, 0n, 0n, 0n, 
-            0n],
-          [
-            encodeFunctionData({ abi: powersAbi, functionName: "setTreasury", args: [treasuryAddress] }),
-            // Note: one type of token is only being used for all pools here. Later this can be updated by adopting new laws. 
-            encodeFunctionData({ abi: treasuryAbi, functionName: "setWhitelistToken", args: [getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`, true] }),
-            encodeFunctionData({ abi: treasuryAbi, functionName: "createPool", args: [getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`, 0] }), // Doc Contributors Pool
-            encodeFunctionData({ abi: treasuryAbi, functionName: "createPool", args: [getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`, 0] }), // Frontend Contributors Pool
-            encodeFunctionData({ abi: treasuryAbi, functionName: "createPool", args: [getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`, 0] }), // Protocol Contributors Pool 
-            // // setting role labels
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [1n, "Funders"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [2n, "Doc Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [3n, "Frontend Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [4n, "Protocol Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [5n, "Members"] }), 
-            // revoking itself
-            encodeFunctionData({ abi: powersAbi, functionName: "revokeLaw", args: [1n]}) // Revokes itself after execution
-          ]
+          getConstants(chainId).SAFE_PROXY_FACTORY as `0x${string}`,
+          getConstants(chainId).SAFE_L2_CANONICAL as `0x${string}`,
+        ]
+      ), 
+      conditions: createConditions({ 
+        allowedRole: PUBLIC_ROLE
+      })
+    });
+
+    lawCounter++;
+    lawInitData.push({ // law 1 : Initial setup
+      nameDescription: "Configure Organisation: Adopt allowance module to SafeProxy, assign role labels and create governance flows.",
+      targetLaw: getLawAddress("PowerBaseSafeConfig", deployedLaws),
+      config: encodeAbiParameters(
+        [
+          { name: 'lawDependencies', type: 'address[]' },
+          { name: 'safeAllowanceModule', type: 'address' }
+        ], 
+        [
+          [ 
+            getLawAddress("StatementOfIntent", deployedLaws), 
+            getLawAddress("SafeExecTransaction", deployedLaws), 
+            getLawAddress("PresetSingleAction", deployedLaws), 
+            getLawAddress("SafeAllowanceAction", deployedLaws), 
+          ], 
+          getConstants(chainId).SAFE_ALLOWANCE_MODULE as `0x${string}`,
         ]
       ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
     });
-
-    //////////////////////////////////////////////////////////////////
-    ///                   Spend Budget flow                         // 
-    //////////////////////////////////////////////////////////////////
-    const inputParamsPoolBudgetIncrease = encodeAbiParameters(
-      parseAbiParameters('string[] inputParams'),
-      [["uint256 PoolId", "address payableTo", "uint256 Amount"]]
-    );
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Propose Pool Spending: Members propose spending funds from a specific pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolBudgetIncrease,
-      conditions: createConditions({
-        allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
-      })
-    });
-    const proposalLawIndex = lawCount;
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Veto Pool Spending: Funders can veto proposals to spend funds from a pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolBudgetIncrease,
-      conditions: createConditions({
-        allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-    const vetoLawIndex = lawCount;
-
-    // Loop through contributor roles to create spending laws
-    const contributorRoles = [
-      { id: 2n, name: "Doc Contributors", poolId: 1n },
-      { id: 3n, name: "Frontend Contributors", poolId: 2n },
-      { id: 4n, name: "Protocol Contributors", poolId: 3n }
-    ];
-
-    contributorRoles.forEach(role => {
-      lawCount++;
-      lawInitData.push({
-        nameDescription: `Execute Pool ${Number(role.poolId)} Spending: ${role.name} approve and execute spending proposals from their pool`,
-        targetLaw: getLawAddress("TreasuryPoolTransfer", deployedLaws),
-        config: encodeAbiParameters(
-          parseAbiParameters("address TargetContract, uint256 PoolId"),
-          [
-            treasuryAddress as `0x${string}`,
-            role.poolId
-          ]
-        ),
-        conditions: createConditions({
-          allowedRole: role.id,
-          votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 25n,
-          needNotFulfilled: vetoLawIndex, // Must not be vetoed
-          needFulfilled: proposalLawIndex    // Must be proposed
-        })
-      });
-    });
-
-    //////////////////////////////////////////////////////////////////
-    //             CREATE NEW POOLS + GOVERNANCE                    //
-    //////////////////////////////////////////////////////////////////
-    const inputParamsPoolCreation = encodeAbiParameters(
-      parseAbiParameters('string[] inputParams'),
-      [["address tokenAddress", "uint256 Budget", "uint256 ManagerRoleId"]]
-    );
-
-    // --- Law A Instance: Create EasyRPGF Pool ---
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Propose Pool Creation: Members propose creating a new treasury pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolCreation,
-      conditions: createConditions({
-        allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Veto Pool Creation: Funders can veto proposals to create a new treasury pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolCreation,
-      conditions: createConditions({
-        allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({ 
-      nameDescription: "Approve Pool Creation (Docs): Doc Contributors approve the creation of a new pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolCreation,
-      conditions: createConditions({
-        allowedRole: 2n, // First Doc Contributors ok the proposal
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needNotFulfilled: lawCount - 1n, // Can only ok if vetoed
-        needFulfilled: lawCount - 2n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Approve Pool Creation (Frontend): Frontend Contributors approve the creation of a new pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolCreation,
-      conditions: createConditions({
-        allowedRole: 3n, // Second Frontend Contributors ok the proposal
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({ // Law 4: Execute Pool Creation (Law A Instance)
-      nameDescription: "Execute Pool Creation: Protocol Contributors approve and execute the creation of a new pool",
-      targetLaw: getLawAddress("BespokeActionSimple", deployedLaws), // Base implementation of Law B
-      config: encodeAbiParameters(
-        parseAbiParameters("address TargetContract, bytes4 TargetFunction, string[] Params"),
-        [
-          treasuryAddress as `0x${string}`, 
-          `0x12d36171` as `0x${string}`, // function selector for createPool function
-          ["address tokenAddress", "uint256 Budget", "uint256 ManagerRoleId"]
-        ]
-      ),
-      // inputParams: encodeAbiParameters(parseAbiParameters('string[] params'), [['address token', 'uint256 amount', 'uint256 ManagerRoleId']]), // Define expected input for this instance
-      conditions: createConditions({
-        allowedRole: 4n, // 4n, // Third Protocol Contributors executes the proposal
-        // NB! took out needFulfilled + voting for testing purposes. NEED TO REINSTATE AFTERWARDS! 
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needFulfilled: lawCount - 1n
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Create Pool Governance: Anyone can establish governance rules for a newly created pool",
-      targetLaw: getLawAddress("TreasuryPoolGovernance", deployedLaws),
-      config: encodeAbiParameters(
-      parseAbiParameters('address selectedPoolTransfer, address treasuryPools, uint16 proposalLawId, uint16 vetoLawId, uint48 votingPeriod, uint8 succeedAt, uint8 quorum'),
-        [
-          getLawAddress("TreasuryPoolTransfer", deployedLaws),
-          treasuryAddress as `0x${string}`,
-          Number(proposalLawIndex),
-          Number(vetoLawIndex),
-          Number(minutesToBlocks(10, chainId)), 
-          51, 
-          25
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: PUBLIC_ROLE, // Second Frontend Contributors ok the proposal
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-
-    //////////////////////////////////////////////////////////////////
-    //                  UPDATE POOL BUDGETS                         //
-    //////////////////////////////////////////////////////////////////
-
-    const inputParamsPoolFunding = encodeAbiParameters(
-      parseAbiParameters('string[] inputParams'),
-      [["uint256 poolId", "uint256 Amount"]]
-    );
-
-    // --- Law A Instance: Create EasyRPGF Pool ---
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Propose Pool Funding: Members propose adding funds to a treasury pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolFunding,
-      conditions: createConditions({
-        allowedRole: 5n, // Members propose
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        delayExecution: minutesToBlocks(3, chainId) // 1 day delay before voting can start
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Veto Pool Funding: Funders can veto proposals to add funds to a pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolFunding,
-      conditions: createConditions({
-        allowedRole: 1n, // Funders veto
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 66n, quorum: 50n,
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({ 
-      nameDescription: "Approve Pool Funding (Docs): Doc Contributors approve adding funds to a pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolFunding,
-      conditions: createConditions({
-        allowedRole: 2n, // First Doc Contributors ok the proposal
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needNotFulfilled: lawCount - 1n, // Can only ok if vetoed
-        needFulfilled: lawCount - 2n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({  
-      nameDescription: "Approve Pool Funding (Frontend): Frontend Contributors approve adding funds to a pool",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: inputParamsPoolFunding,
-      conditions: createConditions({
-        allowedRole: 3n, // Second Frontend Contributors ok the proposal
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needFulfilled: lawCount - 1n // Can only veto if proposed
-      })
-    });
-
-    lawCount++; 
-    lawInitData.push({ // Law 4: Execute Pool Creation (Law A Instance)
-      nameDescription: "Execute Pool Funding: Protocol Contributors approve and execute adding funds to a pool",
-      targetLaw: getLawAddress("BespokeActionSimple", deployedLaws), // Base implementation of Law B
-      config: encodeAbiParameters(
-        parseAbiParameters("address TargetContract, bytes4 TargetFunction, string[] Params"),
-        [
-          treasuryAddress as `0x${string}`, 
-          `0xb26590f3` as `0x${string}`, // function selector for createPool function
-          ["uint256 poolId", "uint256 Amount"]
-        ]
-      ),
-      // inputParams: encodeAbiParameters(parseAbiParameters('string[] params'), [['address token', 'uint256 amount', 'uint256 ManagerRoleId']]), // Define expected input for this instance
-      conditions: createConditions({
-        allowedRole: 4n, // 4n, // Third Protocol Contributors executes the proposal
-        // NB! took out needFulfilled + voting for testing purposes. NEED TO REINSTATE AFTERWARDS! 
-        votingPeriod: minutesToBlocks(10, chainId), succeedAt: 51n, quorum: 33n,
-        needFulfilled: lawCount - 1n
-      })
-    });
-
-    /// I should have a dedicated law for people to fund the protocol. 
+     
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     /////////////////////////////////////////////////////////////////
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Apply for Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository",
       targetLaw: getLawAddress("ClaimRoleWithGitSig", deployedLaws),
@@ -414,43 +152,43 @@ export const PowerBase: Organization = {
         throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the law with multiple claims in a short time
       })
     });
+    const claimLaw = BigInt(lawCounter);
 
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Claim Contributor Role: Following a successful initial claim, contributors can get contributor role assigned to their account.",
       targetLaw: getLawAddress("AssignRoleWithGitSig", deployedLaws),
       config: `0x`, // No config needed as all data is in the commit signatures  
       conditions: createConditions({ 
         allowedRole: PUBLIC_ROLE,
-        needFulfilled: lawCount - 1n // Must have claimed a contributor role first
+        needFulfilled: claimLaw // Must have claimed a contributor role first
       })
     });
     
-    lawCount++;
-    lawInitData.push({
-      nameDescription: `Apply for Funder Role: Claim a Funder role with the receiptId received following a deposit in native ETH or ERC20 Taxed token (${getConstants(chainId).ERC20_TAXED_ADDRESS}) to the Treasury.`,
-      targetLaw: getLawAddress("TreasuryRoleWithTransfer", deployedLaws),
-      config: encodeAbiParameters(
-        [
-          { name: 'TreasuryContract', type: 'address' },
-          { name: 'Tokens', type: 'address[]' },
-          { name: 'TokensPerBlock', type: 'uint256[]' },
-          { name: 'RoleId', type: 'uint256' }
-        ],
-        [
-          treasuryAddress as `0x${string}`, 
-          [ `0x0000000000000000000000000000000000000000`, getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`], // native Eth, token address
-          [ 100n, 100000000000000n ], 
-          1n
-        ]
-      ),
-      conditions: createConditions({ 
-        allowedRole: PUBLIC_ROLE,
-        throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the law with multiple claims in a short time
-      })
-    });
+    // lawInitData.push({
+    //   nameDescription: `Apply for Funder Role: Claim a Funder role with the receiptId received following a deposit in native ETH or ERC20 Taxed token (${getConstants(chainId).ERC20_TAXED_ADDRESS}) to the Treasury.`,
+    //   targetLaw: getLawAddress("TreasuryRoleWithTransfer", deployedLaws),
+    //   config: encodeAbiParameters(
+    //     [
+    //       { name: 'TreasuryContract', type: 'address' },
+    //       { name: 'Tokens', type: 'address[]' },
+    //       { name: 'TokensPerBlock', type: 'uint256[]' },
+    //       { name: 'RoleId', type: 'uint256' }
+    //     ],
+    //     [
+    //       treasuryAddress as `0x${string}`, 
+    //       [ `0x0000000000000000000000000000000000000000`, getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`], // native Eth, token address
+    //       [ 100n, 100000000000000n ], 
+    //       1n
+    //     ]
+    //   ),
+    //   conditions: createConditions({ 
+    //     allowedRole: PUBLIC_ROLE,
+    //     throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the law with multiple claims in a short time
+    //   })
+    // });
 
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Apply for Member Role: Receive Member role when holding Funder or any Contributor role",
       targetLaw: getLawAddress("RoleByRoles", deployedLaws),
@@ -463,9 +201,8 @@ export const PowerBase: Organization = {
       ),
       conditions: createConditions({ allowedRole: PUBLIC_ROLE })
     });
-     
-    // Law 24: Veto Role Revocation
-    lawCount++;
+    
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Veto Role Revocation: Admin can veto proposals to remove roles from accounts",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws), // Veto is just an intent
@@ -474,8 +211,9 @@ export const PowerBase: Organization = {
         allowedRole: ADMIN_ROLE
       })
     });
+    const vetoRoleLaw = BigInt(lawCounter);
 
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Revoke Role: Members vote to remove a role from an account",
       targetLaw: getLawAddress("BespokeActionSimple", deployedLaws), // Use BespokeActionSimple for direct Powers call
@@ -497,22 +235,22 @@ export const PowerBase: Organization = {
         succeedAt: 51n,
         quorum: 5n, // Note: low quorum
         delayExecution: minutesToBlocks(3, chainId),
-        needNotFulfilled: lawCount - 1n // Link dependency to veto law
+        needNotFulfilled: vetoRoleLaw // Link dependency to veto law
       })
     });
-
-
+    
+    
     //////////////////////////////////////////////////////////////////
     //                 CONSTITUTIONAL LAWS                          //
-    // //////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
     const adoptLawsConfig = encodeAbiParameters(
       parseAbiParameters('string[] inputParams'),
       [["address[] laws", "uint256[] roleIds"]]
     );
 
     // Adopt Laws flow. 
-    // Law 25: Propose Law Package - Unchanged (but renumbered)
-    lawCount++;
+    // Propose Law Package - Unchanged (but renumbered)
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Propose Adopting Laws: Members propose adopting new laws",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
@@ -524,9 +262,10 @@ export const PowerBase: Organization = {
         quorum: 50n
       })
     });
+    const proposeAdoptLaw = BigInt(lawCounter);
 
     // Law 26: Veto Law Package - Unchanged (but renumbered & dependency adjusted)
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Veto Adopting Laws: Funders can veto proposals to adopt new laws",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
@@ -536,20 +275,21 @@ export const PowerBase: Organization = {
         votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 33n,
         quorum: 50n,
-        needFulfilled: lawCount - 1n
+        needFulfilled: proposeAdoptLaw
       })
     }); 
+    const vetoAdoptLaw = BigInt(lawCounter);
 
     // Law 27: Adopt Law Package - Unchanged (but renumbered & dependencies adjusted)
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Adopt Laws: Admin adopts new laws into the organization",
       targetLaw: getLawAddress("AdoptLaws", deployedLaws), // Ensure this name matches build
       config: "0x00" as `0x${string}`,  
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
-        needFulfilled: lawCount - 2n,
-        needNotFulfilled: lawCount - 1n
+        needFulfilled: vetoAdoptLaw, // For testing, we allow direct adoption without veto
+        needNotFulfilled: proposeAdoptLaw // For testing, we allow direct adoption without veto
       })
     });
 
@@ -559,8 +299,9 @@ export const PowerBase: Organization = {
       [["uint16[] lawIds"]]
     );
 
+    // Revoke Laws flow. 
     // Law 25: Propose revoking Laws 
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Propose Revoking Laws: Members propose revoking existing laws",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
@@ -572,9 +313,10 @@ export const PowerBase: Organization = {
         quorum: 50n
       })
     });
+    const proposeRevokeLaw = BigInt(lawCounter);
 
     // Law 26: Veto Revoking Laws
-    lawCount++;
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Veto Revoking Laws: Funders can veto proposals to revoke existing laws",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
@@ -584,22 +326,76 @@ export const PowerBase: Organization = {
         votingPeriod: minutesToBlocks(10, chainId),
         succeedAt: 33n,
         quorum: 50n,
-        needFulfilled: lawCount - 1n
+        needFulfilled: proposeRevokeLaw
       })
     }); 
+    const vetoRevokeLaw = BigInt(lawCounter);
 
-    // Law 27: Revoke Laws
-    lawCount++;
+    // Law 27: Revoke Laws 
+    lawCounter++;
     lawInitData.push({
       nameDescription: "Revoke Laws: Admin revokes laws from the organization",
       targetLaw: getLawAddress("RevokeLaws", deployedLaws), // Ensure this name matches build
       config: "0x00" as `0x${string}`,  
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
-        needFulfilled: lawCount - 2n,
-        needNotFulfilled: lawCount - 1n
+        needFulfilled: vetoRevokeLaw, // For testing, we allow direct revocation without veto
+        needNotFulfilled: proposeRevokeLaw // For testing, we allow direct revocation without veto
       })
     });
+
+    // Adopt Children Laws flow.
+    // Propose Law Package - Unchanged (but renumbered)
+    const adoptChildrensLawsConfig = encodeAbiParameters(
+      parseAbiParameters('string[] inputParams'),
+      [["address[] laws", "uint256[] roleIds"]]
+    );
+
+    lawCounter++;
+    lawInitData.push({
+      nameDescription: "Propose adopting a Child Law: Members propose adopting new laws for a Powers' child",
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
+      config: adoptChildrensLawsConfig,
+      conditions: createConditions({
+        allowedRole: 5n, // Members
+        votingPeriod: minutesToBlocks(10, chainId),
+        succeedAt: 51n,
+        quorum: 50n
+      })
+    });
+    const proposeLaw = BigInt(lawCounter); 
+
+    // Veto Law Package - Unchanged (but renumbered & dependency adjusted)
+    lawCounter++;
+    lawInitData.push({
+      nameDescription: "Veto Adopting A child Law: Funders can veto proposals to adopt new laws for a Powers' child",
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
+      config: adoptChildrensLawsConfig,
+      conditions: createConditions({
+        allowedRole: 1n, // Funders
+        votingPeriod: minutesToBlocks(10, chainId),
+        succeedAt: 33n,
+        quorum: 50n,
+        needFulfilled: proposeLaw
+      })
+    }); 
+    const vetoLaw = BigInt(lawCounter);
+
+    // Adopt Law Package - Unchanged (but renumbered & dependencies adjusted)
+    lawCounter++;
+    lawInitData.push({
+      nameDescription: "Adopt a Child Law: Admin adopts the new law for a Powers' child",
+      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
+      config: adoptChildrensLawsConfig,
+      conditions: createConditions({
+        allowedRole: 1n, // Funders
+        votingPeriod: minutesToBlocks(10, chainId),
+        succeedAt: 33n,
+        quorum: 50n,
+        needFulfilled: proposeLaw,
+        needNotFulfilled: vetoLaw
+      })
+    }); 
 
     return lawInitData;
   }

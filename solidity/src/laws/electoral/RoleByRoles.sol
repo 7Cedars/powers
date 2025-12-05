@@ -69,12 +69,10 @@ contract RoleByRoles is Law {
         // step 4: set the targets, values and calldatas according to the outcomes at step 2
         if (hasAnyOfNeededRoles && !alreadyHasNewRole) {
             targets[0] = powers;
-            values[0] = 0;
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, account);
         }
         if (!hasAnyOfNeededRoles && alreadyHasNewRole) {
             targets[0] = powers;
-            values[0] = 0;
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data_.newRoleId, account);
         }
 

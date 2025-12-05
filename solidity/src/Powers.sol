@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 
-
 /// @title Powers Protocol v.0.4
 /// @notice Powers is a Role Based Governance Protocol. It provides a modular, flexible,  DAOs.
 ///

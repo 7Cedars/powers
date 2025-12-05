@@ -1,8 +1,7 @@
 import { Organization } from "./types";
-import { Powers101 } from "./Powers101";
+import { Powers101 } from "./Powers101"; 
 import { PowerBase } from "./PowerBase";
-import { PowerBaseSafes } from "./PowerBaseSafes"; 
-import { PowerBaseDocs } from "./PowerBaseDocs";
+import { PowerBaseChild } from "./PowerBaseChild";
 
 /**
  * Registry of all available organizations
@@ -10,9 +9,8 @@ import { PowerBaseDocs } from "./PowerBaseDocs";
  */
 export const organizations: Organization[] = [
   Powers101,
-  PowerBase,
-  PowerBaseSafes, 
-  PowerBaseDocs
+  PowerBase, 
+  PowerBaseChild
   // Add more organizations here as they are implemented
 ];
 

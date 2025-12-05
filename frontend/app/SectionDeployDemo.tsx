@@ -128,7 +128,7 @@ export function SectionDeployDemo() {
       const isAnvil = selectedChainId === 31337;
       const delayIfNeeded = async () => {
         if (selectedChainId === 31337 || selectedChainId === 11155111 || selectedChainId === 421614 || selectedChainId === 11155420) {
-          await new Promise(resolve => setTimeout(resolve, 5000)); // 500ms delay for Anvil
+          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for Anvil
         }
       };
 

@@ -826,73 +826,76 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //              POWER BASE CHILD CONSTITUTION               // 
     //////////////////////////////////////////////////////////////
-    function powerBaseChildConstitution(
-        string[] memory, /*lawNames*/
-        address[] memory lawAddresses,
-        string[] memory, /*mockNames*/
-        address[] memory, /*mockAddresses*/
-        address payable daoMock
-    ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](5); // Index 0 is empty
+    // function powerBaseChildConstitution(
+    //     string[] memory, /*lawNames*/
+    //     address[] memory lawAddresses,
+    //     string[] memory, /*mockNames*/
+    //     address[] memory, /*mockAddresses*/
+    //     address daoMock,
+    // ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
+    //     lawInitData = new PowersTypes.LawInitData[](5); // Index 0 is empty
 
-        // Law 1: Execute transaction from allowance
-        conditions.allowedRole = 3; // Doc Contributor
-        conditions.votingPeriod = 50; // 10 mins approx (assuming 12s blocks)
-        conditions.succeedAt = 67;
-        conditions.quorum = 50;
-        conditions.delayExecution = 15; // 3 mins approx
+    //     // Law 1: Execute transaction from allowance
+    //     conditions.allowedRole = 3; // Doc Contributor
+    //     conditions.votingPeriod = 50; // 10 mins approx (assuming 12s blocks)
+    //     conditions.succeedAt = 67;
+    //     conditions.quorum = 50;
+    //     conditions.delayExecution = 15; // 3 mins approx. 
 
-        lawInitData[1] = PowersTypes.LawInitData({
-            nameDescription: "Execute transaction from allowance: This is still a work in progress.",
-            targetLaw: lawAddresses[8], // SafeExecTransaction
-            config: abi.encode(daoMock, 3), // powersAddress, roleId
-            conditions: conditions
-        });
-        delete conditions;
+    //     lawInitData[1] = PowersTypes.LawInitData({
+    //         nameDescription: "Execute transaction from allowance: This is still a work in progress.",
+    //         targetLaw: lawAddresses[30], // "SafeAllowanceTransfer";
+    //         config: abi.encode( 
+    //             config.SafeAllowanceModule, // allowanceModule 
+    //             // safeProxy 
+    //         ), 
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
 
-        // Law 2: Adopt Doc Contrib Role
-        conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
+    //     // Law 2: Adopt Doc Contrib Role
+    //     conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
         
-        lawInitData[2] = PowersTypes.LawInitData({
-            nameDescription: "Adopt Doc Contrib Role: Anyone that has a documentation contributor role at the parent organization can adopt the same role here.",
-            targetLaw: lawAddresses[29], // AssignExternalRole
-            config: abi.encode(daoMock, 3), // powersAddress, roleId
-            conditions: conditions
-        });
-        delete conditions;
+    //     lawInitData[2] = PowersTypes.LawInitData({
+    //         nameDescription: "Adopt Doc Contrib Role: Anyone that has a documentation contributor role at the parent organization can adopt the same role here.",
+    //         targetLaw: lawAddresses[29], // AssignExternalRole
+    //         config: abi.encode(daoMock, 3), // powersAddress, roleId
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
 
-        // Law 3: Adopt Laws
-        string[] memory paramsLocal = new string[](3);
-        paramsLocal[0] = "uint256 PoolId";
-        paramsLocal[1] = "address payableTo";
-        paramsLocal[2] = "uint256 Amount";
+    //     // Law 3: Adopt Laws
+    //     string[] memory paramsLocal = new string[](3);
+    //     paramsLocal[0] = "uint256 PoolId";
+    //     paramsLocal[1] = "address payableTo";
+    //     paramsLocal[2] = "uint256 Amount";
 
-        conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
+    //     conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
 
-        // Note: CheckExternalActionState is not in InitialisePowers, using lawAddresses[0] as placeholder
-        lawInitData[3] = PowersTypes.LawInitData({
-            nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
-            targetLaw: lawAddresses[0], // CheckExternalActionState
-            config: abi.encode(uint16(123), daoMock, paramsLocal), // lawId (dummy), powersAddress, inputParams
-            conditions: conditions
-        });
-        delete conditions;
+    //     // Note: CheckExternalActionState is not in InitialisePowers, using lawAddresses[0] as placeholder
+    //     lawInitData[3] = PowersTypes.LawInitData({
+    //         nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
+    //         targetLaw: lawAddresses[0], // CheckExternalActionState
+    //         config: abi.encode(uint16(123), daoMock, paramsLocal), // lawId (dummy), powersAddress, inputParams
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
 
-        // Law 4: Revoke Laws
-        conditions.allowedRole = 3;
-        conditions.votingPeriod = 50;
-        conditions.succeedAt = 67;
-        conditions.quorum = 50;
-        conditions.delayExecution = 15;
+    //     // Law 4: Revoke Laws
+    //     conditions.allowedRole = 3;
+    //     conditions.votingPeriod = 50;
+    //     conditions.succeedAt = 67;
+    //     conditions.quorum = 50;
+    //     conditions.delayExecution = 15;
 
-        lawInitData[4] = PowersTypes.LawInitData({
-            nameDescription: "Revoke Laws: Admin can revoke laws from the organization",
-            targetLaw: lawAddresses[25], // RevokeLaws
-            config: abi.encode(""), // 0x00
-            conditions: conditions
-        });
-        delete conditions;
-    }
+    //     lawInitData[4] = PowersTypes.LawInitData({
+    //         nameDescription: "Revoke Laws: Admin can revoke laws from the organization",
+    //         targetLaw: lawAddresses[25], // RevokeLaws
+    //         config: abi.encode(""), // 0x00
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
+    // }
 
     //////////////////////////////////////////////////////////////
     //                 HELPERS CONSTITUTION                     //

@@ -6,11 +6,17 @@ import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-contract CheckExternalActionState is Law {
-    error ActionNotFulfilled();
+contract CheckExternalActionState is Law { 
+
+    /// @dev Configuration for this law adoption.
+    struct ConfigData {
+        address parentPowers;
+        uint16 lawId;
+    }
+    mapping(bytes32 lawHash => ConfigData data) public lawConfig; 
 
     constructor() {
-        bytes memory configParams = abi.encode("address powersAddress", "uint16 lawId", "string[] inputParams");
+        bytes memory configParams = abi.encode("address parentPowers", "uint16 lawId", "string[] inputParams");
         emit Law__Deployed(configParams);
     }
 
@@ -18,13 +24,20 @@ contract CheckExternalActionState is Law {
         public
         override
     {
-        ( , , string[] memory inputParams) = abi.decode(config, (address, uint16, string[])); // validate config
-        super.initializeLaw(index, nameDescription, abi.encode(inputParams), config);
+        (address parentPowers_, uint16 lawId_, string[] memory inputParams_) = abi.decode(config, (address, uint16, string[])); // validate config
+
+        bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
+        lawConfig[lawHash] = ConfigData({
+            parentPowers: parentPowers_,
+            lawId: lawId_
+        });
+
+        super.initializeLaw(index, nameDescription, abi.encode(inputParams_), config);
     }
 
     function handleRequest(
         address, /*caller*/
-        address, /*powers*/
+        address powers,
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
@@ -34,20 +47,16 @@ contract CheckExternalActionState is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // Decode parameters
-        (bytes memory userCalldata, address remotePowersAddress, uint16 remoteLawId) = 
-            abi.decode(lawCalldata, (bytes, address, uint16));
-
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        uint256 remoteActionId = LawUtilities.hashActionId(remoteLawId, userCalldata, nonce);
+        ConfigData memory config = lawConfig[LawUtilities.hashLaw(powers, lawId)];
+        uint256 remoteActionId = LawUtilities.hashActionId(config.lawId, lawCalldata, nonce);
 
-        PowersTypes.ActionState state = IPowers(remotePowersAddress).getActionState(remoteActionId);
+        PowersTypes.ActionState state = IPowers(config.parentPowers).getActionState(remoteActionId);
         if (state != PowersTypes.ActionState.Fulfilled) {
-            revert ActionNotFulfilled();
+            revert ("Action not fulfilled");
         }
         
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
-
         return (actionId, targets, values, calldatas);
     }
 }
