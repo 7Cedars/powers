@@ -1,9 +1,9 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihmdpp2nadh4sueei4yqlxssbusauwcjfuoupqllr3bqzsfayj2ra",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
   "description": 
-    "Power Base frontend is the on-chain organization that manages funds for frontend development of Power Base. It can only be accessed by those holding a frontend role in Power Base.",
-  "website": "https://powers-docs.vercel.app/organisations/powerBase",
+    "This is an alpha implementation of the Power Labs organisation. It manages protocol development funding via Safe Smart Accounts and governance based on GitHub contributions verified by commit signatures. Also it is possible to buy Funder roles through ETH donations.",
+  "website": "https://powers-docs.vercel.app/organisations/powerLabs",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 
   "communicationChannels": {

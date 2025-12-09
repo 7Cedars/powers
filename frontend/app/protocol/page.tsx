@@ -33,7 +33,7 @@ export default function ProtocolPage() {
     roles: [],
   }
 
-  const defaultPowerBase: Powers = {
+  const defaultPowerLabs: Powers = {
     contractAddress: '0x15c7ce6f92d62266800c625caa16556c4bf0d08b' as `0x${string}`,
     chainId: 11155420n,
     name: 'Power Base',
@@ -61,15 +61,15 @@ export default function ProtocolPage() {
 
         // Check if Powers 101 already exists
         const powers101Exists = protocols.some(p => p.name === 'Powers 101')
-        const powerBaseExists = protocols.some(p => p.name === 'Power Base')
+        const powerLabsExists = protocols.some(p => p.name === 'Power Base')
         
         if (!powers101Exists) {
           // Add Powers 101 to the list
           protocols.unshift(defaultPowers101) 
         }
-        if (!powerBaseExists) {
+        if (!powerLabsExists) {
           // Add Power Base to the list
-          protocols.unshift(defaultPowerBase) 
+          protocols.unshift(defaultPowerLabs) 
           localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           ))

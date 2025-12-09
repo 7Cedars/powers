@@ -538,7 +538,7 @@ abstract contract TestSetupPowers101 is BaseSetup {
     }
 }
 
-abstract contract TestSetupPowerBaseSafes is BaseSetup {
+abstract contract TestSetupPowerLabsSafes is BaseSetup {
     function setUpVariables() public override {
         // Check if the Safe Allowance module address is populated. If not, skip the test.
         if (address(0xAA46724893dedD72658219405185Fb0Fc91e091C).code.length == 0) {
@@ -548,7 +548,7 @@ abstract contract TestSetupPowerBaseSafes is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerBaseSafesConstitution(
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerLabsSafesConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
@@ -565,7 +565,7 @@ abstract contract TestSetupPowerBaseSafes is BaseSetup {
     }
 }
 
-abstract contract TestSetupPowerBaseChild is BaseSetup {
+abstract contract TestSetupPowerLabsChild is BaseSetup {
     function setUpVariables() public override {
         // Check if the Safe Allowance module address is populated. If not, skip the test.
         if (address(0xAA46724893dedD72658219405185Fb0Fc91e091C).code.length == 0) {
@@ -575,7 +575,7 @@ abstract contract TestSetupPowerBaseChild is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerBaseSafesConstitution(
+        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerLabsSafesConstitution(
             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 

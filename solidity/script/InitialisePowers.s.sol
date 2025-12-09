@@ -33,6 +33,7 @@ import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
 import { AssignExternalRole } from "../src/laws/electoral/AssignExternalRole.sol";
+import { RoleByTransaction } from "../src/laws/electoral/RoleByTransaction.sol";
 
 // async laws
 import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
@@ -45,8 +46,7 @@ import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTrans
 import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
 import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
-import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
-import { PowerBaseSafeConfig } from "../src/laws/reform/PowerBaseSafeConfig.sol";
+import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol"; 
 import { SafeSetup } from "../src/laws/integrations/SafeSetup.sol";
 import { SafeAllowanceTransfer } from "../src/laws/integrations/SafeAllowanceTransfer.sol"; 
 
@@ -204,9 +204,9 @@ contract InitialisePowers is Script {
         creationCodes[20] = type(SafeAllowanceAction).creationCode;
         constructorArgs[20] = abi.encode("SafeAllowanceAction"); 
 
-        names[21] = "PowerBaseSafeConfig";
-        creationCodes[21] = type(PowerBaseSafeConfig).creationCode;
-        constructorArgs[21] = abi.encode(config_.blocksPerHour);
+        names[21] = "RoleByTransaction";
+        creationCodes[21] = type(RoleByTransaction).creationCode;
+        constructorArgs[21] = abi.encode("RoleByTransaction");
         
         names[22] = "SafeSetup";
         creationCodes[22] = type(SafeSetup).creationCode;

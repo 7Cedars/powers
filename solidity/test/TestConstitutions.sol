@@ -557,7 +557,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](8);
+        lawInitData = new PowersTypes.LawInitData[](9);
 
         // OpenAction - allows any action to be executed
         conditions.allowedRole = type(uint256).max;
@@ -674,6 +674,25 @@ contract TestConstitutions is Test {
             conditions: conditions
         });
         delete conditions;
+
+        // CheckExternalActionState
+        inputParams = new string[](3);
+        inputParams[0] = "targets address[]";
+        inputParams[1] = "values uint256[]";
+        inputParams[2] = "calldatas bytes[]";
+
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "CheckExternalActionState: Checks if an action is fulfilled on a parent contract.",
+            targetLaw: lawAddresses[31], // CheckExternalActionState
+            config: abi.encode(
+                daoMock, // parentPowers (self for test)
+                1, // lawId on parent (OpenAction)
+                inputParams
+            ),
+            conditions: conditions
+        });
+        delete conditions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -787,7 +806,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                  POWER BASE CONSTITUTION                 // 
     //////////////////////////////////////////////////////////////
-    function powerBaseSafesConstitution(
+    function powerLabsSafesConstitution(
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
@@ -800,7 +819,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Create SafeProxy: Creates the safe and registers it as the organization treasury.",
-            targetLaw: lawAddresses[22], // PowerBaseSafeConfig law
+            targetLaw: lawAddresses[22], // PowerLabsConfig law
             config: abi.encode(config.SafeProxyFactory, config.SafeL2Canonical), 
             conditions: conditions
         });
@@ -816,7 +835,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Setup Safe: Setup the allowance module and governance paths.",
-            targetLaw: lawAddresses[21], // PowerBaseSafeConfig law
+            targetLaw: lawAddresses[21], // PowerLabsConfig law
             config: abi.encode(configParams, config.SafeAllowanceModule), 
             conditions: conditions
         });
@@ -826,7 +845,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //              POWER BASE CHILD CONSTITUTION               // 
     //////////////////////////////////////////////////////////////
-    // function powerBaseChildConstitution(
+    // function powerLabsChildConstitution(
     //     string[] memory, /*lawNames*/
     //     address[] memory lawAddresses,
     //     string[] memory, /*mockNames*/

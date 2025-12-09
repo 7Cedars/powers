@@ -1,9 +1,9 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihmdpp2nadh4sueei4yqlxssbusauwcjfuoupqllr3bqzsfayj2ra",
   "description": 
-    "Power Base is the on-chain organization that shepherds the development of the Powers protocol. It uses Safe Smart Accounts for decentralized grant management and is governed by contributors who are verified via EVM signatures posted in GitHub commits.",
-  "website": "https://powers-docs.vercel.app/organisations/powerBase",
+    "Power Labs frontend is the on-chain organization that manages funds for frontend development of Power Labs. It can only be accessed by those holding a frontend role in Power Labs.",
+  "website": "https://powers-docs.vercel.app/organisations/powerLabs",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 
   "communicationChannels": {

@@ -1,15 +1,23 @@
 type Constants = {
   BLOCKS_PER_HOUR: number; 
 
+  // Chainlink
   CHAINLINK_GAS_LIMIT: number;
   CHAINLINK_DON_ID: `0x${string}`;
   CHAINLINK_FUNCTIONS_SUBSCRIPTION_ID?: bigint;
   CHAINLINK_ENCRYPTED_SECRETS_ENDPOINT?: string;
 
+  // Safe  
   SAFE_CANONICAL?: `0x${string}`;
   SAFE_L2_CANONICAL?: `0x${string}`;
   SAFE_PROXY_FACTORY?: `0x${string}`;
   SAFE_ALLOWANCE_MODULE?: `0x${string}`;
+
+  // Reform packages
+  POWER_LABS_CONFIG?: `0x${string}`;
+  POWER_LABS_DOCUMENTATION?: `0x${string}`;
+  POWER_LABS_FRONTEND?: `0x${string}`;
+  POWER_LABS_PROTOCOL?: `0x${string}`;
 }
 
 export const getConstants = (chainId: number): Constants => {
@@ -26,6 +34,11 @@ export const getConstants = (chainId: number): Constants => {
       SAFE_L2_CANONICAL: `0x29fcB43b46531BcA003ddC8FCB67FFE91900C762`,
       SAFE_PROXY_FACTORY: `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`,
       SAFE_ALLOWANCE_MODULE: `0xAA46724893dedD72658219405185Fb0Fc91e091C`, 
+
+      POWER_LABS_CONFIG: `0x81D95cC706FA1cA22459622FDAD9b4b57c1ADfBe`,
+      POWER_LABS_DOCUMENTATION: `0x0b9077766C22967653161Feba960b9316C91f2C4`,
+      POWER_LABS_FRONTEND: `0x5D6FF13519D327545d928203bDaBf675AfA77Ae0`,
+      POWER_LABS_PROTOCOL: `0x5d7AbA88266cD83eF5E7b435ef93A27DF0F741DA`,
     }
     case 421614: // arb sepolia
       return {

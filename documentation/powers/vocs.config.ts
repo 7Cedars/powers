@@ -213,7 +213,7 @@ export default defineConfig({
         },
         { 
           text: 'Power Base', 
-          link: '/organisations/powerBase', 
+          link: '/organisations/powerLabs', 
         }, 
         { 
           text: 'Powers To Nouns', 

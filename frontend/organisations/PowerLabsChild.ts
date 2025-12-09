@@ -26,27 +26,21 @@ function getReturnValueFromReceipt(receipt: any): any {
 }
 
 /**
- * Power Base Organization
+ * Power Base Child Organization
  *
- * Manages Powers protocol development funding via Safe Smart Accounts.
- * Governance based on GitHub contributions verified by commit signatures.
- *
- * Key Features:
- * - Three independent funding pools (Docs, Frontend, Protocol) using a bespoke Treasury contract. 
- * - Ability to create new funding pools via governance. 
- * - Contributor roles assigned via RoleByGitSignature.sol (Chainlink Functions)
- * - Funder participation through token purchases
- * - Constitutional amendment process
+ * A basic child structure for an organisation. Configured to work with Power Labs as parent and to be controled by a specific role. 
+ * 
+ * It is meant to be updated by adopting a reform law. 
  * 
  * Note that for testing purposes, daysToBlocks has been replaced with minutesToBlocks. In reality every minute is a day. 
  */
-export const PowerBaseChild: Organization = {
+export const PowerLabsChild: Organization = {
   metadata: {
     id: "powers-Child",
     title: "Child Powers",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreichqvnlmfgkw2jeqgerae2torhgbcgdomxzqxiymx77yhflpnniii",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
-    description: "This implementation has two laws: one to adopt laws and one to revoke. It allows to setup any type of organisation after initialisation.",
+    description: "This is a base implementation of a Power Labs child organisation. It is meant to be configured through a reform law.",
     disabled: false,
     onlyLocalhost: true
   },
@@ -74,41 +68,6 @@ export const PowerBaseChild: Organization = {
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
     let lawCount = 0n;
-
-    //////////////////////////////////////////////////////////////////
-    //                          SETUP                               //
-    ////////////////////////////////////////////////////////////////// 
-    lawCount++; 
-    lawInitData.push({
-      nameDescription: "Initial Setup: Assigns role labels and revokes itself after execution",
-      targetLaw: getLawAddress("PresetSingleAction", deployedLaws),
-      config: encodeAbiParameters(
-        [
-          { name: 'targets', type: 'address[]' },
-          { name: 'values', type: 'uint256[]' },
-          { name: 'calldatas', type: 'bytes[]' }
-        ],
-        [
-          [
-            powersAddress, powersAddress, powersAddress, powersAddress, powersAddress, powersAddress
-          ],
-          [
-            0n, 0n, 0n, 0n, 0n, 0n
-          ],
-          [
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [1n, "Funders"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [2n, "Doc Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [3n, "Frontend Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [4n, "Protocol Contributors"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "labelRole", args: [5n, "Members"] }),
-            encodeFunctionData({ abi: powersAbi, functionName: "revokeLaw", args: [1n] })
-          ]
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE
-      })
-    });
 
     //////////////////////////////////////////////////////////////////
     //                      EXECUTIVE LAWS                          //
@@ -153,22 +112,22 @@ export const PowerBaseChild: Organization = {
   
     //////////////////////////////////////////////////////////////////
     //                 CONSTITUTIONAL LAWS                          //
-    //////////////////////////////////////////////////////////////////    
-    // THIS LAW DOES NOT DEPLOY PROPERLY YET
-    // lawCount++;
-    // lawInitData.push({
-    //   nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
-    //   targetLaw: getLawAddress("CheckExternalActionState", deployedLaws), // Ensure this name matches build
-    //   config: encodeAbiParameters(
-    //     parseAbiParameters('uint16 lawId, address powersAddress, string[] inputParams'),
-    //     [formData["AdoptChildLawId"], formData["PowersParent"], ["uint256 PoolId", "address payableTo", "uint256 Amount"]]
-    //   ), 
-    //   conditions: createConditions({
-    //     allowedRole: PUBLIC_ROLE 
-    //   })
-    // });
+    ////////////////////////////////////////////////////////////////// 
+    // Adopt law.    
+    lawCount++;
+    lawInitData.push({
+      nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
+      targetLaw: getLawAddress("CheckExternalActionState", deployedLaws), // Ensure this name matches build
+      config: encodeAbiParameters(
+        parseAbiParameters('address powersAddress, uint16 lawId, string[] inputParams'),
+        [formData["PowersParent"], formData["AdoptChildLawId"], ["address[] Laws", "uint256[] roleIds"]]
+      ), 
+      conditions: createConditions({
+        allowedRole: PUBLIC_ROLE 
+      })
+    });
     
-    // // Law 27: Revoke Laws
+    // revoke law. 
     lawCount++;
     lawInitData.push({
       nameDescription: "Revoke Laws: Admin can revoke laws from the organization",

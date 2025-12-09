@@ -10,7 +10,7 @@ This directory contains modular organization definitions for the Powers protocol
 organisations/
 ├── types.ts              # Type definitions for organizations
 ├── index.ts              # Organization registry and helper functions
-├── PowerBase.ts          # Power Base organization implementation
+├── PowerLabs.ts          # Power Base organization implementation
 ├── README.md            # This file
 └── [YourOrg].ts         # Add new organizations here
 ```
@@ -137,7 +137,7 @@ Add your organization to `index.ts`:
 import { MyDAO } from "./MyDAO";
 
 export const organizations: Organization[] = [
-  PowerBase,
+  PowerLabs,
   MyDAO,  // Add your organization here
   // ... more organizations
 ];
@@ -181,7 +181,7 @@ The **Power Base** organization is the reference implementation. It demonstrates
 - Token whitelisting for security
 - Proposal → Veto → Approve → Release → End flow
 
-See `PowerBase.ts` for complete implementation details.
+See `PowerLabs.ts` for complete implementation details.
 
 ## Helper Functions
 
@@ -280,7 +280,7 @@ Possible additions to the organization system:
 
 For questions about:
 - **Organization structure**: See `types.ts`
-- **Reference implementation**: See `PowerBase.ts`
+- **Reference implementation**: See `PowerLabs.ts`
 - **Adding organizations**: See "Adding a New Organization" section above
 - **Helper functions**: See `@/public/createLawInitData.ts`
 - **Constants**: See `@/context/constants.ts`

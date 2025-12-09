@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: MIT
 
 /// @notice An example implementation of a Law Package that adopts multiple laws into the Powers protocol.
-/// @dev It is meant to be adopted through the AdoptLaws law, and then be executed to adopt multiple laws in a single transaction.
-/// @dev The law self-destructs after execution.
+/// It is meant to be adopted through the AdoptLaws law, and then be executed to adopt multiple laws in a single transaction.
+/// The law self-destructs after execution.
 ///
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
 
-import { Law } from "../../Law.sol";
-import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { IPowers } from "../../interfaces/IPowers.sol";
-import { Powers } from "../../Powers.sol";
-import { PowersTypes } from "../../interfaces/PowersTypes.sol";
-import { ILaw } from "../../interfaces/ILaw.sol";
-import { IERC165 } from "../../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import { SafeExecTransaction } from "../integrations/SafeExecTransaction.sol";
-import { ModuleManager } from "../../../lib/safe-smart-account/contracts/base/ModuleManager.sol";
+import { Law } from "../Law.sol";
+import { LawUtilities } from "../libraries/LawUtilities.sol";
+import { IPowers } from "../interfaces/IPowers.sol";
+import { Powers } from "../Powers.sol";
+import { PowersTypes } from "../interfaces/PowersTypes.sol";
+import { ILaw } from "../interfaces/ILaw.sol";
+import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { SafeExecTransaction } from "../laws/integrations/SafeExecTransaction.sol";
+import { ModuleManager } from "../../lib/safe-smart-account/contracts/base/ModuleManager.sol";
 import { SafeL2 } from "lib/safe-smart-account/contracts/SafeL2.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
-import { MessageHashUtils } from "../../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import { MessageHashUtils } from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 // This LawPackage adopts the following governance paths: 
 // path 0 + 1: init Allowance Module. 
@@ -28,7 +28,7 @@ import { MessageHashUtils } from "../../../lib/openzeppelin-contracts/contracts/
 
 // import { console2 } from "forge-std/console2.sol"; // only for testing purposes. 
 
-contract PowerBaseSafeConfig is Law {
+contract PowerLabsConfig is Law {
     struct Mem {
         uint16 lawCount;
         address safeProxy;
@@ -36,30 +36,28 @@ contract PowerBaseSafeConfig is Law {
     }
     address[] private lawAddresses;
     address private allowanceModuleAddress;
-    uint16 constant public NUMBER_OF_CALLS = 17; // total number of calls in handleRequest
+    uint16 constant public NUMBER_OF_CALLS = 18; // total number of calls in handleRequest
     uint48 immutable public blocksPerHour;
     
-    // in this case lawAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction]
-    constructor(uint48 blocksPerHour_) {
+    // in this case lawAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction, RoleByTransaction]
+    constructor(uint48 blocksPerHour_, address[] memory lawAddresses_, address allowanceModuleAddress_) {
         blocksPerHour = blocksPerHour_;
+        lawAddresses = lawAddresses_;
+        allowanceModuleAddress = allowanceModuleAddress_;
 
-        emit Law__Deployed(abi.encode("address[] lawDependencies", "address AllowanceModule")
-        );
+        emit Law__Deployed(abi.encode());
     }
 
     function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        (address[] memory lawAddresses_, address allowanceModuleAddress_) = abi.decode(config, (address[], address)); 
-        lawAddresses = lawAddresses_;
-        allowanceModuleAddress = allowanceModuleAddress_;
-        
+    {   
         inputParams = abi.encode("address SafeProxy");
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    /// @notice Build calls to adopt the configured laws
+    /// @notice Build calls. 
+    /// intentionally this law packacge is kept very 'flat'. No loops or dynamic arrays to keep things understandable. 
     /// @param lawCalldata Unused for this law
     function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
         public
@@ -67,7 +65,6 @@ contract PowerBaseSafeConfig is Law {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-            // Placing action between brackets to avoid stack too deep errors.
             Mem memory mem; 
 
             actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce); 
@@ -120,12 +117,33 @@ contract PowerBaseSafeConfig is Law {
             calldatas[NUMBER_OF_CALLS - 1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId); 
 
             //////////////////////////////////////////////////////////////////////////  
-            //              GOVERNANCE FLOW FOR ADOPTING DELEGATES                  //
+            //                  ELECTORAL LAWS (BUY FUNDER ROLE)                    //
             //////////////////////////////////////////////////////////////////////////
-
             PowersTypes.Conditions memory conditions;
             string[] memory inputParams;
             PowersTypes.LawInitData memory lawInitData;
+
+            // RoleByTransaction 
+            conditions.allowedRole = type(uint256).max; // == PUBLIC_ROLE: anyone can call this law.
+            lawInitData = PowersTypes.LawInitData({
+                nameDescription: "Buy Funder Role: Make a contribution of more than 1 ETH (written out in smallest units) to receive a Funder role.",
+                targetLaw: lawAddresses[4], // RoleByTransaction
+                config: abi.encode(
+                    address(0), // token = ETH
+                    1 ether, // amount = 1 ETH minimum
+                    1, // newRoleId = Funder role
+                    mem.safeProxy // safeProxy = treasury
+                ),
+                conditions: conditions
+            });
+
+            calldatas[6] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            delete conditions;
+            mem.lawCount++;
+
+            //////////////////////////////////////////////////////////////////////////  
+            //   GOVERNANCE FLOW FOR ADOPTING DELEGATE / CHILD POWERS DEPLOYMENTS   //
+            //////////////////////////////////////////////////////////////////////////
 
             // statementOfIntent params
             inputParams = new string[](1);
@@ -141,7 +159,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[6] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[7] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -157,7 +175,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[7] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[8] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
             
@@ -174,7 +192,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[8] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[9] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -190,7 +208,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[9] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[10] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -211,7 +229,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions // everythign zero == Only admin can call directly 
             });
 
-            calldatas[10] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[11] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -238,7 +256,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[11] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[12] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -254,7 +272,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[12] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[13] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
             
@@ -271,7 +289,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[13] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[14] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
 
@@ -288,7 +306,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions
             });
 
-            calldatas[14] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[15] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
             delete conditions;
             mem.lawCount++;
             
@@ -309,7 +327,7 @@ contract PowerBaseSafeConfig is Law {
                 conditions: conditions // everythign zero == Only admin can call directly 
             });
 
-            calldatas[15] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
+            calldatas[16] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
 
             
         return (actionId, targets, values, calldatas);

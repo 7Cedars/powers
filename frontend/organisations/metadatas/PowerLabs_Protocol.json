@@ -1,9 +1,9 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeieem3giixmydhsr5j5gjmkw5awkofmx7ufig54gd3zzrdwztfde5a",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeib2nmvydbsmhrhjijjrqm5shb77ugdewwpplkcnazfaqwzl6to7mm",
   "description": 
-    "Power Base documentation is the on-chain organization that manages funds for documentation development of Power Base. It can only be accessed by those holding a documentation role in Power Base.",
-  "website": "https://powers-docs.vercel.app/organisations/powerBase",
+    "Power Labs protocol is the on-chain organization that manages funds for protocol development of Power Labs. It can only be accessed by those holding a protocol role in Power Labs.",
+  "website": "https://powers-docs.vercel.app/organisations/powerLabs",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 
   "communicationChannels": {

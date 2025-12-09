@@ -1,9 +1,9 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeieem3giixmydhsr5j5gjmkw5awkofmx7ufig54gd3zzrdwztfde5a",
   "description": 
-    "This is a temporary placeholder org, meant to create PowerBase using Safes.",
-  "website": "https://powers-docs.vercel.app/organisations/powerBase",
+    "Power Labs documentation is the on-chain organization that manages funds for documentation development of Power Labs. It can only be accessed by those holding a documentation role in Power Labs.",
+  "website": "https://powers-docs.vercel.app/organisations/powerLabs",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 
   "communicationChannels": {

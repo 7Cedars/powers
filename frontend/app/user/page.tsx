@@ -33,7 +33,7 @@ export default function ProfilePage() {
     roles: [],
   }
 
-  const defaultPowerBase: Powers = {
+  const defaultPowerLabs: Powers = {
     contractAddress: '0x15c7ce6f92d62266800c625caa16556c4bf0d08b' as `0x${string}`,
     chainId: 11155420n,
     name: 'Powers Base',

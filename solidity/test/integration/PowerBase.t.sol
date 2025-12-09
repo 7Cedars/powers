@@ -14,9 +14,9 @@ import { ILaw } from "../../src/interfaces/ILaw.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol"; 
 
-import { TestSetupPowerBaseSafes } from "../../test/TestSetup.t.sol";
+import { TestSetupPowerLabsSafes } from "../../test/TestSetup.t.sol";
 import { HelperConfig } from "../../script/HelperConfig.s.sol"; 
-import { PowerBaseSafeConfig } from "../../src/laws/reform/PowerBaseSafeConfig.sol";
+import { PowerLabsConfig } from "../../src/law-packages/PowerLabsConfig.sol";
 import { SafeExecTransaction } from "../../src/laws/integrations/SafeExecTransaction.sol";
 import { SafeAllowanceAction } from "../../src/laws/integrations/SafeAllowanceAction.sol";
 
@@ -26,7 +26,7 @@ import { SafeL2 } from "lib/safe-smart-account/contracts/SafeL2.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 import { MessageHashUtils } from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
-contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
+contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
     // IMPORTANT NOTE: These tests are meant to be executed on a forked mainnet (sepolia) anvil chain. 
     // They will not execute if the Allowance module address is empty on the chain.  
     // This also means that any test actions persist across tests, so be careful when re-running tests!
@@ -43,7 +43,7 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
     bool ok; 
     bytes result;
 
-    function testPowerBase_Deployment() public {
+    function testPowerLabs_Deployment() public {
         // Just verify setup completed successfully
         assertTrue(address(daoMock) != address(0), "Powers contract not deployed");
         assertTrue(config.SafeAllowanceModule != address(0), "Allowance module address not set");
@@ -53,10 +53,10 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
         assertTrue(active1, "Law 1 not active");
         assertTrue(active2, "Law 2 not active");
         assertEq(law1, findLawAddress("SafeSetup"), "Law 1 target mismatch");
-        assertEq(law2, findLawAddress("PowerBaseSafeConfig"), "Law 2 target mismatch");   
+        assertEq(law2, findLawAddress("PowerLabsConfig"), "Law 2 target mismatch");   
     }
 
-    function testPowerBase_InitialiseSafe() public {
+    function testPowerLabs_InitialiseSafe() public {
         // Deploy and initialise safe
         vm.prank(alice);
         daoMock.request(1, abi.encode(), nonce, "Create SafeProxy");
@@ -65,8 +65,8 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
         assertTrue(safeL2Treasury != address(0), "Safe proxy not deployed");
     }
 
-    function testPowerBase_SetupSafe() public {
-        testPowerBase_InitialiseSafe(); 
+    function testPowerLabs_SetupSafe() public {
+        testPowerLabs_InitialiseSafe(); 
         safeL2Treasury = daoMock.getTreasury();
 
         vm.prank(alice);
@@ -76,13 +76,13 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
         assertTrue(SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.SafeAllowanceModule), "Allowance module not enabled"); 
     }
 
-    function testPowerBase_AddDelegate() public {
-        // Setup: Initialize the safe and call PowerBaseSafeConfig
-        testPowerBase_SetupSafe();
+    function testPowerLabs_AddDelegate() public {
+        // Setup: Initialize the safe and call PowerLabsConfig
+        testPowerLabs_SetupSafe();
 
-        // The user roles are set up in TestSetup.t.sol in TestSetupPowerBaseSafes
+        // The user roles are set up in TestSetup.t.sol in TestSetupPowerLabsSafes
         // ROLE_ONE (Funders): bob, charlotte, david, eve]
-        // Based on PowerBaseSafeConfig.sol, we need roles 2, 3, 4, and 5 assigned.
+        // Based on PowerLabsConfig.sol, we need roles 2, 3, 4, and 5 assigned.
         vm.startPrank(address(daoMock));
         // ROLE_TWO (Doc Contributors)
         daoMock.assignRole(2, charlotte);
@@ -104,8 +104,8 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
         console2.log("Doc Contributors:", amountDocContribs);
 
         // Step 1: Member proposes to add a new delegate.
-        // Law counter starts at 1, SafeSetup is law 1, PowerBaseSafeConfig is law 2. It adds 9(?) laws.
-        lawId = 3; // Law adopted by PowerBaseSafeConfig
+        // Law counter starts at 1, SafeSetup is law 1, PowerLabsConfig is law 2. It adds 9(?) laws.
+        lawId = 3; // Law adopted by PowerLabsConfig
         (address lawTarget, , ) = daoMock.getAdoptedLaw(lawId);
         assertEq(lawTarget, findLawAddress("StatementOfIntent"), "Proposal law should be StatementOfIntent");
 
@@ -190,11 +190,11 @@ contract PowerBase_IntegrationTest is TestSetupPowerBaseSafes {
         assertTrue(delegates[0] == newDelegate, "New delegate address mismatch");
     }
 
-    function testPowerBase_AddAllowance() public {
-        // Setup: Initialize the safe and call PowerBaseSafeConfig
-        testPowerBase_AddDelegate();
+    function testPowerLabs_AddAllowance() public {
+        // Setup: Initialize the safe and call PowerLabsConfig
+        testPowerLabs_AddDelegate();
 
-        // The user roles are set up in TestSetup.t.sol in TestSetupPowerBaseSafes
+        // The user roles are set up in TestSetup.t.sol in TestSetupPowerLabsSafes
         vm.startPrank(address(daoMock));
         daoMock.assignRole(2, charlotte);
         daoMock.assignRole(2, david);

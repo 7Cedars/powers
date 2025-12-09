@@ -40,13 +40,13 @@ function getReturnValueFromReceipt(receipt: any): any {
  * 
  * Note that for testing purposes, daysToBlocks has been replaced with minutesToBlocks. In reality every minute is a day. 
  */
-export const PowerBase: Organization = {
+export const PowerLabs: Organization = {
   metadata: {
-    id: "power-base",
-    title: "Power Base",
+    id: "power-labs",
+    title: "Power Labs",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieiaf44y7krxtej64npspwjskcv2fns4fjndjxlqqy4q4hx7ol25m",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
-    description: "TEMP: This is a temporary placeholder org, meant to create PowerBase using Safes.",
+    description: "This is an alpha implementation of the Power Labs organisation. It manages protocol development funding via Safe Smart Accounts and governance based on GitHub contributions verified by commit signatures. Also it is possible to buy Funder roles through ETH donations.",
     disabled: false,
     onlyLocalhost: true
   },
@@ -71,7 +71,7 @@ export const PowerBase: Organization = {
   ): LawInitData[] => {
     const lawInitData: LawInitData[] = [];
     let lawCounter = 0;
-    // console.log("deployedLaws @ PowerBase", deployedLaws);
+    // console.log("deployedLaws @ PowerLabs", deployedLaws);
     // console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     
     //////////////////////////////////////////////////////////////////
@@ -99,22 +99,8 @@ export const PowerBase: Organization = {
     lawCounter++;
     lawInitData.push({ // law 1 : Initial setup
       nameDescription: "Configure Organisation: Adopt allowance module to SafeProxy, assign role labels and create governance flows.",
-      targetLaw: getLawAddress("PowerBaseSafeConfig", deployedLaws),
-      config: encodeAbiParameters(
-        [
-          { name: 'lawDependencies', type: 'address[]' },
-          { name: 'safeAllowanceModule', type: 'address' }
-        ], 
-        [
-          [ 
-            getLawAddress("StatementOfIntent", deployedLaws), 
-            getLawAddress("SafeExecTransaction", deployedLaws), 
-            getLawAddress("PresetSingleAction", deployedLaws), 
-            getLawAddress("SafeAllowanceAction", deployedLaws), 
-          ], 
-          getConstants(chainId).SAFE_ALLOWANCE_MODULE as `0x${string}`,
-        ]
-      ),
+      targetLaw: getConstants(chainId).POWER_LABS_CONFIG as `0x${string}`, // Here have to use getConstants to get the config law. 
+      config: "0x" as `0x${string}`,
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -164,29 +150,6 @@ export const PowerBase: Organization = {
         needFulfilled: claimLaw // Must have claimed a contributor role first
       })
     });
-    
-    // lawInitData.push({
-    //   nameDescription: `Apply for Funder Role: Claim a Funder role with the receiptId received following a deposit in native ETH or ERC20 Taxed token (${getConstants(chainId).ERC20_TAXED_ADDRESS}) to the Treasury.`,
-    //   targetLaw: getLawAddress("TreasuryRoleWithTransfer", deployedLaws),
-    //   config: encodeAbiParameters(
-    //     [
-    //       { name: 'TreasuryContract', type: 'address' },
-    //       { name: 'Tokens', type: 'address[]' },
-    //       { name: 'TokensPerBlock', type: 'uint256[]' },
-    //       { name: 'RoleId', type: 'uint256' }
-    //     ],
-    //     [
-    //       treasuryAddress as `0x${string}`, 
-    //       [ `0x0000000000000000000000000000000000000000`, getConstants(chainId).ERC20_TAXED_ADDRESS as `0x${string}`], // native Eth, token address
-    //       [ 100n, 100000000000000n ], 
-    //       1n
-    //     ]
-    //   ),
-    //   conditions: createConditions({ 
-    //     allowedRole: PUBLIC_ROLE,
-    //     throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the law with multiple claims in a short time
-    //   })
-    // });
 
     lawCounter++;
     lawInitData.push({
