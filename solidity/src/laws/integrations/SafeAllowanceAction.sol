@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // only for testing/debugging

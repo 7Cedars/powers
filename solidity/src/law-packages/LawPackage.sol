@@ -13,8 +13,6 @@ import { LawUtilities } from "../libraries/LawUtilities.sol";
 import { IPowers } from "../interfaces/IPowers.sol";
 import { Powers } from "../Powers.sol";
 import { PowersTypes } from "../interfaces/PowersTypes.sol";
-import { ILaw } from "../interfaces/ILaw.sol";
-import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract LawPackage is Law {
     address[] private sLawAddresses;

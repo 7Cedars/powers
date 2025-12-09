@@ -12,10 +12,6 @@ import { Law } from "../Law.sol";
 import { LawUtilities } from "../libraries/LawUtilities.sol";
 import { IPowers } from "../interfaces/IPowers.sol";
 import { Powers } from "../Powers.sol";
-import { PowersTypes } from "../interfaces/PowersTypes.sol";
-import { ILaw } from "../interfaces/ILaw.sol";
-import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import { SafeExecTransaction } from "../laws/integrations/SafeExecTransaction.sol";
 
 // For now this LawPackage only adopts a new URI. Child organisaiton specific governance flows will be added later.
 

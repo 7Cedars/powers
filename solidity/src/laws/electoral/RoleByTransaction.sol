@@ -8,7 +8,6 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { Powers } from "../../Powers.sol";
-import { IPowers } from "../../interfaces/IPowers.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
 
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.

@@ -18,7 +18,7 @@ contract TreasurySimpleTest is TestSetupHelpers {
 
         vm.startPrank(address(daoMock));
         erc20.mint(1000 ether);
-        erc20.transfer(alice, 500 ether);
+        require(erc20.transfer(alice, 500 ether), "Transfer failed");
         treasury.setWhitelistToken(address(erc20), true);
         vm.stopPrank();
     }
@@ -132,7 +132,7 @@ contract TreasuryPoolsTest is TestSetupHelpers {
 
         vm.startPrank(address(daoMock));
         erc20.mint(1000 ether);
-        erc20.transfer(alice, 500 ether);
+        require(erc20.transfer(alice, 500 ether), "Transfer failed");
         treasury.setWhitelistToken(address(erc20), true);
         vm.stopPrank();
 

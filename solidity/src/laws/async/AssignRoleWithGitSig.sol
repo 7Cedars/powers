@@ -6,7 +6,6 @@ import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
-import { IPowers } from "../../interfaces/IPowers.sol";
 
 import { ClaimRoleWithGitSig } from "./ClaimRoleWithGitSig.sol";
 

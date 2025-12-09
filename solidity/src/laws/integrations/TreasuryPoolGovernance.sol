@@ -7,9 +7,6 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { Powers } from "../../Powers.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { BespokeActionSimple } from "../executive/BespokeActionSimple.sol";
-import { TreasuryPoolTransfer } from "./TreasuryPoolTransfer.sol";
-import { TreasuryPools } from "../../helpers/TreasuryPools.sol";
 
 /**
  * @title TreasuryPoolGovernance

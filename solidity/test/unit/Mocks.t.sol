@@ -2101,7 +2101,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token.mintVotes(amount);
 
         vm.prank(alice);
-        token.transfer(bob, 500);
+        require(token.transfer(bob, 500), "Transfer failed");
 
         assertEq(token.balanceOf(alice), 500);
         assertEq(token.balanceOf(bob), 500);
@@ -2117,7 +2117,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token.approve(bob, 500);
 
         vm.prank(bob);
-        token.transferFrom(alice, charlotte, 500);
+        require(token.transferFrom(alice, charlotte, 500), "TransferFrom failed");
 
         assertEq(token.balanceOf(alice), 500);
         assertEq(token.balanceOf(charlotte), 500);
@@ -2425,7 +2425,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         assertEq(token.balanceOf(alice), aliceBalanceBefore - transferAmount - expectedTax);
         assertEq(token.balanceOf(bob), transferAmount);
@@ -2453,7 +2453,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.prank(token.owner());
-        token.transfer(alice, transferAmount);
+        require(token.transfer(alice, transferAmount), "Transfer failed");
 
         assertEq(token.balanceOf(token.owner()), ownerBalanceBefore - transferAmount);
         assertEq(token.balanceOf(alice), transferAmount);
@@ -2469,7 +2469,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.startPrank(alice);
-        token.transfer(token.owner(), transferAmount);
+        require(token.transfer(token.owner(), transferAmount), "Transfer failed");
         vm.stopPrank();
 
         assertEq(token.balanceOf(alice), aliceBalanceBefore - transferAmount);
@@ -2485,7 +2485,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 expectedTax = (transferAmount * token.taxRate()) / token.DENOMINATOR();
 
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         taxPaid = token.getTaxLogs(uint48(block.number), alice);
         assertEq(taxPaid, expectedTax);
@@ -2501,10 +2501,10 @@ contract Erc20TaxedTest is TestSetupPowers {
 
         // Make two transfers
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         vm.prank(alice);
-        token.transfer(charlotte, transferAmount);
+        require(token.transfer(charlotte, transferAmount), "Transfer failed");
 
         uint256 totalTaxPaid = token.getTaxLogs(uint48(block.number), alice);
         assertEq(totalTaxPaid, expectedTaxPerTransfer * 2);

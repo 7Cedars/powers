@@ -7,18 +7,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // protocol
 import { Powers } from "../src/Powers.sol";
-import { IPowers } from "../src/interfaces/IPowers.sol";
-import { Law } from "../src/Law.sol";
-import { ILaw } from "../src/interfaces/ILaw.sol";
 import { PowersErrors } from "../src/interfaces/PowersErrors.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { PowersEvents } from "../src/interfaces/PowersEvents.sol";
 import { HelperConfig } from "../script/HelperConfig.s.sol";
 import { TestConstitutions } from "./TestConstitutions.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-
-// law.
-import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
 
 // external contracts
 import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
@@ -32,7 +25,6 @@ import { Nominees } from "../src/helpers/Nominees.sol";
 // mocks
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { PowersMock } from "./mocks/PowersMock.sol";
-import { SimpleErc1155 } from "./mocks/SimpleErc1155.sol";
 import { SimpleErc20Votes } from "./mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "./mocks/Erc20Taxed.sol";
 
@@ -209,7 +201,7 @@ abstract contract TestHelperFunctions is Test, TestVariables {
         }
     }
 
-    function distributeNFTs(
+    function distributeNfts(
         address powersContract,
         address erc721MockLocal,
         address[] memory accounts,
