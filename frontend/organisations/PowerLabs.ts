@@ -44,8 +44,8 @@ export const PowerLabs: Organization = {
   metadata: {
     id: "power-labs",
     title: "Power Labs",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreieiaf44y7krxtej64npspwjskcv2fns4fjndjxlqqy4q4hx7ol25m",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaexs22jpd7xiq2bl2snyerw2bi4m4drxsq73cqxcxxptokbbm4cm",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibnvjwah2wdgd3fhak3sedriwt5xemjlacmrabt6mrht7f24m5w3i",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
     description: "This is an alpha implementation of the Power Labs organisation. It manages protocol development funding via Safe Smart Accounts and governance based on GitHub contributions verified by commit signatures. Also it is possible to buy Funder roles through ETH donations.",
     disabled: false,
     onlyLocalhost: true
@@ -351,10 +351,7 @@ export const PowerLabs: Organization = {
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: adoptChildrensLawsConfig,
       conditions: createConditions({
-        allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
-        succeedAt: 33n,
-        quorum: 50n,
+        allowedRole: 0n, // Admin
         needFulfilled: proposeLaw,
         needNotFulfilled: vetoLaw
       })

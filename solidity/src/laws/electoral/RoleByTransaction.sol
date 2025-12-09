@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-/// @notice A simple law that assigns a role after a succesful transaction of a specific token and preset amount. 
-// It is a simple threshold logic. If the transfer is of sufficient size & succesful, the role is granted. 
+/// @notice A simple law that assigns a role after a succesful transaction of a specific token and preset amount.
+// It is a simple threshold logic. If the transfer is of sufficient size & succesful, the role is granted.
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
@@ -19,13 +19,14 @@ contract RoleByTransaction is Law {
         address token;
         uint256 thresholdAmount;
         address safeProxy;
-    }   
+    }
 
     mapping(bytes32 lawHash => Data data) public data;
 
     /// @notice Constructor for RoleByRoles law
     constructor() {
-        bytes memory configParams = abi.encode("address Token", "uint256 ThresholdAmount", "uint256 NewRoleId", "address SafeProxy");
+        bytes memory configParams =
+            abi.encode("address Token", "uint256 ThresholdAmount", "uint256 NewRoleId", "address SafeProxy");
         emit Law__Deployed(configParams);
     }
 
@@ -33,7 +34,8 @@ contract RoleByTransaction is Law {
         public
         override
     {
-        (address token_, uint256 amount_, uint256 newRoleId_, address safeProxy_) = abi.decode(config, (address, uint256, uint256, address));
+        (address token_, uint256 amount_, uint256 newRoleId_, address safeProxy_) =
+            abi.decode(config, (address, uint256, uint256, address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash] = Data({ token: token_, thresholdAmount: amount_, newRoleId: newRoleId_, safeProxy: safeProxy_ });
 
@@ -51,7 +53,6 @@ contract RoleByTransaction is Law {
     {
         // step 1: decode the calldata & create hashes
         (uint256 amount) = abi.decode(lawCalldata, (uint256));
-        bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         calldatas = new bytes[](2);
@@ -59,7 +60,13 @@ contract RoleByTransaction is Law {
         calldatas[1] = abi.encode(caller);
     }
 
-    function _externalCall(uint16 lawId, uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) internal override {
+    function _externalCall(
+        uint16 lawId,
+        uint256 actionId,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas
+    ) internal override {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, lawId);
         Data memory data_ = data[lawHash];
         uint256 amount = abi.decode(calldatas[0], (uint256));
@@ -68,13 +75,16 @@ contract RoleByTransaction is Law {
 
         require(amount >= data_.thresholdAmount, "Amount below threshold");
 
-        if (data_.token == address(0)) { 
-            (success, ) = data_.safeProxy.call{value: amount}(""); 
-        } else { 
-            (success, ) = data_.token.call(abi.encodeWithSignature("transfer(address,uint256)", data_.token, amount));
+        if (data_.token == address(0)) {
+            (success,) = data_.safeProxy.call{ value: amount }("");
+        } else {
+            (success,) = data_.token
+                .call(
+                    abi.encodeWithSignature("transferFrom(address,address,uint256)", account, data_.safeProxy, amount)
+                );
         }
-
         require(success, "Transaction failed");
+
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = msg.sender;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, account);

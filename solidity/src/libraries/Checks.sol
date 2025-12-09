@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @title Checks - Checks for Powers Protocol
 /// @notice A library of helper functions used across Powers contracts
 /// @dev Provides common functionality for Powers implementation and validation
@@ -15,7 +13,7 @@ import { PowersTypes } from "../interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library Checks {
-    //////////////////////////////////////////////////////////// 
+    ////////////////////////////////////////////////////////////
     //                 ERRORS                                 //
     ////////////////////////////////////////////////////////////
     error Checks__ParentLawNotCompleted();
@@ -23,7 +21,7 @@ library Checks {
     error Checks__ExecutionGapTooSmall();
     error Checks__ProposalNotSucceeded();
     error Checks__DeadlineNotPassed();
-    
+
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
@@ -33,13 +31,10 @@ library Checks {
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the law
     /// @param latestFulfillment The latest fulfillment of the law
-    function check(
-        uint16 lawId,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce,
-        uint48 latestFulfillment
-    ) external view {
+    function check(uint16 lawId, bytes memory lawCalldata, address powers, uint256 nonce, uint48 latestFulfillment)
+        external
+        view
+    {
         PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
         // Check if parent law completion is required
         if (conditions.needFulfilled != 0) {
@@ -61,9 +56,7 @@ library Checks {
 
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
-            if (
-                latestFulfillment > 0 && block.number - latestFulfillment < conditions.throttleExecution
-            ) {
+            if (latestFulfillment > 0 && block.number - latestFulfillment < conditions.throttleExecution) {
                 revert Checks__ExecutionGapTooSmall();
             }
         }
@@ -80,18 +73,17 @@ library Checks {
 
         // Check execution delay after proposal
         if (conditions.delayExecution != 0) {
-
-            (, , uint256 deadline, , , ) = Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
+            (,, uint256 deadline,,,) =
+                Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
             if (deadline + conditions.delayExecution > block.number) {
                 revert Checks__DeadlineNotPassed();
             }
         }
     }
 
-    ///////////////////////////////////////////////////////////// 
+    /////////////////////////////////////////////////////////////
     //                  SIGNATURE VALIDATION                   //
     /////////////////////////////////////////////////////////////
-    
 
     /////////////////////////////////////////////////////////////
     //                  HELPER FUNCTIONS                        //

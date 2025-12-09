@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @title ChecksTest - Unit tests for Checks library
 /// @notice Tests the Checks library functions
 /// @dev Provides comprehensive coverage of all Checks functions
@@ -9,14 +7,9 @@
 
 pragma solidity 0.8.26;
 
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
-import { Powers } from "../../src/Powers.sol";
 import { Checks } from "../../src/libraries/Checks.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
-import { ILaw } from "../../src/interfaces/ILaw.sol";
-import { Law } from "../../src/Law.sol";
 
 contract ChecksTest is TestSetupPowers {
     //////////////////////////////////////////////////////////////
@@ -213,7 +206,7 @@ contract ChecksTest is TestSetupPowers {
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
 
         // Create latestExecution array with recent execution (gap too small)
-        uint48 latestExecution = uint48(block.number - 1000); 
+        uint48 latestExecution = uint48(block.number - 1000);
 
         // Should revert when execution gap is too small
         vm.expectRevert(Checks.Checks__ExecutionGapTooSmall.selector);

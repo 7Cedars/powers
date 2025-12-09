@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import {Client} from "@chainlink/contracts-ccip/libraries/Client.sol";
-import {CCIPReceiver} from "@chainlink/contracts-ccip/applications/CCIPReceiver.sol";
-import {IRouterClient} from "@chainlink/contracts-ccip/interfaces/IRouterClient.sol";
-import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-import {PowersTypes} from "../interfaces/PowersTypes.sol";
-import {IPowers} from "../interfaces/IPowers.sol";
+import { Client } from "@chainlink/contracts-ccip/libraries/Client.sol";
+import { CCIPReceiver } from "@chainlink/contracts-ccip/applications/CCIPReceiver.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/interfaces/IRouterClient.sol";
+import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import { PowersTypes } from "../interfaces/PowersTypes.sol";
+import { IPowers } from "../interfaces/IPowers.sol";
 
 contract CcipHelper is CCIPReceiver, ConfirmedOwner {
     // Custom errors
@@ -35,41 +35,27 @@ contract CcipHelper is CCIPReceiver, ConfirmedOwner {
      * @notice Constructor initializes the contract with the router address
      * @param router The address of the CCIP router contract
      */
-    constructor(
-        address router,
-        address owner_
-    ) CCIPReceiver(router) ConfirmedOwner(owner_) {}
+    constructor(address router, address owner_) CCIPReceiver(router) ConfirmedOwner(owner_) { }
 
     /**
      * @notice Handle a received message from another chain
      * @param any2EvmMessage The message received from the source chain
      */
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    ) internal override {
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         // Decode the received data
         (uint256 actionId, address powersAddress) = abi.decode(any2EvmMessage.data, (uint256, address));
 
         address originalSender = abi.decode(any2EvmMessage.sender, (address));
 
         emit StateReceived(
-            any2EvmMessage.messageId,
-            any2EvmMessage.sourceChainSelector,
-            originalSender,
-            actionId,
-            powersAddress
+            any2EvmMessage.messageId, any2EvmMessage.sourceChainSelector, originalSender, actionId, powersAddress
         );
 
         // Get the action state
         PowersTypes.ActionState state = IPowers(powersAddress).getActionState(actionId);
 
         // Send the state back to the original sender
-        _sendStateBack(
-            originalSender,
-            actionId,
-            state,
-            any2EvmMessage.sourceChainSelector
-        );
+        _sendStateBack(originalSender, actionId, state, any2EvmMessage.sourceChainSelector);
     }
 
     /**
@@ -101,27 +87,17 @@ contract CcipHelper is CCIPReceiver, ConfirmedOwner {
         });
 
         // Get the fee required to send the message
-        uint256 fees = IRouterClient(getRouter()).getFee(
-            destinationChainSelector,
-            evm2AnyMessage
-        );
+        uint256 fees = IRouterClient(getRouter()).getFee(destinationChainSelector, evm2AnyMessage);
 
-        if (fees > address(this).balance)
+        if (fees > address(this).balance) {
             revert NotEnoughBalance(address(this).balance, fees);
+        }
 
         // Send the message through the router, paying with native currency
-        messageId = IRouterClient(getRouter()).ccipSend{value: fees}(destinationChainSelector, evm2AnyMessage);
+        messageId = IRouterClient(getRouter()).ccipSend{ value: fees }(destinationChainSelector, evm2AnyMessage);
 
         // Emit event for the reply message
-        emit StateSent(
-            messageId,
-            destinationChainSelector,
-            receiver,
-            actionId,
-            state,
-            address(0),
-            fees
-        );
+        emit StateSent(messageId, destinationChainSelector, receiver, actionId, state, address(0), fees);
 
         return messageId;
     }
@@ -130,7 +106,7 @@ contract CcipHelper is CCIPReceiver, ConfirmedOwner {
      * @notice Allow owner to withdraw native currency from the contract
      */
     function withdraw() public onlyOwner {
-        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        (bool success,) = msg.sender.call{ value: address(this).balance }("");
         require(success, "Unable to withdraw");
     }
 

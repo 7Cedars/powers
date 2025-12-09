@@ -80,7 +80,14 @@ contract PeerSelect is Law {
     /// @param lawId The law identifier
     /// @param lawCalldata Encoded bool[] selections matching current nominees from Nominees contract
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /* caller */
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

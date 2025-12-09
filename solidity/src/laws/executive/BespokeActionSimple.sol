@@ -20,7 +20,8 @@ contract BespokeActionSimple is Law {
 
     /// @notice Constructor of the BespokeActionSimple law
     constructor() {
-        bytes memory configParams = abi.encode("address TargetContract", "bytes4 TargetFunctionAndData", "string[] Params");
+        bytes memory configParams =
+            abi.encode("address TargetContract", "bytes4 TargetFunctionAndData", "string[] Params");
         emit Law__Deployed(configParams);
     }
 
@@ -41,7 +42,14 @@ contract BespokeActionSimple is Law {
 
     /// @notice Execute the law by calling the configured target function
     /// @param lawCalldata the calldata _without function signature_ to send to the function
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

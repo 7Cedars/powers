@@ -83,7 +83,14 @@ contract TaxSelect is Law {
     /// @return targets The target addresses for the action
     /// @return values The values for the action
     /// @return calldatas The calldatas for the action
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /* caller */
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

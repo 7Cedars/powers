@@ -22,22 +22,17 @@ contract SafeExecTransaction is Law {
 
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
-        bytes memory configParams =
-            abi.encode("string[] inputParams", "address safe");
+        bytes memory configParams = abi.encode("string[] inputParams", "address safe");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory, bytes memory config)
+        public
+        override
+    {
         (string[] memory inputParamsRaw, address safe) = abi.decode(config, (string[], address));
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
-        lawConfig[lawHash_] = ConfigData({ 
-            safe: safe
-        });
+        lawConfig[lawHash_] = ConfigData({ safe: safe });
         super.initializeLaw(index, nameDescription, abi.encode(inputParamsRaw), config);
     }
 
@@ -57,12 +52,16 @@ contract SafeExecTransaction is Law {
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
-    ) public view override returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) {
+    )
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
         // Decode the parameters for the transaction that the Safe will execute.
-        (address to, uint256 value, bytes memory data) =
-            abi.decode(lawCalldata, (address, uint256, bytes));
+        (address to,, bytes memory data) = abi.decode(lawCalldata, (address, uint256, bytes));
 
         bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
         address safeAddress = lawConfig[lawHash_].safe;

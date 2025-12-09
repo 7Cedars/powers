@@ -57,7 +57,14 @@ contract ElectionSelect is Law {
 
     /// @notice Execute the law by revoking current role holders and assigning newly elected accounts
     /// @param lawCalldata The calldata (empty for this law)
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override
@@ -68,7 +75,7 @@ contract ElectionSelect is Law {
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        // Step 1: get amount role holders: 
+        // Step 1: get amount role holders:
         uint256 amountRoleHolders = Powers(payable(data.powersContract)).getAmountRoleHolders(data.roleId);
 
         //Get current role holders from Powers

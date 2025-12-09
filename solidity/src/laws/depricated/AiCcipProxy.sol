@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import {Client} from "@chainlink/contracts-ccip/libraries/Client.sol";
-import {CCIPReceiver} from "@chainlink/contracts-ccip/applications/CCIPReceiver.sol";
-import {IRouterClient} from "@chainlink/contracts-ccip/interfaces/IRouterClient.sol";
-import {Chainlink, ChainlinkClient} from "@chainlink/contracts/src/v0.8/operatorforwarder/ChainlinkClient.sol";
-import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import { Client } from "@chainlink/contracts-ccip/libraries/Client.sol";
+import { CCIPReceiver } from "@chainlink/contracts-ccip/applications/CCIPReceiver.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/interfaces/IRouterClient.sol";
+import { Chainlink, ChainlinkClient } from "@chainlink/contracts/src/v0.8/operatorforwarder/ChainlinkClient.sol";
+import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import { LinkTokenInterface } from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
 /**
  * AI CCIP Proxy Contract
@@ -34,13 +34,13 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
     string private apiUrl;
 
     // CCIP constants
-    LinkTokenInterface private s_linkToken;
+    LinkTokenInterface private sLinkToken;
     uint64 private s_destinationChainSelector;
-    bytes32 private s_lastReceivedMessageId;
-    address private s_lastReceivedAddress;
-    uint64 private s_lastSourceChainSelector;
-    address private s_lastSender;
-    uint256 private s_lastActionId;
+    bytes32 private sLastReceivedMessageId;
+    address private sLastReceivedAddress;
+    uint64 private sLastSourceChainSelector;
+    address private sLastSender;
+    uint256 private sLastActionId;
 
     // Structure to store AI analysis results
     struct AddressAnalysis {
@@ -107,15 +107,12 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @param destinationChainSelector The destination chain selector for replies
      * @param owner_ The owner of the contract
      */
-    constructor(
-        address router,
-        address link,
-        address oracle,
-        uint64 destinationChainSelector,
-        address owner_
-    ) CCIPReceiver(router) ConfirmedOwner(owner_) {
+    constructor(address router, address link, address oracle, uint64 destinationChainSelector, address owner_)
+        CCIPReceiver(router)
+        ConfirmedOwner(owner_)
+    {
         s_destinationChainSelector = destinationChainSelector;
-        s_linkToken = LinkTokenInterface(link);
+        sLinkToken = LinkTokenInterface(link);
 
         // Set up Chainlink
         _setChainlinkToken(link);
@@ -128,29 +125,25 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @notice Handle a received message from another chain
      * @param any2EvmMessage The message received from the source chain
      */
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    ) internal override {
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         // Decode the received address
         (uint256 actionId, address receivedAddress) = abi.decode(any2EvmMessage.data, (uint256, address));
 
-        s_lastReceivedMessageId = any2EvmMessage.messageId;
-        s_lastReceivedAddress = receivedAddress;
-        s_lastActionId = actionId;
-        s_lastSourceChainSelector = any2EvmMessage.sourceChainSelector;
-        s_lastSender = abi.decode(any2EvmMessage.sender, (address));
+        sLastReceivedMessageId = any2EvmMessage.messageId;
+        sLastReceivedAddress = receivedAddress;
+        sLastActionId = actionId;
+        sLastSourceChainSelector = any2EvmMessage.sourceChainSelector;
+        sLastSender = abi.decode(any2EvmMessage.sender, (address));
 
         // Emit event with received address details
         emit AddressReceived(
-            any2EvmMessage.messageId,
-            actionId,
-            any2EvmMessage.sourceChainSelector,
-            s_lastSender,
-            receivedAddress
+            any2EvmMessage.messageId, actionId, any2EvmMessage.sourceChainSelector, sLastSender, receivedAddress
         );
 
         // Request AI analysis of the received address
-        _requestAddressAnalysis(actionId, receivedAddress, s_lastSender, any2EvmMessage.sourceChainSelector, any2EvmMessage.messageId);
+        _requestAddressAnalysis(
+            actionId, receivedAddress, sLastSender, any2EvmMessage.sourceChainSelector, any2EvmMessage.messageId
+        );
     }
 
     /**
@@ -169,11 +162,8 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
     ) internal {
         require(targetAddress != address(0), "Invalid address");
 
-        Chainlink.Request memory req = _buildChainlinkRequest(
-            jobId,
-            address(this),
-            this.fulfillAddressAnalysis.selector
-        );
+        Chainlink.Request memory req =
+            _buildChainlinkRequest(jobId, address(this), this.fulfillAddressAnalysis.selector);
 
         // Add the API URL and address as CBOR data
         req._add("apiUrl", string.concat(apiUrl, _addressToString(targetAddress)));
@@ -200,37 +190,25 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @param category The category number (1-N) that best fits the analyzed address
      * @param explanation Detailed explanation of why this address falls into the chosen category
      */
-    function fulfillAddressAnalysis(
-        bytes32 requestId,
-        uint256 category,
-        string memory explanation
-    ) public recordChainlinkFulfillment(requestId) {
+    function fulfillAddressAnalysis(bytes32 requestId, uint256 category, string memory explanation)
+        public
+        recordChainlinkFulfillment(requestId)
+    {
         PendingRequest memory pendingRequest = pendingRequests[requestId];
         require(pendingRequest.targetAddress != address(0), "Request not found");
 
         // Store the analysis result
-        addressAnalyses[pendingRequest.targetAddress] = AddressAnalysis({
-            category: category,
-            explanation: explanation
-        });
+        addressAnalyses[pendingRequest.targetAddress] =
+            AddressAnalysis({ category: category, explanation: explanation });
 
         // Send the analysis results back to the original sender
-        _sendReplyBack(
-            pendingRequest.originalSender,
-            pendingRequest.actionId,
-            category,
-            explanation
-        );
+        _sendReplyBack(pendingRequest.originalSender, pendingRequest.actionId, category, explanation);
 
         // Clear the pending request
         delete pendingRequests[requestId];
 
         emit AddressAnalysisFulfilled(
-            requestId,
-            pendingRequest.actionId,
-            pendingRequest.targetAddress,
-            category,
-            explanation
+            requestId, pendingRequest.actionId, pendingRequest.targetAddress, category, explanation
         );
     }
 
@@ -241,12 +219,11 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @param explanation The AI analysis explanation
      * @return messageId The ID of the message that was sent
      */
-    function sendReply(
-        address receiver,
-        uint256 actionId,
-        uint256 category,
-        string memory explanation
-    ) external onlyOwner returns (bytes32 messageId) {
+    function sendReply(address receiver, uint256 actionId, uint256 category, string memory explanation)
+        external
+        onlyOwner
+        returns (bytes32 messageId)
+    {
         return _sendReplyBack(receiver, actionId, category, explanation);
     }
 
@@ -257,12 +234,10 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @param explanation The AI analysis explanation
      * @return messageId The ID of the message that was sent
      */
-    function _sendReplyBack(
-        address receiver,
-        uint256 actionId,
-        uint256 category,
-        string memory explanation
-    ) internal returns (bytes32 messageId) {
+    function _sendReplyBack(address receiver, uint256 actionId, uint256 category, string memory explanation)
+        internal
+        returns (bytes32 messageId)
+    {
         // Create an EVM2AnyMessage struct in memory
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(receiver),
@@ -274,34 +249,25 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
                     allowOutOfOrderExecution: true
                 })
             ),
-            feeToken: address(s_linkToken)
+            feeToken: address(sLinkToken)
         });
 
         // Get the fee required to send the message
-        uint256 fees = IRouterClient(getRouter()).getFee(
-            s_destinationChainSelector,
-            evm2AnyMessage
-        );
+        uint256 fees = IRouterClient(getRouter()).getFee(s_destinationChainSelector, evm2AnyMessage);
 
-        if (fees > s_linkToken.balanceOf(address(this)))
-            revert NotEnoughBalance(s_linkToken.balanceOf(address(this)), fees);
+        if (fees > sLinkToken.balanceOf(address(this))) {
+            revert NotEnoughBalance(sLinkToken.balanceOf(address(this)), fees);
+        }
 
         // Approve the Router to transfer LINK tokens on contract's behalf
-        s_linkToken.approve(getRouter(), fees);
+        sLinkToken.approve(getRouter(), fees);
 
         // Send the message through the router
         messageId = IRouterClient(getRouter()).ccipSend(s_destinationChainSelector, evm2AnyMessage);
 
         // Emit event for the reply message
         emit ReplySent(
-            messageId,
-            actionId,
-            s_destinationChainSelector,
-            receiver,
-            category,
-            explanation,
-            address(s_linkToken),
-            fees
+            messageId, actionId, s_destinationChainSelector, receiver, category, explanation, address(sLinkToken), fees
         );
 
         return messageId;
@@ -316,16 +282,10 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
     function getAddressAnalysis(address targetAddress)
         public
         view
-        returns (
-            uint256 category,
-            string memory explanation
-        )
+        returns (uint256 category, string memory explanation)
     {
         AddressAnalysis memory analysis = addressAnalyses[targetAddress];
-        return (
-            analysis.category,
-            analysis.explanation
-        );
+        return (analysis.category, analysis.explanation);
     }
 
     /**
@@ -336,23 +296,19 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @param explanation The AI analysis explanation
      * @return fees The fees required to send the message
      */
-    function getReplyFee(
-        address receiver,
-        uint256 actionId,
-        uint256 category,
-        string memory explanation
-    ) external view returns (uint256 fees) {
+    function getReplyFee(address receiver, uint256 actionId, uint256 category, string memory explanation)
+        external
+        view
+        returns (uint256 fees)
+    {
         Client.EVM2AnyMessage memory evm2AnyMessage = Client.EVM2AnyMessage({
             receiver: abi.encode(receiver),
             data: abi.encode(actionId, category, explanation),
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
-                Client.GenericExtraArgsV2({
-                    gasLimit: 2_000_000,
-                    allowOutOfOrderExecution: true
-                })
+                Client.GenericExtraArgsV2({ gasLimit: 2_000_000, allowOutOfOrderExecution: true })
             ),
-            feeToken: address(s_linkToken)
+            feeToken: address(sLinkToken)
         });
 
         return IRouterClient(getRouter()).getFee(s_destinationChainSelector, evm2AnyMessage);
@@ -386,10 +342,7 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @notice Allow withdraw of Link tokens from the contract
      */
     function withdrawLink() public onlyOwner {
-        require(
-            s_linkToken.transfer(msg.sender, s_linkToken.balanceOf(address(this))),
-            "Unable to transfer"
-        );
+        require(sLinkToken.transfer(msg.sender, sLinkToken.balanceOf(address(this))), "Unable to transfer");
     }
 
     /**
@@ -397,7 +350,7 @@ contract AiCcipProxy is CCIPReceiver, ChainlinkClient, ConfirmedOwner {
      * @return balance The current LINK balance
      */
     function getLinkBalance() external view returns (uint256 balance) {
-        return s_linkToken.balanceOf(address(this));
+        return sLinkToken.balanceOf(address(this));
     }
 
     /**

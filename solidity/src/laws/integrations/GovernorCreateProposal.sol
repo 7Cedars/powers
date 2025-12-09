@@ -39,7 +39,14 @@ contract GovernorCreateProposal is Law {
 
     /// @notice Build a call to the Governor.propose function
     /// @param lawCalldata Encoded (address[] targets, uint256[] values, bytes[] calldatas, string description)
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override

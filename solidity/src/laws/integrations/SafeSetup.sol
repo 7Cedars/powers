@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-/// @notice A law to execute that creates a SafeProxy, setting Powers as owner and registring it as its treasury. 
+/// @notice A law to execute that creates a SafeProxy, setting Powers as owner and registring it as its treasury.
 /// @dev This law uses the v=1 signature type, where the transaction executor (`msg.sender` to the Safe)
 ///      is an owner, thus providing its own approval by making the call.
 /// @author 7Cedars
@@ -19,7 +19,7 @@ contract SafeSetup is Law {
     /// @dev Configuration for this law adoption.
     struct ConfigData {
         address safeProxyFactory; // The SafeProxyFactory address to create the SafeProxy.
-        address safeL2Singleton;  // The SafeL2 singleton address used by the SafeProxy.
+        address safeL2Singleton; // The SafeL2 singleton address used by the SafeProxy.
     }
 
     /// @dev Mapping from law hash to its configuration.
@@ -27,23 +27,17 @@ contract SafeSetup is Law {
 
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
-        bytes memory configParams =
-            abi.encode("address safeProxyFactory", "address safeL2Singleton");
+        bytes memory configParams = abi.encode("address safeProxyFactory", "address safeL2Singleton");
         emit Law__Deployed(configParams);
     }
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory, bytes memory config)
+        public
+        override
+    {
         (address safeProxyFactory_, address safeL2Singleton_) = abi.decode(config, (address, address));
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
-        lawConfig[lawHash_] = ConfigData({ 
-            safeProxyFactory: safeProxyFactory_,
-            safeL2Singleton: safeL2Singleton_
-        });
+        lawConfig[lawHash_] = ConfigData({ safeProxyFactory: safeProxyFactory_, safeL2Singleton: safeL2Singleton_ });
         super.initializeLaw(index, nameDescription, abi.encode(""), config);
     }
 
@@ -63,12 +57,17 @@ contract SafeSetup is Law {
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
-    ) public view override returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) {
+    )
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
 
-        // NB! No transaction is sent to Powers here, so the action remains unfulfilled. 
+        // NB! No transaction is sent to Powers here, so the action remains unfulfilled.
         calldatas = new bytes[](1);
-        calldatas[0] = abi.encode(powers); 
+        calldatas[0] = abi.encode(powers);
 
         return (actionId, targets, values, calldatas);
     }
@@ -79,40 +78,39 @@ contract SafeSetup is Law {
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas
-    ) internal override virtual {
-
-        // step 1: creating a SafeProxy with Powers as owner 
+    ) internal virtual override {
+        // step 1: creating a SafeProxy with Powers as owner
         address powers = abi.decode(calldatas[0], (address));
         ConfigData memory config = lawConfig[LawUtilities.hashLaw(powers, lawId)];
 
         address[] memory owners = new address[](1);
-        owners[0] = powers; 
+        owners[0] = powers;
 
-        address safeProxyAddress = address(SafeProxyFactory(config.safeProxyFactory).createProxyWithNonce(
-            config.safeL2Singleton,
-            abi.encodeWithSelector(
-                Safe.setup.selector,
-                owners,
-                1, // threshold
-                address(0), // to
-                "", // data
-                address(0), // fallbackHandler
-                address(0), // paymentToken
-                0, // payment
-                address(0) // paymentReceiver
-                ),
-            1 // = nonce 
-        )); 
+        address safeProxyAddress = address(
+            SafeProxyFactory(config.safeProxyFactory)
+                .createProxyWithNonce(
+                    config.safeL2Singleton,
+                    abi.encodeWithSelector(
+                        Safe.setup.selector,
+                        owners,
+                        1, // threshold
+                        address(0), // to
+                        "", // data
+                        address(0), // fallbackHandler
+                        address(0), // paymentToken
+                        0, // payment
+                        address(0) // paymentReceiver
+                    ),
+                    1 // = nonce
+                )
+        );
 
         // step 2: register the SafeProxy as treasury in Powers ./
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(2);
         targets[0] = msg.sender;
-        calldatas[0] = abi.encodeWithSelector(
-            IPowers.setTreasury.selector,
-            safeProxyAddress
-        ); 
+        calldatas[0] = abi.encodeWithSelector(IPowers.setTreasury.selector, safeProxyAddress);
         targets[1] = msg.sender;
-        calldatas[1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId); 
+        calldatas[1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
 
         IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
     }

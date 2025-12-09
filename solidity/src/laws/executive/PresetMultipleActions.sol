@@ -36,8 +36,12 @@ contract PresetMultipleActions is Law {
         public
         override
     {
-        (string[] memory descriptions_, address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_)
-        = abi.decode(config, (string[], address[], uint256[], bytes[]));
+        (
+            string[] memory descriptions_,
+            address[] memory targets_,
+            uint256[] memory values_,
+            bytes[] memory calldatas_
+        ) = abi.decode(config, (string[], address[], uint256[], bytes[]));
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
         data[lawHash] = Data({ descriptions: descriptions_, targets: targets_, values: values_, calldatas: calldatas_ });
@@ -54,7 +58,14 @@ contract PresetMultipleActions is Law {
     }
 
     /// @notice Execute the law by executing selected preset actions
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override

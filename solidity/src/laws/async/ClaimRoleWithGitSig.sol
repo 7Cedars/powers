@@ -4,8 +4,6 @@ pragma solidity 0.8.26;
 // Base contracts
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import { Powers } from "../../Powers.sol";
-import { IPowers } from "../../interfaces/IPowers.sol";
 
 // Chainlink Functions
 import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
@@ -50,10 +48,10 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         string[] paths; // Folder paths, indexed by roleId
         uint256[] roleIds;
         string signatureString; // The message that must be signed
-        bytes32 messageHash; // the hash of the message that must be signed. 
+        bytes32 messageHash; // the hash of the message that must be signed.
         uint64 subscriptionId;
         uint32 gasLimit;
-        bytes32 donId; 
+        bytes32 donId;
         // string source; // The Chainlink Functions source code
     }
 
@@ -81,7 +79,7 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         address powers;
         uint16 lawId;
         uint256 actionId;
-        bytes32 messageHash; 
+        bytes32 messageHash;
     }
 
     // --- State Variables ---
@@ -91,7 +89,8 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
     bytes public sLastError;
     address private sSigner;
     // note that the repo is hard coded in the source code of this law. This is to avoid having to pass it as a parameter to the law.
-    string internal constant SOURCE = "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
+    string internal constant SOURCE =
+        "const branch = args[0];\nconst commitHash = args[1];\nconst folderName = args[2]; \n\nif (!branch || !commitHash || !folderName) {\n    throw Error(\"Missing required args\");\n}\n\nconst url = `https://powers-protocol.vercel.app/api/check-commit`; \n\nconst githubRequest = Functions.makeHttpRequest({\n    url: url,\n    method: \"GET\",\n    timeout: 9000, \n    params: {\n        repo: \"7cedars/powers\",\n        branch: branch,\n        commitHash: commitHash,\n        maxAgeCommitInDays: 90,\n        folderName: folderName\n    }\n});\n\n \nconst githubResponse = await githubRequest;\nif (githubResponse.error || !githubResponse.data || !githubResponse.data.data || !githubResponse.data.data.signature) {\n    throw Error(`Request Failed: ${githubResponse.error.message}`);\n}\n\nreturn Functions.encodeString(githubResponse.data.data.signature);";
 
     mapping(bytes32 lawHash => mapping(address => bytes errorMessage)) internal chainlinkErrors;
     mapping(bytes32 lawHash => mapping(address => uint256 roleId)) internal chainlinkReplies;
@@ -111,19 +110,17 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
             "uint32 gasLimit",
             "bytes32 donID"
         );
-        emit Law__Deployed(configParams);   
+        emit Law__Deployed(configParams);
     }
 
     // --- Law Initialization ---
 
-    function initializeLaw(
-        uint16 index,
-        string memory nameDescription,
-        bytes memory inputParams,
-        bytes memory config
-    ) public override {
+    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+        public
+        override
+    {
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        
+
         // Decode all configuration parameters once
         (
             string memory branch,
@@ -133,21 +130,16 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
             uint64 subscriptionId,
             uint32 gasLimit,
             bytes32 donId
-        ) = abi.decode(
-            config,
-            (string, string[], uint256[], string, uint64, uint32, bytes32)
-        );
-        
+        ) = abi.decode(config, (string, string[], uint256[], string, uint64, uint32, bytes32));
+
         // Store in separate scopes to avoid stack too deep
         {
             data[lawHash].branch = branch;
             data[lawHash].paths = paths;
             data[lawHash].roleIds = roleIds;
-            data[lawHash].messageHash = MessageHashUtils.toEthSignedMessageHash(
-                bytes(signatureString)
-            );
+            data[lawHash].messageHash = MessageHashUtils.toEthSignedMessageHash(bytes(signatureString));
         }
-        
+
         {
             data[lawHash].signatureString = signatureString;
             data[lawHash].subscriptionId = subscriptionId;
@@ -168,7 +160,12 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         uint16 lawId,
         bytes memory lawCalldata,
         uint256 nonce
-    ) public view override returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas) {
+    )
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
         Mem memory mem;
         mem.lawHash = LawUtilities.hashLaw(powers, lawId);
         Data memory data_ = data[mem.lawHash];
@@ -210,8 +207,10 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
     function _externalCall(
         uint16 lawId,
         uint256 actionId,
-        address[] memory /*targets*/,
-        uint256[] memory /*values*/,
+        address[] memory,
+        /*targets*/
+        uint256[] memory,
+        /*values*/
         bytes[] memory calldatas
     ) internal override {
         // Decode data from handleRequest
@@ -254,12 +253,7 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         if (args.length > 0) req.setArgs(args);
 
         // Send the request
-        sLastRequestId = _sendRequest(
-            req.encodeCBOR(),
-            data_.subscriptionId,
-            data_.gasLimit,
-            data_.donId
-        );
+        sLastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donId);
         return sLastRequestId;
     }
 
@@ -279,10 +273,10 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         sLastResponse = response;
         sLastError = err;
 
-        // if error is returned, set error 
+        // if error is returned, set error
         if (err.length > 0) {
             chainlinkErrors[lawHash][request.caller] = err;
-            return;  
+            return;
         }
 
         // --- Signature Verification ---
@@ -292,13 +286,13 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         // 2. Recover the signer's address using message Hash (calculated at initialisaiton of law)
         sSigner = request.messageHash.recover(signatureBytes);
 
-        // 4. Check if the signer matches the original caller. If so, save roleId to state. 
+        // 4. Check if the signer matches the original caller. If so, save roleId to state.
         if (sSigner == request.caller) {
-            chainlinkReplies[lawHash][request.caller] = request.roleId; 
+            chainlinkReplies[lawHash][request.caller] = request.roleId;
         }
 
         // executing this in the callback function fails because it takes too much gas.
-        // leaving it here to remember. 
+        // leaving it here to remember.
         // (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
 
         // Powers(request.powers).fulfill(
@@ -316,23 +310,27 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
         return data[lawHash];
     }
 
-    // returns latest reply, after deleting its data. Can only be called once per chainlink call. 
-    // NB THIS NEEDS ANOTHER CHECK! ANYONE CAN CALL THIS! 
-    function getLatestReply(bytes32 lawHash, address caller) external view returns (bytes memory errorMessage, uint256 roleId) {
-        // return reply 
+    // returns latest reply, after deleting its data. Can only be called once per chainlink call.
+    // NB THIS NEEDS ANOTHER CHECK! ANYONE CAN CALL THIS!
+    function getLatestReply(bytes32 lawHash, address caller)
+        external
+        view
+        returns (bytes memory errorMessage, uint256 roleId)
+    {
+        // return reply
         return (chainlinkErrors[lawHash][caller], chainlinkReplies[lawHash][caller]);
     }
 
     function resetReply(address powers, uint16 lawId, address caller) external returns (bool success) {
         if (msg.sender != powers) {
-            revert ("Unauthorised call"); 
+            revert("Unauthorised call");
         }
 
         bytes32 lawHash = LawUtilities.hashLaw(powers, lawId);
         chainlinkErrors[lawHash][caller] = abi.encode(0);
         chainlinkReplies[lawHash][caller] = type(uint256).max;
 
-        return true;  
+        return true;
     }
 
     function getRouter() external view returns (address) {
@@ -349,7 +347,4 @@ contract ClaimRoleWithGitSig is Law, FunctionsClient {
     }
 
     // --- Utility Functions ---
-
-
-
 }

@@ -7,7 +7,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 
 contract TreasurySimple is Ownable {
     using SafeERC20 for IERC20;
-    
+
     struct TransferLog {
         address from;
         address token;

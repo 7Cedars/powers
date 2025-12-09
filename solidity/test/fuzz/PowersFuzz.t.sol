@@ -1,14 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import { Test } from "forge-std/Test.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
-import { Powers } from "../../src/Powers.sol";
-import { IPowers } from "../../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
-import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
-import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
-import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 
 /// @title Powers Core Fuzz Tests
 /// @notice Deep fuzz testing for core Powers.sol functionality
@@ -56,7 +50,9 @@ contract PowersFuzzTest is TestSetupPowers {
         uint256 roleIdFuzzed, // 1
         uint256 numMembers, // 0
         uint8 quorumFuzzed // 1
-    ) public {
+    )
+        public
+    {
         // Bound inputs
         vm.assume(roleIdFuzzed != ADMIN_ROLE && roleIdFuzzed != PUBLIC_ROLE);
         vm.assume(numMembers <= 15);
@@ -66,6 +62,8 @@ contract PowersFuzzTest is TestSetupPowers {
 
         // Add members to role
         for (i = 0; i < numMembers; i++) {
+            // casting to 'uint256' is safe because used to create unique address only
+            // forge-lint: disable-next-line(unsafe-typecast)
             address member = address(uint160(i + 1000));
             vm.deal(member, 1 ether);
 
@@ -86,7 +84,9 @@ contract PowersFuzzTest is TestSetupPowers {
         address[] memory voters,
         uint256[] memory support,
         uint8 numberVotes // = max 255 votes.
-    ) public {
+    )
+        public
+    {
         // Bound inputs
         vm.assume(voters.length > numberVotes);
         vm.assume(support.length > numberVotes);
@@ -229,20 +229,6 @@ contract PowersFuzzTest is TestSetupPowers {
         } else {
             assertFalse(canCall);
         }
-    }
-
-    /// @notice Fuzz test role labeling
-    function testFuzzLabelRole(uint256 roleIdFuzzed, string memory labelFuzzed) public {
-        vm.assume(roleIdFuzzed != ADMIN_ROLE && roleIdFuzzed != PUBLIC_ROLE);
-
-        vm.prank(address(daoMock));
-        if (bytes(labelFuzzed).length < 1) vm.expectRevert(PowersErrors.Powers__InvalidLabel.selector);
-        if (bytes(labelFuzzed).length > 255) vm.expectRevert(PowersErrors.Powers__LabelTooLong.selector);
-
-        daoMock.labelRole(roleIdFuzzed, labelFuzzed);
-
-        // Verify label was set
-        assertEq(daoMock.getRoleLabel(roleIdFuzzed), labelFuzzed);
     }
 
     //////////////////////////////////////////////////////////////

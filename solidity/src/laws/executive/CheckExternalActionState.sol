@@ -6,14 +6,13 @@ import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-contract CheckExternalActionState is Law { 
-
+contract CheckExternalActionState is Law {
     /// @dev Configuration for this law adoption.
     struct ConfigData {
         address parentPowers;
         uint16 lawId;
     }
-    mapping(bytes32 lawHash => ConfigData data) public lawConfig; 
+    mapping(bytes32 lawHash => ConfigData data) public lawConfig;
 
     constructor() {
         bytes memory configParams = abi.encode("address parentPowers", "uint16 lawId", "string[] inputParams");
@@ -24,13 +23,11 @@ contract CheckExternalActionState is Law {
         public
         override
     {
-        (address parentPowers_, uint16 lawId_, string[] memory inputParams_) = abi.decode(config, (address, uint16, string[])); // validate config
+        (address parentPowers_, uint16 lawId_, string[] memory inputParams_) =
+            abi.decode(config, (address, uint16, string[])); // validate config
 
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        lawConfig[lawHash] = ConfigData({
-            parentPowers: parentPowers_,
-            lawId: lawId_
-        });
+        lawConfig[lawHash] = ConfigData({ parentPowers: parentPowers_, lawId: lawId_ });
 
         super.initializeLaw(index, nameDescription, abi.encode(inputParams_), config);
     }
@@ -53,10 +50,10 @@ contract CheckExternalActionState is Law {
 
         PowersTypes.ActionState state = IPowers(config.parentPowers).getActionState(remoteActionId);
         if (state != PowersTypes.ActionState.Fulfilled) {
-            revert ("Action not fulfilled");
+            revert("Action not fulfilled");
         }
-        
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
+
+        (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         return (actionId, targets, values, calldatas);
     }
 }

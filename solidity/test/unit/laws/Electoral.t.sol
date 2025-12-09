@@ -6,7 +6,7 @@ import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol"; 
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
 import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
@@ -477,7 +477,7 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
 //////////////////////////////////////////////////
 //              TAX SELECT TESTS                //
 //////////////////////////////////////////////////
-/// NOT A PROPER TEST YET. 
+/// NOT A PROPER TEST YET.
 contract TaxSelectTest is TestSetupElectoral {
     TaxSelect taxSelect;
     Erc20Taxed erc20Taxed;
@@ -518,7 +518,7 @@ contract TaxSelectTest is TestSetupElectoral {
     //     assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     // }
 }
- 
+
 //////////////////////////////////////////////////
 //              ROLE BY ROLES TESTS            //
 //////////////////////////////////////////////////
@@ -670,9 +670,9 @@ contract AssignExternalRoleTest is TestSetupElectoral {
     function testAssignExternalRoleInitialization() public {
         // Verify law data is stored correctly
         lawHash = keccak256(abi.encode(address(daoMock), lawId));
-        // Note: AssignExternalRole doesn't have a public getter for its config data 
+        // Note: AssignExternalRole doesn't have a public getter for its config data
         // like other contracts (e.g. getData), so we can't easily assert on internal state variables
-        // without adding a getter or making variables public. 
+        // without adding a getter or making variables public.
         // However, we can verify it works by functionality.
     }
 
@@ -696,13 +696,13 @@ contract AssignExternalRoleTest is TestSetupElectoral {
 
     function testAssignExternalRoleRevert() public {
         // Setup: Ensure alice does NOT have the required role (roleId = 1)
-        // By default alice might have been assigned role 1 in TestSetupElectoral's setup. 
+        // By default alice might have been assigned role 1 in TestSetupElectoral's setup.
         // Let's check TestSetupElectoral.
         // In TestSetupElectoral: daoMock.assignRole(ROLE_ONE, alice); -> ROLE_ONE = 1.
         // So alice HAS role 1. We need to revoke it or use another user.
-        
+
         // Let's use eve who doesn't have role 1.
-        
+
         // Execute request
         vm.prank(eve);
         vm.expectRevert("Account does not have role.");
@@ -718,7 +718,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
     PeerSelect peerSelect;
     VoteInOpenElection voteInOpenElection;
     NStrikesRevokesRoles nStrikesRevokesRoles;
-    TaxSelect taxSelect; 
+    TaxSelect taxSelect;
     RoleByRoles roleByRoles;
     SelfSelect selfSelect;
     RenounceRole renounceRole;
@@ -730,7 +730,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         peerSelect = new PeerSelect();
         voteInOpenElection = new VoteInOpenElection();
         nStrikesRevokesRoles = new NStrikesRevokesRoles();
-        taxSelect = new TaxSelect(); 
+        taxSelect = new TaxSelect();
         roleByRoles = new RoleByRoles();
         selfSelect = new SelfSelect();
         renounceRole = new RenounceRole();
@@ -859,5 +859,4 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
- 
 }

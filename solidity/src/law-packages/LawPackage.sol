@@ -17,11 +17,11 @@ import { ILaw } from "../interfaces/ILaw.sol";
 import { IERC165 } from "../../lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract LawPackage is Law {
-    address[] private s_lawAddresses;
-    
+    address[] private sLawAddresses;
+
     // in this case lawAddresses should be [openAction, statementOfIntent] -- we only need those two laws for this package.
     constructor(address[] memory lawAddresses) {
-        s_lawAddresses = lawAddresses;
+        sLawAddresses = lawAddresses;
         emit Law__Deployed(abi.encode());
     }
 
@@ -35,43 +35,51 @@ contract LawPackage is Law {
 
     /// @notice Build calls to adopt the configured laws
     /// @param lawCalldata Unused for this law
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce); 
+        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
         uint16 lawCount = Powers(powers).lawCounter();
-        PowersTypes.LawInitData[] memory s_lawInitData = getNewLaws(s_lawAddresses, powers, lawCount);
+        PowersTypes.LawInitData[] memory slawInitData = getNewLaws(sLawAddresses, powers, lawCount);
 
         // Create arrays for the calls to adoptLaw
-        uint256 length = s_lawInitData.length;
+        uint256 length = slawInitData.length;
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(length + 1);
         for (uint256 i; i < length; i++) {
             targets[i] = powers;
-            calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, s_lawInitData[i]);
+            calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, slawInitData[i]);
         }
         // Final call to self-destruct the LawPackage after adopting the laws
         targets[length] = powers;
-        calldatas[length] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId); 
+        calldatas[length] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
         return (actionId, targets, values, calldatas);
     }
 
-      /// @notice Generates LawInitData for a set of new laws to be adopted.
+    /// @notice Generates LawInitData for a set of new laws to be adopted.
     /// @param lawAddresses The addresses of the laws to be adopted.
     /// @param powers The address of the Powers contract.
     /// @return lawInitData An array of LawInitData structs for the new laws.
-    /// @dev the function follows the same pattern as TestConstitutions.sol 
+    /// @dev the function follows the same pattern as TestConstitutions.sol
     /// this function can be overwritten to create different law packages.
-    function getNewLaws(
-        address[] memory lawAddresses,
-        address powers,
-        uint16 lawCount
-    ) public view virtual returns (PowersTypes.LawInitData[] memory lawInitData) {
+    function getNewLaws(address[] memory lawAddresses, address powers, uint16 lawCount)
+        public
+        view
+        virtual
+        returns (PowersTypes.LawInitData[] memory lawInitData)
+    {
         lawInitData = new PowersTypes.LawInitData[](3);
         PowersTypes.Conditions memory conditions;
-        
+
         // statementOfIntent params
         string[] memory inputParams = new string[](3);
         inputParams[0] = "address[] Targets";

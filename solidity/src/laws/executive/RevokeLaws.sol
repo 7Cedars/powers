@@ -27,7 +27,14 @@ contract RevokeLaws is Law {
 
     /// @notice Build calls to revoke the configured laws
     /// @param lawCalldata Unused for this law
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override

@@ -113,10 +113,10 @@ export const PowerLabsChild: Organization = {
     //////////////////////////////////////////////////////////////////
     //                 CONSTITUTIONAL LAWS                          //
     ////////////////////////////////////////////////////////////////// 
-    // Adopt law.    
+    // Adopt law flow.    
     lawCount++;
     lawInitData.push({
-      nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
+      nameDescription: "Check Parent: Check if adopt new laws has been passed at the parent organization",
       targetLaw: getLawAddress("CheckExternalActionState", deployedLaws), // Ensure this name matches build
       config: encodeAbiParameters(
         parseAbiParameters('address powersAddress, uint16 lawId, string[] inputParams'),
@@ -126,6 +126,22 @@ export const PowerLabsChild: Organization = {
         allowedRole: PUBLIC_ROLE 
       })
     });
+    const checkParent = lawCount;
+
+    lawCount++;
+    lawInitData.push({
+      nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
+      targetLaw: getLawAddress("AdoptLaws", deployedLaws), // Ensure this name matches build
+      config: encodeAbiParameters(
+        parseAbiParameters('address powersAddress, uint16 lawId, string[] inputParams'),
+        [formData["PowersParent"], formData["AdoptChildLawId"], ["address[] Laws", "uint256[] roleIds"]]
+      ), 
+      conditions: createConditions({
+        allowedRole: PUBLIC_ROLE, 
+        needFulfilled: checkParent
+      })
+    });
+    
     
     // revoke law. 
     lawCount++;

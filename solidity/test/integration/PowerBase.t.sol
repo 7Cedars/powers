@@ -2,58 +2,41 @@
 pragma solidity 0.8.26;
 
 import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
 import { Powers } from "../../src/Powers.sol";
-import { IPowers } from "../../src/interfaces/IPowers.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
-import { PowersEvents } from "../../src/interfaces/PowersEvents.sol";
 import { Law } from "../../src/Law.sol";
-import { ILaw } from "../../src/interfaces/ILaw.sol";
-
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol"; 
-
 import { TestSetupPowerLabsSafes } from "../../test/TestSetup.t.sol";
-import { HelperConfig } from "../../script/HelperConfig.s.sol"; 
-import { PowerLabsConfig } from "../../src/law-packages/PowerLabsConfig.sol";
-import { SafeExecTransaction } from "../../src/laws/integrations/SafeExecTransaction.sol";
-import { SafeAllowanceAction } from "../../src/laws/integrations/SafeAllowanceAction.sol";
 
-import { ModuleManager } from "lib/safe-smart-account/contracts/base/ModuleManager.sol";
-import { OwnerManager } from "lib/safe-smart-account/contracts/base/OwnerManager.sol";
 import { SafeL2 } from "lib/safe-smart-account/contracts/SafeL2.sol";
-import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
-import { MessageHashUtils } from "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
-    // IMPORTANT NOTE: These tests are meant to be executed on a forked mainnet (sepolia) anvil chain. 
-    // They will not execute if the Allowance module address is empty on the chain.  
+    // IMPORTANT NOTE: These tests are meant to be executed on a forked mainnet (sepolia) anvil chain.
+    // They will not execute if the Allowance module address is empty on the chain.
     // This also means that any test actions persist across tests, so be careful when re-running tests!
     address safeProxy;
-    address law1; 
+    address law1;
     address law2;
     bool active1;
     bool active2;
 
     address safeL2Treasury;
-    address newDelegate; 
-    bytes proposalCalldata; 
+    address newDelegate;
+    bytes proposalCalldata;
 
-    bool ok; 
+    bool ok;
     bytes result;
 
     function testPowerLabs_Deployment() public {
         // Just verify setup completed successfully
         assertTrue(address(daoMock) != address(0), "Powers contract not deployed");
         assertTrue(config.SafeAllowanceModule != address(0), "Allowance module address not set");
-         
-        (law1, , active1) = daoMock.getAdoptedLaw(1); 
-        (law2, , active2) = daoMock.getAdoptedLaw(2); 
+
+        (law1,, active1) = daoMock.getAdoptedLaw(1);
+        (law2,, active2) = daoMock.getAdoptedLaw(2);
         assertTrue(active1, "Law 1 not active");
         assertTrue(active2, "Law 2 not active");
         assertEq(law1, findLawAddress("SafeSetup"), "Law 1 target mismatch");
-        assertEq(law2, findLawAddress("PowerLabsConfig"), "Law 2 target mismatch");   
+        assertEq(law2, findLawAddress("PowerLabsConfig"), "Law 2 target mismatch");
     }
 
     function testPowerLabs_InitialiseSafe() public {
@@ -66,14 +49,16 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
     }
 
     function testPowerLabs_SetupSafe() public {
-        testPowerLabs_InitialiseSafe(); 
+        testPowerLabs_InitialiseSafe();
         safeL2Treasury = daoMock.getTreasury();
 
         vm.prank(alice);
         daoMock.request(2, abi.encode(safeL2Treasury, config.SafeAllowanceModule), nonce, "Setup Safe");
 
         assertTrue(daoMock.lawCounter() > 1, "No new actions recorded");
-        assertTrue(SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.SafeAllowanceModule), "Allowance module not enabled"); 
+        assertTrue(
+            SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.SafeAllowanceModule), "Allowance module not enabled"
+        );
     }
 
     function testPowerLabs_AddDelegate() public {
@@ -98,7 +83,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         daoMock.assignRole(5, ian);
         vm.stopPrank();
 
-        newDelegate = alice; // making an EOA a delegate. 
+        newDelegate = alice; // making an EOA a delegate.
 
         uint256 amountDocContribs = daoMock.getAmountRoleHolders(2); // Doc Contributors
         console2.log("Doc Contributors:", amountDocContribs);
@@ -106,7 +91,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         // Step 1: Member proposes to add a new delegate.
         // Law counter starts at 1, SafeSetup is law 1, PowerLabsConfig is law 2. It adds 9(?) laws.
         lawId = 3; // Law adopted by PowerLabsConfig
-        (address lawTarget, , ) = daoMock.getAdoptedLaw(lawId);
+        (address lawTarget,,) = daoMock.getAdoptedLaw(lawId);
         assertEq(lawTarget, findLawAddress("StatementOfIntent"), "Proposal law should be StatementOfIntent");
 
         console2.log("MEMBERS PROPOSE TO ADD DELEGATE");
@@ -146,7 +131,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         lawId = 6;
         vm.prank(frank); // Frontend Contributor
         (actionId) = daoMock.propose(lawId, abi.encode(newDelegate), nonce, "Frontend OK");
-        
+
         vm.prank(frank);
         daoMock.castVote(actionId, FOR);
         vm.prank(gary);
@@ -156,7 +141,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
 
         vm.prank(frank);
         daoMock.request(lawId, abi.encode(newDelegate), nonce, "Frontend OK");
-        
+
         // Step 5: Protocol Contributors execute the proposal.
         console2.log("PROTOCOL CONTRIBUTORS EXECUTE TO ADD DELEGATE");
         lawId = 7;
@@ -180,12 +165,11 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         // getDelegates = 0xeb37abe0
         safeL2Treasury = daoMock.getTreasury();
         vm.prank(safeL2Treasury);
-        (ok, result) = config.SafeAllowanceModule.staticcall(
-            abi.encodeWithSignature("getDelegates(address,uint48,uint8)", safeL2Treasury, 0, 10)
-        );
+        (ok, result) = config.SafeAllowanceModule
+            .staticcall(abi.encodeWithSignature("getDelegates(address,uint48,uint8)", safeL2Treasury, 0, 10));
 
         require(ok, "Static call to getDelegates failed");
-        (address[] memory delegates, ) = abi.decode(result, (address[], uint48));
+        (address[] memory delegates,) = abi.decode(result, (address[], uint48));
         assertTrue(delegates.length > 0, "New delegate should be added to the allowance module");
         assertTrue(delegates[0] == newDelegate, "New delegate address mismatch");
     }
@@ -207,7 +191,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.stopPrank();
 
         safeL2Treasury = daoMock.getTreasury();
-        
+
         // Fund the treasury with tokens
         address token = findLawAddress("Erc20Taxed");
         Erc20Taxed(token).faucet();
@@ -215,12 +199,12 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         // Step 1: Member proposes to add an allowance.
         lawId = 8;
         proposalCalldata = abi.encode(
-            alice, // has been set as delegate in previous test 
-            token, 
-            11111, // allowanceAmount, 
-            22222, // resetTimeMin, 
-            33333 // resetBaseMin
-            );
+            alice, // has been set as delegate in previous test
+            token,
+            11_111, // allowanceAmount,
+            22_222, // resetTimeMin,
+            33_333 // resetBaseMin
+        );
 
         console2.log("MEMBERS PROPOSE TO ADD ALLOWANCE");
         vm.prank(helen); // Member
@@ -286,14 +270,15 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         daoMock.request(lawId, proposalCalldata, nonce, "Execute add allowance");
 
         // Verification
-        (ok, result) = config.SafeAllowanceModule.staticcall(
-            abi.encodeWithSignature("getTokenAllowance(address,address,address)", safeL2Treasury, alice, token)
-        );
+        (ok, result) = config.SafeAllowanceModule
+            .staticcall(
+                abi.encodeWithSignature("getTokenAllowance(address,address,address)", safeL2Treasury, alice, token)
+            );
 
         require(ok, "Static call to getTokenAllowance failed");
-        (uint256 amount, , uint256 resetTime, , ) = abi.decode(result, (uint256, uint256, uint256, uint256, uint256));
+        (uint256 amount,, uint256 resetTime,,) = abi.decode(result, (uint256, uint256, uint256, uint256, uint256));
 
-        assertEq(amount, 11111, "Allowance amount mismatch");
-        assertEq(resetTime, 22222, "Reset time mismatch"); 
+        assertEq(amount, 11_111, "Allowance amount mismatch");
+        assertEq(resetTime, 22_222, "Reset time mismatch");
     }
 }

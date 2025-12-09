@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import { Law } from "../../Law.sol";
 import { LawUtilities } from "../../libraries/LawUtilities.sol";
-import {Powers} from "../../Powers.sol";
+import { Powers } from "../../Powers.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract AssignExternalRole is Law {
@@ -24,9 +24,7 @@ contract AssignExternalRole is Law {
         (s_externalPowersAddress, s_roleId) = abi.decode(config, (address, uint256));
 
         // Define the input parameters for the UI
-        bytes memory inputParams = abi.encodePacked(
-            abi.encode("address account")
-        );
+        bytes memory inputParams = abi.encodePacked(abi.encode("address account"));
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
@@ -48,7 +46,7 @@ contract AssignExternalRole is Law {
         // Check if the account has the required role on the external contract
         uint48 hasRole = Powers(s_externalPowersAddress).hasRoleSince(account, s_roleId);
         if (hasRole == 0) {
-            revert ("Account does not have role.");
+            revert("Account does not have role.");
         }
 
         // Prepare the action to assign the role on the current Powers contract
@@ -56,11 +54,7 @@ contract AssignExternalRole is Law {
 
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers; // The target is the current Powers contract
-        calldatas[0] = abi.encodeWithSelector(
-            IPowers.assignRole.selector,
-            s_roleId,
-            account
-        );
+        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, s_roleId, account);
 
         return (actionId, targets, values, calldatas);
     }

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @title Law Interface - Contract Interface for Powers Protocol Laws
 /// @notice Interface for the Law contract, which provides core functionality for institutional laws.
 /// @dev Defines the interface for implementing role restricted conditional powers to transform input data into executable calldata.

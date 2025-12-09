@@ -23,10 +23,7 @@ contract SafeAllowanceAction is Law {
     constructor() {
         // Expose expected input parameters for UIs.
         bytes memory configParams = abi.encode(
-            "string[] inputParams",
-            "bytes4 functionSelector", 
-            "address allowanceModule",
-            "address safeProxy"
+            "string[] inputParams", "bytes4 functionSelector", "address allowanceModule", "address safeProxy"
         );
         emit Law__Deployed(configParams);
     }
@@ -35,16 +32,13 @@ contract SafeAllowanceAction is Law {
         public
         override
     {
-        (string[] memory inputParamsArray, bytes4 functionSelector, address allowanceModule, address safeProxy) = 
+        (string[] memory inputParamsArray, bytes4 functionSelector, address allowanceModule, address safeProxy) =
             abi.decode(config, (string[], bytes4, address, address));
-            
+
         bytes32 lawHash_ = LawUtilities.hashLaw(msg.sender, index);
-        lawConfig[lawHash_] = ConfigData({
-            functionSelector: functionSelector,
-            safeProxy: safeProxy,
-            allowanceModule: allowanceModule
-        });
-        
+        lawConfig[lawHash_] =
+            ConfigData({ functionSelector: functionSelector, safeProxy: safeProxy, allowanceModule: allowanceModule });
+
         // Overwrite inputParams with the specific structure expected by handleRequest
         inputParams = abi.encode(inputParamsArray);
 
@@ -54,7 +48,7 @@ contract SafeAllowanceAction is Law {
     /// @notice Prepares the call to the Allowance Module
     /// @param lawCalldata The calldata containing token, to, amount, delegate
     /// @return actionId The unique action identifier
-    /// @return targets Array of target contract addresses 
+    /// @return targets Array of target contract addresses
     /// @return values Array of ETH values to send
     /// @return calldatas Array of calldata for each call
     function handleRequest(
@@ -87,10 +81,10 @@ contract SafeAllowanceAction is Law {
         // NB: We call the execTransaction function in our SafeL2 proxy to make the call to the Allowance Module.
         targets[0] = config.safeProxy;
         calldatas[0] = abi.encodeWithSelector(
-            Safe.execTransaction.selector, 
-            config.allowanceModule, // The internal transaction's destination: the Allowance Module. 
+            Safe.execTransaction.selector,
+            config.allowanceModule, // The internal transaction's destination: the Allowance Module.
             0, // The internal transaction's value in this law is always 0. To transfer Eth use a different law.
-            abi.encodePacked(config.functionSelector, lawCalldata), 
+            abi.encodePacked(config.functionSelector, lawCalldata),
             0, // operation = Call
             0, // safeTxGas
             0, // baseGas

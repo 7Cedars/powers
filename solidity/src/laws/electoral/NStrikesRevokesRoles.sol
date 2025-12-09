@@ -68,7 +68,14 @@ contract NStrikesRevokesRoles is Law {
     /// @param lawId The law identifier
     /// @param lawCalldata Not used for this law
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /* caller */
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual
@@ -102,7 +109,7 @@ contract NStrikesRevokesRoles is Law {
             targets[mem.i] = powers;
             calldatas[mem.i] =
                 abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.lawHash].roleId, mem.roleHolders[mem.i]);
-                mem.i++;
+            mem.i++;
         }
         mem.i = 0;
 

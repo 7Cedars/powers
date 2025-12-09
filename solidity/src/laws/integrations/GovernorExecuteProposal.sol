@@ -40,7 +40,14 @@ contract GovernorExecuteProposal is Law {
 
     /// @notice Build a call to execute a Governor proposal after validation
     /// @param lawCalldata Encoded (address[] targets, uint256[] values, bytes[] calldatas, string description)
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override
@@ -71,7 +78,7 @@ contract GovernorExecuteProposal is Law {
         }
         if (bytes(description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
 
-        // NB, todo: DEBUG  
+        // NB, todo: DEBUG
         // Get proposal ID from governor contract
         // uint256 proposalId = Governor(governorContract).getProposalId(
         //     proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))

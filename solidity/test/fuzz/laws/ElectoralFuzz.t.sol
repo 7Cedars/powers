@@ -7,7 +7,7 @@ import { TestSetupElectoral } from "../../TestSetup.t.sol";
 import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol"; 
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
 import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
@@ -16,7 +16,7 @@ import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "../../../src/helpers/OpenElection.sol";
 import { Nominees } from "../../../src/helpers/Nominees.sol";
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol"; 
+import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 
 /// @title Electoral Law Fuzz Tests
@@ -25,7 +25,7 @@ import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 ///      lawId 1: ElectionSelect (Erc20DelegateElection, roleId=3, maxHolders=3)
 ///      lawId 2: PeerSelect (maxHolders=2, roleId=4, maxVotes=1, Nominees)
 ///      lawId 3: VoteInOpenElection (OpenElection, maxVotes=1)
-///      lawId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4) 
+///      lawId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4)
 ///      lawId 6: SelfSelect (roleId=4)
 ///      lawId 7: RenounceRole (roles=[1,2])
 ///      lawId 8: NStrikesRevokesRoles (roleId=3, strikes=2, FlagActions)
@@ -36,7 +36,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     ElectionSelect electionSelect;
     PeerSelect peerSelect;
     VoteInOpenElection voteInOpenElection;
-    TaxSelect taxSelect; 
+    TaxSelect taxSelect;
     SelfSelect selfSelect;
     RenounceRole renounceRole;
     NStrikesRevokesRoles nStrikesRevokesRoles;
@@ -69,7 +69,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         peerSelect = PeerSelect(lawAddresses[12]);
         voteInOpenElection = VoteInOpenElection(lawAddresses[13]);
         nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[14]);
-        taxSelect = TaxSelect(lawAddresses[15]); 
+        taxSelect = TaxSelect(lawAddresses[15]);
         roleByRoles = RoleByRoles(lawAddresses[17]);
         selfSelect = SelfSelect(lawAddresses[18]);
         renounceRole = RenounceRole(lawAddresses[19]);
@@ -78,7 +78,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
         openElection = OpenElection(mockAddresses[9]);
         nomineesContract = Nominees(mockAddresses[8]);
-        erc20Taxed = Erc20Taxed(mockAddresses[1]); 
+        erc20Taxed = Erc20Taxed(mockAddresses[1]);
         flagActions = FlagActions(mockAddresses[6]);
     }
 
@@ -175,10 +175,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
 
     /// @notice Fuzz test RoleByRoles (lawId 9) with various role combinations
     /// @dev lawId 9 assigns role 4 if account has roles 1 and 2
-    function testFuzzRoleByRolesWithRoleCombinations(
-        address accountFuzzed,
-        uint256 nonceFuzzed
-    ) public {
+    function testFuzzRoleByRolesWithRoleCombinations(address accountFuzzed, uint256 nonceFuzzed) public {
         vm.assume(accountFuzzed != address(0));
 
         bool hasRole1 = daoMock.hasRoleSince(accountFuzzed, 1) != 0;
@@ -686,9 +683,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     }
 
     /// @notice Fuzz test electoral laws with large nominee arrays
-    function testFuzzElectoralWithLargeArrays(uint256 numberOfNominees, uint256 voteIndex, uint256 nonceFuzzed)
-        public
-    {
+    function testFuzzElectoralWithLargeArrays(uint256 numberOfNominees, uint256 voteIndex, uint256 nonceFuzzed) public {
         numberOfNominees = bound(numberOfNominees, 1, MAX_FUZZ_TARGETS);
 
         // Nominate many candidates in OpenElection

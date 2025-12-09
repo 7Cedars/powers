@@ -12,7 +12,7 @@ import { TreasurySimple } from "../../helpers/TreasurySimple.sol";
 // import "forge-std/Test.sol"; // only for testing
 
 contract TreasuryRoleWithTransfer is Law {
-    struct TokenConfig { 
+    struct TokenConfig {
         uint256 tokensPerBlock; // tokens per block for access duration
         // can (and probably will add more configf here later on)
     }
@@ -29,10 +29,10 @@ contract TreasuryRoleWithTransfer is Law {
         uint256 receiptId;
         address account;
         TreasurySimple.TransferLog selectedTransfer;
-        uint48 currentBlock; 
+        uint48 currentBlock;
         uint256 tokensPerBlock;
         uint256 blocksBought;
-        uint48 accessUntilBlock; 
+        uint48 accessUntilBlock;
     }
 
     mapping(bytes32 lawHash => Data) internal data;
@@ -65,10 +65,10 @@ contract TreasuryRoleWithTransfer is Law {
 
         // Store token configurations
         for (uint256 i = 0; i < tokens_.length; i++) {
-             tokenConfigs[lawHash][tokens_[i]] = TokenConfig({ tokensPerBlock: tokensPerBlock_[i] });
+            tokenConfigs[lawHash][tokens_[i]] = TokenConfig({ tokensPerBlock: tokensPerBlock_[i] });
         }
 
-        inputParams = abi.encode("uint256 receiptId"); // receipt of transfer to check on account sending request. 
+        inputParams = abi.encode("uint256 receiptId"); // receipt of transfer to check on account sending request.
 
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
@@ -107,7 +107,7 @@ contract TreasuryRoleWithTransfer is Law {
         if (mem.selectedTransfer.from != caller) {
             revert("Transfer not from caller");
         }
-        // check if number of blocks bought bring it across current block.number. 
+        // check if number of blocks bought bring it across current block.number.
         mem.currentBlock = uint48(block.number);
         mem.tokensPerBlock = tokenConfigs[mem.lawHash][mem.selectedTransfer.token].tokensPerBlock;
         if (mem.tokensPerBlock == 0) {
@@ -120,13 +120,13 @@ contract TreasuryRoleWithTransfer is Law {
         }
         if (mem.currentBlock > uint48(mem.selectedTransfer.blockNumber) + uint48(mem.blocksBought)) {
             revert("Access expired");
-        }  
+        }
 
         // If all checks passed: Create arrays for execution and assign role
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.data.roleIdToSet, caller);
-        
+
         return (actionId, targets, values, calldatas);
     }
 

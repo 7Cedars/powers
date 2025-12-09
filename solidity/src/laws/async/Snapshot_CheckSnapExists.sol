@@ -60,10 +60,10 @@
 //         string[] args;
 //     }
 
-//     bytes32 public s_lastRequestId;
-//     string public s_lastProposalId;
-//     bytes public s_lastResponse;
-//     bytes public s_lastError;
+//     bytes32 public sLastRequestId;
+//     string public sLastProposalId;
+//     bytes public sLastResponse;
+//     bytes public sLastError;
 //     mapping(bytes32 lawHash => Data) internal data;
 //     mapping(string proposalId => Request) public requests;
 //     mapping(bytes32 requestId => string) public requestToProposalId;
@@ -196,9 +196,9 @@
 //         if (args.length > 0) req.setArgs(args);
 //         // if (bytesArgs.length > 0) req.setBytesArgs(bytesArgs);
 //         // console2.log("sendRequest: waypoint 1");
-//         s_lastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donID);
+//         sLastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donID);
 //         // console2.log("sendRequest: waypoint 2");
-//         return s_lastRequestId;
+//         return sLastRequestId;
 //     }
 
 //     /**
@@ -209,21 +209,21 @@
 //      * Either response or error parameter will be set, but never both.
 //      */
 //     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
-//         if (s_lastRequestId != requestId) {
+//         if (sLastRequestId != requestId) {
 //             revert UnexpectedRequestID(requestId);
 //         }
-//         s_lastResponse = response;
-//         s_lastError = err;
+//         sLastResponse = response;
+//         sLastError = err;
 
 //         if (err.length > 0) {
 //             revert(string(err));
 //         }
 
-//         if (s_lastResponse.length == 0) {
+//         if (sLastResponse.length == 0) {
 //             revert("No response from the API");
 //         }
 
-//         (string memory reply) = abi.decode(abi.encode(s_lastResponse), (string));
+//         (string memory reply) = abi.decode(abi.encode(sLastResponse), (string));
 
 //         if (keccak256(abi.encodePacked(reply)) != keccak256(abi.encodePacked("true"))) {
 //             revert(reply);

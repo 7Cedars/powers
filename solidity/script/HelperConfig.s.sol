@@ -8,7 +8,7 @@ contract HelperConfig is Script {
 
     // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.
     struct NetworkConfig {
-        uint256 blocksPerHour; // a basic way of establishing time. As long as block times are fairly stable on a chain, this will work.
+        uint256 BLOCKS_PER_HOUR; // a basic way of establishing time. As long as block times are fairly stable on a chain, this will work.
         uint256 maxReturnDataLength; // for now these are all set at 10,000.
         uint256 maxCallDataLength; // for now these are all set at 10,000.
         uint256 maxExecutionsLength; // for now these are all set at 25.
@@ -47,7 +47,7 @@ contract HelperConfig is Script {
     }
 
     function getConfigByChainId(uint256 chainId) public view returns (NetworkConfig memory) {
-        if (networkConfigs[chainId].blocksPerHour != 0) {
+        if (networkConfigs[chainId].BLOCKS_PER_HOUR != 0) {
             return networkConfigs[chainId];
         } else {
             revert HelperConfig__UnsupportedChain();
@@ -55,7 +55,7 @@ contract HelperConfig is Script {
     }
 
     function getEthSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 300; // new block every 12 seconds
+        networkConfig.BLOCKS_PER_HOUR = 300; // new block every 12 seconds
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
@@ -66,16 +66,16 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
-        networkConfig.SafeCanonical = 0x41675C099F32341bf84BFc5382aF534df5C7461a; 
+        networkConfig.SafeCanonical = 0x41675C099F32341bf84BFc5382aF534df5C7461a;
         networkConfig.SafeL2Canonical = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
         networkConfig.SafeProxyFactory = 0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67;
-        networkConfig.SafeAllowanceModule = 0xAA46724893dedD72658219405185Fb0Fc91e091C; 
+        networkConfig.SafeAllowanceModule = 0xAA46724893dedD72658219405185Fb0Fc91e091C;
 
         return networkConfig;
     }
 
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 14400; // new block every 0.25 seconds
+        networkConfig.BLOCKS_PER_HOUR = 14_400; // new block every 0.25 seconds
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
@@ -86,14 +86,14 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
-        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
-        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
     }
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 1800; // new block every 2 seconds
+        networkConfig.BLOCKS_PER_HOUR = 1800; // new block every 2 seconds
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
@@ -104,14 +104,14 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
-        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
-        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
     }
 
     function getBaseSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 1800; // new block every 2 seconds
+        networkConfig.BLOCKS_PER_HOUR = 1800; // new block every 2 seconds
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
@@ -122,14 +122,14 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
-        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
-        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
     }
 
     function getMantleSepoliaConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 360_000; // new block every 2 seconds
+        networkConfig.BLOCKS_PER_HOUR = 360_000; // new block every 2 seconds
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
@@ -140,20 +140,20 @@ contract HelperConfig is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
-        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
-        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
     }
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
-        networkConfig.blocksPerHour = 3600; // new block per 1 second
+        networkConfig.BLOCKS_PER_HOUR = 3600; // new block per 1 second
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
 
-        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000; 
-        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000; 
+        networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
     }

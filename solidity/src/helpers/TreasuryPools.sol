@@ -3,9 +3,9 @@
 // @notice A helper treasury contract with role-based budget pools. Should be owned by a Powers protocol to provide RBAC governance.
 // @author 7Cedars,
 pragma solidity 0.8.26;
- 
+
 import { TreasurySimple } from "./TreasurySimple.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TreasuryPools is TreasurySimple {
     struct Pool {
@@ -26,7 +26,7 @@ contract TreasuryPools is TreasurySimple {
         whitelistedTokens[address(0)] = true;
         transferOwnership(msg.sender);
     }
- 
+
     function poolTransfer(uint256 _poolId, address payable _to, uint256 _amount) public onlyOwner {
         // Note: This function assumes an external mechanism for role-based access control, as included in the Powers protocol.
         Pool storage pool = pools[_poolId];

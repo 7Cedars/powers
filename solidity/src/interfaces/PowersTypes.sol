@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @notice Types used in the Powers protocol.
 /// @author 7Cedars
 pragma solidity 0.8.26;

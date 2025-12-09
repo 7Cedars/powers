@@ -53,7 +53,7 @@
 
 //     // Storage
 //     address private s_aiCCIPProxy;
-//     LinkTokenInterface private s_linkToken;
+//     LinkTokenInterface private sLinkToken;
 //     uint64 private s_destinationChainSelector;
 
 //     // Structure to store address analysis results
@@ -78,11 +78,11 @@
 //     mapping(uint256 => PendingRequest) private s_pendingRequests;
 
 //     // Store the last received analysis details
-//     bytes32 private s_lastReceivedMessageId;
-//     address private s_lastAnalyzedAddress;
-//     uint64 private s_lastSourceChainSelector;
-//     address private s_lastSender;
-//     uint256 private s_lastActionId;
+//     bytes32 private sLastReceivedMessageId;
+//     address private sLastAnalyzedAddress;
+//     uint64 private sLastSourceChainSelector;
+//     address private sLastSender;
+//     uint256 private sLastActionId;
 
 //     /// @notice Constructor initializes the contract with router and link token addresses
 //     /// @param router The address of the CCIP router contract
@@ -103,7 +103,7 @@
 //         address aiCCIPProxy
 //     ) CCIPReceiver(router) {
 //         s_destinationChainSelector = destinationChainSelector;
-//         s_linkToken = LinkTokenInterface(link);
+//         sLinkToken = LinkTokenInterface(link);
 //         s_aiCCIPProxy = aiCCIPProxy;
 //         emit Law__Deployed("");
 //     }
@@ -214,7 +214,7 @@
 //                     allowOutOfOrderExecution: true
 //                 })
 //             ),
-//             feeToken: address(s_linkToken)
+//             feeToken: address(sLinkToken)
 //         });
 
 //         // Get the fee required to send the message
@@ -223,12 +223,12 @@
 //             evm2AnyMessage
 //         );
 
-//         if (fees > s_linkToken.balanceOf(address(this))) {
-//             revert NotEnoughBalance(s_linkToken.balanceOf(address(this)), fees);
+//         if (fees > sLinkToken.balanceOf(address(this))) {
+//             revert NotEnoughBalance(sLinkToken.balanceOf(address(this)), fees);
 //         }
 
 //         // Approve the Router to transfer LINK tokens
-//         s_linkToken.approve(getRouter(), fees);
+//         sLinkToken.approve(getRouter(), fees);
 
 //         // Send the message through the router
 //         bytes32 messageId = IRouterClient(getRouter()).ccipSend(s_destinationChainSelector, evm2AnyMessage);
@@ -254,11 +254,11 @@
 //         // if (caller == address(0)) revert NoPendingRequest(any2EvmMessage.messageId);
 
 //         // Store the message details
-//         s_lastReceivedMessageId = any2EvmMessage.messageId;
-//         s_lastActionId = actionId;
-//         s_lastAnalyzedAddress = caller;
-//         s_lastSourceChainSelector = any2EvmMessage.sourceChainSelector;
-//         s_lastSender = abi.decode(any2EvmMessage.sender, (address));
+//         sLastReceivedMessageId = any2EvmMessage.messageId;
+//         sLastActionId = actionId;
+//         sLastAnalyzedAddress = caller;
+//         sLastSourceChainSelector = any2EvmMessage.sourceChainSelector;
+//         sLastSender = abi.decode(any2EvmMessage.sender, (address));
 
 //         // Store the analysis result
 //         addressAnalyses[caller] = AddressAnalysisResult({
@@ -329,7 +329,7 @@
 //     /// @notice Get the current LINK balance of the contract
 //     /// @return balance The current LINK balance
 //     function getLinkBalance() external view returns (uint256 balance) {
-//         return s_linkToken.balanceOf(address(this));
+//         return sLinkToken.balanceOf(address(this));
 //     }
 
 //     /// @notice Allow withdrawal of LINK tokens from the contract
@@ -337,7 +337,7 @@
 //         // This should be restricted to the Powers protocol owner
 //         // For now, we'll make it public but in production this should be restricted
 //         require(
-//             s_linkToken.transfer(msg.sender, s_linkToken.balanceOf(address(this))),
+//             sLinkToken.transfer(msg.sender, sLinkToken.balanceOf(address(this))),
 //             "Unable to transfer"
 //         );
 //     }
@@ -358,10 +358,10 @@
 //         )
 //     {
 //         return (
-//             s_lastReceivedMessageId,
-//             s_lastAnalyzedAddress,
-//             s_lastSourceChainSelector,
-//             s_lastSender
+//             sLastReceivedMessageId,
+//             sLastAnalyzedAddress,
+//             sLastSourceChainSelector,
+//             sLastSender
 //         );
 //     }
 

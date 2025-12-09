@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @notice Errors used in the Powers protocol.
 /// @author 7Cedars
 pragma solidity 0.8.26;
@@ -122,5 +120,5 @@ interface PowersErrors {
     error Powers__InvalidIndex();
 
     /// notice Emitted when trying to set the treasury to the zero address.
-    error Powers__CannotSetZeroAddress(); 
+    error Powers__CannotSetZeroAddress();
 }

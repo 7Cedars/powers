@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-
-
 /// @title LawUtilitiesTest - Unit tests for LawUtilities library
 /// @notice Tests the LawUtilities library functions
 /// @dev Provides comprehensive coverage of all LawUtilities functions

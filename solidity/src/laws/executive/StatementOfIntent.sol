@@ -27,7 +27,7 @@ contract StatementOfIntent is Law {
         override
     {
         inputParams = config;
-        
+
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 

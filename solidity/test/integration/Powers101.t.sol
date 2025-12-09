@@ -80,7 +80,7 @@ contract Powers101_fuzzIntegrationTest is TestSetupPowers101 {
         console.log("WAYPOINT 6");
 
         // step 1 action: cast veto?.
-        lawId = 4; // veto law.  = Admin role 
+        lawId = 4; // veto law.  = Admin role
         if (stepsPassed[0] && step1Chance > 50) {
             // 50% chance of veto.
             console.log("step 2 action: ALICE CASTS VETO!"); // alice == admin.

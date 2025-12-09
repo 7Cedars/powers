@@ -61,7 +61,14 @@ contract BespokeActionAdvanced is Law {
 
     /// @notice Execute the law by calling the configured target function with mixed static/dynamic parameters
     /// @param lawCalldata the calldata containing dynamic parameters to insert into the function call
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override

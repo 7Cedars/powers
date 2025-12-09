@@ -1,6 +1,4 @@
-    // SPDX-License-Identifier: MIT
-
-
+// SPDX-License-Identifier: MIT
 
 /// @title Powers Protocol Interface
 /// @notice Interface for Powers, a protocol implementing Institutional Governance.
@@ -44,7 +42,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Creates a new proposal for an action that requires voting
     /// @dev Only callable if the law requires voting (quorum > 0)
-    /// @dev note that no checks are run. If account has acces to law and it requires a vote - the account wil be able to create proposals.  
+    /// @dev note that no checks are run. If account has acces to law and it requires a vote - the account wil be able to create proposals.
     /// @param lawId The id of the law
     /// @param lawCalldata The encoded function call data for the law
     /// @param nonce The nonce for the action
@@ -127,7 +125,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param account The address to blacklist
     /// @param blacklisted The blacklisted status of the account
     function blacklistAddress(address account, bool blacklisted) external;
-
 
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
@@ -253,7 +250,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice Getter for treasury address.
     /// @return The treasury address
-    function getTreasury() external view returns (address payable); 
+    function getTreasury() external view returns (address payable);
 
     /// @notice Checks if an account has permission to call a law
     /// @param caller The address attempting to call the law

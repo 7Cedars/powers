@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import { Test } from "forge-std/Test.sol";
 import { TestSetupLaw } from "../TestSetup.t.sol";
-import { Law } from "../../src/Law.sol";
 import { ILaw } from "../../src/interfaces/ILaw.sol";
-import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
 import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
 import { StatementOfIntent } from "../../src/laws/executive/StatementOfIntent.sol";
@@ -131,10 +128,7 @@ contract LawFuzzTest is TestSetupLaw {
     //////////////////////////////////////////////////////////////
 
     /// @notice Fuzz test ERC165 interface compliance
-    function testFuzzERC165Compliance(bytes4 interfaceIdFuzzed) public {
-        // Test interface compliance
-        bool supportsInterface = presetSingleAction.supportsInterface(interfaceIdFuzzed);
-
+    function testFuzzERC165Compliance() public view {
         // Should support ILaw interface
         bool supportsILaw = presetSingleAction.supportsInterface(type(ILaw).interfaceId);
         assertTrue(supportsILaw);

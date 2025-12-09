@@ -2,19 +2,16 @@
 pragma solidity 0.8.26;
 
 import { Test } from "forge-std/Test.sol";
-import { console2 } from "lib/forge-std/src/console2.sol";
 import { IPowers } from "../src/interfaces/IPowers.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
-import { TreasuryPools } from "../src/helpers/TreasuryPools.sol";
 
 import { HelperConfig } from "../script/HelperConfig.s.sol";
 
 contract TestConstitutions is Test {
     uint256[] milestoneDisbursements;
-    uint256 PrevActionId;
 
     bytes[] staticParams;
     string[] dynamicParams;
@@ -38,7 +35,7 @@ contract TestConstitutions is Test {
     string[] params;
 
     HelperConfig helperConfig = new HelperConfig();
-    HelperConfig.NetworkConfig config = helperConfig.getConfig(); 
+    HelperConfig.NetworkConfig config = helperConfig.getConfig();
 
     //////////////////////////////////////////////////////////////
     //                 POWERS CONSTITUTION                      //
@@ -48,7 +45,7 @@ contract TestConstitutions is Test {
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
-        address[] memory mockAddresses,
+        address[] memory,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](7);
@@ -68,19 +65,19 @@ contract TestConstitutions is Test {
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
             targetLaw: lawAddresses[18], // selfSelct
-            config: abi.encode( 
+            config: abi.encode(
                 1 // community member role ID
-            ), 
+            ),
             conditions: conditions
         });
         delete conditions;
 
-        // self Select as delegate 
+        // self Select as delegate
         conditions.allowedRole = type(uint256).max;
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this law.",
             targetLaw: lawAddresses[18], // selfSelct
-            config: abi.encode( 
+            config: abi.encode(
                 2 // delegeate member role ID
             ),
             conditions: conditions
@@ -482,7 +479,7 @@ contract TestConstitutions is Test {
         lawInitDatas = new bytes[](1);
 
         // Create a simple law init data for adoption
-        PowersTypes.LawInitData memory adoptLawData = PowersTypes.LawInitData({
+        PowersTypes.LawInitData({
             nameDescription: "Test Adopted Law",
             targetLaw: lawAddresses[1], // PresetSingleAction
             config: abi.encode(
@@ -502,14 +499,11 @@ contract TestConstitutions is Test {
             })
         });
 
-        lawsToAdopt[0] = lawAddresses[1];
-        lawInitDatas[0] = abi.encode(adoptLawData);
-
         conditions.allowedRole = type(uint256).max; // public role can adopt laws
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "AdoptLawPackage: A law to adopt new laws into the DAO.",
-            targetLaw: lawAddresses[8], // AdoptLaws (executive law)
-            config: abi.encode(lawsToAdopt, lawInitDatas),
+            targetLaw: lawAddresses[7], // AdoptLaws (executive law)
+            config: abi.encode(),
             conditions: conditions
         });
         delete conditions;
@@ -704,7 +698,7 @@ contract TestConstitutions is Test {
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
         address[] memory mockAddresses,
-        address payable daoMock
+        address payable
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](8);
 
@@ -786,7 +780,7 @@ contract TestConstitutions is Test {
         values = new uint256[](3);
         calldatas = new bytes[](3);
         for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = daoMock; // = Powers contract.
+            targets[i] = address(this); // = Powers contract.
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
@@ -804,23 +798,23 @@ contract TestConstitutions is Test {
     }
 
     //////////////////////////////////////////////////////////////
-    //                  POWER BASE CONSTITUTION                 // 
+    //                  POWER BASE CONSTITUTION                 //
     //////////////////////////////////////////////////////////////
     function powerLabsSafesConstitution(
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
         address[] memory, /*mockAddresses*/
-        address payable daoMock
+        address payable
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](3); // Index 0 is empty
-        
-        // Law 1: Create a SafeProxy and register as treasury for Powers  
+
+        // Law 1: Create a SafeProxy and register as treasury for Powers
         conditions.allowedRole = type(uint256).max; // Public
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Create SafeProxy: Creates the safe and registers it as the organization treasury.",
             targetLaw: lawAddresses[22], // PowerLabsConfig law
-            config: abi.encode(config.SafeProxyFactory, config.SafeL2Canonical), 
+            config: abi.encode(config.SafeProxyFactory, config.SafeL2Canonical),
             conditions: conditions
         });
         delete conditions;
@@ -836,14 +830,14 @@ contract TestConstitutions is Test {
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Setup Safe: Setup the allowance module and governance paths.",
             targetLaw: lawAddresses[21], // PowerLabsConfig law
-            config: abi.encode(configParams, config.SafeAllowanceModule), 
+            config: abi.encode(configParams, config.SafeAllowanceModule),
             conditions: conditions
         });
         delete conditions;
     }
 
     //////////////////////////////////////////////////////////////
-    //              POWER BASE CHILD CONSTITUTION               // 
+    //              POWER BASE CHILD CONSTITUTION               //
     //////////////////////////////////////////////////////////////
     // function powerLabsChildConstitution(
     //     string[] memory, /*lawNames*/
@@ -859,22 +853,22 @@ contract TestConstitutions is Test {
     //     conditions.votingPeriod = 50; // 10 mins approx (assuming 12s blocks)
     //     conditions.succeedAt = 67;
     //     conditions.quorum = 50;
-    //     conditions.delayExecution = 15; // 3 mins approx. 
+    //     conditions.delayExecution = 15; // 3 mins approx.
 
     //     lawInitData[1] = PowersTypes.LawInitData({
     //         nameDescription: "Execute transaction from allowance: This is still a work in progress.",
     //         targetLaw: lawAddresses[30], // "SafeAllowanceTransfer";
-    //         config: abi.encode( 
-    //             config.SafeAllowanceModule, // allowanceModule 
-    //             // safeProxy 
-    //         ), 
+    //         config: abi.encode(
+    //             config.SafeAllowanceModule, // allowanceModule
+    //             // safeProxy
+    //         ),
     //         conditions: conditions
     //     });
     //     delete conditions;
 
     //     // Law 2: Adopt Doc Contrib Role
     //     conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
-        
+
     //     lawInitData[2] = PowersTypes.LawInitData({
     //         nameDescription: "Adopt Doc Contrib Role: Anyone that has a documentation contributor role at the parent organization can adopt the same role here.",
     //         targetLaw: lawAddresses[29], // AssignExternalRole
@@ -923,8 +917,8 @@ contract TestConstitutions is Test {
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
-        address[] memory mockAddresses,
-        address payable daoMock
+        address[] memory, /*mockAddresses*/
+        address payable
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](2);
 
@@ -943,7 +937,7 @@ contract TestConstitutions is Test {
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Open Action: Execute any action.",
             targetLaw: lawAddresses[3], // openAction
-            config: abi.encode(), 
+            config: abi.encode(),
             conditions: conditions
         });
         delete conditions;

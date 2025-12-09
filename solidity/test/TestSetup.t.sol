@@ -17,19 +17,19 @@ import { HelperConfig } from "../script/HelperConfig.s.sol";
 import { TestConstitutions } from "./TestConstitutions.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-// law. 
+// law.
 import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
 
 // external contracts
 import { SoulboundErc721 } from "../src/helpers/SoulboundErc721.sol";
 import { Grant } from "../src/helpers/Grant.sol";
 import { OpenElection } from "../src/helpers/OpenElection.sol";
-import { TreasurySimple} from "../src/helpers/TreasurySimple.sol";
+import { TreasurySimple } from "../src/helpers/TreasurySimple.sol";
 import { TreasuryPools } from "../src/helpers/TreasuryPools.sol";
 import { FlagActions } from "../src/helpers/FlagActions.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
 
-// mocks  
+// mocks
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { PowersMock } from "./mocks/PowersMock.sol";
 import { SimpleErc1155 } from "./mocks/SimpleErc1155.sol";
@@ -37,7 +37,7 @@ import { SimpleErc20Votes } from "./mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "./mocks/Erc20Taxed.sol";
 
 // deploy scripts
-import { DeployMocks } from "../script/DeployMocks.s.sol"; 
+import { DeployMocks } from "../script/DeployMocks.s.sol";
 import { InitialisePowers } from "../script/InitialisePowers.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
@@ -45,7 +45,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     Powers powers;
     HelperConfig helperConfig;
     PowersMock daoMock;
-    DeployMocks deployMocks; 
+    DeployMocks deployMocks;
     InitialisePowers initialisePowers;
     string[] lawNames;
     address[] lawAddresses;
@@ -57,9 +57,9 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     address[] laws;
 
     // vote options
-    uint8 AGAINST;
-    uint8 FOR;
-    uint8 ABSTAIN;
+    uint8 constant AGAINST = 0;
+    uint8 constant FOR = 1;
+    uint8 constant ABSTAIN = 2;
 
     address[] targets;
     uint256[] values;
@@ -115,12 +115,12 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     bytes inputParamsBytes;
 
     // roles
-    uint256 ADMIN_ROLE;
-    uint256 PUBLIC_ROLE;
-    uint256 ROLE_ONE;
-    uint256 ROLE_TWO;
-    uint256 ROLE_THREE;
-    uint256 ROLE_FOUR;
+    uint256 constant ADMIN_ROLE = 0;
+    uint256 constant PUBLIC_ROLE = type(uint256).max;
+    uint256 constant ROLE_ONE = 1;
+    uint256 constant ROLE_TWO = 2;
+    uint256 constant ROLE_THREE = 3;
+    uint256 constant ROLE_FOUR = 4;
 
     // users
     address alice;
@@ -174,8 +174,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // Fuzz test variables
     uint256 MAX_FUZZ_TARGETS;
     uint256 MAX_FUZZ_CALLDATA_LENGTH;
-    bytes CREATE2_FACTORY_BYTECODE; 
-
+    bytes CREATE2_FACTORY_BYTECODE;
 }
 
 abstract contract TestHelperFunctions is Test, TestVariables {
@@ -273,14 +272,13 @@ abstract contract TestHelperFunctions is Test, TestVariables {
     }
 
     function findLawAddress(string memory name) internal view returns (address) {
-        for (uint i = 0; i < lawNames.length; i++) {
+        for (uint256 i = 0; i < lawNames.length; i++) {
             if (Strings.equal(lawNames[i], name)) {
                 return lawAddresses[i];
             }
         }
         return address(0);
     }
-    
 }
 
 abstract contract BaseSetup is TestVariables, TestHelperFunctions {
@@ -291,19 +289,6 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
     }
 
     function setUpVariables() public virtual {
-        // votes types
-        AGAINST = 0;
-        FOR = 1;
-        ABSTAIN = 2;
-
-        // roles
-        ADMIN_ROLE = 0;
-        PUBLIC_ROLE = type(uint256).max;
-        ROLE_ONE = 1;
-        ROLE_TWO = 2;
-        ROLE_THREE = 3;
-        ROLE_FOUR = 4;
-
         nonce = 123;
         MAX_FUZZ_TARGETS = 5;
         MAX_FUZZ_CALLDATA_LENGTH = 2000;
@@ -339,7 +324,7 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
         vm.deal(oracle, 10 ether);
 
         users = [alice, bob, charlotte, david, eve, frank, gary, helen, ian, jacob, kate, lisa];
- 
+
         // deploy mock powers
         daoMock = new PowersMock();
 
@@ -407,7 +392,7 @@ abstract contract TestSetupLaw is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -428,7 +413,7 @@ abstract contract TestSetupElectoral is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -449,7 +434,7 @@ abstract contract TestSetupExecutive is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -470,7 +455,7 @@ abstract contract TestSetupMulti is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
@@ -524,7 +509,7 @@ abstract contract TestSetupPowers101 is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_ONE, charlotte);
@@ -555,7 +540,7 @@ abstract contract TestSetupPowerLabsSafes is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_ONE, charlotte);
@@ -582,7 +567,7 @@ abstract contract TestSetupPowerLabsChild is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_ONE, charlotte);
@@ -596,7 +581,6 @@ abstract contract TestSetupPowerLabsChild is BaseSetup {
     }
 }
 
-
 abstract contract TestSetupHelpers is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
@@ -609,7 +593,7 @@ abstract contract TestSetupHelpers is BaseSetup {
         // constitute daoMock.
         daoMock.constitute(lawInitData_);
 
-        vm.startPrank(address(daoMock)); 
+        vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
         vm.stopPrank();
     }

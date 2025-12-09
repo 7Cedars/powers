@@ -40,7 +40,14 @@ contract RoleByRoles is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /* caller */
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

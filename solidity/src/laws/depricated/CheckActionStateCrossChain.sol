@@ -16,19 +16,19 @@ contract CheckActionState is Law, CCIPReceiver {
     error InvalidSender(address sender, address expected);
 
     // State variables
-    IRouterClient private s_router;
-    address private s_ccipHelper; 
+    IRouterClient private sRouter;
+    address private sCcipHelper;
 
     // Mapping from CCIP message ID to the local action ID that needs fulfilling
     mapping(bytes32 => uint256) public s_pendingRequests;
 
-    struct RemoteActionData { 
+    struct RemoteActionData {
         address remotePowersAddress;
         address originalPowersAddress;
         uint16 originalLawId;
         uint64 destinationChainSelector;
     }
-    mapping (uint256 localActionId => RemoteActionData) public s_remoteActions;
+    mapping(uint256 localActionId => RemoteActionData) public sRemoteActions;
 
     event CrossChainCheckTriggered(
         uint256 indexed localActionId,
@@ -46,8 +46,8 @@ contract CheckActionState is Law, CCIPReceiver {
     );
 
     constructor(address router, address ccipHelper) CCIPReceiver(router) {
-        s_router = IRouterClient(router);
-        s_ccipHelper = ccipHelper;
+        sRouter = IRouterClient(router);
+        sCcipHelper = ccipHelper;
 
         bytes memory configParams = abi.encode("string[] inputParams");
         emit Law__Deployed(configParams);
@@ -57,10 +57,8 @@ contract CheckActionState is Law, CCIPReceiver {
         public
         override
     {
-        bytes memory finalInputParams = abi.encodePacked(
-            config,
-            abi.encode("address powersAddress", "uint16 lawId", "uint64 chainId")
-        );
+        bytes memory finalInputParams =
+            abi.encodePacked(config, abi.encode("address powersAddress", "uint16 lawId", "uint64 chainId"));
         super.initializeLaw(index, nameDescription, finalInputParams, config);
     }
 
@@ -77,7 +75,7 @@ contract CheckActionState is Law, CCIPReceiver {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // Decode parameters
-        (bytes memory userCalldata, address remotePowersAddress, uint16 remoteLawId, uint64 remoteChainId) = 
+        (bytes memory userCalldata, address remotePowersAddress, uint16 remoteLawId, uint64 remoteChainId) =
             abi.decode(lawCalldata, (bytes, address, uint16, uint64));
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -87,7 +85,7 @@ contract CheckActionState is Law, CCIPReceiver {
             // Scenario 1: Same chain
             PowersTypes.ActionState state = IPowers(remotePowersAddress).getActionState(remoteActionId);
             if (state != PowersTypes.ActionState.Fulfilled) {
-                revert ("Action Not Fulfilled");
+                revert("Action Not Fulfilled");
             }
             (targets, values, calldatas) = LawUtilities.createEmptyArrays(0);
         } else {
@@ -109,10 +107,14 @@ contract CheckActionState is Law, CCIPReceiver {
             return; // Not a cross-chain call
         }
 
-        (uint256 remoteActionId, address remotePowersAddress, uint64 destinationChainSelector, address originalPowersAddress) =
-            abi.decode(calldatas[0], (uint256, address, uint64, address));
+        (
+            uint256 remoteActionId,
+            address remotePowersAddress,
+            uint64 destinationChainSelector,
+            address originalPowersAddress
+        ) = abi.decode(calldatas[0], (uint256, address, uint64, address));
 
-        s_remoteActions[remoteActionId] = RemoteActionData({
+        sRemoteActions[remoteActionId] = RemoteActionData({
             remotePowersAddress: remotePowersAddress,
             destinationChainSelector: destinationChainSelector,
             originalPowersAddress: originalPowersAddress,
@@ -120,47 +122,52 @@ contract CheckActionState is Law, CCIPReceiver {
         });
 
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(s_ccipHelper),
+            receiver: abi.encode(sCcipHelper),
             data: abi.encode(remoteActionId, remotePowersAddress),
             tokenAmounts: new Client.EVMTokenAmount[](0),
             extraArgs: Client._argsToBytes(
-                Client.GenericExtraArgsV2({ 
-                    gasLimit: 2_000_000, // these should not be hard coded. To do. 
-                    allowOutOfOrderExecution: true // see: https://docs.chain.link/ccip/tutorials/evm/transfer-tokens-from-contract#transfer-tokens-and-pay-in-native 
+                Client.GenericExtraArgsV2({
+                    gasLimit: 2_000_000, // these should not be hard coded. To do.
+                    allowOutOfOrderExecution: true // see: https://docs.chain.link/ccip/tutorials/evm/transfer-tokens-from-contract#transfer-tokens-and-pay-in-native
                 })
             ),
             feeToken: address(0)
         });
 
-        uint256 fees = s_router.getFee(destinationChainSelector, message);
-        if (fees > address(this).balance) revert NotEnoughBalance(address(this).balance, fees); // is this not taken from msg.sender? 
+        uint256 fees = sRouter.getFee(destinationChainSelector, message);
+        if (fees > address(this).balance) revert NotEnoughBalance(address(this).balance, fees); // is this not taken from msg.sender?
 
-        bytes32 messageId = s_router.ccipSend{value: fees}(destinationChainSelector, message);
-        
+        bytes32 messageId = sRouter.ccipSend{ value: fees }(destinationChainSelector, message);
+
         s_pendingRequests[messageId] = actionId;
 
-        emit CrossChainCheckTriggered(actionId, remoteActionId, destinationChainSelector, remotePowersAddress, messageId);
+        emit CrossChainCheckTriggered(
+            actionId, remoteActionId, destinationChainSelector, remotePowersAddress, messageId
+        );
     }
 
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
-        (uint256 remoteActionId, PowersTypes.ActionState state) = abi.decode(any2EvmMessage.data, (uint256, PowersTypes.ActionState));
-        RemoteActionData memory remoteData = s_remoteActions[remoteActionId];
+        (uint256 remoteActionId, PowersTypes.ActionState state) =
+            abi.decode(any2EvmMessage.data, (uint256, PowersTypes.ActionState));
+        RemoteActionData memory remoteData = sRemoteActions[remoteActionId];
         if (any2EvmMessage.sourceChainSelector != remoteData.destinationChainSelector) {
-            revert ("Invalid source chain");
+            revert("Invalid source chain");
         }
 
-        // check state 
+        // check state
         if (state != PowersTypes.ActionState.Fulfilled) {
-            revert ("Action Not Fulfilled");
+            revert("Action Not Fulfilled");
         }
 
-        // delete pending requests 
+        // delete pending requests
         uint256 localActionId = s_pendingRequests[any2EvmMessage.messageId];
         delete s_pendingRequests[any2EvmMessage.messageId];
 
         // Fulfill the original local action
-        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = LawUtilities.createEmptyArrays(1);
-        IPowers(remoteData.originalPowersAddress).fulfill(remoteData.originalLawId, localActionId, targets, values, calldatas);
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
+            LawUtilities.createEmptyArrays(1);
+        IPowers(remoteData.originalPowersAddress)
+            .fulfill(remoteData.originalLawId, localActionId, targets, values, calldatas);
     }
 
     //////////////////////////////////////////////////////////////
@@ -170,5 +177,5 @@ contract CheckActionState is Law, CCIPReceiver {
         return super.supportsInterface(interfaceId);
     }
 
-    receive() external payable {}
+    receive() external payable { }
 }

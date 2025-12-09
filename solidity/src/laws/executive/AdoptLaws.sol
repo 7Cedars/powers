@@ -28,7 +28,14 @@ contract AdoptLaws is Law {
 
     /// @notice Build calls to adopt the configured laws
     /// @param lawCalldata Unused for this law
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override
@@ -42,14 +49,11 @@ contract AdoptLaws is Law {
         uint256 length = laws_.length;
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
         PowersTypes.Conditions memory conditions;
-        
+
         for (uint256 i; i < length; i++) {
             conditions.allowedRole = roleIds_[i];
             PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-                nameDescription: "Reform law",
-                targetLaw: laws_[i], 
-                config: abi.encode(),
-                conditions: conditions
+                nameDescription: "Reform law", targetLaw: laws_[i], config: abi.encode(), conditions: conditions
             });
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);
