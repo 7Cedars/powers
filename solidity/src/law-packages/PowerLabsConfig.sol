@@ -127,11 +127,11 @@ contract PowerLabsConfig is Law {
         // RoleByTransaction
         conditions.allowedRole = type(uint256).max; // == PUBLIC_ROLE: anyone can call this law.
         lawInitData = PowersTypes.LawInitData({
-            nameDescription: "Buy Funder Role: Make a contribution of more than 0.1 ETH (written out in smallest units) to receive a Funder role.",
+            nameDescription: "Buy Funder Role: Make a contribution of more than 0.1 ether (written in its smallest denomination) in TAX token (0x93d94e8D5DC29C6610946C3226e5Be4e4FB503Ce) to be granted a funder role.",
             targetLaw: lawAddresses[4], // RoleByTransaction
             config: abi.encode(
-                address(0), // token = ETH
-                1 ether / 10, // amount = 0.1 ETH minimum
+                0x93d94e8D5DC29C6610946C3226e5Be4e4FB503Ce, // token = TAX token
+                1 ether / 10, // amount = 0.1 Ether minimum
                 1, // newRoleId = Funder role
                 mem.safeProxy // safeProxy == treasury
             ),

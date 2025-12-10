@@ -1,17 +1,20 @@
-// // // SPDX-License-Identifier: MIT
-// pragma solidity 0.7.6;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.6;
 
-// import { Script } from "forge-std/Script.sol";
-// import { console2 } from "forge-std/console2.sol";
-// import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Script } from "forge-std/Script.sol";
 
-// import { AllowanceModule } from "lib/safe-modules/modules/allowances/contracts/AllowanceModule.sol";
+import { AllowanceModule } from "lib/safe-modules/modules/allowances/contracts/AllowanceModule.sol";
 
-// // @dev this script deploys custom law packages to the chain.
-// contract DeployAllowanceModule is Script {
-//     function run() external returns (address allowanceModuleAddress) {
-//         vm.startBroadcast();
-//         allowanceModuleAddress = new AllowanceModule{salt: bytes32(abi.encodePacked("PowersSalt"));}();
-//         vm.stopBroadcast();
-//     }
-// }
+// @dev this script deploys Safe Allowance Module. 
+contract DeployAllowanceModule is Script {
+    AllowanceModule allowanceModule; 
+
+    function run() external returns (address allowanceModuleAddress) {
+        bytes32 salt = keccak256(abi.encodePacked("PowersSalt"));
+        vm.startBroadcast();
+        allowanceModule = new AllowanceModule{salt: salt}();
+        vm.stopBroadcast();
+        
+        return address(allowanceModule);
+    }
+}

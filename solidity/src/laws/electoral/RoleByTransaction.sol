@@ -20,6 +20,13 @@ contract RoleByTransaction is Law {
         address safeProxy;
     }
 
+    struct Mem {
+        address token;
+        uint256 amount;
+        uint256 newRoleId;
+        address safeProxy;
+    }
+
     mapping(bytes32 lawHash => Data data) public data;
 
     /// @notice Constructor for RoleByRoles law
@@ -32,11 +39,16 @@ contract RoleByTransaction is Law {
     function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        (address token_, uint256 amount_, uint256 newRoleId_, address safeProxy_) =
+    {   
+        Mem memory mem;
+
+        (mem.token, mem.amount, mem.newRoleId, mem.safeProxy) =
             abi.decode(config, (address, uint256, uint256, address));
         bytes32 lawHash = LawUtilities.hashLaw(msg.sender, index);
-        data[lawHash] = Data({ token: token_, thresholdAmount: amount_, newRoleId: newRoleId_, safeProxy: safeProxy_ });
+        if (mem.token == address(0)) {
+            revert ("Native token transfers not supported");
+        }
+        data[lawHash] = Data({ token: mem.token, thresholdAmount: mem.amount, newRoleId: mem.newRoleId, safeProxy: mem.safeProxy });
 
         inputParams = abi.encode("uint256 Amount");
 

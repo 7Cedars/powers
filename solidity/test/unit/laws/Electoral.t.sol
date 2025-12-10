@@ -16,9 +16,11 @@ import { OpenElection } from "../../../src/helpers/OpenElection.sol";
 import { TreasurySimple } from "../../../src/helpers/TreasurySimple.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Nominees } from "../../../src/helpers/Nominees.sol";
-import { FlagActions } from "../../../src/helpers/FlagActions.sol";
-import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
+import { FlagActions } from "../../../src/helpers/FlagActions.sol"; 
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
+import { BaseSetup } from "../../TestSetup.t.sol";
+import { RoleByTransaction } from "../../../src/laws/electoral/RoleByTransaction.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol"; 
 
 /// @notice Comprehensive unit tests for all electoral laws
 /// @dev Tests all functionality of electoral laws including initialization, execution, and edge cases
@@ -858,5 +860,63 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         // Should succeed
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
+    }
+}
+
+contract RoleByTransactionTest is BaseSetup {
+    RoleByTransaction roleByTransaction;
+    Erc20Taxed token;
+    address safeProxy;
+    uint256 thresholdAmount = 100 ether;
+    uint256 newRoleId = 4;
+
+    function setUp() public override {
+        super.setUp();
+        roleByTransaction = RoleByTransaction(lawAddresses[21]);
+        token = Erc20Taxed(mockAddresses[1]);
+        safeProxy = makeAddr("safeProxy");
+
+        // Give alice some tokens
+        // token owner is daoMock in BaseSetup
+        vm.startPrank(address(daoMock));
+        token.mint(2000 ether); // Mint enough tokens to daoMock first
+        token.transfer(alice, 1000 ether);
+        vm.stopPrank();
+    }
+
+    function testRoleByTransactionExecution() public {
+        // Adopt the law
+        bytes memory config = abi.encode(address(token), thresholdAmount, newRoleId, safeProxy);
+        conditions.allowedRole = type(uint256).max; // Public access
+
+        vm.prank(address(daoMock));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Role By Transaction",
+                targetLaw: address(roleByTransaction),
+                config: config,
+                conditions: conditions
+            })
+        );
+        lawId = uint16(daoMock.lawCounter() - 1);
+
+        // Alice approves RoleByTransaction contract to spend tokens
+        // With the FIX, alice should approve RoleByTransaction.
+        // Before the fix, RoleByTransaction tries to transfer from itself, so this test will fail appropriately.
+
+        vm.startPrank(alice);
+        token.approve(address(roleByTransaction), thresholdAmount);
+
+        bytes memory callData = abi.encode(thresholdAmount);
+        daoMock.request(lawId, callData, nonce, "Test role by transaction");
+        vm.stopPrank();
+
+        // Check balances
+        // Note: Erc20Taxed has 10% tax. 10% of 100 ether = 10 ether. Total deduction = 110 ether.
+        assertEq(token.balanceOf(alice), 1000 ether - thresholdAmount - 10 ether, "Alice balance incorrect");
+        assertEq(token.balanceOf(safeProxy), thresholdAmount, "SafeProxy balance incorrect");
+
+        // Check role
+        assertTrue(daoMock.hasRoleSince(alice, newRoleId) > 0, "Role not assigned");
     }
 }
