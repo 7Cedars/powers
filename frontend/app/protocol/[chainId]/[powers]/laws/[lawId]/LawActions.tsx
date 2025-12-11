@@ -23,7 +23,27 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
   const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
-  const sortedActions = lawActions?.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
+  const sortedActions = lawActions
+    ?.filter((action): action is Action => action !== undefined)
+    .sort((a, b) => {
+      // Get block numbers, prioritizing proposedAt over requestedAt
+      const getBlockNumber = (action: Action): bigint => {
+        const proposed = typeof action.proposedAt === 'bigint' 
+          ? action.proposedAt 
+          : (action.proposedAt ? BigInt(action.proposedAt as unknown as string) : 0n);
+        const requested = typeof action.requestedAt === 'bigint'
+          ? action.requestedAt
+          : (action.requestedAt ? BigInt(action.requestedAt as unknown as string) : 0n);
+        
+        return proposed > 0n ? proposed : requested;
+      };
+      
+      const blockA = getBlockNumber(a);
+      const blockB = getBlockNumber(b);
+      
+      // Sort descending (newer/higher block numbers first)
+      return blockB > blockA ? 1 : blockB < blockA ? -1 : 0;
+    })
   // const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
   const router = useRouter()
   // console.log("@LawActions, waypoint 0", {timestamps, sortedActions})
@@ -69,7 +89,7 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                   </tr>
                 </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                  {lawActions.map((action, index) => (
+                  {sortedActions.map((action, index) => (
                       <tr
                         key={index}
                         className="text-sm text-left text-slate-800"
@@ -80,7 +100,9 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                             href="#"
                             onClick={e => { 
                               const paramValues = callDataToActionParams(action, powers)
-                              setAction({...action, paramValues: paramValues, upToDate: false})
+                              const law = powers?.laws?.find(l => l.index === action.lawId)
+                              const dataTypes = law?.params?.map(p => p.dataType)
+                              setAction({...action, paramValues: paramValues, dataTypes: dataTypes, upToDate: false})
                               e.preventDefault()
                               router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
                             }}

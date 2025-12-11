@@ -22,7 +22,27 @@ export function Actions({ powers, status}: ActionsProps) {
   const { timestamps, fetchTimestamps } = useBlocks()
 
   const allActions = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions) : []
-  const sortedActions = allActions.sort((a, b) => Number(b?.fulfilledAt) - Number(a?.fulfilledAt)).filter((action): action is Action => action !== undefined)
+  const sortedActions = allActions
+    .filter((action): action is Action => action !== undefined)
+    .sort((a, b) => {
+      // Get block numbers, prioritizing proposedAt over requestedAt
+      const getBlockNumber = (action: Action): bigint => {
+        const proposed = typeof action.proposedAt === 'bigint' 
+          ? action.proposedAt 
+          : (action.proposedAt ? BigInt(action.proposedAt as unknown as string) : 0n);
+        const requested = typeof action.requestedAt === 'bigint'
+          ? action.requestedAt
+          : (action.requestedAt ? BigInt(action.requestedAt as unknown as string) : 0n);
+        
+        return proposed > 0n ? proposed : requested;
+      };
+      
+      const blockA = getBlockNumber(a);
+      const blockB = getBlockNumber(b);
+      
+      // Sort descending (newer/higher block numbers first)
+      return blockB > blockA ? 1 : blockB < blockA ? -1 : 0;
+    })
   const allTimestamps = Array.from(new Set(
     sortedActions.flatMap(action => [
       action?.requestedAt,
@@ -165,4 +185,4 @@ export function Actions({ powers, status}: ActionsProps) {
     }
     </div>
   )
-} 
+}

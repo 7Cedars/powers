@@ -33,7 +33,7 @@ contract DeployTest is TestSetupPowers {
 
         assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
     }
- 
+
     function testDeployProtocolEmitsEvent() public {
         vm.expectEmit(true, false, false, false);
 
@@ -163,7 +163,7 @@ contract ProposeTest is TestSetupPowers {
         (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
         conditions = daoMock.getConditions(lawId);
 
-        (, , uint256 deadline, , , ) = daoMock.getActionVoteData(actionId);
+        (,, uint256 deadline,,,) = daoMock.getActionVoteData(actionId);
 
         assertEq(deadline, block.number + conditions.votingPeriod);
     }
@@ -384,11 +384,11 @@ contract VoteTest is TestSetupPowers {
             }
         }
 
-        (, , uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
+        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
             daoMock.getActionVoteData(actionId);
         assertEq(againstVotes, uint32(numberAgainstVotes));
         assertEq(forVotes, uint32(numberForVotes));
-        assertEq(abstainVotes, uint32(numberAbstainVotes)); 
+        assertEq(abstainVotes, uint32(numberAbstainVotes));
     }
 
     function testVoteRevertsWithInvalidVote() public {
@@ -916,10 +916,7 @@ contract LawAdoptionTest is TestSetupPowers {
         daoMock.blacklistAddress(blacklistedLaw, true);
 
         LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law",
-            targetLaw: blacklistedLaw,
-            config: abi.encode(),
-            conditions: conditions
+            nameDescription: "Test law", targetLaw: blacklistedLaw, config: abi.encode(), conditions: conditions
         });
 
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
@@ -943,10 +940,7 @@ contract LawAdoptionTest is TestSetupPowers {
         });
 
         LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law",
-            targetLaw: newLaw,
-            config: abi.encode(),
-            conditions: invalidConditions
+            nameDescription: "Test law", targetLaw: newLaw, config: abi.encode(), conditions: invalidConditions
         });
 
         vm.expectRevert(PowersErrors.Powers__VoteWithPublicRoleDisallowed.selector);
@@ -1045,7 +1039,7 @@ contract ConstructorTest is Test {
         new Powers("This is a name", "", 0, 10_000, 10_000);
     }
 
-        function testConstructorRevertsWithZeroMaxReturnsDataLength() public {
+    function testConstructorRevertsWithZeroMaxReturnsDataLength() public {
         vm.expectRevert(PowersErrors.Powers__InvalidReturnCallDataLength.selector);
         new Powers("This is a name", "", 10_000, 0, 10_000);
     }

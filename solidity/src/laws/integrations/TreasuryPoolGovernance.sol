@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Law} from "../../Law.sol"; 
-import {IPowers} from "../../interfaces/IPowers.sol"; 
-import {PowersTypes} from "../../interfaces/PowersTypes.sol";
-import {Powers} from "../../Powers.sol";
-import {LawUtilities} from "../../libraries/LawUtilities.sol"; 
+import { Law } from "../../Law.sol";
+import { IPowers } from "../../interfaces/IPowers.sol";
+import { PowersTypes } from "../../interfaces/PowersTypes.sol";
+import { Powers } from "../../Powers.sol";
+import { LawUtilities } from "../../libraries/LawUtilities.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import {BespokeActionSimple} from "../executive/BespokeActionSimple.sol";
-import {TreasuryPoolTransfer} from "./TreasuryPoolTransfer.sol";
-import {TreasuryPools} from "../../helpers/TreasuryPools.sol";
 
 /**
  * @title TreasuryPoolGovernance
@@ -20,13 +17,12 @@ import {TreasuryPools} from "../../helpers/TreasuryPools.sol";
  * @dev Condition `needFulfilled` must point to the specific Law A instance.
  */
 contract TreasuryPoolGovernance is Law {
-
     /// @dev Configuration for this law adoption law. Includes addresses of base laws to adopt.
     struct ConfigData {
         address selectedPoolTransfer; // The SelectedPoolTransfer law
         address treasuryPools; // The TreasuryPools contract
-        uint16 proposeLawId;   // Law ID for the Proposal law
-        uint16 vetoLawId;      // Law ID for the Veto law
+        uint16 proposeLawId; // Law ID for the Proposal law
+        uint16 vetoLawId; // Law ID for the Veto law
         uint32 votingPeriod;
         uint8 succeedAt;
         uint8 quorum;
@@ -34,7 +30,6 @@ contract TreasuryPoolGovernance is Law {
 
     /// @dev Mapping law hash => configuration.
     mapping(bytes32 lawHash => ConfigData data) public lawConfig;
-
 
     // State memory accumulator to avoid stack too deep errors
     struct Mem {
@@ -45,18 +40,16 @@ contract TreasuryPoolGovernance is Law {
         uint256 poolId;
         bytes createPoolActionCalldata;
         uint256 managerRoleId;
-        
-        
+
         string[] transferInputParams;
 
-        // mem law 
+        // mem law
         uint16 counter;
         string lawName;
         bytes encodedParams;
         bytes lawConfig;
         PowersTypes.LawInitData lawInitData;
         PowersTypes.Conditions lawCondition;
-
     }
 
     /// @notice Error if the referenced action ID is invalid or not fulfilled.
@@ -65,13 +58,13 @@ contract TreasuryPoolGovernance is Law {
     error CannotDecodePoolId();
     /// @notice Error decoding original inputs (managerRoleId) from source action calldata.
     error CannotDecodeSourceInputs();
-     /// @notice Error if the law instance is not configured.
+    /// @notice Error if the law instance is not configured.
     error LawNotConfigured();
 
     constructor() {
         bytes memory configParams = abi.encode(
             "address selectedPoolTransfer",
-            "address TreasuryPools", 
+            "address TreasuryPools",
             "uint16 proposalLawId",
             "uint16 vetoLawId",
             "uint32 votingPeriod",
@@ -129,40 +122,41 @@ contract TreasuryPoolGovernance is Law {
     /// @return values Array containing 0 three times.
     /// @return calldatas Array containing the three encoded calls to Powers.adoptLaw.
     function handleRequest(
-        address /* caller */,
+        address,
+        /* caller */
         address powers,
         uint16 lawId,
         bytes memory lawCalldata, // Contains createPoolActionId
         uint256 nonce
-    ) public view override returns (
-        uint256 actionId,
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas
-    ) {
+    )
+        public
+        view
+        override
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
         bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
-        ConfigData memory config_ = lawConfig[lawHash_]; 
-        if(config_.treasuryPools == address(0)) revert ("Law Not Configured");
+        ConfigData memory config_ = lawConfig[lawHash_];
+        if (config_.treasuryPools == address(0)) revert("Law Not Configured");
         Mem memory m;
 
         // First get the law Id of the law that created the pool
         IPowers.Conditions memory conditions = IPowers(powers).getConditions(lawId);
-        if(conditions.needFulfilled == 0) revert ("Fulfilled not set");
-        
+        if (conditions.needFulfilled == 0) revert("Fulfilled not set");
+
         // Then retrieve the source action data
         m.createPoolActionId = LawUtilities.hashActionId(conditions.needFulfilled, lawCalldata, nonce);
-        (m.sourceActionLawId, , , m.sourceActionFulfilledAt, , , ) = IPowers(powers).getActionData(m.createPoolActionId);
+        (m.sourceActionLawId,,, m.sourceActionFulfilledAt,,,) = IPowers(powers).getActionData(m.createPoolActionId);
 
         // Check if action exists, is fulfilled, and came from the correct law type
-        if ( m.sourceActionFulfilledAt == 0 ) { revert InvalidSourceAction(); }
+        if (m.sourceActionFulfilledAt == 0) revert InvalidSourceAction();
 
         // --- Decode necessary data, get the poolId ---
         m.createPoolActionReturnData = IPowers(powers).getActionReturnData(m.createPoolActionId, 0);
         (m.poolId) = abi.decode(m.createPoolActionReturnData, (uint256));
-        if(m.poolId == 0) revert("Cannot decode poolId"); // NB! PoolId 0 is invalid
+        if (m.poolId == 0) revert("Cannot decode poolId"); // NB! PoolId 0 is invalid
 
         // m.createPoolActionCalldata = IPowers(powers).getActionCalldata(m.createPoolActionId);
-        (,,m.managerRoleId) = abi.decode(lawCalldata, (address, uint256, uint256));
+        (,, m.managerRoleId) = abi.decode(lawCalldata, (address, uint256, uint256));
 
         // --- Predict the upcoming Law IDs ---
         m.counter = Powers(payable(powers)).lawCounter();
@@ -173,18 +167,15 @@ contract TreasuryPoolGovernance is Law {
 
         // 3. Execute Transfer Law (SelectedPoolTransfer)
         m.lawName = string.concat("Pool ", Strings.toString(m.poolId), " Execute Transfer");
-    
-        m.lawConfig = abi.encode(
-            config_.treasuryPools,
-            m.poolId
-        );
+
+        m.lawConfig = abi.encode(config_.treasuryPools, m.poolId);
 
         m.lawCondition.allowedRole = m.managerRoleId; // Use roleId from Law A's input
         m.lawCondition.votingPeriod = config_.votingPeriod; // No voting period for Execute Transfer
         m.lawCondition.succeedAt = config_.succeedAt;
         m.lawCondition.quorum = config_.quorum;
-        m.lawCondition.needFulfilled = config_.proposeLawId;    // Propose must pass
-        m.lawCondition.needNotFulfilled = config_.vetoLawId;     // Veto must NOT pass
+        m.lawCondition.needFulfilled = config_.proposeLawId; // Propose must pass
+        m.lawCondition.needNotFulfilled = config_.vetoLawId; // Veto must NOT pass
 
         m.lawInitData = PowersTypes.LawInitData({
             targetLaw: config_.selectedPoolTransfer,
@@ -195,7 +186,7 @@ contract TreasuryPoolGovernance is Law {
 
         // --- Prepare the calls to Powers.adoptLaw ---
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(1);
-        targets[0] = powers; 
+        targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(IPowers.adoptLaw.selector, m.lawInitData);
 
         actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
@@ -203,10 +194,10 @@ contract TreasuryPoolGovernance is Law {
         return (actionId, targets, values, calldatas);
     }
 
-     /// @notice Retrieves the config data for a given factory law instance.
+    /// @notice Retrieves the config data for a given factory law instance.
     function getConfigData(address powers, uint16 lawId) external view returns (ConfigData memory) {
-         bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
-         if(lawConfig[lawHash_].treasuryPools == address(0)) revert LawNotConfigured();
+        bytes32 lawHash_ = LawUtilities.hashLaw(powers, lawId);
+        if (lawConfig[lawHash_].treasuryPools == address(0)) revert LawNotConfigured();
         return lawConfig[lawHash_];
     }
 }

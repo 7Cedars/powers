@@ -1,7 +1,11 @@
 import { ChangeEvent } from "react";
 import { InputType, DataType, Metadata, Attribute, Token, CommunicationChannels } from "../context/types"
 import { type UseReadContractsReturnType } from 'wagmi'
+import { type GetChainsReturnType } from '@wagmi/core'
 import { hexToString } from 'viem'
+import { getChains } from '@wagmi/core'
+import { wagmiConfig } from "@/context/wagmiConfig";
+const chains = getChains(wagmiConfig);
 
 const isArray = (array: unknown): array is Array<unknown> => {
   // array.find(item => !isString(item)) 
@@ -497,13 +501,20 @@ export const shorterDescription = (message: string | undefined, output: "short" 
 };
 
 // would be great to make this more dynamic. 
-export const parseChainId = (chainId: string | undefined): 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined => {
+type ChainId = (typeof wagmiConfig)['chains'][number]['id']
+
+export const parseChainId = (chainId: string | undefined): ChainId | undefined => {
   // console.log("@parseChainId: waypoint 0", {chainId})
   if (!chainId) {
     return undefined
   }
-  if (chainId !== "421614" && chainId !== "11155111" && chainId !== "11155420" && chainId !== "5003" && chainId !== "31337") {
+  
+  const parsedId = parseInt(chainId)
+  const isSupported = chains.some(chain => chain.id === parsedId)
+  
+  if (!isSupported) {
     return undefined
   }
-  return parseInt(chainId) as 421614 | 11155111 | 11155420 | 5003 | 31337 | undefined
+
+  return parsedId as ChainId
 }

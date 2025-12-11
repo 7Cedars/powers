@@ -1,7 +1,6 @@
 import { GetBlockReturnType } from '@wagmi/core';
 import { Log } from "viem";
 
-export type SupportedChains = 421614 | 11155111 | 31337 | 5003 | undefined
 export type Status = "idle" | "pending" | "error" | "success" 
 export type Vote = 0n | 1n | 2n  // = against, FOR, ABSTAIN  
 // 'string | number | bigint | boolean | ByteArray 
@@ -31,23 +30,6 @@ export type Token = {
   address?: `0x${string}`; 
   tokenId?: number;
   valueNative?: number; 
-}
-
-export type ChainProps = {
-  name: string;
-  network: string; 
-  id: number;
-  genesisBlock: bigint; // block at which the first PowersProtocol was deployed. 
-  blockTimeInSeconds?: number;
-  alternativeBlockNumbers?: SupportedChains;
-  rpc?: string;
-  nativeCurrency?: {
-    name: string;
-    symbol: string;
-    decimals: bigint;
-  };
-  blockExplorerUrl?: string;
-  iconUrl?: string;
 }
                       
 export type Conditions = {

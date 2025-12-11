@@ -132,5 +132,8 @@ make
 forge test 
 ```
 
+## Security and Liability
+All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. They have NOT been fully audited. THESE CONTRACTS ARE ONLY MEANT FOR DEMO PURPOSES. DO NOT USE IN PRODUCTION CODE.  
+
 ## Acknowledgements 
 Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol. The Powers protocol (v0.4) represents a significant evolution in role-based governance systems for on-chain organ.

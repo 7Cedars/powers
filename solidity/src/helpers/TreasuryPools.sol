@@ -1,22 +1,11 @@
 // SPDX-License-Identifier: MIT
-//////////////////////////////////////////////////////////////////////////////
-// This program is free software: you can redistribute it and/or modify    ///
-// it under the terms of the MIT Public License.                           ///
-//                                                                         ///
-// This is a Proof Of Concept and is not intended for production use.      ///
-// Tests are incomplete and it contracts have not been audited.            ///
-//                                                                         ///
-// It is distributed in the hope that it will be useful and insightful,    ///
-// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   ///
-//////////////////////////////////////////////////////////////////////////////
 
 // @notice A helper treasury contract with role-based budget pools. Should be owned by a Powers protocol to provide RBAC governance.
 // @author 7Cedars,
 pragma solidity 0.8.26;
- 
+
 import { TreasurySimple } from "./TreasurySimple.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TreasuryPools is TreasurySimple {
     struct Pool {
@@ -37,7 +26,7 @@ contract TreasuryPools is TreasurySimple {
         whitelistedTokens[address(0)] = true;
         transferOwnership(msg.sender);
     }
- 
+
     function poolTransfer(uint256 _poolId, address payable _to, uint256 _amount) public onlyOwner {
         // Note: This function assumes an external mechanism for role-based access control, as included in the Powers protocol.
         Pool storage pool = pools[_poolId];

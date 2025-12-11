@@ -20,21 +20,19 @@
     Institutional governance for on-chain organisations  
     <br />
     <!--TO DO: UPDATE LINKS AFTERUPDATING ORGS -->  
-    <a href=" ">White paper</a> ·
+    <a href=" ">6 min intro clip</a> ·
+    <a href=" ">Litepaper</a> ·
     <a href="/solidity">Solidity protocol</a> ·
     <a href="https://powers-protocol.vercel.app/11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9">Demo</a> ·
     <a href="https://powers-docs.vercel.app/welcome">Documentation</a>
   </p>
 </div>
 
-<!-- THE CLIPS NEED TO BE UPDATED! 
-<div align="center">
+<!-- <div align="center">
   For an introduction into the protocol, see
-  
-   <a href="https://www.tella.tv/video/powers-1-aijc"><b> the 2 minute project pitch</b> </a> or <a href="https://www.tella.tv/video/powers-solving-dao-governance-challenges-bis6"><b> the 15 minute explanation</b></a>.
-
-</div>
---> 
+   <a href="https://youtu.be/O7GGQrnQpcs"><b> the 6 minute </b> </a>
+   intro.  
+</div>  -->
 
 <!-- TABLE OF CONTENTS --> 
 <!-- NB! Still needs to be adapted --> 

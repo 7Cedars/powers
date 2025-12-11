@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @notice Assign or revoke a role based on whether an account holds any of a set of prerequisite roles.
 /// @dev Useful for composing "grouped" roles (e.g., anyone with a specific contributor role can be granted a generic contributor role).
 /// Also revokes the target role if the account no longer holds any prerequisite roles.
@@ -52,7 +40,14 @@ contract RoleByRoles is Law {
         super.initializeLaw(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address, /* caller */ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /* caller */
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual
@@ -81,12 +76,10 @@ contract RoleByRoles is Law {
         // step 4: set the targets, values and calldatas according to the outcomes at step 2
         if (hasAnyOfNeededRoles && !alreadyHasNewRole) {
             targets[0] = powers;
-            values[0] = 0;
             calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, account);
         }
         if (!hasAnyOfNeededRoles && alreadyHasNewRole) {
             targets[0] = powers;
-            values[0] = 0;
             calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data_.newRoleId, account);
         }
 

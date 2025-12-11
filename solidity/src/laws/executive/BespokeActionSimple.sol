@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @notice A base contract that executes a bespoke action.
 ///
 /// Note 1: as of now, it only allows for a single function to be called.
@@ -32,7 +20,8 @@ contract BespokeActionSimple is Law {
 
     /// @notice Constructor of the BespokeActionSimple law
     constructor() {
-        bytes memory configParams = abi.encode("address TargetContract", "bytes4 TargetFunctionAndData", "string[] Params");
+        bytes memory configParams =
+            abi.encode("address TargetContract", "bytes4 TargetFunctionAndData", "string[] Params");
         emit Law__Deployed(configParams);
     }
 
@@ -53,7 +42,14 @@ contract BespokeActionSimple is Law {
 
     /// @notice Execute the law by calling the configured target function
     /// @param lawCalldata the calldata _without function signature_ to send to the function
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

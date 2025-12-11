@@ -25,15 +25,17 @@ export function RoleList({powers}: RoleListProps) {
     <div className="w-full grow flex flex-col justify-start items-center bg-slate-50 border border-slate-300 rounded-md overflow-hidden">
 
       {/* Table content - matching AssetList.tsx structure */}
-      {status && status == 'pending' ? 
-        <div className="w-full flex flex-col justify-center items-center p-6">
-          <LoadingBox /> 
-        </div>
-        : 
-        roles && roles.length > 0 ?
+      {roles && roles.length > 0 ?
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
+                <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
+                  <tr className="w-full text-xs font-light text-left text-slate-500">
+                    <th className="ps-4 px-2 py-3 font-light w-auto"> Role name </th>
+                    <th className="px-2 py-3 font-light w-32"> Role ID </th>
+                    <th className="px-2 py-3 font-light w-32"> No. of holders </th> 
+                  </tr>
+                </thead>
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
                     powers.roles?.map((role: Role, i: number) =>
@@ -44,7 +46,7 @@ export function RoleList({powers}: RoleListProps) {
                           router.push(`/protocol/${chainId}/${powers?.contractAddress}/roles/${role.roleId}`);
                         }}
                       >
-                        <td className="ps-4 py-3 w-auto">
+                        <td className="ps-4 px-2 py-3 w-auto">
                           <div className="flex flex-row items-center justify-start gap-4">
                             <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden">
                               <DynamicThumbnail
@@ -54,17 +56,23 @@ export function RoleList({powers}: RoleListProps) {
                                 className="object-cover w-12 h-12"
                               />
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col justify-center">
                               <div className="font-semibold text-base text-slate-800">
                                 {bigintToRole(role.roleId, powers as Powers)} 
                               </div>
-                              <div className="text-sm text-slate-600">
-                                {role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n 
-                                  ? 'Universal role' 
-                                  : `${role.amountHolders} ${Number(role.amountHolders) == 1 ? 'holder' : 'holders'}`
-                                }
-                              </div>
                             </div>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 w-32">
+                          <div className="truncate text-slate-500 text-xs font-mono">
+                            {role.roleId == 115792089237316195423570985008687907853269984665640564039457584007913129639935n 
+                              ? 'Public' 
+                              : role.roleId.toString()}
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 w-32">
+                          <div className="truncate text-slate-500 text-xs">
+                            {role?.amountHolders?.toString()}
                           </div>
                         </td>
                       </tr>

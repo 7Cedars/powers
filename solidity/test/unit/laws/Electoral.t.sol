@@ -6,18 +6,21 @@ import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
 import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
 import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol"; 
+import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
 import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
 import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
 import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
+import { AssignExternalRole } from "../../../src/laws/electoral/AssignExternalRole.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "../../../src/helpers/OpenElection.sol";
 import { TreasurySimple } from "../../../src/helpers/TreasurySimple.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Nominees } from "../../../src/helpers/Nominees.sol";
-import { FlagActions } from "../../../src/helpers/FlagActions.sol";
-import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
+import { FlagActions } from "../../../src/helpers/FlagActions.sol"; 
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
+import { BaseSetup } from "../../TestSetup.t.sol";
+import { RoleByTransaction } from "../../../src/laws/electoral/RoleByTransaction.sol";
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol"; 
 
 /// @notice Comprehensive unit tests for all electoral laws
 /// @dev Tests all functionality of electoral laws including initialization, execution, and edge cases
@@ -476,7 +479,7 @@ contract NStrikesRevokesRolesTest is TestSetupElectoral {
 //////////////////////////////////////////////////
 //              TAX SELECT TESTS                //
 //////////////////////////////////////////////////
-/// NOT A PROPER TEST YET. 
+/// NOT A PROPER TEST YET.
 contract TaxSelectTest is TestSetupElectoral {
     TaxSelect taxSelect;
     Erc20Taxed erc20Taxed;
@@ -517,7 +520,7 @@ contract TaxSelectTest is TestSetupElectoral {
     //     assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     // }
 }
- 
+
 //////////////////////////////////////////////////
 //              ROLE BY ROLES TESTS            //
 //////////////////////////////////////////////////
@@ -655,6 +658,61 @@ contract RenounceRoleTest is TestSetupElectoral {
 }
 
 //////////////////////////////////////////////////
+//           ASSIGN EXTERNAL ROLE TESTS        //
+//////////////////////////////////////////////////
+contract AssignExternalRoleTest is TestSetupElectoral {
+    AssignExternalRole assignExternalRole;
+
+    function setUp() public override {
+        super.setUp();
+        lawId = 11;
+        assignExternalRole = AssignExternalRole(lawAddresses[29]);
+    }
+
+    function testAssignExternalRoleInitialization() public {
+        // Verify law data is stored correctly
+        lawHash = keccak256(abi.encode(address(daoMock), lawId));
+        // Note: AssignExternalRole doesn't have a public getter for its config data
+        // like other contracts (e.g. getData), so we can't easily assert on internal state variables
+        // without adding a getter or making variables public.
+        // However, we can verify it works by functionality.
+    }
+
+    function testAssignExternalRoleSuccess() public {
+        // Setup: Give alice the required role (roleId = 1) on the external contract (daoMock itself)
+        // roleId 1 is configured in TestConstitutions
+        vm.prank(address(daoMock));
+        daoMock.assignRole(1, alice);
+
+        // Advance block to ensure hasRoleSince returns a value > 0 (since it checks start block)
+        vm.roll(block.number + 1);
+
+        // Execute request to assign role
+        vm.prank(alice);
+        daoMock.request(lawId, abi.encode(alice), nonce, "Test assign external role");
+
+        // Should succeed
+        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(alice), nonce)));
+        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
+    }
+
+    function testAssignExternalRoleRevert() public {
+        // Setup: Ensure alice does NOT have the required role (roleId = 1)
+        // By default alice might have been assigned role 1 in TestSetupElectoral's setup.
+        // Let's check TestSetupElectoral.
+        // In TestSetupElectoral: daoMock.assignRole(ROLE_ONE, alice); -> ROLE_ONE = 1.
+        // So alice HAS role 1. We need to revoke it or use another user.
+
+        // Let's use eve who doesn't have role 1.
+
+        // Execute request
+        vm.prank(eve);
+        vm.expectRevert("Account does not have role.");
+        daoMock.request(lawId, abi.encode(eve), nonce, "Test assign external role");
+    }
+}
+
+//////////////////////////////////////////////////
 //              EDGE CASE TESTS                //
 //////////////////////////////////////////////////
 contract ElectoralEdgeCaseTest is TestSetupElectoral {
@@ -662,7 +720,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
     PeerSelect peerSelect;
     VoteInOpenElection voteInOpenElection;
     NStrikesRevokesRoles nStrikesRevokesRoles;
-    TaxSelect taxSelect; 
+    TaxSelect taxSelect;
     RoleByRoles roleByRoles;
     SelfSelect selfSelect;
     RenounceRole renounceRole;
@@ -674,7 +732,7 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         peerSelect = new PeerSelect();
         voteInOpenElection = new VoteInOpenElection();
         nStrikesRevokesRoles = new NStrikesRevokesRoles();
-        taxSelect = new TaxSelect(); 
+        taxSelect = new TaxSelect();
         roleByRoles = new RoleByRoles();
         selfSelect = new SelfSelect();
         renounceRole = new RenounceRole();
@@ -803,5 +861,62 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         actionId = uint256(keccak256(abi.encode(lawId, abi.encode(), nonce)));
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
- 
+}
+
+contract RoleByTransactionTest is BaseSetup {
+    RoleByTransaction roleByTransaction;
+    Erc20Taxed token;
+    address safeProxy;
+    uint256 thresholdAmount = 100 ether;
+    uint256 newRoleId = 4;
+
+    function setUp() public override {
+        super.setUp();
+        roleByTransaction = RoleByTransaction(lawAddresses[21]);
+        token = Erc20Taxed(mockAddresses[1]);
+        safeProxy = makeAddr("safeProxy");
+
+        // Give alice some tokens
+        // token owner is daoMock in BaseSetup
+        vm.startPrank(address(daoMock));
+        token.mint(2000 ether); // Mint enough tokens to daoMock first
+        token.transfer(alice, 1000 ether);
+        vm.stopPrank();
+    }
+
+    function testRoleByTransactionExecution() public {
+        // Adopt the law
+        bytes memory config = abi.encode(address(token), thresholdAmount, newRoleId, safeProxy);
+        conditions.allowedRole = type(uint256).max; // Public access
+
+        vm.prank(address(daoMock));
+        daoMock.adoptLaw(
+            PowersTypes.LawInitData({
+                nameDescription: "Role By Transaction",
+                targetLaw: address(roleByTransaction),
+                config: config,
+                conditions: conditions
+            })
+        );
+        lawId = uint16(daoMock.lawCounter() - 1);
+
+        // Alice approves RoleByTransaction contract to spend tokens
+        // With the FIX, alice should approve RoleByTransaction.
+        // Before the fix, RoleByTransaction tries to transfer from itself, so this test will fail appropriately.
+
+        vm.startPrank(alice);
+        token.approve(address(roleByTransaction), thresholdAmount);
+
+        bytes memory callData = abi.encode(thresholdAmount);
+        daoMock.request(lawId, callData, nonce, "Test role by transaction");
+        vm.stopPrank();
+
+        // Check balances
+        // Note: Erc20Taxed has 10% tax. 10% of 100 ether = 10 ether. Total deduction = 110 ether.
+        assertEq(token.balanceOf(alice), 1000 ether - thresholdAmount - 10 ether, "Alice balance incorrect");
+        assertEq(token.balanceOf(safeProxy), thresholdAmount, "SafeProxy balance incorrect");
+
+        // Check role
+        assertTrue(daoMock.hasRoleSince(alice, newRoleId) > 0, "Role not assigned");
+    }
 }

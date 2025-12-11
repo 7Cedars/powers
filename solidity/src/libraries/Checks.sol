@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and contracts have not been extensively audited.   ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @title Checks - Checks for Powers Protocol
 /// @notice A library of helper functions used across Powers contracts
 /// @dev Provides common functionality for Powers implementation and validation
@@ -25,7 +13,7 @@ import { PowersTypes } from "../interfaces/PowersTypes.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 library Checks {
-    //////////////////////////////////////////////////////////// 
+    ////////////////////////////////////////////////////////////
     //                 ERRORS                                 //
     ////////////////////////////////////////////////////////////
     error Checks__ParentLawNotCompleted();
@@ -33,24 +21,20 @@ library Checks {
     error Checks__ExecutionGapTooSmall();
     error Checks__ProposalNotSucceeded();
     error Checks__DeadlineNotPassed();
-    
+
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    /// @notice Checks if a parent law has been completed
-    /// @dev Checks if a parent law has been completed
+    /// @notice Runs checks before executing a law
     /// @param lawId The id of the law
     /// @param lawCalldata The calldata of the law
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the law
     /// @param latestFulfillment The latest fulfillment of the law
-    function check(
-        uint16 lawId,
-        bytes memory lawCalldata,
-        address powers,
-        uint256 nonce,
-        uint48 latestFulfillment
-    ) external view {
+    function check(uint16 lawId, bytes memory lawCalldata, address powers, uint256 nonce, uint48 latestFulfillment)
+        external
+        view
+    {
         PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
         // Check if parent law completion is required
         if (conditions.needFulfilled != 0) {
@@ -72,9 +56,7 @@ library Checks {
 
         // Check execution throttling
         if (conditions.throttleExecution != 0) {
-            if (
-                latestFulfillment > 0 && block.number - latestFulfillment < conditions.throttleExecution
-            ) {
+            if (latestFulfillment > 0 && block.number - latestFulfillment < conditions.throttleExecution) {
                 revert Checks__ExecutionGapTooSmall();
             }
         }
@@ -91,13 +73,17 @@ library Checks {
 
         // Check execution delay after proposal
         if (conditions.delayExecution != 0) {
-
-            (, , uint256 deadline, , , ) = Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
+            (,, uint256 deadline,,,) =
+                Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
             if (deadline + conditions.delayExecution > block.number) {
                 revert Checks__DeadlineNotPassed();
             }
         }
     }
+
+    /////////////////////////////////////////////////////////////
+    //                  SIGNATURE VALIDATION                   //
+    /////////////////////////////////////////////////////////////
 
     /////////////////////////////////////////////////////////////
     //                  HELPER FUNCTIONS                        //

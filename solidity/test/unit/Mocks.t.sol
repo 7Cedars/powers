@@ -2,14 +2,10 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { Donations } from "../../src/helpers/Donations.sol";
 import { FlagActions } from "../../src/helpers/FlagActions.sol";
 import { Grant } from "../../src/helpers/Grant.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { OpenElection } from "../../src/helpers/OpenElection.sol";
 import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
@@ -36,7 +32,7 @@ contract FlagActionsTest is TestSetupPowers {
         );
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(flagActions.owner(), address(daoMock));
     }
 
@@ -393,7 +389,7 @@ contract GrantTest is TestSetupPowers {
         testToken = makeAddr("testToken");
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(grant.owner(), address(daoMock));
     }
 
@@ -1048,7 +1044,7 @@ contract OpenElectionTest is TestSetupPowers {
         openElection = OpenElection(mockAddresses[9]);
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(openElection.owner(), address(daoMock));
         assertEq(openElection.currentElectionId(), 0);
         assertEq(openElection.nomineesCount(), 0);
@@ -2012,7 +2008,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token = SimpleErc20Votes(mockAddresses[0]);
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(token.name(), "Votes");
         assertEq(token.symbol(), "VTS");
         assertEq(token.decimals(), 18);
@@ -2105,7 +2101,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token.mintVotes(amount);
 
         vm.prank(alice);
-        token.transfer(bob, 500);
+        require(token.transfer(bob, 500), "Transfer failed");
 
         assertEq(token.balanceOf(alice), 500);
         assertEq(token.balanceOf(bob), 500);
@@ -2121,7 +2117,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
         token.approve(bob, 500);
 
         vm.prank(bob);
-        token.transferFrom(alice, charlotte, 500);
+        require(token.transferFrom(alice, charlotte, 500), "TransferFrom failed");
 
         assertEq(token.balanceOf(alice), 500);
         assertEq(token.balanceOf(charlotte), 500);
@@ -2141,7 +2137,7 @@ contract SimpleGovernorTest is TestSetupPowers {
         governor = SimpleGovernor(payable(mockAddresses[4]));
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(governor.name(), "SimpleGovernor");
         assertEq(governor.votingDelay(), 25);
         assertEq(governor.votingPeriod(), 50);
@@ -2149,37 +2145,37 @@ contract SimpleGovernorTest is TestSetupPowers {
         assertEq(governor.quorum(0), 0); // No votes cast yet
     }
 
-    function testProposalThreshold() public  {
+    function testProposalThreshold() public {
         assertEq(governor.proposalThreshold(), 0);
     }
 
-    function testVotingDelay() public  {
+    function testVotingDelay() public {
         assertEq(governor.votingDelay(), 25);
     }
 
-    function testVotingPeriod() public  {
+    function testVotingPeriod() public {
         assertEq(governor.votingPeriod(), 50);
     }
 
-    function testQuorumFraction() public  {
+    function testQuorumFraction() public {
         // Quorum fraction is 4, so quorum should be 4% of total supply
         // But since no votes are cast, quorum should be 0
         assertEq(governor.quorum(0), 0);
     }
 
-    function testVotingToken() public  {
+    function testVotingToken() public {
         assertEq(address(governor.token()), address(token));
     }
 
-    function testClock() public  {
+    function testClock() public {
         assertEq(governor.clock(), block.number);
     }
 
-    function testCLOCK_MODE() public  {
+    function testCLOCK_MODE() public {
         assertEq(governor.CLOCK_MODE(), "mode=blocknumber&from=default");
     }
 
-    function testHasVoted() public  {
+    function testHasVoted() public {
         assertFalse(governor.hasVoted(0, alice));
     }
 
@@ -2292,7 +2288,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         token = Erc20Taxed(mockAddresses[1]);
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(token.name(), "Taxed");
         assertEq(token.symbol(), "TAX");
         assertEq(token.decimals(), 18);
@@ -2429,7 +2425,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         assertEq(token.balanceOf(alice), aliceBalanceBefore - transferAmount - expectedTax);
         assertEq(token.balanceOf(bob), transferAmount);
@@ -2457,7 +2453,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.prank(token.owner());
-        token.transfer(alice, transferAmount);
+        require(token.transfer(alice, transferAmount), "Transfer failed");
 
         assertEq(token.balanceOf(token.owner()), ownerBalanceBefore - transferAmount);
         assertEq(token.balanceOf(alice), transferAmount);
@@ -2473,7 +2469,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 ownerBalanceBefore = token.balanceOf(token.owner());
 
         vm.startPrank(alice);
-        token.transfer(token.owner(), transferAmount);
+        require(token.transfer(token.owner(), transferAmount), "Transfer failed");
         vm.stopPrank();
 
         assertEq(token.balanceOf(alice), aliceBalanceBefore - transferAmount);
@@ -2489,7 +2485,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         uint256 expectedTax = (transferAmount * token.taxRate()) / token.DENOMINATOR();
 
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         taxPaid = token.getTaxLogs(uint48(block.number), alice);
         assertEq(taxPaid, expectedTax);
@@ -2505,10 +2501,10 @@ contract Erc20TaxedTest is TestSetupPowers {
 
         // Make two transfers
         vm.prank(alice);
-        token.transfer(bob, transferAmount);
+        require(token.transfer(bob, transferAmount), "Transfer failed");
 
         vm.prank(alice);
-        token.transfer(charlotte, transferAmount);
+        require(token.transfer(charlotte, transferAmount), "Transfer failed");
 
         uint256 totalTaxPaid = token.getTaxLogs(uint48(block.number), alice);
         assertEq(totalTaxPaid, expectedTaxPerTransfer * 2);
@@ -2526,7 +2522,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         nft = SoulboundErc721(mockAddresses[2]);
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(nft.name(), "Soulbound");
         assertEq(nft.symbol(), "SB");
         assertEq(nft.owner(), address(daoMock));
@@ -2674,7 +2670,7 @@ contract SoulboundErc721Test is TestSetupPowers {
         assertEq(nft.tokenURI(tokenId), "");
     }
 
-    function testSupportsInterface() public  {
+    function testSupportsInterface() public {
         // Should support ERC721 interface
         assertTrue(nft.supportsInterface(0x80ac58cd)); // ERC721
         assertTrue(nft.supportsInterface(0x5b5e139f)); // ERC721Metadata
@@ -2819,13 +2815,13 @@ contract SimpleErc1155Test is TestSetupPowers {
         token.safeTransferFrom(alice, charlotte, COIN_ID, 500, "");
     }
 
-    function testSupportsInterface() public  {
+    function testSupportsInterface() public {
         // Should support ERC1155 interface
         assertTrue(token.supportsInterface(0xd9b67a26)); // ERC1155
         assertTrue(token.supportsInterface(0x01ffc9a7)); // ERC165
     }
 
-    function testURI() public  {
+    function testURI() public {
         string memory expectedURI =
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi";
         assertEq(token.uri(COIN_ID), expectedURI);
@@ -2860,7 +2856,7 @@ contract NomineesTest is TestSetupPowers {
         nomineesContract = Nominees(mockAddresses[8]);
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         assertEq(nomineesContract.owner(), address(daoMock));
         assertEq(nomineesContract.nomineesCount(), 0);
     }
@@ -3071,7 +3067,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         emptyTargetsLaw = new EmptyTargetsLaw();
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         // EmptyTargetsLaw inherits from Law, so we can test basic functionality
         assertTrue(address(emptyTargetsLaw) != address(0));
     }
@@ -3134,6 +3130,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         // Test with large data to ensure it doesn't affect the result
         bytes memory largeData = new bytes(1000);
         for (i = 0; i < largeData.length; i++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             largeData[i] = bytes1(uint8(i % 256));
         }
 
@@ -3156,7 +3153,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         mockTargetsLaw = new MockTargetsLaw();
     }
 
-    function testConstructor() public  {
+    function testConstructor() public {
         // MockTargetsLaw inherits from Law, so we can test basic functionality
         assertTrue(address(mockTargetsLaw) != address(0));
     }
@@ -3241,6 +3238,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         // Test with large data to ensure it doesn't affect the result
         bytes memory largeData = new bytes(2000);
         for (i = 0; i < largeData.length; i++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             largeData[i] = bytes1(uint8(i % 256));
         }
 

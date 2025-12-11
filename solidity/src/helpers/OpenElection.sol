@@ -35,7 +35,7 @@ contract OpenElection is Nominees {
     event ElectionClosed(uint256 indexed electionId);
     event ElectionTallied(address[] rankedNominees, uint256[] votes);
 
-    constructor() {}
+    constructor() { }
 
     // --- Nomination API (override from Nominees) ---
 

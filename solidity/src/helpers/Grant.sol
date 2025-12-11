@@ -134,10 +134,7 @@ contract Grant is Ownable {
         // Store milestones
         for (uint256 i; i < milestoneBlocks.length; i++) {
             milestones[proposalId][i] = Milestone({
-                blockNumber: milestoneBlocks[i],
-                amount: milestoneAmounts[i],
-                token: tokens[i],
-                released: false
+                blockNumber: milestoneBlocks[i], amount: milestoneAmounts[i], token: tokens[i], released: false
             });
         }
 

@@ -9,9 +9,6 @@ import { BespokeActionSimple } from "../../../src/laws/executive/BespokeActionSi
 import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
 import { PresetMultipleActions } from "../../../src/laws/executive/PresetMultipleActions.sol";
 import { BespokeActionAdvanced } from "../../../src/laws/executive/BespokeActionAdvanced.sol";
-import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
-import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 /// @title Multi Law Fuzz Tests
 /// @notice Comprehensive fuzz testing for all multi law implementations using pre-initialized laws
@@ -189,7 +186,7 @@ contract MultiFuzzTest is TestSetupMulti {
 
         // Verify data is empty
         assertEq(returnedTargets.length, 1);
-        assertEq(returnedTargets[0], address(0)); 
+        assertEq(returnedTargets[0], address(0));
     }
 
     /// @notice Fuzz test StatementOfIntent with large calldata
@@ -206,6 +203,7 @@ contract MultiFuzzTest is TestSetupMulti {
         // Create large calldata
         largeCalldata = new bytes(calldataLength);
         for (i = 0; i < calldataLength; i++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             largeCalldata[i] = bytes1(uint8(i % 256));
         }
         calldatas[0] = largeCalldata;
@@ -547,12 +545,15 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](MAX_FUZZ_TARGETS);
 
         for (i = 0; i < MAX_FUZZ_TARGETS; i++) {
+            // casting to 'uint160' is safe because used to create unique addresses only
+            // forge-lint: disable-next-line(unsafe-typecast)
             targets[i] = address(uint160(i + 1));
             values[i] = i;
 
             // Create large calldata
             largeCalldata = new bytes(100);
             for (j = 0; j < 100; j++) {
+                // forge-lint: disable-next-line(unsafe-typecast)
                 largeCalldata[j] = bytes1(uint8(j % 256));
             }
             calldatas[i] = largeCalldata;
@@ -606,6 +607,8 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](arrayLength);
 
         for (i = 0; i < arrayLength; i++) {
+            // casting to 'uint160' is safe because used to create unique addresses only
+            // forge-lint: disable-next-line(unsafe-typecast)
             targets[i] = address(uint160(i + 1));
             values[i] = type(uint256).max - i; // Use large values
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, type(uint256).max - i, "Role");
@@ -636,8 +639,7 @@ contract MultiFuzzTest is TestSetupMulti {
 
         lawCalldata = abi.encode(targets, values, calldatas);
 
-        (,,, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+        (,,, returnedCalldatas) = openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
 
         // Should preserve random bytes
         assertEq(returnedCalldatas[0], randomBytesFuzzed);

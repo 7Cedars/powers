@@ -6,8 +6,9 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { GovernorCountingSimple } from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import { GovernorSettings } from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 import { GovernorVotes } from "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import { GovernorVotesQuorumFraction } from
-    "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
+import {
+    GovernorVotesQuorumFraction
+} from "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import { IVotes } from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 contract SimpleGovernor is
@@ -19,7 +20,13 @@ contract SimpleGovernor is
 {
     constructor(address votingToken_)
         Governor("SimpleGovernor")
-        GovernorSettings(25, /* 5 minutes */ 50, /* 10 minutes */ 0)
+        GovernorSettings(
+            25,
+            /* 5 minutes */
+            50,
+            /* 10 minutes */
+            0
+        )
         GovernorVotes(IVotes(votingToken_))
         GovernorVotesQuorumFraction(4)
     { }

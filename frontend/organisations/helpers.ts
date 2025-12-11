@@ -95,10 +95,10 @@ export const minutesToBlocks = (minutes: number, chainId: number): bigint => {
 export const fromFutureBlockToDateTime = (futureBlock: bigint, currentBlock: bigint, chainId: number): string => {
   const constants = getConstants(chainId);
   if (futureBlock > currentBlock) {
-    const secondsUntil = (Number(futureBlock - currentBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / blocksPerHour)
+    const secondsUntil = (Number(futureBlock - currentBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / BLOCKS_PER_HOUR)
     return toFullDateAndTimeFormat((Date.now() / 1000) + secondsUntil);
   } else {
-    const secondsFrom = (Number(currentBlock - futureBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / blocksPerHour)
+    const secondsFrom = (Number(currentBlock - futureBlock) / constants.BLOCKS_PER_HOUR) * 3600  // convert blocks to seconds: (blocks / BLOCKS_PER_HOUR)
     return toFullDateAndTimeFormat((Date.now() / 1000) - secondsFrom);
   }
 }
@@ -112,7 +112,7 @@ export const howLongTillFutureBlock = (futureBlock: bigint, currentBlock: bigint
   const constants = getConstants(chainId);
   let minutesUntil = 0;
   if (futureBlock > currentBlock) {
-    minutesUntil = (Number(futureBlock - currentBlock) * 60) / constants.BLOCKS_PER_HOUR;  // convert blocks to minutes: (blocks / blocksPerHour) * 60
+    minutesUntil = (Number(futureBlock - currentBlock) * 60) / constants.BLOCKS_PER_HOUR;  // convert blocks to minutes: (blocks / BLOCKS_PER_HOUR) * 60
   }
   const hoursUntil = minutesUntil % 60;
   const daysUntil = hoursUntil % 24;

@@ -19,6 +19,8 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
   const allActions = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions) : []
   const laws = powers?.laws && powers?.laws?.length > 0 ? powers?.laws : []
 
+  console.log("@ActionsList:", {allActions, powers})
+
   useEffect(() => {
     if (allActions) {
       fetchTimestamps(allActions.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null)), chainId)
@@ -56,12 +58,7 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
       </div>
 
       {/* Table content */}
-      {status == "pending" ? 
-        <div className="w-full flex flex-col justify-center items-center p-6">
-          <LoadingBox /> 
-        </div>
-        : 
-        allActions && allActions.length > 0 ? 
+      {allActions && allActions.length > 0 ? 
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
@@ -78,9 +75,27 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
                     allActions
-                      
-                      ?.map((action: Action | undefined) => {
-                        if (!action) return null
+                      ?.filter((action): action is Action => action !== undefined)
+                      .sort((a, b) => {
+                        // Get block numbers, prioritizing proposedAt over requestedAt
+                        const getBlockNumber = (action: Action): bigint => {
+                          const proposed = typeof action.proposedAt === 'bigint' 
+                            ? action.proposedAt 
+                            : (action.proposedAt ? BigInt(action.proposedAt as unknown as string) : 0n);
+                          const requested = typeof action.requestedAt === 'bigint'
+                            ? action.requestedAt
+                            : (action.requestedAt ? BigInt(action.requestedAt as unknown as string) : 0n);
+                          
+                          return proposed > 0n ? proposed : requested;
+                        };
+                        
+                        const blockA = getBlockNumber(a);
+                        const blockB = getBlockNumber(b);
+                        
+                        // Sort descending (newer/higher block numbers first)
+                        return blockB > blockA ? 1 : blockB < blockA ? -1 : 0;
+                      })
+                      .map((action: Action) => {
                         return (
                           <tr
                             key={action.actionId}
@@ -92,7 +107,9 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                                 href="#"
                                 onClick={(e) => {
                                   const paramValues = callDataToActionParams(action, powers)
-                                  setAction({...action, paramValues: paramValues, upToDate: false})
+                                  const law = powers?.laws?.find(l => l.index === action.lawId)
+                                  const dataTypes = law?.params?.map(p => p.dataType)
+                                  setAction({...action, paramValues: paramValues, dataTypes: dataTypes, upToDate: false})
                                   e.preventDefault()
                                   router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
                                 }}
@@ -184,4 +201,4 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
       }
     </div>
   );
-} 
+}

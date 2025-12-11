@@ -28,15 +28,15 @@ This sequence ensures that the core contract is set up first, followed by its sp
 
 The simplest way to deploy an organisation is through the Powers frontend. The entire logic for an organisation's deployment is encapsulated in a single TypeScript file located in the `frontend/organisations/` directory.
 
-Good examples to study are `Powers101.ts` (a simple DAO) and `PowerBase.ts` (a more complex organisation for protocol funding).
+Good examples to study are `Powers101.ts` (a simple DAO) and `PowerLabs.ts` (a more complex organisation for protocol funding).
 
 ### The Organisation File Structure
 
 Each organisation file defines an `Organization` object with several key properties:
 
 -   `metadata`: Contains information like the organisation's `id`, `title`, `description`, and banner image URI.
--   `fields`: An array defining input fields that will be rendered on the deployment page. This allows for user-configurable parameters, such as a Chainlink Subscription ID in `PowerBase.ts`.
--   `dependencies`: An array of other smart contracts that need to be deployed before the organisation can be constituted. For example, `PowerBase.ts` depends on a `Treasury` contract.
+-   `fields`: An array defining input fields that will be rendered on the deployment page. This allows for user-configurable parameters, such as a Chainlink Subscription ID in `PowerLabs.ts`.
+-   `dependencies`: An array of other smart contracts that need to be deployed before the organisation can be constituted. For example, `PowerLabs.ts` depends on a `Treasury` contract.
 -   `allowedChains`: An array of chain IDs where the organisation can be deployed.
 -   `createLawInitData`: This is the core function. It takes the addresses of the newly deployed `Powers` contract and its dependencies, along with any user input from the `fields`, and returns the structured data needed to call the `constitute` function.
 
@@ -47,7 +47,7 @@ Using the provided examples, you can create your own organisation file by defini
 ::::steps
 
 #### Copy an Example
-Start by copying an existing organisation file like `Powers101.ts` or `PowerBase.ts` into a new file in the `frontend/organisations/` directory.
+Start by copying an existing organisation file like `Powers101.ts` or `PowerLabs.ts` into a new file in the `frontend/organisations/` directory.
 
 #### Define Metadata and Fields
 Update the `metadata` property with your organisation's details. Define any input fields needed for configuration. 

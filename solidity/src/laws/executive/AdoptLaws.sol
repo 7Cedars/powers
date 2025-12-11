@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and it contracts have not been audited.            ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @notice Adopt a set of laws configured at initialization.
 /// @dev Builds calls to `IPowers.adoptLaw` for each configured law. No self-destruction occurs.
 ///
@@ -40,7 +28,14 @@ contract AdoptLaws is Law {
 
     /// @notice Build calls to adopt the configured laws
     /// @param lawCalldata Unused for this law
-    function handleRequest(address, /*caller*/ address powers, uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function handleRequest(
+        address,
+        /*caller*/
+        address powers,
+        uint16 lawId,
+        bytes memory lawCalldata,
+        uint256 nonce
+    )
         public
         view
         override
@@ -54,14 +49,11 @@ contract AdoptLaws is Law {
         uint256 length = laws_.length;
         (targets, values, calldatas) = LawUtilities.createEmptyArrays(length);
         PowersTypes.Conditions memory conditions;
-        
+
         for (uint256 i; i < length; i++) {
             conditions.allowedRole = roleIds_[i];
             PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-                nameDescription: "Reform law",
-                targetLaw: laws_[i], 
-                config: abi.encode(),
-                conditions: conditions
+                nameDescription: "Reform law", targetLaw: laws_[i], config: abi.encode(), conditions: conditions
             });
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptLaw.selector, lawInitData);

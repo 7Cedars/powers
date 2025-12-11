@@ -6,6 +6,7 @@ import { DiscordIcon, TelegramIcon, GithubIcon } from '@/components/MetadataLink
 
 export function Footer() {
 
+
   return (
     <section className="w-full flex flex-col justify-between items-center min-h-fit bg-slate-50 snap-end pt-6 md:pt-12 pb-3 md:pb-6 border-t border-slate-300 snap-end">
         
@@ -15,34 +16,35 @@ export function Footer() {
                     <div className="font-bold"> 
                         DApp
                     </div>
+                    <a
+                        href={`/`} target="_blank" rel="noopener noreferrer"
+                        className="text-slate-500"
+                    >
+                        Home
+                    </a>
                      <a
-                        href={`https://powers-protocol.vercel.app/`} target="_blank" rel="noopener noreferrer"
+                        href={`/#deploy`} rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        Landing
+                        Deploy
                     </a>
                     <a
-                        href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"
+                        href={`/protocol`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        Docs
+                        Protocols
                     </a>
-                    <a
-                        href={`https://github.com/7Cedars/powers/tree/main/frontend`} target="_blank" rel="noopener noreferrer"
-                        className="text-slate-500"
-                    >
-                        Github repo
-                    </a>
+
                 </div>
                 <div className="flex flex-col gap-3 justify-start items-start">
                     <div className="font-bold"> 
                         Protocol
                     </div>
                     <a
-                        href={`https://powers-docs.vercel.app/for-developers/white-paper`} target="_blank" rel="noopener noreferrer"
+                        href={`https://powers-docs.vercel.app/for-developers/litepaper`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        White Paper
+                        Litepaper
                     </a>
                     <a
                         href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"

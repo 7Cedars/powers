@@ -1,0 +1,162 @@
+import { Callout } from 'vocs/components'
+
+<Callout type="info">
+  This litepaper is work in progress. Any comments or remarks are more than welcome. You can reach me at email cedars7@proton.me or telegram https://t.me/thd83
+</Callout>
+
+# Litepaper: Powers v0.4
+
+## Trustless Governance Processes for On-chain Institutions 
+
+Governance is the system of rules, practices, and processes by which an institution is directed and controlled. In theory, blockchains are perfect for implementing efficient governance: they are accessible, reliable and transparent. They make it possible to create governance without borders or bureaucracy. A governance accessible to all.
+
+This promise led many to flock to Decentralised Autonomous Organizations (DAOs). However, currently, on-chain governance is in crisis. The ecosystem is witnessing a sharp decline in participation, a tendency toward plutocracy, and a weakening of community control.
+
+The root of this crisis lies in a fundamental category error. To date, the ecosystem has approached governance primarily as a technical problem to be solved, rather than a process that needs to be managed. Current solutions reflect this technical fixation:
+
+* Token Voting (**Classic DAOs**) offers a democratic primitive but fails to capture the nuance of institutional management, leading to inefficiency.  
+* The **Hats Protocol** allows for role designations and delegating authority but remains restricted by rigid hierarchical structures when rendering authority delegation programmable.  
+* **Aragon OSx** offers modular programmable permissions but lacks the native role-based abstractions required to engineer complex checks and balances.
+
+By focusing on modularity, permissions and voting mechanisms rather than institutional relationships, these protocols fail to leverage the true power of the blockchain to create governance with unprecedented flexibility and transparency.
+
+The **Powers Protocol** answers this challenge by introducing a **Trustless Rule of Law**. It is not a voting tool or a permission manager. Rather, it is a protocol for encoding power relations. By utilizing modular, role-restricted smart contracts ("laws") and establishing cross-law conditions, Powers allows communities to create flexible governance processes that scale from a 3-person team to a 10,000-member organization on a single, secure foundation. 
+
+## The Governance Dilemma
+
+On-chain organizations collectively manage assets valued in the tens of billions of dollars, making effective governance a critical necessity. Yet, as these organizations mature, they face a paradox.
+
+### *The Failure of Direct Democracy*
+
+The initial "one-token-one-vote" model, analogous to direct democracy, has revealed significant structural weaknesses. Far from fostering egalitarian participation, it frequently results in slow decision-making and plutocracy. This structural inefficiency creates a feedback loop of voter apathy, further entrenching the power of the few.
+
+Faced with these bottlenecks, mature organizations have moved toward professionalization, delegating authority to specialized bodies like foundations, councils, and working groups. For instance, major ecosystems like Arbitrum have empowered "Arbitrum Aligned Entities,"[^1] while Optimism’s Developer Advisory Board has taken responsibility for protocol upgrades.[^2] 
+
+While this re-institutionalization is a pragmatic necessity to overcome the limits of direct democracy, it has introduced a dangerous side effect: **it is shifting power off-chain**.[^3]
+
+### *The Accountability Gap*
+
+Because current on-chain tools cannot natively encode complex political checks and balances, the mandates and limits of these new professional bodies are defined in forum posts, social agreements, or traditional off-chain legal documents.
+
+This creates the very accountability gaps and opaque power structures that blockchain governance was meant to solve. The fundamental problem is that the **rules governing the governors are not trustless**. The ecosystem urgently requires a way to bring this "professional" layer back on-chain—not just identifying who holds power, but encoding how that power is restrained, balanced, and reformed. The Powers protocol does this by establishing a trustless rule of law. 
+
+## The Architecture of Trustless Governance
+
+To establish governance processes on-chain, a protocol must provide three core primitives: 
+
+1. the ability to assign specific powers to roles  
+2. a mechanism to encode relationships between those roles   
+3. and a process for governed reform. 
+
+The Powers protocol is designed around these principles, using role-restricted smart contracts called **laws** to define and manage power relations within an on-chain organization.
+
+### *Encoding Power Through Laws*
+
+In the Powers protocol, all actions are executed through laws. As illustrated in Figure 1, a law is fundamentally a smart contract that transforms predefined input data into executable `calldata`, granting the role-holder who calls it the power to act on behalf of the organization. This power is carefully constrained by two factors: **degrees of freedom** and **conditional requirements**.
+
+**![Single-flow](/single-action-flow.png)**
+
+**Degrees of freedom** refers to how much influence a user has over the final executable action. A law that takes no input and simply mints 50 tokens to a preset address offers zero degrees of freedom and hence very limited power over the actions of the organisation. In contrast, a law that allows a user to specify any target contract and arbitrary `calldata` grants them full degrees of freedom and absolute power. By defining the scope of user input, laws grant granular levels of powers to specific roles.
+
+**Conditional requirements** are the rules that restrict a law's execution. Beyond being role-restricted, a law can be made conditional on a successful vote, a time delay after a previous execution, or the state of another law. For example, a law can be throttled to execute only once per month, or it can require a proposal to pass a formal vote before it can be activated. In practice, laws that grant a high degree of freedom should be paired with strict conditional requirements to ensure security and prevent abuse.
+
+### *Encoding Power Relations Between Roles*
+
+Institutional governance emerges not just from assigning powers, but from encoding the relationships *between* them. In Powers, these relationships are established through **cross-law conditions**, where the execution of one law is made dependent on the state of another. Since laws are role-restricted, this mechanism allows the actions of one role to directly enable or block the actions of another.
+
+![Multiple-flow](/multiple-actions-flow.png)
+
+It is possible to create cross-law conditions because the protocol can **trace a single action across multiple laws**. As shown in Figure 2, different laws can be designed to accept the same input data. Although each law may produce different executable `calldata` (or none at all), the fact that the lawId is the only parameter that differs between user inputs, means that it is possible to calculate the actionId of the same input data to different laws.
+
+These links are used to create **cross-law requirements**. By checking whether an action with the same input has been fulfilled at another law, one law can require an action to be *fulfilled* by a different law before it can execute. Conversely, it can be blocked if another law has already fulfilled the action.  
+![Governance-path](/governance-path.png)  
+Figure 3 illustrates a simple separation of powers built with this mechanism:
+
+* **Role A (Initiative):** Can propose an action via Law 1, which becomes active only after a successful vote.  
+* **Role B (Veto):** Can block the action by executing it through Law 2, which produces no external call but prevents Law 3 from running.  
+* **Role C (Execution):** Can only execute the action via Law 3 if it has been fulfilled by Law 1 (the proposal passed) and not fulfilled by Law 2 (it was not vetoed).
+
+This simple example of checks and balances (where one role proposes, another can veto, and a third executes) is the foundation of on-chain institutional design.  
+
+It also highlights a core, emergent feature of the protocol: its **inherently asynchronous nature**. Because the protocol checks the *state* of different laws rather than requiring a single, continuous transaction, the steps in a governance process can be separated by time and triggered by different actors or events. This simple mechanism is what unlocks the protocol's ability to coordinate complex actions, including those that span different chains or even involve off-chain triggers.
+
+### *Encoding Reforms*
+
+If governance is a process to be managed, then the ability to change the rules is the ultimate power. In Powers, **reform is treated like any other executive action**. 
+
+Since laws encode power relations, the ability to adopt or revoke laws is the power to reform the governance system itself. An organization can choose to be immutable, or it can define a specific, governed path for evolution; creating a "living constitution" where changes follow a transparent, on-chain process.
+
+## Applications
+
+The modular architecture of the Powers protocol allows communities to move beyond token voting and design bespoke governance systems.
+
+### *From Social Trust to On-Chain Law (Replacing the Multi-Sig)* 
+
+Small teams typically start with a multi-sig wallet. While efficient, these rely entirely on social trust. There is no on-chain rule preventing signers from draining the treasury, only an off-chain agreement that they won't. Powers serves as a next-generation multi-sig that replaces this social trust with Trustless Rule of Law. Even a seed-stage team can grant specific roles granular powers (e.g., "spend 1 ETH/month on ops") while securing the main treasury with a full separation of powers and allow for governed and granular reform of these rules when needed. This eliminates a so-called governance cliff, allowing the organization to scale without migrating contracts.
+
+### *Devolved Responsibilities and Accountable Working Groups* 
+
+As DAOs professionalize, they naturally delegate complex tasks to specialized bodies like grants committees or technical councils. Often, these delegations rely on informal mandates that can be unclear or fragile. Powers enables these relationships to be defined with precision on-chain. A working group can be granted the autonomy to execute actions within clear, encoded boundaries, such as a spending limit or a specific domain of authority. This clarity gives specialized teams the confidence to act swiftly, while ensuring they remain trustlessly aligned with the broader community's goals.
+
+### *Increased Efficiency: Abstracting Away Governance Complexities*
+
+Powers enables organizations to drastically reduce the cognitive burden on voters by embedding technical constraints directly into Laws. By defining the specific scope of user input and safety logic upfront, the protocol limits the complexity community members must evaluate during regular decision-making. Consequently, the heavy lifting of auditing complex code is reserved for the rare moments when a Law is adopted or revoked, rather than being required for every single transaction. This architecture allows organizations to maintain rigorous security checks without sacrificing operational speed, balancing technical complexity with voting efficiency in a way that is impossible in existing protocols.
+
+### *Asynchronous Coordination: Cross-Chain & Off-Chain* 
+
+The protocol's inherently asynchronous architecture makes it uniquely suited for managing interactions that span different environments, whether off-chain or cross-chain. Since the fulfillment of one law can trigger another at a later time, Powers can natively handle complex workflows. For example, a governance process could start on one chain, wait for a state verification from a contract on another chain, or pause for an off-chain signal (like a legal signatory or oracle data) before unlocking the final execution. This moves governance beyond simple voting to true multi-environment coordination.
+
+## Alternatives: The Ecosystem Context
+
+The Powers protocol does not exist in a vacuum. It builds upon a rich ecosystem of on-chain governance frameworks, each of which has solved critical technical challenges. The governance paradox described earlier is not a result of poor tooling, but rather the absence of a specific layer: the management of process.
+
+To understand where Powers fits, we must view the current landscape through the lens of a dilemma between a managed process vs. technical solution.
+
+### *OpenZeppelin Governor: The Voting Primitive*
+
+OpenZeppelin’s Governor contract is the canonical implementation of on-chain decision-making. It was instrumental in the first wave of DAO creation, providing a secure, standardized mechanism for "one-token-one-vote" governance.
+
+*What it solved:* It created a trustless mechanism for **collective signal**. It proved that a dispersed community could execute code on a blockchain without a centralized intermediary.
+
+*The Limitation:* Governor treats governance as a discrete **event**: a single vote that executes a transaction. It lacks the nuance to handle governance as a continuous process involving checks and balances. While Powers utilizes voting as a critical input method for laws, it moves beyond Governor by treating the vote not as the final outcome, but as one step in a larger constitutional flow.
+
+### *Hats Protocol: The Identity Primitive*
+
+The Hats Protocol represents a major leap forward by standardizing on-chain roles. By using ERC-1155 tokens to create so-called Hats, it allows organizations to build hierarchical trees of delegation, formally recognizing that different addresses hold different responsibilities.
+
+*What it solved:* It solved the identity problem. It made roles "legible," programmable, and revocable, allowing DAOs to move beyond flat structures and designate specific delegates (e.g., a "Security Council" or "Treasurer").
+
+*The Limitation:* Hats is primarily a static solution. It defines who holds a role (the state) but not how those roles interact politically (the process). It can tell you that address A has the "Veto Hat," but it does not natively encode the complex legislative rules (e.g., "The Veto Hat can only act within 48 hours of a Proposal passing"). Powers adopts the role-based logic pioneered by Hats but extends it from static assignment to dynamic interaction.
+
+### *Aragon OSx: The Permission Primitive*
+
+Aragon OSx introduced a highly modular framework centered on the concept that DAOs are "permission management systems." Its architecture—comprising a central DAO contract, a Permission Manager, and plugins—allows for granular access control where specific addresses are granted rights to call specific functions.
+
+*What it solved:* It solved the modularity problem. It moved the industry away from monolithic contracts to flexible systems where features (like voting or asset management) could be installed as plugins.
+
+*The Limitation:* While Aragon excels at defining permissions (Access Control), it lacks native abstractions for institutional relationships. In Aragon, permission is a binary switch: you either can or cannot call a function. It is difficult to engineer the temporal and conditional flows required for a true separation of powers (e.g., "Role A can spend funds, but only if Role B hasn't blocked them").
+
+### *Powers: A Synthesis for Institutional Governance*
+
+The Powers protocol is a synthesis of these foundational technologies.
+
+* It adopts the **voting mechanics** standardized by OpenZeppelin.  
+* It utilizes the **role-based abstractions** championed by Hats.  
+* It leverages the **modular architecture** pioneered by Aragon.
+
+However, Powers binds these primitives together with a new concept: **Cross-Law Conditions**. By focusing not just on who has permission, but on the conditional relationships between them, Powers provides the missing layer: a native protocol for **rule of law**. It transforms governance from a static set of permissions into a living, managed process of checks and balances.
+
+## Proof of Concept
+
+A live Proof of Concept exists that provides a full-stack governance solution. It includes: 
+
+* The **Solidity protocol**: The smart contract framework as described in this paper. The protocol has completed one audit and is deployed on multiple EVM testnets, including Mainnet Sepolia, Optimism Sepolia, and Arbitrum Sepolia. Further audits and bug bounty programs are planned, conditional on funding. The repository can be accessed at [https://github.com/7Cedars/powers/tree/main/solidity](https://github.com/7Cedars/powers/tree/main/solidity)   
+* **dApp Interface**: A decentralized application is available for users to visualize and interact with organizations built on the Powers protocol. This app can be accessed at [https://powers-protocol.vercel.app/](https://powers-protocol.vercel.app/)   
+* **Documentation:** Extensive documentation, including explanations on how to deploy your own organisations and laws. See the documentation here: [https://powers-docs.vercel.app/](https://powers-docs.vercel.app/)   
+* **Example Organizations**: A set of example laws and institutional structures are available to demonstrate the protocol's capabilities.
+
+[^1]:  See the initial announcement here: [https://forum.arbitrum.foundation/t/a-vision-for-the-future-of-arbitrum/28962](https://forum.arbitrum.foundation/t/a-vision-for-the-future-of-arbitrum/28962).
+
+[^2]:  For a description see:  [https://gov.optimism.io/t/seasons-8-9-developer-advisory-board-communication-thread/10214](https://gov.optimism.io/t/seasons-8-9-developer-advisory-board-communication-thread/10214) 
+
+[^3]:  For an in-depth discussion of this development, see: [https://daostar.org/research/delegating\_decentralization.pdf](https://daostar.org/research/delegating_decentralization.pdf)

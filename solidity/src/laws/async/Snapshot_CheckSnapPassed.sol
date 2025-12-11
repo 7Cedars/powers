@@ -1,17 +1,5 @@
 // // SPDX-License-Identifier: MIT
 
-// //////////////////////////////////////////////////////////////////////////////
-// // This program is free software: you can redistribute it and/or modify    ///
-// // it under the terms of the MIT Public License.                           ///
-// //                                                                         ///
-// // This is a Proof Of Concept and is not intended for production use.      ///
-// // Tests are incomplete and it contracts have not been audited.            ///
-// //                                                                         ///
-// // It is distributed in the hope that it will be useful and insightful,    ///
-// // but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-// //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   ///
-// //////////////////////////////////////////////////////////////////////////////
-
 // // @notice A base contract that executes a bespoke action.
 // // TBI: Basic logic sho
 // //
@@ -59,10 +47,10 @@
 //         uint256 actionId;
 //     }
 
-//     bytes32 public s_lastRequestId;
-//     string public s_lastProposalId;
-//     bytes public s_lastResponse;
-//     bytes public s_lastError;
+//     bytes32 public sLastRequestId;
+//     string public sLastProposalId;
+//     bytes public sLastResponse;
+//     bytes public sLastError;
 //     mapping(bytes32 lawHash => Data) public data;
 //     mapping(string proposalId => Request) public requests;
 
@@ -151,7 +139,7 @@
 //     function _changeState(bytes32 lawHash, bytes memory stateChange) internal override {
 //         (string memory proposalId, address powers, uint16 lawId, uint256 actionId, string memory choice) =
 //             abi.decode(stateChange, (string, address, uint16, uint256, string));
-//         s_lastProposalId = proposalId;
+//         sLastProposalId = proposalId;
 //         requests[proposalId] = Request({
 //             lawHash: LawUtilities.hashLaw(powers, lawId),
 //             powers: powers,
@@ -191,8 +179,8 @@
 //         // }
 //         if (args.length > 0) req.setArgs(args);
 //         // if (bytesArgs.length > 0) req.setBytesArgs(bytesArgs);
-//         s_lastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donID);
-//         return s_lastRequestId;
+//         sLastRequestId = _sendRequest(req.encodeCBOR(), data_.subscriptionId, data_.gasLimit, data_.donID);
+//         return sLastRequestId;
 //     }
 
 //     /**
@@ -203,22 +191,22 @@
 //      * Either response or error parameter will be set, but never both
 //      */
 //     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
-//         if (s_lastRequestId != requestId) {
+//         if (sLastRequestId != requestId) {
 //             revert UnexpectedRequestID(requestId);
 //         }
-//         s_lastResponse = response;
-//         s_lastError = err;
+//         sLastResponse = response;
+//         sLastError = err;
 
 //         if (err.length > 0) {
 //             revert(string(err));
 //         }
 
-//         if (s_lastResponse.length == 0) {
+//         if (sLastResponse.length == 0) {
 //             revert("No response from the API");
 //         }
 
-//         // (string[] memory choices, uint256[] memory scores, string memory state) = abi.decode(s_lastResponse, (string[], uint256[], string));
-//         (string memory reply) = abi.decode(abi.encode(s_lastResponse), (string));
+//         // (string[] memory choices, uint256[] memory scores, string memory state) = abi.decode(sLastResponse, (string[], uint256[], string));
+//         (string memory reply) = abi.decode(abi.encode(sLastResponse), (string));
 
 //         if (keccak256(abi.encodePacked(reply)) != keccak256(abi.encodePacked("true"))) {
 //             revert(reply);
@@ -226,7 +214,7 @@
 
 //         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
 //             LawUtilities.createEmptyArrays(1);
-//         Request memory request_ = requests[s_lastProposalId];
+//         Request memory request_ = requests[sLastProposalId];
 //         IPowers(payable(request_.powers)).fulfill(request_.lawId, request_.actionId, targets, values, calldatas);
 //     }
 

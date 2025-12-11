@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and contracts have not been extensively audited.   ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @title Law - Base Implementation for Powers Protocol Laws. v0.4.
 /// @notice Base contract for implementing role-restricted governance actions
 /// @dev Provides core functionality for creating institutional laws in the Powers protocol
@@ -143,8 +131,8 @@ abstract contract Law is ERC165, ILaw {
         uint256[] memory values,
         bytes[] memory calldatas
     ) internal virtual {
-        // NB Important for async calls! Leave the targets array empty in the replyPowers function and thereby disallow _replyPowers returning data to Powers. 
-        // If data is send to Powers, the actionId will be set to fulfilled and the callback function will fail.  
+        // NB Important for async calls! Leave the targets array empty in the replyPowers function and thereby disallow _replyPowers returning data to Powers.
+        // If data is send to Powers, the actionId will be set to fulfilled and the callback function will fail.
         if (targets.length > 0) {
             IPowers(msg.sender).fulfill(lawId, actionId, targets, values, calldatas);
         }

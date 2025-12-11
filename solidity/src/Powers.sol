@@ -1,17 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-///////////////////////////////////////////////////////////////////////////////
-/// This program is free software: you can redistribute it and/or modify    ///
-/// it under the terms of the MIT Public License.                           ///
-///                                                                         ///
-/// This is a Proof Of Concept and is not intended for production use.      ///
-/// Tests are incomplete and contracts have not been extensively audited.   ///
-///                                                                         ///
-/// It is distributed in the hope that it will be useful and insightful,    ///
-/// but WITHOUT ANY WARRANTY; without even the implied warranty of          ///
-/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    ///
-///////////////////////////////////////////////////////////////////////////////
-
 /// @title Powers Protocol v.0.4
 /// @notice Powers is a Role Based Governance Protocol. It provides a modular, flexible,  DAOs.
 ///
@@ -64,13 +52,13 @@ contract Powers is EIP712, IPowers, Context {
 
     uint256 public immutable MAX_CALLDATA_LENGTH;
     uint256 public immutable MAX_RETURN_DATA_LENGTH;
-    uint256 public immutable MAX_EXECUTIONS_LENGTH;
+    uint256 public immutable MAX_EXECUTIONsLENGTH;
 
     // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO. // note can be altered
-    address payable private treasury; // address to the treasury of the organisation. 
+    address payable private treasury; // address to the treasury of the organisation.
     bool private _constituteExecuted; // has the constitute function been called before?
 
     //////////////////////////////////////////////////////////////
@@ -106,9 +94,13 @@ contract Powers is EIP712, IPowers, Context {
     /// @param maxCallDataLength_ maximum length of calldata for a law
     /// @param maxReturnDataLength_ maximum length of return data for a law
     /// @param maxExecutionsLength_ maximum length of executions for a law
-    constructor(string memory name_, string memory uri_, uint256 maxCallDataLength_, uint256 maxReturnDataLength_, uint256 maxExecutionsLength_)
-        EIP712(name_, version())
-    {
+    constructor(
+        string memory name_,
+        string memory uri_,
+        uint256 maxCallDataLength_,
+        uint256 maxReturnDataLength_,
+        uint256 maxExecutionsLength_
+    ) EIP712(name_, version()) {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
         name = name_;
         uri = uri_;
@@ -117,7 +109,7 @@ contract Powers is EIP712, IPowers, Context {
         if (maxExecutionsLength_ == 0) revert Powers__InvalidMaxExecutionsLength();
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
         MAX_RETURN_DATA_LENGTH = maxReturnDataLength_;
-        MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
+        MAX_EXECUTIONsLENGTH = maxExecutionsLength_;
 
         _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
 
@@ -173,7 +165,7 @@ contract Powers is EIP712, IPowers, Context {
 
         // emit event.
         emit ActionRequested(_msgSender(), lawId, lawCalldata, nonce, uriAction);
-        
+
         return actionId;
     }
 
@@ -203,7 +195,7 @@ contract Powers is EIP712, IPowers, Context {
         if (targets.length != values.length || targets.length != calldatas.length) revert Powers__InvalidCallData();
 
         // check 6: check array length is too long
-        if (targets.length > MAX_EXECUTIONS_LENGTH) revert Powers__ExecutionArrayTooLong();
+        if (targets.length > MAX_EXECUTIONsLENGTH) revert Powers__ExecutionArrayTooLong();
 
         // check 7: for each target, check if calldata does not exceed MAX_CALLDATA_LENGTH + targets have not been blacklisted.
         for (uint256 i = 0; i < targets.length; ++i) {
@@ -219,7 +211,7 @@ contract Powers is EIP712, IPowers, Context {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
             if (returndata.length <= MAX_RETURN_DATA_LENGTH) {
-                _actions[actionId].returnDatas.push(returndata); 
+                _actions[actionId].returnDatas.push(returndata);
             } else {
                 _actions[actionId].returnDatas.push(abi.encode(0));
             }
@@ -536,11 +528,9 @@ contract Powers is EIP712, IPowers, Context {
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
         // check if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if quorum has been reached.
-        return (
-            conditions.quorum == 0
+        return (conditions.quorum == 0
                 || amountMembers * conditions.quorum
-                    <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR
-        );
+                    <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR);
     }
 
     // @notice internal function {_hasBeenRequested} that checks if a given action has been requested.
@@ -728,10 +718,14 @@ contract Powers is EIP712, IPowers, Context {
         return _actions[actionId].lawCalldata;
     }
 
-    function getActionReturnData(uint256 actionId, uint256 index) public view virtual returns (bytes memory returnData) {
+    function getActionReturnData(uint256 actionId, uint256 index)
+        public
+        view
+        virtual
+        returns (bytes memory returnData)
+    {
         return _actions[actionId].returnDatas[index];
     }
-
 
     function getActionUri(uint256 actionId) public view virtual returns (string memory _uri) {
         _uri = _actions[actionId].uri;
@@ -750,7 +744,7 @@ contract Powers is EIP712, IPowers, Context {
 
         return (law, lawHash, active);
     }
-    
+
     /// @inheritdoc IPowers
     function getLatestFulfillment(uint16 lawId) external view returns (uint48 latestFulfillment) {
         return laws[lawId].latestFulfillment;

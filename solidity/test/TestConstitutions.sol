@@ -8,9 +8,10 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
 
+import { HelperConfig } from "../script/HelperConfig.s.sol";
+
 contract TestConstitutions is Test {
     uint256[] milestoneDisbursements;
-    uint256 PrevActionId;
 
     bytes[] staticParams;
     string[] dynamicParams;
@@ -33,6 +34,9 @@ contract TestConstitutions is Test {
     string[] descriptions;
     string[] params;
 
+    HelperConfig helperConfig = new HelperConfig();
+    HelperConfig.NetworkConfig config = helperConfig.getConfig();
+
     //////////////////////////////////////////////////////////////
     //                 POWERS CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
@@ -41,7 +45,7 @@ contract TestConstitutions is Test {
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
-        address[] memory mockAddresses,
+        address[] memory,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](7);
@@ -61,19 +65,19 @@ contract TestConstitutions is Test {
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Self select as community member: Self select as a community member. Anyone can call this law.",
             targetLaw: lawAddresses[18], // selfSelct
-            config: abi.encode( 
+            config: abi.encode(
                 1 // community member role ID
-            ), 
+            ),
             conditions: conditions
         });
         delete conditions;
 
-        // self Select as delegate 
+        // self Select as delegate
         conditions.allowedRole = type(uint256).max;
         lawInitData[2] = PowersTypes.LawInitData({
             nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this law.",
             targetLaw: lawAddresses[18], // selfSelct
-            config: abi.encode( 
+            config: abi.encode(
                 2 // delegeate member role ID
             ),
             conditions: conditions
@@ -263,7 +267,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](11);
+        lawInitData = new PowersTypes.LawInitData[](12);
 
         // ElectionSelect - for delegate elections
         conditions.allowedRole = type(uint256).max;
@@ -413,6 +417,19 @@ contract TestConstitutions is Test {
             conditions: conditions
         });
         delete conditions;
+
+        // AssignExternalRole
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[11] = PowersTypes.LawInitData({
+            nameDescription: "AssignExternalRole: A law to assign a role if the account has a role on an external contract.",
+            targetLaw: lawAddresses[29], // AssignExternalRole (electoral law)
+            config: abi.encode(
+                daoMock, // external Powers contract (using self for test)
+                1 // roleId to be checked
+            ),
+            conditions: conditions
+        });
+        delete conditions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -462,7 +479,7 @@ contract TestConstitutions is Test {
         lawInitDatas = new bytes[](1);
 
         // Create a simple law init data for adoption
-        PowersTypes.LawInitData memory adoptLawData = PowersTypes.LawInitData({
+        PowersTypes.LawInitData({
             nameDescription: "Test Adopted Law",
             targetLaw: lawAddresses[1], // PresetSingleAction
             config: abi.encode(
@@ -482,14 +499,11 @@ contract TestConstitutions is Test {
             })
         });
 
-        lawsToAdopt[0] = lawAddresses[1];
-        lawInitDatas[0] = abi.encode(adoptLawData);
-
         conditions.allowedRole = type(uint256).max; // public role can adopt laws
         lawInitData[4] = PowersTypes.LawInitData({
             nameDescription: "AdoptLawPackage: A law to adopt new laws into the DAO.",
-            targetLaw: lawAddresses[8], // AdoptLaws (executive law)
-            config: abi.encode(lawsToAdopt, lawInitDatas),
+            targetLaw: lawAddresses[7], // AdoptLaws (executive law)
+            config: abi.encode(),
             conditions: conditions
         });
         delete conditions;
@@ -537,7 +551,7 @@ contract TestConstitutions is Test {
         address[] memory mockAddresses,
         address payable daoMock
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
-        lawInitData = new PowersTypes.LawInitData[](8);
+        lawInitData = new PowersTypes.LawInitData[](9);
 
         // OpenAction - allows any action to be executed
         conditions.allowedRole = type(uint256).max;
@@ -654,6 +668,25 @@ contract TestConstitutions is Test {
             conditions: conditions
         });
         delete conditions;
+
+        // CheckExternalActionState
+        inputParams = new string[](3);
+        inputParams[0] = "targets address[]";
+        inputParams[1] = "values uint256[]";
+        inputParams[2] = "calldatas bytes[]";
+
+        conditions.allowedRole = type(uint256).max;
+        lawInitData[8] = PowersTypes.LawInitData({
+            nameDescription: "CheckExternalActionState: Checks if an action is fulfilled on a parent contract.",
+            targetLaw: lawAddresses[31], // CheckExternalActionState
+            config: abi.encode(
+                daoMock, // parentPowers (self for test)
+                1, // lawId on parent (OpenAction)
+                inputParams
+            ),
+            conditions: conditions
+        });
+        delete conditions;
     }
 
     //////////////////////////////////////////////////////////////
@@ -665,7 +698,7 @@ contract TestConstitutions is Test {
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
         address[] memory mockAddresses,
-        address payable daoMock
+        address payable
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](8);
 
@@ -747,7 +780,7 @@ contract TestConstitutions is Test {
         values = new uint256[](3);
         calldatas = new bytes[](3);
         for (uint256 i = 0; i < targets.length; i++) {
-            targets[i] = daoMock; // = Powers contract.
+            targets[i] = address(this); // = Powers contract.
         }
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Member");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
@@ -765,91 +798,117 @@ contract TestConstitutions is Test {
     }
 
     //////////////////////////////////////////////////////////////
-    //             SPLIT GOVERNANCE CONSTITUTION                //
+    //                  POWER BASE CONSTITUTION                 //
     //////////////////////////////////////////////////////////////
+    function powerLabsSafesConstitution(
+        string[] memory, /*lawNames*/
+        address[] memory lawAddresses,
+        string[] memory, /*mockNames*/
+        address[] memory, /*mockAddresses*/
+        address payable
+    ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
+        lawInitData = new PowersTypes.LawInitData[](3); // Index 0 is empty
 
-    // Will be implemented later.
+        // Law 1: Create a SafeProxy and register as treasury for Powers
+        conditions.allowedRole = type(uint256).max; // Public
+        lawInitData[1] = PowersTypes.LawInitData({
+            nameDescription: "Create SafeProxy: Creates the safe and registers it as the organization treasury.",
+            targetLaw: lawAddresses[22], // PowerLabsConfig law
+            config: abi.encode(config.SafeProxyFactory, config.SafeL2Canonical),
+            conditions: conditions
+        });
+        delete conditions;
 
-    // law 1: CREATE PROPOSAL
+        // Law 2: Setup Power Base Safe
+        address[] memory configParams = new address[](4);
+        configParams[0] = lawAddresses[4]; // StatementOfIntent
+        configParams[1] = lawAddresses[8]; // SafeExecTransaction
+        configParams[2] = lawAddresses[1]; // PresetSingleAction
+        configParams[3] = lawAddresses[20]; // SafeAllowanceAction
 
-    // law 2: ASSIGN TO PATH A (SELECTORS)
-    // needFulfilled: law 1
-    // needNotFulfilled: law 5
-
-    // law 3: ASSIGN TO PATH B (SELECTORS)
-    // needFulfilled: law 1
-    // needNotFulfilled: law 5
-
-    // law 4: ASSIGN TO PATH C (SELECTORS)
-    // needFulfilled: law 1
-    // needNotFulfilled: law 5
-
-    // law 5: ALLOCATION CLOSED (SELECTORS)
-    // needFulfilled: law 1
-
-    // law 6: (PATH A) EXECUTE PROPOSAL (EXECUTIVES)
-    // needFulfilled: law 2
-
-    // law 7: (PATH B) VETO PROPOSAL (SECURITY COUNCIL)
-    // needFulfilled: law 3
-
-    // law 8: (PATH B) EXECUTE PROPOSAL (EXECUTIVES)
-    // needFulfilled: law 3
-    // needNotFulfilled: law 7
-
-    // law 9: (PATH C) PASS PROPOSAL (SECURITY COUNCIL)
-    // needFulfilled: law 4
-
-    // law 10: (PATH C) EXECUTE PROPOSAL (SECURITY COUNCIL)
-    // needFulfilled: law 9
-
-    //////////////////////////////////////////////////////////////
-    //               MANAGED GRANTS CONSTITUTION                //
-    //////////////////////////////////////////////////////////////
-
-    // Will be implemented later.
-
-    // law 1: CREATE GRANT PROPOSAL (PUBLIC)
-
-    // law 2: SCOPE ASSESSMENT (SCOPE ASSESSOR)
-    // assigns applicant role
-    // needFulfilled: law 1
-
-    // Law 3: TECHNICAL ASSESSMENT (TECHNICAL ASSESSOR)
-    // needFulfilled: law 2
-
-    // Law 4: FINANCIAL ASSESSMENT (FINANCIAL ASSESSOR)
-    // needFulfilled: law 3
-
-    // Law 5: ASSIGN GRANT (GRANT IMBURSER)
-    // assigns grantee role
-    // needFulfilled: law 4
-
-    // Law 6: END GRANT (GRANT IMBURSER)
-    // needFulfilled: law 5
-
-    // Law 7: LOG COMPLAINT (APPLICANT)
-    // needFulfilled: law 1
-
-    // Law 8: JUDGE COMPLAINT (JUDGE)
-    // flags action
-    // needFulfilled: law 7
-
-    // Law 9: N STRIKES YOUR OUT (PUBLIC)
-    // removes ALL role holders from role.
-
-    // Law 10: ASSIGN ANY ACCOUNT TO ANY ROLE (PARENT DAO)
-
-    // Law 11: REQUEST PAYOUT (GRANTEE)
-
-    // Law 12: ASSESS PAYOUT (GRANT IMBURSER)
-    // sends payout to grantee
-    // needFulfilled: law 11
+        conditions.allowedRole = type(uint256).max; // Public
+        lawInitData[2] = PowersTypes.LawInitData({
+            nameDescription: "Setup Safe: Setup the allowance module and governance paths.",
+            targetLaw: lawAddresses[21], // PowerLabsConfig law
+            config: abi.encode(configParams, config.SafeAllowanceModule),
+            conditions: conditions
+        });
+        delete conditions;
+    }
 
     //////////////////////////////////////////////////////////////
-    //                      MORE ORGS TBI                       //
+    //              POWER BASE CHILD CONSTITUTION               //
     //////////////////////////////////////////////////////////////
-    // ...
+    // function powerLabsChildConstitution(
+    //     string[] memory, /*lawNames*/
+    //     address[] memory lawAddresses,
+    //     string[] memory, /*mockNames*/
+    //     address[] memory, /*mockAddresses*/
+    //     address daoMock,
+    // ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
+    //     lawInitData = new PowersTypes.LawInitData[](5); // Index 0 is empty
+
+    //     // Law 1: Execute transaction from allowance
+    //     conditions.allowedRole = 3; // Doc Contributor
+    //     conditions.votingPeriod = 50; // 10 mins approx (assuming 12s blocks)
+    //     conditions.succeedAt = 67;
+    //     conditions.quorum = 50;
+    //     conditions.delayExecution = 15; // 3 mins approx.
+
+    //     lawInitData[1] = PowersTypes.LawInitData({
+    //         nameDescription: "Execute transaction from allowance: This is still a work in progress.",
+    //         targetLaw: lawAddresses[30], // "SafeAllowanceTransfer";
+    //         config: abi.encode(
+    //             config.SafeAllowanceModule, // allowanceModule
+    //             // safeProxy
+    //         ),
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
+
+    //     // Law 2: Adopt Doc Contrib Role
+    //     conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
+
+    //     lawInitData[2] = PowersTypes.LawInitData({
+    //         nameDescription: "Adopt Doc Contrib Role: Anyone that has a documentation contributor role at the parent organization can adopt the same role here.",
+    //         targetLaw: lawAddresses[29], // AssignExternalRole
+    //         config: abi.encode(daoMock, 3), // powersAddress, roleId
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
+
+    //     // Law 3: Adopt Laws
+    //     string[] memory paramsLocal = new string[](3);
+    //     paramsLocal[0] = "uint256 PoolId";
+    //     paramsLocal[1] = "address payableTo";
+    //     paramsLocal[2] = "uint256 Amount";
+
+    //     conditions.allowedRole = type(uint256).max; // PUBLIC_ROLE
+
+    //     // Note: CheckExternalActionState is not in InitialisePowers, using lawAddresses[0] as placeholder
+    //     lawInitData[3] = PowersTypes.LawInitData({
+    //         nameDescription: "Adopt Laws: Anyone can adopt new laws ok-ed by the parent organization",
+    //         targetLaw: lawAddresses[0], // CheckExternalActionState
+    //         config: abi.encode(uint16(123), daoMock, paramsLocal), // lawId (dummy), powersAddress, inputParams
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
+
+    //     // Law 4: Revoke Laws
+    //     conditions.allowedRole = 3;
+    //     conditions.votingPeriod = 50;
+    //     conditions.succeedAt = 67;
+    //     conditions.quorum = 50;
+    //     conditions.delayExecution = 15;
+
+    //     lawInitData[4] = PowersTypes.LawInitData({
+    //         nameDescription: "Revoke Laws: Admin can revoke laws from the organization",
+    //         targetLaw: lawAddresses[25], // RevokeLaws
+    //         config: abi.encode(""), // 0x00
+    //         conditions: conditions
+    //     });
+    //     delete conditions;
+    // }
 
     //////////////////////////////////////////////////////////////
     //                 HELPERS CONSTITUTION                     //
@@ -858,8 +917,8 @@ contract TestConstitutions is Test {
         string[] memory, /*lawNames*/
         address[] memory lawAddresses,
         string[] memory, /*mockNames*/
-        address[] memory mockAddresses,
-        address payable daoMock
+        address[] memory, /*mockAddresses*/
+        address payable
     ) external returns (PowersTypes.LawInitData[] memory lawInitData) {
         lawInitData = new PowersTypes.LawInitData[](2);
 
@@ -878,7 +937,7 @@ contract TestConstitutions is Test {
         lawInitData[1] = PowersTypes.LawInitData({
             nameDescription: "Open Action: Execute any action.",
             targetLaw: lawAddresses[3], // openAction
-            config: abi.encode(), 
+            config: abi.encode(),
             conditions: conditions
         });
         delete conditions;

@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { ProtocolListingLayout } from './ProtocolListingLayout'
+import { defaultPowers101, defaultPowerLabs, defaultPowerLabsChild } from '@/context/defaultProtocols'
 
 export default function ProtocolPage() {
   const [savedProtocols, setSavedProtocols] = useState<Powers[]>([])
@@ -15,23 +16,6 @@ export default function ProtocolPage() {
   
   const chains = useChains()
   const router = useRouter()
-
-  // Default Powers 101 protocol
-  const defaultPowers101: Powers = {
-    contractAddress: '0x0000000000000000000000000000000000000001' as `0x${string}`,
-    chainId: 11155111n,
-    name: 'Powers 101',
-    uri: 'https://powers-protocol.com/metadata/powers101.json',
-    metadatas: {
-      icon: '/logo1_notext.png',
-      banner: '/orgMetadatas/PowersDAO_Banner.png',
-      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
-      attributes: []
-    },
-    lawCount: 0n,
-    laws: [],
-    roles: [],
-  }
 
   useEffect(() => {
     const loadSavedProtocols = () => {
@@ -45,15 +29,27 @@ export default function ProtocolPage() {
 
         // Check if Powers 101 already exists
         const powers101Exists = protocols.some(p => p.name === 'Powers 101')
+        const powerLabsExists = protocols.some(p => p.name === 'Power Labs')
+        const powerLabsChildExists = protocols.some(p => p.name === 'Power Labs - Documentation')
         
         if (!powers101Exists) {
           // Add Powers 101 to the list
           protocols.unshift(defaultPowers101) 
+        }
+        if (!powerLabsExists) {
+          // Add Power Base to the list
+          protocols.unshift(defaultPowerLabs) 
           localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           ))
         }
-
+        if (!powerLabsChildExists) {
+          // Add Power Base to the list
+          protocols.unshift(defaultPowerLabsChild) 
+          localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value,
+          ))
+        }
         setSavedProtocols(protocols)
       } catch (error) {
         console.error('Error loading saved protocols:', error)

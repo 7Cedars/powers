@@ -75,7 +75,7 @@ export const useCases = [
     ],
     demos: [
       { name: "Power Base, (Chainlink Functions)", link: "11155420/0x1c1ebea2840980ec3b45785c4b5672857b0dfdb9/laws/6"},
-      { name: "Powers to Nouns, (Nouns & Allo V2)", link: ""},
+      { name: "Powers to Nouns, (Nouns)", link: ""},
       { name: "Bridged Powers, (Governor.sol)", link: ""}
     ]
   },

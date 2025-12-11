@@ -10,6 +10,7 @@ import { ConnectButton } from '../../components/ConnectButton'
 import { BlockCounter } from '../../components/BlockCounter'
 import { usePublicClient } from 'wagmi'
 import { usePowers } from '@/hooks/usePowers'
+import { usePowersStore } from '@/context/store'
 // import { usePowersStore } from '@/context/store'
 
 // const layoutIconBox: string = 'flex flex-row md:gap-1 gap-0 md:px-4 md:py-1 py-0 px-0 align-middle items-center'
@@ -65,21 +66,24 @@ const UserHeader = () => {
   const publicClient = usePublicClient();
   const [blockNumber, setBlockNumber] = useState<bigint | null>(null);
   const { fetchPowers } = usePowers();
+  const powers = usePowersStore();
   const { powers: powersAddress } = useParams<{ powers: string }>()
   const pathname = usePathname()
   const isUserPage = pathname === '/user' 
 
-  const fetchBlockNumber = async () => {
-    if (!publicClient) return;
-      
-    try {
-      const number = await publicClient.getBlockNumber();
-      setBlockNumber(number);
-    } catch (error) {
-      console.error('Failed to fetch block number:', error);
-      return null;
+  useEffect(() => {
+    const fetchBlockNumber = async () => {
+      if (powers)  
+      try {
+        const number = await publicClient?.getBlockNumber() ?? null;
+        setBlockNumber(number as bigint);
+      } catch (error) {
+        console.error('Failed to fetch block number:', error);
+        return null;
+      }
     }
-  };
+    fetchBlockNumber();
+  }, [publicClient, powers])
 
   return (
     <div className="absolute top-0 left-0 z-30 h-14 w-screen py-2 flex justify-around text-sm bg-slate-50 border-b border-slate-300 overflow-hidden" help-nav-item="navigation">
@@ -99,7 +103,6 @@ const UserHeader = () => {
           
           {!isUserPage && <BlockCounter onRefresh={
             () => {
-              fetchBlockNumber()
               fetchPowers(powersAddress as `0x${string}`)
             }
           } blockNumber={blockNumber} />}

@@ -7,7 +7,7 @@ import { GovernorExecuteProposal } from "../../../src/laws/integrations/Governor
 import { TreasuryPoolGovernance } from "../../../src/laws/integrations/TreasuryPoolGovernance.sol";
 import { TreasuryPools } from "../../../src/helpers/TreasuryPools.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol"; 
+import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";

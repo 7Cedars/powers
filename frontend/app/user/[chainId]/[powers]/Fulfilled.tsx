@@ -56,7 +56,7 @@ export default function Fulfilled() {
     const law = powers.laws?.find(l => l.index === selectedItem.lawId)
     
     return (
-      <div className="w-full mx-auto">
+      <div className="w-full mx-auto pb-12">
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
           <div className="p-4 border-b border-slate-100">
             <div className="flex items-center gap-3">

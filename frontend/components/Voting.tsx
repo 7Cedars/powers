@@ -61,7 +61,7 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const [populatedAction, setPopulatedAction] = useState<Action | undefined>()
   const {actionVote, fetchVoteData} = useLaw();
 
-  // console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
+  console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
 
   // Votes state
   const { timestamps, fetchTimestamps } = useBlocks()
@@ -112,6 +112,8 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
         fromBlock: BigInt(populatedAction?.proposedAt ? populatedAction.proposedAt : 0),
         toBlock: BigInt(voteEnd ? voteEnd : 0)
       })
+
+      console.log('Fetched vote logs:', logs)
 
       // Process logs and fetch ENS names
       const votePromises = logs?.map(async (log: any): Promise<VoteData> => {

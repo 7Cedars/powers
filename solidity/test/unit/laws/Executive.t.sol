@@ -7,12 +7,12 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
 import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
-import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol"; 
+import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../../src/laws/executive/BespokeActionSimple.sol"; 
+import { BespokeActionSimple } from "../../../src/laws/executive/BespokeActionSimple.sol";
 import { PresetMultipleActions } from "../../../src/laws/executive/PresetMultipleActions.sol";
 import { BespokeActionAdvanced } from "../../../src/laws/executive/BespokeActionAdvanced.sol";
-
+import { CheckExternalActionState } from "../../../src/laws/executive/CheckExternalActionState.sol";
 
 /// @notice Comprehensive unit tests for all executive laws
 /// @dev Tests all functionality of executive laws including initialization, execution, and edge cases
@@ -472,6 +472,109 @@ contract BespokeActionAdvancedTest is TestSetupMulti {
         assertEq(returnedCalldatas.length, 1);
         // The calldata should be the encoded function call to assignRole
         assertEq(returnedCalldatas[0], abi.encodeWithSelector(daoMock.assignRole.selector, 1, alice));
+    }
+}
+
+//////////////////////////////////////////////////
+//       CHECK EXTERNAL ACTION STATE TESTS    //
+//////////////////////////////////////////////////
+contract CheckExternalActionStateTest is TestSetupMulti {
+    CheckExternalActionState checkExternalActionState;
+
+    function setUp() public override {
+        super.setUp();
+        checkExternalActionState = CheckExternalActionState(lawAddresses[31]); // CheckExternalActionState from multi constitution
+        lawId = 8; // CheckExternalActionState law ID in multi constitution
+    }
+
+    function testCheckExternalActionStateInitialization() public {
+        // Verify law is properly initialized
+        lawHash = keccak256(abi.encode(address(daoMock), lawId));
+        // CheckExternalActionState stores data
+        (address parentPowers, uint16 parentLawId) = checkExternalActionState.lawConfig(lawHash);
+        assertEq(parentPowers, address(daoMock));
+        assertEq(parentLawId, 1);
+    }
+
+    function testCheckExternalActionStateWithValidFulfilledAction() public {
+        // 1. Create an action on the parent contract (which is daoMock itself in this test)
+        // We use lawId 1 (OpenAction) as defined in the config
+        uint16 parentLawId = 1;
+
+        // Setup call data for the parent action
+        targets = new address[](1);
+        targets[0] = address(daoMock);
+        values = new uint256[](1);
+        values[0] = 0;
+        calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test Role");
+
+        // Execute parent action
+        vm.prank(alice);
+        daoMock.request(parentLawId, abi.encode(targets, values, calldatas), nonce, "Parent action");
+
+        // Calculate parent actionId
+        uint256 parentActionId =
+            uint256(keccak256(abi.encode(parentLawId, abi.encode(targets, values, calldatas), nonce)));
+        assertTrue(daoMock.getActionState(parentActionId) == ActionState.Fulfilled);
+
+        // 2. Now call CheckExternalActionState with the same calldata and nonce
+        // It should verify that the parent action is fulfilled
+        vm.prank(alice);
+        daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Check external action");
+
+        // Should succeed
+        actionId = uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce)));
+        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
+    }
+
+    function testCheckExternalActionStateWithUnfulfilledAction() public {
+        // 1. We don't execute the parent action, so it doesn't exist (or isn't fulfilled)
+
+        // Setup call data
+        targets = new address[](1);
+        targets[0] = address(daoMock);
+        values = new uint256[](1);
+        values[0] = 0;
+        calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Unfulfilled Role");
+
+        // 2. Call CheckExternalActionState
+        vm.prank(alice);
+        vm.expectRevert("Action not fulfilled");
+        daoMock.request(lawId, abi.encode(targets, values, calldatas), nonce, "Check unfulfilled action");
+    }
+
+    function testCheckExternalActionStateHandleRequestDirectly() public {
+        // 1. Create parent action
+        uint16 parentLawId = 1;
+
+        targets = new address[](1);
+        targets[0] = address(daoMock);
+        values = new uint256[](1);
+        values[0] = 0;
+        calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test Role");
+
+        vm.prank(alice);
+        daoMock.request(parentLawId, abi.encode(targets, values, calldatas), nonce, "Parent action");
+
+        // 2. Call handleRequest directly
+        (
+            uint256 actionId,
+            address[] memory returnedTargets,
+            uint256[] memory returnedValues,
+            bytes[] memory returnedCalldatas
+        ) = checkExternalActionState.handleRequest(
+            alice, address(daoMock), lawId, abi.encode(targets, values, calldatas), nonce
+        );
+
+        // Verify return values
+        assertEq(actionId, uint256(keccak256(abi.encode(lawId, abi.encode(targets, values, calldatas), nonce))));
+        // Should return empty arrays
+        assertEq(returnedTargets.length, 1);
+        assertEq(returnedValues.length, 1);
+        assertEq(returnedCalldatas.length, 1);
     }
 }
 
