@@ -56,9 +56,13 @@ export const PowerLabs: Organization = {
   dependencies:  [ ],
   allowedChains: [
     sepolia.id,
+    arbitrumSepolia.id,
+    optimismSepolia.id, 
   ],
   allowedChainsLocally: [
     sepolia.id, 
+        arbitrumSepolia.id,
+    optimismSepolia.id, 
     foundry.id
   ],
  

@@ -75,8 +75,27 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
                   {
                     allActions
-                      ?.map((action: Action | undefined) => {
-                        if (!action) return null
+                      ?.filter((action): action is Action => action !== undefined)
+                      .sort((a, b) => {
+                        // Get block numbers, prioritizing proposedAt over requestedAt
+                        const getBlockNumber = (action: Action): bigint => {
+                          const proposed = typeof action.proposedAt === 'bigint' 
+                            ? action.proposedAt 
+                            : (action.proposedAt ? BigInt(action.proposedAt as unknown as string) : 0n);
+                          const requested = typeof action.requestedAt === 'bigint'
+                            ? action.requestedAt
+                            : (action.requestedAt ? BigInt(action.requestedAt as unknown as string) : 0n);
+                          
+                          return proposed > 0n ? proposed : requested;
+                        };
+                        
+                        const blockA = getBlockNumber(a);
+                        const blockB = getBlockNumber(b);
+                        
+                        // Sort descending (newer/higher block numbers first)
+                        return blockB > blockA ? 1 : blockB < blockA ? -1 : 0;
+                      })
+                      .map((action: Action) => {
                         return (
                           <tr
                             key={action.actionId}

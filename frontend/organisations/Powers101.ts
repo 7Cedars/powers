@@ -110,7 +110,7 @@ export const Powers101: Organization = {
 
     // Law 2: Statement of Intent
     lawInitData.push({
-      nameDescription: "Propose Action: Members propose actions through a Statement of Intent that Delegates can later execute",
+      nameDescription: "Statement Of Intent: Members can initiate an action through a Statement of Intent that Delegates can later execute",
       targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
       config: statementOfIntentConfig,
       conditions: createConditions({

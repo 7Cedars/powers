@@ -14,6 +14,8 @@ contract DeployAllowanceModule is Script {
         vm.startBroadcast();
         allowanceModule = new AllowanceModule{salt: salt}();
         vm.stopBroadcast();
+
+        abi.encodeWithSelector(bytes4, arg);
         
         return address(allowanceModule);
     }

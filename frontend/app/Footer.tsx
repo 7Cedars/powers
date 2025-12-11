@@ -16,24 +16,25 @@ export function Footer() {
                     <div className="font-bold"> 
                         DApp
                     </div>
+                    <a
+                        href={`/`} target="_blank" rel="noopener noreferrer"
+                        className="text-slate-500"
+                    >
+                        Home
+                    </a>
                      <a
-                        href={`/#deploy`} target="_blank" rel="noopener noreferrer"
+                        href={`/#deploy`} rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Deploy
                     </a>
                     <a
-                        href={`https://powers-docs.vercel.app/welcome`} target="_blank" rel="noopener noreferrer"
+                        href={`/protocol`} target="_blank" rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        Docs
+                        Protocols
                     </a>
-                    <a
-                        href={`https://github.com/7Cedars/powers/tree/main/frontend`} target="_blank" rel="noopener noreferrer"
-                        className="text-slate-500"
-                    >
-                        Github repo
-                    </a>
+
                 </div>
                 <div className="flex flex-col gap-3 justify-start items-start">
                     <div className="font-bold"> 
