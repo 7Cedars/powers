@@ -278,7 +278,7 @@ info:
 
 update-builds:
 	@echo "Updating builds..."
-	for contract in ERC20 Erc20Taxed ERC20Votes Law Ownable Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
+	for contract in ERC20 Erc20Taxed ERC20Votes Mandate Ownable Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
 
 ###############################
 # 		Deploy Commands  	  # 
@@ -324,9 +324,9 @@ deploy-safe-allowance-sepolia :; forge script script/InitialiseSafe.s.sol:Initia
 deploy-allowance-module-op-sepolia :; forge script script/DeployAllowanceModule.s.sol:DeployAllowanceModule $(OPT_SEPOLIA_DEPLOY_ARGS) 
 deploy-allowance-module-arb-sepolia :; forge script script/DeployAllowanceModule.s.sol:DeployAllowanceModule $(ARB_SEPOLIA_DEPLOY_ARGS) 
 
-deploy-lawPackages-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(SEPOLIA_DEPLOY_ARGS)
-deploy-lawPackages-op-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(OPT_SEPOLIA_DEPLOY_ARGS)
-deploy-lawPackages-arb-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(ARB_SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-op-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(OPT_SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-arb-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 # Create forked anvil test chain. 
 fork-sepolia-anvil :

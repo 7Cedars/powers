@@ -44,13 +44,13 @@ The funding policy is designed to ensure thorough vetting and accountability thr
 | ... | Public | Everyone. |
 </div> 
 
-## **On-chain Laws**
+## **On-chain Mandates**
 
-### ***Executive Laws (executing actions)***
+### ***Executive Mandates (executing actions)***
 
 #### **Budget Management**
 
-<div class="table-laws">
+<div class="table-mandates">
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Any Class | Propose Strategic Budget | StatementOfIntent.sol | "string uri", "uint256 pcts" | none | 66% success, 50% quorum vote within the specific Class. |
@@ -60,7 +60,7 @@ The funding policy is designed to ensure thorough vetting and accountability thr
 
 #### **Grant Management**
 
-<div class="table-laws">
+<div class="table-mandates">
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Submit Grant Proposal | BespokeActionSimple.sol | "string uri", "uint256 milestoneAmounts", "address token" | GrantManager.submitProposal() | Public access. |
@@ -70,31 +70,31 @@ The funding policy is designed to ensure thorough vetting and accountability thr
 | Sponsoring Class | Release Grant Milestone | BespokeActionSimple.sol | "uint256 proposalId", "uint256 milestoneIndex" | Treasury.releaseMilestone() | Grant must be 'Approved'. 51% success, 25% quorum vote within the original sponsoring Class. |
 </div> 
 
-### ***Electoral Laws (assigning roles)***
+### ***Electoral Mandates (assigning roles)***
 
-<div class="table-laws">
+<div class="table-mandates">
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Register Noun Holder | BespokeActionSimple.sol | "uint256 nounIds" | RoleManager.registerHolder() | msg.sender must be the owner of the Noun IDs. |
 | System | Assign Roles | RoleByExternalCall.sol | "address user" | RoleManager.assignRolesForAddress() | Triggered by registerHolder(). Reads traits from NounsToken.sol 10 and assigns roles based on the constitutional mapping. |
 </div> 
 
-### ***Constitutional Laws (adopting and revoking laws)***
+### ***Constitutional Mandates (adopting and revoking mandates)***
 
-<div class="table-laws">
+<div class="table-mandates">
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Any Class | Propose Constitutional Amendment | StatementOfIntent.sol | "address laws", "bytes lawInitDatas" | none | 66% success, 50% quorum vote within the specific Class. |
+| Any Class | Propose Constitutional Amendment | StatementOfIntent.sol | "address mandates", "bytes mandateInitDatas" | none | 66% success, 50% quorum vote within the specific Class. |
 | All Factions | Ratify Constitutional Amendment | StatementOfIntent.sol | (from proposal) | none | 66% success, 50% quorum across all Factions, AND 51% success within all 3 Factions. |
 | The Nouncil | Veto Constitutional Amendment | StatementOfIntent.sol | (from proposal) | none | 33% success vote within The Nouncil is sufficient to veto. 72-hour veto period after ratification. |
-| Admin | Adopt Constitutional Amendment | AdoptLaws.sol | (from proposal) | Adopts new laws | Proposal ratified, veto period passed without a successful veto. |
+| Admin | Adopt Constitutional Amendment | AdoptMandates.sol | (from proposal) | Adopts new mandates | Proposal ratified, veto period passed without a successful veto. |
 </div> 
 
 ## **Off-chain Operations**
 
 ### ***Dispute Resolution***
 
-Disputes regarding ambiguous law conditions or trait mappings will be addressed through community discussion on the official forum. If consensus is not reached, a non-binding, on-chain signal vote can be initiated. The final arbiter is the on-chain constitutional amendment process.
+Disputes regarding ambiguous mandate conditions or trait mappings will be addressed through community discussion on the official forum. If consensus is not reached, a non-binding, on-chain signal vote can be initiated. The final arbiter is the on-chain constitutional amendment process.
 
 ### ***Code of Conduct / Ethics***
 
@@ -114,7 +114,7 @@ Powers to Daos is a decentralized organisation that uses Nouns NFT traits to cre
 
 * **Remit**: The primary function is to manage and distribute funds from its own sovereign treasury. It reads on-chain data from the Nouns protocol 10 to establish its governance structure but has no control over Nouns DAO itself.
 * **Roles**: Roles are assigned based on Noun traits. **Classes** (derived from Head traits 5) have the power to propose. **Factions** (derived from Glasses traits 6) have the power to ratify. **The Nouncil** (derived from Noun ID 3) has veto power over constitutional changes. An Admin role manages core functions.  
-* **Executive Paths**: Key processes are governed by on-chain laws creating checks and balances:  
+* **Executive Paths**: Key processes are governed by on-chain mandates creating checks and balances:  
   * **Grant Lifecycle**: Public submits \-\> A Class sponsors \-\> All Factions ratify \-\> The sponsoring Class releases milestones.  
   * **Strategic Budgeting**: A Class proposes \-\> All Factions ratify with a supermajority.  
 * **Summary**: The governance structure translates on-chain identity (Nouns traits) into a separation of powers (Classes vs. Factions). This bicameral system, protected by a council (The Nouncil), ensures that all uses of the DAO's treasury are robustly vetted by diverse, on-chain stakeholder groups.

@@ -1,39 +1,39 @@
-.table-laws {
+.table-mandates {
   overflow-x: auto;
 }
 
-.table-laws table {
+.table-mandates table {
   table-layout: fixed;
   width: 100%;  /* or a specific width like 60rem */
 }
 
-.table-laws table th:nth-child(1),
-.table-laws table td:nth-child(1) {
+.table-mandates table th:nth-child(1),
+.table-mandates table td:nth-child(1) {
   min-width: 10rem;
 }
 
-.table-laws table th:nth-child(2),
-.table-laws table td:nth-child(2) {
+.table-mandates table th:nth-child(2),
+.table-mandates table td:nth-child(2) {
   min-width: 15rem;
 }
 
-.table-laws table th:nth-child(3),
-.table-laws table td:nth-child(3) {
+.table-mandates table th:nth-child(3),
+.table-mandates table td:nth-child(3) {
   min-width: 10rem;
 }
 
-.table-laws table th:nth-child(4),
-.table-laws table td:nth-child(4) {
+.table-mandates table th:nth-child(4),
+.table-mandates table td:nth-child(4) {
   min-width: 15rem;
 }
 
-.table-laws table th:nth-child(5),
-.table-laws table td:nth-child(5) {
+.table-mandates table th:nth-child(5),
+.table-mandates table td:nth-child(5) {
   min-width: 15rem;
 }
 
-.table-laws table th:nth-child(6),
-.table-laws table td:nth-child(6) {
+.table-mandates table th:nth-child(6),
+.table-mandates table td:nth-child(6) {
   min-width: 25rem;
 }
 

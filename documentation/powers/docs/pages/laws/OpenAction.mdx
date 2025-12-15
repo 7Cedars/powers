@@ -1,10 +1,10 @@
 # OpenAction
 
-OpenAction is an executive law that enables the execution of any function call to any contract. It provides a mechanism for unrestricted execution of arbitrary actions.
+OpenAction is an executive mandate that enables the execution of any function call to any contract. It provides a mechanism for unrestricted execution of arbitrary actions.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Execute any function call to any contract
 - Pass any parameters to the target function
 - Track execution history
@@ -13,13 +13,13 @@ This law provides a mechanism to:
 
 ## Configuration
 
-When adopting an OpenAction instance, no parameters are required. The law is completely open-ended and allows any function call to be executed.
+When adopting an OpenAction instance, no parameters are required. The mandate is completely open-ended and allows any function call to be executed.
 
 ## Usage
 
 ### Proposing an Action
 
-When calling the law, three parameters must be provided:
+When calling the mandate, three parameters must be provided:
 
 1. `target` (address): The address of the contract to call
 2. `value` (uint256): The amount of ETH to send with the call
@@ -47,14 +47,14 @@ When calling the law, three parameters must be provided:
 ### State Variables
 
 ```solidity
-mapping(bytes32 lawHash => bool) public initialized;
+mapping(bytes32 mandateHash => bool) public initialized;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -62,17 +62,17 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up execution tracking
-- Marks law as initialized
+- Marks mandate as initialized
 
 #### `handleRequest`
 ```solidity
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

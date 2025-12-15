@@ -1,10 +1,10 @@
 # GovernorCreateProposal
 
-GovernorCreateProposal is an executive law that enables the creation of governance proposals on a configured Governor contract. It provides a mechanism to create proposals that can be voted on through standard governance processes.
+GovernorCreateProposal is an executive mandate that enables the creation of governance proposals on a configured Governor contract. It provides a mechanism to create proposals that can be voted on through standard governance processes.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Create governance proposals on any Governor contract
 - Define proposal targets, values, and calldatas
 - Add human-readable descriptions to proposals
@@ -21,7 +21,7 @@ When adopting a GovernorCreateProposal instance, one parameter must be provided:
 
 ### Proposing an Action
 
-When calling the law, four parameters must be provided:
+When calling the mandate, four parameters must be provided:
 
 1. `targets` (address[]): Array of target contract addresses for the proposal
 2. `values` (uint256[]): Array of ETH values to send with each call
@@ -51,21 +51,21 @@ When calling the law, four parameters must be provided:
 ### State Variables
 
 ```solidity
-mapping(bytes32 lawHash => address governorContract) public governorContracts;
+mapping(bytes32 mandateHash => address governorContract) public governorContracts;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up Governor contract address
 - Configures proposal creation parameters
 
@@ -74,8 +74,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

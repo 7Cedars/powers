@@ -37,7 +37,7 @@ export function SectionDeployDemo() {
   const [deployedPowersAddress, setDeployedPowersAddress] = useState<`0x${string}` | undefined>();
   const [constituteCompleted, setConstituteCompleted] = useState(false);
   const [bytecodePowers, setBytecodePowers] = useState<`0x${string}` | undefined>();
-  const [deployedLaws, setDeployedLaws] = useState<Record<string, `0x${string}`>>({});
+  const [deployedMandates, setDeployedMandates] = useState<Record<string, `0x${string}`>>({});
   const { ready, authenticated } = usePrivy();
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -74,10 +74,10 @@ export function SectionDeployDemo() {
   const getPowered = useCallback(async (chainId: number) => {
     const { default: data } = await import(`../../solidity/powered/${chainId}.json`, { assert: { type: "json" } });
     setBytecodePowers(data.powers as `0x${string}`);
-    setDeployedLaws(data.laws as Record<string, `0x${string}`>);
+    setDeployedMandates(data.mandates as Record<string, `0x${string}`>);
   }, []);
 
-  // console.log("@SectionDeployDemo: deployedLaws", deployedLaws);
+  // console.log("@SectionDeployDemo: deployedMandates", deployedMandates);
 
   // Ensure selected chain is valid when organization changes
   useEffect(() => {
@@ -250,16 +250,16 @@ export function SectionDeployDemo() {
 
       setDependencyReceipts(dependencyReceiptsMap);
 
-      // STEP 3: Create law init data with dependency receipts
-      console.log("Step 3: Creating law init data...", {powersAddress, formData, deployedLaws, dependencyReceiptsMap, selectedChainId});
-      const lawInitData = currentOrg.createLawInitData(
+      // STEP 3: Create mandate init data with dependency receipts
+      console.log("Step 3: Creating mandate init data...", {powersAddress, formData, deployedMandates, dependencyReceiptsMap, selectedChainId});
+      const mandateInitData = currentOrg.createMandateInitData(
         powersAddress,
         formData,
-        deployedLaws,
+        deployedMandates,
         dependencyReceiptsMap,
         selectedChainId
       );
-      console.log("Law init data created:", lawInitData);
+      console.log("Mandate init data created:", mandateInitData);
 
       // STEP 4: Execute constitute + transfer ownership (sequential for all chains)
       console.log("Step 4: Executing transactions sequentially...");
@@ -281,7 +281,7 @@ export function SectionDeployDemo() {
         address: powersAddress,
         abi: powersAbi,
         functionName: 'constitute',
-        args: [lawInitData]
+        args: [mandateInitData]
       });
       
       console.log("Waiting for constitute transaction:", constituteTxHash);
@@ -416,7 +416,7 @@ export function SectionDeployDemo() {
         return prev;
       });
     }
-  }, [bytecodePowers, selectedChainId, currentOrg, deployedLaws, formData]);
+  }, [bytecodePowers, selectedChainId, currentOrg, deployedMandates, formData]);
 
   const handleSeeYourPowers = () => {
     if (deployedPowersAddress && selectedChainId) {

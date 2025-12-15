@@ -1,10 +1,10 @@
 # StatementOfIntent
 
-StatementOfIntent is an executive law that enables the creation of proposals without execution. It provides a mechanism to propose actions that can be executed by other laws.
+StatementOfIntent is an executive mandate that enables the creation of proposals without execution. It provides a mechanism to propose actions that can be executed by other mandates.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Create proposals for future execution
 - Store proposal parameters
 - Track proposal history
@@ -13,13 +13,13 @@ This law provides a mechanism to:
 
 ## Configuration
 
-When adopting a StatementOfIntent instance, no parameters are required. The law is designed to only create proposals without executing them.
+When adopting a StatementOfIntent instance, no parameters are required. The mandate is designed to only create proposals without executing them.
 
 ## Usage
 
 ### Proposing an Action
 
-When calling the law, three parameters must be provided:
+When calling the mandate, three parameters must be provided:
 
 1. `target` (address): The address of the contract to call
 2. `value` (uint256): The amount of ETH to send with the call
@@ -53,14 +53,14 @@ struct Data {
     bytes[] calldatas;    // Array of proposed calldata
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -68,7 +68,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up proposal tracking
 - Initializes empty proposal storage
 
@@ -77,8 +77,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

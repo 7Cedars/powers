@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { lawAbi, powersAbi } from "../context/abi";
-import { LawSimulation, Law, Powers, Action, ActionVote, Status } from "../context/types"
+import { mandateAbi, powersAbi } from "../context/abi";
+import { MandateSimulation, Mandate, Powers, Action, ActionVote, Status } from "../context/types"
 import { readContract, readContracts, simulateContract, writeContract } from "@wagmi/core";
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { useTransactionReceipt, useWaitForTransactionReceipt, useTransactionConfirmations } from "wagmi";
@@ -9,10 +9,10 @@ import { useParams } from "next/navigation";
 import { setStatus, setError } from "@/context/store";
 import { usePowers } from "./usePowers";
 
-export const useLaw = () => {
+export const useMandate = () => {
   const { chainId, powers: addressPowers } = useParams<{ chainId: string, powers: `0x${string}` }>()
   const { fetchPowers } = usePowers();
-  const [simulation, setSimulation ] = useState<LawSimulation>()  
+  const [simulation, setSimulation ] = useState<MandateSimulation>()  
   const [actionVote, setActionVote] = useState<ActionVote | undefined>() 
  
   const [transactionHash, setTransactionHash ] = useState<`0x${string}` | undefined>()
@@ -22,7 +22,7 @@ export const useLaw = () => {
     chainId: parseChainId(chainId) 
   })
 
-  // console.log("@useLaw, waypoint 0", {dataReceipt})
+  // console.log("@useMandate, waypoint 0", {dataReceipt})
  
   // NB: here the powers object is updated after a transaction is successful.
   useEffect(() => {
@@ -50,8 +50,8 @@ export const useLaw = () => {
   // Actions //  
   const propose = useCallback( 
     async (
-      lawId: bigint,
-      lawCalldata: `0x${string}`,
+      mandateId: bigint,
+      mandateCalldata: `0x${string}`,
       nonce: bigint,
       description: string,
       powers: Powers
@@ -62,7 +62,7 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'propose',
-            args: [lawId, lawCalldata, nonce, description],
+            args: [mandateId, mandateCalldata, nonce, description],
             chainId: parseChainId(chainId)
           })
           if (simulatedRequest) {
@@ -80,8 +80,8 @@ export const useLaw = () => {
 
   const cancel = useCallback( 
     async (
-      lawId: bigint,
-      lawCalldata: `0x${string}`,
+      mandateId: bigint,
+      mandateCalldata: `0x${string}`,
       nonce: bigint,
       powers: Powers
     ): Promise<boolean> => {
@@ -91,7 +91,7 @@ export const useLaw = () => {
             abi: powersAbi,
             address: powers.contractAddress,
             functionName: 'cancel', 
-            args: [lawId, lawCalldata, nonce],
+            args: [mandateId, mandateCalldata, nonce],
             chainId: parseChainId(chainId)
           })
           setTransactionHash(result)
@@ -191,22 +191,22 @@ export const useLaw = () => {
     }, [chainId])
   
   const simulate = useCallback( 
-    async (caller: `0x${string}`, lawCalldata: `0x${string}`, nonce: bigint, law: Law): Promise<boolean> => {
-      // console.log("@simulate: waypoint 1", {caller, lawCalldata, nonce, law})
+    async (caller: `0x${string}`, mandateCalldata: `0x${string}`, nonce: bigint, mandate: Mandate): Promise<boolean> => {
+      // console.log("@simulate: waypoint 1", {caller, mandateCalldata, nonce, mandate})
       setError({error: null})
       setStatus({status: "pending"})
 
       try {
           const result = await readContract(wagmiConfig, {
-            abi: lawAbi,
-            address: law.lawAddress as `0x${string}`,
+            abi: mandateAbi,
+            address: mandate.mandateAddress as `0x${string}`,
             functionName: 'handleRequest', 
-            args: [caller, law.powers, law.index, lawCalldata, nonce],
+            args: [caller, mandate.powers, mandate.index, mandateCalldata, nonce],
             chainId: parseChainId(chainId)
             })
           // console.log("@simulate: waypoint 2a", {result})
-          // console.log("@simulate: waypoint 2b", {result: result as LawSimulation})
-          setSimulation(result as LawSimulation)
+          // console.log("@simulate: waypoint 2b", {result: result as MandateSimulation})
+          setSimulation(result as MandateSimulation)
           setStatus({status: "success"})
           return true
         } catch (error) {
@@ -219,20 +219,20 @@ export const useLaw = () => {
 
   const request = useCallback( 
     async (
-      law: Law,
-      lawCalldata: `0x${string}`,
+      mandate: Mandate,
+      mandateCalldata: `0x${string}`,
       nonce: bigint,
       description: string
     ): Promise<boolean> => {
-        // console.log("@execute: waypoint 1", {law, lawCalldata, nonce, description})
+        // console.log("@execute: waypoint 1", {mandate, mandateCalldata, nonce, description})
         setError({error: null})
         setStatus({status: "pending"})
         try {
           const { request: simulatedRequest } = await simulateContract(wagmiConfig, {
             abi: powersAbi,
-            address: law.powers as `0x${string}`,
+            address: mandate.powers as `0x${string}`,
             functionName: 'request',
-            args: [law.index, lawCalldata, nonce, description],
+            args: [mandate.index, mandateCalldata, nonce, description],
             chainId: parseChainId(chainId)
           })
           

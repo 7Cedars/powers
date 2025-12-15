@@ -1,10 +1,10 @@
 # PeerSelect
 
-PeerSelect is an electoral law that enables the selection of accounts from a list of nominees to assign or revoke a specific role. It integrates with NominateMe.sol to manage the nomination process.
+PeerSelect is an electoral mandate that enables the selection of accounts from a list of nominees to assign or revoke a specific role. It integrates with NominateMe.sol to manage the nomination process.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Select accounts from a list of nominees
 - Assign or revoke a specific role ID
 - Track elected accounts and maintain a sorted list
@@ -22,7 +22,7 @@ When adopting a PeerSelect instance, three parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, two parameters must be provided:
+When calling the mandate, two parameters must be provided:
 
 1. `NomineeIndex` (uint256): Index of the nominee in the nominee list
 2. `assign` (bool): 
@@ -62,14 +62,14 @@ struct Data {
     address[] electedSorted;  // Sorted list of elected accounts
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -77,7 +77,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up maximum role holders and role ID
 - Initializes empty elected lists
 
@@ -86,8 +86,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -105,7 +105,7 @@ function handleRequest(
 #### `_changeState`
 ```solidity
 function _changeState(
-    bytes32 lawHash,
+    bytes32 mandateHash,
     bytes memory stateChange
 ) internal override
 ```
@@ -115,9 +115,9 @@ function _changeState(
 
 #### `getData`
 ```solidity
-function getData(bytes32 lawHash) public view returns (Data memory)
+function getData(bytes32 mandateHash) public view returns (Data memory)
 ```
-- Returns the current state of the law
+- Returns the current state of the mandate
 - Includes all configuration and elected accounts
 
 ### Error Conditions

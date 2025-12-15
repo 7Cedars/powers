@@ -12,34 +12,34 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { HelperConfig } from "./HelperConfig.s.sol";
 
 import { InitialisePowers } from "./InitialisePowers.s.sol";
-import { LawPackage } from "../src/law-packages/LawPackage.sol";
-import { PowerLabsConfig } from "../src/law-packages/PowerLabsConfig.sol";
-import { PowerLabs_Documentation } from "../src/law-packages/PowersLabs_Documentation.sol";
-import { PowerLabs_Frontend } from "../src/law-packages/PowersLabs_Frontend.sol";
-import { PowerLabs_Protocol } from "../src/law-packages/PowersLabs_Protocol.sol";
+import { MandatePackage } from "../src/mandate-packages/MandatePackage.sol";
+import { PowerLabsConfig } from "../src/mandate-packages/PowerLabsConfig.sol";
+import { PowerLabs_Documentation } from "../src/mandate-packages/PowersLabs_Documentation.sol";
+import { PowerLabs_Frontend } from "../src/mandate-packages/PowersLabs_Frontend.sol";
+import { PowerLabs_Protocol } from "../src/mandate-packages/PowersLabs_Protocol.sol";
 
-// @dev this script deploys custom law packages to the chain.
-contract DeployLawPackages is Script {
+// @dev this script deploys custom mandate packages to the chain.
+contract DeployMandatePackages is Script {
     address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
-    bytes32 salt = bytes32(abi.encodePacked("LawPackageDeploymentSaltV1"));
+    bytes32 salt = bytes32(abi.encodePacked("MandatePackageDeploymentSaltV1"));
     InitialisePowers initialisePowers;
     HelperConfig helperConfig;
     HelperConfig.NetworkConfig public config;
     Powers powers;
-    string[] public lawNames;
-    address[] public lawAddresses;
+    string[] public mandateNames;
+    address[] public mandateAddresses;
 
     // PowerLabsConfig
     function run() external returns (string[] memory packageNames, address[] memory packageAddresses) {
         initialisePowers = new InitialisePowers();
-        (lawNames, lawAddresses) = initialisePowers.run();
+        (mandateNames, mandateAddresses) = initialisePowers.run();
         helperConfig = new HelperConfig();
         config = helperConfig.getConfig();
 
         (packageNames, packageAddresses) = deployPackages();
     }
 
-    /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
+    /// @notice Deploys all mandate contracts and uses 'serialize' to record their addresses.
     function deployPackages() internal returns (string[] memory names, address[] memory addresses) {
         names = new string[](4);
         addresses = new address[](4);
@@ -47,29 +47,29 @@ contract DeployLawPackages is Script {
         bytes[] memory constructorArgs = new bytes[](4);
 
         // PowerLabsConfig
-        address[] memory lawDependencies = new address[](5);
-        lawDependencies[0] = findLawAddress("StatementOfIntent");
-        lawDependencies[1] = findLawAddress("SafeExecTransaction");
-        lawDependencies[2] = findLawAddress("PresetSingleAction");
-        lawDependencies[3] = findLawAddress("SafeAllowanceAction");
-        lawDependencies[4] = findLawAddress("RoleByTransaction");
+        address[] memory mandateDependencies = new address[](5);
+        mandateDependencies[0] = findMandateAddress("StatementOfIntent");
+        mandateDependencies[1] = findMandateAddress("SafeExecTransaction");
+        mandateDependencies[2] = findMandateAddress("PresetSingleAction");
+        mandateDependencies[3] = findMandateAddress("SafeAllowanceAction");
+        mandateDependencies[4] = findMandateAddress("RoleByTransaction");
 
         names[0] = "PowerLabs_Config";
         creationCodes[0] = type(PowerLabsConfig).creationCode;
         constructorArgs[0] = abi.encode(
             config.BLOCKS_PER_HOUR,
-            lawDependencies, // empty array for now, will be set through a reform later.
+            mandateDependencies, // empty array for now, will be set through a reform later.
             config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         // PowerLabs_Documentation // no dependencies for now
-        lawDependencies = new address[](1);
-        lawDependencies[0] = findLawAddress("StatementOfIntent");
+        mandateDependencies = new address[](1);
+        mandateDependencies[0] = findMandateAddress("StatementOfIntent");
         names[1] = "PowerLabs_Documentation";
         creationCodes[1] = type(PowerLabs_Documentation).creationCode;
         constructorArgs[1] = abi.encode(
             config.BLOCKS_PER_HOUR,
-            lawDependencies, // empty array for now, will be set through a reform later.
+            mandateDependencies, // empty array for now, will be set through a reform later.
             config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
@@ -78,7 +78,7 @@ contract DeployLawPackages is Script {
         creationCodes[2] = type(PowerLabs_Frontend).creationCode;
         constructorArgs[2] = abi.encode(
             config.BLOCKS_PER_HOUR,
-            lawDependencies, // empty array for now, will be set through a reform later.
+            mandateDependencies, // empty array for now, will be set through a reform later.
             config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
@@ -87,20 +87,20 @@ contract DeployLawPackages is Script {
         creationCodes[3] = type(PowerLabs_Protocol).creationCode;
         constructorArgs[3] = abi.encode(
             config.BLOCKS_PER_HOUR,
-            lawDependencies, // empty array for now, will be set through a reform later.
+            mandateDependencies, // empty array for now, will be set through a reform later.
             config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         for (uint256 i = 0; i < names.length; i++) {
-            address lawAddr = deployLawPackage(creationCodes[i], constructorArgs[i]);
-            addresses[i] = lawAddr;
+            address mandateAddr = deployMandatePackage(creationCodes[i], constructorArgs[i]);
+            addresses[i] = mandateAddr;
         }
 
         return (names, addresses);
     }
 
-    /// @dev Deploys a law using CREATE2. Salt is derived from constructor arguments.
-    function deployLawPackage(bytes memory creationCode, bytes memory constructorArgs) internal returns (address) {
+    /// @dev Deploys a mandate using CREATE2. Salt is derived from constructor arguments.
+    function deployMandatePackage(bytes memory creationCode, bytes memory constructorArgs) internal returns (address) {
         bytes memory deploymentData = abi.encodePacked(creationCode, constructorArgs);
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY);
 
@@ -114,10 +114,10 @@ contract DeployLawPackages is Script {
         return computedAddress;
     }
 
-    function findLawAddress(string memory name) internal view returns (address) {
-        for (uint256 i = 0; i < lawNames.length; i++) {
-            if (Strings.equal(lawNames[i], name)) {
-                return lawAddresses[i];
+    function findMandateAddress(string memory name) internal view returns (address) {
+        for (uint256 i = 0; i < mandateNames.length; i++) {
+            if (Strings.equal(mandateNames[i], name)) {
+                return mandateAddresses[i];
             }
         }
         return address(0);

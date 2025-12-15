@@ -1,10 +1,10 @@
 # PresetMultipleActions
 
-PresetMultipleActions is an executive law that enables the execution of multiple predefined actions from a configurable set. It provides a mechanism to execute selected actions from a predefined list with fixed parameters.
+PresetMultipleActions is an executive mandate that enables the execution of multiple predefined actions from a configurable set. It provides a mechanism to execute selected actions from a predefined list with fixed parameters.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Execute multiple function calls from a predefined set
 - Select which actions to execute using boolean flags
 - Use predefined target contracts and functions
@@ -25,7 +25,7 @@ When adopting a PresetMultipleActions instance, four parameters must be provided
 
 ### Proposing an Action
 
-When calling the law, an array of boolean values must be provided. Each boolean corresponds to a predefined action - if set to `true`, that action will be executed.
+When calling the mandate, an array of boolean values must be provided. Each boolean corresponds to a predefined action - if set to `true`, that action will be executed.
 
 ### Execution Flow
 
@@ -61,21 +61,21 @@ struct Data {
     bytes[] calldatas;       // Array of function call data
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up target contracts and functions
 - Stores execution parameters
 - Creates boolean input parameters for each action
@@ -85,8 +85,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

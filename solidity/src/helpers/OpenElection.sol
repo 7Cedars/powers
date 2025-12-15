@@ -12,7 +12,7 @@ import { Nominees } from "./Nominees.sol";
 /// - Users can vote directly on nominees (one vote per election).
 /// - Elections run for a specified number of blocks.
 /// - Provides ranking of nominees by vote count.
-/// - No Powers/Law integration. Pure storage and helper utilities.
+/// - No Powers/Mandate integration. Pure storage and helper utilities.
 contract OpenElection is Nominees {
     struct ElectionData {
         bool isOpen;

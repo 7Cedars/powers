@@ -3,8 +3,8 @@
 import React, { useEffect } from "react";
 import { setError, useActionStore, useErrorStore, usePowersStore } from "@/context/store";
 import { Button } from "@/components/Button";
-import { parseLawError, parseParamValues } from "@/utils/parsers";
-import { Action, Checks, DataType, InputType, Law, Powers } from "@/context/types";
+import { parseMandateError, parseParamValues } from "@/utils/parsers";
+import { Action, Checks, DataType, InputType, Mandate, Powers } from "@/context/types";
 import { DynamicInput } from "@/components/DynamicInput";
 import { Status } from "@/context/types";
 import { setAction } from "@/context/store";
@@ -13,27 +13,27 @@ import { SparklesIcon } from "@heroicons/react/24/outline";
 import { hashAction } from "@/utils/hashAction";
 import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
 import { useChecks } from "@/hooks/useChecks";
-import { useLaw } from "@/hooks/useLaw";
+import { useMandate } from "@/hooks/useMandate";
 import { SimulationBox } from "./SimulationBox";
 
 type DynamicFormProps = {
-  law: Law;
+  mandate: Mandate;
   params: {
     varName: string;
     dataType: DataType;
     }[]; 
   status: Status;
   checks: Checks;
-  onCheck: (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => void;
+  onCheck: (mandate: Mandate, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => void;
 };
 
-export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormProps) {
+export function DynamicForm({mandate, params, status, checks, onCheck}: DynamicFormProps) {
   const action = useActionStore();
   const error = useErrorStore()
   const dataTypes = params.map(param => param.dataType) 
   const powers = usePowersStore();
   const {wallets, ready} = useWallets();
-  const { simulation, simulate } = useLaw();
+  const { simulation, simulate } = useMandate();
 
   const handleChange = (input: InputType | InputType[], index: number) => {
     // console.log("@handleChange: ", {input, index, action})
@@ -49,7 +49,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
       return;
     }
 
-    // Additional guard: only process if dataTypes match the law
+    // Additional guard: only process if dataTypes match the mandate
     if (dataTypes.length === 0) {
       return;
     }
@@ -90,44 +90,44 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
         }), upToDate: true})
       }
     }  
-  }, [law.index, action.callData])
+  }, [mandate.index, action.callData])
 
 
-  const handleSimulate = async (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
-    // console.log("Handle Simulate called:", {paramValues, nonce, law})
+  const handleSimulate = async (mandate: Mandate, paramValues: (InputType | InputType[])[], nonce: bigint, description: string) => {
+    // console.log("Handle Simulate called:", {paramValues, nonce, mandate})
     setError({error: null})
-    let lawCalldata: `0x${string}` | undefined
+    let mandateCalldata: `0x${string}` | undefined
     // console.log("Handle Simulate waypoint 1")
     if (paramValues.length > 0 && paramValues) {
       try {
         // console.log("Handle Simulate waypoint 2a")
-        lawCalldata = encodeAbiParameters(parseAbiParameters(law.params?.map(param => param.dataType).toString() || ""), paramValues); 
-        // console.log("Handle Simulate waypoint 2b", {lawCalldata}) 
+        mandateCalldata = encodeAbiParameters(parseAbiParameters(mandate.params?.map(param => param.dataType).toString() || ""), paramValues); 
+        // console.log("Handle Simulate waypoint 2b", {mandateCalldata}) 
       } catch (error) {
         // console.log("Handle Simulate waypoint 2c")
         setError({error: error as Error})
       }
     } else {
       // console.log("Handle Simulate waypoint 2d")
-      lawCalldata = '0x0'
+      mandateCalldata = '0x0'
     }
     // resetting store
-    // console.log("Handle Simulate waypoint 3a", {lawCalldata, ready, wallets, powers})
-    if (lawCalldata && ready && wallets && powers?.contractAddress) { 
-      onCheck(law, lawCalldata, BigInt(action.nonce as string), wallets, powers)
-      const actionId = hashAction(law.index, lawCalldata, BigInt(action.nonce as string)).toString()
+    // console.log("Handle Simulate waypoint 3a", {mandateCalldata, ready, wallets, powers})
+    if (mandateCalldata && ready && wallets && powers?.contractAddress) { 
+      onCheck(mandate, mandateCalldata, BigInt(action.nonce as string), wallets, powers)
+      const actionId = hashAction(mandate.index, mandateCalldata, BigInt(action.nonce as string)).toString()
 
       const newAction: Action = {
         ...action,
         actionId: actionId,
         state: 0, // non existent
-        lawId: law.index,
+        mandateId: mandate.index,
         caller: wallets[0] ? wallets[0].address as `0x${string}` : '0x0',
-        dataTypes: law.params?.map(param => param.dataType),
+        dataTypes: mandate.params?.map(param => param.dataType),
         paramValues,
         nonce: nonce.toString(),
         description,
-        callData: lawCalldata,
+        callData: mandateCalldata,
         upToDate: true
       }
 
@@ -136,12 +136,12 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
       // fetchVoteData(newAction, powers as Powers)
 
       try {
-      // simulating law. 
+      // simulating mandate. 
         const success = await simulate(
           wallets[0] ? wallets[0].address as `0x${string}` : '0x0', // needs to be wallet! 
           newAction.callData as `0x${string}`,
           BigInt(newAction.nonce as string),
-          law
+          mandate
         )
         if (success) { 
           // setAction({...newAction, state: 8})
@@ -225,7 +225,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
       { error.error &&
         <div className="w-full flex flex-col gap-0 justify-start items-center text-red text-center text-sm text-red-800 pt-8 pb-4 px-8">
           <div>
-            {`Failed check${parseLawError(error.error)}`}     
+            {`Failed check${parseMandateError(error.error)}`}     
           </div>
         </div>
       }
@@ -240,7 +240,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
             selected={true}
             onClick={(e) => {
               e.preventDefault();
-              handleSimulate(law, action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
+              handleSimulate(mandate, action.paramValues ? action.paramValues : [], BigInt(action.nonce as string), action.description as string)
             }}
             statusButton={ status == 'success' ? 'idle' : status } > 
             Check 
@@ -251,7 +251,7 @@ export function DynamicForm({law, params, status, checks, onCheck}: DynamicFormP
       }
       
       { 
-        simulation && action?.upToDate && <SimulationBox law = {law} simulation = {simulation} />
+        simulation && action?.upToDate && <SimulationBox mandate = {mandate} simulation = {simulation} />
       } 
 
     </>

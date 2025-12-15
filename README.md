@@ -97,7 +97,7 @@ Powers v0.4 enables three key governance patterns that solve common on-chain org
    cd solidity
    make initialise-anvil
    ```
-   This deploys all law contracts to your local Anvil chain.
+   This deploys all mandate contracts to your local Anvil chain.
 
 4. **Start the frontend application**
    ```bash
@@ -111,11 +111,11 @@ Powers v0.4 enables three key governance patterns that solve common on-chain org
    - Select a demo organisation and the "Anvil" from the chain dropdown
    - When deployment is succesful you will be able to navigate to your organisation. 
 
-### Building Custom Laws and Organizations
+### Building Custom Mandates and Organizations
 
 For detailed information on creating your own organization, please refer to the [documentation](https://powers-docs.vercel.app/welcome):
 - [Powers Protocol Guide](https://powers-docs.vercel.app/for-developers/powers)
-- [Law Guide](https://powers-docs.vercel.app/for-developers/law)
+- [Mandate Guide](https://powers-docs.vercel.app/for-developers/mandate)
 - [Setting up your own organisation](https://powers-docs.vercel.app/for-developers/deploy-your-powers)
 
 ## Important files and folders
@@ -125,7 +125,7 @@ For detailed information on creating your own organization, please refer to the 
 ├── documentation/powers/  # Vocs Documentation
 │   ... 
 │   ├── for-developers/    # Developer documentation
-│   ├── laws/              # Example law implementations
+│   ├── mandates/              # Example mandate implementations
 │   ├── organisations/     # Example organisations  
 │   ├── integrations/      # Integration guides
 │   └── welcome.mdx        # Welcome page documentation

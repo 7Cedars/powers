@@ -1,10 +1,10 @@
 # RenounceRole
 
-RenounceRole is an electoral law that allows accounts to voluntarily resign from a specific role. It provides a mechanism for role holders to self-revoke their role assignment.
+RenounceRole is an electoral mandate that allows accounts to voluntarily resign from a specific role. It provides a mechanism for role holders to self-revoke their role assignment.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Allow role holders to voluntarily resign
 - Process self-resignation requests
 - Track resignation history
@@ -22,7 +22,7 @@ When adopting a RenounceRole instance, two parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, one parameter must be provided:
+When calling the mandate, one parameter must be provided:
 
 1. `resign` (bool): 
    - `true`: Process resignation request
@@ -62,14 +62,14 @@ struct Data {
     mapping(address => bool) pendingResignation; // Pending resignation status
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -77,7 +77,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up role ID and hold time requirements
 - Initializes empty role holder tracking
 
@@ -86,8 +86,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -105,7 +105,7 @@ function handleRequest(
 #### `_changeState`
 ```solidity
 function _changeState(
-    bytes32 lawHash,
+    bytes32 mandateHash,
     bytes memory stateChange
 ) internal override
 ```
@@ -115,9 +115,9 @@ function _changeState(
 
 #### `getData`
 ```solidity
-function getData(bytes32 lawHash) public view returns (Data memory)
+function getData(bytes32 mandateHash) public view returns (Data memory)
 ```
-- Returns the current state of the law
+- Returns the current state of the mandate
 - Includes all configuration and role data
 
 ### Error Conditions

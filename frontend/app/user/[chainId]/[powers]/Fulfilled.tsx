@@ -21,7 +21,7 @@ export default function Fulfilled() {
   const { fetchChecks } = useChecks() 
   console.log("@Fulfilled, powers", powers)
 
-  const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(a => a?.state === 7) : []
+  const allActions = powers.mandates && powers.mandates?.length > 0 ? powers.mandates.flatMap(l => l.actions).filter(a => a?.state === 7) : []
   const displayedItems = allActions.slice(0, itemsToShow)
   const hasMoreItems = allActions.length > itemsToShow
 
@@ -37,7 +37,7 @@ export default function Fulfilled() {
     setActionData(null)
 
     try {
-      const allActions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions) : []
+      const allActions = powers.mandates && powers.mandates?.length > 0 ? powers.mandates.flatMap(l => l.actions) : []
       const completeAction = allActions.find(a => a?.actionId === action.actionId)
       if (completeAction) {
         setActionData(completeAction)
@@ -53,7 +53,7 @@ export default function Fulfilled() {
 
   // If an item is selected, show the details inline
   if (selectedItem) {
-    const law = powers.laws?.find(l => l.index === selectedItem.lawId)
+    const mandate = powers.mandates?.find(l => l.index === selectedItem.mandateId)
     
     return (
       <div className="w-full mx-auto pb-12">
@@ -77,11 +77,11 @@ export default function Fulfilled() {
             {/* Static Form with Action Data - Matching DynamicForm layout */}
             <section className={`w-full bg-slate-50 border-2 rounded-md overflow-hidden border-slate-600`}>
               {/* Header section with UserItem - matching DynamicForm */}
-              {law && (
+              {mandate && (
                 <div className="w-full border-b border-slate-300 bg-slate-100 py-4 ps-6 pe-2">
                   <UserItem 
                     powers={powers as Powers}
-                    law={law}
+                    mandate={mandate}
                     chainId={chainId as string}
                     actionId={BigInt(selectedItem.actionId)}
                     showLowerSection={false}
@@ -95,8 +95,8 @@ export default function Fulfilled() {
                   <div className="flex items-center justify-center py-8">
                     <div className="text-slate-500">Loading action data...</div>
                   </div>
-                ) : actionData && law ? (
-                  <StaticForm law={law} staticDescription={true} onCheck={fetchChecks} />
+                ) : actionData && mandate ? (
+                  <StaticForm mandate={mandate} staticDescription={true} onCheck={fetchChecks} />
                 ) : (
                   <div className="text-slate-500 italic">No action data available</div>
                 )}
@@ -159,18 +159,18 @@ export default function Fulfilled() {
         {/* Render UserItem components for each fulfilled action */}
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-slate-200">
           {displayedItems.map((action, index) => {
-            const law = powers.laws?.find(l => l.index === action?.lawId)
-            if (!law) return null
+            const mandate = powers.mandates?.find(l => l.index === action?.mandateId)
+            if (!mandate) return null
             
             return action ? (
               <div 
-                key={`${action.actionId}-${action.lawId}-${index}`}
+                key={`${action.actionId}-${action.mandateId}-${index}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => handleItemClick(action)}
               >
                 <UserItem 
                   powers={powers}
-                  law={law}
+                  mandate={mandate}
                   chainId={chainId as string}
                   actionId={BigInt(action.actionId)}
                   showLowerSection={false}

@@ -4,22 +4,22 @@ pragma solidity 0.8.26;
 import { console } from "forge-std/Test.sol";
 // import { Console } from "forge-std/console.sol";
 import { TestSetupExecutive } from "../../TestSetup.t.sol";
-import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
-import { GovernorCreateProposal } from "../../../src/laws/integrations/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../../../src/laws/integrations/GovernorExecuteProposal.sol";
-import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
-import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
+import { StatementOfIntent } from "../../../src/mandates/executive/StatementOfIntent.sol";
+import { GovernorCreateProposal } from "../../../src/mandates/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../../../src/mandates/integrations/GovernorExecuteProposal.sol";
+import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
+import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 
-/// @title Executive Law Fuzz Tests
-/// @notice Comprehensive fuzz testing for all executive law implementations using pre-initialized laws
-/// @dev Tests use laws from executiveTestConstitution:
-///      lawId 1: StatementOfIntent
-///      lawId 2: GovernorCreateProposal
-///      lawId 3: GovernorExecuteProposal
-///      lawId 5: PresetSingleAction
+/// @title Executive Mandate Fuzz Tests
+/// @notice Comprehensive fuzz testing for all executive mandate implementations using pre-initialized mandates
+/// @dev Tests use mandates from executiveTestConstitution:
+///      mandateId 1: StatementOfIntent
+///      mandateId 2: GovernorCreateProposal
+///      mandateId 3: GovernorExecuteProposal
+///      mandateId 5: PresetSingleAction
 contract ExecutiveFuzzTest is TestSetupExecutive {
-    // Law instances for testing
+    // Mandate instances for testing
     StatementOfIntent statementOfIntent;
     GovernorCreateProposal governorCreateProposal;
     GovernorExecuteProposal governorExecuteProposal;
@@ -31,28 +31,28 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     address[] returnedTargets;
     uint256[] returnedValues;
     bytes[] returnedCalldatas;
-    bytes[] lawInitDatas;
-    address[] lawsToAdopt;
+    bytes[] mandateInitDatas;
+    address[] mandatesToAdopt;
     string[] descriptions;
     PresetSingleAction.Data presetDataSingle;
 
     function setUp() public override {
         super.setUp();
 
-        // Initialize law instances from deployed addresses
-        // Note: lawId 1 uses StatementOfIntent from multi laws (lawAddresses[4])
-        statementOfIntent = StatementOfIntent(lawAddresses[4]);
-        governorCreateProposal = GovernorCreateProposal(lawAddresses[9]);
-        governorExecuteProposal = GovernorExecuteProposal(lawAddresses[10]);
-        presetSingleAction = PresetSingleAction(lawAddresses[1]);
-        openAction = OpenAction(lawAddresses[3]);
+        // Initialize mandate instances from deployed addresses
+        // Note: mandateId 1 uses StatementOfIntent from multi mandates (mandateAddresses[4])
+        statementOfIntent = StatementOfIntent(mandateAddresses[4]);
+        governorCreateProposal = GovernorCreateProposal(mandateAddresses[9]);
+        governorExecuteProposal = GovernorExecuteProposal(mandateAddresses[10]);
+        presetSingleAction = PresetSingleAction(mandateAddresses[1]);
+        openAction = OpenAction(mandateAddresses[3]);
     }
 
     //////////////////////////////////////////////////////////////
     //               STATEMENT OF INTENT FUZZ                   //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test StatementOfIntent (lawId 1) with random data
+    /// @notice Fuzz test StatementOfIntent (mandateId 1) with random data
     function testFuzzStatementOfIntentWithRandomDataAtExecutive(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
@@ -74,10 +74,10 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
             calldatas[i] = calldatasFuzzed[i];
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Verify that return data is empty
         assertEq(returnedTargets.length, 1);
@@ -103,10 +103,10 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         }
         calldatas[0] = largeCalldata;
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedCalldatas[0].length, calldataLength);
     }
@@ -115,8 +115,8 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     //              GOVERNOR CREATE PROPOSAL FUZZ               //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test GovernorCreateProposal (lawId 2) with random proposal data
-    /// @dev lawId 2 is configured to create proposals on SimpleGovernor mock
+    /// @notice Fuzz test GovernorCreateProposal (mandateId 2) with random proposal data
+    /// @dev mandateId 2 is configured to create proposals on SimpleGovernor mock
     function testFuzzGovernorCreateProposalWithRandomData(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
@@ -131,7 +131,7 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         vm.assume(valuesFuzzed.length >= arrayLength);
         vm.assume(calldatasFuzzed.length >= arrayLength);
 
-        // Ensure description is not empty (required by the law)
+        // Ensure description is not empty (required by the mandate)
         vm.assume(bytes(descriptionFuzzed).length > 0);
 
         targets = new address[](arrayLength);
@@ -144,10 +144,10 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
             calldatas[i] = calldatasFuzzed[i];
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
+        mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         // Verify structure
         assertEq(returnedTargets.length, 1);
@@ -172,11 +172,11 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         values = new uint256[](0);
         calldatas = new bytes[](0);
 
-        lawCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
+        mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
         // Should revert due to empty targets
         vm.expectRevert("GovernorCreateProposal: No targets provided");
-        governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+        governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
     }
 
     /// @notice Fuzz test GovernorCreateProposal with mismatched array lengths (should revert)
@@ -219,12 +219,12 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         }
         console.log("WAYPOINT 4");
 
-        lawCalldata = abi.encode(targetsFuzzed, valuesFuzzed, calldatasFuzzed, descriptionFuzzed);
+        mandateCalldata = abi.encode(targetsFuzzed, valuesFuzzed, calldatasFuzzed, descriptionFuzzed);
         console.log("WAYPOINT 5");
 
         // Should revert due to mismatched array lengths
         vm.expectRevert();
-        governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+        governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
     }
 
     /// @notice Fuzz test GovernorCreateProposal with empty description (should revert)
@@ -241,19 +241,19 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas, "");
+        mandateCalldata = abi.encode(targets, values, calldatas, "");
 
         // Should revert due to empty description
         vm.expectRevert("GovernorCreateProposal: Description cannot be empty");
-        governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+        governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
     }
 
     //////////////////////////////////////////////////////////////
     //              GOVERNOR EXECUTE PROPOSAL FUZZ              //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test GovernorExecuteProposal (lawId 3) with random proposal data
-    /// @dev lawId 3 is configured to execute proposals on SimpleGovernor mock
+    /// @notice Fuzz test GovernorExecuteProposal (mandateId 3) with random proposal data
+    /// @dev mandateId 3 is configured to execute proposals on SimpleGovernor mock
     function testFuzzGovernorExecuteProposalWithRandomData(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
@@ -268,7 +268,7 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         vm.assume(valuesFuzzed.length >= arrayLength);
         vm.assume(calldatasFuzzed.length >= arrayLength);
 
-        // Ensure description is not empty (required by the law)
+        // Ensure description is not empty (required by the mandate)
         vm.assume(bytes(descriptionFuzzed).length > 0);
 
         targets = new address[](arrayLength);
@@ -281,12 +281,12 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
             calldatas[i] = calldatasFuzzed[i];
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
+        mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
         // Note: This will likely revert because the proposal doesn't exist or isn't in Succeeded state
         // But we can still test the validation logic
         vm.expectRevert();
-        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
     }
 
     /// @notice Fuzz test GovernorExecuteProposal with empty arrays (should revert)
@@ -299,11 +299,11 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         values = new uint256[](0);
         calldatas = new bytes[](0);
 
-        lawCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
+        mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
         // Should revert due to empty targets
         vm.expectRevert("GovernorExecuteProposal: No targets provided");
-        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
     }
 
     /// @notice Fuzz test GovernorExecuteProposal with empty description (should revert)
@@ -320,26 +320,26 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas, "");
+        mandateCalldata = abi.encode(targets, values, calldatas, "");
 
         // Should revert due to empty description
         vm.expectRevert("GovernorExecuteProposal: Description cannot be empty");
-        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
     }
 
     //////////////////////////////////////////////////////////////
     //               PRESET SINGLE ACTION FUZZ                  //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test PresetSingleAction (lawId 5) returns preset data regardless of input
-    /// @dev lawId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
+    /// @notice Fuzz test PresetSingleAction (mandateId 5) returns preset data regardless of input
+    /// @dev mandateId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
     function testFuzzPresetSingleActionIgnoresInput(bytes memory inputCalldataFuzzed, uint256 nonceFuzzed) public {
         // Bound inputs
         vm.assume(inputCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
-        // Get preset data for lawId 5
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(5)));
-        presetDataSingle = presetSingleAction.getData(lawHash);
+        // Get preset data for mandateId 5
+        mandateHash = keccak256(abi.encode(address(daoMock), uint16(5)));
+        presetDataSingle = presetSingleAction.getData(mandateHash);
 
         // Call with different inputs
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
@@ -372,16 +372,16 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     function testFuzzPresetSingleActionWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
         vm.assume(nonce1 != nonce2);
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         (returnedActionId, returnedTargets,,) =
-            presetSingleAction.handleRequest(alice, address(daoMock), 5, lawCalldata, nonce1);
+            presetSingleAction.handleRequest(alice, address(daoMock), 5, mandateCalldata, nonce1);
 
         uint256 firstActionId = returnedActionId;
         address[] memory firstTargets = returnedTargets;
 
         (returnedActionId, returnedTargets,,) =
-            presetSingleAction.handleRequest(alice, address(daoMock), 5, lawCalldata, nonce2);
+            presetSingleAction.handleRequest(alice, address(daoMock), 5, mandateCalldata, nonce2);
 
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
@@ -397,13 +397,13 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
     //                  CROSS-LAW FUZZ TESTS                    //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test action ID generation consistency across all executive laws
-    function testFuzzActionIdConsistency(uint16 lawIdFuzzed, bytes memory lawCalldataFuzzed, uint256 nonceFuzzed)
+    /// @notice Fuzz test action ID generation consistency across all executive mandates
+    function testFuzzActionIdConsistency(uint16 mandateIdFuzzed, bytes memory mandateCalldataFuzzed, uint256 nonceFuzzed)
         public
     {
-        // Bound to valid law IDs (1-5 from the executive constitution)
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 5));
-        vm.assume(lawCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
+        // Bound to valid mandate IDs (1-5 from the executive constitution)
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 5));
+        vm.assume(mandateCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
         // Test with StatementOfIntent
         targets = new address[](1);
@@ -413,17 +413,17 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId,,,) =
-            statementOfIntent.handleRequest(alice, address(daoMock), lawIdFuzzed, lawCalldata, nonceFuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), mandateIdFuzzed, mandateCalldata, nonceFuzzed);
 
         // Verify action ID matches expected pattern
-        uint256 expected = uint256(keccak256(abi.encode(lawIdFuzzed, lawCalldata, nonceFuzzed)));
+        uint256 expected = uint256(keccak256(abi.encode(mandateIdFuzzed, mandateCalldata, nonceFuzzed)));
         assertEq(returnedActionId, expected);
     }
 
-    /// @notice Fuzz test that all executive laws properly handle governor contract validation
+    /// @notice Fuzz test that all executive mandates properly handle governor contract validation
     function testFuzzGovernorContractValidation(uint256 arrayLength, uint256 nonceFuzzed) public {
         // Bound inputs
         arrayLength = bound(arrayLength, 1, MAX_FUZZ_TARGETS);
@@ -439,22 +439,22 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         }
 
         string memory testDescription = "Test Proposal";
-        lawCalldata = abi.encode(targets, values, calldatas, testDescription);
+        mandateCalldata = abi.encode(targets, values, calldatas, testDescription);
 
-        // Test GovernorCreateProposal (lawId 2) - should work with valid governor
+        // Test GovernorCreateProposal (mandateId 2) - should work with valid governor
         (returnedActionId, returnedTargets,,) =
-            governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         // Should target the SimpleGovernor mock
         assertEq(returnedTargets[0], mockAddresses[4]);
 
-        // Test GovernorExecuteProposal (lawId 3) - should revert due to proposal not existing
+        // Test GovernorExecuteProposal (mandateId 3) - should revert due to proposal not existing
         vm.expectRevert();
-        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+        governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
     }
 
-    /// @notice Fuzz test all executive laws with maximum allowed calldata size
-    function testFuzzAllExecutiveLawsWithMaxCalldata(uint256 nonceFuzzed) public {
+    /// @notice Fuzz test all executive mandates with maximum allowed calldata size
+    function testFuzzAllExecutiveMandatesWithMaxCalldata(uint256 nonceFuzzed) public {
         // Create maximum size arrays
         targets = new address[](MAX_FUZZ_TARGETS);
         values = new uint256[](MAX_FUZZ_TARGETS);
@@ -476,24 +476,24 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         }
 
         string memory testDescription = "Large Proposal Test";
-        lawCalldata = abi.encode(targets, values, calldatas, testDescription);
+        mandateCalldata = abi.encode(targets, values, calldatas, testDescription);
 
         // Test StatementOfIntent with large data
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed); // calls open action
+            openAction.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed); // calls open action
 
         assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
         assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
 
         // Test GovernorCreateProposal with large data
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            governorCreateProposal.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedTargets.length, 1);
         assertEq(returnedTargets[0], mockAddresses[4]); // Should target SimpleGovernor
     }
 
-    /// @notice Fuzz test nonce uniqueness across all executive laws
+    /// @notice Fuzz test nonce uniqueness across all executive mandates
     function testFuzzNonceUniqueness(uint256 nonce1Fuzzed, uint256 nonce2Fuzzed) public {
         vm.assume(nonce1Fuzzed != nonce2Fuzzed);
 
@@ -504,16 +504,16 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
 
-        lawCalldata = abi.encode(targets, values, calldatas);
-        lawId = 1;
+        mandateCalldata = abi.encode(targets, values, calldatas);
+        mandateId = 1;
 
         // Get action IDs with different nonces
         (returnedActionId,,,) =
-            statementOfIntent.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce1Fuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce1Fuzzed);
         uint256 firstActionId = returnedActionId;
 
         (returnedActionId,,,) =
-            statementOfIntent.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce2Fuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce2Fuzzed);
 
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
@@ -541,10 +541,10 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         }
 
         string memory testDescription = "Large Values Test";
-        lawCalldata = abi.encode(targets, values, calldatas, testDescription);
+        mandateCalldata = abi.encode(targets, values, calldatas, testDescription);
 
         (, returnedTargets, returnedValues,) =
-            openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Verify large values are preserved
         for (i = 0; i < arrayLength; i++) {
@@ -564,21 +564,21 @@ contract ExecutiveFuzzTest is TestSetupExecutive {
         calldatas = new bytes[](1);
         calldatas[0] = randomBytesFuzzed;
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
-        (,,, returnedCalldatas) = openAction.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+        (,,, returnedCalldatas) = openAction.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Should preserve random bytes
         assertEq(returnedCalldatas[0], randomBytesFuzzed);
     }
 
-    /// @notice Fuzz test law data retrieval consistency
-    function testFuzzLawDataConsistency(uint16 lawIdFuzzed) public {
-        // Bound to valid law IDs
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 5));
+    /// @notice Fuzz test mandate data retrieval consistency
+    function testFuzzMandateDataConsistency(uint16 mandateIdFuzzed) public {
+        // Bound to valid mandate IDs
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 5));
 
-        // Get law conditions from daoMock
-        conditions = daoMock.getConditions(lawIdFuzzed);
+        // Get mandate conditions from daoMock
+        conditions = daoMock.getConditions(mandateIdFuzzed);
 
         // Verify conditions are valid
         assertTrue(conditions.quorum <= 100);

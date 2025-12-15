@@ -10,7 +10,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 /// @notice Simple, standalone contract combining self-nomination and delegate-based selection.
 /// - Accounts can nominate or revoke themselves as candidates.
 /// - An election selects up to `maxRoleHolders` nominees with highest delegated votes (`ERC20Votes.getVotes`).
-/// - No Powers/Law integration. Pure storage and helper utilities.
+/// - No Powers/Mandate integration. Pure storage and helper utilities.
 contract Nominees is Ownable {
     // Nomination storage
     mapping(address nominee => bool nominated) public nominations;

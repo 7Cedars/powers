@@ -3,16 +3,16 @@
 /// @title Powers Protocol v.0.4
 /// @notice Powers is a Role Based Governance Protocol. It provides a modular, flexible,  DAOs.
 ///
-/// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Law.sol}. The contract should be used as is, making changes to this contract should be avoided.
+/// @dev This contract is the core engine of the protocol. It is meant to be used in combination with implementations of {Mandate.sol}. The contract should be used as is, making changes to this contract should be avoided.
 /// @dev Code is derived from OpenZeppelin's Governor.sol and AccessManager contracts, in addition to Haberdasher Labs Hats protocol.
 /// @dev note that Powers prefers to save as much data as possible on-chain. This reduces reliance on off-chain data that needs to be indexed and (often centrally) stored.
 ///
 /// Note several key differences from openzeppelin's {Governor.sol}.
-/// 1 - Any DAO action needs to be encoded in role restricted external contracts, or laws, that follow the {ILaw} interface.
-/// 2 - Proposing, voting, cancelling and executing actions are role restricted along the target law that is called.
-/// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to laws that do not need a proposedAction vote, FOR instance, still need to be executed through the {execute} function.
+/// 1 - Any DAO action needs to be encoded in role restricted external contracts, or mandates, that follow the {IMandate} interface.
+/// 2 - Proposing, voting, cancelling and executing actions are role restricted along the target mandate that is called.
+/// 3 - All DAO actions need to run through the governance flow provided by Powers.sol. Calls to mandates that do not need a proposedAction vote, FOR instance, still need to be executed through the {execute} function.
 /// 4 - The core protocol uses a non-weighted voting mechanism: one account has one vote. Accounts vote with their roles, not with their tokens.
-/// 5 - The core protocol is intentionally minimalistic. Any complexities (multi-chain governance, oracle based governance, timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through laws.
+/// 5 - The core protocol is intentionally minimalistic. Any complexities (multi-chain governance, oracle based governance, timelocks, delayed execution, guardian roles, weighted votes, staking, etc.) has to be integrated through mandates.
 ///
 /// For example organisational implementations, see testConstitutions.sol in the /test folder.
 ///
@@ -25,8 +25,8 @@
 
 pragma solidity 0.8.26;
 
-import { Law } from "./Law.sol";
-import { ILaw } from "./interfaces/ILaw.sol";
+import { Mandate } from "./Mandate.sol";
+import { IMandate } from "./interfaces/IMandate.sol";
 import { IPowers } from "./interfaces/IPowers.sol";
 import { Checks } from "./libraries/Checks.sol";
 import { ERC165Checker } from "../lib/openzeppelin-contracts/contracts/utils/introspection/ERC165Checker.sol";
@@ -41,7 +41,7 @@ contract Powers is EIP712, IPowers, Context {
     //                           STORAGE                        //
     /////////////////////////////////////////////////////////////
     mapping(uint256 actionId => Action) internal _actions; // mapping actionId to Action struct
-    mapping(uint16 lawId => AdoptedLaw) internal laws; //mapping law address to Law struct
+    mapping(uint16 mandateId => AdoptedMandate) internal mandates; //mapping mandate address to Mandate struct
     mapping(uint256 roleId => Role) internal roles; // mapping roleId to Role struct)
     mapping(address account => bool blacklisted) internal _blacklist; // mapping accounts to blacklisted status
 
@@ -54,8 +54,8 @@ contract Powers is EIP712, IPowers, Context {
     uint256 public immutable MAX_RETURN_DATA_LENGTH;
     uint256 public immutable MAX_EXECUTIONsLENGTH;
 
-    // NB! this is a gotcha: laws start counting a 1, NOT 0!. 0 is used as a default 'false' value.
-    uint16 public lawCounter = 1; // number of laws that have been initiated throughout the life of the organisation.
+    // NB! this is a gotcha: mandates start counting a 1, NOT 0!. 0 is used as a default 'false' value.
+    uint16 public mandateCounter = 1; // number of mandates that have been initiated throughout the life of the organisation.
     string public name; // name of the DAO.
     string public uri; // a uri to metadata of the DAO. // note can be altered
     address payable private treasury; // address to the treasury of the organisation.
@@ -75,13 +75,13 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @notice A modifier that sets a function to only be callable by the {Powers} contract.
-    modifier onlyAdoptedLaw(uint16 lawId) {
-        _onlyAdoptedLaw(lawId);
+    modifier onlyAdoptedMandate(uint16 mandateId) {
+        _onlyAdoptedMandate(mandateId);
         _;
     }
 
-    function _onlyAdoptedLaw(uint16 lawId) internal {
-        if (laws[lawId].active == false) revert Powers__LawNotActive();
+    function _onlyAdoptedMandate(uint16 mandateId) internal {
+        if (mandates[mandateId].active == false) revert Powers__MandateNotActive();
     }
 
     //////////////////////////////////////////////////////////////
@@ -91,9 +91,9 @@ contract Powers is EIP712, IPowers, Context {
     ///
     /// @param name_ name of the contract
     /// @param uri_ uri of the contract
-    /// @param maxCallDataLength_ maximum length of calldata for a law
-    /// @param maxReturnDataLength_ maximum length of return data for a law
-    /// @param maxExecutionsLength_ maximum length of executions for a law
+    /// @param maxCallDataLength_ maximum length of calldata for a mandate
+    /// @param maxReturnDataLength_ maximum length of return data for a mandate
+    /// @param maxExecutionsLength_ maximum length of executions for a mandate
     constructor(
         string memory name_,
         string memory uri_,
@@ -120,23 +120,23 @@ contract Powers is EIP712, IPowers, Context {
     //                  GOVERNANCE LOGIC                        //
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
-    /// @dev The request -> fulfill functions follow a call-and-return mechanism. This allows for async execution of laws.
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
+    /// @dev The request -> fulfill functions follow a call-and-return mechanism. This allows for async execution of mandates.
+    function request(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriAction)
         external
-        onlyAdoptedLaw(lawId)
+        onlyAdoptedMandate(mandateId)
         returns (uint256 actionId)
     {
-        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
-        AdoptedLaw memory law = laws[lawId];
+        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        AdoptedMandate memory mandate = mandates[mandateId];
 
         // check 0 is calldata length is too long
-        if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
+        if (mandateCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
         // check 1: is _msgSender() blacklisted?
         if (isBlacklisted(_msgSender())) revert Powers__AddressBlacklisted();
 
-        // check 2: does caller have access to law being executed?
-        if (!canCallLaw(_msgSender(), lawId)) revert Powers__CannotCallLaw();
+        // check 2: does caller have access to mandate being executed?
+        if (!canCallMandate(_msgSender(), mandateId)) revert Powers__CannotCallMandate();
 
         // check 3: has action already been set as requested?
         if (_hasBeenRequested(actionId)) revert Powers__ActionAlreadyInitiated();
@@ -145,45 +145,45 @@ contract Powers is EIP712, IPowers, Context {
         if (_actions[actionId].cancelledAt > 0) revert Powers__ActionCancelled();
 
         // check 5: do checks pass?
-        Checks.check(lawId, lawCalldata, address(this), nonce, law.latestFulfillment);
+        Checks.check(mandateId, mandateCalldata, address(this), nonce, mandate.latestFulfillment);
 
-        // if not registered yet, register actionId at law.
-        if (_actions[actionId].lawId == 0) laws[lawId].actionIds.push(actionId);
+        // if not registered yet, register actionId at mandate.
+        if (_actions[actionId].mandateId == 0) mandates[mandateId].actionIds.push(actionId);
 
         // If everything passed, set action as requested.
         Action storage action = _actions[actionId];
         action.caller = _msgSender(); // note if caller had been set during proposedAction, it will be overwritten.
-        action.lawId = lawId;
+        action.mandateId = mandateId;
         action.requestedAt = uint48(block.number);
-        action.lawCalldata = lawCalldata;
+        action.mandateCalldata = mandateCalldata;
         action.uri = uriAction;
         action.nonce = nonce;
 
-        // execute law.
-        (bool success) = ILaw(law.targetLaw).executeLaw(_msgSender(), lawId, lawCalldata, nonce);
-        if (!success) revert Powers__LawRequestFailed();
+        // execute mandate.
+        (bool success) = IMandate(mandate.targetMandate).executeMandate(_msgSender(), mandateId, mandateCalldata, nonce);
+        if (!success) revert Powers__MandateRequestFailed();
 
         // emit event.
-        emit ActionRequested(_msgSender(), lawId, lawCalldata, nonce, uriAction);
+        emit ActionRequested(_msgSender(), mandateId, mandateCalldata, nonce, uriAction);
 
         return actionId;
     }
 
     /// @inheritdoc IPowers
     function fulfill(
-        uint16 lawId,
+        uint16 mandateId,
         uint256 actionId,
         address[] calldata targets,
         uint256[] calldata values,
         bytes[] calldata calldatas
-    ) external onlyAdoptedLaw(lawId) {
-        AdoptedLaw memory law = laws[lawId];
+    ) external onlyAdoptedMandate(mandateId) {
+        AdoptedMandate memory mandate = mandates[mandateId];
 
-        // check 1: is law active?
-        if (!law.active) revert Powers__LawNotActive();
+        // check 1: is mandate active?
+        if (!mandate.active) revert Powers__MandateNotActive();
 
-        // check 2: is _msgSender() the targetLaw?
-        if (law.targetLaw != _msgSender()) revert Powers__CallerNotTargetLaw();
+        // check 2: is _msgSender() the targetMandate?
+        if (mandate.targetMandate != _msgSender()) revert Powers__CallerNotTargetMandate();
 
         // check 3: has action already been set as requested?
         if (!_hasBeenRequested(actionId)) revert Powers__ActionNotRequested();
@@ -206,7 +206,7 @@ contract Powers is EIP712, IPowers, Context {
         // set action as fulfilled
         _actions[actionId].fulfilledAt = uint48(block.number);
 
-        // execute targets[], values[], calldatas[] received from law.
+        // execute targets[], values[], calldatas[] received from mandate.
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
             Address.verifyCallResult(success, returndata);
@@ -218,34 +218,34 @@ contract Powers is EIP712, IPowers, Context {
         }
 
         // emit event.
-        emit ActionExecuted(lawId, actionId, targets, values, calldatas);
+        emit ActionExecuted(mandateId, actionId, targets, values, calldatas);
 
-        // register latestFulfillment at law.
-        laws[lawId].latestFulfillment = uint48(block.number);
+        // register latestFulfillment at mandate.
+        mandates[mandateId].latestFulfillment = uint48(block.number);
     }
 
     /// @inheritdoc IPowers
-    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
+    function propose(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriAction)
         external
-        onlyAdoptedLaw(lawId)
+        onlyAdoptedMandate(mandateId)
         returns (uint256 actionId)
     {
-        AdoptedLaw memory law = laws[lawId];
+        AdoptedMandate memory mandate = mandates[mandateId];
 
-        // check 1: is targetLaw is an active law?
-        if (!law.active) revert Powers__LawNotActive();
+        // check 1: is targetMandate is an active mandate?
+        if (!mandate.active) revert Powers__MandateNotActive();
 
-        // check 2: does _msgSender() have access to targetLaw?
-        if (!canCallLaw(_msgSender(), lawId)) revert Powers__CannotCallLaw();
+        // check 2: does _msgSender() have access to targetMandate?
+        if (!canCallMandate(_msgSender(), mandateId)) revert Powers__CannotCallMandate();
 
         // check 3: is caller blacklisted?
         if (isBlacklisted(_msgSender())) revert Powers__AddressBlacklisted();
 
         // check 4: is caller too long?
-        if (lawCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
+        if (mandateCalldata.length > MAX_CALLDATA_LENGTH) revert Powers__CalldataTooLong();
 
         // if checks pass: propose.
-        actionId = _propose(_msgSender(), lawId, lawCalldata, nonce, uriAction);
+        actionId = _propose(_msgSender(), mandateId, mandateCalldata, nonce, uriAction);
 
         return actionId;
     }
@@ -255,30 +255,30 @@ contract Powers is EIP712, IPowers, Context {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(address caller, uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriAction)
+    function _propose(address caller, uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriAction)
         internal
         virtual
         returns (uint256 actionId)
     {
-        // (uint8 quorum,, uint32 votingPeriod,,,,,) = Law(targetLaw).conditions();
-        Conditions memory conditions = getConditions(lawId);
-        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
+        // (uint8 quorum,, uint32 votingPeriod,,,,,) = Mandate(targetMandate).conditions();
+        Conditions memory conditions = getConditions(mandateId);
+        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
 
-        // check 1: does target law need proposedAction vote to pass?
+        // check 1: does target mandate need proposedAction vote to pass?
         if (conditions.quorum == 0) revert Powers__NoVoteNeeded();
 
-        // check 2: do we have a proposedAction with the same targetLaw and lawCalldata?
+        // check 2: do we have a proposedAction with the same targetMandate and mandateCalldata?
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
 
-        // register actionId at law.
-        laws[lawId].actionIds.push(actionId);
+        // register actionId at mandate.
+        mandates[mandateId].actionIds.push(actionId);
 
         // if checks pass: create proposedAction
         Action storage action = _actions[actionId];
-        action.lawCalldata = lawCalldata;
+        action.mandateCalldata = mandateCalldata;
         action.proposedAt = uint48(block.number);
-        action.lawId = lawId;
-        action.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the law level.
+        action.mandateId = mandateId;
+        action.voteStart = uint48(block.number); // note that the moment proposedAction is made, voting start. Delay functionality has to be implemeted at the mandate level.
         action.voteDuration = conditions.votingPeriod;
         action.caller = caller;
         action.uri = uriAction;
@@ -287,9 +287,9 @@ contract Powers is EIP712, IPowers, Context {
         emit ProposedActionCreated(
             actionId,
             caller,
-            lawId,
+            mandateId,
             "",
-            lawCalldata,
+            mandateCalldata,
             block.number,
             block.number + conditions.votingPeriod,
             nonce,
@@ -299,24 +299,24 @@ contract Powers is EIP712, IPowers, Context {
 
     /// @inheritdoc IPowers
     /// @dev the account to cancel must be the account that created the proposedAction.
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce)
+    function cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce)
         external
-        onlyAdoptedLaw(lawId)
+        onlyAdoptedMandate(mandateId)
         returns (uint256)
     {
-        uint256 actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
+        uint256 actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
 
         // check: is caller the caller of the proposedAction?
         if (_msgSender() != _actions[actionId].caller) revert Powers__NotProposerAction();
 
-        return _cancel(lawId, lawCalldata, nonce);
+        return _cancel(mandateId, mandateCalldata, nonce);
     }
 
     /// @notice Internal cancel mechanism with minimal restrictions. A proposedAction can be cancelled in any state other than
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
-    function _cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) internal virtual returns (uint256) {
-        uint256 actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
+    function _cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce) internal virtual returns (uint256) {
+        uint256 actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
 
         // check 1: does action exist?
         if (_actions[actionId].proposedAt == 0) revert Powers__ActionNotProposed();
@@ -346,7 +346,7 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @notice Internal vote casting mechanism.
-    /// Check that the proposedAction is active, and that account is has access to targetLaw.
+    /// Check that the proposedAction is active, and that account is has access to targetMandate.
     ///
     /// Emits a {SeperatedPowersEvents::VoteCast} event.
     function _castVote(uint256 actionId, address account, uint8 support, string memory reason) internal virtual {
@@ -356,9 +356,9 @@ contract Powers is EIP712, IPowers, Context {
         }
         Action storage proposedAction = _actions[actionId];
 
-        // Note that we check if account has access to the law targetted in the proposedAction.
-        uint16 lawId = proposedAction.lawId;
-        if (!canCallLaw(account, lawId)) revert Powers__CannotCallLaw();
+        // Note that we check if account has access to the mandate targetted in the proposedAction.
+        uint16 mandateId = proposedAction.mandateId;
+        if (!canCallMandate(account, mandateId)) revert Powers__CannotCallMandate();
         // check 2: has account already voted?
         if (proposedAction.hasVoted[account]) revert Powers__AlreadyCastVote();
 
@@ -372,71 +372,71 @@ contract Powers is EIP712, IPowers, Context {
     //                  ROLE AND LAW ADMIN                      //
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
-    function constitute(LawInitData[] memory constituentLaws) external {
+    function constitute(MandateInitData[] memory constituentMandates) external {
         // check 1: only admin can call this function
         if (roles[ADMIN_ROLE].members[_msgSender()] == 0) revert Powers__NotAdmin();
 
         // check 2: this function can only be called once.
         if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
 
-        // if checks pass, set _constituentLawsExecuted to true...
+        // if checks pass, set _constituentMandatesExecuted to true...
         _constituteExecuted = true;
 
-        // ...and set laws as active.
-        for (uint256 i = 0; i < constituentLaws.length; i++) {
-            // note: ignore empty slots in LawInitData array.
-            if (constituentLaws[i].targetLaw != address(0)) {
-                _adoptLaw(constituentLaws[i]);
+        // ...and set mandates as active.
+        for (uint256 i = 0; i < constituentMandates.length; i++) {
+            // note: ignore empty slots in MandateInitData array.
+            if (constituentMandates[i].targetMandate != address(0)) {
+                _adoptMandate(constituentMandates[i]);
             }
         }
     }
 
     /// @inheritdoc IPowers
-    function adoptLaw(LawInitData memory lawInitData) external onlyPowers returns (uint256 lawId) {
-        lawId = _adoptLaw(lawInitData);
+    function adoptMandate(MandateInitData memory mandateInitData) external onlyPowers returns (uint256 mandateId) {
+        mandateId = _adoptMandate(mandateInitData);
 
-        return lawId;
+        return mandateId;
     }
 
     /// @inheritdoc IPowers
-    function revokeLaw(uint16 lawId) external onlyPowers {
-        if (laws[lawId].active == false) revert Powers__LawNotActive();
+    function revokeMandate(uint16 mandateId) external onlyPowers {
+        if (mandates[mandateId].active == false) revert Powers__MandateNotActive();
 
-        laws[lawId].active = false;
-        emit LawRevoked(lawId);
+        mandates[mandateId].active = false;
+        emit MandateRevoked(mandateId);
     }
 
-    /// @notice internal function to set a law or revoke it.
+    /// @notice internal function to set a mandate or revoke it.
     ///
-    /// @param lawInitData data of the law.
+    /// @param mandateInitData data of the mandate.
     ///
-    /// Emits a {SeperatedPowersEvents::LawAdopted} event.
-    function _adoptLaw(LawInitData memory lawInitData) internal virtual returns (uint256 lawId) {
-        // check if added address is indeed a law. Note that this will also revert with address(0).
-        if (!ERC165Checker.supportsInterface(lawInitData.targetLaw, type(ILaw).interfaceId)) {
-            revert Powers__IncorrectInterface(lawInitData.targetLaw);
+    /// Emits a {SeperatedPowersEvents::MandateAdopted} event.
+    function _adoptMandate(MandateInitData memory mandateInitData) internal virtual returns (uint256 mandateId) {
+        // check if added address is indeed a mandate. Note that this will also revert with address(0).
+        if (!ERC165Checker.supportsInterface(mandateInitData.targetMandate, type(IMandate).interfaceId)) {
+            revert Powers__IncorrectInterface(mandateInitData.targetMandate);
         }
 
-        // check if targetLaw is blacklisted
-        if (isBlacklisted(lawInitData.targetLaw)) revert Powers__AddressBlacklisted();
+        // check if targetMandate is blacklisted
+        if (isBlacklisted(mandateInitData.targetMandate)) revert Powers__AddressBlacklisted();
 
         // check if conditions combine PUBLIC_ROLE with a vote - which is impossible due to PUBLIC_ROLE having an infinite number of members.
-        if (lawInitData.conditions.allowedRole == PUBLIC_ROLE && lawInitData.conditions.quorum > 0) {
+        if (mandateInitData.conditions.allowedRole == PUBLIC_ROLE && mandateInitData.conditions.quorum > 0) {
             revert Powers__VoteWithPublicRoleDisallowed();
         }
 
-        // if checks pass, set law as active.
-        laws[lawCounter].active = true;
-        laws[lawCounter].targetLaw = lawInitData.targetLaw;
-        laws[lawCounter].conditions = lawInitData.conditions;
-        lawCounter++;
+        // if checks pass, set mandate as active.
+        mandates[mandateCounter].active = true;
+        mandates[mandateCounter].targetMandate = mandateInitData.targetMandate;
+        mandates[mandateCounter].conditions = mandateInitData.conditions;
+        mandateCounter++;
 
-        Law(lawInitData.targetLaw).initializeLaw(lawCounter - 1, lawInitData.nameDescription, "", lawInitData.config);
+        Mandate(mandateInitData.targetMandate).initializeMandate(mandateCounter - 1, mandateInitData.nameDescription, "", mandateInitData.config);
 
         // emit event.
-        emit LawAdopted(lawCounter - 1);
+        emit MandateAdopted(mandateCounter - 1);
 
-        return lawCounter - 1;
+        return mandateCounter - 1;
     }
 
     /// @inheritdoc IPowers
@@ -522,12 +522,12 @@ contract Powers is EIP712, IPowers, Context {
     /// @param actionId id of the proposedAction.
     ///
     function _quorumReached(uint256 actionId) internal view virtual returns (bool) {
-        // retrieve quorum and allowedRole from law.
+        // retrieve quorum and allowedRole from mandate.
         Action storage proposedAction = _actions[actionId];
-        Conditions memory conditions = getConditions(proposedAction.lawId);
+        Conditions memory conditions = getConditions(proposedAction.mandateId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
-        // check if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if quorum has been reached.
+        // check if quorum is set to 0 in a Mandate, it will automatically return true. Otherwise, check if quorum has been reached.
         return (conditions.quorum == 0
                 || amountMembers * conditions.quorum
                     <= (proposedAction.forVotes + proposedAction.abstainVotes) * DENOMINATOR);
@@ -550,12 +550,12 @@ contract Powers is EIP712, IPowers, Context {
     ///
     /// @param actionId id of the proposedAction.
     function _voteSucceeded(uint256 actionId) internal view virtual returns (bool) {
-        // retrieve quorum and success threshold from law.
+        // retrieve quorum and success threshold from mandate.
         Action storage proposedAction = _actions[actionId];
-        Conditions memory conditions = getConditions(proposedAction.lawId);
+        Conditions memory conditions = getConditions(proposedAction.mandateId);
         uint256 amountMembers = _countMembersRole(conditions.allowedRole);
 
-        // note if quorum is set to 0 in a Law, it will automatically return true. Otherwise, check if success threshold has been reached.
+        // note if quorum is set to 0 in a Mandate, it will automatically return true. Otherwise, check if success threshold has been reached.
         return conditions.quorum == 0 || amountMembers * conditions.succeedAt <= proposedAction.forVotes * DENOMINATOR;
     }
 
@@ -600,8 +600,8 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @inheritdoc IPowers
-    function canCallLaw(address caller, uint16 lawId) public view virtual returns (bool) {
-        uint256 allowedRole = getConditions(lawId).allowedRole;
+    function canCallMandate(address caller, uint16 mandateId) public view virtual returns (bool) {
+        uint256 allowedRole = getConditions(mandateId).allowedRole;
         uint48 since = hasRoleSince(caller, allowedRole);
 
         return since != 0 || allowedRole == PUBLIC_ROLE;
@@ -667,7 +667,7 @@ contract Powers is EIP712, IPowers, Context {
         view
         virtual
         returns (
-            uint16 lawId,
+            uint16 mandateId,
             uint48 proposedAt,
             uint48 requestedAt,
             uint48 fulfilledAt,
@@ -679,7 +679,7 @@ contract Powers is EIP712, IPowers, Context {
         Action storage action = _actions[actionId];
 
         return (
-            action.lawId,
+            action.mandateId,
             action.proposedAt,
             action.requestedAt,
             action.fulfilledAt,
@@ -715,7 +715,7 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     function getActionCalldata(uint256 actionId) public view virtual returns (bytes memory callData) {
-        return _actions[actionId].lawCalldata;
+        return _actions[actionId].mandateCalldata;
     }
 
     function getActionReturnData(uint256 actionId, uint256 index)
@@ -737,35 +737,35 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @inheritdoc IPowers
-    function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active) {
-        law = laws[lawId].targetLaw;
-        active = laws[lawId].active;
-        lawHash = keccak256(abi.encode(address(this), lawId));
+    function getAdoptedMandate(uint16 mandateId) external view returns (address mandate, bytes32 mandateHash, bool active) {
+        mandate = mandates[mandateId].targetMandate;
+        active = mandates[mandateId].active;
+        mandateHash = keccak256(abi.encode(address(this), mandateId));
 
-        return (law, lawHash, active);
+        return (mandate, mandateHash, active);
     }
 
     /// @inheritdoc IPowers
-    function getLatestFulfillment(uint16 lawId) external view returns (uint48 latestFulfillment) {
-        return laws[lawId].latestFulfillment;
+    function getLatestFulfillment(uint16 mandateId) external view returns (uint48 latestFulfillment) {
+        return mandates[mandateId].latestFulfillment;
     }
 
     /// @inheritdoc IPowers
-    function getQuantityLawActions(uint16 lawId) external view returns (uint256 quantityLawActions) {
-        return laws[lawId].actionIds.length;
+    function getQuantityMandateActions(uint16 mandateId) external view returns (uint256 quantityMandateActions) {
+        return mandates[mandateId].actionIds.length;
     }
 
     /// @inheritdoc IPowers
-    function getLawActionAtIndex(uint16 lawId, uint256 index) external view returns (uint256 actionId) {
-        if (index >= laws[lawId].actionIds.length) {
+    function getMandateActionAtIndex(uint16 mandateId, uint256 index) external view returns (uint256 actionId) {
+        if (index >= mandates[mandateId].actionIds.length) {
             revert Powers__InvalidIndex();
         }
-        return laws[lawId].actionIds[index];
+        return mandates[mandateId].actionIds[index];
     }
 
     /// @inheritdoc IPowers
-    function getConditions(uint16 lawId) public view returns (Conditions memory conditions) {
-        return laws[lawId].conditions;
+    function getConditions(uint16 mandateId) public view returns (Conditions memory conditions) {
+        return mandates[mandateId].conditions;
     }
 
     /// @inheritdoc IPowers

@@ -2,7 +2,7 @@ import { Callout } from 'vocs/components'
 
 # **Protocol Use Cases**
 
-The Powers protocol is a flexible governance framework designed to support a wide variety of organizational structures and operational needs. By enabling modular, role-based, and chain-aware "laws," it provides a robust foundation for decentralized systems.
+The Powers protocol is a flexible governance framework designed to support a wide variety of organizational structures and operational needs. By enabling modular, role-based, and chain-aware "mandates," it provides a robust foundation for decentralized systems.
 
 Below are several examples illustrating how the protocol can be applied.
 
@@ -32,7 +32,7 @@ With Powers, the collective can implement a governance flow that automates the e
 * **Verified Participation:** Powers can be configured to restrict participation based on verified roles. A ROLE\_VERIFIED\_MEMBER can be required to particpate and vote.  
 * **Privacy-Preserving Verification:** This role can be granted based on Zero-Knowledge (ZK) proofs. For instance, a member can prove they are over 18 and have a unique identity (e.g., via services like ZKPassport) without revealing their personal information. This mitigates Sybil attacks transparently.  
 * **On-Chain Process:** The submission, voting, and selection processes are all managed on-chain. Voting results are immutable and transparently recorded.  
-* **Automated Distribution:** The protocol's laws are configured to automatically trigger prize distribution via smart contracts to the wallets of the winning artists as soon as the voting period ends and the results are finalized.
+* **Automated Distribution:** The protocol's mandates are configured to automatically trigger prize distribution via smart contracts to the wallets of the winning artists as soon as the voting period ends and the results are finalized.
 
 This on-chain, trustless process is not only secure and efficient but also allows the collective to focus on its mission—creating and sharing art—while the protocol handles the complex mechanics of fair governance.
 
@@ -49,7 +49,7 @@ Powers enables the organization to design and enforce bespoke election and accou
   * The **Spokesperson** could be chosen by a specialized "Advisory Council" role.  
   * The **Treasurer** might be selected from a pool of vetted candidates who have posted a bond.  
 * **On-Chain Authority:** The "power" to control the organization's Safe or update its ENS record is programmatically tied to the wallet address that successfully wins the election for that role.  
-* **Dynamic & Reformable:** If a representative needs to be replaced (e.g., via a vote of no confidence) or if the election method itself needs to be changed, the community can trigger a dedicated governance flow to reform the underlying laws, ensuring the system remains accountable and adaptable.
+* **Dynamic & Reformable:** If a representative needs to be replaced (e.g., via a vote of no confidence) or if the election method itself needs to be changed, the community can trigger a dedicated governance flow to reform the underlying mandates, ensuring the system remains accountable and adaptable.
 
 This structure ensures representatives are directly accountable to the community through transparent, on-chain processes, and that the organization's governance can evolve securely over time.
 
@@ -61,7 +61,7 @@ This structure ensures representatives are directly accountable to the community
 
 The Powers protocol's design allows for asynchronous, cross-chain state-checking.
 
-* **Interoperable Laws:** An instance of the Powers protocol on Polygon can be configured with a law that "checks the state" of a specific decision at the main Powers instance on Ethereum.  
+* **Interoperable Mandates:** An instance of the Powers protocol on Polygon can be configured with a mandate that "checks the state" of a specific decision at the main Powers instance on Ethereum.  
 * **Example Flow:** A treasury management decision is proposed and passed on Ethereum to fund a Polygon-based project. Once this decision is finalized on Ethereum, the Polygon-based protocol instance recognizes this state change (e.g., via a cross-chain message or oracle).  
 * **Triggered Actions:** This recognition automatically "unlocks" a corresponding power on Polygon, permitting a local ROLE\_TREASURY\_DISBURSER to execute the funding allocation from the DAO's Polygon treasury. The action on Polygon is *blocked* until the governance on Ethereum allows it.
 
@@ -75,7 +75,7 @@ This asynchronous coordination enables the organization to operate seamlessly ac
 
 Powers facilitates a modular and progressively decentralized governance structure.
 
-* **Local Autonomy:** The organization can create a "template" of role-restricted laws that each local community can adopt and modify. This allows each community (e.g., a COMMUNITY\_JAPAN or COMMUNITY\_BRAZIL) to govern itself according to its unique preferences for local matters.  
+* **Local Autonomy:** The organization can create a "template" of role-restricted mandates that each local community can adopt and modify. This allows each community (e.g., a COMMUNITY\_JAPAN or COMMUNITY\_BRAZIL) to govern itself according to its unique preferences for local matters.  
 * **Global Alignment:** These local communities still operate within the broader organization. A global "Federal" layer of governance (managed by all communities) can retain power over shared resources, cross-community standards, and core protocol functions.  
 * **Progressive Decentralization:** Over time, the central organization can gradually introduce new roles and responsibilities, allowing established communities to take on more complex governance functions as they grow and demonstrate capability.
 

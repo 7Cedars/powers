@@ -9,14 +9,14 @@ import {
   setStatus,
 } from "@/context/store";
 import { useChecks } from "@/hooks/useChecks";
-import { useLaw } from "@/hooks/useLaw";
+import { useMandate } from "@/hooks/useMandate";
 import { useWallets } from "@privy-io/react-auth";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/Button";
 import { shorterDescription } from "@/utils/parsers";
-import { Checks, InputType, Law, Powers } from "@/context/types";
+import { Checks, InputType, Mandate, Powers } from "@/context/types";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 
 export function DynamicActionButton({checks}: {checks: Checks}) {
@@ -26,17 +26,17 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   const status = useStatusStore();
   const error = useErrorStore(); 
 
-  const { request, propose } = useLaw();
-  const law = powers?.laws?.find((law) => BigInt(law.index) == BigInt(action.lawId));
-  const savedAction = law?.actions?.find(
+  const { request, propose } = useMandate();
+  const mandate = powers?.mandates?.find((mandate) => BigInt(mandate.index) == BigInt(action.mandateId));
+  const savedAction = mandate?.actions?.find(
     (a) => BigInt(a.actionId) == BigInt(action.actionId)
   );
   const populatedAction = savedAction?.state == 0 || savedAction?.state == undefined ? action : savedAction;
 
-  // console.log("DynamicActionButton:", {checks, law, populatedAction, action, status, error})
+  // console.log("DynamicActionButton:", {checks, mandate, populatedAction, action, status, error})
 
   const [logSupport, setLogSupport] = useState<bigint>();
-  const { castVote } = useLaw();
+  const { castVote } = useMandate();
 
   const handlePropose = async (
     paramValues: (InputType | InputType[])[],
@@ -48,17 +48,17 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
     //   nonce,
     //   description,
     // });
-    if (!law) return;
+    if (!mandate) return;
 
     setError({ error: null });
     // setStatus({ status: "idle" });
-    let lawCalldata: `0x${string}` = "0x0";
+    let mandateCalldata: `0x${string}` = "0x0";
 
     if (paramValues.length > 0 && paramValues) {
       try {
-        lawCalldata = encodeAbiParameters(
+        mandateCalldata = encodeAbiParameters(
           parseAbiParameters(
-            law.params?.map((param) => param.dataType).toString() || ""
+            mandate.params?.map((param) => param.dataType).toString() || ""
           ),
           paramValues
         );
@@ -66,13 +66,13 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
         setError({ error: error as Error });
       }
     } else {
-      lawCalldata = "0x0";
+      mandateCalldata = "0x0";
     }
 
-    if (lawCalldata && ready && wallets && powers?.contractAddress) {
+    if (mandateCalldata && ready && wallets && powers?.contractAddress) {
       const success = await propose(
-        law.index as bigint,
-        lawCalldata,
+        mandate.index as bigint,
+        mandateCalldata,
         nonce,
         description,
         powers as Powers
@@ -82,7 +82,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
   };
 
   const handleExecute = async (
-    law: Law,
+    mandate: Mandate,
     paramValues: (InputType | InputType[])[],
     nonce: bigint,
     description: string
@@ -90,30 +90,30 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
     // console.log("Handle Execute called:", {paramValues, nonce})
     setError({ error: null });
     // setStatus({ status: "idle" });
-    let lawCalldata: `0x${string}` | undefined;
+    let mandateCalldata: `0x${string}` | undefined;
     // console.log("Handle Simulate waypoint 1")
     if (paramValues.length > 0 && paramValues) {
       try {
         // console.log("Handle Simulate waypoint 2a")
-        lawCalldata = encodeAbiParameters(
+        mandateCalldata = encodeAbiParameters(
           parseAbiParameters(
-            law.params?.map((param) => param.dataType).toString() || ""
+            mandate.params?.map((param) => param.dataType).toString() || ""
           ),
           paramValues
         );
-        // console.log("Handle Simulate waypoint 2b", {lawCalldata})
+        // console.log("Handle Simulate waypoint 2b", {mandateCalldata})
       } catch (error) {
         // console.log("Handle Simulate waypoint 2c")
         setError({ error: error as Error });
       }
     } else {
       // console.log("Handle Simulate waypoint 2d")
-      lawCalldata = "0x0";
+      mandateCalldata = "0x0";
     }
 
     const success = await request(
-      law,
-      lawCalldata as `0x${string}`,
+      mandate,
+      mandateCalldata as `0x${string}`,
       nonce,
       description
     );
@@ -130,7 +130,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
         //NB: note that the 'Check' button is managed in the DynamicForm component
         
         // option 1: When action does not exist, and needs a vote, create proposal button
-        Number(law?.conditions?.quorum) > 0 &&
+        Number(mandate?.conditions?.quorum) > 0 &&
         (populatedAction?.state == 0 || populatedAction?.state == undefined) &&
         action?.upToDate ? (
           <div className="w-full px-6 py-2" help-nav-item="propose-or-vote">
@@ -152,14 +152,14 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
                 {!checks?.authorised
                   ? "Not authorised to make proposal"
                   : `Create proposal for '${shorterDescription(
-                      law?.nameDescription,
+                      mandate?.nameDescription,
                       "short"
                     )}'`}
               </Button>
             </div>
           </div>
         ) : // option 2: When action does not exist and does not need a vote, execute button
-        Number(law?.conditions?.quorum) == 0 &&
+        Number(mandate?.conditions?.quorum) == 0 &&
           populatedAction?.state == 0 &&
           action?.upToDate ? (
           <div
@@ -171,13 +171,13 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
               role={6}
               onClick={() =>
                 handleExecute(
-                  law as Law,
+                  mandate as Mandate,
                   action.paramValues ? action.paramValues : [],
                   BigInt(action.nonce as string),
                   action.description as string
                 )
               }
-              // (law: Law, paramValues: (InputType | InputType[])[], nonce: bigint, description: string)
+              // (mandate: Mandate, paramValues: (InputType | InputType[])[], nonce: bigint, description: string)
               filled={false}
               selected={true}
               statusButton={
@@ -192,7 +192,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
             </Button>
           </div>
         ) : // option 2: When action does exist and has a succeeded state, execute button
-        Number(law?.conditions?.quorum) > 0 &&
+        Number(mandate?.conditions?.quorum) > 0 &&
           populatedAction?.state == 5 &&
           action?.upToDate ? (
           <div
@@ -204,7 +204,7 @@ export function DynamicActionButton({checks}: {checks: Checks}) {
               role={6}
               onClick={() =>
                 handleExecute(
-                  law as Law,
+                  mandate as Mandate,
                   action.paramValues ? action.paramValues : [],
                   BigInt(action.nonce as string),
                   action.description as string

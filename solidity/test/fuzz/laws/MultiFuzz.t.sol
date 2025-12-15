@@ -3,25 +3,25 @@ pragma solidity 0.8.26;
 
 import { Test } from "forge-std/Test.sol";
 import { TestSetupMulti } from "../../TestSetup.t.sol";
-import { OpenAction } from "../../../src/laws/executive/OpenAction.sol";
-import { StatementOfIntent } from "../../../src/laws/executive/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../../src/laws/executive/BespokeActionSimple.sol";
-import { PresetSingleAction } from "../../../src/laws/executive/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../../../src/laws/executive/PresetMultipleActions.sol";
-import { BespokeActionAdvanced } from "../../../src/laws/executive/BespokeActionAdvanced.sol";
+import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
+import { StatementOfIntent } from "../../../src/mandates/executive/StatementOfIntent.sol";
+import { BespokeActionSimple } from "../../../src/mandates/executive/BespokeActionSimple.sol";
+import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../../../src/mandates/executive/PresetMultipleActions.sol";
+import { BespokeActionAdvanced } from "../../../src/mandates/executive/BespokeActionAdvanced.sol";
 
-/// @title Multi Law Fuzz Tests
-/// @notice Comprehensive fuzz testing for all multi law implementations using pre-initialized laws
-/// @dev Tests use laws from multiTestConstitution:
-///      lawId 1: OpenAction
-///      lawId 2: StatementOfIntent
-///      lawId 3: BespokeActionSimple (mintCoins)
-///      lawId 4: BespokeActionAdvanced (assignRole)
-///      lawId 5: PresetSingleAction (label roles)
-///      lawId 6: PresetMultipleActions (multiple label actions)
-///      lawId 7: PresetSingleAction (another preset action)
+/// @title Multi Mandate Fuzz Tests
+/// @notice Comprehensive fuzz testing for all multi mandate implementations using pre-initialized mandates
+/// @dev Tests use mandates from multiTestConstitution:
+///      mandateId 1: OpenAction
+///      mandateId 2: StatementOfIntent
+///      mandateId 3: BespokeActionSimple (mintCoins)
+///      mandateId 4: BespokeActionAdvanced (assignRole)
+///      mandateId 5: PresetSingleAction (label roles)
+///      mandateId 6: PresetMultipleActions (multiple label actions)
+///      mandateId 7: PresetSingleAction (another preset action)
 contract MultiFuzzTest is TestSetupMulti {
-    // Law instances for testing
+    // Mandate instances for testing
     OpenAction openAction;
     StatementOfIntent statementOfIntent;
     BespokeActionSimple bespokeActionSimple;
@@ -45,20 +45,20 @@ contract MultiFuzzTest is TestSetupMulti {
     function setUp() public override {
         super.setUp();
 
-        // Initialize law instances from deployed addresses
-        presetSingleAction = PresetSingleAction(lawAddresses[1]);
-        presetMultipleActions = PresetMultipleActions(lawAddresses[2]);
-        openAction = OpenAction(lawAddresses[3]);
-        statementOfIntent = StatementOfIntent(lawAddresses[4]);
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[5]);
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[6]);
+        // Initialize mandate instances from deployed addresses
+        presetSingleAction = PresetSingleAction(mandateAddresses[1]);
+        presetMultipleActions = PresetMultipleActions(mandateAddresses[2]);
+        openAction = OpenAction(mandateAddresses[3]);
+        statementOfIntent = StatementOfIntent(mandateAddresses[4]);
+        bespokeActionAdvanced = BespokeActionAdvanced(mandateAddresses[5]);
+        bespokeActionSimple = BespokeActionSimple(mandateAddresses[6]);
     }
 
     //////////////////////////////////////////////////////////////
     //                  OPEN ACTION FUZZ                        //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test OpenAction (lawId 1) with random arrays
+    /// @notice Fuzz test OpenAction (mandateId 1) with random arrays
     function testFuzzOpenActionWithRandomArrays(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
@@ -81,11 +81,11 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, i + 1, "Role");
         }
 
-        // Test with lawId 1 (OpenAction)
-        lawCalldata = abi.encode(targets, values, calldatas);
+        // Test with mandateId 1 (OpenAction)
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Verify returned values match input
         assertEq(returnedTargets.length, arrayLength);
@@ -128,11 +128,11 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, i + 1, "Role");
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         // Should still decode but may fail on execution
         (returnedActionId, returnedTargets,,) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedTargets.length, targetsLength);
     }
@@ -143,10 +143,10 @@ contract MultiFuzzTest is TestSetupMulti {
         values = new uint256[](0);
         calldatas = new bytes[](0);
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedTargets.length, 0);
         assertEq(returnedValues.length, 0);
@@ -157,7 +157,7 @@ contract MultiFuzzTest is TestSetupMulti {
     //               STATEMENT OF INTENT FUZZ                   //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test StatementOfIntent (lawId 2) with random data
+    /// @notice Fuzz test StatementOfIntent (mandateId 2) with random data
     function testFuzzStatementOfIntentWithRandomDataAtMulti(
         uint256 arrayLength,
         address[] memory targetsFuzzed,
@@ -179,10 +179,10 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = calldatasFuzzed[i];
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         // Verify data is empty
         assertEq(returnedTargets.length, 1);
@@ -208,10 +208,10 @@ contract MultiFuzzTest is TestSetupMulti {
         }
         calldatas[0] = largeCalldata;
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedCalldatas[0].length, 0);
     }
@@ -220,38 +220,38 @@ contract MultiFuzzTest is TestSetupMulti {
     //               BESPOKE ACTION SIMPLE FUZZ                 //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test BespokeActionSimple (lawId 3) with various quantities
-    /// @dev lawId 3 is configured to mint coins on SimpleErc1155 with uint256 Quantity parameter
+    /// @notice Fuzz test BespokeActionSimple (mandateId 3) with various quantities
+    /// @dev mandateId 3 is configured to mint coins on SimpleErc1155 with uint256 Quantity parameter
     function testFuzzBespokeActionSimpleWithVariousQuantities(uint256 quantityFuzzed, uint256 nonceFuzzed) public {
         // Bound quantity to reasonable values
         quantityFuzzed = bound(quantityFuzzed, 1, type(uint128).max);
 
-        lawCalldata = abi.encode(quantityFuzzed);
+        mandateCalldata = abi.encode(quantityFuzzed);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            bespokeActionSimple.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+            bespokeActionSimple.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 
         // Verify structure
         assertEq(returnedTargets.length, 1);
         assertEq(returnedCalldatas.length, 1);
 
         // Verify target is the SimpleErc1155 mock
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(3)));
-        assertEq(returnedTargets[0], bespokeActionSimple.targetContract(lawHash));
+        mandateHash = keccak256(abi.encode(address(daoMock), uint16(3)));
+        assertEq(returnedTargets[0], bespokeActionSimple.targetContract(mandateHash));
 
         // Verify function selector
         bytes4 selector = bytes4(returnedCalldatas[0]);
-        assertEq(selector, bespokeActionSimple.targetFunction(lawHash));
+        assertEq(selector, bespokeActionSimple.targetFunction(mandateHash));
     }
 
     /// @notice Fuzz test BespokeActionSimple with edge case values
     function testFuzzBespokeActionSimpleWithEdgeCases(bool useMax, uint256 nonceFuzzed) public {
         quantity = useMax ? type(uint256).max : 1;
 
-        lawCalldata = abi.encode(quantity);
+        mandateCalldata = abi.encode(quantity);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            bespokeActionSimple.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+            bespokeActionSimple.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedTargets.length, 1);
         assertEq(returnedCalldatas.length, 1);
@@ -261,8 +261,8 @@ contract MultiFuzzTest is TestSetupMulti {
     //               PRESET SINGLE ACTION FUZZ                  //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test PresetSingleAction (lawId 5) returns preset data regardless of input
-    /// @dev lawId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
+    /// @notice Fuzz test PresetSingleAction (mandateId 5) returns preset data regardless of input
+    /// @dev mandateId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
     // function testFuzzPresetSingleActionIgnoresInput(
     //     bytes memory inputCalldataFuzzed,
     //     uint256 nonceFuzzed
@@ -270,9 +270,9 @@ contract MultiFuzzTest is TestSetupMulti {
     //     // Bound inputs
     //     vm.assume(inputCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
-    //     // Get preset data for lawId 5
-    //     lawHash = keccak256(abi.encode(address(daoMock), uint16(5)));
-    //     presetDataSingle = presetSingleAction.getData(lawHash);
+    //     // Get preset data for mandateId 5
+    //     mandateHash = keccak256(abi.encode(address(daoMock), uint16(5)));
+    //     presetDataSingle = presetSingleAction.getData(mandateHash);
 
     //     // Call with different inputs
     //     (returnedActionId, returnedTargets, returnedValues, returnedCalldatas) =
@@ -305,16 +305,16 @@ contract MultiFuzzTest is TestSetupMulti {
     function testFuzzPresetSingleActionWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
         vm.assume(nonce1 != nonce2);
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         (returnedActionId, returnedTargets,,) =
-            presetSingleAction.handleRequest(alice, address(daoMock), 5, lawCalldata, nonce1);
+            presetSingleAction.handleRequest(alice, address(daoMock), 5, mandateCalldata, nonce1);
 
         uint256 firstActionId = returnedActionId;
         address[] memory firstTargets = returnedTargets;
 
         (returnedActionId, returnedTargets,,) =
-            presetSingleAction.handleRequest(alice, address(daoMock), 5, lawCalldata, nonce2);
+            presetSingleAction.handleRequest(alice, address(daoMock), 5, mandateCalldata, nonce2);
 
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
@@ -330,14 +330,14 @@ contract MultiFuzzTest is TestSetupMulti {
     //              PRESET MULTIPLE ACTIONS FUZZ                //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test PresetMultipleActions (lawId 6) with random selection patterns
-    /// @dev lawId 6 is configured with 2 actions: "Assign Member Role" and "Assign Delegate Role"
+    /// @notice Fuzz test PresetMultipleActions (mandateId 6) with random selection patterns
+    /// @dev mandateId 6 is configured with 2 actions: "Assign Member Role" and "Assign Delegate Role"
     function testFuzzPresetMultipleActionsWithRandomSelections(bool selectFirst, bool selectSecond, uint256 nonceFuzzed)
         public
     {
-        // Get preset data for lawId 6
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(6)));
-        presetDataMultiple = presetMultipleActions.getData(lawHash);
+        // Get preset data for mandateId 6
+        mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
+        presetDataMultiple = presetMultipleActions.getData(mandateHash);
 
         // Create selections array matching the preset data length
         selections = new bool[](presetDataMultiple.descriptions.length);
@@ -354,10 +354,10 @@ contract MultiFuzzTest is TestSetupMulti {
             }
         }
 
-        lawCalldata = abi.encode(selections);
+        mandateCalldata = abi.encode(selections);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            presetMultipleActions.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            presetMultipleActions.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Verify correct number of actions returned
         if (expectedCount == 0) {
@@ -371,19 +371,19 @@ contract MultiFuzzTest is TestSetupMulti {
 
     /// @notice Fuzz test PresetMultipleActions with all false selections
     function testFuzzPresetMultipleActionsWithAllFalse(uint256 nonceFuzzed) public {
-        // Get preset data for lawId 6
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(6)));
-        presetDataMultiple = presetMultipleActions.getData(lawHash);
+        // Get preset data for mandateId 6
+        mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
+        presetDataMultiple = presetMultipleActions.getData(mandateHash);
 
         selections = new bool[](presetDataMultiple.descriptions.length);
         for (i = 0; i < selections.length; i++) {
             selections[i] = false;
         }
 
-        lawCalldata = abi.encode(selections);
+        mandateCalldata = abi.encode(selections);
 
         (returnedActionId, returnedTargets,,) =
-            presetMultipleActions.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            presetMultipleActions.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Should return empty or single element
         assertTrue(returnedTargets.length <= 1);
@@ -391,19 +391,19 @@ contract MultiFuzzTest is TestSetupMulti {
 
     /// @notice Fuzz test PresetMultipleActions with all true selections
     function testFuzzPresetMultipleActionsWithAllTrue(uint256 nonceFuzzed) public {
-        // Get preset data for lawId 6
-        lawHash = keccak256(abi.encode(address(daoMock), uint16(6)));
-        presetDataMultiple = presetMultipleActions.getData(lawHash);
+        // Get preset data for mandateId 6
+        mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
+        presetDataMultiple = presetMultipleActions.getData(mandateHash);
 
         selections = new bool[](presetDataMultiple.descriptions.length);
         for (i = 0; i < selections.length; i++) {
             selections[i] = true;
         }
 
-        lawCalldata = abi.encode(selections);
+        mandateCalldata = abi.encode(selections);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            presetMultipleActions.handleRequest(alice, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            presetMultipleActions.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Should return all actions
         assertEq(returnedTargets.length, presetDataMultiple.descriptions.length);
@@ -414,19 +414,19 @@ contract MultiFuzzTest is TestSetupMulti {
     //              BESPOKE ACTION ADVANCED FUZZ                //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test BespokeActionAdvanced (lawId 4) with varying addresses
-    /// @dev lawId 4 is configured to assign role 1 with a dynamic address parameter
+    /// @notice Fuzz test BespokeActionAdvanced (mandateId 4) with varying addresses
+    /// @dev mandateId 4 is configured to assign role 1 with a dynamic address parameter
     function testFuzzBespokeActionAdvancedWithVariousAddresses(address accountFuzzed, uint256 nonceFuzzed) public {
         vm.assume(accountFuzzed != address(0));
 
-        // lawId 4 expects 1 dynamic part (the account address)
+        // mandateId 4 expects 1 dynamic part (the account address)
         dynamicParts = new bytes[](1);
         dynamicParts[0] = abi.encode(accountFuzzed);
 
-        lawCalldata = abi.encode(dynamicParts);
+        mandateCalldata = abi.encode(dynamicParts);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            bespokeActionAdvanced.handleRequest(alice, address(daoMock), 4, lawCalldata, nonceFuzzed);
+            bespokeActionAdvanced.handleRequest(alice, address(daoMock), 4, mandateCalldata, nonceFuzzed);
 
         // Verify structure
         assertEq(returnedTargets.length, 1);
@@ -477,13 +477,13 @@ contract MultiFuzzTest is TestSetupMulti {
     //                  CROSS-LAW FUZZ TESTS                    //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test action ID generation consistency across all laws
-    function testFuzzActionIdConsistency(uint16 lawIdFuzzed, bytes memory lawCalldataFuzzed, uint256 nonceFuzzed)
+    /// @notice Fuzz test action ID generation consistency across all mandates
+    function testFuzzActionIdConsistency(uint16 mandateIdFuzzed, bytes memory mandateCalldataFuzzed, uint256 nonceFuzzed)
         public
     {
-        // Bound to valid law IDs (1-7 from the constitution)
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 7));
-        vm.assume(lawCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
+        // Bound to valid mandate IDs (1-7 from the constitution)
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 7));
+        vm.assume(mandateCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
         // Test with OpenAction
         targets = new address[](1);
@@ -493,17 +493,17 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
-        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), lawIdFuzzed, lawCalldata, nonceFuzzed);
+        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), mandateIdFuzzed, mandateCalldata, nonceFuzzed);
 
         // Verify action ID matches expected pattern
-        uint256 expectedForOpen = uint256(keccak256(abi.encode(lawIdFuzzed, lawCalldata, nonceFuzzed)));
+        uint256 expectedForOpen = uint256(keccak256(abi.encode(mandateIdFuzzed, mandateCalldata, nonceFuzzed)));
         assertEq(returnedActionId, expectedForOpen);
     }
 
-    /// @notice Fuzz test that all laws properly handle zero address targets
-    function testFuzzAllLawsWithZeroAddressTargets(uint256 arrayLength, uint256 nonceFuzzed) public {
+    /// @notice Fuzz test that all mandates properly handle zero address targets
+    function testFuzzAllMandatesWithZeroAddressTargets(uint256 arrayLength, uint256 nonceFuzzed) public {
         // Bound inputs
         arrayLength = bound(arrayLength, 1, MAX_FUZZ_TARGETS);
 
@@ -517,28 +517,28 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = "";
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
-        // Test OpenAction (lawId 1)
+        // Test OpenAction (mandateId 1)
         (returnedActionId, returnedTargets,,) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Should not revert, just return zero addresses
         for (i = 0; i < returnedTargets.length; i++) {
             assertEq(returnedTargets[i], address(0));
         }
 
-        // Test StatementOfIntent (lawId 2)
+        // Test StatementOfIntent (mandateId 2)
         (returnedActionId, returnedTargets,,) =
-            statementOfIntent.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            statementOfIntent.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         for (i = 0; i < returnedTargets.length; i++) {
             assertEq(returnedTargets[i], address(0));
         }
     }
 
-    /// @notice Fuzz test all laws with maximum allowed calldata size
-    function testFuzzAllLawsWithMaxCalldata(uint256 nonceFuzzed) public {
+    /// @notice Fuzz test all mandates with maximum allowed calldata size
+    function testFuzzAllMandatesWithMaxCalldata(uint256 nonceFuzzed) public {
         // Create maximum size arrays
         targets = new address[](MAX_FUZZ_TARGETS);
         values = new uint256[](MAX_FUZZ_TARGETS);
@@ -559,17 +559,17 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = largeCalldata;
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         // Test OpenAction with large data
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
         assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
     }
 
-    /// @notice Fuzz test nonce uniqueness across all laws
+    /// @notice Fuzz test nonce uniqueness across all mandates
     function testFuzzNonceUniqueness(uint256 nonce1Fuzzed, uint256 nonce2Fuzzed) public {
         vm.assume(nonce1Fuzzed != nonce2Fuzzed);
 
@@ -580,14 +580,14 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, 1, "Test");
 
-        lawCalldata = abi.encode(targets, values, calldatas);
-        lawId = 1;
+        mandateCalldata = abi.encode(targets, values, calldatas);
+        mandateId = 1;
 
         // Get action IDs with different nonces
-        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce1Fuzzed);
+        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce1Fuzzed);
         uint256 firstActionId = returnedActionId;
 
-        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonce2Fuzzed);
+        (returnedActionId,,,) = openAction.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce2Fuzzed);
 
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
@@ -614,10 +614,10 @@ contract MultiFuzzTest is TestSetupMulti {
             calldatas[i] = abi.encodeWithSelector(daoMock.labelRole.selector, type(uint256).max - i, "Role");
         }
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
         (, returnedTargets, returnedValues,) =
-            openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Verify large values are preserved
         for (i = 0; i < arrayLength; i++) {
@@ -637,21 +637,21 @@ contract MultiFuzzTest is TestSetupMulti {
         calldatas = new bytes[](1);
         calldatas[0] = randomBytesFuzzed;
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
 
-        (,,, returnedCalldatas) = openAction.handleRequest(alice, address(daoMock), 1, lawCalldata, nonceFuzzed);
+        (,,, returnedCalldatas) = openAction.handleRequest(alice, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Should preserve random bytes
         assertEq(returnedCalldatas[0], randomBytesFuzzed);
     }
 
-    /// @notice Fuzz test law data retrieval consistency
-    function testFuzzLawDataConsistency(uint16 lawIdFuzzed) public {
-        // Bound to valid law IDs
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 7));
+    /// @notice Fuzz test mandate data retrieval consistency
+    function testFuzzMandateDataConsistency(uint16 mandateIdFuzzed) public {
+        // Bound to valid mandate IDs
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 7));
 
-        // Get law conditions from daoMock
-        conditions = daoMock.getConditions(lawIdFuzzed);
+        // Get mandate conditions from daoMock
+        conditions = daoMock.getConditions(mandateIdFuzzed);
 
         // Verify conditions are valid
         assertTrue(conditions.quorum <= 100);

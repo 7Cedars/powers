@@ -19,7 +19,7 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Law, Powers, Action, Status } from '@/context/types'
+import { Mandate, Powers, Action, Status } from '@/context/types'
 import { toFullDateFormat, toEurTimeFormat } from '@/utils/toDates'
 import { useBlocks } from '@/hooks/useBlocks'
 import { parseChainId } from '@/utils/parsers'
@@ -40,7 +40,7 @@ import {
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { setAction, useActionStore, usePowersStore } from '@/context/store'
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo'
-import HeaderLaw from '@/components/HeaderLaw'
+import HeaderMandate from '@/components/HeaderMandate'
 import { hashAction } from '@/utils/hashAction'
 import { useChecks } from '@/hooks/useChecks'
 import { useWallets } from '@privy-io/react-auth'
@@ -58,10 +58,10 @@ function getNodeBorderClass(action: Action | undefined): string {
   return DEFAULT_BORDER_CLASS
 }
 
-// Helper function to get action data for all laws in the dependency chain
+// Helper function to get action data for all mandates in the dependency chain
 function getActionDataForChain(
   selectedAction: Action | undefined,
-  laws: Law[],
+  mandates: Mandate[],
   powers: Powers
 ): Map<string, Action> {
   const actionDataMap = new Map<string, Action>()
@@ -71,17 +71,17 @@ function getActionDataForChain(
     return actionDataMap
   }
   
-  // For each law, calculate the actionId and look up the action data
-  laws.forEach(law => {
-    const lawId = law.index
-    const calculatedActionId = hashAction(lawId, selectedAction.callData!, BigInt(selectedAction.nonce!))
+  // For each mandate, calculate the actionId and look up the action data
+  mandates.forEach(mandate => {
+    const mandateId = mandate.index
+    const calculatedActionId = hashAction(mandateId, selectedAction.callData!, BigInt(selectedAction.nonce!))
     
     // Check if this action exists in the Powers object
-    const lawData = powers.laws?.find(l => l.index === lawId)
-    if (lawData && lawData.actions) {
-      const action = lawData.actions.find(a => a.actionId === String(calculatedActionId))
+    const mandateData = powers.mandates?.find(l => l.index === mandateId)
+    if (mandateData && mandateData.actions) {
+      const action = mandateData.actions.find(a => a.actionId === String(calculatedActionId))
       if (action) {
-        actionDataMap.set(String(lawId), action)
+        actionDataMap.set(String(mandateId), action)
       }
     }
   })
@@ -89,20 +89,20 @@ function getActionDataForChain(
   return actionDataMap
 }
 
-interface LawSchemaNodeData {
+interface MandateSchemaNodeData {
   powers: Powers
-  law: Law
+  mandate: Mandate
   roleColor: string
-  onNodeClick?: (lawId: string) => void
-  selectedLawId?: string
+  onNodeClick?: (mandateId: string) => void
+  selectedMandateId?: string
   connectedNodes?: Set<string>
   actionDataTimestamp?: number
   selectedAction?: Action
   chainActionData: Map<string, Action>
 }
 
-const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
-  const { law, roleColor, onNodeClick, selectedLawId, connectedNodes, powers, chainActionData } = data
+const MandateSchemaNode: React.FC<NodeProps<MandateSchemaNodeData>> = ( {data} ) => {
+  const { mandate, roleColor, onNodeClick, selectedMandateId, connectedNodes, powers, chainActionData } = data
   const action  = useActionStore()
   const { timestamps, fetchTimestamps } = useBlocks()
   const chainId = useParams().chainId as string
@@ -110,39 +110,39 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const { data: blockNumber } = useBlockNumber()
 
-  // Get action data for this law from the chain action data
-  const currentLawAction = chainActionData.get(String(law.index))
+  // Get action data for this mandate from the chain action data
+  const currentMandateAction = chainActionData.get(String(mandate.index))
 
-  // Fetch timestamps for the current law's action data
+  // Fetch timestamps for the current mandate's action data
   React.useEffect(() => {
-    // console.log("LAW schema node triggered", {law, chainActionData})
-    const currentLawAction = chainActionData.get(String(law.index))
-    // console.log( "@PowersFlow: ", {currentLawAction} )
-    if (currentLawAction) {
+    // console.log("LAW schema node triggered", {mandate, chainActionData})
+    const currentMandateAction = chainActionData.get(String(mandate.index))
+    // console.log( "@PowersFlow: ", {currentMandateAction} )
+    if (currentMandateAction) {
       const blockNumbers: bigint[] = []
       
       // Collect all block numbers that need timestamps
       // proposedAt is used for proposal created, vote started, and calculating vote ended
-      if (currentLawAction.proposedAt && currentLawAction.proposedAt !== 0n) {
-        blockNumbers.push(currentLawAction.proposedAt)
+      if (currentMandateAction.proposedAt && currentMandateAction.proposedAt !== 0n) {
+        blockNumbers.push(currentMandateAction.proposedAt)
       }
-      if (currentLawAction.requestedAt && currentLawAction.requestedAt !== 0n) {
-        blockNumbers.push(currentLawAction.requestedAt)
+      if (currentMandateAction.requestedAt && currentMandateAction.requestedAt !== 0n) {
+        blockNumbers.push(currentMandateAction.requestedAt)
       }
-      if (currentLawAction.fulfilledAt && currentLawAction.fulfilledAt !== 0n) {
-        blockNumbers.push(currentLawAction.fulfilledAt)
+      if (currentMandateAction.fulfilledAt && currentMandateAction.fulfilledAt !== 0n) {
+        blockNumbers.push(currentMandateAction.fulfilledAt)
       }
       
-      // Also fetch timestamps for dependent laws
-      if (law.conditions) {
-        if (law.conditions.needFulfilled != null && BigInt(law.conditions.needFulfilled) != 0n) {
-          const dependentAction = chainActionData.get(String(law.conditions.needFulfilled))
+      // Also fetch timestamps for dependent mandates
+      if (mandate.conditions) {
+        if (mandate.conditions.needFulfilled != null && BigInt(mandate.conditions.needFulfilled) != 0n) {
+          const dependentAction = chainActionData.get(String(mandate.conditions.needFulfilled))
           if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
         }
-        if (law.conditions.needNotFulfilled != null && BigInt(law.conditions.needNotFulfilled) != 0n) {
-          const dependentAction = chainActionData.get(String(law.conditions.needNotFulfilled))
+        if (mandate.conditions.needNotFulfilled != null && BigInt(mandate.conditions.needNotFulfilled) != 0n) {
+          const dependentAction = chainActionData.get(String(mandate.conditions.needNotFulfilled))
           if (dependentAction && dependentAction.fulfilledAt && dependentAction.fulfilledAt != 0n) {
             blockNumbers.push(dependentAction.fulfilledAt)
           }
@@ -154,7 +154,7 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         fetchTimestamps(blockNumbers, chainId)
       }
     }
-  }, [chainActionData, law.index, law.conditions, chainId, fetchTimestamps])
+  }, [chainActionData, mandate.index, mandate.conditions, chainId, fetchTimestamps])
   
   // Helper function to format block number or timestamp to desired format
   const formatBlockNumberOrTimestamp = (value: bigint | undefined): string | null => {
@@ -195,19 +195,19 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
 
   // Helper function to get date for each check item
   const getCheckItemDate = (itemKey: string): string | null => {
-    const currentLawAction = chainActionData.get(String(law.index))
-    // console.log("currentLawAction", currentLawAction)
+    const currentMandateAction = chainActionData.get(String(mandate.index))
+    // console.log("currentMandateAction", currentMandateAction)
     
     switch (itemKey) {
       case 'needFulfilled':
       case 'needNotFulfilled': {
-        // Get executedAt from the dependent law - this should work regardless of current law's action data
-        const dependentLawId = itemKey == 'needFulfilled' 
-          ? law.conditions?.needFulfilled 
-          : law.conditions?.needNotFulfilled
+        // Get executedAt from the dependent mandate - this should work regardless of current mandate's action data
+        const dependentMandateId = itemKey == 'needFulfilled' 
+          ? mandate.conditions?.needFulfilled 
+          : mandate.conditions?.needNotFulfilled
         
-        if (dependentLawId && dependentLawId != 0n) {
-          const dependentAction = chainActionData.get(String(dependentLawId))
+        if (dependentMandateId && dependentMandateId != 0n) {
+          const dependentAction = chainActionData.get(String(dependentMandateId))
           
           return formatBlockNumberOrTimestamp(dependentAction?.fulfilledAt)
         }
@@ -215,29 +215,29 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       }
       
       case 'proposalCreated': {
-        // Show proposal creation time - use proposedAt from current law's action data
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.proposedAt)
+        // Show proposal creation time - use proposedAt from current mandate's action data
+        if (currentMandateAction && currentMandateAction.proposedAt && currentMandateAction.proposedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentMandateAction.proposedAt)
         }
         return null
       }
       
       case 'voteStarted': {
         // Vote started is the same as proposal created (proposedAt)
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.proposedAt)
+        if (currentMandateAction && currentMandateAction.proposedAt && currentMandateAction.proposedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentMandateAction.proposedAt)
         }
         return null
       }
       
       case 'voteEnded': {
         // Calculate vote end time using proposedAt + votingPeriod (converted to blocks)
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && blockNumber != null) {
+        if (currentMandateAction && currentMandateAction.proposedAt && currentMandateAction.proposedAt != 0n && mandate.conditions?.votingPeriod && blockNumber != null) {
           const parsedChainId = parseChainId(chainId)
           if (parsedChainId == null) return null
           
           // Calculate future block when vote will end
-          const voteEndBlock = BigInt(currentLawAction.proposedAt) + BigInt(law.conditions.votingPeriod)
+          const voteEndBlock = BigInt(currentMandateAction.proposedAt) + BigInt(mandate.conditions.votingPeriod)
           
           // Use fromFutureBlockToDateTime to get human-readable format
          
@@ -249,12 +249,12 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
 
       case 'delay': {
         // Calculate delay pass time using proposedAt + votingPeriod + delayExecution (converted to blocks)
-        if (currentLawAction && currentLawAction.proposedAt && currentLawAction.proposedAt != 0n && law.conditions?.votingPeriod && law.conditions.delayExecution != 0n && blockNumber != null) {
+        if (currentMandateAction && currentMandateAction.proposedAt && currentMandateAction.proposedAt != 0n && mandate.conditions?.votingPeriod && mandate.conditions.delayExecution != 0n && blockNumber != null) {
           const parsedChainId = parseChainId(chainId)
           if (parsedChainId == null) return null
           
           // Calculate future block when delay will pass
-          const delayEndBlock = BigInt(currentLawAction.proposedAt) + BigInt(law.conditions.votingPeriod) + BigInt(law.conditions.delayExecution)
+          const delayEndBlock = BigInt(currentMandateAction.proposedAt) + BigInt(mandate.conditions.votingPeriod) + BigInt(mandate.conditions.delayExecution)
           
           // Use fromFutureBlockToDateTime to get human-readable format
           return fromFutureBlockToDateTime(delayEndBlock, BigInt(blockNumber), parsedChainId)
@@ -265,19 +265,19 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       
       case 'requested': {
         // Use requestedAt field - show when proposal was requested (after vote passed)
-        if (currentLawAction && currentLawAction.requestedAt && currentLawAction.requestedAt != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.requestedAt)
+        if (currentMandateAction && currentMandateAction.requestedAt && currentMandateAction.requestedAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentMandateAction.requestedAt)
         }
         return null
       }
       
       case 'throttle':
-        if (law.conditions?.throttleExecution && blockNumber != null) {  
-          const latestFulfilledAction = law.actions ? Math.max(...law.actions.map(action => Number(action.fulfilledAt)), 1) : 0
+        if (mandate.conditions?.throttleExecution && blockNumber != null) {  
+          const latestFulfilledAction = mandate.actions ? Math.max(...mandate.actions.map(action => Number(action.fulfilledAt)), 1) : 0
           const parsedChainId = parseChainId(chainId)
           if (parsedChainId == null) return null
 
-          const throttlePassBlock = BigInt(latestFulfilledAction + Number(law.conditions.throttleExecution))
+          const throttlePassBlock = BigInt(latestFulfilledAction + Number(mandate.conditions.throttleExecution))
           return fromFutureBlockToDateTime(throttlePassBlock, BigInt(blockNumber), parsedChainId)
         }
         
@@ -286,8 +286,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       
       case 'fulfilled':        
         // Only show date if actually fulfilled (fulfilledAt > 0)
-        if (currentLawAction && currentLawAction.fulfilledAt && currentLawAction.fulfilledAt != 0n) {
-          return formatBlockNumberOrTimestamp(currentLawAction.fulfilledAt)
+        if (currentMandateAction && currentMandateAction.fulfilledAt && currentMandateAction.fulfilledAt != 0n) {
+          return formatBlockNumberOrTimestamp(currentMandateAction.fulfilledAt)
         }
         return null
       
@@ -298,15 +298,15 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
 
   const handleClick = () => {
     if (onNodeClick) {
-      onNodeClick(String(law.index))
+      onNodeClick(String(mandate.index))
     }
   }
 
-  const isSelected = selectedLawId === String(law.index)
+  const isSelected = selectedMandateId === String(mandate.index)
   const borderThickness = isSelected ? 'border-4' : 'border'
   
   // Apply opacity based on connection to selected node
-  const isConnected = !selectedLawId || !connectedNodes || connectedNodes.has(String(law.index))
+  const isConnected = !selectedMandateId || !connectedNodes || connectedNodes.has(String(mandate.index))
   const opacityClass = isConnected ? 'opacity-100' : 'opacity-50'
 
   const checkItems = useMemo(() => {
@@ -316,65 +316,65 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       blockNumber?: bigint
       state?: Status
       hasHandle: boolean
-      targetLaw?: bigint
+      targetMandate?: bigint
       edgeType?: string
     }[] = []
 
-    // console.log("checkItems triggered", {law, chainActionData})
+    // console.log("checkItems triggered", {mandate, chainActionData})
     
-    // 1. Dependency checks - show only if dependent laws exist (condition != 0)
-    if (law.conditions) {
-      if (law.conditions.needFulfilled > 0n) {
-        const dependentAction = chainActionData.get(String(law.conditions.needFulfilled))
+    // 1. Dependency checks - show only if dependent mandates exist (condition != 0)
+    if (mandate.conditions) {
+      if (mandate.conditions.needFulfilled > 0n) {
+        const dependentAction = chainActionData.get(String(mandate.conditions.needFulfilled))
         items.push({ 
           key: 'needFulfilled', 
-          label: `Law ${law.conditions.needFulfilled} Fulfilled`, 
+          label: `Mandate ${mandate.conditions.needFulfilled} Fulfilled`, 
           blockNumber: dependentAction?.fulfilledAt,
           state: dependentAction?.fulfilledAt && dependentAction.fulfilledAt > 0n ? "success" : "pending",
           hasHandle: true,
-          targetLaw: law.conditions.needFulfilled,
+          targetMandate: mandate.conditions.needFulfilled,
           edgeType: 'needFulfilled'
         })
       }
       
-      if (law.conditions.needNotFulfilled > 0n) {
-        const dependentAction = chainActionData.get(String(law.conditions.needNotFulfilled))
-        // For needNotFulfilled, show green when the dependent law is NOT fulfilled (blockNumber is 0 or undefined) 
+      if (mandate.conditions.needNotFulfilled > 0n) {
+        const dependentAction = chainActionData.get(String(mandate.conditions.needNotFulfilled))
+        // For needNotFulfilled, show green when the dependent mandate is NOT fulfilled (blockNumber is 0 or undefined) 
         items.push({ 
           key: 'needNotFulfilled', 
-          label: `Law ${law.conditions.needNotFulfilled} Not Fulfilled`, 
+          label: `Mandate ${mandate.conditions.needNotFulfilled} Not Fulfilled`, 
           blockNumber: dependentAction?.fulfilledAt,
           state: dependentAction?.fulfilledAt && dependentAction.fulfilledAt > 0n ? "error" : "success",
           hasHandle: true,
-          targetLaw: law.conditions.needNotFulfilled,
+          targetMandate: mandate.conditions.needNotFulfilled,
           edgeType: 'needNotFulfilled'
         })
       }
     }
     
     // 2. Throttle check - show only if throttle condition exists (throttleExecution > 0)
-    if (law.conditions && law.conditions.throttleExecution != null && law.conditions.throttleExecution > 0n) { 
-      const latestFulfilledAction = law.actions ? Math.max(...law.actions.map(action => Number(action.fulfilledAt)), 1) : 0
-      const throttledPassed = (latestFulfilledAction + Number(law.conditions.throttleExecution)) < Number(blockNumber)
+    if (mandate.conditions && mandate.conditions.throttleExecution != null && mandate.conditions.throttleExecution > 0n) { 
+      const latestFulfilledAction = mandate.actions ? Math.max(...mandate.actions.map(action => Number(action.fulfilledAt)), 1) : 0
+      const throttledPassed = (latestFulfilledAction + Number(mandate.conditions.throttleExecution)) < Number(blockNumber)
 
-      // console.log("Throttle check", {law, latestFulfilledAction, throttledPassed, blockNumber})
+      // console.log("Throttle check", {mandate, latestFulfilledAction, throttledPassed, blockNumber})
 
       items.push({ 
         key: 'throttle', 
         label: 'Throttle Passed', 
-        blockNumber: BigInt(latestFulfilledAction + Number(law.conditions.throttleExecution)),
+        blockNumber: BigInt(latestFulfilledAction + Number(mandate.conditions.throttleExecution)),
         state: throttledPassed ? "success" : "error",
         hasHandle: false
       })
     }
     
     // 3. Vote flow - show only when quorum > 0
-    if (law.conditions && law.conditions.quorum != null && law.conditions.quorum > 0n) {
+    if (mandate.conditions && mandate.conditions.quorum != null && mandate.conditions.quorum > 0n) {
       items.push({ 
         key: 'proposalCreated', 
         label: 'Proposal Created', 
-        blockNumber: currentLawAction?.proposedAt,
-        state: currentLawAction?.proposedAt && currentLawAction.proposedAt > 0n ? "success" : "pending",
+        blockNumber: currentMandateAction?.proposedAt,
+        state: currentMandateAction?.proposedAt && currentMandateAction.proposedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
       
@@ -382,8 +382,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         key: 'voteStarted', 
         label: 'Vote Started', 
         // Vote started is the same as proposal created
-        blockNumber: currentLawAction?.proposedAt,
-        state: currentLawAction?.proposedAt && currentLawAction.proposedAt > 0n ? "success" : "pending",
+        blockNumber: currentMandateAction?.proposedAt,
+        state: currentMandateAction?.proposedAt && currentMandateAction.proposedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
       
@@ -391,23 +391,23 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         key: 'voteEnded', 
         label: 'Vote Ended', 
         // Show as completed if we have proposedAt (vote will end at proposedAt + votingPeriod)
-        blockNumber: currentLawAction?.proposedAt,
+        blockNumber: currentMandateAction?.proposedAt,
         state: 
-          currentLawAction?.state && currentLawAction?.state == 4 ? "error" :
-          currentLawAction?.state && currentLawAction?.state >= 5 ? "success" :
+          currentMandateAction?.state && currentMandateAction?.state == 4 ? "error" :
+          currentMandateAction?.state && currentMandateAction?.state >= 5 ? "success" :
           "pending",
         hasHandle: false
       })
 
           
       // 4. Delay - show only if delayExecution > 0
-      if (law.conditions && law.conditions.delayExecution != null && law.conditions?.quorum != null && law.conditions.delayExecution > 0n) {
+      if (mandate.conditions && mandate.conditions.delayExecution != null && mandate.conditions?.quorum != null && mandate.conditions.delayExecution > 0n) {
         items.push({ 
           key: 'delay', 
           label: 'Delay Passed', 
           // For delay, we use proposedAt as the reference block (the delay is calculated from it: proposedAt + votingPeriod + delay)
-          blockNumber: currentLawAction?.proposedAt,
-          state: currentLawAction?.proposedAt ? currentLawAction?.proposedAt + law.conditions.votingPeriod + law.conditions.delayExecution < BigInt(blockNumber || 0) ? "success" : "pending" : "pending",
+          blockNumber: currentMandateAction?.proposedAt,
+          state: currentMandateAction?.proposedAt ? currentMandateAction?.proposedAt + mandate.conditions.votingPeriod + mandate.conditions.delayExecution < BigInt(blockNumber || 0) ? "success" : "pending" : "pending",
           hasHandle: false
         })
       }
@@ -416,8 +416,8 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
         key: 'requested', 
         label: 'Requested', 
         // Show green if action has been requested (requestedAt > 0)
-        blockNumber: currentLawAction?.requestedAt || 0n,
-        state: currentLawAction?.requestedAt && currentLawAction.requestedAt > 0n ? "success" : "pending",
+        blockNumber: currentMandateAction?.requestedAt || 0n,
+        state: currentMandateAction?.requestedAt && currentMandateAction.requestedAt > 0n ? "success" : "pending",
         hasHandle: false
       })
     }
@@ -426,22 +426,22 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
     items.push({ 
       key: 'fulfilled', 
       label: 'Fulfilled', 
-      blockNumber: currentLawAction?.fulfilledAt,
-      state: currentLawAction?.fulfilledAt && currentLawAction.fulfilledAt > 0n ? "success" : "pending",
+      blockNumber: currentMandateAction?.fulfilledAt,
+      state: currentMandateAction?.fulfilledAt && currentMandateAction.fulfilledAt > 0n ? "success" : "pending",
       hasHandle: false
     })
     
     return items
-  }, [currentLawAction, law.conditions, chainActionData])
+  }, [currentMandateAction, mandate.conditions, chainActionData])
 
-  const roleBorderClass = getNodeBorderClass(currentLawAction)
+  const roleBorderClass = getNodeBorderClass(currentMandateAction)
 
-  // Helper values for HeaderLaw
-  const lawName = law.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`;
-  const roleName = law.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : '';
-  const numHolders = law.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers) : '';
-  const description = law.nameDescription ? law.nameDescription.split(':')[1] || '' : '';
-  const contractAddress = law.lawAddress;
+  // Helper values for HeaderMandate
+  const mandateName = mandate.nameDescription ? `#${Number(mandate.index)}: ${mandate.nameDescription.split(':')[0]}` : `#${Number(mandate.index)}`;
+  const roleName = mandate.conditions && powers ? bigintToRole(mandate.conditions.allowedRole, powers) : '';
+  const numHolders = mandate.conditions && powers ? bigintToRoleHolders(mandate.conditions.allowedRole, powers) : '';
+  const description = mandate.nameDescription ? mandate.nameDescription.split(':')[1] || '' : '';
+  const contractAddress = mandate.mandateAddress;
   const blockExplorerUrl = supportedChain?.blockExplorers?.default.url;
 
   return (
@@ -450,11 +450,11 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
       help-nav-item="flow-node"
       onClick={handleClick}
     >        
-        {/* Law Header - replaced with HeaderLaw */}
+        {/* Mandate Header - replaced with HeaderMandate */}
         <div className="px-4 py-3 border-b border-gray-300 bg-slate-100" style={{ borderBottomColor: roleColor }}>
-          <HeaderLaw
+          <HeaderMandate
             powers={powers as Powers}
-            lawName={lawName}
+            mandateName={mandateName}
             roleName={roleName}
             numHolders={numHolders}
             description={description}
@@ -576,42 +576,42 @@ const LawSchemaNode: React.FC<NodeProps<LawSchemaNodeData>> = ( {data} ) => {
 }
 
 const nodeTypes = {
-  lawSchema: LawSchemaNode,
+  mandateSchema: MandateSchemaNode,
 }
 
 // Helper function to find all nodes connected to a selected node through dependencies
-function findConnectedNodes(powers: Powers, selectedLawId: string): Set<string> {
+function findConnectedNodes(powers: Powers, selectedMandateId: string): Set<string> {
   const connected = new Set<string>()
   const visited = new Set<string>()
 
-  const laws = powers?.laws || []
+  const mandates = powers?.mandates || []
 
   // Build dependency maps
   const dependencies = new Map<string, Set<string>>()
   const dependents = new Map<string, Set<string>>()
   
-  laws.forEach(law => {
-    const lawId = String(law.index)
-    dependencies.set(lawId, new Set())
-    dependents.set(lawId, new Set())
+  mandates.forEach(mandate => {
+    const mandateId = String(mandate.index)
+    dependencies.set(mandateId, new Set())
+    dependents.set(mandateId, new Set())
   })
   
   // Populate dependency relationships
-  laws.forEach(law => {
-    const lawId = String(law.index)
-    if (law.conditions) {
-      if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
-        const targetId = String(law.conditions.needFulfilled)
+  mandates.forEach(mandate => {
+    const mandateId = String(mandate.index)
+    if (mandate.conditions) {
+      if (mandate.conditions.needFulfilled != null && mandate.conditions.needFulfilled !== 0n) {
+        const targetId = String(mandate.conditions.needFulfilled)
         if (dependencies.has(targetId)) {
-        dependencies.get(lawId)?.add(targetId)
-        dependents.get(targetId)?.add(lawId)
+        dependencies.get(mandateId)?.add(targetId)
+        dependents.get(targetId)?.add(mandateId)
         }
       }
-      if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled !== 0n) {
-        const targetId = String(law.conditions.needNotFulfilled)
+      if (mandate.conditions.needNotFulfilled != null && mandate.conditions.needNotFulfilled !== 0n) {
+        const targetId = String(mandate.conditions.needNotFulfilled)
         if (dependencies.has(targetId)) {
-        dependencies.get(lawId)?.add(targetId)
-        dependents.get(targetId)?.add(lawId)
+        dependencies.get(mandateId)?.add(targetId)
+        dependents.get(targetId)?.add(mandateId)
         }
       }
     }
@@ -632,23 +632,23 @@ function findConnectedNodes(powers: Powers, selectedLawId: string): Set<string> 
     dependentNodes.forEach(depId => traverse(depId))
   }
   
-  traverse(selectedLawId)
+  traverse(selectedMandateId)
   return connected
 }
 
 // Helper function to create a compact layered tree layout based on dependencies
-function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x: number; y: number }>): Map<string, { x: number; y: number }> {
+function createHierarchicalLayout(mandates: Mandate[], savedLayout?: Record<string, { x: number; y: number }>): Map<string, { x: number; y: number }> {
   const positions = new Map<string, { x: number; y: number }>()
 
   // If we have saved layout, use it first
   if (savedLayout) {
-    laws.forEach(law => {
-      const lawId = String(law.index)
-      if (savedLayout[lawId]) {
-        positions.set(lawId, savedLayout[lawId])
+    mandates.forEach(mandate => {
+      const mandateId = String(mandate.index)
+      if (savedLayout[mandateId]) {
+        positions.set(mandateId, savedLayout[mandateId])
       }
     })
-    if (positions.size === laws.length) {
+    if (positions.size === mandates.length) {
       return positions
     }
   }
@@ -656,34 +656,34 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   // Build dependency and dependent maps
   const dependencies = new Map<string, Set<string>>()
   const dependents = new Map<string, Set<string>>()
-  laws.forEach(law => {
-    const lawId = String(law.index)
-    dependencies.set(lawId, new Set())
-    dependents.set(lawId, new Set())
+  mandates.forEach(mandate => {
+    const mandateId = String(mandate.index)
+    dependencies.set(mandateId, new Set())
+    dependents.set(mandateId, new Set())
   })
-  laws.forEach(law => {
-    const lawId = String(law.index)
-    if (law.conditions) {
-      if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
-        const targetId = String(law.conditions.needFulfilled)
+  mandates.forEach(mandate => {
+    const mandateId = String(mandate.index)
+    if (mandate.conditions) {
+      if (mandate.conditions.needFulfilled != null && mandate.conditions.needFulfilled !== 0n) {
+        const targetId = String(mandate.conditions.needFulfilled)
         if (dependencies.has(targetId)) {
-          dependencies.get(lawId)?.add(targetId)
-          dependents.get(targetId)?.add(lawId)
+          dependencies.get(mandateId)?.add(targetId)
+          dependents.get(targetId)?.add(mandateId)
         }
       }
-      if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled !== 0n) {
-        const targetId = String(law.conditions.needNotFulfilled)
+      if (mandate.conditions.needNotFulfilled != null && mandate.conditions.needNotFulfilled !== 0n) {
+        const targetId = String(mandate.conditions.needNotFulfilled)
         if (dependencies.has(targetId)) {
-          dependencies.get(lawId)?.add(targetId)
-          dependents.get(targetId)?.add(lawId)
+          dependencies.get(mandateId)?.add(targetId)
+          dependents.get(targetId)?.add(mandateId)
         }
       }
     }
   })
 
   // Find root nodes (no dependencies)
-  const allLawIds = laws.map(law => String(law.index))
-  const rootNodes = allLawIds.filter(lawId => (dependencies.get(lawId)?.size || 0) === 0)
+  const allMandateIds = mandates.map(mandate => String(mandate.index))
+  const rootNodes = allMandateIds.filter(mandateId => (dependencies.get(mandateId)?.size || 0) === 0)
 
   // Layout constants (flipped axes)
   const NODE_SPACING_X = 500 // Now used for depth (main flow, horizontal)
@@ -694,20 +694,20 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
 
   // Compute the size (number of rows) of each subtree
   const subtreeSize = new Map<string, number>()
-  function computeSubtreeSize(lawId: string, visiting: Set<string> = new Set()): number {
-    if (visiting.has(lawId)) return 0; // Prevent cycles
-    visiting.add(lawId);
-    const children = Array.from(dependents.get(lawId) || [])
+  function computeSubtreeSize(mandateId: string, visiting: Set<string> = new Set()): number {
+    if (visiting.has(mandateId)) return 0; // Prevent cycles
+    visiting.add(mandateId);
+    const children = Array.from(dependents.get(mandateId) || [])
     if (children.length === 0) {
-      subtreeSize.set(lawId, 1)
-      visiting.delete(lawId);
+      subtreeSize.set(mandateId, 1)
+      visiting.delete(mandateId);
       return 1
     }
     // Compute size for all children
     const sizes = children.map(childId => computeSubtreeSize(childId, visiting))
     const total = sizes.reduce((a, b) => a + b, 0)
-    subtreeSize.set(lawId, total)
-    visiting.delete(lawId);
+    subtreeSize.set(mandateId, total)
+    visiting.delete(mandateId);
     return total
   }
   rootNodes.forEach(rootId => computeSubtreeSize(rootId))
@@ -716,16 +716,16 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   let nextY = 0
 
   // Recursive function to place nodes (cycle-safe)
-  function placeNode(lawId: string, x: number, y: number, visiting: Set<string> = new Set()) {
-    if (placed.has(lawId)) return;
-    if (visiting.has(lawId)) return; // Prevent cycles
-    placed.add(lawId);
-    positions.set(lawId, { x: x * NODE_SPACING_X, y: y * NODE_SPACING_Y });
+  function placeNode(mandateId: string, x: number, y: number, visiting: Set<string> = new Set()) {
+    if (placed.has(mandateId)) return;
+    if (visiting.has(mandateId)) return; // Prevent cycles
+    placed.add(mandateId);
+    positions.set(mandateId, { x: x * NODE_SPACING_X, y: y * NODE_SPACING_Y });
 
-    visiting.add(lawId);
-    const children = Array.from(dependents.get(lawId) || []);
+    visiting.add(mandateId);
+    const children = Array.from(dependents.get(mandateId) || []);
     if (children.length === 0) {
-      visiting.delete(lawId);
+      visiting.delete(mandateId);
       return;
     }
     // Sort children by subtree size descending, so the largest is the 'main' child
@@ -736,7 +736,7 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
       placeNode(childId, x + 1, childY, visiting);
       childY += subtreeSize.get(childId) || 1;
     }
-    visiting.delete(lawId);
+    visiting.delete(mandateId);
   }
 
   // Place all root nodes, stacking them vertically
@@ -748,14 +748,14 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   // Place any unplaced nodes (disconnected or cycles)
   // Collect all singletons (no dependencies and no dependents)
   const singletons: string[] = []
-  allLawIds.forEach(lawId => {
-    if (!placed.has(lawId)) {
-      if ((dependencies.get(lawId)?.size || 0) === 0 && (dependents.get(lawId)?.size || 0) === 0) {
-        singletons.push(lawId)
+  allMandateIds.forEach(mandateId => {
+    if (!placed.has(mandateId)) {
+      if ((dependencies.get(mandateId)?.size || 0) === 0 && (dependents.get(mandateId)?.size || 0) === 0) {
+        singletons.push(mandateId)
       } else {
-        positions.set(lawId, { x: 0, y: nextY * NODE_SPACING_Y })
+        positions.set(mandateId, { x: 0, y: nextY * NODE_SPACING_Y })
         nextY += 1
-        placed.add(lawId)
+        placed.add(mandateId)
       }
     }
   })
@@ -766,11 +766,11 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   const yRowMap = new Map<number, number>()
   usedYRows.forEach((row, idx) => yRowMap.set(row, idx))
   // Shift all nodes up to fill gaps
-    positions.forEach((pos, lawId) => {
+    positions.forEach((pos, mandateId) => {
       const oldRow = pos.y / NODE_SPACING_Y
       const newRow = yRowMap.get(oldRow)
       if (newRow !== undefined) {
-        positions.set(lawId, { x: pos.x, y: newRow * NODE_SPACING_Y })
+        positions.set(mandateId, { x: pos.x, y: newRow * NODE_SPACING_Y })
       }
     })
 
@@ -778,16 +778,16 @@ function createHierarchicalLayout(laws: Law[], savedLayout?: Record<string, { x:
   // Find all y rows (in row units, not pixels) used by non-singleton nodes
   const singletonSet = new Set(singletons);
   let maxRow = 0;
-  positions.forEach((pos, lawId) => {
-    if (!singletonSet.has(lawId)) {
+  positions.forEach((pos, mandateId) => {
+    if (!singletonSet.has(mandateId)) {
       const row = Math.round(pos.y / NODE_SPACING_Y);
       if (row > maxRow) maxRow = row;
     }
   });
   const singletonRow = maxRow + 1;
-  singletons.forEach((lawId, idx) => {
-    positions.set(lawId, { x: idx * NODE_SPACING_X, y: singletonRow * NODE_SPACING_Y });
-    placed.add(lawId);
+  singletons.forEach((mandateId, idx) => {
+    positions.set(mandateId, { x: idx * NODE_SPACING_X, y: singletonRow * NODE_SPACING_Y });
+    placed.add(mandateId);
   });
 
   return positions
@@ -817,7 +817,7 @@ const setStoredViewport = (viewport: { x: number; y: number; zoom: number }) => 
 
 const FlowContent: React.FC = () => {
   const { getNodes, getViewport, setViewport } = useReactFlow()
-  const { lawId: selectedLawId } = useParams<{lawId: string }>()  
+  const { mandateId: selectedMandateId } = useParams<{mandateId: string }>()  
   const router = useRouter()
   const action = useActionStore()
   const [userHasInteracted, setUserHasInteracted] = React.useState(false)
@@ -977,18 +977,18 @@ const FlowContent: React.FC = () => {
     setViewport({ x, y, zoom }, { duration: 800 })
   }, [getNodes, setViewport])
 
-  const handleNodeClick = useCallback((lawId: string) => {
+  const handleNodeClick = useCallback((mandateId: string) => {
     // Store current viewport before navigation
     const currentViewport = getViewport()
     setStoredViewport(currentViewport)
-    // console.log("@handleNodeClick: waypoint 0", {lawId, action})
-    // Navigate to the law page within the flow layout
+    // console.log("@handleNodeClick: waypoint 0", {mandateId, action})
+    // Navigate to the mandate page within the flow layout
     setAction({
       ...action,
-      lawId: BigInt(lawId),
+      mandateId: BigInt(mandateId),
       upToDate: false
     })
-    router.push(`/protocol/${powers?.chainId}/${powers?.contractAddress}/laws/${lawId}`)
+    router.push(`/protocol/${powers?.chainId}/${powers?.contractAddress}/mandates/${mandateId}`)
     // console.log("@handleNodeClick: waypoint 1", {action})
   }, [router, powers?.contractAddress, action, getViewport])
 
@@ -998,8 +998,8 @@ const FlowContent: React.FC = () => {
     
     const storedViewport = getStoredViewport()
     
-    // Only fit view on initial page load (no selected law and no stored viewport)
-    if (!action.lawId && !selectedLawId && !storedViewport) {
+    // Only fit view on initial page load (no selected mandate and no stored viewport)
+    if (!action.mandateId && !selectedMandateId && !storedViewport) {
       setTimeout(() => {
         fitViewWithPanel()
         // Save the fitted viewport
@@ -1014,12 +1014,12 @@ const FlowContent: React.FC = () => {
         setViewport(storedViewport, { duration: 0 })
       }, 100)
     }
-  }, [setViewport, getViewport, action.lawId, selectedLawId, fitViewWithPanel])
+  }, [setViewport, getViewport, action.mandateId, selectedMandateId, fitViewWithPanel])
 
 
   // Reset user interaction flag when navigating to home page
   React.useEffect(() => {
-    const isHomePage = !pathname.includes('/laws/')
+    const isHomePage = !pathname.includes('/mandates/')
     if (isHomePage) {
       setUserHasInteracted(false)
     }
@@ -1027,51 +1027,51 @@ const FlowContent: React.FC = () => {
 
 
 
-  // Create nodes and edges from laws
+  // Create nodes and edges from mandates
   const { initialNodes, initialEdges } = useMemo(() => {
-    if (!powers?.laws) return { initialNodes: [], initialEdges: [] }
-    const ActiveLaws = powers?.laws.filter(law => law.active)
-    if (!ActiveLaws) return { initialNodes: [], initialEdges: [] }
+    if (!powers?.mandates) return { initialNodes: [], initialEdges: [] }
+    const ActiveMandates = powers?.mandates.filter(mandate => mandate.active)
+    if (!ActiveMandates) return { initialNodes: [], initialEdges: [] }
     
     const nodes: Node[] = []
     const edges: Edge[] = []
     
     // Use hierarchical layout instead of simple grid
     const savedLayout = loadSavedLayout()
-    const positions = createHierarchicalLayout(ActiveLaws || [], savedLayout)
+    const positions = createHierarchicalLayout(ActiveMandates || [], savedLayout)
     
-    // Find connected nodes if a law is selected
-    const selectedLawIdFromStore = action.lawId !== 0n ? String(action.lawId) : undefined
-    const connectedNodes = selectedLawIdFromStore 
-      ? findConnectedNodes(powers as Powers, selectedLawIdFromStore as string)
+    // Find connected nodes if a mandate is selected
+    const selectedMandateIdFromStore = action.mandateId !== 0n ? String(action.mandateId) : undefined
+    const connectedNodes = selectedMandateIdFromStore 
+      ? findConnectedNodes(powers as Powers, selectedMandateIdFromStore as string)
       : undefined
     
     // Get the selected action from the store
     const selectedAction = action.actionId !== "0" ? action : undefined
     
-    // Get action data for all laws in the chain
+    // Get action data for all mandates in the chain
     const chainActionData = getActionDataForChain(
       selectedAction,
-      ActiveLaws || [],
+      ActiveMandates || [],
       powers
     )
     
-    ActiveLaws?.forEach((law) => {
+    ActiveMandates?.forEach((mandate) => {
       const roleColor = DEFAULT_NODE_COLOR
-      const lawId = String(law.index)
-      const position = positions.get(lawId) || { x: 0, y: 0 }
+      const mandateId = String(mandate.index)
+      const position = positions.get(mandateId) || { x: 0, y: 0 }
       
-      // Create law schema node
+      // Create mandate schema node
       nodes.push({
-        id: lawId,
-        type: 'lawSchema',  
+        id: mandateId,
+        type: 'mandateSchema',  
         position,
         data: {
           powers,
-          law,
+          mandate,
           roleColor,
           onNodeClick: handleNodeClick,
-          selectedLawId: selectedLawIdFromStore,
+          selectedMandateId: selectedMandateIdFromStore,
           connectedNodes,
           actionDataTimestamp: Date.now(),
           selectedAction,
@@ -1079,18 +1079,18 @@ const FlowContent: React.FC = () => {
         },
       })
       
-      // Create edges from dependency checks to target laws
-      if (law.conditions) {
-        const sourceId = lawId
+      // Create edges from dependency checks to target mandates
+      if (mandate.conditions) {
+        const sourceId = mandateId
         
-        // Check if the source law's action is fulfilled
+        // Check if the source mandate's action is fulfilled
         const sourceAction = chainActionData.get(sourceId)
         const isSourceFulfilled = sourceAction && sourceAction.fulfilledAt && sourceAction.fulfilledAt > 0n
         const edgeColor = '#6B7280' // green-600 if fulfilled, gray otherwise // turned off for now: isSourceFulfilled ? '#16a34a' :
         
-        // Edge from needFulfilled check to target law
-        if (law.conditions.needFulfilled != null && law.conditions.needFulfilled !== 0n) {
-          const targetId = String(law.conditions.needFulfilled)
+        // Edge from needFulfilled check to target mandate
+        if (mandate.conditions.needFulfilled != null && mandate.conditions.needFulfilled !== 0n) {
+          const targetId = String(mandate.conditions.needFulfilled)
           // Determine if this edge should be highlighted (connected to selected node)
           const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
           const edgeOpacity = isEdgeConnected ? 1 : 0.5
@@ -1116,9 +1116,9 @@ const FlowContent: React.FC = () => {
           })
         }
         
-        // Edge from needNotFulfilled check to target law
-        if (law.conditions.needNotFulfilled != null && law.conditions.needNotFulfilled != 0n) {
-          const targetId = String(law.conditions.needNotFulfilled)
+        // Edge from needNotFulfilled check to target mandate
+        if (mandate.conditions.needNotFulfilled != null && mandate.conditions.needNotFulfilled != 0n) {
+          const targetId = String(mandate.conditions.needNotFulfilled)
           // Determine if this edge should be highlighted (connected to selected node)
           const isEdgeConnected = !connectedNodes || connectedNodes.has(sourceId) || connectedNodes.has(targetId)
           const edgeOpacity = isEdgeConnected ? 1 : 0.5
@@ -1152,8 +1152,8 @@ const FlowContent: React.FC = () => {
   }, [
     powers,
     handleNodeClick, 
-    selectedLawId, 
-    action.lawId, 
+    selectedMandateId, 
+    action.mandateId, 
     loadSavedLayout
   ])
 
@@ -1217,14 +1217,14 @@ const FlowContent: React.FC = () => {
     }
   }, [onNodesChange, debouncedSaveLayout])
   
-  const ActiveLaws = powers?.laws?.filter(law => law.active)
-  if (!ActiveLaws || ActiveLaws.length === 0) {
+  const ActiveMandates = powers?.mandates?.filter(mandate => mandate.active)
+  if (!ActiveMandates || ActiveMandates.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">
-          <div className="text-gray-500 text-lg mb-2">No active laws found</div>
-          <div className="text-gray-400 text-sm">Deploy some laws to see the visualization</div>
-          <div className="text-gray-400 text-sm">Or press the refresh button to load the latest laws</div>
+          <div className="text-gray-500 text-lg mb-2">No active mandates found</div>
+          <div className="text-gray-400 text-sm">Deploy some mandates to see the visualization</div>
+          <div className="text-gray-400 text-sm">Or press the refresh button to load the latest mandates</div>
         </div>
       </div>
     )
@@ -1262,7 +1262,7 @@ const FlowContent: React.FC = () => {
         <Background />
         <MiniMap 
           nodeColor={(node) => {
-            const nodeData = node.data as LawSchemaNodeData
+            const nodeData = node.data as MandateSchemaNodeData
             return nodeData.roleColor
           }}
           nodeStrokeWidth={3}

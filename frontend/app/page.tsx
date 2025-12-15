@@ -2,7 +2,7 @@
 // searchers for deployed Separated Powers Protocols.
 // Has search bar.
 // also has template DAOs to deploy.  
-// Loads names,# laws, # proposals, # roles, # members, chain. 
+// Loads names,# mandates, # proposals, # roles, # members, chain. 
 // see example: https://www.tally.xyz/explore
 
 "use client";

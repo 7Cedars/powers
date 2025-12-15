@@ -39,14 +39,14 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     PowersMock daoMock;
     DeployMocks deployMocks;
     InitialisePowers initialisePowers;
-    string[] lawNames;
-    address[] lawAddresses;
+    string[] mandateNames;
+    address[] mandateAddresses;
     string[] mockNames;
     address[] mockAddresses;
     TestConstitutions testConstitutions;
     HelperConfig.NetworkConfig config;
     PowersTypes.Conditions conditions;
-    address[] laws;
+    address[] mandates;
 
     // vote options
     uint8 constant AGAINST = 0;
@@ -57,19 +57,19 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     uint256[] values;
     bytes[] calldatas;
     bytes stateChange;
-    bytes lawCalldata;
-    bytes lawCalldataNominate;
-    bytes lawCalldataElect;
+    bytes mandateCalldata;
+    bytes mandateCalldataNominate;
+    bytes mandateCalldataElect;
     string nameDescription;
     string description;
     bytes inputParams;
     uint256 nonce;
     bool active;
     uint256 actionId;
-    uint16 lawId;
-    bytes32 lawHash;
-    address newLaw;
-    uint16 lawCounter;
+    uint16 mandateId;
+    bytes32 mandateHash;
+    address newMandate;
+    uint16 mandateCounter;
     address tokenAddress;
     address testToken;
     address testToken2;
@@ -79,7 +79,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     uint16 secondGrantId;
     uint16 roleId;
     address account;
-    uint16[] lawIds;
+    uint16[] mandateIds;
     address[] accounts;
     address requester;
     address executor;
@@ -93,7 +93,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     uint256 forVote;
     uint256 abstainVote;
 
-    address lawAddress;
+    address mandateAddress;
     uint8 quorum;
     uint8 succeedAt;
     uint32 votingPeriod;
@@ -172,17 +172,17 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
 abstract contract TestHelperFunctions is Test, TestVariables {
     function test() public { }
 
-    function hashProposal(address targetLaw, bytes memory lawCalldataLocal, uint256 nonceLocal)
+    function hashProposal(address targetMandate, bytes memory mandateCalldataLocal, uint256 nonceLocal)
         public
         pure
         virtual
         returns (uint256)
     {
-        return uint256(keccak256(abi.encode(targetLaw, lawCalldataLocal, nonceLocal)));
+        return uint256(keccak256(abi.encode(targetMandate, mandateCalldataLocal, nonceLocal)));
     }
 
-    function hashLaw(address targetLaw, uint16 lawId) public pure virtual returns (bytes32) {
-        return keccak256(abi.encode(targetLaw, lawId));
+    function hashMandate(address targetMandate, uint16 mandateId) public pure virtual returns (bytes32) {
+        return keccak256(abi.encode(targetMandate, mandateId));
     }
 
     function distributeERC20VoteTokens(address[] memory accountsWithVotes, uint256 randomiser) public {
@@ -226,7 +226,7 @@ abstract contract TestHelperFunctions is Test, TestVariables {
 
     function voteOnProposal(
         address payable dao,
-        uint16 lawToVoteOn,
+        uint16 mandateToVoteOn,
         uint256 actionIdLocal,
         address[] memory voters,
         uint256 randomiser,
@@ -244,7 +244,7 @@ abstract contract TestHelperFunctions is Test, TestVariables {
                 currentRandomiser = currentRandomiser / 10;
             }
             // vote
-            if (Powers(dao).canCallLaw(voters[i], lawToVoteOn)) {
+            if (Powers(dao).canCallMandate(voters[i], mandateToVoteOn)) {
                 roleCountLocal++;
                 if (currentRandomiser % 100 >= passChance) {
                     vm.prank(voters[i]);
@@ -263,10 +263,10 @@ abstract contract TestHelperFunctions is Test, TestVariables {
         }
     }
 
-    function findLawAddress(string memory name) internal view returns (address) {
-        for (uint256 i = 0; i < lawNames.length; i++) {
-            if (Strings.equal(lawNames[i], name)) {
-                return lawAddresses[i];
+    function findMandateAddress(string memory name) internal view returns (address) {
+        for (uint256 i = 0; i < mandateNames.length; i++) {
+            if (Strings.equal(mandateNames[i], name)) {
+                return mandateAddresses[i];
             }
         }
         return address(0);
@@ -277,7 +277,7 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
     function setUp() public virtual {
         vm.roll(block.number + 10);
         setUpVariables();
-        // run laws deploy script here.
+        // run mandates deploy script here.
     }
 
     function setUpVariables() public virtual {
@@ -324,7 +324,7 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
         deployMocks = new DeployMocks();
         initialisePowers = new InitialisePowers();
         (mockNames, mockAddresses) = deployMocks.run();
-        (lawNames, lawAddresses) = initialisePowers.getDeployedLaws();
+        (mandateNames, mandateAddresses) = initialisePowers.getDeployedMandates();
         HelperConfig helperConfig = new HelperConfig();
         config = helperConfig.getConfigByChainId(block.chainid);
 
@@ -355,12 +355,12 @@ abstract contract TestSetupPowers is BaseSetup {
         super.setUpVariables();
 
         // initiate constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powersTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.powersTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
@@ -372,17 +372,17 @@ abstract contract TestSetupPowers is BaseSetup {
     }
 }
 
-abstract contract TestSetupLaw is BaseSetup {
+abstract contract TestSetupMandate is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
         // initiate constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.lawTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.mandateTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
@@ -398,12 +398,12 @@ abstract contract TestSetupElectoral is BaseSetup {
         super.setUpVariables();
 
         // initiate electoral constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.electoralTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.electoralTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
@@ -419,12 +419,12 @@ abstract contract TestSetupExecutive is BaseSetup {
         super.setUpVariables();
 
         // initiate executive constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.executiveTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.executiveTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
@@ -440,12 +440,12 @@ abstract contract TestSetupMulti is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.multiTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.multiTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
@@ -468,12 +468,12 @@ abstract contract TestSetupMulti is BaseSetup {
 //         vm.stopPrank();
 
 //         // initiate constitution
-//         (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.utilitiesTestConstitution(
-//             lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+//         (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.utilitiesTestConstitution(
+//             mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
 //         );
 
 //         // constitute daoMock.
-//         daoMock.constitute(lawInitData_);
+//         daoMock.constitute(mandateInitData_);
 
 //         // assign initial roles for testing
 //         vm.startPrank(address(daoMock));
@@ -494,12 +494,12 @@ abstract contract TestSetupPowers101 is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powers101Constitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.powers101Constitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
@@ -525,12 +525,12 @@ abstract contract TestSetupPowerLabsSafes is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerLabsSafesConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.powerLabsSafesConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
@@ -552,12 +552,12 @@ abstract contract TestSetupPowerLabsChild is BaseSetup {
         super.setUpVariables();
 
         // initiate multi constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.powerLabsSafesConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.powerLabsSafesConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);
@@ -578,12 +578,12 @@ abstract contract TestSetupHelpers is BaseSetup {
         super.setUpVariables();
 
         // initiate helpers constitution
-        (PowersTypes.LawInitData[] memory lawInitData_) = testConstitutions.helpersTestConstitution(
-            lawNames, lawAddresses, mockNames, mockAddresses, payable(address(daoMock))
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.helpersTestConstitution(
+            mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))
         );
 
         // constitute daoMock.
-        daoMock.constitute(lawInitData_);
+        daoMock.constitute(mandateInitData_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ADMIN_ROLE, alice);

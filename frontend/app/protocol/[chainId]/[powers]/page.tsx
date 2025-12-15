@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { Assets } from './Assets'
 import { Roles } from './Roles'
-import { Laws } from './Laws'
+import { Mandates } from './Mandates'
 import { Actions } from './Actions'
 import { MetadataLinks } from '@/components/MetadataLinks'
 import { usePowersStore, useStatusStore } from '@/context/store'
@@ -124,7 +124,7 @@ export default function FlowPage() {
       
       <Roles powers = {powers} status = {statusPowers.status}/>
       
-      <Laws powers = {powers} status = {statusPowers.status}/>      
+      <Mandates powers = {powers} status = {statusPowers.status}/>      
       
     </section>
 

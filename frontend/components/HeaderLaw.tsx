@@ -2,9 +2,9 @@ import React from 'react';
 import DynamicThumbnail from './DynamicThumbnail';
 import { Powers } from '@/context/types';
 
-interface HeaderLawProps {
+interface HeaderMandateProps {
   powers: Powers;
-  lawName: string;
+  mandateName: string;
   roleName: string;
   numHolders: number | string;
   description: string;
@@ -13,9 +13,9 @@ interface HeaderLawProps {
   className?: string;
 }
 
-export const HeaderLaw: React.FC<HeaderLawProps> = ({
+export const HeaderMandate: React.FC<HeaderMandateProps> = ({
   powers,
-  lawName,
+  mandateName,
   roleName,
   numHolders,
   description,
@@ -36,8 +36,8 @@ export const HeaderLaw: React.FC<HeaderLawProps> = ({
       </div>
       {/* Info stack */}
       <div className="flex flex-col flex-1 min-w-0">
-        {/* 1: Law name */}
-        <div className="font-bold text-base text-slate-800 truncate" title={lawName}>{lawName}</div>
+        {/* 1: Mandate name */}
+        <div className="font-bold text-base text-slate-800 truncate" title={mandateName}>{mandateName}</div>
         {/* 2: Role name and holders */}
         <div className="text-xs text-gray-700 font-medium truncate">Role: {roleName} ({numHolders})</div>
         {/* 3: Description */}
@@ -51,7 +51,7 @@ export const HeaderLaw: React.FC<HeaderLawProps> = ({
             className="flex items-center gap-1 text-xs text-slate-500 hover:underline mt-1 truncate"
             title={contractAddress}
           >
-            Law: {contractAddress.slice(0,8)}...{contractAddress.slice(-6)}
+            Mandate: {contractAddress.slice(0,8)}...{contractAddress.slice(-6)}
           </a>
         )}
       </div>
@@ -59,4 +59,4 @@ export const HeaderLaw: React.FC<HeaderLawProps> = ({
   );
 };
 
-export default HeaderLaw; 
+export default HeaderMandate; 

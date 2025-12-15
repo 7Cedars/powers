@@ -1,10 +1,10 @@
 # BuyAccess
 
-BuyAccess is an electoral law that assigns roles based on the latest donation an account made to a Donations contract. It provides a mechanism for token-gated access where role assignments are determined by donation amounts and duration.
+BuyAccess is an electoral mandate that assigns roles based on the latest donation an account made to a Donations contract. It provides a mechanism for token-gated access where role assignments are determined by donation amounts and duration.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Assign roles based on donation amounts
 - Support multiple token types with different rates
 - Calculate access duration based on donation size
@@ -24,7 +24,7 @@ When adopting a BuyAccess instance, four parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, one parameter must be provided:
+When calling the mandate, one parameter must be provided:
 
 1. `account` (address): The account to check and potentially assign/revoke the role for
 
@@ -69,21 +69,21 @@ struct Data {
     uint16 roleIdToSet;        // Role ID to assign/revoke
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up donations contract and token configurations
 - Configures role assignment parameters
 
@@ -92,8 +92,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

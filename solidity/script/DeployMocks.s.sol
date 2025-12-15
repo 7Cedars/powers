@@ -7,9 +7,9 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 // import { console2 } from "forge-std/console2.sol";
 // core protocol
 import { Powers } from "../src/Powers.sol";
-import { Law } from "../src/Law.sol";
-import { ILaw } from "../src/interfaces/ILaw.sol";
-import { LawUtilities } from "../src/libraries/LawUtilities.sol";
+import { Mandate } from "../src/Mandate.sol";
+import { IMandate } from "../src/interfaces/IMandate.sol";
+import { MandateUtilities } from "../src/libraries/MandateUtilities.sol";
 import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 
 // external contracts
@@ -63,7 +63,7 @@ contract DeployMocks is Script {
         );
         addresses[4] = deployMock(creationCodes[4], names[4]);
 
-        // Deploy law contracts from @mocks/
+        // Deploy mandate contracts from @mocks/
         names[5] = "Donations";
         creationCodes[5] = type(Donations).creationCode;
         addresses[5] = deployMock(creationCodes[5], names[5]);

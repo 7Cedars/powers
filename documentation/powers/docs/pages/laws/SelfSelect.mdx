@@ -1,10 +1,10 @@
 # SelfSelect
 
-SelfSelect is an electoral law that enables accounts to self-assign or self-revoke a specific role. It provides a mechanism for accounts to manage their own role assignments.
+SelfSelect is an electoral mandate that enables accounts to self-assign or self-revoke a specific role. It provides a mechanism for accounts to manage their own role assignments.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Allow accounts to assign themselves a specific role
 - Enable accounts to revoke their own role
 - Track self-assigned accounts
@@ -21,7 +21,7 @@ When adopting a SelfSelect instance, two parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, one parameter must be provided:
+When calling the mandate, one parameter must be provided:
 
 1. `assign` (bool): 
    - `true`: Self-assign the role
@@ -60,14 +60,14 @@ struct Data {
     address[] selfAssignedSorted;  // Sorted list of self-assigned accounts
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -75,7 +75,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up maximum role holders and role ID
 - Initializes empty self-assigned lists
 
@@ -84,8 +84,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -103,7 +103,7 @@ function handleRequest(
 #### `_changeState`
 ```solidity
 function _changeState(
-    bytes32 lawHash,
+    bytes32 mandateHash,
     bytes memory stateChange
 ) internal override
 ```
@@ -113,9 +113,9 @@ function _changeState(
 
 #### `getData`
 ```solidity
-function getData(bytes32 lawHash) public view returns (Data memory)
+function getData(bytes32 mandateHash) public view returns (Data memory)
 ```
-- Returns the current state of the law
+- Returns the current state of the mandate
 - Includes all configuration and self-assigned accounts
 
 ### Error Conditions

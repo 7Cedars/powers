@@ -2,22 +2,22 @@
 
 import React, { useEffect, useState } from "react";
 import { useReadContract } from 'wagmi'
-import { lawAbi } from "@/context/abi";
+import { mandateAbi } from "@/context/abi";
 import { bytesToParams, parseParamValues } from "@/utils/parsers";
 import { decodeAbiParameters, parseAbiParameters } from "viem";
-import { LawSimulation, Law } from "@/context/types";
+import { MandateSimulation, Mandate } from "@/context/types";
 
 type SimulationBoxProps = {
-  law: Law;
-  simulation: LawSimulation | undefined;
+  mandate: Mandate;
+  simulation: MandateSimulation | undefined;
 };
 
-export const SimulationBox = ({law, simulation}: SimulationBoxProps) => {
-  // console.log("@SimulationBox: waypoint 1", {law, simulation})
+export const SimulationBox = ({mandate, simulation}: SimulationBoxProps) => {
+  // console.log("@SimulationBox: waypoint 1", {mandate, simulation})
   const [jsxSimulation, setJsxSimulation] = useState<React.JSX.Element[][]> ([]); 
   const { data } = useReadContract({
-        abi: lawAbi,
-        address: law.lawAddress,
+        abi: mandateAbi,
+        address: mandate.mandateAddress,
         functionName: 'stateVars'
       })
   const params =  bytesToParams(data as `0x${string}`)  

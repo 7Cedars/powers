@@ -21,7 +21,7 @@ export function Actions({ powers, status}: ActionsProps) {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
 
-  const allActions = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions) : []
+  const allActions = powers?.mandates && powers?.mandates?.length > 0 ? powers?.mandates?.flatMap(mandate => mandate.actions) : []
   const sortedActions = allActions
     .filter((action): action is Action => action !== undefined)
     .sort((a, b) => {
@@ -72,7 +72,7 @@ export function Actions({ powers, status}: ActionsProps) {
           <button
             onClick={() => 
               { 
-                router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws`)
+                router.push(`/protocol/${chainId}/${powers?.contractAddress}/mandates`)
               }
             }>
            <ArrowUpRightIcon
@@ -90,17 +90,17 @@ export function Actions({ powers, status}: ActionsProps) {
             <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
             <tr className="w-full text-xs font-light text-left text-slate-500">
                 <th className="px-2 py-3 font-light w-32"> Date </th>
-                <th className="px-2 py-3 font-light w-auto"> Law </th>
+                <th className="px-2 py-3 font-light w-auto"> Mandate </th>
                 <th className="px-2 py-3 font-light w-24"> Action ID </th>
             </tr>
         </thead>
         <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
           {
             sortedActions?.map((action: Action, i) => {
-              const law = powers?.laws?.find(law => Number(law.index) == Number(action.lawId))
-              if (!law) return null
+              const mandate = powers?.mandates?.find(mandate => Number(mandate.index) == Number(action.mandateId))
+              if (!mandate) return null
               return (
-                law && 
+                mandate && 
                 <tr
                   key={i}
                   className="text-sm text-left text-slate-800"
@@ -113,7 +113,7 @@ export function Actions({ powers, status}: ActionsProps) {
                         const paramValues = callDataToActionParams(action, powers)
                         setAction({...action, paramValues: paramValues, upToDate: false})
                         e.preventDefault()
-                        router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                        router.push(`/protocol/${chainId}/${powers?.contractAddress}/mandates/${Number(action.mandateId)}`)
                       }}
                       className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
                     >
@@ -157,10 +157,10 @@ export function Actions({ powers, status}: ActionsProps) {
                     </a>
                   </td>
                   
-                  {/* Law */}
+                  {/* Mandate */}
                   <td className="px-2 py-3 w-auto">
                     <div className="truncate text-slate-500 text-xs">
-                      {shorterDescription(law.nameDescription, "short")}
+                      {shorterDescription(mandate.nameDescription, "short")}
                     </div>
                   </td>
                   

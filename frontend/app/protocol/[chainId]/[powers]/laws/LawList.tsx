@@ -2,18 +2,18 @@
 
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Law, Powers } from "@/context/types";
+import { Mandate, Powers } from "@/context/types";
 import { bigintToRole } from "@/utils/bigintTo";
 import { LoadingBox } from "@/components/LoadingBox";
-import HeaderLawSmall from "@/components/HeaderLawSmall";
+import HeaderMandateSmall from "@/components/HeaderMandateSmall";
 import { useChains } from "wagmi";
 
-export function LawList({powers, status}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
+export function MandateList({powers, status}: {powers: Powers | undefined, status: string, onRefresh?: () => void}) {
   const router = useRouter();
   const chains = useChains();
   const { chainId } = useParams<{ chainId: string }>()
   const [deselectedRoles, setDeselectedRoles] = useState<bigint[]>([])
-  const ActiveLaws = powers?.laws?.filter(law => law.active)
+  const ActiveMandates = powers?.mandates?.filter(mandate => mandate.active)
 
   const handleRoleSelection = (role: bigint) => {
     let newDeselection: bigint[] = []
@@ -50,30 +50,30 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
           <LoadingBox /> 
         </div>
         :
-        ActiveLaws && ActiveLaws.length > 0 ?
+        ActiveMandates && ActiveMandates.length > 0 ?
           <div className="w-full h-fit max-h-full flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
                 <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
-                  {ActiveLaws
-                    ?.filter(law => law.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${law.conditions?.allowedRole}`)))
-                    ?.map((law: Law, i) => {
-                      const roleName = law.conditions?.allowedRole != undefined ? bigintToRole(law.conditions?.allowedRole, powers as Powers) : "-";
+                  {ActiveMandates
+                    ?.filter(mandate => mandate.conditions?.allowedRole != undefined && !deselectedRoles?.includes(BigInt(`${mandate.conditions?.allowedRole}`)))
+                    ?.map((mandate: Mandate, i) => {
+                      const roleName = mandate.conditions?.allowedRole != undefined ? bigintToRole(mandate.conditions?.allowedRole, powers as Powers) : "-";
                       const numHolders = "-"; // You can add actual holder count if available
                       
                       return (
                         <tr 
                           key={i}
                           className="text-xs text-left text-slate-800 hover:bg-slate-100 cursor-pointer transition-colors"
-                          onClick={() => { router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${law.index}`); }}
+                          onClick={() => { router.push(`/protocol/${chainId}/${powers?.contractAddress}/mandates/${mandate.index}`); }}
                         >
                           <td className="ps-4 px-2 py-3 w-auto">
-                            <HeaderLawSmall
+                            <HeaderMandateSmall
                               powers={powers as Powers}
-                              lawName={law.nameDescription || `Law #${law.index}`}
+                              mandateName={mandate.nameDescription || `Mandate #${mandate.index}`}
                               roleName={roleName}
                               numHolders={numHolders}
-                              contractAddress={law.lawAddress || ""}
+                              contractAddress={mandate.mandateAddress || ""}
                               blockExplorerUrl={blockExplorerUrl}
                             />
                           </td>
@@ -87,7 +87,7 @@ export function LawList({powers, status}: {powers: Powers | undefined, status: s
           </div>
         :
         <div className="w-full flex flex-row gap-1 text-sm text-slate-500 justify-center items-center text-center p-3">
-          No active laws found
+          No active mandates found
         </div>
       }
     </div>

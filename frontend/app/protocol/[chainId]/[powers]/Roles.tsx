@@ -15,11 +15,11 @@ export function Roles({powers, status}: RolesProps) {
   const router = useRouter();
   const { chainId } = useParams<{ chainId: string }>()
 
-  // Count laws for each role
-  const getLawCountForRole = (roleId: bigint) => {
-    if (!powers?.laws) return 0;
-    const ActiveLaws = powers.laws.filter(law => law.active)
-    return ActiveLaws.filter(law => law.conditions?.allowedRole === roleId).length;
+  // Count mandates for each role
+  const getMandateCountForRole = (roleId: bigint) => {
+    if (!powers?.mandates) return 0;
+    const ActiveMandates = powers.mandates.filter(mandate => mandate.active)
+    return ActiveMandates.filter(mandate => mandate.conditions?.allowedRole === roleId).length;
   };
 
   return (
@@ -50,7 +50,7 @@ export function Roles({powers, status}: RolesProps) {
               <thead className="w-full border-b border-slate-200 sticky top-0 bg-slate-50">
                 <tr className="w-full text-xs font-light text-left text-slate-500">
                   <th className="pl-2 pr-1 py-3 font-light"> Role </th>
-                  <th className="pl-1 pr-2 py-3 font-light text-right"> Laws </th>
+                  <th className="pl-1 pr-2 py-3 font-light text-right"> Mandates </th>
                 </tr>
               </thead>
               <tbody className="w-full text-sm text-left text-slate-500 divide-y divide-slate-200">
@@ -70,7 +70,7 @@ export function Roles({powers, status}: RolesProps) {
                     </td>
                     <td className="pl-1 pr-2 py-3">
                       <div className="text-xs text-slate-500 text-right">
-                        {getLawCountForRole(role.roleId as bigint)}
+                        {getMandateCountForRole(role.roleId as bigint)}
                       </div>
                     </td>
                   </tr>

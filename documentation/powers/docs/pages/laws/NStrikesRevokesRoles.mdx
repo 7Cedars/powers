@@ -1,10 +1,10 @@
 # NStrikesRevokesRoles
 
-NStrikesRevokesRoles is an electoral law that revokes roles from all current holders when the number of flagged actions exceeds a configured threshold. It provides a mechanism for automatic role revocation based on behavioral violations.
+NStrikesRevokesRoles is an electoral mandate that revokes roles from all current holders when the number of flagged actions exceeds a configured threshold. It provides a mechanism for automatic role revocation based on behavioral violations.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Monitor flagged actions for a specific role
 - Count violations against role holders
 - Automatically revoke roles when threshold is exceeded
@@ -23,7 +23,7 @@ When adopting an NStrikesRevokesRoles instance, three parameters must be provide
 
 ### Proposing an Action
 
-When calling the law, no parameters are required. The law automatically checks the current number of flagged actions and revokes roles if the threshold is exceeded.
+When calling the mandate, no parameters are required. The mandate automatically checks the current number of flagged actions and revokes roles if the threshold is exceeded.
 
 ### Execution Flow
 
@@ -59,21 +59,21 @@ struct Data {
     address flagActionsAddress;  // FlagActions contract address
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up role monitoring and strike threshold
 - Configures FlagActions contract address
 
@@ -82,8 +82,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -99,7 +99,7 @@ function handleRequest(
 
 #### `shouldRevokeRole`
 ```solidity
-function shouldRevokeRole(bytes32 lawHash) external view returns (bool shouldRevoke)
+function shouldRevokeRole(bytes32 mandateHash) external view returns (bool shouldRevoke)
 ```
 - Checks if the role should be revoked based on current strikes
 - Returns true if threshold is exceeded

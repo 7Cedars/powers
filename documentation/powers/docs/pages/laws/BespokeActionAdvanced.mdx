@@ -1,10 +1,10 @@
 # BespokeActionAdvanced
 
-BespokeActionAdvanced is an executive law that enables the execution of custom function calls with mixed static and dynamic parameters. It provides a mechanism to execute bespoke actions with pre-configured static parameters and user-provided dynamic parameters.
+BespokeActionAdvanced is an executive mandate that enables the execution of custom function calls with mixed static and dynamic parameters. It provides a mechanism to execute bespoke actions with pre-configured static parameters and user-provided dynamic parameters.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Execute custom function calls to any contract
 - Mix static (pre-configured) and dynamic (user-provided) parameters
 - Insert dynamic parameters at specific positions in the function call
@@ -25,7 +25,7 @@ When adopting a BespokeActionAdvanced instance, five parameters must be provided
 
 ### Proposing an Action
 
-When calling the law, an array of dynamic parameter values must be provided. The parameters are inserted into the function call at the positions specified by `indexDynamicParams`.
+When calling the mandate, an array of dynamic parameter values must be provided. The parameters are inserted into the function call at the positions specified by `indexDynamicParams`.
 
 ### Execution Flow
 
@@ -67,16 +67,16 @@ mapping(bytes32 => Data) internal _data;
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up target contract and function
 - Configures static and dynamic parameter structure
 - Sets up parameter insertion indices
@@ -86,8 +86,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -103,7 +103,7 @@ function handleRequest(
 
 #### `_buildCalldata`
 ```solidity
-function _buildCalldata(bytes32 lawHash, bytes memory lawCalldata) internal view returns (bytes memory)
+function _buildCalldata(bytes32 mandateHash, bytes memory mandateCalldata) internal view returns (bytes memory)
 ```
 - Builds complete calldata by inserting dynamic parameters
 - Combines static and dynamic parameters in correct order

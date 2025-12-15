@@ -1,10 +1,10 @@
 # PresetSingleAction
 
-PresetSingleAction is an executive law that enables the execution of a predefined set of function calls. It provides a mechanism to execute multiple actions in a specific order with fixed parameters.
+PresetSingleAction is an executive mandate that enables the execution of a predefined set of function calls. It provides a mechanism to execute multiple actions in a specific order with fixed parameters.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Execute multiple function calls in sequence
 - Use predefined target contracts and functions
 - Pass fixed parameters to the functions
@@ -23,7 +23,7 @@ When adopting a PresetSingleAction instance, three parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, no parameters are required. The law executes the predefined set of actions in the order they were configured.
+When calling the mandate, no parameters are required. The mandate executes the predefined set of actions in the order they were configured.
 
 ### Execution Flow
 
@@ -53,14 +53,14 @@ struct Data {
     bytes[] calldatas;    // Array of function call data
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -68,7 +68,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up target contracts and functions
 - Stores execution parameters
 
@@ -77,8 +77,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

@@ -1,59 +1,59 @@
 // SPDX-License-Identifier: MIT
 
-/// @notice An example implementation of a Law Package that adopts multiple laws into the Powers protocol.
-/// It is meant to be adopted through the AdoptLaws law, and then be executed to adopt multiple laws in a single transaction.
-/// The law self-destructs after execution.
+/// @notice An example implementation of a Mandate Package that adopts multiple mandates into the Powers protocol.
+/// It is meant to be adopted through the AdoptMandates mandate, and then be executed to adopt multiple mandates in a single transaction.
+/// The mandate self-destructs after execution.
 ///
 /// @author 7Cedars
 
 pragma solidity 0.8.26;
 
-import { Law } from "../Law.sol";
-import { LawUtilities } from "../libraries/LawUtilities.sol";
+import { Mandate } from "../Mandate.sol";
+import { MandateUtilities } from "../libraries/MandateUtilities.sol";
 import { IPowers } from "../interfaces/IPowers.sol";
 import { Powers } from "../Powers.sol";
 
-// This LawPackage adopts the following governance paths:
+// This MandatePackage adopts the following governance paths:
 // path 0 + 1: init Allowance Module.
 // path 2: adopt new child.
 // path 3: assign allowance to child.
 
-contract PowerLabs_Protocol is Law {
+contract PowerLabs_Protocol is Mandate {
     struct Mem {
-        uint16 lawCount;
+        uint16 mandateCount;
         address safeProxy;
         bytes signature;
     }
-    address[] private lawAddresses;
+    address[] private mandateAddresses;
     address private allowanceModuleAddress;
     uint16 public constant NUMBER_OF_CALLS = 7; // total number of calls in handleRequest
     uint48 public immutable BLOCKS_PER_HOUR;
 
-    // in this case lawAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction]
-    constructor(uint48 BLOCKS_PER_HOUR_, address[] memory lawDependencies, address allowanceModuleAddress_) {
+    // in this case mandateAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction]
+    constructor(uint48 BLOCKS_PER_HOUR_, address[] memory mandateDependencies, address allowanceModuleAddress_) {
         BLOCKS_PER_HOUR = BLOCKS_PER_HOUR_;
-        lawAddresses = lawDependencies;
+        mandateAddresses = mandateDependencies;
         allowanceModuleAddress = allowanceModuleAddress_;
 
-        emit Law__Deployed(abi.encode());
+        emit Mandate__Deployed(abi.encode());
     }
 
-    function initializeLaw(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
+    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
     {
         inputParams = abi.encode("address SafeProxy");
-        super.initializeLaw(index, nameDescription, inputParams, config);
+        super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
-    /// @notice Build calls to adopt the configured laws
-    /// @param lawCalldata Unused for this law
+    /// @notice Build calls to adopt the configured mandates
+    /// @param mandateCalldata Unused for this mandate
     function handleRequest(
         address,
         /*caller*/
         address powers,
-        uint16 lawId,
-        bytes memory lawCalldata,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
         uint256 nonce
     )
         public
@@ -63,16 +63,16 @@ contract PowerLabs_Protocol is Law {
     {
         Mem memory mem;
 
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
-        mem.lawCount = Powers(powers).lawCounter();
-        // (mem.safeProxy) = abi.decode(lawCalldata, (address));
+        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        mem.mandateCount = Powers(powers).mandateCounter();
+        // (mem.safeProxy) = abi.decode(mandateCalldata, (address));
         mem.signature = abi.encodePacked(
             uint256(uint160(powers)), // r = address of the signer (powers contract)
             uint256(0), // s = 0
             uint8(1) // v = 1 This is a type 1 call. See Safe.sol for details.
         );
 
-        (targets, values, calldatas) = LawUtilities.createEmptyArrays(NUMBER_OF_CALLS);
+        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(NUMBER_OF_CALLS);
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         // DIRECT CALLS TO POWERS CONTRACT TO ADOPT THE ALLOWANCE MODULE AND SET THE SAFEPROXY AS TREASURY //
@@ -95,8 +95,8 @@ contract PowerLabs_Protocol is Law {
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Protocol Contributors");
         calldatas[5] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Members");
 
-        // 3: set final call to self-destruct the LawPackage after adopting the laws
-        calldatas[NUMBER_OF_CALLS - 1] = abi.encodeWithSelector(IPowers.revokeLaw.selector, lawId);
+        // 3: set final call to self-destruct the MandatePackage after adopting the mandates
+        calldatas[NUMBER_OF_CALLS - 1] = abi.encodeWithSelector(IPowers.revokeMandate.selector, mandateId);
 
         //////////////////////////////////////////////////////////////////////////
         //              GOVERNANCE FLOW FOR ADOPTING DELEGATES                  //

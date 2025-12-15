@@ -64,11 +64,11 @@ const protocolNavigationConfig: NavigationItem[] = [
     helpNavItem: 'roles'
   },
   {
-    id: 'laws',
-    label: 'Laws',
+    id: 'mandates',
+    label: 'Mandates',
     icon: ScaleIcon,
-    path: '/laws',
-    helpNavItem: 'laws'
+    path: '/mandates',
+    helpNavItem: 'mandates'
   },
   {
     id: 'treasury',

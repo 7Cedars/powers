@@ -18,8 +18,8 @@ export const defaultPowers101: Powers = {
     description: "A simple DAO with basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 
@@ -42,8 +42,8 @@ export const defaultPowerLabs: Powers = {
     description: "Power Labs is the on-chain organization that shepherds the development of the Powers protocol. It uses Safes (and its allowance modules) for asset management.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 
@@ -64,8 +64,8 @@ export const defaultPowerLabsChild: Powers = {
     description: "Power Labs Child: Docs is the on-chain organization that shepherds the development of documentation for the Powers protocol.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 

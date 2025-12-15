@@ -26,19 +26,19 @@ contract PowersFuzzTest is TestSetupPowers {
         daoMock.assignRole(ROLE_ONE, alice);
 
         // Create a valid action first
-        lawId = 3; // this law needs a vote.
-        lawCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
+        mandateId = 3; // this mandate needs a vote.
+        mandateCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
         nonce = 123;
 
         vm.prank(alice);
-        uint256 validActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test action");
+        uint256 validActionId = daoMock.propose(mandateId, mandateCalldata, nonce, "Test action");
 
         // Test voting
         if (hasRole) {
             vm.prank(address(daoMock));
             daoMock.assignRole(ROLE_ONE, voter);
         }
-        if (!hasRole) vm.expectRevert(Powers__CannotCallLaw.selector);
+        if (!hasRole) vm.expectRevert(Powers__CannotCallMandate.selector);
         vm.prank(voter);
         daoMock.castVoteWithReason(validActionId, support, reason);
         // Verify vote was cast
@@ -94,15 +94,15 @@ contract PowersFuzzTest is TestSetupPowers {
         uint32 numberVotesCast = 0;
 
         // Create a valid action first
-        lawId = 3; // this law needs a vote. needs ROLE_ONE.
-        lawCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
+        mandateId = 3; // this mandate needs a vote. needs ROLE_ONE.
+        mandateCalldata = abi.encode(new address[](1), new uint256[](1), new bytes[](1));
         nonce = 123;
 
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
 
         vm.prank(alice);
-        uint256 validActionId = daoMock.propose(lawId, lawCalldata, nonce, "Vote counting test");
+        uint256 validActionId = daoMock.propose(mandateId, mandateCalldata, nonce, "Vote counting test");
 
         // Cast votes
         for (i = 0; i < numberVotes; i++) {
@@ -127,17 +127,17 @@ contract PowersFuzzTest is TestSetupPowers {
 
     /// @notice Fuzz test action state transitions
     function testFuzzActionStateTransitions(
-        uint16 lawIdfuzzed,
-        bytes memory lawCalldataFuzzed,
+        uint16 mandateIdfuzzed,
+        bytes memory mandateCalldataFuzzed,
         uint256 nonceFuzzed,
         bool shouldCancel,
         bool shouldVote
     ) public {
-        vm.assume(lawIdfuzzed > 0 && lawIdfuzzed < daoMock.lawCounter());
-        vm.assume(lawCalldataFuzzed.length <= daoMock.MAX_CALLDATA_LENGTH());
+        vm.assume(mandateIdfuzzed > 0 && mandateIdfuzzed < daoMock.mandateCounter());
+        vm.assume(mandateCalldataFuzzed.length <= daoMock.MAX_CALLDATA_LENGTH());
 
-        // Assign law role to alice and bob
-        conditions = daoMock.getConditions(lawIdfuzzed);
+        // Assign mandate role to alice and bob
+        conditions = daoMock.getConditions(mandateIdfuzzed);
         vm.assume(conditions.quorum > 0);
         vm.startPrank(address(daoMock));
         daoMock.assignRole(conditions.allowedRole, alice);
@@ -146,7 +146,7 @@ contract PowersFuzzTest is TestSetupPowers {
 
         // Create action
         vm.prank(alice);
-        actionId = daoMock.propose(lawIdfuzzed, lawCalldataFuzzed, nonceFuzzed, "State transition test");
+        actionId = daoMock.propose(mandateIdfuzzed, mandateCalldataFuzzed, nonceFuzzed, "State transition test");
 
         // Verify initial state
         assertTrue(daoMock.getActionState(actionId) == PowersTypes.ActionState.Active);
@@ -162,7 +162,7 @@ contract PowersFuzzTest is TestSetupPowers {
         if (shouldCancel) {
             // Cancel action
             vm.prank(alice);
-            daoMock.cancel(lawIdfuzzed, lawCalldataFuzzed, nonceFuzzed);
+            daoMock.cancel(mandateIdfuzzed, mandateCalldataFuzzed, nonceFuzzed);
 
             // Verify cancelled state
             assertTrue(daoMock.getActionState(actionId) == PowersTypes.ActionState.Cancelled);
@@ -207,9 +207,9 @@ contract PowersFuzzTest is TestSetupPowers {
     }
 
     /// @notice Fuzz test role permissions
-    function testFuzzRolePermissions(address accountFuzzed, uint16 lawIdFuzzed, uint256 roleIdFuzzed) public {
+    function testFuzzRolePermissions(address accountFuzzed, uint16 mandateIdFuzzed, uint256 roleIdFuzzed) public {
         vm.assume(accountFuzzed != address(0));
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCounter());
+        vm.assume(mandateIdFuzzed > 0 && mandateIdFuzzed < daoMock.mandateCounter());
         vm.assume(roleIdFuzzed != ADMIN_ROLE && roleIdFuzzed != PUBLIC_ROLE);
         vm.deal(accountFuzzed, 1 ether);
 
@@ -217,11 +217,11 @@ contract PowersFuzzTest is TestSetupPowers {
         vm.prank(address(daoMock));
         daoMock.assignRole(roleIdFuzzed, accountFuzzed);
 
-        // Test law access
-        bool canCall = daoMock.canCallLaw(accountFuzzed, lawIdFuzzed);
+        // Test mandate access
+        bool canCall = daoMock.canCallMandate(accountFuzzed, mandateIdFuzzed);
 
-        // Verify access based on law conditions
-        conditions = daoMock.getConditions(lawIdFuzzed);
+        // Verify access based on mandate conditions
+        conditions = daoMock.getConditions(mandateIdFuzzed);
         if (conditions.allowedRole == PUBLIC_ROLE) {
             assertTrue(canCall);
         } else if (conditions.allowedRole == roleIdFuzzed) {
@@ -235,8 +235,8 @@ contract PowersFuzzTest is TestSetupPowers {
     //                  LAW MANAGEMENT FUZZ                     //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test law conditions
-    function testFuzzLawConditions(
+    /// @notice Fuzz test mandate conditions
+    function testFuzzMandateConditions(
         uint8 quorumFuzzed,
         uint8 succeedAtFuzzed,
         uint32 votingPeriodFuzzed,
@@ -247,9 +247,9 @@ contract PowersFuzzTest is TestSetupPowers {
         vm.assume(votingPeriodFuzzed <= type(uint32).max);
         vm.assume(allowedRoleFuzzed != ADMIN_ROLE && allowedRoleFuzzed != PUBLIC_ROLE);
 
-        PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[3],
-            nameDescription: "Test law conditions",
+        PowersTypes.MandateInitData memory mandateInitData = PowersTypes.MandateInitData({
+            targetMandate: mandateAddresses[3],
+            nameDescription: "Test mandate conditions",
             conditions: PowersTypes.Conditions({
                 quorum: quorumFuzzed,
                 succeedAt: succeedAtFuzzed,
@@ -264,11 +264,11 @@ contract PowersFuzzTest is TestSetupPowers {
         });
 
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
 
-        lawId = daoMock.lawCounter() - 1;
-        // Get current law conditions
-        conditions = daoMock.getConditions(lawId);
+        mandateId = daoMock.mandateCounter() - 1;
+        // Get current mandate conditions
+        conditions = daoMock.getConditions(mandateId);
 
         // Verify conditions are within bounds
         assertTrue(conditions.quorum == quorumFuzzed);
@@ -277,8 +277,8 @@ contract PowersFuzzTest is TestSetupPowers {
         assertTrue(conditions.allowedRole == allowedRoleFuzzed);
     }
 
-    /// @notice Fuzz test law adoption and revocation
-    function testFuzzLawAdoptionRevocation(
+    /// @notice Fuzz test mandate adoption and revocation
+    function testFuzzMandateAdoptionRevocation(
         string memory nameDescriptionFuzzed,
         uint8 quorumFuzzed,
         uint8 succeedAtFuzzed,
@@ -289,9 +289,9 @@ contract PowersFuzzTest is TestSetupPowers {
         vm.assume(succeedAtFuzzed <= daoMock.DENOMINATOR());
         vm.assume(allowedRoleFuzzed != ADMIN_ROLE && allowedRoleFuzzed != PUBLIC_ROLE);
 
-        // Create law init data
-        PowersTypes.LawInitData memory lawInitData = PowersTypes.LawInitData({
-            targetLaw: lawAddresses[3],
+        // Create mandate init data
+        PowersTypes.MandateInitData memory mandateInitData = PowersTypes.MandateInitData({
+            targetMandate: mandateAddresses[3],
             nameDescription: nameDescriptionFuzzed,
             conditions: PowersTypes.Conditions({
                 quorum: quorumFuzzed,
@@ -306,35 +306,35 @@ contract PowersFuzzTest is TestSetupPowers {
             config: ""
         });
 
-        // Test law adoption
+        // Test mandate adoption
         vm.prank(address(daoMock));
         if (bytes(nameDescriptionFuzzed).length < 1) vm.expectRevert("String too short");
         if (bytes(nameDescriptionFuzzed).length > 255) vm.expectRevert("String too long");
-        daoMock.adoptLaw(lawInitData);
-        lawCounter = daoMock.lawCounter();
-        assertTrue(lawCounter > 0);
+        daoMock.adoptMandate(mandateInitData);
+        mandateCounter = daoMock.mandateCounter();
+        assertTrue(mandateCounter > 0);
 
-        // Test law revocation
+        // Test mandate revocation
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawCounter - 1);
-        // Verify law was revoked
-        (,, bool active2) = daoMock.getAdoptedLaw(lawCounter - 1);
+        daoMock.revokeMandate(mandateCounter - 1);
+        // Verify mandate was revoked
+        (,, bool active2) = daoMock.getAdoptedMandate(mandateCounter - 1);
         assertFalse(active2);
     }
 
-    function testFuzzRevokeLaw(uint16 lawIdFuzzed) public {
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < daoMock.lawCounter());
+    function testFuzzRevokeMandate(uint16 mandateIdFuzzed) public {
+        vm.assume(mandateIdFuzzed > 0 && mandateIdFuzzed < daoMock.mandateCounter());
 
-        // Get law info before revocation
-        (,, bool active2) = daoMock.getAdoptedLaw(lawIdFuzzed);
-        vm.assume(active2); // Only test with active laws
+        // Get mandate info before revocation
+        (,, bool active2) = daoMock.getAdoptedMandate(mandateIdFuzzed);
+        vm.assume(active2); // Only test with active mandates
 
-        // Revoke law
+        // Revoke mandate
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawIdFuzzed);
+        daoMock.revokeMandate(mandateIdFuzzed);
 
-        // Verify law was revoked
-        (,, bool activeAfter) = daoMock.getAdoptedLaw(lawIdFuzzed);
+        // Verify mandate was revoked
+        (,, bool activeAfter) = daoMock.getAdoptedMandate(mandateIdFuzzed);
         assertFalse(activeAfter);
     }
 
@@ -368,11 +368,11 @@ contract PowersFuzzTest is TestSetupPowers {
     /// @notice Fuzz test blacklisted account restrictions
     function testFuzzBlacklistedAccountRestrictions(
         address accountFuzzed,
-        bytes memory lawCalldataFuzzed,
+        bytes memory mandateCalldataFuzzed,
         uint256 nonceFuzzed
     ) public {
         vm.assume(accountFuzzed != address(0));
-        vm.assume(lawCalldataFuzzed.length <= daoMock.MAX_CALLDATA_LENGTH());
+        vm.assume(mandateCalldataFuzzed.length <= daoMock.MAX_CALLDATA_LENGTH());
         vm.deal(accountFuzzed, 1 ether);
 
         // Blacklist account
@@ -385,6 +385,6 @@ contract PowersFuzzTest is TestSetupPowers {
         // Try to perform actions - should fail
         vm.prank(accountFuzzed);
         vm.expectRevert(Powers__AddressBlacklisted.selector);
-        daoMock.request(1, lawCalldataFuzzed, nonceFuzzed, "Blacklist test");
+        daoMock.request(1, mandateCalldataFuzzed, nonceFuzzed, "Blacklist test");
     }
 }

@@ -1,10 +1,10 @@
 # RoleByRoles
 
-RoleByRoles is an electoral law that assigns or revokes a role based on whether an account holds any of a set of prerequisite roles. It provides a mechanism for composing "grouped" roles and automatic role management based on prerequisite role ownership.
+RoleByRoles is an electoral mandate that assigns or revokes a role based on whether an account holds any of a set of prerequisite roles. It provides a mechanism for composing "grouped" roles and automatic role management based on prerequisite role ownership.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Assign a target role to accounts holding prerequisite roles
 - Revoke the target role when prerequisite roles are lost
 - Compose hierarchical role structures
@@ -22,7 +22,7 @@ When adopting a RoleByRoles instance, two parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, one parameter must be provided:
+When calling the mandate, one parameter must be provided:
 
 1. `account` (address): The account to check and potentially assign/revoke the role for
 
@@ -56,21 +56,21 @@ struct Data {
     uint256[] roleIdsNeeded;  // Array of prerequisite role IDs
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up target role and prerequisite roles
 - Configures role dependency structure
 
@@ -79,8 +79,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,

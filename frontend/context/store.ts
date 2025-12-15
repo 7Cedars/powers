@@ -18,8 +18,8 @@ const initialStatePowers: PowersStore = {
     communicationChannels: {} as CommunicationChannels,
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
   layout: {}
 }
@@ -37,7 +37,7 @@ export const deletePowers: typeof usePowersStore.setState = () => {
 type ActionStore = Action;
 const initialStateAction: ActionStore = {
   actionId: "0",
-  lawId: 0n,
+  mandateId: 0n,
   caller: `0x0`,
   description: "",
   dataTypes: [],

@@ -15,25 +15,25 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //                  GOVERNANCE FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Initiates an action to be executed through a law
+    /// @notice Initiates an action to be executed through a mandate
     /// @dev This is the entry point for all actions in the protocol, whether they require voting or not
-    /// @param lawId The id of the law
-    /// @param lawCalldata The encoded function call data for the law
+    /// @param mandateId The id of the mandate
+    /// @param mandateCalldata The encoded function call data for the mandate
     /// @param uriDescription A human-readable description of the action
     /// @param nonce The nonce for the action
-    function request(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
+    function request(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriDescription)
         external
         returns (uint256 actionId);
 
     /// @notice Completes an action by executing the actual calls
-    /// @dev Can only be called by an active law contract
-    /// @param lawId The id of the law
+    /// @dev Can only be called by an active mandate contract
+    /// @param mandateId The id of the mandate
     /// @param actionId The unique identifier of the action
     /// @param targets The list of contract addresses to call
     /// @param values The list of ETH values to send with each call
     /// @param calldatas The list of encoded function calls
     function fulfill(
-        uint16 lawId,
+        uint16 mandateId,
         uint256 actionId,
         address[] calldata targets,
         uint256[] calldata values,
@@ -41,24 +41,24 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     ) external;
 
     /// @notice Creates a new proposal for an action that requires voting
-    /// @dev Only callable if the law requires voting (quorum > 0)
-    /// @dev note that no checks are run. If account has acces to law and it requires a vote - the account wil be able to create proposals.
-    /// @param lawId The id of the law
-    /// @param lawCalldata The encoded function call data for the law
+    /// @dev Only callable if the mandate requires voting (quorum > 0)
+    /// @dev note that no checks are run. If account has acces to mandate and it requires a vote - the account wil be able to create proposals.
+    /// @param mandateId The id of the mandate
+    /// @param mandateCalldata The encoded function call data for the mandate
     /// @param nonce The nonce for the action
     /// @param uriDescription A human-readable description of the proposal
     /// @return actionId The unique identifier of the created proposal
-    function propose(uint16 lawId, bytes calldata lawCalldata, uint256 nonce, string memory uriDescription)
+    function propose(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriDescription)
         external
         returns (uint256 actionId);
 
     /// @notice Cancels an existing proposal
     /// @dev Can only be called by the original proposer
-    /// @param lawId The id of the law
-    /// @param lawCalldata The original encoded function call data
+    /// @param mandateId The id of the mandate
+    /// @param mandateCalldata The original encoded function call data
     /// @param nonce The nonce for the action
     /// @return actionId The unique identifier of the cancelled proposal
-    function cancel(uint16 lawId, bytes calldata lawCalldata, uint256 nonce) external returns (uint256 actionId);
+    function cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce) external returns (uint256 actionId);
 
     /// @notice Casts a vote on an active proposal
     /// @dev Vote types: 0=Against, 1=For, 2=Abstain
@@ -77,20 +77,20 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //                  ROLE AND LAW ADMIN                       //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Initializes the DAO by activating its founding laws
+    /// @notice Initializes the DAO by activating its founding mandates
     /// @dev Can only be called once by an admin account
-    /// @param laws The list of law contracts to activate
-    function constitute(LawInitData[] calldata laws) external;
+    /// @param mandates The list of mandate contracts to activate
+    function constitute(MandateInitData[] calldata mandates) external;
 
-    /// @notice Activates a new law in the protocol
+    /// @notice Activates a new mandate in the protocol
     /// @dev Can only be called through the protocol itself
-    /// @param lawInitData The data of the law
-    function adoptLaw(LawInitData calldata lawInitData) external returns (uint256 lawId);
+    /// @param mandateInitData The data of the mandate
+    function adoptMandate(MandateInitData calldata mandateInitData) external returns (uint256 mandateId);
 
-    /// @notice Deactivates an existing law
+    /// @notice Deactivates an existing mandate
     /// @dev Can only be called through the protocol itself
-    /// @param lawId The id of the law
-    function revokeLaw(uint16 lawId) external;
+    /// @param mandateId The id of the mandate
+    function revokeMandate(uint16 mandateId) external;
 
     /// @notice Grants a role to an account
     /// @dev Can only be called through the protocol itself
@@ -129,10 +129,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                       //
     //////////////////////////////////////////////////////////////
-    /// @notice Gets the quantity of actions of a law
-    /// @param lawId The id of the law
-    /// @return quantityLawActions The quantity of actions of the law
-    function getQuantityLawActions(uint16 lawId) external view returns (uint256 quantityLawActions);
+    /// @notice Gets the quantity of actions of a mandate
+    /// @param mandateId The id of the mandate
+    /// @return quantityMandateActions The quantity of actions of the mandate
+    function getQuantityMandateActions(uint16 mandateId) external view returns (uint256 quantityMandateActions);
 
     /// @notice Gets the current state of a proposal
     /// @param actionId The unique identifier of the proposal
@@ -147,7 +147,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
 
     /// @notice gets the data of an actionId that are not an array.
     /// @param actionId The unique identifier of the proposal
-    /// @return lawId - the id of the law that the action is associated with
+    /// @return mandateId - the id of the mandate that the action is associated with
     /// @return proposedAt - the block number at which the action was proposed
     /// @return requestedAt - the block number at which the action was requested
     /// @return fulfilledAt - the block number at which the action was fulfilled
@@ -158,7 +158,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
         external
         view
         returns (
-            uint16 lawId,
+            uint16 mandateId,
             uint48 proposedAt,
             uint48 requestedAt,
             uint48 fulfilledAt,
@@ -225,38 +225,38 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return label The label of the role
     function getRoleLabel(uint256 roleId) external view returns (string memory label);
 
-    /// @notice Checks if a law is currently active
-    /// @param lawId The id of the law
-    /// @return law The address of the law
-    /// @return lawHash The hash of the law
-    /// @return active The active status of the law
-    function getAdoptedLaw(uint16 lawId) external view returns (address law, bytes32 lawHash, bool active);
+    /// @notice Checks if a mandate is currently active
+    /// @param mandateId The id of the mandate
+    /// @return mandate The address of the mandate
+    /// @return mandateHash The hash of the mandate
+    /// @return active The active status of the mandate
+    function getAdoptedMandate(uint16 mandateId) external view returns (address mandate, bytes32 mandateHash, bool active);
 
-    /// @notice Gets the latest fulfillment of a law
-    /// @param lawId The id of the law
-    /// @return latestFulfillment The latest fulfillment of the law
-    function getLatestFulfillment(uint16 lawId) external view returns (uint48 latestFulfillment);
+    /// @notice Gets the latest fulfillment of a mandate
+    /// @param mandateId The id of the mandate
+    /// @return latestFulfillment The latest fulfillment of the mandate
+    function getLatestFulfillment(uint16 mandateId) external view returns (uint48 latestFulfillment);
 
-    /// @notice Gets the actions of a law
-    /// @param lawId The id of the law
+    /// @notice Gets the actions of a mandate
+    /// @param mandateId The id of the mandate
     /// @param index The index of the action
     /// @return actionId The action at the index
-    function getLawActionAtIndex(uint16 lawId, uint256 index) external view returns (uint256 actionId);
+    function getMandateActionAtIndex(uint16 mandateId, uint256 index) external view returns (uint256 actionId);
 
-    /// @notice Gets the conditions of a law
-    /// @param lawId The id of the law
-    /// @return conditions The conditions of the law
-    function getConditions(uint16 lawId) external view returns (Conditions memory conditions);
+    /// @notice Gets the conditions of a mandate
+    /// @param mandateId The id of the mandate
+    /// @return conditions The conditions of the mandate
+    function getConditions(uint16 mandateId) external view returns (Conditions memory conditions);
 
     /// @notice Getter for treasury address.
     /// @return The treasury address
     function getTreasury() external view returns (address payable);
 
-    /// @notice Checks if an account has permission to call a law
-    /// @param caller The address attempting to call the law
-    /// @param lawId The law id to check
+    /// @notice Checks if an account has permission to call a mandate
+    /// @param caller The address attempting to call the mandate
+    /// @param mandateId The mandate id to check
     /// @return canCall True if the caller has permission, false otherwise
-    function canCallLaw(address caller, uint16 lawId) external view returns (bool canCall);
+    function canCallMandate(address caller, uint16 mandateId) external view returns (bool canCall);
 
     /// @notice Gets the protocol version
     /// @return version the version string

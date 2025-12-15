@@ -1,7 +1,7 @@
-import { Status, Action, Powers, Law, Metadata, Role, Conditions } from "../context/types"
+import { Status, Action, Powers, Mandate, Metadata, Role, Conditions } from "../context/types"
 import { wagmiConfig } from '../context/wagmiConfig'
 import { useCallback, useState } from "react";
-import { lawAbi, powersAbi } from "@/context/abi";
+import { mandateAbi, powersAbi } from "@/context/abi";
 import { readContract, readContracts } from "wagmi/actions";
 import { bytesToParams, parseChainId, parseMetadata } from "@/utils/parsers";
 import { useParams } from "next/navigation";
@@ -33,7 +33,7 @@ export const usePowers = () => {
     const powersPopulated: Powers | undefined = powers
     // console.log("@fetchPowersData, waypoint 0", {powers})
     try { 
-      const [ namePowers, uriPowers, lawCountPowers, treasuryPowers] = await readContracts(wagmiConfig, {
+      const [ namePowers, uriPowers, mandateCountPowers, treasuryPowers] = await readContracts(wagmiConfig, {
         allowFailure: false,
         contracts: [
           {
@@ -51,7 +51,7 @@ export const usePowers = () => {
           {
             address: powers.contractAddress as `0x${string}`,
             abi: powersAbi,
-            functionName: 'lawCounter',
+            functionName: 'mandateCounter',
             chainId: parseChainId(chainId)
           },
           {
@@ -63,8 +63,8 @@ export const usePowers = () => {
         ]
       }) as [string, string, bigint, `0x${string}`]
 
-      // console.log("@fetchPowersData, waypoint 1", {namePowers, uriPowers, lawCountPowers})
-      powersPopulated.lawCount = lawCountPowers as bigint
+      // console.log("@fetchPowersData, waypoint 1", {namePowers, uriPowers, mandateCountPowers})
+      powersPopulated.mandateCount = mandateCountPowers as bigint
       powersPopulated.name = namePowers as string
       powersPopulated.uri = uriPowers as string
       powersPopulated.treasury = treasuryPowers as `0x${string}`
@@ -96,15 +96,15 @@ export const usePowers = () => {
     return undefined
   }
   
-  const checkLaws = async (lawIds: bigint[]) => {
-    const fetchedLaws: Law[] = []
+  const checkMandates = async (mandateIds: bigint[]) => {
+    const fetchedMandates: Mandate[] = []
 
-    if (wagmiConfig && lawIds.length > 0 && address) {
+    if (wagmiConfig && mandateIds.length > 0 && address) {
         try {
-          const contracts = lawIds.map((id) => ({
+          const contracts = mandateIds.map((id) => ({
             abi: powersAbi,
             address: address as `0x${string}`,
-            functionName: 'getAdoptedLaw' as const,
+            functionName: 'getAdoptedMandate' as const,
             args: [BigInt(id)] as [bigint],
             chainId: parseChainId(chainId)
           }))
@@ -114,17 +114,17 @@ export const usePowers = () => {
             contracts
           }) as Array<[`0x${string}`, `0x${string}`, boolean]>
 
-          results.forEach((lawTuple, idx) => {
-            const id = lawIds[idx]
-            fetchedLaws.push({
+          results.forEach((mandateTuple, idx) => {
+            const id = mandateIds[idx]
+            fetchedMandates.push({
               powers: address,
-              lawAddress: lawTuple[0] as unknown as `0x${string}`,
-              lawHash: lawTuple[1] as unknown as `0x${string}`,
+              mandateAddress: mandateTuple[0] as unknown as `0x${string}`,
+              mandateHash: mandateTuple[1] as unknown as `0x${string}`,
               index: id,
-              active: lawTuple[2] as unknown as boolean
+              active: mandateTuple[2] as unknown as boolean
             })
           })
-          return fetchedLaws
+          return fetchedMandates
         } catch (error) {
           setStatus({status: "error"})
           setError({error: error as Error})
@@ -132,20 +132,20 @@ export const usePowers = () => {
     }
   }
 
-  const populateLaws = async (laws: Law[]) => {
-    let law: Law
-    const populatedLaws: Law[] = []
+  const populateMandates = async (mandates: Mandate[]) => {
+    let mandate: Mandate
+    const populatedMandates: Mandate[] = []
 
     try {
       type PendingCall = {
         kind: 'conditions' | 'inputParams' | 'nameDescription'
-        lawIdx: number
+        mandateIdx: number
       }
       const contracts: any[] = []
       const pending: PendingCall[] = []
 
-      laws.forEach((l, idx) => {
-        if (l.lawAddress != `0x0000000000000000000000000000000000000000`) {
+      mandates.forEach((l, idx) => {
+        if (l.mandateAddress != `0x0000000000000000000000000000000000000000`) {
           if (!l.conditions) {
             contracts.push({
               abi: powersAbi,
@@ -154,27 +154,27 @@ export const usePowers = () => {
               args: [l.index],
               chainId: parseChainId(chainId)!
             })
-            pending.push({ kind: 'conditions', lawIdx: idx })
+            pending.push({ kind: 'conditions', mandateIdx: idx })
           }
           if (!l.inputParams) {
             contracts.push({
-              abi: lawAbi,
-              address: l.lawAddress as `0x${string}`,
+              abi: mandateAbi,
+              address: l.mandateAddress as `0x${string}`,
               functionName: 'getInputParams',
               args: [l.powers, l.index],
               chainId: parseChainId(chainId)!
             })
-            pending.push({ kind: 'inputParams', lawIdx: idx })
+            pending.push({ kind: 'inputParams', mandateIdx: idx })
           }
           if (!l.nameDescription) {
             contracts.push({
-              abi: lawAbi,
-              address: l.lawAddress as `0x${string}`,
+              abi: mandateAbi,
+              address: l.mandateAddress as `0x${string}`,
               functionName: 'getNameDescription',
               args: [l.powers, l.index],
               chainId: parseChainId(chainId)!
             })
-            pending.push({ kind: 'nameDescription', lawIdx: idx })
+            pending.push({ kind: 'nameDescription', mandateIdx: idx })
           }
         }
       })
@@ -185,10 +185,10 @@ export const usePowers = () => {
           contracts
         })
 
-        // Apply results back to the corresponding laws in order
+        // Apply results back to the corresponding mandates in order
         results.forEach((value, i) => {
           const meta = pending[i]
-          const target = laws[meta.lawIdx]
+          const target = mandates[meta.mandateIdx]
           if (meta.kind === 'conditions') {
             target.conditions = value as Conditions
           } else if (meta.kind === 'inputParams') {
@@ -200,18 +200,18 @@ export const usePowers = () => {
         })
       }
 
-      for (law of laws) {
-        populatedLaws.push(law)
+      for (mandate of mandates) {
+        populatedMandates.push(mandate)
       }
-      return populatedLaws
+      return populatedMandates
     } catch (error) {
       setStatus({status: "error"}) 
       setError({error: error as Error})
     }
   }
 
-  const fetchRoles = async (laws: Law[]): Promise<Role[] | undefined> => {
-    const rolesIds = new Set(laws.filter((law) => law.active).flatMap((law) => law.conditions?.allowedRole) || [])
+  const fetchRoles = async (mandates: Mandate[]): Promise<Role[] | undefined> => {
+    const rolesIds = new Set(mandates.filter((mandate) => mandate.active).flatMap((mandate) => mandate.conditions?.allowedRole) || [])
  
     let updatedRoleLabels: Role[] = []
 
@@ -221,14 +221,14 @@ export const usePowers = () => {
       const contracts = Array.from(rolesIds).flatMap((roleId) => ([
         {
           abi: powersAbi,
-          address: laws[0].powers as `0x${string}`,
+          address: mandates[0].powers as `0x${string}`,
           functionName: 'getRoleLabel' as const,
           args: [roleId] as [bigint],
           chainId: parseChainId(chainId)
         },
         {
           abi: powersAbi,
-          address: laws[0].powers as `0x${string}`,
+          address: mandates[0].powers as `0x${string}`,
           functionName: 'getAmountRoleHolders' as const,
           args: [roleId] as [bigint],
           chainId: parseChainId(chainId)
@@ -257,22 +257,22 @@ export const usePowers = () => {
     }
   }
 
-  const fetchLaws = async (powers: Powers): Promise<Law[] | undefined> => {
+  const fetchMandates = async (powers: Powers): Promise<Mandate[] | undefined> => {
     try {
-      const lawCount = await readContract(wagmiConfig, {
+      const mandateCount = await readContract(wagmiConfig, {
         abi: powersAbi,
         address: powers.contractAddress as `0x${string}`,
-        functionName: 'lawCounter',
+        functionName: 'mandateCounter',
         chainId: parseChainId(chainId)
       })
-      const lawIds = Array.from({length: Number(lawCount) - 1}, (_, i) => BigInt(i+1))
-      const laws = await checkLaws(lawIds)
-      if (laws) {
-        const lawsPopulated = await populateLaws(laws)
-        return lawsPopulated
+      const mandateIds = Array.from({length: Number(mandateCount) - 1}, (_, i) => BigInt(i+1))
+      const mandates = await checkMandates(mandateIds)
+      if (mandates) {
+        const mandatesPopulated = await populateMandates(mandates)
+        return mandatesPopulated
       } else {
         setStatus({status: "error"})
-        setError({error: Error("Failed to fetch laws")})
+        setError({error: Error("Failed to fetch mandates")})
         return undefined
       }
     } catch (error) {
@@ -307,7 +307,7 @@ export const usePowers = () => {
           chainId: parseChainId(chainId)
         }))
       }) as Promise<Array<[
-        number,      // lawId (uint16)
+        number,      // mandateId (uint16)
         bigint,      // proposedAt (uint48)
         bigint,      // requestedAt (uint48)
         bigint,      // fulfilledAt (uint48)
@@ -344,7 +344,7 @@ export const usePowers = () => {
       
       return {
         actionId: actionId,
-        lawId: BigInt(data[0]),
+        mandateId: BigInt(data[0]),
         proposedAt: data[1],
         requestedAt: data[2],
         fulfilledAt: data[3],
@@ -360,15 +360,15 @@ export const usePowers = () => {
     return actions
   }
   
-  // Returns a mapping of non-stale actionIds to their lawId and index
-  const fetchActions = async (laws: Law[]): Promise<Law[] | undefined> => {
-    const activeLaws = laws.filter((law) => law.active)
+  // Returns a mapping of non-stale actionIds to their mandateId and index
+  const fetchActions = async (mandates: Mandate[]): Promise<Mandate[] | undefined> => {
+    const activeMandates = mandates.filter((mandate) => mandate.active)
 
-    // Step 1: Identify stale actions by law
-    const staleActionsByLaw = new Map<string, Set<number>>() // lawId -> Set of stale indices
+    // Step 1: Identify stale actions by mandate
+    const staleActionsByMandate = new Map<string, Set<number>>() // mandateId -> Set of stale indices
     
-    activeLaws.forEach((law) => {
-      const savedActions = law.actions || []
+    activeMandates.forEach((mandate) => {
+      const savedActions = mandate.actions || []
       const staleIndices = new Set<number>()
       
       savedActions.forEach((action, index) => {
@@ -379,40 +379,40 @@ export const usePowers = () => {
       })
       
       if (staleIndices.size > 0) {
-        staleActionsByLaw.set(law.index.toString(), staleIndices)
+        staleActionsByMandate.set(mandate.index.toString(), staleIndices)
       }
     })
 
-    // Step 2: Fetch action quantities for each active law
+    // Step 2: Fetch action quantities for each active mandate
     const actionQuantities = await readContracts(wagmiConfig, {
       allowFailure: false,
-      contracts: activeLaws.map((law) => ({
+      contracts: activeMandates.map((mandate) => ({
         abi: powersAbi,
-        address: activeLaws[0].powers as `0x${string}`,
-        functionName: 'getQuantityLawActions' as const,
-        args: [law.index],
+        address: activeMandates[0].powers as `0x${string}`,
+        functionName: 'getQuantityMandateActions' as const,
+        args: [mandate.index],
         chainId: parseChainId(chainId)
       }))
     }) as Array<bigint>
 
-    // Step 3: Create list of non-stale action indices to fetch per law
+    // Step 3: Create list of non-stale action indices to fetch per mandate
     type FetchRequest = {
-      lawId: bigint
+      mandateId: bigint
       actionIndex: number
     }
     
     const fetchRequests: FetchRequest[] = []
     
-    actionQuantities.forEach((quantity, lawIndex) => {
-      const law = activeLaws[lawIndex]
-      const lawId = law.index
-      const staleIndices = staleActionsByLaw.get(lawId.toString()) || new Set()
+    actionQuantities.forEach((quantity, mandateIndex) => {
+      const mandate = activeMandates[mandateIndex]
+      const mandateId = mandate.index
+      const staleIndices = staleActionsByMandate.get(mandateId.toString()) || new Set()
       
       // Create requests for non-stale indices only
       for (let i = 0; i < Number(quantity); i++) {
         if (!staleIndices.has(i)) {
           fetchRequests.push({
-            lawId,
+            mandateId,
             actionIndex: i
           })
         }
@@ -421,7 +421,7 @@ export const usePowers = () => {
 
     // Early exit if no actions to fetch
     if (fetchRequests.length === 0) {
-      return laws
+      return mandates
     }
 
     // Step 4: Fetch actionIds for non-stale actions
@@ -429,66 +429,66 @@ export const usePowers = () => {
       allowFailure: false,
       contracts: fetchRequests.map((req) => ({
         abi: powersAbi,
-        address: activeLaws[0].powers as `0x${string}`,
-        functionName: 'getLawActionAtIndex' as const,
-        args: [req.lawId, BigInt(req.actionIndex)],
+        address: activeMandates[0].powers as `0x${string}`,
+        functionName: 'getMandateActionAtIndex' as const,
+        args: [req.mandateId, BigInt(req.actionIndex)],
         chainId: parseChainId(chainId)
       }))
     }) as Array<bigint>
 
-    // Step 5: Create mapping of actionId -> { lawId, index }
-    const actionIdMapping = new Map<string, { lawId: bigint, index: number }>()
+    // Step 5: Create mapping of actionId -> { mandateId, index }
+    const actionIdMapping = new Map<string, { mandateId: bigint, index: number }>()
     
     fetchRequests.forEach((req, idx) => {
       const actionId = actionIds[idx]
       actionIdMapping.set(actionId.toString(), {
-        lawId: req.lawId,
+        mandateId: req.mandateId,
         index: req.actionIndex
       })
     })
 
     // Step 6: Populate actions with full data
     const actionIdsArray = Array.from(actionIdMapping.keys())
-    const populatedActions = await populateActions(actionIdsArray, activeLaws[0].powers as `0x${string}`)
+    const populatedActions = await populateActions(actionIdsArray, activeMandates[0].powers as `0x${string}`)
 
-    // Step 7: Organize actions by law and index
-    const actionsByLaw = new Map<string, Map<number, Action>>() // lawId -> (index -> Action)
+    // Step 7: Organize actions by mandate and index
+    const actionsByMandate = new Map<string, Map<number, Action>>() // mandateId -> (index -> Action)
     
     populatedActions.forEach((action) => {
       const mapping = actionIdMapping.get(action.actionId)
       if (mapping) {
-        const lawKey = mapping.lawId.toString()
+        const mandateKey = mapping.mandateId.toString()
         
-        if (!actionsByLaw.has(lawKey)) {
-          actionsByLaw.set(lawKey, new Map())
+        if (!actionsByMandate.has(mandateKey)) {
+          actionsByMandate.set(mandateKey, new Map())
         }
         
-        actionsByLaw.get(lawKey)!.set(mapping.index, action)
+        actionsByMandate.get(mandateKey)!.set(mapping.index, action)
       }
     })
 
-    // Step 8: Update laws with populated actions (including stale actions)
-    const updatedLaws = laws.map((law) => {
-      const lawKey = law.index.toString()
-      const newActionsByIndex = actionsByLaw.get(lawKey)
+    // Step 8: Update mandates with populated actions (including stale actions)
+    const updatedMandates = mandates.map((mandate) => {
+      const mandateKey = mandate.index.toString()
+      const newActionsByIndex = actionsByMandate.get(mandateKey)
       
-      if (!newActionsByIndex && !law.active) {
-        // Inactive law with no new actions - keep as is
-        return law
+      if (!newActionsByIndex && !mandate.active) {
+        // Inactive mandate with no new actions - keep as is
+        return mandate
       }
       
-      // Get the total quantity for this law
-      const lawIndex = activeLaws.findIndex(l => l.index === law.index)
-      const quantity = lawIndex >= 0 ? Number(actionQuantities[lawIndex]) : 0
+      // Get the total quantity for this mandate
+      const mandateIndex = activeMandates.findIndex(l => l.index === mandate.index)
+      const quantity = mandateIndex >= 0 ? Number(actionQuantities[mandateIndex]) : 0
       
       if (quantity === 0) {
-        return { ...law, actions: [] }
+        return { ...mandate, actions: [] }
       }
       
       // Build actions array with correct indices
       const actionsArray: Action[] = new Array(quantity)
-      const savedActions = law.actions || []
-      const staleIndices = staleActionsByLaw.get(lawKey) || new Set()
+      const savedActions = mandate.actions || []
+      const staleIndices = staleActionsByMandate.get(mandateKey) || new Set()
       
       // First, place stale actions at their indices
       savedActions.forEach((action, index) => {
@@ -508,11 +508,11 @@ export const usePowers = () => {
       const finalActions = actionsArray.filter(a => a !== undefined)
       
       return {
-        ...law,
+        ...mandate,
         actions: finalActions
       }
     })
-    return updatedLaws
+    return updatedMandates
   }
 
   const fetchPowers = useCallback(
@@ -520,8 +520,8 @@ export const usePowers = () => {
       // console.log("@fetchPowers, waypoint 0", {address}
       setStatus({status: "pending"})
       let metaData: Metadata | undefined
-      let laws: Law[] | undefined
-      let lawWithActions: Law[] | undefined
+      let mandates: Mandate[] | undefined
+      let mandateWithActions: Mandate[] | undefined
       let roles: Role[] | undefined
 
       const localStore = localStorage.getItem("powersProtocols")
@@ -539,20 +539,20 @@ export const usePowers = () => {
         // console.log("@refetchPowers, waypoint 2", {data})
 
         if (data) {
-          [metaData, laws] = await Promise.all([
+          [metaData, mandates] = await Promise.all([
             fetchMetaData(data),
-            fetchLaws(data)
+            fetchMandates(data)
           ])
         }
-        if (laws) {
-          lawWithActions = await fetchActions(laws)
-          roles = await fetchRoles(laws)
+        if (mandates) {
+          mandateWithActions = await fetchActions(mandates)
+          roles = await fetchRoles(mandates)
         }
 
-        // console.log("@refetchPowers, waypoint 4", {metaData, laws})
+        // console.log("@refetchPowers, waypoint 4", {metaData, mandates})
 
-        if (data != undefined && metaData != undefined && laws != undefined) {
-          // console.log("@refetchPowers, waypoint 7", {data, metaData, laws, actions})
+        if (data != undefined && metaData != undefined && mandates != undefined) {
+          // console.log("@refetchPowers, waypoint 7", {data, metaData, mandates, actions})
           const newPowers: Powers = {
             contractAddress: powersToBeUpdated.contractAddress as `0x${string}`,
             chainId: BigInt(chainId),
@@ -560,8 +560,8 @@ export const usePowers = () => {
             metadatas: metaData,
             uri: data.uri,
             treasury: data.treasury,
-            lawCount: data.lawCount,
-            laws: lawWithActions,
+            mandateCount: data.mandateCount,
+            mandates: mandateWithActions,
             roles: roles,
             layout: powersToBeUpdated.layout
           }

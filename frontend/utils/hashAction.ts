@@ -2,18 +2,18 @@ import { useCallback } from "react"
 import { encodeAbiParameters, keccak256 } from "viem"
 
 // * Hashes an action using the same algorithm as in the Solidity contract
-//    * Replicates: uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
+//    * Replicates: uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce)));
 //    * Create by AI - let's see if it works.. 
 //    */
-export const hashAction = (lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint): bigint => {
+export const hashAction = (mandateId: bigint, mandateCalldata: `0x${string}`, nonce: bigint): bigint => {
     // Encode the parameters in the same order as abi.encode in Solidity
     const encoded = encodeAbiParameters(
       [
-        { name: 'lawId', type: 'uint16' },
-        { name: 'lawCalldata', type: 'bytes' },
+        { name: 'mandateId', type: 'uint16' },
+        { name: 'mandateCalldata', type: 'bytes' },
         { name: 'nonce', type: 'uint256' }
       ],
-      [Number(lawId), lawCalldata, nonce]
+      [Number(mandateId), mandateCalldata, nonce]
     );
     
     // Hash the encoded data

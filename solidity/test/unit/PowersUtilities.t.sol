@@ -17,27 +17,27 @@ contract ChecksTest is TestSetupPowers {
     //////////////////////////////////////////////////////////////
     function testcheckWithNoRequirements() public {
         // Setup: Create conditions with no requirements
-        lawCalldata = abi.encode(true);
+        mandateCalldata = abi.encode(true);
         uint48 latestExecution;
 
         // Should not revert when no requirements
-        Checks.check(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.check(mandateId, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 
     //////////////////////////////////////////////////////////////
     //                  HELPER FUNCTIONS                        //
     //////////////////////////////////////////////////////////////
     function testHashActionId() public {
-        lawId = 1;
-        lawCalldata = abi.encode(true);
+        mandateId = 1;
+        mandateCalldata = abi.encode(true);
         nonce = 123;
 
-        actionId = Checks.hashActionId(lawId, lawCalldata, nonce);
-        assertEq(actionId, uint256(keccak256(abi.encode(lawId, lawCalldata, nonce))));
+        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        assertEq(actionId, uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce))));
     }
 
     function testGetConditions() public {
-        // Test getting conditions for an existing law
+        // Test getting conditions for an existing mandate
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 1);
 
         // Verify we get valid conditions back
@@ -45,23 +45,23 @@ contract ChecksTest is TestSetupPowers {
     }
 
     function testcheckWithZeroThrottle() public {
-        // Setup: Use lawId 6 from powersTestConstitution which has no throttle (throttleExecution = 0)
-        // it does have a parentLaw needFulfilled, so we need to complete it.
-        lawId = 3;
+        // Setup: Use mandateId 6 from powersTestConstitution which has no throttle (throttleExecution = 0)
+        // it does have a parentMandate needFulfilled, so we need to complete it.
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
         uint48 latestExecution = uint48(block.number - 1); // Very recent execution
 
-        // First, we need to vote on law 4
+        // First, we need to vote on mandate 4
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(3, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        uint256 proposalActionId = daoMock.propose(3, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -70,16 +70,16 @@ contract ChecksTest is TestSetupPowers {
         }
         vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, "Test proposal");
+        daoMock.request(mandateId, mandateCalldata, nonce, "Test proposal");
 
-        // now we execute law 6
+        // now we execute mandate 6
         // Should not revert when throttle is zero
         vm.prank(charlotte);
-        Checks.check(5, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.check(5, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 
-    function testGetConditionsForNonExistentLaw() public {
-        // Test getting conditions for a non-existent law
+    function testGetConditionsForNonExistentMandate() public {
+        // Test getting conditions for a non-existent mandate
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 999);
 
         // Should return default/empty conditions
@@ -97,20 +97,20 @@ contract ChecksTest is TestSetupPowers {
     //                  DELAY EXECUTION CHECKS                   //
     //////////////////////////////////////////////////////////////
     function testcheckWithDelayExecution() public {
-        // Setup: Use lawId 4 from powersTestConstitution which now has delayExecution = 250
-        lawId = 3;
+        // Setup: Use mandateId 4 from powersTestConstitution which now has delayExecution = 250
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
 
-        // First, we need to vote on law 3
+        // First, we need to vote on mandate 3
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(3, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(3);
+        uint256 proposalActionId = daoMock.propose(3, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(3);
         conditions = daoMock.getConditions(3);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -119,30 +119,30 @@ contract ChecksTest is TestSetupPowers {
             }
         }
 
-        // Advance time past voting period and execute law 3
+        // Advance time past voting period and execute mandate 3
         vm.roll(block.number + conditions.votingPeriod + 1);
 
         // First execution should not succeed (there is also a delay for the first execution)
         vm.prank(alice);
         vm.expectRevert(Checks.Checks__DeadlineNotPassed.selector);
-        daoMock.request(lawId, lawCalldata, nonce, "First execution");
+        daoMock.request(mandateId, mandateCalldata, nonce, "First execution");
     }
 
     function testcheckWithDelayExecutionPassed() public {
-        // Setup: Use lawId 4 from powersTestConstitution which now has delayExecution = 250
-        lawId = 3;
+        // Setup: Use mandateId 4 from powersTestConstitution which now has delayExecution = 250
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
 
-        // First, we need to vote on law 3
+        // First, we need to vote on mandate 3
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(3, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(3);
+        uint256 proposalActionId = daoMock.propose(3, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(3);
         conditions = daoMock.getConditions(3);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -156,25 +156,25 @@ contract ChecksTest is TestSetupPowers {
 
         // Second execution should succeed now that delay has passed
         vm.prank(alice);
-        uint256 secondActionId = daoMock.request(lawId, lawCalldata, nonce, "Second execution after delay");
+        uint256 secondActionId = daoMock.request(mandateId, mandateCalldata, nonce, "Second execution after delay");
         assertTrue(daoMock.getActionState(secondActionId) == ActionState.Fulfilled);
     }
 
     function testcheckWithZeroDelayExecution() public {
-        // Setup: Use lawId 1 from powersTestConstitution which has no delay (delayExecution = 0)
-        lawId = 1;
+        // Setup: Use mandateId 1 from powersTestConstitution which has no delay (delayExecution = 0)
+        mandateId = 1;
         bytes[] memory encodedParams = new bytes[](1);
         encodedParams[0] = abi.encode();
-        lawCalldata = abi.encode(encodedParams); // Law 1 expects a bytes[] with an address parameter
+        mandateCalldata = abi.encode(encodedParams); // Mandate 1 expects a bytes[] with an address parameter
 
         // First execution should succeed
         vm.prank(charlotte);
-        uint256 firstActionId = daoMock.request(lawId, lawCalldata, nonce, "First execution");
+        uint256 firstActionId = daoMock.request(mandateId, mandateCalldata, nonce, "First execution");
         assertTrue(daoMock.getActionState(firstActionId) == ActionState.Fulfilled);
 
         // Second execution should also succeed immediately (no delay)
         vm.prank(david);
-        uint256 secondActionId = daoMock.request(lawId, lawCalldata, nonce + 1, "Second execution immediately");
+        uint256 secondActionId = daoMock.request(mandateId, mandateCalldata, nonce + 1, "Second execution immediately");
         assertTrue(daoMock.getActionState(secondActionId) == ActionState.Fulfilled);
     }
 
@@ -182,21 +182,21 @@ contract ChecksTest is TestSetupPowers {
     //                  THROTTLE EXECUTION CHECKS                //
     //////////////////////////////////////////////////////////////
     function testcheckWithThrottleExecutionGapTooSmall() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 3;
+        // Setup: Use mandateId 5 from mandateTestConstitution which has throttleExecution = 5000
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
 
-        // we first propose, vote and execute law 4.
+        // we first propose, vote and execute mandate 4.
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        uint256 proposalActionId = daoMock.propose(mandateId, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -210,25 +210,25 @@ contract ChecksTest is TestSetupPowers {
 
         // Should revert when execution gap is too small
         vm.expectRevert(Checks.Checks__ExecutionGapTooSmall.selector);
-        Checks.check(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.check(mandateId, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testcheckWithThrottleExecutionGapSufficient() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 3;
+        // Setup: Use mandateId 5 from mandateTestConstitution which has throttleExecution = 5000
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
 
-        // we first propose, vote and execute law 3.
+        // we first propose, vote and execute mandate 3.
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        uint256 proposalActionId = daoMock.propose(mandateId, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -241,25 +241,25 @@ contract ChecksTest is TestSetupPowers {
         uint48 latestExecution = uint48(block.number - 6000);
 
         // Should not revert when execution gap is sufficient
-        Checks.check(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.check(mandateId, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 
     function testcheckWithThrottleExecutionExactlyAtThreshold() public {
-        // Setup: Use lawId 5 from lawTestConstitution which has throttleExecution = 5000
-        lawId = 3;
+        // Setup: Use mandateId 5 from mandateTestConstitution which has throttleExecution = 5000
+        mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
         tar[0] = address(daoMock);
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "TestMember");
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
 
-        // we first propose, vote and execute law 4.
+        // we first propose, vote and execute mandate 4.
         vm.prank(bob);
-        uint256 proposalActionId = daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        uint256 proposalActionId = daoMock.propose(mandateId, mandateCalldata, nonce, "Test proposal");
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -272,6 +272,6 @@ contract ChecksTest is TestSetupPowers {
         uint48 latestExecution = uint48(block.number - 5000);
 
         // Should not revert when execution gap equals throttle threshold
-        Checks.check(lawId, lawCalldata, address(daoMock), nonce, latestExecution);
+        Checks.check(mandateId, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 }

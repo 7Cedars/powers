@@ -53,7 +53,7 @@ The following behaviors are considered harassment and are unacceptable within ou
   * Frivolously vetoing all proposals to halt the organization.  
   * Colluding to use approval powers to stall the pool creation process without cause.  
 * **Gaming the System:** Any attempt to gain an unfair advantage in the governance process, such as Sybil attacks (using multiple addresses to gain outsized voting power) or misrepresenting information to mislead voters.  
-* **Malicious Commits:** Submitting commits to the repository (e.g., to the "gitbook", "frontend", or "solidity" paths) with the malicious intent of falsely claiming a Contributor role via the RoleByGitSignature law.
+* **Malicious Commits:** Submitting commits to the repository (e.g., to the "gitbook", "frontend", or "solidity" paths) with the malicious intent of falsely claiming a Contributor role via the RoleByGitSignature mandate.
 
 ## **5\. Enforcement & Consequences**
 
@@ -69,7 +69,7 @@ In community channels like Discord or forums, moderators or the Admin may take t
 
 Violations of this Code of Conduct, especially those related to the "Abuse of Powers," can have on-chain consequences. The community's primary tool for enforcement is the governance system itself.
 
-1. **Escalation:** For severe or repeated violations, especially those demonstrating bad faith, any Member may submit an on-chain proposal using the **"Remove Role"** law.  
+1. **Escalation:** For severe or repeated violations, especially those demonstrating bad faith, any Member may submit an on-chain proposal using the **"Remove Role"** mandate.  
 2. **Community Vote:** The Members will vote on this proposal. A successful vote will revoke the offending user's role(s), removing their on-chain governance powers. This is the community's ultimate enforcement mechanism.  
 3. **Admin Veto:** The Admin role has the power to veto a "Remove Role" proposal, acting as a backstop against malicious or unfair removal attempts.  
 4. **Blacklisting:** In extreme, unambiguous cases of malicious activity (e.g., attempting to exploit a contract), the Admin may use the blacklistAddress function to immediately revoke all permissions. This is a measure of last resort for protecting the protocol.

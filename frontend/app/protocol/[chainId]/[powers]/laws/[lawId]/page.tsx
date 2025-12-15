@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { LawBox } from "@/components/LawBox";
+import { MandateBox } from "@/components/MandateBox";
 import { setAction, setError, useActionStore, useStatusStore } from "@/context/store";
 import { Action, Powers } from "@/context/types";
 import { useParams } from "next/navigation"; 
-import { LawActions } from "./LawActions";
+import { MandateActions } from "./MandateActions";
 import { TitleText } from "@/components/StandardFonts";
 import { Voting } from "@/components/Voting"; 
 import { usePowersStore  } from "@/context/store";
 
 const Page = () => {
   const action = useActionStore();  
-  const { lawId } = useParams<{ lawId: string }>()  
+  const { mandateId } = useParams<{ mandateId: string }>()  
   const powers = usePowersStore();
   const statusPowers = useStatusStore();
-  const law = powers?.laws?.find(law => BigInt(law.index) == BigInt(lawId)) 
+  const mandate = powers?.mandates?.find(mandate => BigInt(mandate.index) == BigInt(mandateId)) 
   const [populatedAction, setPopulatedAction] = useState<Action | undefined>();
 
   // console.log("@Page: waypoint 0", {populatedAction, action})
@@ -36,54 +36,54 @@ const Page = () => {
   }
 
   useEffect(() => {
-    if (lawId) {
+    if (mandateId) {
       setAction({
         ...action, 
         actionId: '',
-        lawId: BigInt(lawId),
+        mandateId: BigInt(mandateId),
         state: 0,
         upToDate: false
       })
       setPopulatedAction(action);
     }
-  }, [lawId])
+  }, [mandateId])
 
   // resetting action state when action is changed,
   useEffect(() => {
     if (action) {
-      const newPopulatedAction = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
+      const newPopulatedAction = mandate?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
       setPopulatedAction(newPopulatedAction);
     }
-  }, [action.actionId, law]);
+  }, [action.actionId, mandate]);
 
-  // resetting DynamicForm and fetching executions when switching laws: 
+  // resetting DynamicForm and fetching executions when switching mandates: 
   useEffect(() => {
-    if (law) {
-      // console.log("useEffect triggered at Law page:", action.dataTypes, dataTypes)
-      const dissimilarTypes = action.dataTypes && action.dataTypes.length != 0 ? action.dataTypes.map((type, index) => type != law.params?.[index]?.dataType) : [true] 
-      console.log("useEffect triggered at Law page:", {dissimilarTypes, action, law})
+    if (mandate) {
+      // console.log("useEffect triggered at Mandate page:", action.dataTypes, dataTypes)
+      const dissimilarTypes = action.dataTypes && action.dataTypes.length != 0 ? action.dataTypes.map((type, index) => type != mandate.params?.[index]?.dataType) : [true] 
+      console.log("useEffect triggered at Mandate page:", {dissimilarTypes, action, mandate})
       
       if (dissimilarTypes.find(type => type == true) || !action.dataTypes) {
-        console.log("useEffect triggered at Law page, action.dataTypes != dataTypes")
+        console.log("useEffect triggered at Mandate page, action.dataTypes != dataTypes")
         setAction({
-          lawId: law.index,
-          dataTypes: law.params?.map(param => param.dataType),
+          mandateId: mandate.index,
+          dataTypes: mandate.params?.map(param => param.dataType),
           paramValues: [],
           nonce: '0',
           callData: '0x0',
           upToDate: false
         })
       } else {
-        console.log("useEffect triggered at Law page, action.dataTypes == dataTypes")
+        console.log("useEffect triggered at Mandate page, action.dataTypes == dataTypes")
         setAction({
           ...action,  
-          lawId: law.index,
+          mandateId: mandate.index,
           upToDate: false
         })
       }
       setError({error: null})
     }
-  }, [law])
+  }, [mandate])
 
   return (
     <main className="w-full h-full flex flex-col justify-start items-center gap-2 pt-16">
@@ -91,7 +91,7 @@ const Page = () => {
         <div className="w-full flex flex-col justify-start items-center px-4">
           <TitleText 
             title="Act"
-            subtitle="Create a new action. Execution is restricted by the conditions of the law."
+            subtitle="Create a new action. Execution is restricted by the conditions of the mandate."
             size={2}
           />
         </div>
@@ -127,11 +127,11 @@ const Page = () => {
 
         <div className="w-full flex min-h-fit ps-4 pe-12"> 
           {  
-          law && 
-          <LawBox 
+          mandate && 
+          <MandateBox 
               powers = {powers as Powers}
-              law = {law}
-              params = {law.params || []}
+              mandate = {mandate}
+              params = {mandate.params || []}
               status = {statusPowers.status}
               /> 
             }
@@ -139,13 +139,13 @@ const Page = () => {
 
         {/* Voting, Latest Actions section */}
         <div className="w-full flex flex-col gap-3 justify-start items-center ps-4 pe-12 pb-20"> 
-          {/* Conditional if a law.condition.quorum >0 && action.state != 0 && action.upToDate: show vote and voting */}
-          {Number(law?.conditions?.quorum) > 0 && populatedAction?.state != 0 && populatedAction?.state != 8 && (
+          {/* Conditional if a mandate.condition.quorum >0 && action.state != 0 && action.upToDate: show vote and voting */}
+          {Number(mandate?.conditions?.quorum) > 0 && populatedAction?.state != 0 && populatedAction?.state != 8 && (
               <Voting powers={powers} />
           )}
           
           {/* Latest actions */}
-          {law && <LawActions lawId = {law.index} powers = {powers} />}
+          {mandate && <MandateActions mandateId = {mandate.index} powers = {powers} />}
         </div>        
     </main>
   )

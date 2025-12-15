@@ -12,8 +12,8 @@ import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "../../src/helpers/Nominees.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
-import { EmptyTargetsLaw } from "@mocks/LawMocks.sol";
-import { MockTargetsLaw } from "@mocks/LawMocks.sol";
+import { EmptyTargetsMandate } from "@mocks/MandateMocks.sol";
+import { MockTargetsMandate } from "@mocks/MandateMocks.sol";
 
 /// @notice Unit tests for helper contracts
 //////////////////////////////////////////////////////////////
@@ -46,40 +46,40 @@ contract FlagActionsTest is TestSetupPowers {
         actionId = 123;
         roleId = 1;
         account = alice;
-        lawId = 2;
+        mandateId = 2;
 
         vm.prank(address(daoMock));
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
 
         assertTrue(flagActions.flaggedActions(actionId));
         assertTrue(flagActions.isActionIdFlagged(actionId));
         assertTrue(flagActions.isActionFlaggedForRole(actionId, roleId));
         assertTrue(flagActions.isActionFlaggedForAccount(actionId, account));
-        assertTrue(flagActions.isActionFlaggedForLaw(actionId, lawId));
+        assertTrue(flagActions.isActionFlaggedForMandate(actionId, mandateId));
     }
 
     function testFlagRevertsWhenAlreadyFlagged() public {
         actionId = 123;
         roleId = 1;
         account = alice;
-        lawId = 2;
+        mandateId = 2;
 
         vm.prank(address(daoMock));
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
 
         vm.expectRevert("Already true");
         vm.prank(address(daoMock));
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
     }
 
     function testUnflag() public {
         actionId = 123;
         roleId = 1;
         account = alice;
-        lawId = 2;
+        mandateId = 2;
 
         vm.prank(address(daoMock));
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
 
         vm.prank(address(daoMock));
         flagActions.unflag(actionId);
@@ -89,7 +89,7 @@ contract FlagActionsTest is TestSetupPowers {
         // Now unflagged actions are removed from all arrays
         assertFalse(flagActions.isActionFlaggedForRole(actionId, roleId));
         assertFalse(flagActions.isActionFlaggedForAccount(actionId, account));
-        assertFalse(flagActions.isActionFlaggedForLaw(actionId, lawId));
+        assertFalse(flagActions.isActionFlaggedForMandate(actionId, mandateId));
     }
 
     function testUnflagRevertsWhenNotFlagged() public {
@@ -104,11 +104,11 @@ contract FlagActionsTest is TestSetupPowers {
         actionId = 123;
         roleId = 1;
         account = alice;
-        lawId = 2;
+        mandateId = 2;
 
         vm.expectRevert();
         vm.prank(alice);
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
     }
 
     function testUnflagRevertsWhenNotCalledByOwner() public {
@@ -135,15 +135,15 @@ contract FlagActionsTest is TestSetupPowers {
         accounts[1] = bob;
         accounts[2] = charlotte;
 
-        lawIds = new uint16[](3);
-        lawIds[0] = 10;
-        lawIds[1] = 20;
-        lawIds[2] = 30;
+        mandateIds = new uint16[](3);
+        mandateIds[0] = 10;
+        mandateIds[1] = 20;
+        mandateIds[2] = 30;
 
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleIds[0], accounts[0], lawIds[0]);
-        flagActions.flag(actionIds[1], roleIds[1], accounts[1], lawIds[1]);
-        flagActions.flag(actionIds[2], roleIds[2], accounts[2], lawIds[2]);
+        flagActions.flag(actionIds[0], roleIds[0], accounts[0], mandateIds[0]);
+        flagActions.flag(actionIds[1], roleIds[1], accounts[1], mandateIds[1]);
+        flagActions.flag(actionIds[2], roleIds[2], accounts[2], mandateIds[2]);
         vm.stopPrank();
 
         assertTrue(flagActions.isActionIdFlagged(actionIds[0]));
@@ -167,13 +167,13 @@ contract FlagActionsTest is TestSetupPowers {
         accounts = new address[](2);
         accounts[0] = alice;
         accounts[1] = bob;
-        lawIds = new uint16[](2);
-        lawIds[0] = 10;
-        lawIds[1] = 20;
+        mandateIds = new uint16[](2);
+        mandateIds[0] = 10;
+        mandateIds[1] = 20;
 
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleId, accounts[0], lawIds[0]);
-        flagActions.flag(actionIds[1], roleId, accounts[1], lawIds[1]);
+        flagActions.flag(actionIds[0], roleId, accounts[0], mandateIds[0]);
+        flagActions.flag(actionIds[1], roleId, accounts[1], mandateIds[1]);
         vm.stopPrank();
 
         uint256[] memory roleActions = flagActions.getFlaggedActionsByRole(roleId);
@@ -192,13 +192,13 @@ contract FlagActionsTest is TestSetupPowers {
         roleIds[0] = 1;
         roleIds[1] = 2;
         account = alice;
-        lawIds = new uint16[](2);
-        lawIds[0] = 10;
-        lawIds[1] = 20;
+        mandateIds = new uint16[](2);
+        mandateIds[0] = 10;
+        mandateIds[1] = 20;
 
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleIds[0], account, lawIds[0]);
-        flagActions.flag(actionIds[1], roleIds[1], account, lawIds[1]);
+        flagActions.flag(actionIds[0], roleIds[0], account, mandateIds[0]);
+        flagActions.flag(actionIds[1], roleIds[1], account, mandateIds[1]);
         vm.stopPrank();
 
         uint256[] memory accountActions = flagActions.getFlaggedActionsByAccount(account);
@@ -209,7 +209,7 @@ contract FlagActionsTest is TestSetupPowers {
         assertEq(flagActions.getFlaggedActionsCountByAccount(account), 2);
     }
 
-    function testGetFlaggedActionsByLaw() public {
+    function testGetFlaggedActionsByMandate() public {
         actionIds = new uint256[](2);
         actionIds[0] = 123;
         actionIds[1] = 456;
@@ -219,19 +219,19 @@ contract FlagActionsTest is TestSetupPowers {
         accounts = new address[](2);
         accounts[0] = alice;
         accounts[1] = bob;
-        lawId = 10;
+        mandateId = 10;
 
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleIds[0], accounts[0], lawId);
-        flagActions.flag(actionIds[1], roleIds[1], accounts[1], lawId);
+        flagActions.flag(actionIds[0], roleIds[0], accounts[0], mandateId);
+        flagActions.flag(actionIds[1], roleIds[1], accounts[1], mandateId);
         vm.stopPrank();
 
-        uint256[] memory lawActions = flagActions.getFlaggedActionsByLaw(lawId);
-        assertEq(lawActions.length, 2);
-        assertEq(lawActions[0], actionIds[0]);
-        assertEq(lawActions[1], actionIds[1]);
+        uint256[] memory mandateActions = flagActions.getFlaggedActionsByMandate(mandateId);
+        assertEq(mandateActions.length, 2);
+        assertEq(mandateActions[0], actionIds[0]);
+        assertEq(mandateActions[1], actionIds[1]);
 
-        assertEq(flagActions.getFlaggedActionsCountByLaw(lawId), 2);
+        assertEq(flagActions.getFlaggedActionsCountByMandate(mandateId), 2);
     }
 
     function testGetAllFlaggedActions() public {
@@ -247,15 +247,15 @@ contract FlagActionsTest is TestSetupPowers {
         accounts[0] = alice;
         accounts[1] = bob;
         accounts[2] = charlotte;
-        lawIds = new uint16[](3);
-        lawIds[0] = 10;
-        lawIds[1] = 20;
-        lawIds[2] = 30;
+        mandateIds = new uint16[](3);
+        mandateIds[0] = 10;
+        mandateIds[1] = 20;
+        mandateIds[2] = 30;
 
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleIds[0], accounts[0], lawIds[0]);
-        flagActions.flag(actionIds[1], roleIds[1], accounts[1], lawIds[1]);
-        flagActions.flag(actionIds[2], roleIds[2], accounts[2], lawIds[2]);
+        flagActions.flag(actionIds[0], roleIds[0], accounts[0], mandateIds[0]);
+        flagActions.flag(actionIds[1], roleIds[1], accounts[1], mandateIds[1]);
+        flagActions.flag(actionIds[2], roleIds[2], accounts[2], mandateIds[2]);
         vm.stopPrank();
 
         uint256[] memory allActions = flagActions.getAllFlaggedActions();
@@ -271,10 +271,10 @@ contract FlagActionsTest is TestSetupPowers {
         actionId = 123;
         roleId = 1;
         account = alice;
-        lawId = 10;
+        mandateId = 10;
 
         vm.prank(address(daoMock));
-        flagActions.flag(actionId, roleId, account, lawId);
+        flagActions.flag(actionId, roleId, account, mandateId);
 
         // Test specific context checks
         assertTrue(flagActions.isActionFlaggedForRole(actionId, roleId));
@@ -283,8 +283,8 @@ contract FlagActionsTest is TestSetupPowers {
         assertTrue(flagActions.isActionFlaggedForAccount(actionId, account));
         assertFalse(flagActions.isActionFlaggedForAccount(actionId, bob));
 
-        assertTrue(flagActions.isActionFlaggedForLaw(actionId, lawId));
-        assertFalse(flagActions.isActionFlaggedForLaw(actionId, 999));
+        assertTrue(flagActions.isActionFlaggedForMandate(actionId, mandateId));
+        assertFalse(flagActions.isActionFlaggedForMandate(actionId, 999));
     }
 
     function testUnflagRemovesFromAllArrays() public {
@@ -300,16 +300,16 @@ contract FlagActionsTest is TestSetupPowers {
         accounts[0] = alice;
         accounts[1] = bob;
         accounts[2] = charlotte;
-        lawIds = new uint16[](3);
-        lawIds[0] = 10;
-        lawIds[1] = 20;
-        lawIds[2] = 30;
+        mandateIds = new uint16[](3);
+        mandateIds[0] = 10;
+        mandateIds[1] = 20;
+        mandateIds[2] = 30;
 
         // Flag multiple actions
         vm.startPrank(address(daoMock));
-        flagActions.flag(actionIds[0], roleIds[0], accounts[0], lawIds[0]);
-        flagActions.flag(actionIds[1], roleIds[1], accounts[1], lawIds[1]);
-        flagActions.flag(actionIds[2], roleIds[2], accounts[2], lawIds[2]);
+        flagActions.flag(actionIds[0], roleIds[0], accounts[0], mandateIds[0]);
+        flagActions.flag(actionIds[1], roleIds[1], accounts[1], mandateIds[1]);
+        flagActions.flag(actionIds[2], roleIds[2], accounts[2], mandateIds[2]);
         vm.stopPrank();
 
         // Verify all actions are flagged
@@ -320,7 +320,7 @@ contract FlagActionsTest is TestSetupPowers {
         // Verify counts before unflagging
         assertEq(flagActions.getFlaggedActionsCountByRole(roleIds[0]), 1);
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[0]), 1);
-        assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[0]), 1);
+        assertEq(flagActions.getFlaggedActionsCountByMandate(mandateIds[0]), 1);
         assertEq(flagActions.getTotalFlaggedActionsCount(), 3);
 
         // Unflag actionIds[1]
@@ -331,7 +331,7 @@ contract FlagActionsTest is TestSetupPowers {
         assertFalse(flagActions.isActionIdFlagged(actionIds[1]));
         assertFalse(flagActions.isActionFlaggedForRole(actionIds[1], roleIds[1]));
         assertFalse(flagActions.isActionFlaggedForAccount(actionIds[1], accounts[1]));
-        assertFalse(flagActions.isActionFlaggedForLaw(actionIds[1], lawIds[1]));
+        assertFalse(flagActions.isActionFlaggedForMandate(actionIds[1], mandateIds[1]));
 
         // Verify other actions are still flagged
         assertTrue(flagActions.isActionIdFlagged(actionIds[0]));
@@ -346,9 +346,9 @@ contract FlagActionsTest is TestSetupPowers {
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[1]), 0);
         assertEq(flagActions.getFlaggedActionsCountByAccount(accounts[2]), 1);
 
-        assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[0]), 1);
-        assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[1]), 0);
-        assertEq(flagActions.getFlaggedActionsCountByLaw(lawIds[2]), 1);
+        assertEq(flagActions.getFlaggedActionsCountByMandate(mandateIds[0]), 1);
+        assertEq(flagActions.getFlaggedActionsCountByMandate(mandateIds[1]), 0);
+        assertEq(flagActions.getFlaggedActionsCountByMandate(mandateIds[2]), 1);
 
         assertEq(flagActions.getTotalFlaggedActionsCount(), 2);
 
@@ -3059,17 +3059,17 @@ contract NomineesTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 //               LAW MOCKS TESTS                           //
 //////////////////////////////////////////////////////////////
-contract EmptyTargetsLawTest is TestSetupPowers {
-    EmptyTargetsLaw emptyTargetsLaw;
+contract EmptyTargetsMandateTest is TestSetupPowers {
+    EmptyTargetsMandate emptyTargetsMandate;
 
     function setUp() public override {
         super.setUp();
-        emptyTargetsLaw = new EmptyTargetsLaw();
+        emptyTargetsMandate = new EmptyTargetsMandate();
     }
 
     function testConstructor() public {
-        // EmptyTargetsLaw inherits from Law, so we can test basic functionality
-        assertTrue(address(emptyTargetsLaw) != address(0));
+        // EmptyTargetsMandate inherits from Mandate, so we can test basic functionality
+        assertTrue(address(emptyTargetsMandate) != address(0));
     }
 
     function testHandleRequestReturnsEmptyArrays() public {
@@ -3080,7 +3080,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         uint256 timestamp = block.timestamp;
 
         (actionId, targets, values, calldatas) =
-            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            emptyTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Check that actionId is returned correctly
         assertEq(actionId, 1);
@@ -3100,7 +3100,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         uint256 timestamp = block.timestamp + 100;
 
         (actionId, targets, values, calldatas) =
-            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            emptyTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return the same empty result regardless of input
         assertEq(actionId, 1);
@@ -3117,7 +3117,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         uint256 timestamp = 0;
 
         (actionId, targets, values, calldatas) =
-            emptyTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            emptyTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return empty arrays
         assertEq(actionId, 1);
@@ -3135,7 +3135,7 @@ contract EmptyTargetsLawTest is TestSetupPowers {
         }
 
         (actionId, targets, values, calldatas) =
-            emptyTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
+            emptyTargetsMandate.handleRequest(alice, bob, 1, largeData, block.timestamp);
 
         // Should still return empty arrays
         assertEq(actionId, 1);
@@ -3145,17 +3145,17 @@ contract EmptyTargetsLawTest is TestSetupPowers {
     }
 }
 
-contract MockTargetsLawTest is TestSetupPowers {
-    MockTargetsLaw mockTargetsLaw;
+contract MockTargetsMandateTest is TestSetupPowers {
+    MockTargetsMandate mockTargetsMandate;
 
     function setUp() public override {
         super.setUp();
-        mockTargetsLaw = new MockTargetsLaw();
+        mockTargetsMandate = new MockTargetsMandate();
     }
 
     function testConstructor() public {
-        // MockTargetsLaw inherits from Law, so we can test basic functionality
-        assertTrue(address(mockTargetsLaw) != address(0));
+        // MockTargetsMandate inherits from Mandate, so we can test basic functionality
+        assertTrue(address(mockTargetsMandate) != address(0));
     }
 
     function testHandleRequestReturnsSpecificData() public {
@@ -3166,7 +3166,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         uint256 timestamp = block.timestamp;
 
         (actionId, targets, values, calldatas) =
-            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            mockTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Check actionId
         assertEq(actionId, 1);
@@ -3196,7 +3196,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         uint256 timestamp = block.timestamp + 500;
 
         (actionId, targets, values, calldatas) =
-            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            mockTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should return the same mock data regardless of input
         assertEq(actionId, 1);
@@ -3219,7 +3219,7 @@ contract MockTargetsLawTest is TestSetupPowers {
         uint256 timestamp = 0;
 
         (actionId, targets, values, calldatas) =
-            mockTargetsLaw.handleRequest(requester, executor, roleId, data, timestamp);
+            mockTargetsMandate.handleRequest(requester, executor, roleId, data, timestamp);
 
         // Should still return the same mock data
         assertEq(actionId, 1);
@@ -3242,7 +3242,7 @@ contract MockTargetsLawTest is TestSetupPowers {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
-        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, largeData, block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(alice, bob, 1, largeData, block.timestamp);
 
         // Should still return the same mock data
         assertEq(actionId, 1);
@@ -3260,7 +3260,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     function testHandleRequestMultipleCalls() public {
         // Test multiple calls to ensure consistency
         for (i = 0; i < 5; i++) {
-            (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(
+            (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(
                 makeAddr(string(abi.encodePacked("requester", i))),
                 makeAddr(string(abi.encodePacked("executor", i))),
                 uint16(i),
@@ -3283,7 +3283,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testCalldataContent() public {
-        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the calldata contains the expected function signatures
         bytes memory expectedCalldata1 = abi.encodeWithSignature("test1()");
@@ -3294,7 +3294,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testValuesAreCorrectEtherAmounts() public {
-        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the values are exactly 1 ether and 2 ether
         assertEq(values[0], 1 ether);
@@ -3309,7 +3309,7 @@ contract MockTargetsLawTest is TestSetupPowers {
     }
 
     function testTargetsAreSpecificAddresses() public {
-        (actionId, targets, values, calldatas) = mockTargetsLaw.handleRequest(alice, bob, 1, "", block.timestamp);
+        (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(alice, bob, 1, "", block.timestamp);
 
         // Verify the targets are the expected addresses
         assertEq(targets[0], address(0x1));

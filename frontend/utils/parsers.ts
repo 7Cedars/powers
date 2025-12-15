@@ -309,13 +309,13 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
 }
   
 // Parse different types of errors and extract meaningful error messages
-export const parseLawError = (rawReply: unknown): string => {
+export const parseMandateError = (rawReply: unknown): string => {
   // Handle null/undefined input
   if (rawReply == null) {
     return "."
   }
 
-  console.log("@parseLawError: ", {rawReply})
+  console.log("@parseMandateError: ", {rawReply})
 
   // Convert to string for processing
   let errorString: string

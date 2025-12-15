@@ -1,14 +1,14 @@
 import { Abi } from "viem";
-import { LawConditions } from "./helpers";
+import { MandateConditions } from "./helpers";
 
 /**
- * Law initialization data
+ * Mandate initialization data
  */
-export interface LawInitData {
+export interface MandateInitData {
   nameDescription: string;
-  targetLaw: `0x${string}`;
+  targetMandate: `0x${string}`;
   config: `0x${string}`;
-  conditions: LawConditions;
+  conditions: MandateConditions;
 }
 
 /**
@@ -73,7 +73,7 @@ export function isFunctionCallDependency(dep: ExecutableDependency): dep is Func
   return 'target' in dep && 'functionName' in dep;
 }
 
-export type LawData = { name: string; address: `0x${string}` };
+export type MandateData = { name: string; address: `0x${string}` };
 
 /**
  * Complete organization definition
@@ -94,20 +94,20 @@ export interface Organization {
   allowedChainsLocally: number[];
   
   /**
-   * Generate law initialization data for this organization
+   * Generate mandate initialization data for this organization
    * @param powersAddress - Address of the deployed Powers contract
    * @param formData - User input from deployment form
-   * @param deployedLaws - List of deployed laws
+   * @param deployedMandates - List of deployed mandates
    * @param dependencyReceipts - Raw transaction receipts from dependency executions
    * @param chainId - Chain ID
    */
-  createLawInitData: (
+  createMandateInitData: (
     powersAddress: `0x${string}`, 
     formData: Record<string, any>,
-    deployedLaws: Record<string, `0x${string}`>,
+    deployedMandates: Record<string, `0x${string}`>,
     dependencyReceipts: Record<string, any>,
     chainId: number,
-  ) => LawInitData[];
+  ) => MandateInitData[];
 
   /**
    * Optional: Validation function for form data

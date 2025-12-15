@@ -18,37 +18,37 @@ interface PowersEvents {
 
     /// @notice Emitted when executive action is requested.
     /// @param caller the address of the caller
-    /// @param lawId the id of the law
-    /// @param lawCalldata the calldata of the law
-    /// @param description the description of the law action
+    /// @param mandateId the id of the mandate
+    /// @param mandateCalldata the calldata of the mandate
+    /// @param description the description of the mandate action
     /// @param nonce the nonce of the action
     event ActionRequested(
-        address indexed caller, uint16 indexed lawId, bytes lawCalldata, uint256 nonce, string description
+        address indexed caller, uint16 indexed mandateId, bytes mandateCalldata, uint256 nonce, string description
     );
 
     /// @notice Emitted when an executive action has been executed.
-    /// @param lawId the id of the law
+    /// @param mandateId the id of the mandate
     /// @param actionId the id of the action
     /// @param targets the targets of the action
     /// @param values the values of the action
     /// @param calldatas the calldatas of the action
     event ActionExecuted(
-        uint16 indexed lawId, uint256 indexed actionId, address[] targets, uint256[] values, bytes[] calldatas
+        uint16 indexed mandateId, uint256 indexed actionId, address[] targets, uint256[] values, bytes[] calldatas
     );
 
     /// @notice Emitted when a proposal is created.
     /// @param actionId the id of the proposal
     /// @param caller the address of the caller
-    /// @param lawId the id of the law
+    /// @param mandateId the id of the mandate
     /// @param signature the signature of the proposal
-    /// @param executeCalldata the calldata to be passed to the law
+    /// @param executeCalldata the calldata to be passed to the mandate
     /// @param voteStart the start of the voting period
     /// @param voteEnd the end of the voting period
     /// @param description the description of the proposal
     event ProposedActionCreated(
         uint256 indexed actionId,
         address indexed caller,
-        uint16 indexed lawId,
+        uint16 indexed mandateId,
         string signature,
         bytes executeCalldata,
         uint256 voteStart,
@@ -79,17 +79,17 @@ interface PowersEvents {
     /// @param label the label assigned to the role
     event RoleLabel(uint256 indexed roleId, string label);
 
-    /// @notice Emitted when a law is adopted.
-    /// @param lawId the id of the law
-    event LawAdopted(uint16 indexed lawId);
+    /// @notice Emitted when a mandate is adopted.
+    /// @param mandateId the id of the mandate
+    event MandateAdopted(uint16 indexed mandateId);
 
-    /// @notice Emitted when a law is revoked.
-    /// @param lawId the id of the law
-    event LawRevoked(uint16 indexed lawId);
+    /// @notice Emitted when a mandate is revoked.
+    /// @param mandateId the id of the mandate
+    event MandateRevoked(uint16 indexed mandateId);
 
-    /// @notice Emitted when a law is revived.
-    /// @param lawId the id of the law
-    event LawRevived(uint16 indexed lawId);
+    /// @notice Emitted when a mandate is revived.
+    /// @param mandateId the id of the mandate
+    event MandateRevived(uint16 indexed mandateId);
 
     /// @notice Emitted when a address is blacklisted.
     /// @param account the address of the account

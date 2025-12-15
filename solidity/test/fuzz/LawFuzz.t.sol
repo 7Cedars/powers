@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import { TestSetupLaw } from "../TestSetup.t.sol";
-import { ILaw } from "../../src/interfaces/ILaw.sol";
-import { PresetSingleAction } from "../../src/laws/executive/PresetSingleAction.sol";
-import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
-import { StatementOfIntent } from "../../src/laws/executive/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../src/laws/executive/BespokeActionSimple.sol";
-import { BespokeActionAdvanced } from "../../src/laws/executive/BespokeActionAdvanced.sol";
+import { TestSetupMandate } from "../TestSetup.t.sol";
+import { IMandate } from "../../src/interfaces/IMandate.sol";
+import { PresetSingleAction } from "../../src/mandates/executive/PresetSingleAction.sol";
+import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
+import { StatementOfIntent } from "../../src/mandates/executive/StatementOfIntent.sol";
+import { BespokeActionSimple } from "../../src/mandates/executive/BespokeActionSimple.sol";
+import { BespokeActionAdvanced } from "../../src/mandates/executive/BespokeActionAdvanced.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-/// @title Law Fuzz Tests
-/// @notice Comprehensive fuzz testing for the Law.sol contract and its implementations
-/// @dev Tests various edge cases and random inputs for law functionality
-contract LawFuzzTest is TestSetupLaw {
-    // Law instances for testing
+/// @title Mandate Fuzz Tests
+/// @notice Comprehensive fuzz testing for the Mandate.sol contract and its implementations
+/// @dev Tests various edge cases and random inputs for mandate functionality
+contract MandateFuzzTest is TestSetupMandate {
+    // Mandate instances for testing
     PresetSingleAction presetSingleAction;
     OpenAction openAction;
     StatementOfIntent statementOfIntent;
@@ -22,26 +22,26 @@ contract LawFuzzTest is TestSetupLaw {
     BespokeActionAdvanced bespokeActionAdvanced;
 
     // Test state tracking
-    mapping(bytes32 => bool) fuzzLawHashes;
-    mapping(uint16 => bool) fuzzLawIds;
+    mapping(bytes32 => bool) fuzzMandateHashes;
+    mapping(uint16 => bool) fuzzMandateIds;
 
     function setUp() public override {
         super.setUp();
 
-        // Initialize law instances
-        presetSingleAction = PresetSingleAction(lawAddresses[4]);
-        openAction = OpenAction(lawAddresses[3]);
-        statementOfIntent = StatementOfIntent(lawAddresses[6]);
-        bespokeActionSimple = BespokeActionSimple(lawAddresses[7]);
-        bespokeActionAdvanced = BespokeActionAdvanced(lawAddresses[8]);
+        // Initialize mandate instances
+        presetSingleAction = PresetSingleAction(mandateAddresses[4]);
+        openAction = OpenAction(mandateAddresses[3]);
+        statementOfIntent = StatementOfIntent(mandateAddresses[6]);
+        bespokeActionSimple = BespokeActionSimple(mandateAddresses[7]);
+        bespokeActionAdvanced = BespokeActionAdvanced(mandateAddresses[8]);
     }
 
     //////////////////////////////////////////////////////////////
     //                  LAW INITIALIZATION FUZZ                 //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test law initialization with random parameters
-    function testFuzzLawInitialization(
+    /// @notice Fuzz test mandate initialization with random parameters
+    function testFuzzMandateInitialization(
         uint16 indexFuzzed,
         string memory nameDescriptionFuzzed,
         bytes memory inputParamsFuzzed,
@@ -51,17 +51,17 @@ contract LawFuzzTest is TestSetupLaw {
         vm.assume(indexFuzzed > 0);
         vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
 
-        // Test law initialization
+        // Test mandate initialization
         vm.prank(address(daoMock));
-        presetSingleAction.initializeLaw(indexFuzzed, nameDescriptionFuzzed, inputParamsFuzzed, configFuzzed);
+        presetSingleAction.initializeMandate(indexFuzzed, nameDescriptionFuzzed, inputParamsFuzzed, configFuzzed);
 
-        // Verify law was initialized
-        lawHash = keccak256(abi.encode(address(daoMock), indexFuzzed));
-        assertTrue(fuzzLawHashes[lawHash] || lawHash != bytes32(0));
+        // Verify mandate was initialized
+        mandateHash = keccak256(abi.encode(address(daoMock), indexFuzzed));
+        assertTrue(fuzzMandateHashes[mandateHash] || mandateHash != bytes32(0));
     }
 
-    /// @notice Fuzz test law initialization with edge case strings
-    function testFuzzLawInitializationStrings(uint16 indexFuzzed, string memory nameDescriptionFuzzed) public {
+    /// @notice Fuzz test mandate initialization with edge case strings
+    function testFuzzMandateInitializationStrings(uint16 indexFuzzed, string memory nameDescriptionFuzzed) public {
         // Bound inputs
         vm.assume(indexFuzzed > 0);
         vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
@@ -71,8 +71,8 @@ contract LawFuzzTest is TestSetupLaw {
         configBytes = new bytes(0);
 
         vm.prank(address(daoMock));
-        presetSingleAction.initializeLaw(indexFuzzed, nameDescriptionFuzzed, inputParamsBytes, configBytes);
-        // Verify law was initialized
+        presetSingleAction.initializeMandate(indexFuzzed, nameDescriptionFuzzed, inputParamsBytes, configBytes);
+        // Verify mandate was initialized
         string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), indexFuzzed);
         assertEq(retrievedName, nameDescriptionFuzzed);
     }
@@ -81,25 +81,25 @@ contract LawFuzzTest is TestSetupLaw {
     //                  LAW UTILITIES FUZZ                     //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test law data retrieval
-    function testFuzzLawDataRetrieval(
-        uint16 lawIdFuzzed,
+    /// @notice Fuzz test mandate data retrieval
+    function testFuzzMandateDataRetrieval(
+        uint16 mandateIdFuzzed,
         string memory nameDescriptionFuzzed,
         bytes memory configFuzzed
     ) public {
         // Bound inputs
-        vm.assume(lawIdFuzzed > 0);
+        vm.assume(mandateIdFuzzed > 0);
         vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
         vm.assume(configFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
-        // Initialize law
+        // Initialize mandate
         vm.prank(address(daoMock));
-        presetSingleAction.initializeLaw(lawIdFuzzed, nameDescriptionFuzzed, "", configFuzzed);
+        presetSingleAction.initializeMandate(mandateIdFuzzed, nameDescriptionFuzzed, "", configFuzzed);
 
         // Test data retrieval
-        string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), lawIdFuzzed);
-        bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), lawIdFuzzed);
-        bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), lawIdFuzzed);
+        string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), mandateIdFuzzed);
+        bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), mandateIdFuzzed);
+        bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), mandateIdFuzzed);
 
         // Verify data matches
         assertEq(retrievedName, nameDescriptionFuzzed);
@@ -107,20 +107,20 @@ contract LawFuzzTest is TestSetupLaw {
         assertEq(retrievedConfig.length, configFuzzed.length);
     }
 
-    /// @notice Fuzz test law hash generation
-    function testFuzzLawHashGeneration(uint16 lawIdFuzzed) public {
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < 1000);
+    /// @notice Fuzz test mandate hash generation
+    function testFuzzMandateHashGeneration(uint16 mandateIdFuzzed) public {
+        vm.assume(mandateIdFuzzed > 0 && mandateIdFuzzed < 1000);
 
-        // Generate law hash
-        lawHash = keccak256(abi.encode(address(daoMock), lawIdFuzzed));
+        // Generate mandate hash
+        mandateHash = keccak256(abi.encode(address(daoMock), mandateIdFuzzed));
 
         // Verify hash is consistent
-        bytes32 lawHash2 = keccak256(abi.encode(address(daoMock), lawIdFuzzed));
-        assertEq(lawHash, lawHash2);
+        bytes32 mandateHash2 = keccak256(abi.encode(address(daoMock), mandateIdFuzzed));
+        assertEq(mandateHash, mandateHash2);
 
         // Verify hash changes with different inputs
-        bytes32 differentHash = keccak256(abi.encode(address(daoMock), lawIdFuzzed + 1));
-        assertTrue(lawHash != differentHash);
+        bytes32 differentHash = keccak256(abi.encode(address(daoMock), mandateIdFuzzed + 1));
+        assertTrue(mandateHash != differentHash);
     }
 
     //////////////////////////////////////////////////////////////
@@ -129,9 +129,9 @@ contract LawFuzzTest is TestSetupLaw {
 
     /// @notice Fuzz test ERC165 interface compliance
     function testFuzzERC165Compliance() public view {
-        // Should support ILaw interface
-        bool supportsILaw = presetSingleAction.supportsInterface(type(ILaw).interfaceId);
-        assertTrue(supportsILaw);
+        // Should support IMandate interface
+        bool supportsIMandate = presetSingleAction.supportsInterface(type(IMandate).interfaceId);
+        assertTrue(supportsIMandate);
 
         // Should support ERC165 interface
         bool supportsERC165 = presetSingleAction.supportsInterface(type(IERC165).interfaceId);
@@ -142,25 +142,25 @@ contract LawFuzzTest is TestSetupLaw {
     //                  LAW STATE MANAGEMENT FUZZ               //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test law state consistency
-    function testFuzzLawStateConsistency(
-        uint16 lawIdFuzzed,
+    /// @notice Fuzz test mandate state consistency
+    function testFuzzMandateStateConsistency(
+        uint16 mandateIdFuzzed,
         string memory nameDescriptionFuzzed,
         bytes memory configFuzzed
     ) public {
         // Bound inputs
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < 1000);
+        vm.assume(mandateIdFuzzed > 0 && mandateIdFuzzed < 1000);
         vm.assume(bytes(nameDescriptionFuzzed).length >= 1 && bytes(nameDescriptionFuzzed).length <= 255);
         vm.assume(configFuzzed.length <= 1000);
 
-        // Initialize law
+        // Initialize mandate
         vm.prank(address(daoMock));
-        presetSingleAction.initializeLaw(lawIdFuzzed, nameDescriptionFuzzed, "", configFuzzed);
+        presetSingleAction.initializeMandate(mandateIdFuzzed, nameDescriptionFuzzed, "", configFuzzed);
 
         // Verify state consistency
-        string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), lawIdFuzzed);
-        bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), lawIdFuzzed);
-        bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), lawIdFuzzed);
+        string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), mandateIdFuzzed);
+        bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), mandateIdFuzzed);
+        bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), mandateIdFuzzed);
 
         // State should be consistent
         assertEq(retrievedName, nameDescriptionFuzzed);
@@ -172,15 +172,15 @@ contract LawFuzzTest is TestSetupLaw {
         }
     }
 
-    /// @notice Fuzz test law state updates
-    function testFuzzLawStateUpdates(
-        uint16 lawIdFuzzed,
+    /// @notice Fuzz test mandate state updates
+    function testFuzzMandateStateUpdates(
+        uint16 mandateIdFuzzed,
         string[] memory nameDescriptionsFuzzed,
         bytes[] memory configArrayFuzzed,
         uint256 numberOfUpdates
     ) public {
         // Bound inputs
-        vm.assume(lawIdFuzzed > 0 && lawIdFuzzed < 1000);
+        vm.assume(mandateIdFuzzed > 0 && mandateIdFuzzed < 1000);
         vm.assume(nameDescriptionsFuzzed.length > numberOfUpdates);
         vm.assume(configArrayFuzzed.length > numberOfUpdates);
         vm.assume(numberOfUpdates > 0 && numberOfUpdates <= 10);
@@ -189,14 +189,14 @@ contract LawFuzzTest is TestSetupLaw {
             vm.assume(bytes(nameDescriptionsFuzzed[i]).length >= 1 && bytes(nameDescriptionsFuzzed[i]).length <= 255);
             vm.assume(configArrayFuzzed[i].length <= 1000);
 
-            // Initialize law with new data
+            // Initialize mandate with new data
             vm.prank(address(daoMock));
-            presetSingleAction.initializeLaw(lawIdFuzzed, nameDescriptionsFuzzed[i], "", configArrayFuzzed[i]);
+            presetSingleAction.initializeMandate(mandateIdFuzzed, nameDescriptionsFuzzed[i], "", configArrayFuzzed[i]);
 
             // Verify state was updated
-            string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), lawIdFuzzed);
-            bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), lawIdFuzzed);
-            bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), lawIdFuzzed);
+            string memory retrievedName = presetSingleAction.getNameDescription(address(daoMock), mandateIdFuzzed);
+            bytes memory retrievedInputParams = presetSingleAction.getInputParams(address(daoMock), mandateIdFuzzed);
+            bytes memory retrievedConfig = presetSingleAction.getConfig(address(daoMock), mandateIdFuzzed);
 
             assertEq(retrievedName, nameDescriptionsFuzzed[i]);
             assertEq(retrievedConfig.length, configArrayFuzzed[i].length);

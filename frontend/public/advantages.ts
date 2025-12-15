@@ -18,8 +18,8 @@ export const advantages = [
   {
     advantage: "Modularity",
     examples: [
-      "Do not get stuck on a single law or a single system",
-      "Use modular laws to build bespoke, dynamic, governance systems"
+      "Do not get stuck on a single mandate or a single system",
+      "Use modular mandates to build bespoke, dynamic, governance systems"
     ]
   }, 
   {

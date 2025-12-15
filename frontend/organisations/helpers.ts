@@ -1,6 +1,6 @@
 
 import { getConstants } from "@/context/constants";
-import { LawData } from "./types";
+import { MandateData } from "./types";
 import { Conditions } from "@/context/types";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { toEurTimeFormat, toFullDateAndTimeFormat, toFullDateFormat } from "@/utils/toDates";
@@ -13,7 +13,7 @@ export const ADMIN_ROLE = 0n;
 export const PUBLIC_ROLE = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
 /**
- * Parameters for creating law conditions
+ * Parameters for creating mandate conditions
  */
 export interface CreateConditionsParams {
   allowedRole?: bigint;
@@ -27,9 +27,9 @@ export interface CreateConditionsParams {
 }
 
 /**
- * Law conditions structure
+ * Mandate conditions structure
  */
-export interface LawConditions {
+export interface MandateConditions {
   allowedRole: bigint;
   needFulfilled: bigint;
   delayExecution: bigint;
@@ -41,9 +41,9 @@ export interface LawConditions {
 }
 
 /**
- * Create law conditions object with defaults
+ * Create mandate conditions object with defaults
  */
-export const createConditions = (params: CreateConditionsParams): LawConditions => ({
+export const createConditions = (params: CreateConditionsParams): MandateConditions => ({
   allowedRole: params.allowedRole ?? 0n,
   needFulfilled: params.needFulfilled ?? 0n,
   delayExecution: params.delayExecution ?? 0n,
@@ -131,16 +131,16 @@ export const isValidAddress = (address: string): boolean => {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 };
 
-export const getLawAddress = (name: string, deployedLaws: Record<string, `0x${string}`>): `0x${string}` => {
-  // console.log("Getting law address for:", { name, deployedLaws });
+export const getMandateAddress = (name: string, deployedMandates: Record<string, `0x${string}`>): `0x${string}` => {
+  // console.log("Getting mandate address for:", { name, deployedMandates });
 
-  const law = deployedLaws[name];
-  // console.log("Found law address:", law);
-  if (!law || law === undefined || law === null) {
-    throw new Error(`Error finding law address for: ${name} with deployedLaws: ${JSON.stringify(deployedLaws)}`);
+  const mandate = deployedMandates[name];
+  // console.log("Found mandate address:", mandate);
+  if (!mandate || mandate === undefined || mandate === null) {
+    throw new Error(`Error finding mandate address for: ${name} with deployedMandates: ${JSON.stringify(deployedMandates)}`);
   }
-  // console.log(`Returning law address for ${name}:`, law);
-  return law;
+  // console.log(`Returning mandate address for ${name}:`, mandate);
+  return mandate;
 } 
 
 
@@ -246,8 +246,8 @@ export const PowersFunctionSelectors = {
   assignRole: "0xf6a3d24e" as `0x${string}`,
   revokeRole: "0x2f2ff15d" as `0x${string}`,
   labelRole: "0x8c7e8e0a" as `0x${string}`,
-  adoptLaw: "0x3c6b16ab" as `0x${string}`,
-  revokeLaw: "0x9d5c4c9f" as `0x${string}`,
+  adoptMandate: "0x3c6b16ab" as `0x${string}`,
+  revokeMandate: "0x9d5c4c9f" as `0x${string}`,
 } as const;
 
 /**
@@ -302,17 +302,17 @@ export const createBespokeActionConfig = (
 };
 
 /**
- * Helper to create LawInitData for AdoptLawsPackage
+ * Helper to create MandateInitData for AdoptMandatesPackage
  */
-export const createLawInitData = (
+export const createMandateInitData = (
   nameDescription: string,
-  targetLaw: `0x${string}`,
+  targetMandate: `0x${string}`,
   config: `0x${string}`,
-  conditions: LawConditions
+  conditions: MandateConditions
 ): `0x${string}` => {
-  const lawInitData = {
+  const mandateInitData = {
     nameDescription,
-    targetLaw,
+    targetMandate,
     config,
     conditions: {
       allowedRole: conditions.allowedRole,
@@ -329,11 +329,11 @@ export const createLawInitData = (
   return encodeAbiParameters(
     [
       {
-        name: "lawInitData",
+        name: "mandateInitData",
         type: "tuple",
         components: [
           { name: "nameDescription", type: "string" },
-          { name: "targetLaw", type: "address" },
+          { name: "targetMandate", type: "address" },
           { name: "config", type: "bytes" },
           {
             name: "conditions",
@@ -352,6 +352,6 @@ export const createLawInitData = (
         ],
       },
     ],
-    [lawInitData]
+    [mandateInitData]
   );
 };

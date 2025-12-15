@@ -13,17 +13,17 @@ const truncateAddress = (address: string | undefined): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
  
-type LawActionsProps = {
-  lawId: bigint; 
+type MandateActionsProps = {
+  mandateId: bigint; 
   powers: Powers | undefined;
   onRefresh?: () => void;
 };
 
-export const LawActions = ({lawId, powers}: LawActionsProps) => {
+export const MandateActions = ({mandateId, powers}: MandateActionsProps) => {
   const { chainId } = useParams<{ chainId: string }>()
   const { timestamps, fetchTimestamps } = useBlocks()
-  const lawActions = powers?.laws?.find(law => law.index == lawId)?.actions || []
-  const sortedActions = lawActions
+  const mandateActions = powers?.mandates?.find(mandate => mandate.index == mandateId)?.actions || []
+  const sortedActions = mandateActions
     ?.filter((action): action is Action => action !== undefined)
     .sort((a, b) => {
       // Get block numbers, prioritizing proposedAt over requestedAt
@@ -46,7 +46,7 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
     })
   // const allTimestamps = Array.from(new Set(sortedActions?.flatMap(action => [action?.requestedAt, action?.proposedAt, action?.fulfilledAt, action?.cancelledAt].filter((timestamp): timestamp is bigint => timestamp !== undefined && timestamp !== null))))
   const router = useRouter()
-  // console.log("@LawActions, waypoint 0", {timestamps, sortedActions})
+  // console.log("@MandateActions, waypoint 0", {timestamps, sortedActions})
   
   useEffect(() => {
     if (sortedActions && sortedActions.length > 0) {
@@ -77,7 +77,7 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
       </div>
       
     {
-        lawActions && lawActions?.length > 0 ?  
+        mandateActions && mandateActions?.length > 0 ?  
           <div className="w-full h-fit lg:max-h-80 max-h-56 flex flex-col justify-start items-center overflow-hidden">
             <div className="w-full overflow-x-auto overflow-y-auto">
               <table className="w-full table-auto text-sm">
@@ -100,11 +100,11 @@ export const LawActions = ({lawId, powers}: LawActionsProps) => {
                             href="#"
                             onClick={e => { 
                               const paramValues = callDataToActionParams(action, powers)
-                              const law = powers?.laws?.find(l => l.index === action.lawId)
-                              const dataTypes = law?.params?.map(p => p.dataType)
+                              const mandate = powers?.mandates?.find(l => l.index === action.mandateId)
+                              const dataTypes = mandate?.params?.map(p => p.dataType)
                               setAction({...action, paramValues: paramValues, dataTypes: dataTypes, upToDate: false})
                               e.preventDefault()
-                              router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                              router.push(`/protocol/${chainId}/${powers?.contractAddress}/mandates/${Number(action.mandateId)}`)
                             }}
                             className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-blue-800 cursor-pointer"
                           >

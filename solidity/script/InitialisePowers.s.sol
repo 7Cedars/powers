@@ -9,52 +9,52 @@ import { HelperConfig } from "../script/HelperConfig.s.sol";
 
 // --- Library Imports ---
 import { Checks } from "../src/libraries/Checks.sol";
-import { LawUtilities } from "../src/libraries/LawUtilities.sol";
+import { MandateUtilities } from "../src/libraries/MandateUtilities.sol";
 
-// --- Law Contract Imports ---
-// Executive laws
-import { PresetSingleAction } from "../src/laws/executive/PresetSingleAction.sol";
-import { PresetMultipleActions } from "../src/laws/executive/PresetMultipleActions.sol";
-import { OpenAction } from "../src/laws/executive/OpenAction.sol";
-import { StatementOfIntent } from "../src/laws/executive/StatementOfIntent.sol";
-import { BespokeActionAdvanced } from "../src/laws/executive/BespokeActionAdvanced.sol";
-import { BespokeActionSimple } from "../src/laws/executive/BespokeActionSimple.sol";
-import { AdoptLaws } from "../src/laws/executive/AdoptLaws.sol";
-import { RevokeLaws } from "../src/laws/executive/RevokeLaws.sol";
-import { CheckExternalActionState } from "../src/laws/executive/CheckExternalActionState.sol";
+// --- Mandate Contract Imports ---
+// Executive mandates
+import { PresetSingleAction } from "../src/mandates/executive/PresetSingleAction.sol";
+import { PresetMultipleActions } from "../src/mandates/executive/PresetMultipleActions.sol";
+import { OpenAction } from "../src/mandates/executive/OpenAction.sol";
+import { StatementOfIntent } from "../src/mandates/executive/StatementOfIntent.sol";
+import { BespokeActionAdvanced } from "../src/mandates/executive/BespokeActionAdvanced.sol";
+import { BespokeActionSimple } from "../src/mandates/executive/BespokeActionSimple.sol";
+import { AdoptMandates } from "../src/mandates/executive/AdoptMandates.sol";
+import { RevokeMandates } from "../src/mandates/executive/RevokeMandates.sol";
+import { CheckExternalActionState } from "../src/mandates/executive/CheckExternalActionState.sol";
 
-// Electoral laws
-import { ElectionSelect } from "../src/laws/electoral/ElectionSelect.sol";
-import { PeerSelect } from "../src/laws/electoral/PeerSelect.sol";
-import { VoteInOpenElection } from "../src/laws/electoral/VoteInOpenElection.sol";
-import { NStrikesRevokesRoles } from "../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { TaxSelect } from "../src/laws/electoral/TaxSelect.sol";
-import { RoleByRoles } from "../src/laws/electoral/RoleByRoles.sol";
-import { SelfSelect } from "../src/laws/electoral/SelfSelect.sol";
-import { RenounceRole } from "../src/laws/electoral/RenounceRole.sol";
-import { AssignExternalRole } from "../src/laws/electoral/AssignExternalRole.sol";
-import { RoleByTransaction } from "../src/laws/electoral/RoleByTransaction.sol";
+// Electoral mandates
+import { ElectionSelect } from "../src/mandates/electoral/ElectionSelect.sol";
+import { PeerSelect } from "../src/mandates/electoral/PeerSelect.sol";
+import { VoteInOpenElection } from "../src/mandates/electoral/VoteInOpenElection.sol";
+import { NStrikesRevokesRoles } from "../src/mandates/electoral/NStrikesRevokesRoles.sol";
+import { TaxSelect } from "../src/mandates/electoral/TaxSelect.sol";
+import { RoleByRoles } from "../src/mandates/electoral/RoleByRoles.sol";
+import { SelfSelect } from "../src/mandates/electoral/SelfSelect.sol";
+import { RenounceRole } from "../src/mandates/electoral/RenounceRole.sol";
+import { AssignExternalRole } from "../src/mandates/electoral/AssignExternalRole.sol";
+import { RoleByTransaction } from "../src/mandates/electoral/RoleByTransaction.sol";
 
-// async laws
-import { ClaimRoleWithGitSig } from "../src/laws/async/ClaimRoleWithGitSig.sol";
-import { AssignRoleWithGitSig } from "../src/laws/async/AssignRoleWithGitSig.sol";
+// async mandates
+import { ClaimRoleWithGitSig } from "../src/mandates/async/ClaimRoleWithGitSig.sol";
+import { AssignRoleWithGitSig } from "../src/mandates/async/AssignRoleWithGitSig.sol";
 
-// Integration Laws
-import { TreasuryPoolGovernance } from "../src/laws/integrations/TreasuryPoolGovernance.sol";
-import { TreasuryRoleWithTransfer } from "../src/laws/integrations/TreasuryRoleWithTransfer.sol";
-import { TreasuryPoolTransfer } from "../src/laws/integrations/TreasuryPoolTransfer.sol";
-import { GovernorCreateProposal } from "../src/laws/integrations/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "../src/laws/integrations/GovernorExecuteProposal.sol";
-import { SafeExecTransaction } from "../src/laws/integrations/SafeExecTransaction.sol";
-import { SafeAllowanceAction } from "../src/laws/integrations/SafeAllowanceAction.sol";
-import { SafeSetup } from "../src/laws/integrations/SafeSetup.sol";
-import { SafeAllowanceTransfer } from "../src/laws/integrations/SafeAllowanceTransfer.sol";
+// Integration Mandates
+import { TreasuryPoolGovernance } from "../src/mandates/integrations/TreasuryPoolGovernance.sol";
+import { TreasuryRoleWithTransfer } from "../src/mandates/integrations/TreasuryRoleWithTransfer.sol";
+import { TreasuryPoolTransfer } from "../src/mandates/integrations/TreasuryPoolTransfer.sol";
+import { GovernorCreateProposal } from "../src/mandates/integrations/GovernorCreateProposal.sol";
+import { GovernorExecuteProposal } from "../src/mandates/integrations/GovernorExecuteProposal.sol";
+import { SafeExecTransaction } from "../src/mandates/integrations/SafeExecTransaction.sol";
+import { SafeAllowanceAction } from "../src/mandates/integrations/SafeAllowanceAction.sol";
+import { SafeSetup } from "../src/mandates/integrations/SafeSetup.sol";
+import { SafeAllowanceTransfer } from "../src/mandates/integrations/SafeAllowanceTransfer.sol";
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 
 /// @title InitialisePowers
-/// @notice Deploys all library and law contracts deterministically using CREATE2
+/// @notice Deploys all library and mandate contracts deterministically using CREATE2
 /// and saves their names and addresses to a obj1 file.
 contract InitialisePowers is Script {
     string outputFile;
@@ -69,8 +69,8 @@ contract InitialisePowers is Script {
         address checksAddr = deployLibrary(type(Checks).creationCode, "Checks");
         vm.serializeAddress(obj1, "Checks", checksAddr);
 
-        address lawUtilsAddr = deployLibrary(type(LawUtilities).creationCode, "LawUtilities");
-        vm.serializeAddress(obj1, "LawUtilities", lawUtilsAddr);
+        address mandateUtilsAddr = deployLibrary(type(MandateUtilities).creationCode, "MandateUtilities");
+        vm.serializeAddress(obj1, "MandateUtilities", mandateUtilsAddr);
         vm.stopBroadcast();
 
         string memory powersBytecode = generatePowersBytecode(checksAddr);
@@ -81,10 +81,10 @@ contract InitialisePowers is Script {
         config = helperConfig.getConfig();
 
         // vm.startBroadcast();
-        (names, addresses, outputJson) = deployAndRecordLaws(config);
+        (names, addresses, outputJson) = deployAndRecordMandates(config);
         // vm.stopBroadcast();
 
-        string memory finalJson = vm.serializeString(obj1, "laws", outputJson);
+        string memory finalJson = vm.serializeString(obj1, "mandates", outputJson);
 
         outputFile = string.concat("powered/", vm.toString(block.chainid), ".json");
         vm.writeJson(finalJson, outputFile);
@@ -109,8 +109,8 @@ contract InitialisePowers is Script {
         return deploymentBytecode; // Return the new obj1 string
     }
 
-    /// @notice Deploys all law contracts and uses 'serialize' to record their addresses.
-    function deployAndRecordLaws(HelperConfig.NetworkConfig memory config_)
+    /// @notice Deploys all mandate contracts and uses 'serialize' to record their addresses.
+    function deployAndRecordMandates(HelperConfig.NetworkConfig memory config_)
         internal
         returns (string[] memory names, address[] memory addresses, string memory outputJson)
     {
@@ -147,9 +147,9 @@ contract InitialisePowers is Script {
         creationCodes[6] = type(BespokeActionSimple).creationCode;
         constructorArgs[6] = abi.encode("BespokeActionSimple");
 
-        names[7] = "AdoptLaws";
-        creationCodes[7] = type(AdoptLaws).creationCode;
-        constructorArgs[7] = abi.encode("AdoptLaws");
+        names[7] = "AdoptMandates";
+        creationCodes[7] = type(AdoptMandates).creationCode;
+        constructorArgs[7] = abi.encode("AdoptMandates");
 
         names[8] = "SafeExecTransaction";
         creationCodes[8] = type(SafeExecTransaction).creationCode;
@@ -163,7 +163,7 @@ contract InitialisePowers is Script {
         creationCodes[10] = type(GovernorExecuteProposal).creationCode;
         constructorArgs[10] = abi.encode("GovernorExecuteProposal");
 
-        // Electoral laws
+        // Electoral mandates
         names[11] = "ElectionSelect";
         creationCodes[11] = type(ElectionSelect).creationCode;
         constructorArgs[11] = abi.encode("ElectionSelect");
@@ -220,9 +220,9 @@ contract InitialisePowers is Script {
         creationCodes[24] = type(Erc20Taxed).creationCode;
         constructorArgs[24] = abi.encode();
 
-        names[25] = "RevokeLaws";
-        creationCodes[25] = type(RevokeLaws).creationCode;
-        constructorArgs[25] = abi.encode("RevokeLaws");
+        names[25] = "RevokeMandates";
+        creationCodes[25] = type(RevokeMandates).creationCode;
+        constructorArgs[25] = abi.encode("RevokeMandates");
 
         names[26] = "AssignRoleWithGitSig";
         creationCodes[26] = type(AssignRoleWithGitSig).creationCode;
@@ -251,9 +251,9 @@ contract InitialisePowers is Script {
         string memory obj2 = "second key";
 
         for (uint256 i = 0; i < names.length; i++) {
-            address lawAddr = deployLaw(creationCodes[i], constructorArgs[i]);
-            addresses[i] = lawAddr;
-            vm.serializeAddress(obj2, names[i], lawAddr);
+            address mandateAddr = deployMandate(creationCodes[i], constructorArgs[i]);
+            addresses[i] = mandateAddr;
+            vm.serializeAddress(obj2, names[i], mandateAddr);
         }
 
         outputJson = vm.serializeUint(obj2, "chainId", uint256(block.chainid));
@@ -261,8 +261,8 @@ contract InitialisePowers is Script {
         return (names, addresses, outputJson);
     }
 
-    /// @dev Deploys a law using CREATE2. Salt is derived from constructor arguments.
-    function deployLaw(bytes memory creationCode, bytes memory constructorArgs) internal returns (address) {
+    /// @dev Deploys a mandate using CREATE2. Salt is derived from constructor arguments.
+    function deployMandate(bytes memory creationCode, bytes memory constructorArgs) internal returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(constructorArgs));
         bytes memory deploymentData = abi.encodePacked(creationCode, constructorArgs);
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY);
@@ -290,10 +290,10 @@ contract InitialisePowers is Script {
         return computedAddress;
     }
 
-    // @dev wrapper function to expose deployAndRecordLaws externally and only return addresses and names of laws.
-    function getDeployedLaws() external returns (string[] memory names, address[] memory addresses) {
+    // @dev wrapper function to expose deployAndRecordMandates externally and only return addresses and names of mandates.
+    function getDeployedMandates() external returns (string[] memory names, address[] memory addresses) {
         helperConfig = new HelperConfig();
         config = helperConfig.getConfig();
-        (names, addresses,) = deployAndRecordLaws(config);
+        (names, addresses,) = deployAndRecordMandates(config);
     }
 }

@@ -1,10 +1,10 @@
 # ZKPassportSelect
 
-ZKPassportSelect is an electoral law that enables role assignment based on attestations. It allows accounts to be assigned roles only after receiving a required number of attestations from other accounts with specific attestation roles.
+ZKPassportSelect is an electoral mandate that enables role assignment based on attestations. It allows accounts to be assigned roles only after receiving a required number of attestations from other accounts with specific attestation roles.
 
 ## Overview
 
-This law provides a mechanism to:
+This mandate provides a mechanism to:
 - Assign roles based on attestations
 - Track attestations for each account
 - Enforce minimum attestation requirements
@@ -24,7 +24,7 @@ When adopting a ZKPassportSelect instance, four parameters must be provided:
 
 ### Proposing an Action
 
-When calling the law, two parameters must be provided:
+When calling the mandate, two parameters must be provided:
 
 1. `target` (address): The account to attest for/against
 2. `attest` (bool): 
@@ -72,14 +72,14 @@ struct Data {
     mapping(address => mapping(address => bool)) hasAttested; // Attestation history
 }
 
-mapping(bytes32 lawHash => Data) public data;
+mapping(bytes32 mandateHash => Data) public data;
 ```
 
 ### Functions
 
-#### `initializeLaw`
+#### `initializeMandate`
 ```solidity
-function initializeLaw(
+function initializeMandate(
     uint16 index,
     string memory nameDescription,
     bytes memory inputParams,
@@ -87,7 +87,7 @@ function initializeLaw(
     bytes memory config
 ) public override
 ```
-- Initializes law with configuration parameters
+- Initializes mandate with configuration parameters
 - Sets up role IDs and attestation requirements
 - Initializes empty attestation tracking
 
@@ -96,8 +96,8 @@ function initializeLaw(
 function handleRequest(
     address caller,
     address powers,
-    uint16 lawId,
-    bytes memory lawCalldata,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
     uint256 nonce
 ) public view virtual override returns (
     uint256 actionId,
@@ -115,7 +115,7 @@ function handleRequest(
 #### `_changeState`
 ```solidity
 function _changeState(
-    bytes32 lawHash,
+    bytes32 mandateHash,
     bytes memory stateChange
 ) internal override
 ```
@@ -125,9 +125,9 @@ function _changeState(
 
 #### `getData`
 ```solidity
-function getData(bytes32 lawHash) public view returns (Data memory)
+function getData(bytes32 mandateHash) public view returns (Data memory)
 ```
-- Returns the current state of the law
+- Returns the current state of the mandate
 - Includes all configuration and attestation data
 
 ### Error Conditions

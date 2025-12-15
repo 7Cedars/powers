@@ -1,15 +1,15 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Powers, Action, Law } from '@/context/types'
+import { Powers, Action, Mandate } from '@/context/types'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { UserItem } from './UserItem'
 import { useParams } from 'next/navigation'
 import { setAction, usePowersStore, useActionStore } from '@/context/store'
 import { useChains } from 'wagmi'
 import { hashAction } from '@/utils/hashAction'
-import { LawBoxStatic } from '@/components/LawBoxStatic'
-import { LawDependenciesList } from '@/components/LawDependenciesList'
+import { MandateBoxStatic } from '@/components/MandateBoxStatic'
+import { MandateDependenciesList } from '@/components/MandateDependenciesList'
 import { callDataToActionParams } from '@/utils/callDataToActionParams'
 
 
@@ -22,47 +22,47 @@ const getIncomingActions = (
   
   // Create a map of all actions for quick lookup
   const actionMap = new Map<string, Action>();
-  powers.laws?.forEach(l => l.actions?.forEach(a => {
+  powers.mandates?.forEach(l => l.actions?.forEach(a => {
       if (a.actionId) actionMap.set(a.actionId, a);
   }));
 
-  // Step 1: get the user laws 
-  const userLaws = powers.laws?.filter(law => 
-    law.active && law.conditions && hasRoles.some(role => role === law.conditions?.allowedRole as bigint)
+  // Step 1: get the user mandates 
+  const userMandates = powers.mandates?.filter(mandate => 
+    mandate.active && mandate.conditions && hasRoles.some(role => role === mandate.conditions?.allowedRole as bigint)
   )
-  console.log("@Incoming, userLaws", {userLaws})
+  console.log("@Incoming, userMandates", {userMandates})
 
-  if (!userLaws || userLaws.length === 0) {
+  if (!userMandates || userMandates.length === 0) {
     return []
   }
 
   // step 2: get the proposed actions for the user
-  const proposedActions = userLaws.flatMap(l => l.actions || [])
+  const proposedActions = userMandates.flatMap(l => l.actions || [])
     .filter(a => a?.state === 1 || a?.state === 3 || a?.state === 5) as Action[]
   
   // Step 3: get the enabled (incoming) actions
-  for (const law of userLaws) {
-    const needFulfilled = law.conditions?.needFulfilled;
-    const needNotFulfilled = law.conditions?.needNotFulfilled;
+  for (const mandate of userMandates) {
+    const needFulfilled = mandate.conditions?.needFulfilled;
+    const needNotFulfilled = mandate.conditions?.needNotFulfilled;
 
-    console.log("@Incoming, processing law", {lawIndex: law.index, needFulfilled, needNotFulfilled})
+    console.log("@Incoming, processing mandate", {mandateIndex: mandate.index, needFulfilled, needNotFulfilled})
 
     // 1: if no needFulfilled has been set: skip the rest, do nothing
     if (!needFulfilled || needFulfilled === 0n) continue;
 
-    // 2: if 'needFulfilled' is set: check if any of the actionIds of the needFulfilled law are set to 7 (fulfilled).
-    const parentLaw = powers.laws?.find(l => l.index === needFulfilled);
-    if (!parentLaw || !parentLaw.actions) continue;
+    // 2: if 'needFulfilled' is set: check if any of the actionIds of the needFulfilled mandate are set to 7 (fulfilled).
+    const parentMandate = powers.mandates?.find(l => l.index === needFulfilled);
+    if (!parentMandate || !parentMandate.actions) continue;
 
     // Filter parent actions that are fulfilled (state 7)
-    const fulfilledParentActions = parentLaw.actions.filter(a => a.state === 7);
+    const fulfilledParentActions = parentMandate.actions.filter(a => a.state === 7);
 
-    console.log("@Incoming, fulfilled parent actions", {parentLawIndex: parentLaw.index, fulfilledParentActions})
+    console.log("@Incoming, fulfilled parent actions", {parentMandateIndex: parentMandate.index, fulfilledParentActions})
 
     for (const parentAction of fulfilledParentActions) {
-      // 3: calculate the actionId for the userLaw
+      // 3: calculate the actionId for the userMandate
       const userActionId = hashAction(
-        law.index,
+        mandate.index,
         parentAction.callData as `0x${string}`,
         BigInt(parentAction.nonce as string)
       );
@@ -73,7 +73,7 @@ const getIncomingActions = (
 
       if (existingUserAction?.state === 7) continue;
 
-      // 4: if not, calculated the actionId for the needNotFulfilled law Id and check if that one has been executed (state == 7).
+      // 4: if not, calculated the actionId for the needNotFulfilled mandate Id and check if that one has been executed (state == 7).
       if (needNotFulfilled && needNotFulfilled > 0n) {
         const blockingActionId = hashAction(
           needNotFulfilled,
@@ -86,12 +86,12 @@ const getIncomingActions = (
         if (existingBlockingAction?.state === 7) continue;
       }
 
-      console.log("@Incoming, adding incoming action", {userActionId, lawIndex: law.index})
+      console.log("@Incoming, adding incoming action", {userActionId, mandateIndex: mandate.index})
 
-      // 5: if not: add the useLaw actionId and all other action data to the 'incomingActions' array.
+      // 5: if not: add the useMandate actionId and all other action data to the 'incomingActions' array.
       incomingActions.push({
         actionId: userActionId.toString(),
-        lawId: law.index,
+        mandateId: mandate.index,
         caller: parentAction.caller,
         dataTypes: parentAction.dataTypes,
         paramValues: parentAction.paramValues,
@@ -117,18 +117,18 @@ export default function Incoming({hasRoles}: {hasRoles: bigint[]}) {
 
   console.log("@Incoming, waypoint 0", {incomingActions})
 
-  // Get laws that will be enabled by executing the selected item's law
-  const enabledLaws = action.actionId && powers?.laws ? 
-    powers.laws.filter(law => 
-      law.active && 
-      law.conditions?.needFulfilled == action.lawId
+  // Get mandates that will be enabled by executing the selected item's mandate
+  const enabledMandates = action.actionId && powers?.mandates ? 
+    powers.mandates.filter(mandate => 
+      mandate.active && 
+      mandate.conditions?.needFulfilled == action.mandateId
     ) : []
 
-  // Get laws that will be blocked by executing the selected item's law
-  const blockedLaws = action.actionId && powers?.laws ? 
-    powers.laws.filter(law => 
-      law.active && 
-      law.conditions?.needNotFulfilled == action.lawId
+  // Get mandates that will be blocked by executing the selected item's mandate
+  const blockedMandates = action.actionId && powers?.mandates ? 
+    powers.mandates.filter(mandate => 
+      mandate.active && 
+      mandate.conditions?.needNotFulfilled == action.mandateId
     ) : []
 
   // Handle item click for static form view (enabled actions or succeeded proposals)
@@ -147,7 +147,7 @@ export default function Incoming({hasRoles}: {hasRoles: bigint[]}) {
 
   // If an item is selected for static form view (enabled action or succeeded proposal)
   if (action.actionId) {
-    const law = powers.laws?.find(law => law.index === BigInt(action.lawId)) as Law
+    const mandate = powers.mandates?.find(mandate => mandate.index === BigInt(action.mandateId)) as Mandate
     
     return (
       <div className="w-full mx-auto pb-12">
@@ -158,7 +158,7 @@ export default function Incoming({hasRoles}: {hasRoles: bigint[]}) {
                 onClick={() => {
                   setAction({
                     actionId: '',
-                    lawId: 0n,
+                    mandateId: 0n,
                     caller: '0x0',
                     dataTypes: [],
                     paramValues: [],
@@ -177,17 +177,17 @@ export default function Incoming({hasRoles}: {hasRoles: bigint[]}) {
           
           <div className="p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             {/* Static Form with Action Data - Matching DynamicForm layout Note: execution is not yet implemented */}
-            <LawBoxStatic powers={powers as Powers} law={law as Law} selectedExecution={undefined} /> 
+            <MandateBoxStatic powers={powers as Powers} mandate={mandate as Mandate} selectedExecution={undefined} /> 
 
-            <LawDependenciesList
-              laws={enabledLaws}
+            <MandateDependenciesList
+              mandates={enabledMandates}
               mode="enables"
               powers={powers as Powers}
               blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
             />
 
-            <LawDependenciesList
-              laws={blockedLaws}
+            <MandateDependenciesList
+              mandates={blockedMandates}
               mode="blocks"
               powers={powers as Powers}
               blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
@@ -223,13 +223,13 @@ export default function Incoming({hasRoles}: {hasRoles: bigint[]}) {
             {/* Proposed actions (Active or Succeeded) */}
             {incomingActions.map((action: Action | undefined) => action && (
               <div 
-                key={`${action.actionId}-${action.lawId}`}
+                key={`${action.actionId}-${action.mandateId}`}
                 className="cursor-pointer hover:bg-slate-100 transition-colors rounded-md p-2"
                 onClick={() => handleItemClick(action as Action)}
               >
                 <UserItem 
                   powers={powers as Powers}
-                  law={powers.laws?.find(law => law.index === BigInt(action.lawId)) as Law}
+                  mandate={powers.mandates?.find(mandate => mandate.index === BigInt(action.mandateId)) as Mandate}
                   chainId={chainId as string}
                   showLowerSection={false}
                   actionId={BigInt(action.actionId)}

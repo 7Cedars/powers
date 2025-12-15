@@ -2,9 +2,9 @@ import React from 'react';
 import DynamicThumbnail from './DynamicThumbnail';
 import { Powers } from '@/context/types';
 
-interface HeaderLawSmallProps {
+interface HeaderMandateSmallProps {
   powers: Powers;
-  lawName: string;
+  mandateName: string;
   roleName: string;
   numHolders: number | string;
   contractAddress: string;
@@ -12,9 +12,9 @@ interface HeaderLawSmallProps {
   className?: string;
 }
 
-export const HeaderLawSmall: React.FC<HeaderLawSmallProps> = ({
+export const HeaderMandateSmall: React.FC<HeaderMandateSmallProps> = ({
   powers,
-  lawName,
+  mandateName,
   roleName,
   numHolders,
   contractAddress,
@@ -34,8 +34,8 @@ export const HeaderLawSmall: React.FC<HeaderLawSmallProps> = ({
       </div>
       {/* Info stack */}
       <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-        {/* 1: Law name */}
-        <div className="text-sm text-slate-800" title={lawName}>{lawName}</div>
+        {/* 1: Mandate name */}
+        <div className="text-sm text-slate-800" title={mandateName}>{mandateName}</div>
         {/* 2: Role name and holders */}
         <div className="text-xs text-gray-600 truncate">Role: {roleName} ({numHolders})</div>
         {/* 3: Contract address link */}
@@ -56,5 +56,5 @@ export const HeaderLawSmall: React.FC<HeaderLawSmallProps> = ({
   );
 };
 
-export default HeaderLawSmall;
+export default HeaderMandateSmall;
 

@@ -1,9 +1,9 @@
 {
   "Checks": "0xcd948fbc7e27Ca816123233D42130DB75Ed9FC29",
-  "LawUtilities": "0x5e8486234fe9AF33dFB537195C494685C3bCa7dD",
-  "laws": {
-    "AdoptLaws": "0x3B9AEa07b3073f27FAbCc2118B15f6Eabf1a120b",
-    "AdoptLawsPackage": "0xC0Cd41eccA76E32D40B95809DF79Cbead3b32aB0",
+  "MandateUtilities": "0x5e8486234fe9AF33dFB537195C494685C3bCa7dD",
+  "mandates": {
+    "AdoptMandates": "0x3B9AEa07b3073f27FAbCc2118B15f6Eabf1a120b",
+    "AdoptMandatesPackage": "0xC0Cd41eccA76E32D40B95809DF79Cbead3b32aB0",
     "AlloCreateRPGFPool": "0x3715574921F7f1bFA15e609540fC121b78C58dC0",
     "AlloDistribute": "0xbF7556B2A519Ffb2dc88447D9B3cc623441a0Ca3",
     "AlloRPFGGovernance": "0x7ECFF01F59290aF0717DAd2801577dfeB491db2D",
@@ -22,7 +22,7 @@
     "PresetMultipleActions": "0x2d7fdcb7989BFA033a046FCC445bC23e76ce672D",
     "PresetSingleAction": "0x165e8Bc807E9758778A5051421d7b5eE7aa0e6B9",
     "RenounceRole": "0x82B85B973c3650F5506d4eBe36305c879964eF67",
-    "RevokeLaws": "0x3b63D290Fe7501Fcee7050ffB7678089B670ea7F",
+    "RevokeMandates": "0x3b63D290Fe7501Fcee7050ffB7678089B670ea7F",
     "RoleByRoles": "0x258B8557f6c940eC1e82E605aCdfA18B25Aed4e1",
     "SelfSelect": "0xD963f0fED7E56A3983a3333b2457aCe7caF6F8d1",
     "StatementOfIntent": "0x7343E884D095448dafB296cED3FBED4F9Af2F99E",
