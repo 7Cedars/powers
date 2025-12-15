@@ -56,12 +56,12 @@ export const defaultPowerLabs: Powers = {
 export const defaultPowerLabsChild: Powers = {
   contractAddress: '0xc74504061fb47c1a3aec36d0ac4d199d3364a321' as `0x${string}`,
   chainId: 11155111n,
-  name: 'Power Labs - Documentation',
+  name: 'Power Labs Child: Docs',
   uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreichqvnlmfgkw2jeqgerae2torhgbcgdomxzqxiymx77yhflpnniii",
   metadatas: {
     icon: '/logo1_notext.png',
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
-    description: "Power Labs Documentation is the on-chain organization that shepherds the development of documentation for the Powers protocol.",
+    description: "Power Labs Child: Docs is the on-chain organization that shepherds the development of documentation for the Powers protocol.",
     attributes: []
   },
   lawCount: 0n,
