@@ -216,7 +216,7 @@ contract PowerLabsConfig is Mandate {
         conditions.allowedRole = 4; // = protocol contributors.
         conditions.quorum = 20; // = 30% quorum needed
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        conditions.votingPeriod = minutesToBlocks(10); // = number of blocks
+        conditions.votingPeriod = minutesToBlocks(5); // = number of blocks
         conditions.needFulfilled = mem.mandateCount - 1; // = the proposal mandate.
         mandateInitData = PowersTypes.MandateInitData({
             nameDescription: "Execute and adopt new child Powers as a delegate to the Safe treasury.",

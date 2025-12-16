@@ -278,7 +278,7 @@ info:
 
 update-builds:
 	@echo "Updating builds..."
-	for contract in ERC20 Erc20Taxed ERC20Votes Mandate Ownable Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
+	for contract in ERC20 Erc20Taxed ERC20Votes Mandate Nominees Ownable OpenElection Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
 
 ###############################
 # 		Deploy Commands  	  # 

@@ -90,10 +90,10 @@ export const PowerLabsChild: Organization = {
       ),  
       conditions: createConditions({
         allowedRole: BigInt(formData["RoleId"]),
-        votingPeriod: minutesToBlocks(10, chainId), 
+        votingPeriod: minutesToBlocks(5, chainId), 
         succeedAt: 67n,
         quorum: 50n, // Note: high quorum
-        delayExecution: minutesToBlocks(3, chainId)
+        timelock: minutesToBlocks(3, chainId)
       })
     });
 
@@ -155,10 +155,10 @@ export const PowerLabsChild: Organization = {
       config: "0x00" as `0x${string}`,  
       conditions: createConditions({
         allowedRole: BigInt(formData["RoleId"]),
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 67n,
         quorum: 50n, // Note: high quorum
-        delayExecution: minutesToBlocks(3, chainId)
+        timelock: minutesToBlocks(3, chainId)
       })
     });
  

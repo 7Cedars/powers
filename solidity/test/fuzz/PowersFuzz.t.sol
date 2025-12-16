@@ -257,7 +257,7 @@ contract PowersFuzzTest is TestSetupPowers {
                 allowedRole: allowedRoleFuzzed,
                 needFulfilled: 0,
                 needNotFulfilled: 0,
-                delayExecution: 0,
+                timelock: 0,
                 throttleExecution: 0
             }),
             config: ""
@@ -300,7 +300,7 @@ contract PowersFuzzTest is TestSetupPowers {
                 allowedRole: allowedRoleFuzzed,
                 needFulfilled: 0,
                 needNotFulfilled: 0,
-                delayExecution: 0,
+                timelock: 0,
                 throttleExecution: 0
             }),
             config: ""

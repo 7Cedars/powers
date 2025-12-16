@@ -43,18 +43,35 @@ contract AssignExternalRole is Mandate {
         // Decode input parameter
         (address account) = abi.decode(mandateCalldata, (address));
 
-        // Check if the account has the required role on the external contract
-        uint48 hasRole = Powers(s_externalPowersAddress).hasRoleSince(account, s_roleId);
-        if (hasRole == 0) {
-            revert("Account does not have role.");
-        }
+        // A: Check if the account has the role in the Child contract (current Powers contract)
+        uint48 hasRoleInChild = Powers(powers).hasRoleSince(account, s_roleId);
+        bool A = hasRoleInChild > 0;
 
-        // Prepare the action to assign the role on the current Powers contract
+        // B: Check if the account has the role in the Parent contract (external Powers contract)
+        uint48 hasRoleInParent = Powers(s_externalPowersAddress).hasRoleSince(account, s_roleId);
+        bool B = hasRoleInParent > 0;
+
+        // Prepare the action ID
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
 
-        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = powers; // The target is the current Powers contract
-        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, s_roleId, account);
+        // Handle the four scenarios
+        if (A && !B) {
+            // A == true and B == false: revoke role in child contract
+            (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
+            targets[0] = powers;
+            calldatas[0] = abi.encodeWithSelector(IPowers.revokeRole.selector, s_roleId, account);
+        } else if (!A && B) {
+            // B == true and A == false: assign role in child contract
+            (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
+            targets[0] = powers;
+            calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, s_roleId, account);
+        } else if (!A && !B) {
+            // A == false and B == false: revert
+            revert("Account does not have role at parent");
+        } else {
+            // A == true and B == true: revert
+            revert("Account already has role at parent");
+        }
 
         return (actionId, targets, values, calldatas);
     }

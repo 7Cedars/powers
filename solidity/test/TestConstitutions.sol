@@ -95,7 +95,7 @@ contract TestConstitutions is Test {
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.throttleExecution = 5000;
-        conditions.delayExecution = 250; // = 250 blocks to wait after proposal success before execution
+        conditions.timelock = 250; // = 250 blocks to wait after proposal success before execution
         mandateInitData[3] = PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetMandate: mandateAddresses[4], // statementOfIntent
@@ -211,7 +211,7 @@ contract TestConstitutions is Test {
         conditions.quorum = 30; // = 30% quorum needed
         conditions.succeedAt = 51; // = 51% simple majority needed for assigning and revoking members.
         conditions.votingPeriod = 1200; // = number of blocks
-        conditions.delayExecution = 5000;
+        conditions.timelock = 5000;
         conditions.allowedRole = 1;
         // initiating mandate.
         mandateInitData[4] = PowersTypes.MandateInitData({
@@ -492,7 +492,7 @@ contract TestConstitutions is Test {
                 quorum: 0,
                 succeedAt: 0,
                 votingPeriod: 0,
-                delayExecution: 0,
+                timelock: 0,
                 throttleExecution: 0,
                 needFulfilled: 0,
                 needNotFulfilled: 0
@@ -853,7 +853,7 @@ contract TestConstitutions is Test {
     //     conditions.votingPeriod = 50; // 10 mins approx (assuming 12s blocks)
     //     conditions.succeedAt = 67;
     //     conditions.quorum = 50;
-    //     conditions.delayExecution = 15; // 3 mins approx.
+    //     conditions.timelock = 15; // 3 mins approx.
 
     //     mandateInitData[1] = PowersTypes.MandateInitData({
     //         nameDescription: "Execute transaction from allowance: This is still a work in progress.",
@@ -899,7 +899,7 @@ contract TestConstitutions is Test {
     //     conditions.votingPeriod = 50;
     //     conditions.succeedAt = 67;
     //     conditions.quorum = 50;
-    //     conditions.delayExecution = 15;
+    //     conditions.timelock = 15;
 
     //     mandateInitData[4] = PowersTypes.MandateInitData({
     //         nameDescription: "Revoke Mandates: Admin can revoke mandates from the organization",

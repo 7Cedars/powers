@@ -34,7 +34,7 @@ export type Token = {
                       
 export type Conditions = {
   allowedRole: bigint; 
-  delayExecution: bigint; 
+  timelock: bigint; 
   needNotFulfilled: bigint;
   needFulfilled: bigint;
   quorum: bigint; 

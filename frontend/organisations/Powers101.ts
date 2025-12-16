@@ -144,7 +144,7 @@ export const Powers101: Organization = {
         votingPeriod: minutesToBlocks(5, Number(deployedMandates.chainId)),
         needFulfilled: 2n,
         needNotFulfilled: 3n,
-        delayExecution: minutesToBlocks(3, Number(deployedMandates.chainId))
+        timelock: minutesToBlocks(3, Number(deployedMandates.chainId))
       })
     });
 

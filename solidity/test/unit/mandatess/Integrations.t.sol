@@ -253,7 +253,7 @@ contract TreasuryPoolGovernanceTest is TestSetupExecutive {
     //             quorum: 0,
     //             succeedAt: 0,
     //             votingPeriod: 0,
-    //             delayExecution: 0,
+    //             timelock: 0,
     //             throttleExecution: 0,
     //             needFulfilled: 0,
     //             needNotFulfilled: 0
@@ -284,7 +284,7 @@ contract TreasuryPoolGovernanceTest is TestSetupExecutive {
     //             quorum: 0,
     //             succeedAt: 0,
     //             votingPeriod: 0,
-    //             delayExecution: 0,
+    //             timelock: 0,
     //             throttleExecution: 0,
     //             needFulfilled: mandateId,
     //             needNotFulfilled: 0

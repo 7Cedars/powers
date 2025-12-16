@@ -17,6 +17,18 @@
       "forum": "",
       "documentation": "https://powers-docs.vercel.app/"
   },
+  "parents": [
+    {
+      "title": "Power Labs Parent",
+      "address": "0x1234567890abcdef1234567890abcdef12345678"
+    }
+  ],
+  "children": [
+    {
+      "title": "Power Labs Child",
+      "address": "0x1234567890abcdef1234567890abcdef12345678"
+    }
+  ],
   "attributes": [
     {
       "trait_type": "optional trait 1",

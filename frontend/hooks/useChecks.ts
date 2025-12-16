@@ -110,9 +110,9 @@ export const useChecks = () => {
       ]
 
       // console.log("Deadline:", voteEnd, "BlockNumber:", blockNumber)
-      // console.log("Deadline + Delay:", Number(voteEnd) + Number(mandate?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      // console.log("Deadline + Delay:", Number(voteEnd) + Number(mandate?.conditions?.timelock), "BlockNumber:", blockNumber)
       if (voteEnd && blockNumber) {
-        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(mandate?.conditions?.delayExecution) < Number(blockNumber) : false  
+        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(mandate?.conditions?.timelock) < Number(blockNumber) : false  
         // console.log("Deadline Result:", result) 
         return result as boolean
       } else {
@@ -167,7 +167,7 @@ export const useChecks = () => {
           const [throttled, authorised, actionState, actionStateNeedFulfilled, actionStateNeedNotFulfilled, delayed, hasVoted] = checksData
 
           const newChecks: Checks =  {
-            delayPassed: mandate.conditions.delayExecution == 0n ? true : delayed,
+            delayPassed: mandate.conditions.timelock == 0n ? true : delayed,
             throttlePassed: mandate.conditions.throttleExecution == 0n ? true : throttled,
             authorised,
             actionExists: mandate.conditions.quorum == 0n ? true : actionState != 0n,

@@ -198,10 +198,10 @@ export const PowerLabs: Organization = {
       ),
       conditions: createConditions({
         allowedRole: 5n, // Members propose/vote
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 5n, // Note: low quorum
-        delayExecution: minutesToBlocks(3, chainId),
+        timelock: minutesToBlocks(3, chainId),
         needNotFulfilled: vetoRoleMandate // Link dependency to veto mandate
       })
     });
@@ -224,7 +224,7 @@ export const PowerLabs: Organization = {
       config: adoptMandatesConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -239,7 +239,7 @@ export const PowerLabs: Organization = {
       config: adoptMandatesConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: proposeAdoptMandate
@@ -275,7 +275,7 @@ export const PowerLabs: Organization = {
       config: revokeMandatesConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -290,7 +290,7 @@ export const PowerLabs: Organization = {
       config: revokeMandatesConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: proposeRevokeMandate
@@ -325,7 +325,7 @@ export const PowerLabs: Organization = {
       config: adoptChildrensMandatesConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
@@ -340,7 +340,7 @@ export const PowerLabs: Organization = {
       config: adoptChildrensMandatesConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 33n,
         quorum: 50n,
         needFulfilled: proposeMandate

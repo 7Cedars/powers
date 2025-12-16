@@ -55,7 +55,7 @@ The internal `_replyPowers` function sends the execution data (targets, values, 
 
 ### Structs
 - **`MandateData`**: Tracks a mandate's configuration (name, input params) and state (conditions, executions).
-- **`Conditions`**: Defines execution conditions like `allowedRole`, `votingPeriod`, `quorum`, parent mandate requirements (`needFulfilled`, `needNotFulfilled`), and time constraints (`delayExecution`, `throttleExecution`).
+- **`Conditions`**: Defines execution conditions like `allowedRole`, `votingPeriod`, `quorum`, parent mandate requirements (`needFulfilled`, `needNotFulfilled`), and time constraints (`timelock`, `throttleExecution`).
 - **`Executions`**: Tracks a mandate's execution history, including the `powers` contract address, config, `actionsIds`, and execution block numbers.
 
 ### Events & Errors

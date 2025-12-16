@@ -68,7 +68,7 @@ contract ChecksTest is TestSetupPowers {
                 daoMock.castVote(proposalActionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, "Test proposal");
 
@@ -89,7 +89,7 @@ contract ChecksTest is TestSetupPowers {
         assertEq(conditionsResult.votingPeriod, 0);
         assertEq(conditionsResult.needFulfilled, 0);
         assertEq(conditionsResult.needNotFulfilled, 0);
-        assertEq(conditionsResult.delayExecution, 0);
+        assertEq(conditionsResult.timelock, 0);
         assertEq(conditionsResult.throttleExecution, 0);
     }
 
@@ -97,7 +97,7 @@ contract ChecksTest is TestSetupPowers {
     //                  DELAY EXECUTION CHECKS                   //
     //////////////////////////////////////////////////////////////
     function testcheckWithDelayExecution() public {
-        // Setup: Use mandateId 4 from powersTestConstitution which now has delayExecution = 250
+        // Setup: Use mandateId 4 from powersTestConstitution which now has timelock = 250
         mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
@@ -129,7 +129,7 @@ contract ChecksTest is TestSetupPowers {
     }
 
     function testcheckWithDelayExecutionPassed() public {
-        // Setup: Use mandateId 4 from powersTestConstitution which now has delayExecution = 250
+        // Setup: Use mandateId 4 from powersTestConstitution which now has timelock = 250
         mandateId = 3;
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
@@ -152,7 +152,7 @@ contract ChecksTest is TestSetupPowers {
         }
 
         // Advance blocks past the delay period (250 blocks)
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
 
         // Second execution should succeed now that delay has passed
         vm.prank(alice);
@@ -161,7 +161,7 @@ contract ChecksTest is TestSetupPowers {
     }
 
     function testcheckWithZeroDelayExecution() public {
-        // Setup: Use mandateId 1 from powersTestConstitution which has no delay (delayExecution = 0)
+        // Setup: Use mandateId 1 from powersTestConstitution which has no delay (timelock = 0)
         mandateId = 1;
         bytes[] memory encodedParams = new bytes[](1);
         encodedParams[0] = abi.encode();
@@ -203,7 +203,7 @@ contract ChecksTest is TestSetupPowers {
                 daoMock.castVote(proposalActionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 10_000);
 
         // Create latestExecution array with recent execution (gap too small)
         uint48 latestExecution = uint48(block.number - 1000);
@@ -235,7 +235,7 @@ contract ChecksTest is TestSetupPowers {
                 daoMock.castVote(proposalActionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 10_000);
 
         // Create latestExecution array with sufficient gap
         uint48 latestExecution = uint48(block.number - 6000);
@@ -266,7 +266,7 @@ contract ChecksTest is TestSetupPowers {
                 daoMock.castVote(proposalActionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 10_000);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 10_000);
 
         // Create latestExecution array with exactly the throttle threshold
         uint48 latestExecution = uint48(block.number - 5000);

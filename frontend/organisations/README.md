@@ -224,7 +224,7 @@ const conditions = createConditions({
   succeedAt: 51n,
   needFulfilled: 2n,
   needNotFulfilled: 3n,
-  delayExecution: daysToBlocks(3, chainId),
+  timelock: daysToBlocks(3, chainId),
   throttleExecution: 100n
 });
 ```

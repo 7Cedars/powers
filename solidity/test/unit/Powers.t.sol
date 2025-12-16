@@ -241,7 +241,7 @@ contract CancelTest is TestSetupPowers {
                 daoMock.castVote(actionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
         vm.prank(bob);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
 
@@ -514,7 +514,7 @@ contract ExecuteTest is TestSetupPowers {
             }
         }
 
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
 
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
@@ -933,7 +933,7 @@ contract MandateAdoptionTest is TestSetupPowers {
             quorum: 50, // > 0
             succeedAt: 0,
             votingPeriod: 0,
-            delayExecution: 0,
+            timelock: 0,
             throttleExecution: 0,
             needFulfilled: 0,
             needNotFulfilled: 0

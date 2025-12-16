@@ -18,7 +18,7 @@ export const PUBLIC_ROLE = 11579208923731619542357098500868790785326998466564056
 export interface CreateConditionsParams {
   allowedRole?: bigint;
   needFulfilled?: bigint;
-  delayExecution?: bigint;
+  timelock?: bigint;
   throttleExecution?: bigint;
   votingPeriod?: bigint;
   quorum?: bigint;
@@ -32,7 +32,7 @@ export interface CreateConditionsParams {
 export interface MandateConditions {
   allowedRole: bigint;
   needFulfilled: bigint;
-  delayExecution: bigint;
+  timelock: bigint;
   throttleExecution: bigint;
   votingPeriod: bigint;
   quorum: bigint;
@@ -46,7 +46,7 @@ export interface MandateConditions {
 export const createConditions = (params: CreateConditionsParams): MandateConditions => ({
   allowedRole: params.allowedRole ?? 0n,
   needFulfilled: params.needFulfilled ?? 0n,
-  delayExecution: params.delayExecution ?? 0n,
+  timelock: params.timelock ?? 0n,
   throttleExecution: params.throttleExecution ?? 0n,
   votingPeriod: params.votingPeriod ?? 0n,
   quorum: params.quorum ?? 0n,
@@ -317,7 +317,7 @@ export const createMandateInitData = (
     conditions: {
       allowedRole: conditions.allowedRole,
       votingPeriod: Number(conditions.votingPeriod),
-      delayExecution: Number(conditions.delayExecution),
+      timelock: Number(conditions.timelock),
       throttleExecution: Number(conditions.throttleExecution),
       needFulfilled: Number(conditions.needFulfilled),
       needNotFulfilled: Number(conditions.needNotFulfilled),
@@ -341,7 +341,7 @@ export const createMandateInitData = (
             components: [
               { name: "allowedRole", type: "uint256" },
               { name: "votingPeriod", type: "uint32" },
-              { name: "delayExecution", type: "uint32" },
+              { name: "timelock", type: "uint32" },
               { name: "throttleExecution", type: "uint32" },
               { name: "needFulfilled", type: "uint16" },
               { name: "needNotFulfilled", type: "uint16" },

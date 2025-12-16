@@ -21,7 +21,7 @@ contract BespokeActionSimple is Mandate {
     /// @notice Constructor of the BespokeActionSimple mandate
     constructor() {
         bytes memory configParams =
-            abi.encode("address TargetContract", "bytes4 TargetFunctionAndData", "string[] Params");
+            abi.encode("address TargetContract", "bytes4 FunctionSelector", "string[] Params");
         emit Mandate__Deployed(configParams);
     }
 

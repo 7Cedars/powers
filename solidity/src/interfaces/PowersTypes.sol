@@ -9,7 +9,7 @@ interface PowersTypes {
         uint256 allowedRole; // Takes its own slot
         // --- All of the following can be packed into a single slot (144 bits total) ---
         uint32 votingPeriod;
-        uint32 delayExecution;
+        uint32 timelock;
         uint32 throttleExecution;
         uint16 needFulfilled;
         uint16 needNotFulfilled;
