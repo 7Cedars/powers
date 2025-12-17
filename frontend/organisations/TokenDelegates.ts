@@ -32,13 +32,13 @@ function getReturnValueFromReceipt(receipt: any): any {
  * 
  * Note that for testing purposes, daysToBlocks has been replaced with minutesToBlocks. In reality every minute is a day. 
  */
-export const BicameralGovernance: Organization = {
+export const TokenDelegates: Organization = {
   metadata: {
-    id: "bicameral-governance",
-    title: "Bicameral Governance",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibnvjwah2wdgd3fhak3sedriwt5xemjlacmrabt6mrht7f24m5w3i",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
-    description: "This is an example implementation of Bicameral Governance using Powers. It is intentionally simple to highlight bicameral decision-making processes.",
+    id: "token-delegates",
+    title: "Token Delegates",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicpqpipzetgtcbqdeehcg33ibipvrb3pnikes6oqixa7ntzaniinm",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeidwk32aq52ap5fyrrojmtuhbehvwdv5emyld4nspznaepcxcqnbv4",
+    description: "One-token-one-vote is the most popular approach to DAO governance today, despite its many shortcomings. This Token Delegate example demonstrates how the Powers protocol can be used to give power to accounts along the amount of  delegated tokens they hold. There is one key difference with traditional approaches: after delegates have been selected, they all hold the same amount of power (similar to democratic elections) while in classic DAO governance inequality in votes is reflected in delegates power.",
     disabled: false,
     onlyLocalhost: true
   },

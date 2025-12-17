@@ -262,20 +262,27 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
         voteInOpenElection = VoteInOpenElection(mandateAddresses[13]);
-        openElection = OpenElection(mockAddresses[9]); // OpenElection
+        // Create a fresh OpenElection instance for each test to avoid state conflicts
+        openElection = new OpenElection();
+        // Transfer ownership to daoMock (test contract is the initial owner)
+        openElection.transferOwnership(address(daoMock));
         nomineesContract = new Nominees();
         mandateId = 3;
     }
 
     function testVoteInOpenElectionWithValidVote() public {
-        // Add nominees to open election
+        // Add nominees to open election (before opening it)
         vm.prank(address(daoMock));
         openElection.nominate(alice, true);
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
-        // ok.. so this mandate has to indeed be initiated :D
-        configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
+        // Open the election BEFORE adopting the mandate
+        vm.prank(address(daoMock));
+        openElection.openElection(100);
+
+        // Now adopt the mandate (so it can read from the open election)
+        configBytes = abi.encode(address(openElection), 1); // OpenElection
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
@@ -290,8 +297,6 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         // Setup mandate
         mandateId = daoMock.mandateCounter() - 1;
 
-        vm.prank(address(daoMock));
-        openElection.openElection(100);
         vm.roll(block.number + 1);
 
         // Execute with valid vote
@@ -314,6 +319,10 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
+        // Open the election BEFORE adopting the mandate
+        vm.prank(address(daoMock));
+        openElection.openElection(100);
+
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
@@ -321,7 +330,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
                 nameDescription: "Vote In Open Election",
                 targetMandate: mandateAddresses[13],
                 config: abi.encode(
-                    mockAddresses[9], // openElection address
+                    address(openElection), // openElection address
                     1 // 1 vote allowed
                 ),
                 conditions: conditions
@@ -331,8 +340,6 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         // Setup mandate
         mandateId = daoMock.mandateCounter() - 1;
 
-        vm.prank(address(daoMock));
-        openElection.openElection(100);
         vm.roll(block.number + 1);
 
         // Execute with multiple votes
@@ -353,6 +360,10 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
+        // Open the election BEFORE adopting the mandate
+        vm.prank(address(daoMock));
+        openElection.openElection(100);
+
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
@@ -360,7 +371,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
                 nameDescription: "Vote In Open Election",
                 targetMandate: mandateAddresses[13],
                 config: abi.encode(
-                    mockAddresses[9], // openElection address
+                    address(openElection), // openElection address
                     1 // 1 vote allowed
                 ),
                 conditions: conditions
@@ -370,8 +381,6 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         // Setup mandate
         mandateId = daoMock.mandateCounter() - 1;
 
-        vm.prank(address(daoMock));
-        openElection.openElection(100);
         vm.roll(block.number + 1);
 
         // Execute with wrong vote length
@@ -392,6 +401,10 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         vm.prank(address(daoMock));
         openElection.nominate(bob, true);
 
+        // Open the election BEFORE adopting the mandate
+        vm.prank(address(daoMock));
+        openElection.openElection(100);
+
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
@@ -399,7 +412,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
                 nameDescription: "Vote In Open Election",
                 targetMandate: mandateAddresses[13],
                 config: abi.encode(
-                    mockAddresses[9], // openElection address
+                    address(openElection), // openElection address
                     1 // 1 vote allowed
                 ),
                 conditions: conditions
@@ -412,7 +425,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         // Test getData function
         mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
         VoteInOpenElection.Data memory data = voteInOpenElection.getData(mandateHash);
-        assertEq(data.openElectionContract, mockAddresses[9]);
+        assertEq(data.openElectionContract, address(openElection));
         assertEq(data.maxVotes, 1);
         assertEq(data.nominees.length, 2);
     }

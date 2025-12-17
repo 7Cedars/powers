@@ -10,12 +10,11 @@ export function SectionIntro() {
     <section id="intro" className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-indigo-700 to-blue-500 snap-start snap-always p-4">
         {/* title  */}
           <section className="w-full flex flex-col justify-center items-center pt-12">
-              <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty">
-              Encode stakeholder relations
+              <div className = "w-full flex flex-col justify-center items-center md:text-4xl text-3xl font-bold text-slate-100 max-w-4xl text-center text-pretty pb-2">
+                Composable Governance
               </div>
               <div className = "w-full flex justify-center items-center md:text-2xl text-lg text-slate-300 max-w-4xl text-center pt-1">
-                Decisions travel along modular, asynchronous and trustless governance paths before being executed.
-                {/* Separate and distribute power through a modular, asynchronous and trustless governance system. */}
+                Powers allows any community to compose complex resilient institutions by configuring relationships between role-restricted mandates.
               </div>
           </section>
 

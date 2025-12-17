@@ -114,6 +114,8 @@ export default function FlowPage() {
       codeOfConduct={powers?.metadatas?.codeOfConduct}
       disputeResolution={powers?.metadatas?.disputeResolution}
       communicationChannels={powers?.metadatas?.communicationChannels as CommunicationChannels}
+      parents={powers?.metadatas?.parents}
+      childContracts={powers?.metadatas?.children}
     />
     
     {/* main body  */}
@@ -149,4 +151,4 @@ export default function FlowPage() {
     </section>
   </main>
   )
-} 
+}

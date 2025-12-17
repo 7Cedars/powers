@@ -51,10 +51,10 @@ contract VoteInOpenElection is Mandate {
         (address openElectionContract, uint256 maxVotes) = abi.decode(config, (address, uint256));
 
         // Check if election is open - otherwise revert. 
-        if (!OpenElection(
-                data[MandateUtilities.hashMandate(msg.sender, index)].openElectionContract).isElectionOpen()
+        if (
+                !OpenElection(openElectionContract).isElectionOpen()
             ) {
-            revert("Election is not open.");
+                revert("Election is not open.");
         }
 
         // Get nominees from the OpenElection contract

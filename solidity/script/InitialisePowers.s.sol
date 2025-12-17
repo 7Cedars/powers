@@ -34,6 +34,8 @@ import { SelfSelect } from "../src/mandates/electoral/SelfSelect.sol";
 import { RenounceRole } from "../src/mandates/electoral/RenounceRole.sol";
 import { AssignExternalRole } from "../src/mandates/electoral/AssignExternalRole.sol";
 import { RoleByTransaction } from "../src/mandates/electoral/RoleByTransaction.sol";
+import { DelegateTokenSelect } from "../src/mandates/electoral/DelegateTokenSelect.sol";
+import { Nominate } from "../src/mandates/electoral/Nominate.sol";
 
 // async mandates
 import { ClaimRoleWithGitSig } from "../src/mandates/async/ClaimRoleWithGitSig.sol";
@@ -114,10 +116,10 @@ contract InitialisePowers is Script {
         internal
         returns (string[] memory names, address[] memory addresses, string memory outputJson)
     {
-        names = new string[](32);
-        addresses = new address[](32);
-        bytes[] memory creationCodes = new bytes[](32);
-        bytes[] memory constructorArgs = new bytes[](32);
+        names = new string[](34);
+        addresses = new address[](34);
+        bytes[] memory creationCodes = new bytes[](34);
+        bytes[] memory constructorArgs = new bytes[](34);
 
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -247,6 +249,14 @@ contract InitialisePowers is Script {
         names[31] = "CheckExternalActionState";
         creationCodes[31] = type(CheckExternalActionState).creationCode;
         constructorArgs[31] = abi.encode("CheckExternalActionState");
+
+        names[32] = "DelegateTokenSelect";
+        creationCodes[32] = type(DelegateTokenSelect).creationCode;
+        constructorArgs[32] = abi.encode("DelegateTokenSelect");
+
+        names[33] = "Nominate";
+        creationCodes[33] = type(Nominate).creationCode;
+        constructorArgs[33] = abi.encode("Nominate");
 
         string memory obj2 = "second key";
 

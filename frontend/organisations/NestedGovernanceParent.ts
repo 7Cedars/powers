@@ -34,9 +34,9 @@ export const NestedGovernanceParent: Organization = {
   metadata: {
     id: "nested-governance-parent",
     title: "Nested Governance Parent",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibnvjwah2wdgd3fhak3sedriwt5xemjlacmrabt6mrht7f24m5w3i",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
-    description: "This is an example implementation of Bicameral Governance using Powers. It is intentionally simple to highlight bicameral decision-making processes.",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreian4g4wbuollclyml5xyao3hvnbxxduuoyjdiucdmau3t62rj46am",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihnlv5j7z5c2kx3afitiijlwg7u65snepooxtczt4biwr7t5gltoi",
+    description: "Nested Governance demonstrates how the Powers protocol can be used to layer governance within each other to create complex decision-making hierarchies. This example is a single parent organisation that governs a child, but any type of complex structure can be created. The notion of sub-DAOs is similar to nested governance.",
     disabled: false,
     onlyLocalhost: true
   },

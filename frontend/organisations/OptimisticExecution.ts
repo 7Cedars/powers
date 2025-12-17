@@ -36,9 +36,9 @@ export const OptimisticExecution: Organization = {
   metadata: {
     id: "optimistic-execution",
     title: "Optimistic Execution",
-    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibnvjwah2wdgd3fhak3sedriwt5xemjlacmrabt6mrht7f24m5w3i",
-    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
-    description: "This is an example implementation of Optimisitic Execution using Powers. It is intentionally simple to highlight bicameral decision-making processes.",
+    uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibzf5td4orxnfknmrz5giiifw4ltsbzciaam7izm6dok5pkm6aqqa",
+    banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihd4il4irvu3kqxnlohkkzlhpywcujqmabwldi3nftqmt5xaszwxy",
+    description: "In Optimistic Execution, the Powers protocol leverages optimistic mechanisms to enable faster decision-making processes by assuming proposals are valid unless challenged. This approach can improve efficiency while still allowing for dispute resolution through challenges. A similar mechanism is currently used by the Optimism Collective.",
     disabled: false,
     onlyLocalhost: true
   },

@@ -92,6 +92,15 @@ export interface Organization {
    * Allowed chains when deployed locally (localhost)
    */
   allowedChainsLocally: number[];
+
+  /**
+   * Deployment data for example implementations.
+   * Note: only one exampleDeployment is supported per organization.
+   */
+  exampleDeployment?: {
+    chainId: number;
+    address: `0x${string}`;
+  }
   
   /**
    * Generate mandate initialization data for this organization

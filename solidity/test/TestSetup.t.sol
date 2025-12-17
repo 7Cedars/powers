@@ -397,6 +397,13 @@ abstract contract TestSetupElectoral is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
+        // Setup OpenElection: add nominees and open election BEFORE constitution
+        vm.startPrank(address(daoMock));
+        OpenElection(mockAddresses[9]).nominate(alice, true);
+        OpenElection(mockAddresses[9]).nominate(bob, true);
+        OpenElection(mockAddresses[9]).openElection(100);
+        vm.stopPrank();
+
         // initiate electoral constitution
         (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.electoralTestConstitution(
             mandateNames, mandateAddresses, mockNames, mockAddresses, payable(address(daoMock))

@@ -85,6 +85,11 @@ export type CommunicationChannels = {
   documentation?: string;
 }
 
+export type familyMember = {
+  title: string;
+  address: `0x${string}`;
+}
+
 export type Metadata = { 
   icon: string; 
   banner: string;
@@ -93,6 +98,8 @@ export type Metadata = {
   codeOfConduct?: string;
   disputeResolution?: string;
   communicationChannels?: CommunicationChannels;
+  parents?: familyMember[];
+  children?: familyMember[];
   attributes?: Attribute[];
 }
 

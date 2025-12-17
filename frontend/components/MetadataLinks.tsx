@@ -7,9 +7,11 @@ import {
   ChatBubbleLeftRightIcon,
   VideoCameraIcon,
   CodeBracketIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@heroicons/react/24/outline'
-import { CommunicationChannels } from '@/context/types'
+import { CommunicationChannels, familyMember } from '@/context/types'
 
 // SVG icons for social platforms (as heroicons doesn't have them all)
 // Note: AI generated these SVGs
@@ -60,13 +62,17 @@ type MetadataLinksProps = {
   codeOfConduct?: string;
   disputeResolution?: string;
   communicationChannels?: CommunicationChannels;
+  parents?: familyMember[];
+  childContracts?: familyMember[];
 }
 
 export function MetadataLinks({ 
   website, 
   codeOfConduct, 
   disputeResolution, 
-  communicationChannels 
+  communicationChannels,
+  parents,
+  childContracts
 }: MetadataLinksProps) {
   // Extract the first communication communicationChannels object (if it exists)
 
@@ -95,8 +101,12 @@ export function MetadataLinks({
     { url: communicationChannels.documentation, icon: BookOpenIcon, label: 'Documentation' }
   ].filter(link => isValidLink(link.url)) : []
 
+  // Filter valid parents and children
+  const validParents = parents?.filter(parent => parent.address && parent.title) || []
+  const validChildren = childContracts?.filter(child => child.address && child.title) || []
+
   // Don't render anything if there are no valid links
-  if (mainLinks.length === 0 && socialLinks.length === 0) {
+  if (mainLinks.length === 0 && socialLinks.length === 0 && validParents.length === 0 && validChildren.length === 0) {
     return null
   }
 
@@ -149,7 +159,40 @@ export function MetadataLinks({
           </div>
         </div>
       )}
+
+      {/* Parent Contracts */}
+      {validParents.length > 0 && (
+        <div className="flex flex-wrap gap-3 items-center">
+          {validParents.map((parent, index) => (
+            <a
+              key={index}
+              href={`/protocol/${parent.address}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-slate-300 hover:border-slate-400 hover:shadow-sm transition-all duration-200 text-slate-700 hover:text-slate-900"
+              title={`Parent: ${parent.title}`}
+            >
+              <ArrowUpIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">{parent.title}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Child Contracts */}
+      {validChildren.length > 0 && (
+        <div className="flex flex-wrap gap-3 items-center">
+          {validChildren.map((child, index) => (
+            <a
+              key={index}
+              href={`/protocol/${child.address}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-slate-300 hover:border-slate-400 hover:shadow-sm transition-all duration-200 text-slate-700 hover:text-slate-900"
+              title={`Child: ${child.title}`}
+            >
+              <ArrowDownIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">{child.title}</span>
+            </a>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
-

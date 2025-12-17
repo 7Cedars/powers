@@ -9,7 +9,7 @@
 
 import React from "react";
 import { SectionIntro } from "./SectionIntro";
-import { SectionUsecases } from "./SectionUsecases";
+import { SectionApplications } from "./SectionApplications";
 import { SectionDeployDemo } from "./SectionDeployDemo";
 import { Footer } from "./Footer";
 
@@ -31,7 +31,7 @@ export default function Page() {
                     </div>
                     <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
                         {/* Separate and distribute power through on-chain institutional governance. */}
-                        Modular institutional governance for on-chain organisations.  
+                        Trustless modular governance for on-chain organisations.  
                     </div>
                 </section> 
 
@@ -49,7 +49,7 @@ export default function Page() {
             </section>
 
             < SectionIntro /> 
-            < SectionUsecases /> 
+            < SectionApplications /> 
             < SectionDeployDemo />
             <div className = "min-h-48"/>  
             < Footer /> 

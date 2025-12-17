@@ -12,11 +12,11 @@ import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
 import { HelperConfig } from "./HelperConfig.s.sol";
 
 import { InitialisePowers } from "./InitialisePowers.s.sol";
-import { MandatePackage } from "../src/mandate-packages/MandatePackage.sol";
-import { PowerLabsConfig } from "../src/mandate-packages/PowerLabsConfig.sol";
-import { PowerLabs_Documentation } from "../src/mandate-packages/PowersLabs_Documentation.sol";
-import { PowerLabs_Frontend } from "../src/mandate-packages/PowersLabs_Frontend.sol";
-import { PowerLabs_Protocol } from "../src/mandate-packages/PowersLabs_Protocol.sol";
+import { MandatePackage } from "../src/packaged-mandates/MandatePackage.sol";
+import { PowerLabsConfig } from "../src/packaged-mandates/PowerLabsConfig.sol";
+import { PowerLabs_Documentation } from "../src/packaged-mandates/PowersLabs_Documentation.sol";
+import { PowerLabs_Frontend } from "../src/packaged-mandates/PowersLabs_Frontend.sol";
+import { PowerLabs_Protocol } from "../src/packaged-mandates/PowersLabs_Protocol.sol";
 
 // @dev this script deploys custom mandate packages to the chain.
 contract DeployMandatePackages is Script {

@@ -1,0 +1,23 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeigzvkekbpcdptsdpc2u2sjjlyufwrsdmi7jibk4wzzcg73vd5jvr4",
+  "description": 
+    "Governed Reform is a demo of how mandates can be adopted and revoked. It has a single law that takes an address of a packaged mandate and adopts this package. When executed, the package adopts an entire governance flow. This style of governance reform is uniique to Powers, and one of its greatest strengths.",
+  "website": "",
+  "codeOfConduct": "", 
+  "disputeResolution": "", 
+  "communicationChannels": {
+      "discord": "https://discordapp.com/users/1006928106487021638",
+      "telegram": "https://t.me/thd83",
+      "x": "https://x.com/7__Cedars",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers/blob/develop/frontend/organisations/GovernedReform.ts",
+      "forum": "",
+      "documentation": ""
+  },
+  "parents": [ ],
+  "children": [ ],
+  "attributes": [ ]
+}
