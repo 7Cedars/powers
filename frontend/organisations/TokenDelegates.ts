@@ -52,6 +52,10 @@ export const TokenDelegates: Organization = {
       ownable: true
     }
   ],
+  exampleDeployment: {
+    chainId: sepolia.id,
+    address: `0x646Ec769f87D53B3251Ec00ae4f1C1AFF9E01137`
+  },
   allowedChains: [
     sepolia.id,
     arbitrumSepolia.id,
@@ -121,7 +125,7 @@ export const TokenDelegates: Organization = {
     /////////////////////////////////////////////////////////////////
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "Nominate for Delegates: Anyone can nominate themselves for the Token Delegate role.",
+      nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
       targetMandate: getMandateAddress("Nominate", deployedMandates),
       config: encodeAbiParameters(
         parseAbiParameters("address Nominees"),
@@ -135,8 +139,8 @@ export const TokenDelegates: Organization = {
 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "Nominate for Delegates: Anyone can nominate themselves for the Token Delegate role.",
-      targetMandate: getMandateAddress("Nominate", deployedMandates),
+      nameDescription: "Elect Delegates: Run the election for delegates.",
+      targetMandate: getMandateAddress("DelegateTokenSelect", deployedMandates),
       config: encodeAbiParameters(
         parseAbiParameters("address VotesToken, address Nominees, uint256 RoleId, uint256 MaxRoleHolders"),
         [ 
@@ -148,30 +152,25 @@ export const TokenDelegates: Organization = {
       ),
       conditions: createConditions({
         allowedRole: PUBLIC_ROLE,
-        votingPeriod: minutesToBlocks(5, chainId),
-        succeedAt: 51n,
-        needFulfilled: nominateForDelegates,
-        quorum: 50n
+        throttleExecution: minutesToBlocks(10, chainId), // Can be run once every 10 minutes (in reality every 10 days)
       })
     });
 
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     ///////////////////////////////////////////////////////////////// 
-    const assignRevokeRoleConfig = encodeAbiParameters(
-      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
-      [
-        powersAddress,
-        toFunctionSelector("assignRoles(address[],uint256[])"),
-        ["address account", "uint256 roleId"]
-      ]
-    );
-
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("assignRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -182,7 +181,14 @@ export const TokenDelegates: Organization = {
     mandateInitData.push({
       nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config:assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("revokeRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: 2n,
         needFulfilled: assignAnyRole

@@ -269,11 +269,11 @@ contract TestConstitutions is Test {
     ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
         mandateInitData = new PowersTypes.MandateInitData[](12);
 
-        // ElectionSelect - for delegate elections
+        // OpenElectionEnd - for delegate elections
         conditions.allowedRole = type(uint256).max;
         mandateInitData[1] = PowersTypes.MandateInitData({
-            nameDescription: "ElectionSelect: A mandate to run delegate elections and assign roles based on results.",
-            targetMandate: mandateAddresses[11], // ElectionSelect (electoral mandate)
+            nameDescription: "OpenElectionEnd: A mandate to run delegate elections and assign roles based on results.",
+            targetMandate: mandateAddresses[11], // OpenElectionEnd (electoral mandate)
             config: abi.encode(
                 mockAddresses[10], // Erc20DelegateElection contract
                 3, // roleId to be elected
@@ -298,11 +298,11 @@ contract TestConstitutions is Test {
         });
         delete conditions;
 
-        // VoteInOpenElection - for voting in open elections
+        // OpenElectionVote - for voting in open elections
         conditions.allowedRole = type(uint256).max;
         mandateInitData[3] = PowersTypes.MandateInitData({
-            nameDescription: "VoteInOpenElection: A mandate to vote in open elections.",
-            targetMandate: mandateAddresses[13], // VoteInOpenElection (electoral mandate)
+            nameDescription: "OpenElectionVote: A mandate to vote in open elections.",
+            targetMandate: mandateAddresses[13], // OpenElectionVote (electoral mandate)
             config: abi.encode(mockAddresses[9], 1), // OpenElection contract, max votes per voter
             conditions: conditions
         });
@@ -722,7 +722,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = type(uint256).max; // = role that can call this mandate.
         mandateInitData[2] = PowersTypes.MandateInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
-            targetMandate: mandateAddresses[10], // ElectionSelect
+            targetMandate: mandateAddresses[10], // OpenElectionEnd
             config: abi.encode(
                 mockAddresses[10], // = Erc20DelegateElection
                 2, // role to be elected.

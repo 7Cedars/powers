@@ -14,14 +14,14 @@ import { Nominees } from "./Nominees.sol";
 /// - Provides ranking of nominees by vote count.
 /// - No Powers/Mandate integration. Pure storage and helper utilities.
 contract OpenElection is Nominees {
-    struct ElectionData {
+    struct Data {
         bool isOpen;
         uint256 startBlock;
         uint256 durationBlocks;
         uint256 endBlock;
     }
 
-    ElectionData public currentElection;
+    Data public currentElection;
 
     // Voting storage
     mapping(uint256 electionId => mapping(address voter => bool hasVoted)) public hasVoted;
@@ -67,13 +67,16 @@ contract OpenElection is Nominees {
     }
 
     // --- Nominees Management ---
-
-    function openElection(uint256 durationBlocks) external onlyOwner {
+    
+    /// Start a new election
+    /// @param durationBlocks Number of blocks the election will be open
+    /// @param electionId Unique identifier for the election. In this case this should be the ID at which the ElectionVote mandate will be deployed. 
+    function openElection(uint256 durationBlocks, uint16 electionId) external onlyOwner {
         if (currentElection.isOpen) revert("election already open");
         if (durationBlocks == 0) revert("duration must be > 0");
 
         // Reset all votes for new election
-        currentElectionId += 1;
+        currentElectionId = electionId;
 
         // Copy current nominees to this election
         nomineesByElection[currentElectionId] = new address[](nomineesSorted.length);
@@ -81,7 +84,7 @@ contract OpenElection is Nominees {
             nomineesByElection[currentElectionId][i] = nomineesSorted[i];
         }
 
-        currentElection = ElectionData({
+        currentElection = Data({
             isOpen: true,
             startBlock: block.number,
             durationBlocks: durationBlocks,
@@ -104,7 +107,7 @@ contract OpenElection is Nominees {
         return currentElection.isOpen && block.number <= currentElection.endBlock;
     }
 
-    function getElectionInfo() external view returns (ElectionData memory) {
+    function getElectionInfo() external view returns (Data memory) {
         return currentElection;
     }
 

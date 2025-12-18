@@ -1095,7 +1095,7 @@ contract OpenElectionTest is TestSetupPowers {
     function testNominateRevertsWhenElectionOpen() public {
         // Setup: Open an election
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         // Try to nominate during active election
         vm.expectRevert("cannot nominate during active election");
@@ -1109,7 +1109,7 @@ contract OpenElectionTest is TestSetupPowers {
         openElection.nominate(alice, true);
         openElection.nominate(bob, true);
         openElection.nominate(charlotte, true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
         vm.stopPrank();
 
         // Vote for multiple nominees in one transaction
@@ -1140,9 +1140,9 @@ contract OpenElectionTest is TestSetupPowers {
         uint256 durationBlocks = 100;
 
         vm.prank(address(daoMock));
-        openElection.openElection(durationBlocks);
+        openElection.openElection(durationBlocks, 1);
 
-        OpenElection.ElectionData memory election = openElection.getElectionInfo();
+        OpenElection.Data memory election = openElection.getElectionInfo();
         assertTrue(election.isOpen);
         assertEq(election.startBlock, block.number);
         assertEq(election.durationBlocks, durationBlocks);
@@ -1152,30 +1152,30 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testOpenElectionRevertsWhenAlreadyOpen() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.expectRevert("election already open");
         vm.prank(address(daoMock));
-        openElection.openElection(200);
+        openElection.openElection(200, 1);
     }
 
     function testOpenElectionRevertsWithZeroDuration() public {
         vm.expectRevert("duration must be > 0");
         vm.prank(address(daoMock));
-        openElection.openElection(0);
+        openElection.openElection(0, 1);
     }
 
     function testOpenElectionRevertsWhenNotCalledByPowers() public {
         vm.expectRevert();
         vm.prank(alice);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
     }
 
     function testVote() public {
         // Setup: Nominate and open election
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
         vm.stopPrank();
 
         bool[] memory votes = new bool[](1);
@@ -1198,7 +1198,7 @@ contract OpenElectionTest is TestSetupPowers {
     function testVoteRevertsWhenElectionClosed() public {
         // Setup: Open election and fast forward past end
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.roll(block.number + 101);
 
@@ -1212,7 +1212,7 @@ contract OpenElectionTest is TestSetupPowers {
         // Setup: Nominate someone and open election
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
         vm.stopPrank();
 
         // Try to vote with wrong array length (should be 1, but using 2)
@@ -1229,7 +1229,7 @@ contract OpenElectionTest is TestSetupPowers {
         // Setup: Nominate and open election
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](1);
         votes[0] = true;
@@ -1243,7 +1243,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testVoteRevertsWhenNotCalledByPowers() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](0);
         vm.expectRevert();
@@ -1253,14 +1253,14 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testCloseElection() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.roll(block.number + 101);
 
         vm.prank(address(daoMock));
         openElection.closeElection();
 
-        OpenElection.ElectionData memory election = openElection.getElectionInfo();
+        OpenElection.Data memory election = openElection.getElectionInfo();
         assertFalse(election.isOpen);
         assertFalse(openElection.isElectionOpen());
     }
@@ -1273,7 +1273,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testCloseElectionRevertsWhenStillActive() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.expectRevert("election still active");
         vm.prank(address(daoMock));
@@ -1282,7 +1282,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testCloseElectionRevertsWhenNotCalledByPowers() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.expectRevert();
         vm.prank(alice);
@@ -1293,7 +1293,7 @@ contract OpenElectionTest is TestSetupPowers {
         // Setup: Nominate, open election, vote, and close
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](1);
         votes[0] = true;
@@ -1311,7 +1311,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function testRankingRevertsWhenStillActive() public {
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         vm.expectRevert("election still active");
         openElection.getNomineeRanking();
@@ -1329,7 +1329,7 @@ contract OpenElectionTest is TestSetupPowers {
         openElection.nominate(nominee1, true);
         openElection.nominate(nominee2, true);
 
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](2);
         votes[0] = true; // Vote for nominee1 (first nominee)
@@ -1352,7 +1352,7 @@ contract OpenElectionTest is TestSetupPowers {
         openElection.nominate(address(daoMock), true);
 
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         nominees = openElection.getNomineesForElection(1);
         assertEq(nominees.length, 1);
@@ -1362,7 +1362,7 @@ contract OpenElectionTest is TestSetupPowers {
     function testGetVoteCount() public {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](1);
         votes[0] = true;
@@ -1375,7 +1375,7 @@ contract OpenElectionTest is TestSetupPowers {
     function testHasUserVoted() public {
         vm.startPrank(address(daoMock));
         openElection.nominate(address(daoMock), true);
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         bool[] memory votes = new bool[](1);
         votes[0] = true;
@@ -1390,7 +1390,7 @@ contract OpenElectionTest is TestSetupPowers {
         assertFalse(openElection.isElectionOpen());
 
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         assertTrue(openElection.isElectionOpen());
 
@@ -1399,14 +1399,14 @@ contract OpenElectionTest is TestSetupPowers {
     }
 
     function testGetElectionInfo() public {
-        OpenElection.ElectionData memory election = openElection.getElectionInfo();
+        OpenElection.Data memory election = openElection.getElectionInfo();
         assertFalse(election.isOpen);
         assertEq(election.startBlock, 0);
         assertEq(election.durationBlocks, 0);
         assertEq(election.endBlock, 0);
 
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         election = openElection.getElectionInfo();
         assertTrue(election.isOpen);
@@ -1430,7 +1430,7 @@ contract OpenElectionTest is TestSetupPowers {
 
         // Open election
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         // Test voting with different callers for different nominees
         bool[] memory aliceVotes = new bool[](3);

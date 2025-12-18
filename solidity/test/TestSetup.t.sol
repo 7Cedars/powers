@@ -398,10 +398,12 @@ abstract contract TestSetupElectoral is BaseSetup {
         super.setUpVariables();
 
         // Setup OpenElection: add nominees and open election BEFORE constitution
+        uint16 electionMandatateId = daoMock.mandateCounter();
+
         vm.startPrank(address(daoMock));
         OpenElection(mockAddresses[9]).nominate(alice, true);
         OpenElection(mockAddresses[9]).nominate(bob, true);
-        OpenElection(mockAddresses[9]).openElection(100);
+        OpenElection(mockAddresses[9]).openElection(100, electionMandatateId);
         vm.stopPrank();
 
         // initiate electoral constitution

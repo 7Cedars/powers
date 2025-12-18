@@ -3,6 +3,8 @@ import { powersAbi } from "@/context/abi";
 import { encodeAbiParameters, encodeFunctionData, parseAbiParameters, toFunctionSelector } from "viem";
 import { getMandateAddress, ADMIN_ROLE, PUBLIC_ROLE, createConditions, minutesToBlocks } from "./helpers";
 import { sepolia, arbitrumSepolia, optimismSepolia, foundry } from "@wagmi/core/chains";
+import { getConstants } from "@/context/constants";
+import Erc20Taxed from "@/context/builds/Erc20Taxed.json";
 
 /**
  * Helper function to extract contract address from receipt
@@ -128,26 +130,50 @@ export const NestedGovernanceChild: Organization = {
     mandateInitData.push({
       nameDescription: "Check Parent: Check if parent has passed action to mint tokens.",
       targetMandate: getMandateAddress("CheckExternalActionState", deployedMandates), // Ensure this name matches build
-      config: "0x" as `0x${string}`,
+      config: encodeAbiParameters(
+        parseAbiParameters('address powers, uint16 mandateId, string[] Params'),
+        [
+          powersAddress,
+          formData["MintMandateId"] as number,
+          [""]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: PUBLIC_ROLE 
       })
     });
     const checkParent = BigInt(mandateCounter);
 
-    mandateCounter++;
-    mandateInitData.push({
-      nameDescription: "Mint Tokens: The parent organisation allows the child organisation to mint tokens to its own address.",
-      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: "0x" as `0x${string}`,
-      conditions: createConditions({
-        allowedRole: 1n, // Members
-        needFulfilled: checkParent, 
-        votingPeriod: minutesToBlocks(5, chainId),
-        succeedAt: 51n,
-        quorum: 33n 
-      })
-    }); 
+    // mandateCounter++;
+    // mandateInitData.push({
+    //   nameDescription: "Mint Tokens: The parent organisation allows the child organisation to call a token faucet to its own address.",
+    //   targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
+    //   config: encodeAbiParameters(
+    //     [
+    //       { name: 'targets', type: 'address[]' },
+    //       { name: 'values', type: 'uint256[]' },
+    //       { name: 'calldatas', type: 'bytes[]' }
+    //     ],
+    //     [
+    //       [ getConstants(chainId).TAX_TOKEN as `0x${string}` ],
+    //       [ 0n ],
+    //       [
+    //         encodeFunctionData({
+    //           abi: Erc20Taxed.abi,
+    //           functionName: "faucet",
+    //           args: [] //faucet does not take any arguments
+    //         })
+    //       ]
+    //     ]
+    //   ),
+    //   conditions: createConditions({
+    //     allowedRole: 1n, // Members
+    //     needFulfilled: checkParent, 
+    //     votingPeriod: minutesToBlocks(5, chainId),
+    //     succeedAt: 51n,
+    //     quorum: 33n 
+    //   })
+    // }); 
     
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //

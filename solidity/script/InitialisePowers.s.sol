@@ -24,9 +24,10 @@ import { RevokeMandates } from "../src/mandates/executive/RevokeMandates.sol";
 import { CheckExternalActionState } from "../src/mandates/executive/CheckExternalActionState.sol";
 
 // Electoral mandates
-import { ElectionSelect } from "../src/mandates/electoral/ElectionSelect.sol";
+import { OpenElectionStart } from "../src/mandates/electoral/OpenElectionStart.sol";
+import { OpenElectionEnd } from "../src/mandates/electoral/OpenElectionEnd.sol";
+import { OpenElectionVote } from "../src/mandates/electoral/OpenElectionVote.sol";
 import { PeerSelect } from "../src/mandates/electoral/PeerSelect.sol";
-import { VoteInOpenElection } from "../src/mandates/electoral/VoteInOpenElection.sol";
 import { NStrikesRevokesRoles } from "../src/mandates/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "../src/mandates/electoral/TaxSelect.sol";
 import { RoleByRoles } from "../src/mandates/electoral/RoleByRoles.sol";
@@ -36,6 +37,7 @@ import { AssignExternalRole } from "../src/mandates/electoral/AssignExternalRole
 import { RoleByTransaction } from "../src/mandates/electoral/RoleByTransaction.sol";
 import { DelegateTokenSelect } from "../src/mandates/electoral/DelegateTokenSelect.sol";
 import { Nominate } from "../src/mandates/electoral/Nominate.sol";
+
 
 // async mandates
 import { ClaimRoleWithGitSig } from "../src/mandates/async/ClaimRoleWithGitSig.sol";
@@ -116,10 +118,10 @@ contract InitialisePowers is Script {
         internal
         returns (string[] memory names, address[] memory addresses, string memory outputJson)
     {
-        names = new string[](34);
-        addresses = new address[](34);
-        bytes[] memory creationCodes = new bytes[](34);
-        bytes[] memory constructorArgs = new bytes[](34);
+        names = new string[](35);
+        addresses = new address[](35);
+        bytes[] memory creationCodes = new bytes[](35);
+        bytes[] memory constructorArgs = new bytes[](35);
 
         names[0] = "DUMMY LAW";
         creationCodes[0] = type(PresetSingleAction).creationCode;
@@ -166,17 +168,17 @@ contract InitialisePowers is Script {
         constructorArgs[10] = abi.encode("GovernorExecuteProposal");
 
         // Electoral mandates
-        names[11] = "ElectionSelect";
-        creationCodes[11] = type(ElectionSelect).creationCode;
-        constructorArgs[11] = abi.encode("ElectionSelect");
+        names[11] = "OpenElectionEnd";
+        creationCodes[11] = type(OpenElectionEnd).creationCode;
+        constructorArgs[11] = abi.encode("OpenElectionEnd");
 
         names[12] = "PeerSelect";
         creationCodes[12] = type(PeerSelect).creationCode;
         constructorArgs[12] = abi.encode("PeerSelect");
 
-        names[13] = "VoteInOpenElection";
-        creationCodes[13] = type(VoteInOpenElection).creationCode;
-        constructorArgs[13] = abi.encode("VoteInOpenElection");
+        names[13] = "OpenElectionVote";
+        creationCodes[13] = type(OpenElectionVote).creationCode;
+        constructorArgs[13] = abi.encode("OpenElectionVote");
 
         names[14] = "NStrikesRevokesRoles";
         creationCodes[14] = type(NStrikesRevokesRoles).creationCode;
@@ -257,6 +259,10 @@ contract InitialisePowers is Script {
         names[33] = "Nominate";
         creationCodes[33] = type(Nominate).creationCode;
         constructorArgs[33] = abi.encode("Nominate");
+
+        names[34] = "OpenElectionStart";
+        creationCodes[34] = type(OpenElectionStart).creationCode;
+        constructorArgs[34] = abi.encode("OpenElectionStart");
 
         string memory obj2 = "second key";
 

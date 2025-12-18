@@ -10,6 +10,7 @@
 import React from "react";
 import { SectionIntro } from "./SectionIntro";
 import { SectionApplications } from "./SectionApplications";
+import { SectionExamples } from "./SectionExamples";
 import { SectionDeployDemo } from "./SectionDeployDemo";
 import { Footer } from "./Footer";
 
@@ -50,9 +51,10 @@ export default function Page() {
 
             < SectionIntro /> 
             < SectionApplications /> 
+            < SectionExamples /> 
             < SectionDeployDemo />
             <div className = "min-h-48"/>  
-            < Footer /> 
+            < Footer />
            
         </main>
     )

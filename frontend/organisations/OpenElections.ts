@@ -53,6 +53,10 @@ export const OpenElections: Organization = {
         ownable: true
     }
   ],
+  exampleDeployment: {
+    chainId: optimismSepolia.id,
+    address: `0x0000000000000000000000000000000000000000`
+  },
   allowedChains: [
     sepolia.id,
     arbitrumSepolia.id,
@@ -123,7 +127,7 @@ export const OpenElections: Organization = {
     //////////////////////////////////////////////////////////////////
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "Nominate for Delegates: Anyone can nominate themselves for the Token Delegate role.",
+      nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
       targetMandate: getMandateAddress("Nominate", deployedMandates),
       config: encodeAbiParameters(
         parseAbiParameters("address OpenElection"),
@@ -135,87 +139,69 @@ export const OpenElections: Organization = {
     });
     const nominateForDelegates = BigInt(mandateCounter);
 
-    mandateCounter++;
-    mandateInitData.push({
-      nameDescription: "Open an election: Open an election in the OpenElection contract and adopt a bespoke vote law.",
-      targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
-      config: encodeAbiParameters(
-        [
-          { name: 'targets', type: 'address[]' },
-          { name: 'values', type: 'uint256[]' },
-          { name: 'calldatas', type: 'bytes[]' }
-        ],
-        [
-          [ 
-            getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"), 
-            powersAddress 
-          ],
-          [
-            0n, 
-            0n 
-          ],
-          [
-            encodeFunctionData({
-              abi: openElection.abi as Abi,
-              functionName: "openElection",
-              args: [
-                minutesToBlocks(5, chainId), // voting period
-              ]
-            }),
-            encodeFunctionData({
-              abi: powersAbi,
-              functionName: "adoptMandate",
-              args: [
-                encodeAbiParameters(
-                    // Curious if this will work as intended. 
-                    parseAbiParameters("string nameDescription, address targetMandate, bytes config, tuple(uint256,uint32,uint32,uint32,uint16,uint16,uint8,uint8) Conditions"),
-                    [ 
-                        "Vote in Open Election: Allows voters to vote in open elections.", 
-                        getMandateAddress("VoteInOpenElection", deployedMandates),
-                        encodeAbiParameters(
-                            parseAbiParameters("address openElectionContract, uint256 maxVotes"),
-                            [ 
-                                getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"),
-                                3n // max votes
-                            ]
-                        ),
-                        createConditions({
-                            allowedRole: 1n // Voters
-                        })
-                    ]
-                ),
-              ]
-            })
-          ]
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: 1n, // Voters: only accounts with Voter role can nominate for delegate
-      })
-    }); 
+    // mandateCounter++;
+    // mandateInitData.push({
+    //   nameDescription: "Open an election: Open an election in the OpenElection contract and adopt a bespoke vote law.",
+    //   targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
+    //   config: encodeAbiParameters(
+    //     [
+    //       { name: 'targets', type: 'address[]' },
+    //       { name: 'values', type: 'uint256[]' },
+    //       { name: 'calldatas', type: 'bytes[]' }
+    //     ],
+    //     [
+    //       [ 
+    //         getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"), 
+    //         powersAddress 
+    //       ],
+    //       [
+    //         0n, 
+    //         0n 
+    //       ],
+    //       [
+    //         encodeFunctionData({
+    //           abi: openElection.abi as Abi,
+    //           functionName: "openElection",
+    //           args: [
+    //             minutesToBlocks(5, chainId), // voting period
+    //           ]
+    //         }),
+    //         encodeFunctionData({
+    //           abi: powersAbi,
+    //           functionName: "adoptMandate",
+    //           args: [
+    //             {
+    //               nameDescription: "Vote in Open Election: Allows voters to vote in open elections.",
+    //               targetMandate: getMandateAddress("OpenElectionVote", deployedMandates),
+    //               config: encodeAbiParameters(
+    //                 parseAbiParameters("address openElectionContract, uint256 maxVotes"),
+    //                 [ 
+    //                   getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"),
+    //                   3n // max votes
+    //                 ]
+    //               ),
+    //               conditions: {
+    //                 allowedRole: 1n, // Voters
+    //                 votingPeriod: 0,
+    //                 timelock: 0,
+    //                 throttleExecution: 0,
+    //                 needFulfilled: 0,
+    //                 needNotFulfilled: 0,
+    //                 quorum: 0,
+    //                 succeedAt: 0
+    //               }
+    //             }
+    //           ]
+    //         })
+    //       ]
+    //     ]
+    //   ),
+    //   conditions: createConditions({
+    //     allowedRole: 1n, // Voters: only accounts with Voter role can nominate for delegate
+    //   })
+    // });
 
-
-    mandateCounter++;
-    mandateInitData.push({
-      nameDescription: "Nominate for Delegates: Anyone can nominate themselves for the Token Delegate role.",
-      targetMandate: getMandateAddress("Nominate", deployedMandates),
-      config: encodeAbiParameters(
-        parseAbiParameters("address VotesToken, address Nominees, uint256 RoleId, uint256 MaxRoleHolders"),
-        [ 
-          getConstants(chainId).VOTES_TOKEN as `0x${string}`,
-          getContractAddressFromReceipt(dependencyReceipts["Nominees"], "Nominees"), 
-          2n,
-          10n
-        ]
-      ),
-      conditions: createConditions({
-        allowedRole: PUBLIC_ROLE,
-        votingPeriod: minutesToBlocks(5, chainId),
-        succeedAt: 51n,
-        needFulfilled: nominateForDelegates,
-        quorum: 50n
-      })
-    });
+    // need to still include a law to Tally the election and assign the roles based on results. 
 
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //

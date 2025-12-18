@@ -65,7 +65,7 @@ export const wagmiConfig = createConfig({
     ...(isLocalhost ? [foundry] : [])
   ],
   // batch: { multicall: true }, 
-  connectors: [injected(), coinbaseWallet()],
+  connectors: [injected()],
   transports: {
     [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_ARB_SEPOLIA_HTTPS), 
     [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_HTTPS), 

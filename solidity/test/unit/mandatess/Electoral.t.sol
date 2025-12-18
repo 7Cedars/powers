@@ -2,9 +2,9 @@
 pragma solidity 0.8.26;
 
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
-import { ElectionSelect } from "../../../src/mandates/electoral/ElectionSelect.sol";
+import { OpenElectionEnd } from "../../../src/mandates/electoral/OpenElectionEnd.sol";
 import { PeerSelect } from "../../../src/mandates/electoral/PeerSelect.sol";
-import { VoteInOpenElection } from "../../../src/mandates/electoral/VoteInOpenElection.sol";
+import { OpenElectionVote } from "../../../src/mandates/electoral/OpenElectionVote.sol";
 import { NStrikesRevokesRoles } from "../../../src/mandates/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "../../../src/mandates/electoral/TaxSelect.sol";
 import { RoleByRoles } from "../../../src/mandates/electoral/RoleByRoles.sol";
@@ -28,27 +28,27 @@ import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 //////////////////////////////////////////////////
 //              ELECTION SELECT TESTS          //
 //////////////////////////////////////////////////
-contract ElectionSelectTest is TestSetupElectoral {
-    ElectionSelect electionSelect;
-    Erc20DelegateElection delegateElection;
+contract OpenElectionEndTest is TestSetupElectoral {
+    OpenElectionEnd openElectionEnd;
+    Erc20DelegateElection delegateElection; 
 
     function setUp() public override {
         super.setUp();
-        electionSelect = ElectionSelect(mandateAddresses[11]);
+        openElectionEnd = OpenElectionEnd(mandateAddresses[11]);
         delegateElection = Erc20DelegateElection(mockAddresses[10]); // Erc20DelegateElection
         mandateId = 1;
     }
 
-    function testElectionSelectInitialization() public {
+    function testOpenElectionEndInitialization() public {
         // Verify mandate data is stored correctly
         mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
-        ElectionSelect.Data memory data = electionSelect.getData(mandateHash);
-        assertEq(data.electionContract, address(delegateElection));
-        assertEq(data.roleId, 3);
-        assertEq(data.maxRoleHolders, 3);
+        OpenElectionEnd.Data memory dataElection = openElectionEnd.getData(mandateHash);
+        assertEq(dataElection.electionContract, address(delegateElection));
+        assertEq(dataElection.roleId, 3);
+        assertEq(dataElection.maxRoleHolders, 3);
     }
 
-    function testElectionSelectWithNoNominees() public {
+    function testOpenElectionEndWithNoNominees() public {
         // Execute with no nominees
         vm.prank(alice);
         daoMock.request(mandateId, abi.encode(), nonce, "Test election");
@@ -58,7 +58,7 @@ contract ElectionSelectTest is TestSetupElectoral {
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
 
-    function testElectionSelectWithNominees() public {
+    function testOpenElectionEndWithNominees() public {
         // Add nominees to election
         vm.prank(address(daoMock));
         delegateElection.nominate(alice, true);
@@ -254,14 +254,14 @@ contract PeerSelectTest is TestSetupElectoral {
 //////////////////////////////////////////////////
 //            VOTE IN OPEN ELECTION TESTS      //
 //////////////////////////////////////////////////
-contract VoteInOpenElectionTest is TestSetupElectoral {
-    VoteInOpenElection voteInOpenElection;
+contract OpenElectionVoteTest is TestSetupElectoral {
+    OpenElectionVote openElectionVote;
     OpenElection openElection;
     Nominees nomineesContract;
 
     function setUp() public override {
         super.setUp();
-        voteInOpenElection = VoteInOpenElection(mandateAddresses[13]);
+        openElectionVote = OpenElectionVote(mandateAddresses[13]);
         // Create a fresh OpenElection instance for each test to avoid state conflicts
         openElection = new OpenElection();
         // Transfer ownership to daoMock (test contract is the initial owner)
@@ -270,7 +270,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         mandateId = 3;
     }
 
-    function testVoteInOpenElectionWithValidVote() public {
+    function testOpenElectionVoteWithValidVote() public {
         // Add nominees to open election (before opening it)
         vm.prank(address(daoMock));
         openElection.nominate(alice, true);
@@ -279,7 +279,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         // Open the election BEFORE adopting the mandate
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         // Now adopt the mandate (so it can read from the open election)
         configBytes = abi.encode(address(openElection), 1); // OpenElection
@@ -312,7 +312,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
     }
 
-    function testVoteInOpenElectionRevertsWithTooManyVotes() public {
+    function testOpenElectionVoteRevertsWithTooManyVotes() public {
         // Add nominees to open election
         vm.prank(address(daoMock));
         openElection.nominate(alice, true);
@@ -321,7 +321,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         // Open the election BEFORE adopting the mandate
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
@@ -353,7 +353,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.request(mandateId, abi.encode(vote), nonce, "Test vote");
     }
 
-    function testVoteInOpenElectionRevertsWithInvalidVoteLength() public {
+    function testOpenElectionVoteRevertsWithInvalidVoteLength() public {
         // Add nominees to open election
         vm.prank(address(daoMock));
         openElection.nominate(alice, true);
@@ -362,7 +362,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         // Open the election BEFORE adopting the mandate
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
@@ -394,7 +394,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
         daoMock.request(mandateId, abi.encode(vote), nonce, "Test vote");
     }
 
-    function testVoteInOpenElectionGetData() public {
+    function testOpenElectionVoteGetData() public {
         // Add nominees to open election
         vm.prank(address(daoMock));
         openElection.nominate(alice, true);
@@ -403,7 +403,7 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         // Open the election BEFORE adopting the mandate
         vm.prank(address(daoMock));
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
 
         conditions.allowedRole = type(uint256).max;
         vm.prank(address(daoMock));
@@ -424,10 +424,10 @@ contract VoteInOpenElectionTest is TestSetupElectoral {
 
         // Test getData function
         mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
-        VoteInOpenElection.Data memory data = voteInOpenElection.getData(mandateHash);
-        assertEq(data.openElectionContract, address(openElection));
-        assertEq(data.maxVotes, 1);
-        assertEq(data.nominees.length, 2);
+        OpenElectionVote.Data memory dataElection = openElectionVote.getData(mandateHash);
+        assertEq(dataElection.openElectionContract, address(openElection));
+        assertEq(dataElection.maxVotes, 1);
+        assertEq(dataElection.nominees.length, 2);
     }
 }
 
@@ -729,9 +729,9 @@ contract AssignExternalRoleTest is TestSetupElectoral {
 //              EDGE CASE TESTS                //
 //////////////////////////////////////////////////
 contract ElectoralEdgeCaseTest is TestSetupElectoral {
-    ElectionSelect electionSelect;
+    OpenElectionEnd openElectionEnd;
     PeerSelect peerSelect;
-    VoteInOpenElection voteInOpenElection;
+    OpenElectionVote openElectionVote;
     NStrikesRevokesRoles nStrikesRevokesRoles;
     TaxSelect taxSelect;
     RoleByRoles roleByRoles;
@@ -741,9 +741,9 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
 
     function setUp() public override {
         super.setUp();
-        electionSelect = new ElectionSelect();
+        openElectionEnd = new OpenElectionEnd();
         peerSelect = new PeerSelect();
-        voteInOpenElection = new VoteInOpenElection();
+        openElectionVote = new OpenElectionVote();
         nStrikesRevokesRoles = new NStrikesRevokesRoles();
         taxSelect = new TaxSelect();
         roleByRoles = new RoleByRoles();
@@ -757,13 +757,13 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
         mandateId = daoMock.mandateCounter();
         conditions.allowedRole = type(uint256).max;
 
-        // ElectionSelect
+        // OpenElectionEnd
         configBytes = abi.encode(mockAddresses[10], 3, 3); // Erc20DelegateElection
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
             PowersTypes.MandateInitData({
                 nameDescription: "Election Select",
-                targetMandate: address(electionSelect),
+                targetMandate: address(openElectionEnd),
                 config: configBytes,
                 conditions: conditions
             })
@@ -781,13 +781,13 @@ contract ElectoralEdgeCaseTest is TestSetupElectoral {
             })
         );
 
-        // VoteInOpenElection
+        // OpenElectionVote
         configBytes = abi.encode(mockAddresses[9], 1); // OpenElection
         vm.prank(address(daoMock));
         daoMock.adoptMandate(
             PowersTypes.MandateInitData({
                 nameDescription: "Vote In Open Election",
-                targetMandate: address(voteInOpenElection),
+                targetMandate: address(openElectionVote),
                 config: configBytes,
                 conditions: conditions
             })

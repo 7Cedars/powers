@@ -92,8 +92,8 @@ export default defineConfig({
           collapsed: true, 
           items: [ 
             { 
-              text: 'ElectionSelect', 
-              link: '/mandates/ElectionSelect', 
+              text: 'OpenElectionEnd', 
+              link: '/mandates/OpenElectionEnd', 
             },
             { 
               text: 'NStrikesRevokesRoles', 
@@ -120,8 +120,8 @@ export default defineConfig({
               link: '/mandates/TaxSelect', 
             },
             { 
-              text: 'VoteInOpenElection', 
-              link: '/mandates/VoteInOpenElection', 
+              text: 'OpenElectionVote', 
+              link: '/mandates/OpenElectionVote', 
             },
           ], 
         },
