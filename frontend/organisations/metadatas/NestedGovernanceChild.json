@@ -17,12 +17,12 @@
       "forum": "",
       "documentation": ""
   },
-  "parents": [ 
+  "parentContracts": [ 
     {
-      "title": "Nested Governance Parent",
-      "address": "0x1234567890abcdef1234567890abcdef12345678"
+      "title": "Nested Parent",
+      "address": "0x3F8a05F88e7074253a270aA03a0D90155150514C"
     }
   ],
-  "children": [ ],
+  "childContracts": [ ],
   "attributes": [ ]
 }

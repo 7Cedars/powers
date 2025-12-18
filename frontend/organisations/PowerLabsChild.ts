@@ -37,7 +37,7 @@ function getReturnValueFromReceipt(receipt: any): any {
 export const PowerLabsChild: Organization = {
   metadata: {
     id: "powers-Child",
-    title: "Child Powers",
+    title: "Powers Labs Child",
     uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreichqvnlmfgkw2jeqgerae2torhgbcgdomxzqxiymx77yhflpnniii",
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
     description: "This is a base implementation of a Power Labs child organisation. It is meant to be configured through a reform mandate.",
@@ -52,14 +52,10 @@ export const PowerLabsChild: Organization = {
   ],
   dependencies:  [ ],
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
-    optimismSepolia.id,
+    sepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-    arbitrumSepolia.id,
-    optimismSepolia.id,
+    sepolia.id,  
     foundry.id
   ],
  
@@ -72,6 +68,68 @@ export const PowerLabsChild: Organization = {
   ): MandateInitData[] => {
     const mandateInitData: MandateInitData[] = [];
     let mandateCount = 0n;
+
+    //////////////////////////////////////////////////////////////////
+    //                          INIT LAW                            //
+    ////////////////////////////////////////////////////////////////// 
+    mandateCount++;
+    mandateInitData.push({
+      nameDescription: "Initial Setup: Assign role labels (Members, Delegates) and revoke itself after execution",
+      targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
+      config: encodeAbiParameters(
+        [
+          { name: 'targets', type: 'address[]' },
+          { name: 'values', type: 'uint256[]' },
+          { name: 'calldatas', type: 'bytes[]' }
+        ],
+        [
+          [
+            powersAddress, 
+            powersAddress,  
+            powersAddress,
+            powersAddress, 
+            powersAddress,  
+            powersAddress
+          ],
+          [0n, 0n, 0n, 0n, 0n, 0n],
+          [
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "labelRole",
+              args: [1n, "Funders"]
+            }),
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "labelRole",  
+              args: [2n, "Doc Contributors"]
+            }),
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "labelRole",  
+              args: [3n, "Frontend Contributors"]
+            }),
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "labelRole",  
+              args: [4n, "Protocol Contributors"]
+            }),
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "labelRole",  
+              args: [5n, "Members"]
+            }),
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "revokeMandate",
+              args: [1n]
+            })
+          ]
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE
+      })
+    });
 
     //////////////////////////////////////////////////////////////////
     //                      EXECUTIVE LAWS                          //
@@ -96,6 +154,24 @@ export const PowerLabsChild: Organization = {
         timelock: minutesToBlocks(3, chainId)
       })
     });
+
+    // The Admin can update the URI.   
+    mandateCount++;
+    mandateInitData.push({
+      nameDescription: "Update URI: The admin can update the organization's URI.",
+      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("setUri(string)"),
+          ["string Uri"]
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE
+      })
+    }); 
 
     //////////////////////////////////////////////////////////////////
     //                      ELECTORAL LAWS                          //

@@ -43,17 +43,15 @@ export const NestedGovernanceParent: Organization = {
   fields: [ ],
   dependencies:  [ ],
   exampleDeployment: {
-    chainId: sepolia.id,
-    address: '0x7fE43A3B24263d1cCcC790a85A201871BA071aBe' // Placeholder
+    chainId: optimismSepolia.id,
+    address: '0x3F8a05F88e7074253a270aA03a0D90155150514C' 
   },
   allowedChains: [
     sepolia.id,
-    arbitrumSepolia.id,
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
     sepolia.id, 
-    arbitrumSepolia.id,
     optimismSepolia.id, 
     foundry.id
   ],
@@ -133,9 +131,13 @@ export const NestedGovernanceParent: Organization = {
     // Allow Child contract to mint tokens 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "Allow Child to use token faucet: The parent organisation allows the child organisation to mint tokens to its own address.",
+      nameDescription: "Allow Child to mint vote tokens: The parent organisation allows the child organisation to mint vote tokens.",
       targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
-      config: "0x" as `0x${string}`,
+      config: 
+        encodeAbiParameters(
+          parseAbiParameters('string[] Params'),
+          [ ["uint256 Quantity"] ]
+        ),
       conditions: createConditions({
         allowedRole: 1n, // Members
         votingPeriod: minutesToBlocks(5, chainId),
@@ -147,20 +149,18 @@ export const NestedGovernanceParent: Organization = {
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     ///////////////////////////////////////////////////////////////// 
-    const assignRevokeRoleConfig = encodeAbiParameters(
-      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
-      [
-        powersAddress,
-        toFunctionSelector("assignRoles(address[],uint256[])"),
-        ["address account", "uint256 roleId"]
-      ]
-    );
-
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("assignRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -169,11 +169,18 @@ export const NestedGovernanceParent: Organization = {
 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "The admin can revoke roles: For this demo, the admin can revoke previously assigned roles.",
+      nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config:assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("revokeRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
-        allowedRole: PUBLIC_ROLE,
+        allowedRole: 2n,
         needFulfilled: assignAnyRole
       })
     });  

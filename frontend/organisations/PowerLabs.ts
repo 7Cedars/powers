@@ -54,15 +54,15 @@ export const PowerLabs: Organization = {
     { name: "chainlinkSubscriptionId", placeholder: "Chainlink Functions Subscription ID", type: "number", required: true },
   ],
   dependencies:  [ ],
+  exampleDeployment: {
+    chainId: sepolia.id,
+    address: "0xfCc77b6a992FBd5Af6b41D5d572d50377588c5E5" as `0x${string}`,
+  },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
-    optimismSepolia.id, 
+    sepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-        arbitrumSepolia.id,
-    optimismSepolia.id, 
+    sepolia.id,  
     foundry.id
   ],
  
@@ -109,6 +109,24 @@ export const PowerLabs: Organization = {
         allowedRole: ADMIN_ROLE
       })
     });
+
+    // The Admin can update the URI.   
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Update URI: The admin can update the organization's URI.",
+      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("setUri(string)"),
+          ["string Uri"]
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE
+      })
+    }); 
      
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
@@ -231,7 +249,7 @@ export const PowerLabs: Organization = {
     });
     const proposeAdoptMandate = BigInt(mandateCounter);
 
-    // Mandate 26: Veto Mandate Package - Unchanged (but renumbered & dependency adjusted)
+    // Veto Mandate Package - Unchanged (but renumbered & dependency adjusted)
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Veto Adopting Mandates: Funders can veto proposals to adopt new mandates",
@@ -247,12 +265,12 @@ export const PowerLabs: Organization = {
     }); 
     const vetoAdoptMandate = BigInt(mandateCounter);
 
-    // Mandate 27: Adopt Mandate Package - Unchanged (but renumbered & dependencies adjusted)
+    // Adopt Mandate Package - Unchanged (but renumbered & dependencies adjusted)
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Adopt Mandates: Admin adopts new mandates into the organization",
       targetMandate: getMandateAddress("AdoptMandates", deployedMandates), // Ensure this name matches build
-      config: "0x00" as `0x${string}`,  
+      config: "0x" as `0x${string}`,  
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
         needFulfilled: vetoAdoptMandate, // For testing, we allow direct adoption without veto
@@ -267,7 +285,7 @@ export const PowerLabs: Organization = {
     );
 
     // Revoke Mandates flow. 
-    // Mandate 25: Propose revoking Mandates 
+    // Propose Revoking Mandates 
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Propose Revoking Mandates: Members propose revoking existing mandates",
@@ -282,7 +300,7 @@ export const PowerLabs: Organization = {
     });
     const proposeRevokeMandate = BigInt(mandateCounter);
 
-    // Mandate 26: Veto Revoking Mandates
+    // Veto Revoking Mandates
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Veto Revoking Mandates: Funders can veto proposals to revoke existing mandates",
@@ -298,7 +316,7 @@ export const PowerLabs: Organization = {
     }); 
     const vetoRevokeMandate = BigInt(mandateCounter);
 
-    // Mandate 27: Revoke Mandates 
+    // Revoke Mandates 
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Revoke Mandates: Admin revokes mandates from the organization",

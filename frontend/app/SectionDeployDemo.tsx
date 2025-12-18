@@ -455,7 +455,7 @@ export function SectionDeployDemo() {
           <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
             Deploy a Demo
           </div>
-          <div className="w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-400 max-w-3xl text-center text-pretty py-2 px-4">
+          <div className="w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-600 max-w-3xl text-center text-pretty py-2 px-4">
             Choose a template to try out the Powers protocol
           </div>
         </section>

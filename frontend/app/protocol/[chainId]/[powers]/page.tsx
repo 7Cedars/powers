@@ -114,8 +114,9 @@ export default function FlowPage() {
       codeOfConduct={powers?.metadatas?.codeOfConduct}
       disputeResolution={powers?.metadatas?.disputeResolution}
       communicationChannels={powers?.metadatas?.communicationChannels as CommunicationChannels}
-      parents={powers?.metadatas?.parents}
-      childContracts={powers?.metadatas?.children}
+      parentContracts={powers?.metadatas?.parentContracts}
+      childContracts={powers?.metadatas?.childContracts}
+      chainId={powers?.chainId}
     />
     
     {/* main body  */}

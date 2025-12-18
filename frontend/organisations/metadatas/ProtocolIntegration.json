@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiemc72ashmrybw4bwn363yrnjzoi3swdaovdkawwxy23jy2u3yvz4",
   "description": 
-    "Powers is purely a governance protocol. It can be integrated with any protocol by creating bespoke Mandates. In this example we integrate with the Safe protocol. There is a law to create a safeProxy and set it as the treasury of the organisation.",
+    "Powers is purely a governance protocol. It can be integrated with any protocol by creating bespoke Mandates. In this example we integrate with the Safe protocol. There is a mandate to create a safeProxy and set it as the treasury of the organisation.",
   "website": "",
   "codeOfConduct": "", 
   "disputeResolution": "", 
@@ -17,7 +17,7 @@
       "forum": "",
       "documentation": ""
   },
-  "parents": [ ],
-  "children": [ ],
+  "parentContracts": [ ],
+  "childContracts": [ ],
   "attributes": [ ]
 }

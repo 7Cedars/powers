@@ -1,8 +1,8 @@
 {
   "icon": "",
-  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeigzvkekbpcdptsdpc2u2sjjlyufwrsdmi7jibk4wzzcg73vd5jvr4",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
   "description": 
-    "Governed Reform is a demo of how mandates can be adopted and revoked. It has a single law that takes an address of a packaged mandate and adopts this package. When executed, the package adopts an entire governance flow. This style of governance reform is uniique to Powers, and one of its greatest strengths.",
+    "Governed Reform is a demo of how mandates can be adopted and revoked. It has a single mandate that takes an address of a packaged mandate and adopts this package. When executed, the package adopts an entire governance flow. This style of governance reform is uniique to Powers, and one of its greatest strengths.",
   "website": "",
   "codeOfConduct": "", 
   "disputeResolution": "", 
@@ -17,7 +17,7 @@
       "forum": "",
       "documentation": ""
   },
-  "parents": [ ],
-  "children": [ ],
+  "parentContracts": [ ],
+  "childContracts": [ ],
   "attributes": [ ]
 }

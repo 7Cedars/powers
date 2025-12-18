@@ -17,7 +17,7 @@
       "forum": "",
       "documentation": ""
   },
-  "parents": [ ],
-  "children": [ ],
+  "parentContracts": [ ],
+  "childContracts": [ ],
   "attributes": [ ]
 }

@@ -62,8 +62,9 @@ type MetadataLinksProps = {
   codeOfConduct?: string;
   disputeResolution?: string;
   communicationChannels?: CommunicationChannels;
-  parents?: familyMember[];
+  parentContracts?: familyMember[];
   childContracts?: familyMember[];
+  chainId?: bigint | number;
 }
 
 export function MetadataLinks({ 
@@ -71,8 +72,9 @@ export function MetadataLinks({
   codeOfConduct, 
   disputeResolution, 
   communicationChannels,
-  parents,
-  childContracts
+  parentContracts,
+  childContracts,
+  chainId
 }: MetadataLinksProps) {
   // Extract the first communication communicationChannels object (if it exists)
 
@@ -101,8 +103,8 @@ export function MetadataLinks({
     { url: communicationChannels.documentation, icon: BookOpenIcon, label: 'Documentation' }
   ].filter(link => isValidLink(link.url)) : []
 
-  // Filter valid parents and children
-  const validParents = parents?.filter(parent => parent.address && parent.title) || []
+  // Filter valid parentContracts and children
+  const validParents = parentContracts?.filter(parent => parent.address && parent.title) || []
   const validChildren = childContracts?.filter(child => child.address && child.title) || []
 
   // Don't render anything if there are no valid links
@@ -166,7 +168,7 @@ export function MetadataLinks({
           {validParents.map((parent, index) => (
             <a
               key={index}
-              href={`/protocol/${parent.address}`}
+              href={`/protocol/${chainId ? Number(chainId) : ''}/${parent.address}`}
               className="flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-slate-300 hover:border-slate-400 hover:shadow-sm transition-all duration-200 text-slate-700 hover:text-slate-900"
               title={`Parent: ${parent.title}`}
             >
@@ -183,7 +185,7 @@ export function MetadataLinks({
           {validChildren.map((child, index) => (
             <a
               key={index}
-              href={`/protocol/${child.address}`}
+              href={`/protocol/${chainId ? Number(chainId) : ''}/${child.address}`}
               className="flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-slate-300 hover:border-slate-400 hover:shadow-sm transition-all duration-200 text-slate-700 hover:text-slate-900"
               title={`Child: ${child.title}`}
             >

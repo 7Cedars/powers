@@ -2,7 +2,7 @@
   "icon": "",
   "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideomrrzq4goct7we74barpvwte7qvbaljrj3azlwiyzzjku6wsou",
   "description": 
-    "This is an alpha implementation of the Power Labs organisation. It manages protocol development funding via Safe Smart Accounts and governance based on GitHub contributions verified by commit signatures. Also it is possible to buy Funder roles through ETH donations.",
+    "This is an alpha implementation of the Power Labs organisation. It manages protocol development funding via Safe Smart Accounts and governance based on GitHub contributions verified by commit signatures. It is also possible to buy Funder roles through ETH donations. It is a nested governance organisation, meaning it can create sub-organisations that act independently within set boundaries. Together it is an example of a relatively complex organisations structure that can be used to manage open source projects.",
   "website": "https://powers-docs.vercel.app/organisations/powerLabs",
   "codeOfConduct": "https://github.com/7Cedars/powers/blob/main/CODE_OF_CONDUCT.md", 
   "disputeResolution": "", 
@@ -17,6 +17,21 @@
       "forum": "",
       "documentation": "https://powers-docs.vercel.app/"
   },
+  "parentContracts": [ ],
+  "childContracts": [ 
+    {
+      "title": "Power Docs",
+      "address": "0x7299b5D6347A8De83e177bAE7B06fad57E7cB8cd"
+    },
+    {
+      "title": "Power Frontend",
+      "address": "0xe88c7d4a71961e264A02329cD92De93bcC44A815"
+    },
+    {
+      "title": "Power Protocol",
+      "address": "0xeD23C13cb5A262ef39357A594E5493C6178e5544"
+    }
+  ],
   "attributes": [
     {
       "trait_type": "optional trait 1",

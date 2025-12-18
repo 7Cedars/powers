@@ -2,9 +2,12 @@
 
 import { HeartIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image'
-import { DiscordIcon, TelegramIcon, GithubIcon } from '@/components/MetadataLinks'; 
+import { DiscordIcon, TelegramIcon, GithubIcon } from '@/components/MetadataLinks';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Footer() {
+  const router = useRouter();
+  const pathname = usePathname();
 
 
   return (
@@ -17,22 +20,56 @@ export function Footer() {
                         DApp
                     </div>
                     <a
-                        href={`/`} target="_blank" rel="noopener noreferrer"
+                        href={`/`} rel="noopener noreferrer"
                         className="text-slate-500"
                     >
                         Home
+                    </a>                     
+                    <a
+                        href={`/#examples`} rel="noopener noreferrer"
+                        className="text-slate-500"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            if (pathname === '/') {
+                                // Already on home page, just scroll
+                                const examplesSection = document.getElementById('examples');
+                                if (examplesSection) {
+                                    examplesSection.scrollIntoView({ behavior: 'smooth' });
+                                }
+                                window.history.pushState(null, '', '/#examples');
+                            } else {
+                                // Navigate to home page with hash
+                                router.push('/#examples');
+                            }
+                        }}
+                    >
+                        Examples
                     </a>
                      <a
                         href={`/#deploy`} rel="noopener noreferrer"
                         className="text-slate-500"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            if (pathname === '/') {
+                                // Already on home page, just scroll
+                                const deploySection = document.getElementById('deploy');
+                                if (deploySection) {
+                                    deploySection.scrollIntoView({ behavior: 'smooth' });
+                                }
+                                window.history.pushState(null, '', '/#deploy');
+                            } else {
+                                // Navigate to home page with hash
+                                router.push('/#deploy');
+                            }
+                        }}
                     >
                         Deploy
                     </a>
                     <a
-                        href={`/protocol`} target="_blank" rel="noopener noreferrer"
+                        href={`/protocol`} rel="noopener noreferrer"
                         className="text-slate-500"
                     >
-                        Protocols
+                        Saved Protocols
                     </a>
 
                 </div>

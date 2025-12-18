@@ -98,8 +98,8 @@ export type Metadata = {
   codeOfConduct?: string;
   disputeResolution?: string;
   communicationChannels?: CommunicationChannels;
-  parents?: familyMember[];
-  children?: familyMember[];
+  parentContracts?: familyMember[];
+  childContracts?: familyMember[];
   attributes?: Attribute[];
 }
 

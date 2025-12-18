@@ -55,16 +55,14 @@ export const OpenElections: Organization = {
   ],
   exampleDeployment: {
     chainId: optimismSepolia.id,
-    address: `0x0000000000000000000000000000000000000000`
+    address: `0x94AB995f74f6356718BAdE28330ea09f08fa3109`
   },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
+    sepolia.id, 
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-    arbitrumSepolia.id,
+    sepolia.id,  
     optimismSepolia.id, 
     foundry.id
   ],
@@ -136,90 +134,59 @@ export const OpenElections: Organization = {
       conditions: createConditions({
         allowedRole: 1n, // Voters: only accounts with Voter role can nominate for delegate
       })
+    }); 
+
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
+      targetMandate: getMandateAddress("OpenElectionStart", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters("address electionContract, uint256 blockTime, uint256 voterRoleId"),
+        [ 
+          getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"),
+          minutesToBlocks(10, chainId), // Election block time (10 minutes)
+          1n  // Voter role id 
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: 1n, // Voters: only accounts with Voter role can start election
+      })
+    }); 
+    const startElectionMandate = BigInt(mandateCounter);
+
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
+      targetMandate: getMandateAddress("OpenElectionEnd", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters("address electionContract, uint256 RoleId, uint256 MaxRoleHolders"),
+        [
+          getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"),
+          2n, // RoleId for Delegates
+          5n  // Max role holders
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: 1n, // Voters: only accounts with Voter role can end election
+        needFulfilled: startElectionMandate
+      })
     });
-    const nominateForDelegates = BigInt(mandateCounter);
-
-    // mandateCounter++;
-    // mandateInitData.push({
-    //   nameDescription: "Open an election: Open an election in the OpenElection contract and adopt a bespoke vote law.",
-    //   targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
-    //   config: encodeAbiParameters(
-    //     [
-    //       { name: 'targets', type: 'address[]' },
-    //       { name: 'values', type: 'uint256[]' },
-    //       { name: 'calldatas', type: 'bytes[]' }
-    //     ],
-    //     [
-    //       [ 
-    //         getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"), 
-    //         powersAddress 
-    //       ],
-    //       [
-    //         0n, 
-    //         0n 
-    //       ],
-    //       [
-    //         encodeFunctionData({
-    //           abi: openElection.abi as Abi,
-    //           functionName: "openElection",
-    //           args: [
-    //             minutesToBlocks(5, chainId), // voting period
-    //           ]
-    //         }),
-    //         encodeFunctionData({
-    //           abi: powersAbi,
-    //           functionName: "adoptMandate",
-    //           args: [
-    //             {
-    //               nameDescription: "Vote in Open Election: Allows voters to vote in open elections.",
-    //               targetMandate: getMandateAddress("OpenElectionVote", deployedMandates),
-    //               config: encodeAbiParameters(
-    //                 parseAbiParameters("address openElectionContract, uint256 maxVotes"),
-    //                 [ 
-    //                   getContractAddressFromReceipt(dependencyReceipts["OpenElection"], "OpenElection"),
-    //                   3n // max votes
-    //                 ]
-    //               ),
-    //               conditions: {
-    //                 allowedRole: 1n, // Voters
-    //                 votingPeriod: 0,
-    //                 timelock: 0,
-    //                 throttleExecution: 0,
-    //                 needFulfilled: 0,
-    //                 needNotFulfilled: 0,
-    //                 quorum: 0,
-    //                 succeedAt: 0
-    //               }
-    //             }
-    //           ]
-    //         })
-    //       ]
-    //     ]
-    //   ),
-    //   conditions: createConditions({
-    //     allowedRole: 1n, // Voters: only accounts with Voter role can nominate for delegate
-    //   })
-    // });
-
-    // need to still include a law to Tally the election and assign the roles based on results. 
 
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     ///////////////////////////////////////////////////////////////// 
-    const assignRevokeRoleConfig = encodeAbiParameters(
-      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
-      [
-        powersAddress,
-        toFunctionSelector("assignRoles(address[],uint256[])"),
-        ["address account", "uint256 roleId"]
-      ]
-    );
-
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("assignRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -230,7 +197,14 @@ export const OpenElections: Organization = {
     mandateInitData.push({
       nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config:assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("revokeRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: 2n,
         needFulfilled: assignAnyRole

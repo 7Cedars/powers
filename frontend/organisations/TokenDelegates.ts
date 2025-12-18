@@ -40,7 +40,7 @@ export const TokenDelegates: Organization = {
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeidwk32aq52ap5fyrrojmtuhbehvwdv5emyld4nspznaepcxcqnbv4",
     description: "One-token-one-vote is the most popular approach to DAO governance today, despite its many shortcomings. This Token Delegate example demonstrates how the Powers protocol can be used to give power to accounts along the amount of  delegated tokens they hold. There is one key difference with traditional approaches: after delegates have been selected, they all hold the same amount of power (similar to democratic elections) while in classic DAO governance inequality in votes is reflected in delegates power.",
     disabled: false,
-    onlyLocalhost: true
+    onlyLocalhost: false
   },
   fields: [ ],
   dependencies:  [
@@ -57,13 +57,11 @@ export const TokenDelegates: Organization = {
     address: `0x646Ec769f87D53B3251Ec00ae4f1C1AFF9E01137`
   },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
+    sepolia.id, 
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-    arbitrumSepolia.id,
+    sepolia.id,  
     optimismSepolia.id, 
     foundry.id
   ],
@@ -139,7 +137,7 @@ export const TokenDelegates: Organization = {
 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "Elect Delegates: Run the election for delegates.",
+      nameDescription: `Elect Delegates: Run the election for delegates. In this demo, the top 3 nominees by token delegation of token ${getConstants(chainId).VOTES_TOKEN} become Delegates.`,
       targetMandate: getMandateAddress("DelegateTokenSelect", deployedMandates),
       config: encodeAbiParameters(
         parseAbiParameters("address VotesToken, address Nominees, uint256 RoleId, uint256 MaxRoleHolders"),
@@ -147,7 +145,7 @@ export const TokenDelegates: Organization = {
           getConstants(chainId).VOTES_TOKEN as `0x${string}`,
           getContractAddressFromReceipt(dependencyReceipts["Nominees"], "Nominees"), 
           2n,
-          10n
+          3n
         ]
       ),
       conditions: createConditions({

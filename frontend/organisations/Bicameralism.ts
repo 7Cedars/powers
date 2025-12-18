@@ -40,7 +40,7 @@ export const Bicameralism: Organization = {
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihlduuz4ql3mcwyqifixrctuou6v45pspp5igjzmznpxwto6qdtdu",
     description: "In Bicameralism, the governance system is divided into two separate chambers or houses, each with its own distinct powers and responsibilities. In this example Delegates can initiate an action, but it can only be executed by Funders. A version of Bicameralism is implemented at the Optimism Collective.",
     disabled: false,
-    onlyLocalhost: true
+    onlyLocalhost: false
   },
   fields: [ ],
   dependencies:  [ ],
@@ -49,13 +49,11 @@ export const Bicameralism: Organization = {
     address: `0xcfe42233166d33ca1eea3e5c14e9594da8d4da45`
   },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
+    sepolia.id, 
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-    arbitrumSepolia.id,
+    sepolia.id,  
     optimismSepolia.id, 
     foundry.id
   ],
@@ -154,20 +152,18 @@ export const Bicameralism: Organization = {
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     ///////////////////////////////////////////////////////////////// 
-    const assignRevokeRoleConfig = encodeAbiParameters(
-      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
-      [
-        powersAddress,
-        toFunctionSelector("assignRoles(address[],uint256[])"),
-        ["address account", "uint256 roleId"]
-      ]
-    );
-
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("assignRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -176,11 +172,18 @@ export const Bicameralism: Organization = {
 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "The admin can revoke roles: For this demo, the admin can revoke previously assigned roles.",
+      nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config:assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("revokeRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
-        allowedRole: PUBLIC_ROLE,
+        allowedRole: 2n,
         needFulfilled: assignAnyRole
       })
     });  

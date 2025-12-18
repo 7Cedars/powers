@@ -1,10 +1,10 @@
 import { Organization, MandateInitData } from "./types";
 import { powersAbi } from "@/context/abi";  
-import { encodeAbiParameters, encodeFunctionData, parseAbiParameters, toFunctionSelector } from "viem";
+import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, toFunctionSelector } from "viem";
 import { getMandateAddress, ADMIN_ROLE, PUBLIC_ROLE, createConditions, minutesToBlocks } from "./helpers";
 import { sepolia, arbitrumSepolia, optimismSepolia, foundry } from "@wagmi/core/chains";
 import { getConstants } from "@/context/constants";
-import Erc20Taxed from "@/context/builds/Erc20Taxed.json";
+import simpleErc20Votes from "@/context/builds/SimpleErc20Votes.json";
 
 /**
  * Helper function to extract contract address from receipt
@@ -49,12 +49,10 @@ export const NestedGovernanceChild: Organization = {
   dependencies:  [ ],
   allowedChains: [
     sepolia.id,
-    arbitrumSepolia.id,
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
     sepolia.id, 
-    arbitrumSepolia.id,
     optimismSepolia.id, 
     foundry.id
   ],
@@ -83,13 +81,19 @@ export const NestedGovernanceChild: Organization = {
           { name: 'calldatas', type: 'bytes[]' }
         ],
         [
-          [ powersAddress, powersAddress ],
-          [0n, 0n],
+          [ powersAddress, powersAddress, powersAddress ],
+          [0n, 0n, 0n],
           [
             encodeFunctionData({
               abi: powersAbi,
               functionName: "labelRole",
               args: [1n, "Members"]
+            }),
+            // setting treasury to self for demo purposes
+            encodeFunctionData({
+              abi: powersAbi,
+              functionName: "setTreasury",
+              args: [powersAddress]
             }),
             encodeFunctionData({
               abi: powersAbi,
@@ -133,9 +137,9 @@ export const NestedGovernanceChild: Organization = {
       config: encodeAbiParameters(
         parseAbiParameters('address powers, uint16 mandateId, string[] Params'),
         [
-          powersAddress,
+          formData["PowersParent"],
           formData["MintMandateId"] as number,
-          [""]
+          ["uint256 Quantity"]
         ]
       ),
       conditions: createConditions({
@@ -144,36 +148,26 @@ export const NestedGovernanceChild: Organization = {
     });
     const checkParent = BigInt(mandateCounter);
 
-    // mandateCounter++;
-    // mandateInitData.push({
-    //   nameDescription: "Mint Tokens: The parent organisation allows the child organisation to call a token faucet to its own address.",
-    //   targetMandate: getMandateAddress("PresetSingleAction", deployedMandates),
-    //   config: encodeAbiParameters(
-    //     [
-    //       { name: 'targets', type: 'address[]' },
-    //       { name: 'values', type: 'uint256[]' },
-    //       { name: 'calldatas', type: 'bytes[]' }
-    //     ],
-    //     [
-    //       [ getConstants(chainId).TAX_TOKEN as `0x${string}` ],
-    //       [ 0n ],
-    //       [
-    //         encodeFunctionData({
-    //           abi: Erc20Taxed.abi,
-    //           functionName: "faucet",
-    //           args: [] //faucet does not take any arguments
-    //         })
-    //       ]
-    //     ]
-    //   ),
-    //   conditions: createConditions({
-    //     allowedRole: 1n, // Members
-    //     needFulfilled: checkParent, 
-    //     votingPeriod: minutesToBlocks(5, chainId),
-    //     succeedAt: 51n,
-    //     quorum: 33n 
-    //   })
-    // }); 
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: `Mint Tokens: Call the mintVotes function at token ${getConstants(chainId).VOTES_TOKEN}.`,
+      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters('address token, bytes4 FunctionSelector, string[] Params'),
+        [
+          getConstants(chainId).VOTES_TOKEN as `0x${string}`,
+          toFunctionSelector("mintVotes(uint256)"),
+          ["uint256 Quantity"]
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: 1n, // Members
+        needFulfilled: checkParent, 
+        votingPeriod: minutesToBlocks(5, chainId),
+        succeedAt: 51n,
+        quorum: 33n 
+      })
+    }); 
     
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //

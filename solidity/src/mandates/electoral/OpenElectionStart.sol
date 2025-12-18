@@ -22,9 +22,7 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract OpenElectionStart is Mandate {
     struct Data {
-        address electionContract;
-        uint256 roleId;
-        uint256 maxRoleHolders;
+        address electionContract; 
         address voteContract;
         uint256 blockTime;
         uint256 voterRoleId;
@@ -35,7 +33,7 @@ contract OpenElectionStart is Mandate {
 
     /// @notice Constructor for OpenElectionStart mandate
     constructor() {
-        bytes memory configParams = abi.encode("address electionContract", "uint256 RoleId", "uint256 MaxRoleHolders", "uint256 blockTime", "uint256 voterRoleId");
+        bytes memory configParams = abi.encode("address electionContract", "uint256 blockTime", "uint256 voterRoleId");
         emit Mandate__Deployed(configParams);
     }
 
@@ -43,8 +41,8 @@ contract OpenElectionStart is Mandate {
         public
         override
     {
-        (address electionContract_, uint256 roleId_, uint256 maxRoleHolders_, uint256 blockTime_, uint256 voterRoleId_) =
-            abi.decode(config, (address, uint256, uint256, uint256, uint256));
+        (address electionContract_, uint256 blockTime_, uint256 voterRoleId_) =
+            abi.decode(config, (address, uint256, uint256));
 
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
         
@@ -54,9 +52,7 @@ contract OpenElectionStart is Mandate {
         // Note: The vote contract would need to be initialized separately by Powers
         
         data[mandateHash] = Data({
-            electionContract: electionContract_,
-            roleId: roleId_,
-            maxRoleHolders: maxRoleHolders_,
+            electionContract: electionContract_, 
             voteContract: address(voteContract),
             blockTime: blockTime_,
             voterRoleId: voterRoleId_,

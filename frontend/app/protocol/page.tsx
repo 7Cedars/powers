@@ -29,27 +29,27 @@ export default function ProtocolPage() {
 
         // Check if Powers 101 already exists
         const powers101Exists = protocols.some(p => p.name === 'Powers 101')
-        const powerLabsExists = protocols.some(p => p.name === 'Power Labs')
-        const powerLabsChildExists = protocols.some(p => p.name === 'Child Powers')
+        // const powerLabsExists = protocols.some(p => p.name === 'Power Labs')
+        // const powerLabsChildExists = protocols.some(p => p.name === 'Child Powers')
         
         if (!powers101Exists) {
           // Add Powers 101 to the list
           protocols.unshift(defaultPowers101) 
         }
-        if (!powerLabsExists) {
-          // Add Power Base to the list
-          protocols.unshift(defaultPowerLabs) 
-          localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ))
-        }
-        if (!powerLabsChildExists) {
-          // Add Power Base to the list
-          protocols.unshift(defaultPowerLabsChild) 
-          localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ))
-        }
+        // if (!powerLabsExists) {
+        //   // Add Power Base to the list
+        //   protocols.unshift(defaultPowerLabs) 
+        //   localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
+        //     typeof value === "bigint" ? value.toString() : value,
+        //   ))
+        // }
+        // if (!powerLabsChildExists) {
+        //   // Add Power Base to the list
+        //   protocols.unshift(defaultPowerLabsChild) 
+        //   localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
+        //     typeof value === "bigint" ? value.toString() : value,
+        //   ))
+        // }
         setSavedProtocols(protocols)
       } catch (error) {
         console.error('Error loading saved protocols:', error)

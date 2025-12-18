@@ -10,9 +10,8 @@ export function SectionExamples() {
   const router = useRouter();
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
 
-  // Get all organizations that have example deployments
-  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-  const allOrganizations = getEnabledOrganizations(isLocalhost);
+  // Get all organizations that have example deployments  
+  const allOrganizations = getEnabledOrganizations(true); // Pass true to include localhost-only orgs
   
   const exampleOrganizations = allOrganizations.filter(org => org.exampleDeployment);
 
@@ -39,7 +38,7 @@ export function SectionExamples() {
   };
 
   return (
-    <section className="min-h-screen flex flex-col justify-start items-center px-4 snap-start snap-always bg-gradient-to-b from-slate-100 to-slate-100 sm:pt-16 pt-4">
+    <section id="examples" className="min-h-screen flex flex-col justify-start items-center px-4 snap-start snap-always bg-gradient-to-b from-blue-300 to-slate-100 sm:pt-16 pt-4">
       <div className="w-full flex flex-col gap-4 justify-between items-center min-h-[calc(100vh-4rem)]">
         <div className="w-full h-full flex flex-col justify-start items-center">
           {/* Title and subtitle */}
@@ -47,7 +46,7 @@ export function SectionExamples() {
             <div className="w-full flex flex-row justify-center items-center md:text-4xl text-2xl text-slate-600 text-center max-w-4xl text-pretty font-bold px-4">
               Examples
             </div>
-            <div className="w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-400 max-w-3xl text-center text-pretty py-2 px-4 pb-12">
+            <div className="w-full flex flex-row justify-center items-center md:text-2xl text-xl text-slate-600 max-w-3xl text-center text-pretty py-2 px-4 pb-12">
               Explore live implementations of the Powers protocol
             </div>
           </section>

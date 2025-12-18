@@ -49,13 +49,11 @@ export const OptimisticExecution: Organization = {
     address: '0x40277958Bb14879d2B7457Dcb9142036dd27c539' // Placeholder
   },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
+    sepolia.id, 
     optimismSepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-    arbitrumSepolia.id,
+    sepolia.id,  
     optimismSepolia.id, 
     foundry.id
   ],
@@ -154,20 +152,18 @@ export const OptimisticExecution: Organization = {
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     ///////////////////////////////////////////////////////////////// 
-    const assignRevokeRoleConfig = encodeAbiParameters(
-      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
-      [
-        powersAddress,
-        toFunctionSelector("assignRoles(address[],uint256[])"),
-        ["address account", "uint256 roleId"]
-      ]
-    );
-
     mandateCounter++;
     mandateInitData.push({
       nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config: assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("assignRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
@@ -176,11 +172,18 @@ export const OptimisticExecution: Organization = {
 
     mandateCounter++;
     mandateInitData.push({
-      nameDescription: "The admin can revoke roles: For this demo, the admin can revoke previously assigned roles.",
+      nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
       targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
-      config:assignRevokeRoleConfig,
+      config: encodeAbiParameters(
+      parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("revokeRole(uint256,address)"),
+          ["uint256 roleId","address account"]
+        ]
+      ),
       conditions: createConditions({
-        allowedRole: PUBLIC_ROLE,
+        allowedRole: 2n,
         needFulfilled: assignAnyRole
       })
     });  

@@ -8,6 +8,9 @@ import { NestedGovernanceParent } from "./NestedGovernanceParent";
 import { OpenElections } from "./OpenElections";
 import { OptimisticExecution } from "./OptimisticExecution";
 import { TokenDelegates } from "./TokenDelegates";
+import { VoteOfNoConfidence } from "./VoteOfNoConfidence";
+import { GovernedReform } from "./GovernedReform";
+import { ProtocolIntegrations } from "./ProtocolIntegration";
 
 /**
  * Registry of all available organizations
@@ -15,14 +18,17 @@ import { TokenDelegates } from "./TokenDelegates";
  */
 export const organizations: Organization[] = [
   Powers101,
-  PowerLabs, 
-  PowerLabsChild,
   Bicameralism,
-  NestedGovernanceChild,
-  NestedGovernanceParent,
-  OpenElections,
   OptimisticExecution,
-  TokenDelegates
+  OpenElections,
+  TokenDelegates,
+  VoteOfNoConfidence,
+  GovernedReform, 
+  ProtocolIntegrations,
+  NestedGovernanceParent,
+  NestedGovernanceChild,
+  PowerLabs, 
+  PowerLabsChild, 
   // Add more organizations here as they are implemented
 ];
 
