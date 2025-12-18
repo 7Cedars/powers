@@ -72,9 +72,19 @@ export function SectionDeployDemo() {
   const selectedChainId = chains.find(c => c.name === selectedChain)?.id;
 
   const getPowered = useCallback(async (chainId: number) => {
-    const { default: data } = await import(`../../solidity/powered/${chainId}.json`, { assert: { type: "json" } });
-    setBytecodePowers(data.powers as `0x${string}`);
-    setDeployedMandates(data.mandates as Record<string, `0x${string}`>);
+    try {
+      const response = await fetch(`/powered/${chainId}.json`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch powered data for chain ${chainId}`);
+      }
+      const data = await response.json();
+      setBytecodePowers(data.powers as `0x${string}`);
+      setDeployedMandates(data.mandates as Record<string, `0x${string}`>);
+    } catch (error) {
+      console.error('Error loading powered data:', error);
+      setBytecodePowers(undefined);
+      setDeployedMandates({});
+    }
   }, []);
 
   // console.log("@SectionDeployDemo: deployedMandates", deployedMandates);

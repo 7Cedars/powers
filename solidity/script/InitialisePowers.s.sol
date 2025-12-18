@@ -90,7 +90,7 @@ contract InitialisePowers is Script {
 
         string memory finalJson = vm.serializeString(obj1, "mandates", outputJson);
 
-        outputFile = string.concat("powered/", vm.toString(block.chainid), ".json");
+        outputFile = string.concat("../frontend/public/powered/", vm.toString(block.chainid), ".json");
         vm.writeJson(finalJson, outputFile);
         console2.log("Success! All deployment data saved to:", outputFile);
     }

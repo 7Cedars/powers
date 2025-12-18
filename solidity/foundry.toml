@@ -15,7 +15,7 @@ ffi = true
 
 fs_permissions = [
     { access = "read", path = "./out"},
-    { access = "read-write", path = "./powered/" }
+    { access = "read-write", path = "../frontend/public/powered/" }
 ]
 
 # Remappings for dependencies
