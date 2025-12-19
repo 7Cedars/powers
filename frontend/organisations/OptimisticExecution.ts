@@ -45,8 +45,8 @@ export const OptimisticExecution: Organization = {
   fields: [ ],
   dependencies:  [ ],
   exampleDeployment: {
-    chainId: optimismSepolia.id,
-    address: '0x40277958Bb14879d2B7457Dcb9142036dd27c539' // Placeholder
+    chainId: sepolia.id,
+    address: '0xf9Be974884e4d1f314C0EBE07E5b5431b9CD6650' // Placeholder
   },
   allowedChains: [
     sepolia.id, 

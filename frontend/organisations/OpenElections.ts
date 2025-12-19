@@ -55,7 +55,7 @@ export const OpenElections: Organization = {
   ],
   exampleDeployment: {
     chainId: optimismSepolia.id,
-    address: `0x94AB995f74f6356718BAdE28330ea09f08fa3109`
+    address: `0xc2965aee387d8d9817657b83C74A8c3ab605a9AB`
   },
   allowedChains: [
     sepolia.id, 
