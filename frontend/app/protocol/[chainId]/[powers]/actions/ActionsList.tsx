@@ -16,8 +16,8 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
   const { timestamps, fetchTimestamps } = useBlocks()
   const possibleStatus: string[] = ['0', '1', '2', '3', '4', '5']
   const [ deselectedStatus, setDeselectedStatus] = useState<string[]>([])
-  const allActions = powers?.laws && powers?.laws?.length > 0 ? powers?.laws?.flatMap(law => law.actions) : []
-  const laws = powers?.laws && powers?.laws?.length > 0 ? powers?.laws : []
+  const allActions = powers?.mandates && powers?.mandates?.length > 0 ? powers?.mandates?.flatMap(mandate => mandate.actions) : []
+  const mandates = powers?.mandates && powers?.mandates?.length > 0 ? powers?.mandates : []
 
   console.log("@ActionsList:", {allActions, powers})
 
@@ -66,7 +66,7 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                   <tr className="w-full text-xs font-light text-left text-slate-500">
                     <th className="ps-4 px-2 py-3 font-light w-40"> Date </th>
                     <th className="px-2 py-3 font-light w-32"> Action ID </th>
-                    <th className="px-2 py-3 font-light w-auto"> Law </th>
+                    <th className="px-2 py-3 font-light w-auto"> Mandate </th>
                     <th className="px-2 py-3 font-light w-24"> Description </th>
                     <th className="px-2 py-3 font-light w-24"> Status </th> 
 
@@ -107,11 +107,11 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                                 href="#"
                                 onClick={(e) => {
                                   const paramValues = callDataToActionParams(action, powers)
-                                  const law = powers?.laws?.find(l => l.index === action.lawId)
-                                  const dataTypes = law?.params?.map(p => p.dataType)
+                                  const mandate = powers?.mandates?.find(l => l.index === action.mandateId)
+                                  const dataTypes = mandate?.params?.map(p => p.dataType)
                                   setAction({...action, paramValues: paramValues, dataTypes: dataTypes, upToDate: false})
                                   e.preventDefault()
-                                  router.push(`/protocol/${chainId}/${powers?.contractAddress}/laws/${Number(action.lawId)}`)
+                                  router.push(`/protocol/${chainId}/${powers?.contractAddress}/mandates/${Number(action.mandateId)}`)
                                 }}
                                 className="text-xs whitespace-nowrap py-1 px-1 underline text-slate-600 hover:text-slate-800 cursor-pointer"
                               >
@@ -166,10 +166,10 @@ export function ActionsList({powers}: {powers: Powers | undefined}) {
                               </div>
                             </td>
 
-                            {/* Law */}
+                            {/* Mandate */}
                             <td className="px-2 py-3 w-auto">
                               <div className="truncate text-slate-500 text-xs">
-                                {shorterDescription(laws.find(law => law.index == action.lawId)?.nameDescription, "short")}
+                                {shorterDescription(mandates.find(mandate => mandate.index == action.mandateId)?.nameDescription, "short")}
                               </div>
                             </td>
 

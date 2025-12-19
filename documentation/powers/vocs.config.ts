@@ -40,21 +40,21 @@ export default defineConfig({
           link: '/for-developers/powers', 
         },
         { 
-          text: 'Law.sol', 
-          link: '/for-developers/law', 
+          text: 'Mandate.sol', 
+          link: '/for-developers/mandate', 
         },
         { 
           text: 'Deploy your Powers', 
           link: '/for-developers/deploy-your-powers', 
         },
         { 
-          text: 'Creating a law', 
-          link: '/for-developers/creating-a-law', 
+          text: 'Creating a mandate', 
+          link: '/for-developers/creating-a-mandate', 
         },
       ], 
     }, 
     { 
-      text: 'Laws', 
+      text: 'Mandates', 
       collapsed: false, 
       items: [ 
         { 
@@ -75,11 +75,11 @@ export default defineConfig({
             },
             { 
               text: 'Snapshot_CheckSnapExists', 
-              link: '/laws/Snapshot_CheckSnapExists', 
+              link: '/mandates/Snapshot_CheckSnapExists', 
             },
             { 
               text: 'Snapshot_CheckSnapPassed', 
-              link: '/laws/Snapshot_CheckSnapPassed', 
+              link: '/mandates/Snapshot_CheckSnapPassed', 
             },
             { 
               text: 'ZKPassportSelect', 
@@ -92,36 +92,36 @@ export default defineConfig({
           collapsed: true, 
           items: [ 
             { 
-              text: 'ElectionSelect', 
-              link: '/laws/ElectionSelect', 
+              text: 'OpenElectionEnd', 
+              link: '/mandates/OpenElectionEnd', 
             },
             { 
               text: 'NStrikesRevokesRoles', 
-              link: '/laws/NStrikesRevokesRoles', 
+              link: '/mandates/NStrikesRevokesRoles', 
             },
             { 
               text: 'PeerSelect', 
-              link: '/laws/PeerSelect', 
+              link: '/mandates/PeerSelect', 
             },
             { 
               text: 'RenounceRole', 
-              link: '/laws/RenounceRole', 
+              link: '/mandates/RenounceRole', 
             },
             { 
               text: 'RoleByRoles', 
-              link: '/laws/RoleByRoles', 
+              link: '/mandates/RoleByRoles', 
             },
             { 
               text: 'SelfSelect', 
-              link: '/laws/SelfSelect', 
+              link: '/mandates/SelfSelect', 
             },
             { 
               text: 'TaxSelect', 
-              link: '/laws/TaxSelect', 
+              link: '/mandates/TaxSelect', 
             },
             { 
-              text: 'VoteInOpenElection', 
-              link: '/laws/VoteInOpenElection', 
+              text: 'OpenElectionVote', 
+              link: '/mandates/OpenElectionVote', 
             },
           ], 
         },
@@ -130,32 +130,32 @@ export default defineConfig({
           collapsed: true, 
           items: [ 
             { 
-              text: 'AdoptLaws', 
-              link: '/laws/AdoptLaws', 
+              text: 'AdoptMandates', 
+              link: '/mandates/AdoptMandates', 
             },
             { 
               text: 'BespokeActionAdvanced', 
-              link: '/laws/BespokeActionAdvanced', 
+              link: '/mandates/BespokeActionAdvanced', 
             },
             { 
               text: 'BespokeActionSimple', 
-              link: '/laws/BespokeActionSimple', 
+              link: '/mandates/BespokeActionSimple', 
             },
             { 
               text: 'OpenAction', 
-              link: '/laws/OpenAction', 
+              link: '/mandates/OpenAction', 
             },
             { 
               text: 'PresetMultipleActions', 
-              link: '/laws/PresetMultipleActions', 
+              link: '/mandates/PresetMultipleActions', 
             },
             { 
               text: 'PresetSingleAction', 
-              link: '/laws/PresetSingleAction', 
+              link: '/mandates/PresetSingleAction', 
             },
             { 
               text: 'StatementOfIntent', 
-              link: '/laws/StatementOfIntent', 
+              link: '/mandates/StatementOfIntent', 
             },
           ], 
         }, 
@@ -177,11 +177,11 @@ export default defineConfig({
             },
             { 
               text: 'GovernorCreateProposal', 
-              link: '/laws/GovernorCreateProposal', 
+              link: '/mandates/GovernorCreateProposal', 
             },
             { 
               text: 'GovernorExecuteProposal', 
-              link: '/laws/GovernorExecuteProposal', 
+              link: '/mandates/GovernorExecuteProposal', 
             },
             { 
               text: 'TreasuryPoolGovernance', 

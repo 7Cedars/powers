@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
 import { Powers } from "../../src/Powers.sol";
-import { Law } from "../../src/Law.sol";
+import { Mandate } from "../../src/Mandate.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { TestSetupPowerLabsSafes } from "../../test/TestSetup.t.sol";
 
@@ -14,8 +14,8 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
     // They will not execute if the Allowance module address is empty on the chain.
     // This also means that any test actions persist across tests, so be careful when re-running tests!
     address safeProxy;
-    address law1;
-    address law2;
+    address mandate1;
+    address mandate2;
     bool active1;
     bool active2;
 
@@ -31,12 +31,12 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         assertTrue(address(daoMock) != address(0), "Powers contract not deployed");
         assertTrue(config.SafeAllowanceModule != address(0), "Allowance module address not set");
 
-        (law1,, active1) = daoMock.getAdoptedLaw(1);
-        (law2,, active2) = daoMock.getAdoptedLaw(2);
-        assertTrue(active1, "Law 1 not active");
-        assertTrue(active2, "Law 2 not active");
-        assertEq(law1, findLawAddress("SafeSetup"), "Law 1 target mismatch");
-        assertEq(law2, findLawAddress("PowerLabsConfig"), "Law 2 target mismatch");
+        (mandate1,, active1) = daoMock.getAdoptedMandate(1);
+        (mandate2,, active2) = daoMock.getAdoptedMandate(2);
+        assertTrue(active1, "Mandate 1 not active");
+        assertTrue(active2, "Mandate 2 not active");
+        assertEq(mandate1, findMandateAddress("SafeSetup"), "Mandate 1 target mismatch");
+        assertEq(mandate2, findMandateAddress("PowerLabsConfig"), "Mandate 2 target mismatch");
     }
 
     function testPowerLabs_InitialiseSafe() public {
@@ -55,7 +55,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.prank(alice);
         daoMock.request(2, abi.encode(safeL2Treasury, config.SafeAllowanceModule), nonce, "Setup Safe");
 
-        assertTrue(daoMock.lawCounter() > 1, "No new actions recorded");
+        assertTrue(daoMock.mandateCounter() > 1, "No new actions recorded");
         assertTrue(
             SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.SafeAllowanceModule), "Allowance module not enabled"
         );
@@ -89,14 +89,14 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         console2.log("Doc Contributors:", amountDocContribs);
 
         // Step 1: Member proposes to add a new delegate.
-        // Law counter starts at 1, SafeSetup is law 1, PowerLabsConfig is law 2. It adds 9(?) laws.
-        lawId = 3; // Law adopted by PowerLabsConfig
-        (address lawTarget,,) = daoMock.getAdoptedLaw(lawId);
-        assertEq(lawTarget, findLawAddress("StatementOfIntent"), "Proposal law should be StatementOfIntent");
+        // Mandate counter starts at 1, SafeSetup is mandate 1, PowerLabsConfig is mandate 2. It adds 9(?) mandates.
+        mandateId = 3; // Mandate adopted by PowerLabsConfig
+        (address mandateTarget,,) = daoMock.getAdoptedMandate(mandateId);
+        assertEq(mandateTarget, findMandateAddress("StatementOfIntent"), "Proposal mandate should be StatementOfIntent");
 
         console2.log("MEMBERS PROPOSE TO ADD DELEGATE");
         vm.prank(helen); // Member
-        (actionId) = daoMock.propose(lawId, abi.encode(newDelegate), nonce, "Add new delegate");
+        (actionId) = daoMock.propose(mandateId, abi.encode(newDelegate), nonce, "Add new delegate");
 
         // Step 2: Members vote to pass the proposal.
         vm.prank(helen);
@@ -109,13 +109,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
 
         // Execute the proposal
         vm.prank(helen);
-        daoMock.request(lawId, abi.encode(newDelegate), nonce, "Add new delegate");
+        daoMock.request(mandateId, abi.encode(newDelegate), nonce, "Add new delegate");
 
         // Step 3: Doc Contributors OK the proposal.
         console2.log("DOC CONTRIBUTORS OK TO ADD DELEGATE");
-        lawId = 5;
+        mandateId = 5;
         vm.prank(charlotte); // Doc Contributor
-        (actionId) = daoMock.propose(lawId, abi.encode(newDelegate), nonce, "Doc OK");
+        (actionId) = daoMock.propose(mandateId, abi.encode(newDelegate), nonce, "Doc OK");
 
         vm.prank(charlotte);
         daoMock.castVote(actionId, FOR);
@@ -124,13 +124,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.roll(block.number + 1201);
 
         vm.prank(charlotte);
-        daoMock.request(lawId, abi.encode(newDelegate), nonce, "Doc OK");
+        daoMock.request(mandateId, abi.encode(newDelegate), nonce, "Doc OK");
 
         // Step 4: Frontend Contributors OK the proposal.
         console2.log("FRONTEND CONTRIBUTORS OK TO ADD DELEGATE");
-        lawId = 6;
+        mandateId = 6;
         vm.prank(frank); // Frontend Contributor
-        (actionId) = daoMock.propose(lawId, abi.encode(newDelegate), nonce, "Frontend OK");
+        (actionId) = daoMock.propose(mandateId, abi.encode(newDelegate), nonce, "Frontend OK");
 
         vm.prank(frank);
         daoMock.castVote(actionId, FOR);
@@ -140,13 +140,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.roll(block.number + 1201);
 
         vm.prank(frank);
-        daoMock.request(lawId, abi.encode(newDelegate), nonce, "Frontend OK");
+        daoMock.request(mandateId, abi.encode(newDelegate), nonce, "Frontend OK");
 
         // Step 5: Protocol Contributors execute the proposal.
         console2.log("PROTOCOL CONTRIBUTORS EXECUTE TO ADD DELEGATE");
-        lawId = 7;
+        mandateId = 7;
         vm.prank(gary); // Protocol Contributor
-        (actionId) = daoMock.propose(lawId, abi.encode(newDelegate), nonce, "Execute add delegate");
+        (actionId) = daoMock.propose(mandateId, abi.encode(newDelegate), nonce, "Execute add delegate");
 
         vm.prank(gary);
         daoMock.castVote(actionId, FOR);
@@ -157,7 +157,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
 
         vm.deal(gary, 100 ether); // Fund the daoMock to pay for gas costs
         vm.prank(gary);
-        daoMock.request(lawId, abi.encode(newDelegate), nonce, "Execute add delegate");
+        daoMock.request(mandateId, abi.encode(newDelegate), nonce, "Execute add delegate");
 
         // Verification
         // We need to interact with the AllowanceModule to check if the delegate was added.
@@ -193,11 +193,11 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         safeL2Treasury = daoMock.getTreasury();
 
         // Fund the treasury with tokens
-        address token = findLawAddress("Erc20Taxed");
+        address token = findMandateAddress("Erc20Taxed");
         Erc20Taxed(token).faucet();
 
         // Step 1: Member proposes to add an allowance.
-        lawId = 8;
+        mandateId = 8;
         proposalCalldata = abi.encode(
             alice, // has been set as delegate in previous test
             token,
@@ -208,7 +208,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
 
         console2.log("MEMBERS PROPOSE TO ADD ALLOWANCE");
         vm.prank(helen); // Member
-        (actionId) = daoMock.propose(lawId, proposalCalldata, nonce, "Add new allowance");
+        (actionId) = daoMock.propose(mandateId, proposalCalldata, nonce, "Add new allowance");
 
         // Step 2: Members vote to pass the proposal.
         vm.prank(helen);
@@ -219,13 +219,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.roll(block.number + 1201);
 
         vm.prank(helen);
-        daoMock.request(lawId, proposalCalldata, nonce, "Add new allowance");
+        daoMock.request(mandateId, proposalCalldata, nonce, "Add new allowance");
 
         // Step 3: Doc Contributors OK the proposal.
         console2.log("DOC CONTRIBUTORS OK TO ADD ALLOWANCE");
-        lawId = 10;
+        mandateId = 10;
         vm.prank(charlotte); // Doc Contributor
-        (actionId) = daoMock.propose(lawId, proposalCalldata, nonce, "Doc OK");
+        (actionId) = daoMock.propose(mandateId, proposalCalldata, nonce, "Doc OK");
 
         vm.prank(charlotte);
         daoMock.castVote(actionId, FOR);
@@ -234,13 +234,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.roll(block.number + 1201);
 
         vm.prank(charlotte);
-        daoMock.request(lawId, proposalCalldata, nonce, "Doc OK");
+        daoMock.request(mandateId, proposalCalldata, nonce, "Doc OK");
 
         // Step 4: Frontend Contributors OK the proposal.
         console2.log("FRONTEND CONTRIBUTORS OK TO ADD ALLOWANCE");
-        lawId = 11;
+        mandateId = 11;
         vm.prank(frank); // Frontend Contributor
-        (actionId) = daoMock.propose(lawId, proposalCalldata, nonce, "Frontend OK");
+        (actionId) = daoMock.propose(mandateId, proposalCalldata, nonce, "Frontend OK");
 
         vm.prank(frank);
         daoMock.castVote(actionId, FOR);
@@ -250,13 +250,13 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
         vm.roll(block.number + 1201);
 
         vm.prank(frank);
-        daoMock.request(lawId, proposalCalldata, nonce, "Frontend OK");
+        daoMock.request(mandateId, proposalCalldata, nonce, "Frontend OK");
 
         // Step 5: Protocol Contributors execute the proposal.
         console2.log("PROTOCOL CONTRIBUTORS EXECUTE TO ADD ALLOWANCE");
-        lawId = 12;
+        mandateId = 12;
         vm.prank(gary); // Protocol Contributor
-        (actionId) = daoMock.propose(lawId, proposalCalldata, nonce, "Execute add allowance");
+        (actionId) = daoMock.propose(mandateId, proposalCalldata, nonce, "Execute add allowance");
 
         vm.prank(gary);
         daoMock.castVote(actionId, FOR);
@@ -267,7 +267,7 @@ contract PowerLabs_IntegrationTest is TestSetupPowerLabsSafes {
 
         vm.deal(gary, 100 ether); // Fund the daoMock to pay for gas costs
         vm.prank(gary);
-        daoMock.request(lawId, proposalCalldata, nonce, "Execute add allowance");
+        daoMock.request(mandateId, proposalCalldata, nonce, "Execute add allowance");
 
         // Verification
         (ok, result) = config.SafeAllowanceModule

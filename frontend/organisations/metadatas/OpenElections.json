@@ -1,0 +1,23 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeideyeixpz7bkqxpasrlhu7ia3plir6z5b2vh3d7w26e5is27nqyfu",
+  "description": 
+    "Open Elections demonstrates how, using the Powers protocol, electoral lists can be used to assign roles to accounts. (These type of approaches are becoming more popular, see for instance the elections for Arbitrum's Security council, or multiple options votes). The specific logic used for an electoral list can be customised in its mandate implementation.",
+  "website": "",
+  "codeOfConduct": "", 
+  "disputeResolution": "", 
+  "communicationChannels": {
+      "discord": "https://discordapp.com/users/1006928106487021638",
+      "telegram": "https://t.me/thd83",
+      "x": "https://x.com/7__Cedars",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers/blob/develop/frontend/organisations/OpenElections.ts",
+      "forum": "",
+      "documentation": ""
+  },
+  "parentContracts": [ ],
+  "childContracts": [ ],
+  "attributes": [ ]
+}

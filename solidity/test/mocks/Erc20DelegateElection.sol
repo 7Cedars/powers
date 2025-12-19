@@ -11,7 +11,7 @@ import { Nominees } from "../../src/helpers/Nominees.sol";
 /// @notice Simple, standalone contract combining self-nomination and delegate-based selection.
 /// - Accounts can nominate or revoke themselves as candidates.
 /// - An election selects up to `maxRoleHolders` nominees with highest delegated votes (`ERC20Votes.getVotes`).
-/// - No Powers/Law integration. Pure storage and helper utilities.
+/// - No Powers/Mandate integration. Pure storage and helper utilities.
 contract Erc20DelegateElection is Nominees {
     struct Config {
         ERC20Votes token; // token used for delegated voting power lookups

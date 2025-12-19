@@ -16,8 +16,8 @@ library Checks {
     ////////////////////////////////////////////////////////////
     //                 ERRORS                                 //
     ////////////////////////////////////////////////////////////
-    error Checks__ParentLawNotCompleted();
-    error Checks__ParentLawBlocksCompletion();
+    error Checks__ParentMandateNotCompleted();
+    error Checks__ParentMandateBlocksCompletion();
     error Checks__ExecutionGapTooSmall();
     error Checks__ProposalNotSucceeded();
     error Checks__DeadlineNotPassed();
@@ -25,32 +25,32 @@ library Checks {
     /////////////////////////////////////////////////////////////
     //                  CHECKS                                 //
     /////////////////////////////////////////////////////////////
-    /// @notice Runs checks before executing a law
-    /// @param lawId The id of the law
-    /// @param lawCalldata The calldata of the law
+    /// @notice Runs checks before executing a mandate
+    /// @param mandateId The id of the mandate
+    /// @param mandateCalldata The calldata of the mandate
     /// @param powers The address of the Powers contract
-    /// @param nonce The nonce of the law
-    /// @param latestFulfillment The latest fulfillment of the law
-    function check(uint16 lawId, bytes memory lawCalldata, address powers, uint256 nonce, uint48 latestFulfillment)
+    /// @param nonce The nonce of the mandate
+    /// @param latestFulfillment The latest fulfillment of the mandate
+    function check(uint16 mandateId, bytes memory mandateCalldata, address powers, uint256 nonce, uint48 latestFulfillment)
         external
         view
     {
-        PowersTypes.Conditions memory conditions = getConditions(powers, lawId);
-        // Check if parent law completion is required
+        PowersTypes.Conditions memory conditions = getConditions(powers, mandateId);
+        // Check if parent mandate completion is required
         if (conditions.needFulfilled != 0) {
             PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(hashActionId(conditions.needFulfilled, lawCalldata, nonce));
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needFulfilled, mandateCalldata, nonce));
             if (stateLog != PowersTypes.ActionState.Fulfilled) {
-                revert Checks__ParentLawNotCompleted();
+                revert Checks__ParentMandateNotCompleted();
             }
         }
 
-        // Check if parent law must not be completed
+        // Check if parent mandate must not be completed
         if (conditions.needNotFulfilled != 0) {
             PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(hashActionId(conditions.needNotFulfilled, lawCalldata, nonce));
+                Powers(payable(powers)).getActionState(hashActionId(conditions.needNotFulfilled, mandateCalldata, nonce));
             if (stateLog == PowersTypes.ActionState.Fulfilled) {
-                revert Checks__ParentLawBlocksCompletion();
+                revert Checks__ParentMandateBlocksCompletion();
             }
         }
 
@@ -64,7 +64,7 @@ library Checks {
         // Check if proposal vote succeeded
         if (conditions.quorum != 0) {
             if (
-                Powers(payable(powers)).getActionState(hashActionId(lawId, lawCalldata, nonce))
+                Powers(payable(powers)).getActionState(hashActionId(mandateId, mandateCalldata, nonce))
                     != PowersTypes.ActionState.Succeeded
             ) {
                 revert Checks__ProposalNotSucceeded();
@@ -72,10 +72,10 @@ library Checks {
         }
 
         // Check execution delay after proposal
-        if (conditions.delayExecution != 0) {
+        if (conditions.timelock != 0) {
             (,, uint256 deadline,,,) =
-                Powers(payable(powers)).getActionVoteData(hashActionId(lawId, lawCalldata, nonce));
-            if (deadline + conditions.delayExecution > block.number) {
+                Powers(payable(powers)).getActionVoteData(hashActionId(mandateId, mandateCalldata, nonce));
+            if (deadline + conditions.timelock > block.number) {
                 revert Checks__DeadlineNotPassed();
             }
         }
@@ -89,24 +89,24 @@ library Checks {
     //                  HELPER FUNCTIONS                        //
     /////////////////////////////////////////////////////////////
     /// @notice Creates a unique identifier for an action
-    /// @dev Hashes the combination of law address, calldata, and nonce
-    /// @param lawId Address of the law contract being called
-    /// @param lawCalldata Encoded function call data
+    /// @dev Hashes the combination of mandate address, calldata, and nonce
+    /// @param mandateId Address of the mandate contract being called
+    /// @param mandateCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return actionId Unique identifier for the action
-    function hashActionId(uint16 lawId, bytes memory lawCalldata, uint256 nonce)
+    function hashActionId(uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
         public
         pure
         returns (uint256 actionId)
     {
-        actionId = uint256(keccak256(abi.encode(lawId, lawCalldata, nonce)));
+        actionId = uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce)));
     }
 
-    function getConditions(address powers, uint16 lawId)
+    function getConditions(address powers, uint16 mandateId)
         public
         view
         returns (PowersTypes.Conditions memory conditions)
     {
-        return Powers(payable(powers)).getConditions(lawId);
+        return Powers(payable(powers)).getConditions(mandateId);
     }
 }

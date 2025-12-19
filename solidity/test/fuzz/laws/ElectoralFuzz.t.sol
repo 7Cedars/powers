@@ -2,16 +2,16 @@
 pragma solidity 0.8.26;
 
 import "forge-std/Test.sol";
-import { LawUtilities } from "../../../src/libraries/LawUtilities.sol";
+import { MandateUtilities } from "../../../src/libraries/MandateUtilities.sol";
 import { TestSetupElectoral } from "../../TestSetup.t.sol";
-import { ElectionSelect } from "../../../src/laws/electoral/ElectionSelect.sol";
-import { PeerSelect } from "../../../src/laws/electoral/PeerSelect.sol";
-import { VoteInOpenElection } from "../../../src/laws/electoral/VoteInOpenElection.sol";
-import { TaxSelect } from "../../../src/laws/electoral/TaxSelect.sol";
-import { SelfSelect } from "../../../src/laws/electoral/SelfSelect.sol";
-import { RenounceRole } from "../../../src/laws/electoral/RenounceRole.sol";
-import { NStrikesRevokesRoles } from "../../../src/laws/electoral/NStrikesRevokesRoles.sol";
-import { RoleByRoles } from "../../../src/laws/electoral/RoleByRoles.sol";
+import { OpenElectionEnd } from "../../../src/mandates/electoral/OpenElectionEnd.sol";
+import { PeerSelect } from "../../../src/mandates/electoral/PeerSelect.sol";
+import { OpenElectionVote } from "../../../src/mandates/electoral/OpenElectionVote.sol";
+import { TaxSelect } from "../../../src/mandates/electoral/TaxSelect.sol";
+import { SelfSelect } from "../../../src/mandates/electoral/SelfSelect.sol";
+import { RenounceRole } from "../../../src/mandates/electoral/RenounceRole.sol";
+import { NStrikesRevokesRoles } from "../../../src/mandates/electoral/NStrikesRevokesRoles.sol";
+import { RoleByRoles } from "../../../src/mandates/electoral/RoleByRoles.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { OpenElection } from "../../../src/helpers/OpenElection.sol";
@@ -19,23 +19,23 @@ import { Nominees } from "../../../src/helpers/Nominees.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 
-/// @title Electoral Law Fuzz Tests
-/// @notice Comprehensive fuzz testing for all electoral law implementations using pre-initialized laws
-/// @dev Tests use laws from electoralTestConstitution:
-///      lawId 1: ElectionSelect (Erc20DelegateElection, roleId=3, maxHolders=3)
-///      lawId 2: PeerSelect (maxHolders=2, roleId=4, maxVotes=1, Nominees)
-///      lawId 3: VoteInOpenElection (OpenElection, maxVotes=1)
-///      lawId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4)
-///      lawId 6: SelfSelect (roleId=4)
-///      lawId 7: RenounceRole (roles=[1,2])
-///      lawId 8: NStrikesRevokesRoles (roleId=3, strikes=2, FlagActions)
-///      lawId 9: RoleByRoles (targetRole=4, neededRoles=[1,2])
-///      lawId 10: PresetSingleAction (label roles)
+/// @title Electoral Mandate Fuzz Tests
+/// @notice Comprehensive fuzz testing for all electoral mandate implementations using pre-initialized mandates
+/// @dev Tests use mandates from electoralTestConstitution:
+///      mandateId 1: OpenElectionEnd (Erc20DelegateElection, roleId=3, maxHolders=3)
+///      mandateId 2: PeerSelect (maxHolders=2, roleId=4, maxVotes=1, Nominees)
+///      mandateId 3: OpenElectionVote (OpenElection, maxVotes=1)
+///      mandateId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4)
+///      mandateId 6: SelfSelect (roleId=4)
+///      mandateId 7: RenounceRole (roles=[1,2])
+///      mandateId 8: NStrikesRevokesRoles (roleId=3, strikes=2, FlagActions)
+///      mandateId 9: RoleByRoles (targetRole=4, neededRoles=[1,2])
+///      mandateId 10: PresetSingleAction (label roles)
 contract ElectoralFuzzTest is TestSetupElectoral {
-    // Law instances for testing
-    ElectionSelect electionSelect;
+    // Mandate instances for testing
+    OpenElectionEnd openElectionEnd;
     PeerSelect peerSelect;
-    VoteInOpenElection voteInOpenElection;
+    OpenElectionVote openElectionVote;
     TaxSelect taxSelect;
     SelfSelect selfSelect;
     RenounceRole renounceRole;
@@ -64,15 +64,15 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     function setUp() public override {
         super.setUp();
 
-        // Initialize law instances from deployed addresses
-        electionSelect = ElectionSelect(lawAddresses[11]);
-        peerSelect = PeerSelect(lawAddresses[12]);
-        voteInOpenElection = VoteInOpenElection(lawAddresses[13]);
-        nStrikesRevokesRoles = NStrikesRevokesRoles(lawAddresses[14]);
-        taxSelect = TaxSelect(lawAddresses[15]);
-        roleByRoles = RoleByRoles(lawAddresses[17]);
-        selfSelect = SelfSelect(lawAddresses[18]);
-        renounceRole = RenounceRole(lawAddresses[19]);
+        // Initialize mandate instances from deployed addresses
+        openElectionEnd = OpenElectionEnd(mandateAddresses[11]);
+        peerSelect = PeerSelect(mandateAddresses[12]);
+        openElectionVote = OpenElectionVote(mandateAddresses[13]);
+        nStrikesRevokesRoles = NStrikesRevokesRoles(mandateAddresses[14]);
+        taxSelect = TaxSelect(mandateAddresses[15]);
+        roleByRoles = RoleByRoles(mandateAddresses[17]);
+        selfSelect = SelfSelect(mandateAddresses[18]);
+        renounceRole = RenounceRole(mandateAddresses[19]);
 
         // Initialize mock contract instances
         erc20DelegateElection = Erc20DelegateElection(mockAddresses[10]);
@@ -86,8 +86,8 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  SELF SELECT FUZZ                        //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test SelfSelect (lawId 6) with various accounts
-    /// @dev lawId 6 is configured to self-assign role 4
+    /// @notice Fuzz test SelfSelect (mandateId 6) with various accounts
+    /// @dev mandateId 6 is configured to self-assign role 4
     function testFuzzSelfSelectWithVariousAccounts(address accountFuzzed, uint256 nonceFuzzed) public {
         vm.assume(accountFuzzed != address(0));
         vm.deal(accountFuzzed, 1 ether);
@@ -95,10 +95,10 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // Verify account doesn't have role initially
         vm.assume(daoMock.hasRoleSince(accountFuzzed, 4) == 0);
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            selfSelect.handleRequest(accountFuzzed, address(daoMock), 6, lawCalldata, nonceFuzzed);
+            selfSelect.handleRequest(accountFuzzed, address(daoMock), 6, mandateCalldata, nonceFuzzed);
 
         // Verify structure
         assertEq(returnedTargets.length, 1);
@@ -141,8 +141,8 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  RENOUNCE ROLE FUZZ                      //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test RenounceRole (lawId 7) with valid roles
-    /// @dev lawId 7 is configured to allow renouncing roles 1 and 2
+    /// @notice Fuzz test RenounceRole (mandateId 7) with valid roles
+    /// @dev mandateId 7 is configured to allow renouncing roles 1 and 2
     function testFuzzRenounceRoleWithValidRoles(
         address accountFuzzed,
         bool renounceRole1,
@@ -157,10 +157,10 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         daoMock.assignRole(2, accountFuzzed);
         vm.stopPrank();
 
-        lawCalldata = abi.encode(1); // revoke role 1
+        mandateCalldata = abi.encode(1); // revoke role 1
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            renounceRole.handleRequest(accountFuzzed, address(daoMock), 7, lawCalldata, nonceFuzzed);
+            renounceRole.handleRequest(accountFuzzed, address(daoMock), 7, mandateCalldata, nonceFuzzed);
 
         // Should return calls for each role to renounce
         assertTrue(returnedTargets.length > 0);
@@ -173,18 +173,18 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  ROLE BY ROLES FUZZ                      //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test RoleByRoles (lawId 9) with various role combinations
-    /// @dev lawId 9 assigns role 4 if account has roles 1 and 2
+    /// @notice Fuzz test RoleByRoles (mandateId 9) with various role combinations
+    /// @dev mandateId 9 assigns role 4 if account has roles 1 and 2
     function testFuzzRoleByRolesWithRoleCombinations(address accountFuzzed, uint256 nonceFuzzed) public {
         vm.assume(accountFuzzed != address(0));
 
         bool hasRole1 = daoMock.hasRoleSince(accountFuzzed, 1) != 0;
         bool hasRole2 = daoMock.hasRoleSince(accountFuzzed, 2) != 0;
 
-        lawCalldata = abi.encode(accountFuzzed);
+        mandateCalldata = abi.encode(accountFuzzed);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            roleByRoles.handleRequest(accountFuzzed, address(daoMock), 9, lawCalldata, nonceFuzzed);
+            roleByRoles.handleRequest(accountFuzzed, address(daoMock), 9, mandateCalldata, nonceFuzzed);
 
         // If account has either role exist, should send empty array
         if (hasRole1 || hasRole2) {
@@ -234,9 +234,9 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  ELECTION SELECT FUZZ                    //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test ElectionSelect (lawId 1) action generation
-    /// @dev lawId 1 runs delegate elections for role 3
-    function testFuzzElectionSelectActionGeneration(
+    /// @notice Fuzz test OpenElectionEnd (mandateId 1) action generation
+    /// @dev mandateId 1 runs delegate elections for role 3
+    function testFuzzOpenElectionEndActionGeneration(
         address[] memory nomineesFuzzed,
         uint256 numberOfNominees,
         address callerFuzzed,
@@ -253,10 +253,10 @@ contract ElectoralFuzzTest is TestSetupElectoral {
             vm.prank(address(daoMock));
             erc20DelegateElection.nominate(nomineesFuzzed[i], true);
         }
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            electionSelect.handleRequest(callerFuzzed, address(daoMock), 1, lawCalldata, nonceFuzzed);
+            openElectionEnd.handleRequest(callerFuzzed, address(daoMock), 1, mandateCalldata, nonceFuzzed);
 
         // Should generate action targeting the election contract
         assertTrue(returnedTargets.length > 0);
@@ -264,16 +264,15 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         assertEq(returnedTargets[0], address(daoMock));
     }
 
-    /// @notice Fuzz test ElectionSelect with various nonces
-    function testFuzzElectionSelectWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
+    /// @notice Fuzz test OpenElectionEnd with various nonces
+    function testFuzzOpenElectionEndWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
         vm.assume(nonce1 != nonce2);
 
-        (returnedActionId,,,) = electionSelect.handleRequest(alice, address(daoMock), 1, abi.encode(), nonce1);
+        (returnedActionId,,,) = openElectionEnd.handleRequest(alice, address(daoMock), 1, abi.encode(), nonce1);
 
         uint256 firstActionId = returnedActionId;
 
-        (returnedActionId,,,) = electionSelect.handleRequest(alice, address(daoMock), 1, abi.encode(), nonce2);
-
+        (returnedActionId,,,) = openElectionEnd.handleRequest(alice, address(daoMock), 1, abi.encode(), nonce2);
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
     }
@@ -282,8 +281,8 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  PEER SELECT FUZZ                        //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test PeerSelect (lawId 2) with various nominees
-    /// @dev lawId 2 selects role 4 by peer voting with max 2 holders and 1 vote per voter
+    /// @notice Fuzz test PeerSelect (mandateId 2) with various nominees
+    /// @dev mandateId 2 selects role 4 by peer voting with max 2 holders and 1 vote per voter
     function testFuzzPeerSelectWithVaryingNominees(
         address[] memory nomineesFuzzed,
         uint256 numberOfNominees,
@@ -304,10 +303,10 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         }
         bool[] memory selection = new bool[](nomineesList.length);
         selection[voteFuzzed % nomineesList.length] = true;
-        lawCalldata = abi.encode(selection);
+        mandateCalldata = abi.encode(selection);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            peerSelect.handleRequest(alice, address(daoMock), 2, lawCalldata, nonceFuzzed);
+            peerSelect.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
         // Should generate actions
         assertTrue(returnedTargets.length > 0);
@@ -341,16 +340,16 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         }
         bool[] memory selection = new bool[](nomineesList.length);
         selection[voteFuzzed % nomineesList.length] = true;
-        lawCalldata = abi.encode(selection);
+        mandateCalldata = abi.encode(selection);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            peerSelect.handleRequest(caller1, address(daoMock), 2, lawCalldata, nonceFuzzed1);
+            peerSelect.handleRequest(caller1, address(daoMock), 2, mandateCalldata, nonceFuzzed1);
 
         uint256 firstTargetLength = returnedTargets.length;
         bytes memory firstCalldata = returnedCalldatas[0];
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            peerSelect.handleRequest(caller2, address(daoMock), 2, lawCalldata, nonceFuzzed2);
+            peerSelect.handleRequest(caller2, address(daoMock), 2, mandateCalldata, nonceFuzzed2);
 
         // Both should generate consistent action structure
         assertEq(returnedTargets.length, firstTargetLength);
@@ -361,9 +360,9 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                VOTE IN OPEN ELECTION FUZZ                //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test VoteInOpenElection (lawId 3) with various candidates
-    /// @dev lawId 3 allows voting in open elections with max 1 vote == VoteInOpenElection.
-    function testFuzzVoteInOpenElectionWithCandidates(
+    /// @notice Fuzz test OpenElectionVote (mandateId 3) with various candidates
+    /// @dev mandateId 3 allows voting in open elections with max 1 vote == OpenElectionVote.
+    function testFuzzOpenElectionVoteWithCandidates(
         address[] memory candidatesFuzzed,
         uint256 quantity,
         uint256 nonceFuzzed,
@@ -381,23 +380,23 @@ contract ElectoralFuzzTest is TestSetupElectoral {
                 numberOfCandidates++;
             }
         }
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
         vm.stopPrank();
         bool[] memory votesArray = new bool[](numberOfCandidates);
         votesArray[voteFuzzed % numberOfCandidates] = true;
-        lawCalldata = abi.encode(votesArray);
+        mandateCalldata = abi.encode(votesArray);
 
         vm.roll(block.number + 1);
 
-        // step 2: initialise a NEW VoteInOpenElection law
+        // step 2: initialise a NEW OpenElectionVote mandate
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCounter();
+        mandateId = daoMock.mandateCounter();
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
+        daoMock.adoptMandate(
+            PowersTypes.MandateInitData({
                 nameDescription: "Vote In Open Election",
-                targetLaw: lawAddresses[13],
+                targetMandate: mandateAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter
@@ -405,10 +404,10 @@ contract ElectoralFuzzTest is TestSetupElectoral {
                 conditions: conditions
             })
         );
-        // step 3: vote for candidates in VoteInOpenElection contract
+        // step 3: vote for candidates in OpenElectionVote contract
         vm.prank(address(daoMock));
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            voteInOpenElection.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonceFuzzed);
+            openElectionVote.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonceFuzzed);
 
         // step 4: checks
         assertEq(returnedTargets.length, 1);
@@ -416,7 +415,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     }
 
     /// @notice Fuzz test with multiple votes allowed.
-    function testFuzzVoteInOpenElectionWithMultipleVotes(
+    function testFuzzOpenElectionVoteWithMultipleVotes(
         address[] memory candidatesFuzzed,
         uint256 quantity,
         uint256 nonceFuzzed,
@@ -435,7 +434,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
                 numberOfCandidates++;
             }
         }
-        openElection.openElection(100);
+        openElection.openElection(100, 1);
         vm.stopPrank();
 
         console.log("WAYPOINT 1");
@@ -450,19 +449,19 @@ contract ElectoralFuzzTest is TestSetupElectoral {
             j++;
             console.log("WAYPOINT 3");
         }
-        lawCalldata = abi.encode(votesArray);
+        mandateCalldata = abi.encode(votesArray);
 
         vm.roll(block.number + 1);
 
-        // step 2: initialise a NEW VoteInOpenElection law with multiple votes allowed
+        // step 2: initialise a NEW OpenElectionVote mandate with multiple votes allowed
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCounter();
+        mandateId = daoMock.mandateCounter();
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
+        daoMock.adoptMandate(
+            PowersTypes.MandateInitData({
                 nameDescription: "Vote In Open Election Multiple",
-                targetLaw: lawAddresses[13],
+                targetMandate: mandateAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     3 // max votes per voter increased to 3
@@ -471,9 +470,9 @@ contract ElectoralFuzzTest is TestSetupElectoral {
             })
         );
 
-        // step 3: vote for candidates in VoteInOpenElection contract
+        // step 3: vote for candidates in OpenElectionVote contract
         vm.prank(alice);
-        actionId = daoMock.request(lawId, lawCalldata, nonceFuzzed, "");
+        actionId = daoMock.request(mandateId, mandateCalldata, nonceFuzzed, "");
 
         // step 4: checks
         assertEq(uint8(daoMock.getActionState(actionId)), uint8(ActionState.Fulfilled), "Action should be fulfilled");
@@ -491,15 +490,15 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                  TAX SELECT FUZZ                         //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test TaxSelect (lawId 4) with various accounts
-    /// @dev lawId 4 assigns role 4 based on tax threshold of 1000
+    /// @notice Fuzz test TaxSelect (mandateId 4) with various accounts
+    /// @dev mandateId 4 assigns role 4 based on tax threshold of 1000
     function testFuzzTaxSelectWithVariousAccounts(address accountFuzzed, uint256 nonceFuzzed) public {
         vm.assume(accountFuzzed != address(0));
         vm.roll(block.number + 1000);
-        lawCalldata = abi.encode(accountFuzzed);
+        mandateCalldata = abi.encode(accountFuzzed);
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            taxSelect.handleRequest(accountFuzzed, address(daoMock), 4, lawCalldata, nonceFuzzed);
+            taxSelect.handleRequest(accountFuzzed, address(daoMock), 4, mandateCalldata, nonceFuzzed);
 
         // always returns an array to set the action to fulfilled.
         assertTrue(returnedTargets.length > 0);
@@ -512,7 +511,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         vm.assume(accountFuzzed != address(0));
         taxPaidFuzzed = bound(taxPaidFuzzed, -100, 100);
 
-        TaxSelect.Data memory data = TaxSelect(lawAddresses[14]).getData(LawUtilities.hashLaw(address(daoMock), 4));
+        TaxSelect.Data memory data = TaxSelect(mandateAddresses[14]).getData(MandateUtilities.hashMandate(address(daoMock), 4));
         uint256 actualTaxPaid = uint256(int256(data.thresholdTaxPaid) + taxPaidFuzzed);
 
         vm.mockCall(
@@ -524,9 +523,9 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // Test at threshold boundary
         bool meetsThreshold = actualTaxPaid >= data.thresholdTaxPaid;
 
-        lawCalldata = abi.encode(accountFuzzed);
+        mandateCalldata = abi.encode(accountFuzzed);
         (returnedActionId, returnedTargets,,) =
-            taxSelect.handleRequest(accountFuzzed, address(daoMock), 4, lawCalldata, nonceFuzzed);
+            taxSelect.handleRequest(accountFuzzed, address(daoMock), 4, mandateCalldata, nonceFuzzed);
         if (meetsThreshold) assertTrue(returnedTargets.length > 0);
     }
 
@@ -534,8 +533,8 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //               N STRIKES REVOKES ROLES FUZZ               //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test NStrikesRevokesRoles (lawId 8) with varying strike counts
-    /// @dev lawId 8 revokes role 3 after 2 strikes
+    /// @notice Fuzz test NStrikesRevokesRoles (mandateId 8) with varying strike counts
+    /// @dev mandateId 8 revokes role 3 after 2 strikes
     function testFuzzNStrikesRevokesRolesWithStrikes(
         address accountFuzzed,
         uint256 strikeCountFuzzed,
@@ -559,14 +558,14 @@ contract ElectoralFuzzTest is TestSetupElectoral {
             flagActions.flag(i, 3, accountFuzzed, 8);
         }
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         // Should revert if strikes < 2
         bool meetsThreshold = strikeCountFuzzed >= 2;
         if (!meetsThreshold) vm.expectRevert("Not enough strikes to revoke roles.");
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            nStrikesRevokesRoles.handleRequest(accountFuzzed, address(daoMock), 8, lawCalldata, nonceFuzzed);
+            nStrikesRevokesRoles.handleRequest(accountFuzzed, address(daoMock), 8, mandateCalldata, nonceFuzzed);
 
         // Should generate revocation if strikes >= 2
         if (meetsThreshold) {
@@ -599,11 +598,11 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // Test at strike threshold (2 strikes needed)
         bool atThreshold = strikesFuzzed >= 2;
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         if (!atThreshold) vm.expectRevert("Not enough strikes to revoke roles.");
         (returnedActionId, returnedTargets,,) =
-            nStrikesRevokesRoles.handleRequest(accountFuzzed, address(daoMock), 8, lawCalldata, nonceFuzzed);
+            nStrikesRevokesRoles.handleRequest(accountFuzzed, address(daoMock), 8, mandateCalldata, nonceFuzzed);
         if (atThreshold) assertTrue(returnedTargets.length > 0);
     }
 
@@ -611,49 +610,49 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                CROSS-LAW FUZZ TESTS                      //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test action ID generation consistency across electoral laws
+    /// @notice Fuzz test action ID generation consistency across electoral mandates
     function testFuzzElectoralActionIdConsistency(
-        uint16 lawIdFuzzed,
-        bytes memory lawCalldataFuzzed,
+        uint16 mandateIdFuzzed,
+        bytes memory mandateCalldataFuzzed,
         uint256 nonceFuzzed
     ) public {
-        // Bound to valid electoral law IDs (1-10)
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 10));
-        vm.assume(lawCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
+        // Bound to valid electoral mandate IDs (1-10)
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 10));
+        vm.assume(mandateCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
-        // Test with SelfSelect (simplest law)
-        lawCalldata = abi.encode();
+        // Test with SelfSelect (simplest mandate)
+        mandateCalldata = abi.encode();
 
-        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), lawIdFuzzed, lawCalldata, nonceFuzzed);
+        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), mandateIdFuzzed, mandateCalldata, nonceFuzzed);
 
         // Verify action ID matches expected pattern
-        uint256 expectedActionId = uint256(keccak256(abi.encode(lawIdFuzzed, lawCalldata, nonceFuzzed)));
+        uint256 expectedActionId = uint256(keccak256(abi.encode(mandateIdFuzzed, mandateCalldata, nonceFuzzed)));
         assertEq(returnedActionId, expectedActionId);
     }
 
-    /// @notice Fuzz test nonce uniqueness across electoral laws
+    /// @notice Fuzz test nonce uniqueness across electoral mandates
     function testFuzzElectoralNonceUniqueness(uint256 nonce1Fuzzed, uint256 nonce2Fuzzed) public {
         vm.assume(nonce1Fuzzed != nonce2Fuzzed);
 
-        lawCalldata = abi.encode();
+        mandateCalldata = abi.encode();
 
         // Get action IDs with different nonces
-        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), 6, lawCalldata, nonce1Fuzzed);
+        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonce1Fuzzed);
         uint256 firstActionId = returnedActionId;
 
-        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), 6, lawCalldata, nonce2Fuzzed);
+        (returnedActionId,,,) = selfSelect.handleRequest(alice, address(daoMock), 6, mandateCalldata, nonce2Fuzzed);
 
         // Different nonces should produce different action IDs
         assertTrue(firstActionId != returnedActionId);
     }
 
-    /// @notice Fuzz test law data retrieval consistency
-    function testFuzzElectoralLawDataConsistency(uint16 lawIdFuzzed) public {
-        // Bound to valid law IDs
-        lawIdFuzzed = uint16(bound(lawIdFuzzed, 1, 10));
+    /// @notice Fuzz test mandate data retrieval consistency
+    function testFuzzElectoralMandateDataConsistency(uint16 mandateIdFuzzed) public {
+        // Bound to valid mandate IDs
+        mandateIdFuzzed = uint16(bound(mandateIdFuzzed, 1, 10));
 
-        // Get law conditions from daoMock
-        conditions = daoMock.getConditions(lawIdFuzzed);
+        // Get mandate conditions from daoMock
+        conditions = daoMock.getConditions(mandateIdFuzzed);
 
         // Verify conditions are valid
         assertTrue(conditions.quorum <= 100);
@@ -665,24 +664,24 @@ contract ElectoralFuzzTest is TestSetupElectoral {
     //                EDGE CASE FUZZ TESTS                      //
     //////////////////////////////////////////////////////////////
 
-    /// @notice Fuzz test electoral laws with zero addresses in bool array
+    /// @notice Fuzz test electoral mandates with zero addresses in bool array
     function testFuzzElectoralWithZeroAddresses(uint256 arrayLength, uint256 nonceFuzzed) public {
         arrayLength = bound(arrayLength, 1, 10);
 
-        // For VoteInOpenElection, we need a bool array, not address array
+        // For OpenElectionVote, we need a bool array, not address array
         // Test with all false votes (no selections)
         bool[] memory votesArray = new bool[](arrayLength);
         // All elements are false by default
 
-        lawCalldata = abi.encode(votesArray);
+        mandateCalldata = abi.encode(votesArray);
 
-        // Test VoteInOpenElection with no votes selected
+        // Test OpenElectionVote with no votes selected
         // This should revert as no votes were cast
         vm.expectRevert();
-        voteInOpenElection.handleRequest(alice, address(daoMock), 3, lawCalldata, nonceFuzzed);
+        openElectionVote.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
     }
 
-    /// @notice Fuzz test electoral laws with large nominee arrays
+    /// @notice Fuzz test electoral mandates with large nominee arrays
     function testFuzzElectoralWithLargeArrays(uint256 numberOfNominees, uint256 voteIndex, uint256 nonceFuzzed) public {
         numberOfNominees = bound(numberOfNominees, 1, MAX_FUZZ_TARGETS);
 
@@ -694,25 +693,25 @@ contract ElectoralFuzzTest is TestSetupElectoral {
                 openElection.nominate(nominee, true);
             }
         }
-        openElection.openElection(1000);
+        openElection.openElection(1000, 1);
         vm.stopPrank();
 
         // Create votes array with one vote
         bool[] memory votesArray = new bool[](numberOfNominees);
         votesArray[voteIndex % numberOfNominees] = true;
-        lawCalldata = abi.encode(votesArray);
+        mandateCalldata = abi.encode(votesArray);
 
         vm.roll(block.number + 1);
 
-        // Initialize a new VoteInOpenElection law for this test
+        // Initialize a new OpenElectionVote mandate for this test
         delete conditions;
         conditions.allowedRole = type(uint256).max;
-        lawId = daoMock.lawCounter();
+        mandateId = daoMock.mandateCounter();
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(
-            PowersTypes.LawInitData({
+        daoMock.adoptMandate(
+            PowersTypes.MandateInitData({
                 nameDescription: "Vote In Open Election Large",
-                targetLaw: lawAddresses[13],
+                targetMandate: mandateAddresses[13],
                 config: abi.encode(
                     mockAddresses[9], // OpenElection contract
                     1 // max votes per voter
@@ -723,14 +722,14 @@ contract ElectoralFuzzTest is TestSetupElectoral {
 
         vm.prank(address(daoMock));
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            voteInOpenElection.handleRequest(alice, address(daoMock), lawId, lawCalldata, nonceFuzzed);
+            openElectionVote.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonceFuzzed);
 
         assertTrue(returnedTargets.length > 0);
         assertEq(returnedTargets[0], address(openElection));
     }
 
     /// @notice Fuzz test RenounceRole with various role IDs
-    /// @dev lawId 7 is configured to allow renouncing only roles 1 and 2
+    /// @dev mandateId 7 is configured to allow renouncing only roles 1 and 2
     function testFuzzElectoralWithVariousRoleIds(uint256 roleIdFuzzed, address accountFuzzed, uint256 nonceFuzzed)
         public
     {
@@ -744,8 +743,8 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         // Verify role was assigned
         assertTrue(daoMock.hasRoleSince(accountFuzzed, roleIdFuzzed) > 0);
 
-        // Test with RenounceRole (lawId 7 allows roles 1 and 2 only)
-        lawCalldata = abi.encode(roleIdFuzzed);
+        // Test with RenounceRole (mandateId 7 allows roles 1 and 2 only)
+        mandateCalldata = abi.encode(roleIdFuzzed);
 
         // Should revert if role is not in allowed list (not 1 or 2)
         bool isAllowedRole = (roleIdFuzzed == 1 || roleIdFuzzed == 2);
@@ -754,7 +753,7 @@ contract ElectoralFuzzTest is TestSetupElectoral {
         }
 
         (returnedActionId, returnedTargets,, returnedCalldatas) =
-            renounceRole.handleRequest(accountFuzzed, address(daoMock), 7, lawCalldata, nonceFuzzed);
+            renounceRole.handleRequest(accountFuzzed, address(daoMock), 7, mandateCalldata, nonceFuzzed);
 
         // If role is in allowed list, should succeed
         if (isAllowedRole) {

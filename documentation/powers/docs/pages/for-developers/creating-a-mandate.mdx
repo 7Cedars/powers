@@ -1,0 +1,28 @@
+import { Callout } from 'vocs/components'
+
+# Creating a Mandate
+
+This guide provides instructions for developers on how to create and implement their own custom mandates for the Powers protocol.
+
+<Callout type="info">
+  Currently, there is no no-code solution for creating mandates. This process requires some knowledge of Solidity.
+</Callout>
+
+## 1. Understand the General Logic
+
+Before creating your own mandate, it is essential to understand the fundamental logic of how a mandate works within the Powers protocol.
+
+-   **`Mandate.sol` Contract**: This is the base implementation for all mandates. It provides the core functionality and interface that your custom mandate will need to inherit. You can find the source code in the `solidity/src/Mandate.sol` file.
+-   **Mandate Documentation**: For a detailed explanation of the `Mandate.sol` contract, its functions, and best practices, please refer to the [The Mandate.sol Contract](./mandate) documentation page.
+
+## 2. Check Existing Examples
+
+The best way to learn how to implement a specific mandate is by studying the existing examples. The `solidity/src/mandates` directory in the repository contains various implementations that you can use as a reference.
+
+These examples demonstrate how to implement different types of conditions and degrees of freedom, from simple role-based execution to complex voting mechanisms.
+
+## 3. Future Documentation
+
+<Callout type="info">
+  More extensive documentation on how to create your own mandate, including step-by-step tutorials and more detailed examples, will be provided in the future.
+</Callout>

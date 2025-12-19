@@ -16,13 +16,13 @@ Together, these paths create completely modular, transparent and asynchronous go
 
 ## Components
 
-The protocol combines a governance engine, **Powers**, with role restricted and modular contracts, called **laws**, to govern **actions**.
+The protocol combines a governance engine, **Powers**, with role restricted and modular contracts, called **mandates**, to govern **actions**.
 
 * **Powers** manages assigning roles to addresses and governance flows.
-* **Laws** define what actions can be taken by which roles under what conditions. When it passes, a law translates an action to executable targets, values and calldatas.
-* **Actions** consist of calldata and a unique nonce that is send to a target law.
+* **Mandates** define what actions can be taken by which roles under what conditions. When it passes, a mandate translates an action to executable targets, values and calldatas.
+* **Actions** consist of calldata and a unique nonce that is send to a target mandate.
 
-Crucially, Powers allows the **same action** to be send to **different laws**: the execution of law A can be conditional on the execution of the same action at law B.
+Crucially, Powers allows the **same action** to be send to **different mandates**: the execution of mandate A can be conditional on the execution of the same action at mandate B.
 
 ## Quick links
 

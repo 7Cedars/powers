@@ -47,7 +47,7 @@ export default function UserPage() {
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
   const emptyAction = {
     actionId: '',
-    lawId: 0n, 
+    mandateId: 0n, 
     nonce: '0',
     description: '',
     upToDate: false,

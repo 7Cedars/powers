@@ -2,14 +2,15 @@
 // searchers for deployed Separated Powers Protocols.
 // Has search bar.
 // also has template DAOs to deploy.  
-// Loads names,# laws, # proposals, # roles, # members, chain. 
+// Loads names,# mandates, # proposals, # roles, # members, chain. 
 // see example: https://www.tally.xyz/explore
 
 "use client";
 
 import React from "react";
 import { SectionIntro } from "./SectionIntro";
-import { SectionUsecases } from "./SectionUsecases";
+import { SectionApplications } from "./SectionApplications";
+import { SectionExamples } from "./SectionExamples";
 import { SectionDeployDemo } from "./SectionDeployDemo";
 import { Footer } from "./Footer";
 
@@ -31,7 +32,7 @@ export default function Page() {
                     </div>
                     <div className = "w-full flex justify-center items-center text-pretty text-xl sm:text-2xl py-4 text-slate-300 max-w-4xl text-center p-4">
                         {/* Separate and distribute power through on-chain institutional governance. */}
-                        Trustless Rule of Law for On-chain Institutions
+                        Trustless modular governance for on-chain organisations.  
                     </div>
                 </section> 
 
@@ -49,10 +50,11 @@ export default function Page() {
             </section>
 
             < SectionIntro /> 
-            < SectionUsecases /> 
+            < SectionApplications /> 
+            < SectionExamples /> 
             < SectionDeployDemo />
             <div className = "min-h-48"/>  
-            < Footer /> 
+            < Footer />
            
         </main>
     )

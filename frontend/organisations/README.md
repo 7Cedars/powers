@@ -1,6 +1,6 @@
 # Organizations Directory
 
-This directory contains modular organization definitions for the Powers protocol deployment system. Each organization is self-contained in a single TypeScript file that defines all aspects of the organization including metadata, form fields, law initialization, and mock contract requirements.
+This directory contains modular organization definitions for the Powers protocol deployment system. Each organization is self-contained in a single TypeScript file that defines all aspects of the organization including metadata, form fields, mandate initialization, and mock contract requirements.
 
 ## Architecture
 
@@ -53,9 +53,9 @@ export const MyOrganization: Organization = {
     // Form fields for user input
   ],
   
-  createLawInitData: (powersAddress, formData, chainId) => {
-    // Generate law initialization data
-    return lawInitData;
+  createMandateInitData: (powersAddress, formData, chainId) => {
+    // Generate mandate initialization data
+    return mandateInitData;
   },
   
   // Optional
@@ -78,7 +78,7 @@ Create a new file in `organisations/` (e.g., `MyDAO.ts`):
 
 ```typescript
 import { Organization } from "./types";
-import { LawInitData, createConditions } from "@/public/createLawInitData";
+import { MandateInitData, createConditions } from "@/public/createMandateInitData";
 import { getConstants } from "@/context/constants";
 import { encodeAbiParameters } from "viem";
 
@@ -102,20 +102,20 @@ export const MyDAO: Organization = {
     }
   ],
 
-  createLawInitData: (powersAddress, formData, chainId) => {
-    const lawInitData: LawInitData[] = [];
+  createMandateInitData: (powersAddress, formData, chainId) => {
+    const mandateInitData: MandateInitData[] = [];
     
-    // Define your laws here
-    lawInitData.push({
-      nameDescription: "My First Law",
-      targetLaw: getLawAddress("SomeLaw", chainId),
+    // Define your mandates here
+    mandateInitData.push({
+      nameDescription: "My First Mandate",
+      targetMandate: getMandateAddress("SomeMandate", chainId),
       config: "0x",
       conditions: createConditions({
         allowedRole: 0n
       })
     });
 
-    return lawInitData;
+    return mandateInitData;
   },
 
   getMockContracts: (formData) => {
@@ -155,7 +155,7 @@ The **Power Base** organization is the reference implementation. It demonstrates
 - Three separate Grant.sol instances for budget separation
 - Budget proposal and veto mechanisms
 - Grant lifecycle management (submit, approve, release milestones, reject)
-- Electoral laws (GitHub-based roles, funding-based roles)
+- Electoral mandates (GitHub-based roles, funding-based roles)
 - Constitutional amendment process
 
 ### Key Features
@@ -172,7 +172,7 @@ The **Power Base** organization is the reference implementation. It demonstrates
 - Grant proposals with milestone-based payouts
 - Veto mechanisms for budgets and grants
 - Role-based approval processes
-- Constitutional law adoption
+- Constitutional mandate adoption
 
 **Grant System:**
 - Three separate `Grant.sol` instances
@@ -185,14 +185,14 @@ See `PowerLabs.ts` for complete implementation details.
 
 ## Helper Functions
 
-### Law Address Helpers
+### Mandate Address Helpers
 
 ```typescript
-const getLawAddress = (lawName: string, chainId: number): `0x${string}` => {
+const getMandateAddress = (mandateName: string, chainId: number): `0x${string}` => {
   const constants = getConstants(chainId);
-  const address = constants.LAW_ADDRESSES[constants.LAW_NAMES.indexOf(lawName)];
+  const address = constants.LAW_ADDRESSES[constants.LAW_NAMES.indexOf(mandateName)];
   if (!address) {
-    throw new Error(`Law address not found for: ${lawName}`);
+    throw new Error(`Mandate address not found for: ${mandateName}`);
   }
   return address;
 };
@@ -215,7 +215,7 @@ const minutesToBlocks = (minutes: number, chainId: number): bigint => {
 ### Condition Creation
 
 ```typescript
-import { createConditions } from "@/public/createLawInitData";
+import { createConditions } from "@/public/createMandateInitData";
 
 const conditions = createConditions({
   allowedRole: 1n,
@@ -224,7 +224,7 @@ const conditions = createConditions({
   succeedAt: 51n,
   needFulfilled: 2n,
   needNotFulfilled: 3n,
-  delayExecution: daysToBlocks(3, chainId),
+  timelock: daysToBlocks(3, chainId),
   throttleExecution: 100n
 });
 ```
@@ -243,7 +243,7 @@ const conditions = createConditions({
 The old system split organization data across three files:
 - `SectionDeployCarousel.tsx` - UI logic
 - `deploymentForms.ts` - Form metadata
-- `createLawInitData.ts` - Law generation logic
+- `createMandateInitData.ts` - Mandate generation logic
 
 The new system consolidates this into:
 - `organisations/[OrgName].ts` - All organization-specific data
@@ -254,23 +254,23 @@ This makes it much clearer where to add new organizations and what data they nee
 
 ## Best Practices
 
-1. **Naming**: Use descriptive names for laws (e.g., "Propose Budget" not "Law 2")
+1. **Naming**: Use descriptive names for mandates (e.g., "Propose Budget" not "Mandate 2")
 2. **Documentation**: Add comments explaining complex governance flows
 3. **Validation**: Implement `validateFormData` for user input validation
-4. **Testing**: Test law generation with different form data combinations
+4. **Testing**: Test mandate generation with different form data combinations
 5. **Constants**: Use constants for role IDs and common values
 6. **Helpers**: Extract common patterns into helper functions
-7. **Dependencies**: Document law dependencies in comments (e.g., "needFulfilled: 2n // Requires budget proposal")
+7. **Dependencies**: Document mandate dependencies in comments (e.g., "needFulfilled: 2n // Requires budget proposal")
 
 ## Future Enhancements
 
 Possible additions to the organization system:
 
 - Pre-deployment checks (verify mock contracts exist, check balances)
-- Post-deployment validation (verify laws were adopted correctly)
+- Post-deployment validation (verify mandates were adopted correctly)
 - Organization migration/upgrade paths
 - Deployment history tracking
-- Gas estimation for law adoption
+- Gas estimation for mandate adoption
 - Multi-step deployment wizards for complex organizations
 - Organization templates/presets
 - Visual governance flow diagrams
@@ -282,6 +282,6 @@ For questions about:
 - **Organization structure**: See `types.ts`
 - **Reference implementation**: See `PowerLabs.ts`
 - **Adding organizations**: See "Adding a New Organization" section above
-- **Helper functions**: See `@/public/createLawInitData.ts`
+- **Helper functions**: See `@/public/createMandateInitData.ts`
 - **Constants**: See `@/context/constants.ts`
 

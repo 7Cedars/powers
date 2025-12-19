@@ -25,11 +25,11 @@ export default function ProfilePage() {
     metadatas: {
       icon: '/logo1_notext.png',
       banner: '/orgMetadatas/PowersDAO_Banner.png',
-      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
+      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and mandate execution.',
       attributes: []
     },
-    lawCount: 0n,
-    laws: [],
+    mandateCount: 0n,
+    mandates: [],
     roles: [],
   }
 
@@ -41,11 +41,11 @@ export default function ProfilePage() {
     metadatas: {
       icon: '/logo1_notext.png',
       banner: '/orgMetadatas/PowersDAO_Banner.png',
-      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and law execution.',
+      description: 'Learn the basics of Powers Protocol - a comprehensive introduction to decentralized governance and mandate execution.',
       attributes: []
     },
-    lawCount: 0n,
-    laws: [],
+    mandateCount: 0n,
+    mandates: [],
     roles: [],
   }
   useEffect(() => {

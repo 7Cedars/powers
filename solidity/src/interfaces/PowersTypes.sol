@@ -9,7 +9,7 @@ interface PowersTypes {
         uint256 allowedRole; // Takes its own slot
         // --- All of the following can be packed into a single slot (144 bits total) ---
         uint32 votingPeriod;
-        uint32 delayExecution;
+        uint32 timelock;
         uint32 throttleExecution;
         uint16 needFulfilled;
         uint16 needNotFulfilled;
@@ -17,24 +17,24 @@ interface PowersTypes {
         uint8 succeedAt;
     }
 
-    struct AdoptedLaw {
-        address targetLaw;
+    struct AdoptedMandate {
+        address targetMandate;
         Conditions conditions;
         bool active;
         uint256[] actionIds;
         uint48 latestFulfillment;
     }
 
-    struct LawInitData {
+    struct MandateInitData {
         string nameDescription; // 32 bytes
-        address targetLaw; // 20 bytes
+        address targetMandate; // 20 bytes
         bytes config; // 32 bytes
         Conditions conditions; // 104 bytes
     }
 
     /// @notice struct to keep track of a proposal.
     ///
-    /// @dev in contrast to other Governance protocols, a proposal in {Powers} always includes a reference to a law.
+    /// @dev in contrast to other Governance protocols, a proposal in {Powers} always includes a reference to a mandate.
     /// This enables the role restriction of governance processes in {Powers}.
     ///
     /// @dev in contrast to other Governance protocols, votes are not weighted and can hence be a uint32, not a uint256.
@@ -46,7 +46,7 @@ interface PowersTypes {
         uint48 fulfilledAt;
         uint48 cancelledAt;
         uint48 voteStart;
-        uint16 lawId;
+        uint16 mandateId;
         // --- Packed Slot 2 (128 bits used) ---
         uint32 voteDuration;
         uint32 againstVotes;
@@ -56,7 +56,7 @@ interface PowersTypes {
         address caller;
         uint256 nonce;
         // --- Dynamic/Mapping Types (do not take up static slots) ---
-        bytes lawCalldata;
+        bytes mandateCalldata;
         bytes[] returnDatas;
         string uri;
         mapping(address => bool) hasVoted;

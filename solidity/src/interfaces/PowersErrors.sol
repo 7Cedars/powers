@@ -17,8 +17,8 @@ interface PowersErrors {
     /// @notice Emitted when a callData is invalid.
     error Powers__InvalidCallData();
 
-    /// @notice Emitted when a law is not active.
-    error Powers__LawNotActive();
+    /// @notice Emitted when a mandate is not active.
+    error Powers__MandateNotActive();
 
     /// @notice Emitted when a function is called that does not need a vote.
     error Powers__NoVoteNeeded();
@@ -33,7 +33,7 @@ interface PowersErrors {
     error Powers__LockedRole();
 
     /// @notice Emitted when an incorrect interface is called.
-    error Powers__IncorrectInterface(address targetLaw);
+    error Powers__IncorrectInterface(address targetMandate);
 
     /// @notice Emitted when a proposed action is not active.
     error Powers__ProposedActionNotActive();
@@ -41,7 +41,7 @@ interface PowersErrors {
     /// @notice Emitted when a constitution has already been executed.
     error Powers__ConstitutionAlreadyExecuted();
 
-    /// @notice Emitted when a law is not adopted.
+    /// @notice Emitted when a mandate is not adopted.
     error Powers__AlreadyCastVote();
 
     /// @notice Emitted when a vote type is invalid.
@@ -62,8 +62,8 @@ interface PowersErrors {
     /// @notice Emitted when an action is already fulfilled.
     error Powers__ActionAlreadyFulfilled();
 
-    /// @notice Emitted when a law request fails.
-    error Powers__LawRequestFailed();
+    /// @notice Emitted when a mandate request fails.
+    error Powers__MandateRequestFailed();
 
     /// @notice Emitted when a calldata is too long.
     error Powers__CalldataTooLong();
@@ -80,11 +80,11 @@ interface PowersErrors {
     /// @notice Emitted when payable is not enabled.
     error Powers__PayableNotEnabled();
 
-    /// @notice Emitted when an account cannot call a law.
-    error Powers__CannotCallLaw();
+    /// @notice Emitted when an account cannot call a mandate.
+    error Powers__CannotCallMandate();
 
-    /// @notice Emitted when the caller is not the target law.
-    error Powers__CallerNotTargetLaw();
+    /// @notice Emitted when the caller is not the target mandate.
+    error Powers__CallerNotTargetMandate();
 
     /// @notice Emitted when the caller is not the proposer of the action.
     error Powers__NotProposerAction();

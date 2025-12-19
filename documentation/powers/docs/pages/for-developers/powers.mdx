@@ -1,17 +1,17 @@
 # The Powers Protocol
 
-Powers is a role-restricted governance protocol that provides a modular, flexible, decentralized, and efficient governance engine for DAOs. It is designed to be used in combination with implementations of `Law.sol` contracts.
+Powers is a role-restricted governance protocol that provides a modular, flexible, decentralized, and efficient governance engine for DAOs. It is designed to be used in combination with implementations of `Mandate.sol` contracts.
 
 ## The Role of Powers.sol
 
 `Powers.sol` is the central engine of the protocol, acting as the unopinionated core of any organisation's governance structure. It is intentionally minimalistic and does not contain any specific governance logic itself. Instead, its primary responsibilities are to:
 
 1.  **Serve as the Governance Hub**: All governance actions, from proposing a vote to executing a transaction, are initiated through `Powers.sol`. It provides a single, secure entry point for all interactions.
-2.  **Run checks**: Before any action is executed, `Powers.sol` checks the relevant Law conditions to validate the request. This ensures that all governance actions adhere to the rules defined by the organisation's laws. 
-3.  **Manage State**: It is the authoritative source for the organisation's state, including which laws are active, which accounts hold which roles, and the status of all ongoing proposals and actions.
-4.  **Enforce Outcomes**: After a `Law.sol` contract has validated an action and returned the execution data, `Powers.sol` is responsible for reliably executing the final transaction and updating the state accordingly.
+2.  **Run checks**: Before any action is executed, `Powers.sol` checks the relevant Mandate conditions to validate the request. This ensures that all governance actions adhere to the rules defined by the organisation's mandates. 
+3.  **Manage State**: It is the authoritative source for the organisation's state, including which mandates are active, which accounts hold which roles, and the status of all ongoing proposals and actions.
+4.  **Enforce Outcomes**: After a `Mandate.sol` contract has validated an action and returned the execution data, `Powers.sol` is responsible for reliably executing the final transaction and updating the state accordingly.
 
-In essence, `Powers.sol` acts as the immutable foundation of the organisation, providing the core mechanics for state management and execution, while the modular `Law.sol` contracts provide the flexible, adaptable governance logic. This separation makes the system both secure and highly extensible.
+In essence, `Powers.sol` acts as the immutable foundation of the organisation, providing the core mechanics for state management and execution, while the modular `Mandate.sol` contracts provide the flexible, adaptable governance logic. This separation makes the system both secure and highly extensible.
 
 ## Roles: Assigning, Revoking and Labelling
 
@@ -37,23 +37,23 @@ To make roles easier to identify, an admin can use `labelRole()` to give it a hu
 
 ::::
 
-## Laws: Adopting and Revoking
+## Mandates: Adopting and Revoking
 
-Laws are modular, role-restricted governance actions and the building blocks of the protocol's governance system.
+Mandates are modular, role-restricted governance actions and the building blocks of the protocol's governance system.
 
-### Law Management
-Managing the lifecycle of laws is a core administrative task.
+### Mandate Management
+Managing the lifecycle of mandates is a core administrative task.
 
 ::::steps
 
 #### Initial Constitution
-The organisation is born when an admin calls `constitute()` with the initial set of laws. This can only be done once.
+The organisation is born when an admin calls `constitute()` with the initial set of mandates. This can only be done once.
 
-#### Adopting New Laws
-As the organisation evolves, new laws can be added by an admin using `adoptLaw()`.
+#### Adopting New Mandates
+As the organisation evolves, new mandates can be added by an admin using `adoptMandate()`.
 
-#### Revoking Existing Laws
-If a law becomes obsolete, an admin can remove it using `revokeLaw()`.
+#### Revoking Existing Mandates
+If a mandate becomes obsolete, an admin can remove it using `revokeMandate()`.
 
 ::::
 
@@ -65,10 +65,10 @@ Proposals are used when an action requires community consensus.
 ::::steps 
 
 #### Creating a Proposal
-A user calls `propose()` with the law details.
+A user calls `propose()` with the mandate details.
 
 #### Voting Period
-The proposal enters a voting period defined by the law.
+The proposal enters a voting period defined by the mandate.
 
 #### Casting Votes
 Eligible voters use `castVote()` or `castVoteWithReason()`.
@@ -79,18 +79,18 @@ The proposal can be `Succeeded`, `Defeated`, or `Cancelled`.
 :::: 
 
 ### Executing Actions
-The execution flow involves a request and callback logic between `Powers.sol` and the `Law` contracts.
+The execution flow involves a request and callback logic between `Powers.sol` and the `Mandate` contracts.
 
 ::::steps
 
 #### Request Action
 A user initiates an action by calling `request()` in `Powers.sol`.
 
-#### Law Validation
-`Powers.sol` calls `executeLaw()` on the target law contract, which validates the request and prepares the execution data.
+#### Mandate Validation
+`Powers.sol` calls `executeMandate()` on the target mandate contract, which validates the request and prepares the execution data.
 
 #### Fulfill Action
-The law calls back to `Powers.sol`'s `fulfill()` function, which executes the transaction and marks the action as complete.
+The mandate calls back to `Powers.sol`'s `fulfill()` function, which executes the transaction and marks the action as complete.
 
 ::::
 
@@ -100,28 +100,28 @@ The law calls back to `Powers.sol`'s `fulfill()` function, which executes the tr
 See [the github repo here](https://github.com/7Cedars/powers/blob/main/solidity/src/Powers.sol).
 
 ### Key Differences from OpenZeppelin's Governor.sol:
-1. DAO actions must be encoded in role-restricted external contracts (laws) following the `ILaw` interface.
-2. Proposing, voting, cancelling and executing actions are role-restricted along the target law.
+1. DAO actions must be encoded in role-restricted external contracts (mandates) following the `IMandate` interface.
+2. Proposing, voting, cancelling and executing actions are role-restricted along the target mandate.
 3. All DAO actions must run through the governance flow provided by `Powers.sol`.
 4. Uses a non-weighted voting mechanism: one account has one vote.
-5. Core protocol is intentionally minimalistic - complexity must be integrated through laws.
+5. Core protocol is intentionally minimalistic - complexity must be integrated through mandates.
 
 ### State Variables
 - `_actions`: `mapping(uint256 actionId => Action)`
-- `_laws`: `mapping(uint16 lawId => AdoptedLaw)`
+- `_mandates`: `mapping(uint16 mandateId => AdoptedMandate)`
 - `_roles`: `mapping(uint256 roleId => Role)`
 - `_deposits`: `mapping(address account => Deposit[])`
 
 ### Functions
 - **Governance**: `request`, `fulfill`, `propose`, `cancel`, `castVote`, `castVoteWithReason`
-- **Admin**: `constitute`, `adoptLaw`, `revokeLaw`, `assignRole`, `revokeRole`, `labelRole`
+- **Admin**: `constitute`, `adoptMandate`, `revokeMandate`, `assignRole`, `revokeRole`, `labelRole`
 
 ### Structs
 - `Action`: Tracks a proposal's state and voting information.
-- `AdoptedLaw`: Tracks an active law's address and status.
+- `AdoptedMandate`: Tracks an active mandate's address and status.
 - `Role`: Tracks role assignments and membership.
 - `Deposit`: Tracks a deposit's amount and block number.
 
 ### Events
 - **Governance**: `ActionRequested`, `ActionExecuted`, `ProposedActionCreated`, `ProposedActionCancelled`, `VoteCast`
-- **Admin**: `RoleSet`, `RoleLabel`, `LawAdopted`, `LawRevoked`
+- **Admin**: `RoleSet`, `RoleLabel`, `MandateAdopted`, `MandateRevoked`

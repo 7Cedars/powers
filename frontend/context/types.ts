@@ -8,7 +8,7 @@ export type OrganizationType = 'Powers 101' | 'Bridging Off-Chain Governance' | 
 export type InputType = boolean | string | number | bigint | `0x${string}`
 export type DataType = "uint8" | "uint16" | "uint32" | "uint48" | "uint64" | "uint128" | "uint256" | "address" | "bytes" | "string" | "bytes32" | "bool" |
                        "uint8[]" | "uint16[]" | "uint32[]" | "uint48[]" | "uint64[]" | "uint128[]" | "uint256[]" | "address[]" | "bytes[]" | "string[]" | "bytes32[]" | "bool[]" | "unsupported" | "empty" 
-export type LawSimulation = [
+export type MandateSimulation = [
       bigint, 
       `0x${string}`[], 
       bigint[], 
@@ -34,7 +34,7 @@ export type Token = {
                       
 export type Conditions = {
   allowedRole: bigint; 
-  delayExecution: bigint; 
+  timelock: bigint; 
   needNotFulfilled: bigint;
   needFulfilled: bigint;
   quorum: bigint; 
@@ -47,8 +47,8 @@ type Args = {
   nonce: bigint;
   description: string;
   caller: `0x${string}`;
-  lawCalldata: `0x${string}`;
-  targetLaw: `0x${string}`;
+  mandateCalldata: `0x${string}`;
+  targetMandate: `0x${string}`;
 }
 
 export type LogExtended = Log & 
@@ -59,10 +59,10 @@ export type Execution = {
   blocksData?: GetBlockReturnType
 }
 
-export type Law = {
+export type Mandate = {
   powers: `0x${string}`;
-  lawAddress: `0x${string}`;
-  lawHash: `0x${string}`;
+  mandateAddress: `0x${string}`;
+  mandateHash: `0x${string}`;
   index: bigint;
   nameDescription?: string;
   conditions?: Conditions;
@@ -85,6 +85,11 @@ export type CommunicationChannels = {
   documentation?: string;
 }
 
+export type familyMember = {
+  title: string;
+  address: `0x${string}`;
+}
+
 export type Metadata = { 
   icon: string; 
   banner: string;
@@ -93,6 +98,8 @@ export type Metadata = {
   codeOfConduct?: string;
   disputeResolution?: string;
   communicationChannels?: CommunicationChannels;
+  parentContracts?: familyMember[];
+  childContracts?: familyMember[];
   attributes?: Attribute[];
 }
 
@@ -119,8 +126,8 @@ export type Powers = {
   uri?: string;
   treasury?: `0x${string}`;
   metadatas?: Metadata; 
-  lawCount?: bigint;
-  laws?: Law[];
+  mandateCount?: bigint;
+  mandates?: Mandate[];
   roles?: Role[];
   layout?: Record<string, { x: number; y: number }>; // Graph layout positions
 }
@@ -145,8 +152,8 @@ export type Checks = {
   proposalPassed?: boolean;
   fulfilled?: boolean;
   actionNotFulfilled?: boolean;
-  lawFulfilled?: boolean;
-  lawNotFulfilled?: boolean;
+  mandateFulfilled?: boolean;
+  mandateNotFulfilled?: boolean;
   delayPassed?: boolean;
   throttlePassed?: boolean;
   hasVoted?: boolean;
@@ -154,7 +161,7 @@ export type Checks = {
 
 export type Action = {
   actionId: string;
-  lawId: bigint;
+  mandateId: bigint;
   caller?: `0x${string}`;
   dataTypes?: DataType[] | undefined;
   paramValues?: (InputType | InputType[])[] | undefined;

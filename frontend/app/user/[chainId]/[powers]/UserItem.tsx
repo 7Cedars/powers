@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react"; 
 import { useChains } from 'wagmi';
-import { Law, Powers } from "@/context/types";
-import HeaderLaw from '@/components/HeaderLaw';
+import { Mandate, Powers } from "@/context/types";
+import HeaderMandate from '@/components/HeaderMandate';
 import { bigintToRole, bigintToRoleHolders } from '@/utils/bigintTo';
 import { useBlocks } from '@/hooks/useBlocks';
 import { toEurTimeFormat, toFullDateFormat } from '@/utils/toDates';
@@ -11,7 +11,7 @@ import { useActionStore } from "@/context/store";
 
 type UserItemProps = {
   powers: Powers;
-  law: Law;
+  mandate: Mandate;
   actionId?: bigint;
   chainId: string;
   showLowerSection?: boolean;
@@ -21,7 +21,7 @@ type UserItemProps = {
 
 export function UserItem({
   powers,
-  law, 
+  mandate, 
   actionId,
   chainId, 
   showLowerSection = false,
@@ -42,10 +42,10 @@ export function UserItem({
 
   // Find execution data for the specific actionId from powers.executedActions
   useEffect(() => {
-    if (powers?.laws) {
-      const lawExecutions = powers.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).filter(action => action?.lawId == law.index) : []
+    if (powers?.mandates) {
+      const mandateExecutions = powers.mandates && powers.mandates?.length > 0 ? powers.mandates.flatMap(l => l.actions).filter(action => action?.mandateId == mandate.index) : []
       
-      if (lawExecutions) {
+      if (mandateExecutions) {
         let targetActionId: bigint | null = null;
         
         // If we have an actionId prop, use that
@@ -55,9 +55,9 @@ export function UserItem({
         
         if (targetActionId) {
           // Find the specific action in the executions
-          const actionIndex = lawExecutions.findIndex(action => BigInt(action?.actionId as string) === targetActionId);
+          const actionIndex = mandateExecutions.findIndex(action => BigInt(action?.actionId as string) === targetActionId);
           if (actionIndex !== -1) {
-            const executedAt = lawExecutions[actionIndex]?.fulfilledAt;
+            const executedAt = mandateExecutions[actionIndex]?.fulfilledAt;
             if (executedAt) {
               setExecutionData({
                 actionId: targetActionId,
@@ -69,7 +69,7 @@ export function UserItem({
         }
       }
     }
-  }, [actionId, powers?.laws, law.index]);
+  }, [actionId, powers?.mandates, mandate.index]);
 
   // Fetch timestamp for execution block
   useEffect(() => {
@@ -98,15 +98,15 @@ export function UserItem({
       <section className="w-full rounded-md overflow-hidden">
         {/* Two-column layout */}
         <div className="w-full flex flex-col lg:flex-row">
-          {/* Left column - Law data */}
+          {/* Left column - Mandate data */}
           <div className="w-full lg:w-1/2 py-2 ps-4 pe-2">
-            <HeaderLaw
+            <HeaderMandate
               powers={powers}
-              lawName={law?.nameDescription ? `#${Number(law.index)}: ${law.nameDescription.split(':')[0]}` : `#${Number(law.index)}`}
-              roleName={law?.conditions && powers ? bigintToRole(law.conditions.allowedRole, powers) : ''}
-              numHolders={law?.conditions && powers ? bigintToRoleHolders(law.conditions.allowedRole, powers).toString() : ''}
-              description={law?.nameDescription ? law.nameDescription.split(':')[1] || '' : ''}
-              contractAddress={law.lawAddress}
+              mandateName={mandate?.nameDescription ? `#${Number(mandate.index)}: ${mandate.nameDescription.split(':')[0]}` : `#${Number(mandate.index)}`}
+              roleName={mandate?.conditions && powers ? bigintToRole(mandate.conditions.allowedRole, powers) : ''}
+              numHolders={mandate?.conditions && powers ? bigintToRoleHolders(mandate.conditions.allowedRole, powers).toString() : ''}
+              description={mandate?.nameDescription ? mandate.nameDescription.split(':')[1] || '' : ''}
+              contractAddress={mandate.mandateAddress}
               blockExplorerUrl={supportedChain?.blockExplorers?.default.url}
             />
           </div>
@@ -153,7 +153,7 @@ export function UserItem({
                 {/* {actionId && !executionData && (
                   <div className="flex justify-end">
                     {(() => {
-                      // const proposal = powers?.laws && powers.laws?.length > 0 ? powers.laws.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
+                      // const proposal = powers?.mandates && powers.mandates?.length > 0 ? powers.mandates.flatMap(l => l.actions).find(a => BigInt(a?.actionId as string) === actionId) : undefined;
                       
                       const layout = "w-full max-w-36 h-6 flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md text-xs";
                       

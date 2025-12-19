@@ -3,15 +3,15 @@ pragma solidity 0.8.26;
 
 import { Test } from "forge-std/Test.sol";
 import { Powers } from "../../src/Powers.sol";
-import { Law } from "../../src/Law.sol";
-import { LawUtilities } from "../../src/libraries/LawUtilities.sol";
+import { Mandate } from "../../src/Mandate.sol";
+import { MandateUtilities } from "../../src/libraries/MandateUtilities.sol";
 import { Checks } from "../../src/libraries/Checks.sol";
-import { ILaw } from "../../src/interfaces/ILaw.sol";
+import { IMandate } from "../../src/interfaces/IMandate.sol";
 import { PowersTypes } from "../../src/interfaces/PowersTypes.sol";
 import { PowersErrors } from "../../src/interfaces/PowersErrors.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
-import { OpenAction } from "../../src/laws/executive/OpenAction.sol";
+import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
@@ -29,7 +29,7 @@ contract DeployTest is TestSetupPowers {
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibd3qgeohyjeamqtfgk66lr427gpp4ify5q4civ2khcgkwyvz5hcq"
         );
         assertEq(daoMock.version(), "0.4");
-        assertNotEq(daoMock.lawCounter(), 0);
+        assertNotEq(daoMock.mandateCounter(), 0);
 
         assertNotEq(daoMock.hasRoleSince(alice, ROLE_ONE), 0);
     }
@@ -62,106 +62,106 @@ contract DeployTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract ProposeTest is TestSetupPowers {
     function testProposeRevertsWhenAccountLacksCredentials() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
+        mandateCalldata = abi.encode(true);
         address mockAddress = makeAddr("mock");
-        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+        assertFalse(daoMock.canCallMandate(mockAddress, mandateId));
 
-        vm.expectRevert(Powers__CannotCallLaw.selector);
+        vm.expectRevert(Powers__CannotCallMandate.selector);
         vm.prank(mockAddress);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
-    function testProposeRevertsIfLawNotActive() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+    function testProposeRevertsIfMandateNotActive() public {
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
-        assertTrue(daoMock.canCallLaw(bob, lawId), "bob should be able to call law 4");
+        mandateCalldata = abi.encode(true);
+        assertTrue(daoMock.canCallMandate(bob, mandateId), "bob should be able to call mandate 4");
 
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawId);
+        daoMock.revokeMandate(mandateId);
 
-        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.expectRevert(Powers__MandateNotActive.selector);
         vm.prank(charlotte);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
-    function testProposeRevertsIfLawDoesNotNeedVote() public {
-        lawId = 2; // self select  - does not need vote
+    function testProposeRevertsIfMandateDoesNotNeedVote() public {
+        mandateId = 2; // self select  - does not need vote
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
-        assertTrue(daoMock.canCallLaw(david, lawId), "david should be able to call law 2");
+        mandateCalldata = abi.encode(true);
+        assertTrue(daoMock.canCallMandate(david, mandateId), "david should be able to call mandate 2");
 
         vm.prank(david);
         vm.expectRevert(Powers__NoVoteNeeded.selector);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
     function testProposePassesWithCorrectCredentials() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
-        assertTrue(daoMock.canCallLaw(bob, lawId));
+        mandateCalldata = abi.encode(true);
+        assertTrue(daoMock.canCallMandate(bob, mandateId));
 
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Active));
     }
 
     function testProposeEmitsEvents() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
+        mandateCalldata = abi.encode(true);
         assertTrue(daoMock.hasRoleSince(bob, ROLE_ONE) != 0, "bob should have role 1");
-        assertTrue(daoMock.canCallLaw(bob, lawId), "bob should be able to call law 4");
+        assertTrue(daoMock.canCallMandate(bob, mandateId), "bob should be able to call mandate 4");
 
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         vm.expectEmit(true, false, false, false);
         emit ProposedActionCreated(
             actionId,
             bob,
-            lawId,
+            mandateId,
             "",
-            lawCalldata,
+            mandateCalldata,
             block.number,
             block.number + conditions.votingPeriod,
             nonce,
             description
         );
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
     function testProposeRevertsIfAlreadyExist() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
-        assertTrue(daoMock.canCallLaw(bob, lawId));
+        mandateCalldata = abi.encode(true);
+        assertTrue(daoMock.canCallMandate(bob, mandateId));
 
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.expectRevert(Powers__UnexpectedActionState.selector);
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
     function testProposeSetsCorrectVoteStartAndDuration() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
-        lawCalldata = abi.encode(true);
+        mandateCalldata = abi.encode(true);
 
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         (,, uint256 deadline,,,) = daoMock.getActionVoteData(actionId);
 
@@ -171,57 +171,57 @@ contract ProposeTest is TestSetupPowers {
 
 contract CancelTest is TestSetupPowers {
     function testCancellingProposalsEmitsCorrectEvent() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.expectEmit(true, false, false, false);
         emit ProposedActionCancelled(actionId);
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
     }
 
     function testCancellingProposalsSetsStateToCancelled() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
 
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Cancelled));
     }
 
     function testCancelRevertsWhenAccountDidNotCreateProposal() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, description);
+        daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.expectRevert(Powers__NotProposerAction.selector);
         vm.prank(helen);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
     }
 
     function testCancelledProposalsCannotBeCancelledAgain() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
 
         vm.expectRevert(Powers__UnexpectedActionState.selector);
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
     }
 
     function testCancelRevertsIfProposalAlreadyExecuted() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         targets = new address[](1);
         targets[0] = address(123);
         values = new uint256[](1);
@@ -229,11 +229,11 @@ contract CancelTest is TestSetupPowers {
         calldatas = new bytes[](1);
         calldatas[0] = abi.encode("mockCall");
 
-        lawCalldata = abi.encode(targets, values, calldatas);
+        mandateCalldata = abi.encode(targets, values, calldatas);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -241,53 +241,53 @@ contract CancelTest is TestSetupPowers {
                 daoMock.castVote(actionId, FOR);
             }
         }
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
         vm.prank(bob);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
 
         vm.expectRevert(Powers__UnexpectedActionState.selector);
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
     }
 
-    function testCancelRevertsIfLawNotActive() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+    function testCancelRevertsIfMandateNotActive() public {
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawId);
+        daoMock.revokeMandate(mandateId);
 
-        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.expectRevert(Powers__MandateNotActive.selector);
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
     }
 }
 
 contract VoteTest is TestSetupPowers {
     function testVotingRevertsIfAccountNotAuthorised() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         address mockAddress = makeAddr("mock");
-        assertFalse(daoMock.canCallLaw(mockAddress, lawId));
+        assertFalse(daoMock.canCallMandate(mockAddress, mandateId));
 
-        vm.expectRevert(Powers__CannotCallLaw.selector);
+        vm.expectRevert(Powers__CannotCallMandate.selector);
         vm.prank(mockAddress);
         daoMock.castVote(actionId, FOR);
     }
 
     function testProposalDefeatedIfQuorumNotReachedInTime() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         vm.roll(block.number + conditions.votingPeriod + 1);
 
@@ -296,13 +296,13 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testVotingIsNotPossibleForDefeatedProposals() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         vm.roll(block.number + conditions.votingPeriod + 1);
 
@@ -312,13 +312,13 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testProposalSucceededIfQuorumReachedInTime() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -333,13 +333,13 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testVotesWithReasonsWorks() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -354,13 +354,13 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testProposalOutcomeVoteCounts() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         uint256 numberAgainstVotes;
         uint256 numberForVotes;
@@ -392,10 +392,10 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testVoteRevertsWithInvalidVote() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(alice);
         vm.expectRevert(Powers__InvalidVoteType.selector);
@@ -408,10 +408,10 @@ contract VoteTest is TestSetupPowers {
     }
 
     function testHasVotedReturnCorrectData() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(alice);
         daoMock.castVote(actionId, ABSTAIN);
@@ -422,16 +422,16 @@ contract VoteTest is TestSetupPowers {
 
 contract ExecuteTest is TestSetupPowers {
     function testExecuteCanChangeState() public {
-        lawId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        lawCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
+        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
 
         // Check initial state - role labels should be empty
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "");
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "");
-        assertTrue(daoMock.canCallLaw(alice, lawId)); // Alice is admin and can call law 6
+        assertTrue(daoMock.canCallMandate(alice, mandateId)); // Alice is admin and can call mandate 6
 
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
 
         // Check that role labels were assigned
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "Member");
@@ -439,22 +439,22 @@ contract ExecuteTest is TestSetupPowers {
     }
 
     function testExecuteSuccessSetsStateToFulfilled() public {
-        lawId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        lawCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
+        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
 
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
 
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
     }
 
     function testExecuteEmitsEvent() public {
-        lawId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        lawCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
+        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
 
-        // Set up expected event data for law 7 (3 actions: label role 1, label role 2, revoke law 7)
+        // Set up expected event data for mandate 7 (3 actions: label role 1, label role 2, revoke mandate 7)
         address[] memory tar = new address[](3);
         uint256[] memory val = new uint256[](3);
         bytes[] memory cal = new bytes[](3);
@@ -469,31 +469,31 @@ contract ExecuteTest is TestSetupPowers {
 
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
         cal[1] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_TWO, "Delegate");
-        cal[2] = abi.encodeWithSelector(daoMock.revokeLaw.selector, 7);
+        cal[2] = abi.encodeWithSelector(daoMock.revokeMandate.selector, 7);
 
-        actionId = LawUtilities.hashActionId(lawId, lawCalldata, nonce);
+        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
 
         vm.expectEmit(true, false, false, false);
-        emit ActionExecuted(lawId, actionId, tar, val, cal);
+        emit ActionExecuted(mandateId, actionId, tar, val, cal);
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfNotAuthorised() public {
-        lawId = 3; // Delegate Election - needs ROLE_ONE
+        mandateId = 3; // Delegate Election - needs ROLE_ONE
         address[] memory addresses = new address[](1);
         addresses[0] = makeAddr("mock");
-        lawCalldata = abi.encode(addresses);
+        mandateCalldata = abi.encode(addresses);
 
-        assertFalse(daoMock.canCallLaw(addresses[0], lawId));
+        assertFalse(daoMock.canCallMandate(addresses[0], mandateId));
 
-        vm.expectRevert(Powers__CannotCallLaw.selector);
+        vm.expectRevert(Powers__CannotCallMandate.selector);
         vm.prank(addresses[0]);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfActionAlreadyExecuted() public {
-        lawId = 3; // = ROle ONE
+        mandateId = 3; // = ROle ONE
         address[] memory tar = new address[](1);
         uint256[] memory val = new uint256[](1);
         bytes[] memory cal = new bytes[](1);
@@ -501,12 +501,12 @@ contract ExecuteTest is TestSetupPowers {
         val[0] = 0;
         cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
-        lawCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(tar, val, cal);
         vm.prank(alice);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 vm.prank(users[i]);
@@ -514,45 +514,45 @@ contract ExecuteTest is TestSetupPowers {
             }
         }
 
-        vm.roll(block.number + conditions.votingPeriod + conditions.delayExecution + 1);
+        vm.roll(block.number + conditions.votingPeriod + conditions.timelock + 1);
 
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
 
         vm.expectRevert(Powers__ActionAlreadyInitiated.selector);
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
-    function testExecuteRevertsIfLawNotActive() public {
-        lawId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        lawCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+    function testExecuteRevertsIfMandateNotActive() public {
+        mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
+        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
 
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(lawId);
+        daoMock.revokeMandate(mandateId);
 
-        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.expectRevert(Powers__MandateNotActive.selector);
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfProposalNeeded() public {
-        lawId = 5; // Execute action - needs law 4 completed
-        lawCalldata = abi.encode(true);
+        mandateId = 5; // Execute action - needs mandate 4 completed
+        mandateCalldata = abi.encode(true);
 
-        vm.expectRevert(Checks.Checks__ParentLawNotCompleted.selector);
+        vm.expectRevert(Checks.Checks__ParentMandateNotCompleted.selector);
         vm.prank(charlotte);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfProposalDefeated() public {
-        lawId = 3; // = ROLE ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // = ROLE ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        (lawAddress, lawHash, active) = daoMock.getAdoptedLaw(lawId);
-        conditions = daoMock.getConditions(lawId);
+        (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
+        conditions = daoMock.getConditions(mandateId);
 
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
@@ -567,24 +567,24 @@ contract ExecuteTest is TestSetupPowers {
 
         vm.expectRevert(Checks.Checks__ProposalNotSucceeded.selector);
         vm.prank(alice);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfProposalCancelled() public {
-        lawId = 3; // StatementOfIntent - needs ROLE_ONE
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent - needs ROLE_ONE
+        mandateCalldata = abi.encode(true);
         vm.prank(bob);
-        actionId = daoMock.propose(lawId, lawCalldata, nonce, description);
+        actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
         vm.prank(bob);
-        daoMock.cancel(lawId, lawCalldata, nonce);
+        daoMock.cancel(mandateId, mandateCalldata, nonce);
 
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Cancelled));
 
         vm.expectRevert(Powers__ActionCancelled.selector);
         vm.prank(bob);
-        daoMock.request(lawId, lawCalldata, nonce, description);
+        daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 }
 
@@ -592,24 +592,24 @@ contract ExecuteTest is TestSetupPowers {
 //                  ROLE AND LAW ADMIN                      //
 //////////////////////////////////////////////////////////////
 contract ConstituteTest is TestSetupPowers {
-    function testConstituteSetsLawsToActive() public {
+    function testConstituteSetsMandatesToActive() public {
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
-        LawInitData[] memory lawInitData = new LawInitData[](1);
+        MandateInitData[] memory mandateInitData = new MandateInitData[](1);
 
-        lawInitData[0] = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[3], // = openAction
+        mandateInitData[0] = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: mandateAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.prank(alice);
-        daoMockTest.constitute(lawInitData);
+        daoMockTest.constitute(mandateInitData);
 
-        for (i = 1; i <= lawInitData.length; i++) {
-            daoMockTest.getAdoptedLaw(uint16(i));
+        for (i = 1; i <= mandateInitData.length; i++) {
+            daoMockTest.getAdoptedMandate(uint16(i));
         }
     }
 
@@ -617,140 +617,140 @@ contract ConstituteTest is TestSetupPowers {
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
-        LawInitData[] memory lawInitData = new LawInitData[](1);
-        lawInitData[0] = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[3], // = openAction
+        MandateInitData[] memory mandateInitData = new MandateInitData[](1);
+        mandateInitData[0] = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: mandateAddresses[3], // = openAction
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.prank(alice);
-        daoMockTest.constitute(lawInitData);
+        daoMockTest.constitute(mandateInitData);
 
         vm.expectRevert(Powers__ConstitutionAlreadyExecuted.selector);
         vm.prank(alice);
-        daoMockTest.constitute(lawInitData);
+        daoMockTest.constitute(mandateInitData);
     }
 
     function testConstituteCannotBeCalledByNonAdmin() public {
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
-        LawInitData[] memory lawInitData = new LawInitData[](1);
-        lawInitData[0] = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: lawAddresses[3],
+        MandateInitData[] memory mandateInitData = new MandateInitData[](1);
+        mandateInitData[0] = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: mandateAddresses[3],
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.expectRevert(Powers__NotAdmin.selector);
         vm.prank(bob);
-        daoMockTest.constitute(lawInitData);
+        daoMockTest.constitute(mandateInitData);
     }
 }
 
-contract SetLawTest is TestSetupPowers {
-    function testSetLawSetsNewLaw() public {
-        lawCounter = daoMock.lawCounter();
-        newLaw = address(new OpenAction());
+contract SetMandateTest is TestSetupPowers {
+    function testSetMandateSetsNewMandate() public {
+        mandateCounter = daoMock.mandateCounter();
+        newMandate = address(new OpenAction());
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: newLaw,
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: newMandate,
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
 
-        (address law,,) = daoMock.getAdoptedLaw(lawCounter);
-        assertEq(law, newLaw, "New law should be active after adoption");
+        (address mandate,,) = daoMock.getAdoptedMandate(mandateCounter);
+        assertEq(mandate, newMandate, "New mandate should be active after adoption");
     }
 
-    function testSetLawEmitsEvent() public {
-        lawCounter = daoMock.lawCounter();
-        newLaw = address(new OpenAction());
+    function testSetMandateEmitsEvent() public {
+        mandateCounter = daoMock.mandateCounter();
+        newMandate = address(new OpenAction());
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: newLaw,
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: newMandate,
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.expectEmit(true, false, false, false);
-        emit LawAdopted(uint16(lawCounter));
+        emit MandateAdopted(uint16(mandateCounter));
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
     }
 
-    function testSetLawRevertsIfNotCalledFromPowers() public {
-        newLaw = address(new OpenAction());
+    function testSetMandateRevertsIfNotCalledFromPowers() public {
+        newMandate = address(new OpenAction());
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: newLaw,
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: newMandate,
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.expectRevert(Powers__OnlyPowers.selector);
         vm.prank(alice);
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
     }
 
-    function testSetLawRevertsIfAddressNotALaw() public {
-        newLaw = address(3333);
+    function testSetMandateRevertsIfAddressNotAMandate() public {
+        newMandate = address(3333);
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: newLaw,
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: newMandate,
             config: abi.encode(),
             conditions: conditions
         });
 
-        vm.expectRevert(abi.encodeWithSelector(Powers__IncorrectInterface.selector, newLaw));
+        vm.expectRevert(abi.encodeWithSelector(Powers__IncorrectInterface.selector, newMandate));
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
     }
 
-    function testAdoptingSameLawTwice() public {
-        newLaw = address(new OpenAction());
+    function testAdoptingSameMandateTwice() public {
+        newMandate = address(new OpenAction());
 
         vm.prank(alice);
         PowersMock daoMockTest = new PowersMock();
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law: Test law description",
-            targetLaw: newLaw,
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate: Test mandate description",
+            targetMandate: newMandate,
             config: abi.encode(),
             conditions: conditions
         });
 
         vm.prank(address(daoMockTest));
-        daoMockTest.adoptLaw(lawInitData);
+        daoMockTest.adoptMandate(mandateInitData);
 
         vm.prank(address(daoMockTest));
-        daoMockTest.adoptLaw(lawInitData);
+        daoMockTest.adoptMandate(mandateInitData);
 
         for (i = 1; i <= 2; i++) {
-            (address law,,) = daoMockTest.getAdoptedLaw(uint16(i));
-            assertEq(law, newLaw, "New law should be active after adoption");
+            (address mandate,,) = daoMockTest.getAdoptedMandate(uint16(i));
+            assertEq(mandate, newMandate, "New mandate should be active after adoption");
         }
     }
 
-    function testRevokeLawRevertsIfAddressNotActive() public {
-        newLaw = address(new OpenAction());
+    function testRevokeMandateRevertsIfAddressNotActive() public {
+        newMandate = address(new OpenAction());
 
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(1);
+        daoMock.revokeMandate(1);
 
-        vm.expectRevert(Powers__LawNotActive.selector);
+        vm.expectRevert(Powers__MandateNotActive.selector);
         vm.prank(address(daoMock));
-        daoMock.revokeLaw(1);
+        daoMock.revokeMandate(1);
     }
 }
 
@@ -881,8 +881,8 @@ contract ComplianceTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract ProposeAdvancedTest is TestSetupPowers {
     function testProposeRevertsWithBlacklistedCaller() public {
-        lawId = 3; // StatementOfIntent
-        lawCalldata = abi.encode(true);
+        mandateId = 3; // StatementOfIntent
+        mandateCalldata = abi.encode(true);
 
         // Blacklist the caller
         vm.prank(address(daoMock));
@@ -890,42 +890,42 @@ contract ProposeAdvancedTest is TestSetupPowers {
 
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
+        daoMock.propose(mandateId, mandateCalldata, nonce, "Test proposal");
     }
 
     function testProposeRevertsWithCalldataTooLong() public {
-        lawId = 3; // StatementOfIntent
+        mandateId = 3; // StatementOfIntent
         // Create calldata longer than MAX_CALLDATA_LENGTH
-        lawCalldata = new bytes(daoMock.MAX_CALLDATA_LENGTH() + 1);
+        mandateCalldata = new bytes(daoMock.MAX_CALLDATA_LENGTH() + 1);
 
         vm.expectRevert(PowersErrors.Powers__CalldataTooLong.selector);
         vm.prank(bob);
-        daoMock.propose(lawId, lawCalldata, nonce, "Test proposal");
+        daoMock.propose(mandateId, mandateCalldata, nonce, "Test proposal");
     }
 }
 
 //////////////////////////////////////////////////////////////
 //                  LAW ADOPTION TESTS                      //
 //////////////////////////////////////////////////////////////
-contract LawAdoptionTest is TestSetupPowers {
-    function testAdoptLawRevertsWithBlacklistedTarget() public {
-        address blacklistedLaw = lawAddresses[2];
+contract MandateAdoptionTest is TestSetupPowers {
+    function testAdoptMandateRevertsWithBlacklistedTarget() public {
+        address blacklistedMandate = mandateAddresses[2];
 
-        // Blacklist the target law
+        // Blacklist the target mandate
         vm.prank(address(daoMock));
-        daoMock.blacklistAddress(blacklistedLaw, true);
+        daoMock.blacklistAddress(blacklistedMandate, true);
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law", targetLaw: blacklistedLaw, config: abi.encode(), conditions: conditions
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate", targetMandate: blacklistedMandate, config: abi.encode(), conditions: conditions
         });
 
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
     }
 
-    function testAdoptLawRevertsWithPublicRoleAndQuorum() public {
-        newLaw = address(new OpenAction());
+    function testAdoptMandateRevertsWithPublicRoleAndQuorum() public {
+        newMandate = address(new OpenAction());
 
         // Create conditions with PUBLIC_ROLE and quorum > 0
         PowersTypes.Conditions memory invalidConditions = PowersTypes.Conditions({
@@ -933,19 +933,19 @@ contract LawAdoptionTest is TestSetupPowers {
             quorum: 50, // > 0
             succeedAt: 0,
             votingPeriod: 0,
-            delayExecution: 0,
+            timelock: 0,
             throttleExecution: 0,
             needFulfilled: 0,
             needNotFulfilled: 0
         });
 
-        LawInitData memory lawInitData = LawInitData({
-            nameDescription: "Test law", targetLaw: newLaw, config: abi.encode(), conditions: invalidConditions
+        MandateInitData memory mandateInitData = MandateInitData({
+            nameDescription: "Test mandate", targetMandate: newMandate, config: abi.encode(), conditions: invalidConditions
         });
 
         vm.expectRevert(PowersErrors.Powers__VoteWithPublicRoleDisallowed.selector);
         vm.prank(address(daoMock));
-        daoMock.adoptLaw(lawInitData);
+        daoMock.adoptMandate(mandateInitData);
     }
 }
 

@@ -1,0 +1,23 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeihd4il4irvu3kqxnlohkkzlhpywcujqmabwldi3nftqmt5xaszwxy",
+  "description": 
+    "In Optimistic Execution, the Powers protocol leverages optimistic mechanisms to enable faster decision-making processes by assuming proposals are valid unless challenged. This approach can improve efficiency while still allowing for dispute resolution through challenges. A similar mechanism is currently used by the Optimism Collective.",
+  "website": "",
+  "codeOfConduct": "", 
+  "disputeResolution": "", 
+  "communicationChannels": {
+      "discord": "https://discordapp.com/users/1006928106487021638",
+      "telegram": "https://t.me/thd83",
+      "x": "https://x.com/7__Cedars",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers/blob/develop/frontend/organisations/OptimisticExecution.ts",
+      "forum": "",
+      "documentation": ""
+  },
+  "parentContracts": [ ],
+  "childContracts": [ ],
+  "attributes": [ ]
+}

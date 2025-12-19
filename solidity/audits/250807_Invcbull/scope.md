@@ -11,15 +11,15 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 ```
 ├── src
 │   ├── Powers.sol (680 lines)
-│   ├── Law.sol (245 lines)
-│   ├── LawUtilities.sol (320 lines)
+│   ├── Mandate.sol (245 lines)
+│   ├── MandateUtilities.sol (320 lines)
 │   └── interfaces
 │       ├── IPowers.sol (236 lines)
-│       ├── ILaw.sol (157 lines)
+│       ├── IMandate.sol (157 lines)
 │       ├── PowersTypes.sol (94 lines)
 │       ├── PowersEvents.sol (107 lines)
 │       ├── PowersErrors.sol (85 lines)
-│       └── LawErrors.sol (53 lines)
+│       └── MandateErrors.sol (53 lines)
 ```
 
 
@@ -27,7 +27,7 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 
 ```
 ├── src
-│   └── laws
+│   └── mandates
 │       ├── executive
 │       │   ├── OpenAction.sol (71 lines)
 │       │   └── StatementOfIntent.sol (70 lines)
@@ -44,7 +44,7 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 
 ## Out of Scope
 
-- All other contracts in subdirectories of `src/` (laws/, integrations/)
+- All other contracts in subdirectories of `src/` (mandates/, integrations/)
 - Any external dependencies or libraries
 - Frontend code or deployment scripts
 - Test files and mock contracts
@@ -52,8 +52,8 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 ## Invariants
 
 ### Core Protocol Invariants
-- `LawCount` should never decrease.
-- Adopting a new law should increase lawCount by 1. 
+- `MandateCount` should never decrease.
+- Adopting a new mandate should increase mandateCount by 1. 
 - An action can only be executed if it has reached the `Fulfilled` state
 
 ### Governance Invariants
@@ -62,15 +62,15 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 - An account can only vote once per proposal
 - The sum of For, Against, and Abstain votes must equal the total number of votes cast
 
-### Law System Invariants
-- A law can only be executed if it is active
-- The `lawId` must be unique across all active laws
-- A law's conditions must be valid (e.g., `needFulfilled` law must exist if specified)
-- A law cannot execute if its parent law (specified by `needFulfilled`) has not been fulfilled
+### Mandate System Invariants
+- A mandate can only be executed if it is active
+- The `mandateId` must be unique across all active mandates
+- A mandate's conditions must be valid (e.g., `needFulfilled` mandate must exist if specified)
+- A mandate cannot execute if its parent mandate (specified by `needFulfilled`) has not been fulfilled
 
 ### State Management Invariants
-- The `actionId` must be unique for each combination of `lawId`, `lawCalldata`, and `nonce`
-- State management in laws is ring-fenced by the Powers instance that called the `initalizeLaw` function.   
+- The `actionId` must be unique for each combination of `mandateId`, `mandateCalldata`, and `nonce`
+- State management in mandates is ring-fenced by the Powers instance that called the `initalizeMandate` function.   
 - For each instance of `Executions`, `executions` and `actionIds` should be the same length
 - The `roleId` must be unique for each role in the system
 - An account's role assignment timestamp must be greater than 0 if the account has the role
@@ -78,7 +78,7 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 ### Access Control Invariants
 - Only accounts with the appropriate role can execute functions restricted by that role
 - The `onlyPowers` modifier can only be satisfied by calls from the Powers contract itself
-- Only active laws can call the `fulfill` function
+- Only active mandates can call the `fulfill` function
 - Role assignments and revocations must emit the appropriate events
 
 ### Data Integrity Invariants
@@ -94,7 +94,7 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 - **License**: MIT
 - **Architecture**: Modular governance with role-based access control
 - **Compatibility**: OpenZeppelin Governor.sol, AccessManager, Hats Protocol
-- **Key Features**: Non-weighted voting, role-restricted actions, modular law system
+- **Key Features**: Non-weighted voting, role-restricted actions, modular mandate system
 
 ## Risk Assessment
 
@@ -102,7 +102,7 @@ This audit covers the core contracts of the Powers Protocol, a role-restricted g
 - Governance manipulation through role management
 - Proposal execution bypass mechanisms
 - Vote counting and quorum validation
-- Law execution authorization
+- Mandate execution authorization
 
 ### Medium Priority
 - State consistency across contracts

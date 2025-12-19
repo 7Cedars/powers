@@ -309,13 +309,13 @@ export const parseVoteData = (data: unknown[]): {votes: number[], holders: numbe
 }
   
 // Parse different types of errors and extract meaningful error messages
-export const parseLawError = (rawReply: unknown): string => {
+export const parseMandateError = (rawReply: unknown): string => {
   // Handle null/undefined input
   if (rawReply == null) {
     return "."
   }
 
-  console.log("@parseLawError: ", {rawReply})
+  console.log("@parseMandateError: ", {rawReply})
 
   // Convert to string for processing
   let errorString: string
@@ -396,7 +396,6 @@ export const parseMetadata = (metadata: unknown): Metadata => {
     'codeOfConduct' in metadata &&
     'disputeResolution' in metadata &&
     'communicationChannels' in metadata &&
-
     'attributes' in metadata 
     ) { 
         return ({
@@ -407,6 +406,8 @@ export const parseMetadata = (metadata: unknown): Metadata => {
           disputeResolution: parseString(metadata.disputeResolution),
           communicationChannels: metadata.communicationChannels as CommunicationChannels, // This should actually also have a proper parser. 
           description: parseString(metadata.description),
+          parentContracts: 'parentContracts' in metadata ? metadata.parentContracts as any : undefined,
+          childContracts: 'childContracts' in metadata ? metadata.childContracts as any : undefined,
           attributes: parseAttributes(metadata.attributes)
         })
        }

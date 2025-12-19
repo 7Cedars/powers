@@ -14,7 +14,7 @@ import { useBlocks } from "@/hooks/useBlocks"
 import { toFullDateFormat, toEurTimeFormat } from "@/utils/toDates"
 import { getEnsName } from "@wagmi/core"
 import { LoadingBox } from "@/components/LoadingBox"
-import { useLaw } from "@/hooks/useLaw";
+import { useMandate } from "@/hooks/useMandate";
 
 // Helper function to truncate addresses, preferring ENS names
 const truncateAddress = (address: string | undefined, ensName: string | null | undefined): string => {
@@ -56,10 +56,10 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const { data: blockNumber } = useBlockNumber()
   const constants = getConstants(parseChainId(chainId) as number)
   const action = useActionStore()
-  const law = powers?.laws?.find(law => law.index == action?.lawId)
-  const roleHolders = Number(powers?.roles?.find(role => BigInt(role.roleId) == BigInt(law?.conditions?.allowedRole || 0))?.amountHolders) || 0
+  const mandate = powers?.mandates?.find(mandate => mandate.index == action?.mandateId)
+  const roleHolders = Number(powers?.roles?.find(role => BigInt(role.roleId) == BigInt(mandate?.conditions?.allowedRole || 0))?.amountHolders) || 0
   const [populatedAction, setPopulatedAction] = useState<Action | undefined>()
-  const {actionVote, fetchVoteData} = useLaw();
+  const {actionVote, fetchVoteData} = useMandate();
 
   console.log("@Voting: waypoint 0", {actionVote, action, populatedAction})
 
@@ -71,30 +71,30 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
   const publicClient = usePublicClient()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id == parseChainId(chainId))
-  const voteEnd = law?.conditions?.votingPeriod ? populatedAction?.proposedAt ? populatedAction.proposedAt + law.conditions.votingPeriod : 0 : 0
+  const voteEnd = mandate?.conditions?.votingPeriod ? populatedAction?.proposedAt ? populatedAction.proposedAt + mandate.conditions.votingPeriod : 0 : 0
 
   // console.log("@Voting: waypoint 0", {action, actionVote})
 
   // Use updated action data if available, otherwise use prop
   const allVotes = Number(actionVote?.forVotes || 0) + Number(actionVote?.againstVotes || 0) + Number(actionVote?.abstainVotes || 0)
-  const quorum = roleHolders > 0 ? Math.floor((roleHolders * Number(law?.conditions?.quorum || 0)) / 100) : 0
-  const threshold = roleHolders > 0 ? Math.floor((roleHolders * Number(law?.conditions?.succeedAt || 0)) / 100) : 0
+  const quorum = roleHolders > 0 ? Math.floor((roleHolders * Number(mandate?.conditions?.quorum || 0)) / 100) : 0
+  const threshold = roleHolders > 0 ? Math.floor((roleHolders * Number(mandate?.conditions?.succeedAt || 0)) / 100) : 0
   const deadline = Number(actionVote?.voteEnd || 0)
   const layout = `w-full flex flex-row justify-center items-center px-2 py-1 text-bold rounded-md`
 
   // resetting action state when action is changed,
   useEffect(() => {
     if (action) {
-      const newPopulatedAction = law?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
+      const newPopulatedAction = mandate?.actions?.find(a => BigInt(a.actionId) == BigInt(action.actionId));
       setPopulatedAction(newPopulatedAction);
     }
-  }, [action.actionId, law]);
+  }, [action.actionId, mandate]);
 
   // useEffect(() => {
-  //   if (powers && law && populatedAction) {
+  //   if (powers && mandate && populatedAction) {
   //     fetchVotes()
   //   }
-  // }, [powers, law, populatedAction])
+  // }, [powers, mandate, populatedAction])
 
   const fetchVotes = async () => {
     if (!populatedAction?.actionId) return;
@@ -253,7 +253,7 @@ export const Voting = ({ powers }: {powers: Powers | undefined}) => {
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-gray-400`} />
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-red-400`} style={{width:`${allVotes > 0 ? ((Number(actionVote?.forVotes || 0) + Number(actionVote?.againstVotes || 0)) / allVotes)*100 : 0}%`}} />
             <div className={`absolute bottom-0 w-full leading-none h-3 bg-green-400`} style={{width:`${allVotes > 0 ? ((Number(actionVote?.forVotes || 0)) / allVotes)*100 : 0}%`}} />
-            <div className={`absolute -top-2 w-full leading-none h-6 border-r-4 border-green-500`} style={{width:`${law?.conditions?.succeedAt}%`}} />
+            <div className={`absolute -top-2 w-full leading-none h-6 border-r-4 border-green-500`} style={{width:`${mandate?.conditions?.succeedAt}%`}} />
           </div>
           <div className="w-full flex flex-row justify-between items-center"> 
             <div className="w-fit text-sm text-center text-green-500">

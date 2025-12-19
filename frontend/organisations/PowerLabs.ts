@@ -1,7 +1,7 @@
-import { Organization, LawInitData, isDeployableContract, isFunctionCallDependency, DeployableContract } from "./types";
+import { Organization, MandateInitData, isDeployableContract, isFunctionCallDependency, DeployableContract } from "./types";
 import { powersAbi, safeL2Abi, safeProxyFactoryAbi } from "@/context/abi";  
 import { Abi, encodeAbiParameters, encodeFunctionData, parseAbiParameters, keccak256, encodePacked, toFunctionSelector } from "viem";
-import { getLawAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createLawInitData, minutesToBlocks } from "./helpers";
+import { getMandateAddress, daysToBlocks, ADMIN_ROLE, PUBLIC_ROLE, createConditions, createMandateInitData, minutesToBlocks } from "./helpers";
 import treasuryPools from "@/context/builds/TreasuryPools.json";
 import { getConstants } from "@/context/constants";
 import { sepolia, arbitrumSepolia, optimismSepolia, mantleSepoliaTestnet, foundry } from "@wagmi/core/chains";
@@ -54,37 +54,37 @@ export const PowerLabs: Organization = {
     { name: "chainlinkSubscriptionId", placeholder: "Chainlink Functions Subscription ID", type: "number", required: true },
   ],
   dependencies:  [ ],
+  exampleDeployment: {
+    chainId: sepolia.id,
+    address: "0xfCc77b6a992FBd5Af6b41D5d572d50377588c5E5" as `0x${string}`,
+  },
   allowedChains: [
-    sepolia.id,
-    arbitrumSepolia.id,
-    optimismSepolia.id, 
+    sepolia.id, 
   ],
   allowedChainsLocally: [
-    sepolia.id, 
-        arbitrumSepolia.id,
-    optimismSepolia.id, 
+    sepolia.id,  
     foundry.id
   ],
  
-  createLawInitData: (
+  createMandateInitData: (
     powersAddress: `0x${string}`,
     formData: Record<string, any>,
-    deployedLaws: Record<string, `0x${string}`>,
+    deployedMandates: Record<string, `0x${string}`>,
     dependencyReceipts: Record<string, any>,
     chainId: number,
-  ): LawInitData[] => {
-    const lawInitData: LawInitData[] = [];
-    let lawCounter = 0;
-    // console.log("deployedLaws @ PowerLabs", deployedLaws);
-    // console.log("chainId @ createLawInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
+  ): MandateInitData[] => {
+    const mandateInitData: MandateInitData[] = [];
+    let mandateCounter = 0;
+    // console.log("deployedMandates @ PowerLabs", deployedMandates);
+    // console.log("chainId @ createMandateInitData", {formData, selection: formData["chainlinkSubscriptionId"] as bigint});
     
     //////////////////////////////////////////////////////////////////
     //                 INITIAL SETUP & ROLE LABELS                  //
     //////////////////////////////////////////////////////////////////
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
-      targetLaw: getLawAddress("SafeSetup", deployedLaws),
+      targetMandate: getMandateAddress("SafeSetup", deployedMandates),
       config: encodeAbiParameters(
         [
           { name: 'safeProxyFactory', type: 'address' },
@@ -100,23 +100,41 @@ export const PowerLabs: Organization = {
       })
     });
 
-    lawCounter++;
-    lawInitData.push({ // law 1 : Initial setup
+    mandateCounter++;
+    mandateInitData.push({ // mandate 1 : Initial setup
       nameDescription: "Configure Organisation: Adopt allowance module to SafeProxy, assign role labels and create governance flows.",
-      targetLaw: getConstants(chainId).POWER_LABS_CONFIG as `0x${string}`, // Here have to use getConstants to get the config law. 
+      targetMandate: getConstants(chainId).POWER_LABS_CONFIG as `0x${string}`, // Here have to use getConstants to get the config mandate. 
       config: "0x" as `0x${string}`,
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
     });
+
+    // The Admin can update the URI.   
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Update URI: The admin can update the organization's URI.",
+      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates),
+      config: encodeAbiParameters(
+        parseAbiParameters('address powers, bytes4 FunctionSelector, string[] Params'),
+        [
+          powersAddress,
+          toFunctionSelector("setUri(string)"),
+          ["string Uri"]
+        ]
+      ),
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE
+      })
+    }); 
      
     //////////////////////////////////////////////////////////////////
     //                    ELECTORAL LAWS                            //
     /////////////////////////////////////////////////////////////////
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Apply for Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository",
-      targetLaw: getLawAddress("ClaimRoleWithGitSig", deployedLaws),
+      targetMandate: getMandateAddress("ClaimRoleWithGitSig", deployedMandates),
       config: encodeAbiParameters(
         [
           { name: 'branch', type: 'string' },
@@ -139,26 +157,26 @@ export const PowerLabs: Organization = {
       ),
       conditions: createConditions({ 
         allowedRole: PUBLIC_ROLE,
-        throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the law with multiple claims in a short time
+        throttleExecution: minutesToBlocks(3, chainId) // Prevents spamming the mandate with multiple claims in a short time
       })
     });
-    const claimLaw = BigInt(lawCounter);
+    const claimMandate = BigInt(mandateCounter);
 
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Claim Contributor Role: Following a successful initial claim, contributors can get contributor role assigned to their account.",
-      targetLaw: getLawAddress("AssignRoleWithGitSig", deployedLaws),
+      targetMandate: getMandateAddress("AssignRoleWithGitSig", deployedMandates),
       config: `0x`, // No config needed as all data is in the commit signatures  
       conditions: createConditions({ 
         allowedRole: PUBLIC_ROLE,
-        needFulfilled: claimLaw // Must have claimed a contributor role first
+        needFulfilled: claimMandate // Must have claimed a contributor role first
       })
     });
 
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Apply for Member Role: Receive Member role when holding Funder or any Contributor role",
-      targetLaw: getLawAddress("RoleByRoles", deployedLaws),
+      targetMandate: getMandateAddress("RoleByRoles", deployedMandates),
       config: encodeAbiParameters(
         [
           { name: 'newRoleId', type: 'uint256' },
@@ -169,21 +187,21 @@ export const PowerLabs: Organization = {
       conditions: createConditions({ allowedRole: PUBLIC_ROLE })
     });
     
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Veto Role Revocation: Admin can veto proposals to remove roles from accounts",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws), // Veto is just an intent
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates), // Veto is just an intent
       config: encodeAbiParameters(parseAbiParameters('string[] inputParams'), [["uint256 roleId", "address account"]]), // Matches proposal input partially
       conditions: createConditions({
         allowedRole: ADMIN_ROLE
       })
     });
-    const vetoRoleLaw = BigInt(lawCounter);
+    const vetoRoleMandate = BigInt(mandateCounter);
 
-    lawCounter++;
-    lawInitData.push({
+    mandateCounter++;
+    mandateInitData.push({
       nameDescription: "Revoke Role: Members vote to remove a role from an account",
-      targetLaw: getLawAddress("BespokeActionSimple", deployedLaws), // Use BespokeActionSimple for direct Powers call
+      targetMandate: getMandateAddress("BespokeActionSimple", deployedMandates), // Use BespokeActionSimple for direct Powers call
       config: encodeAbiParameters(
         [
           { name: 'targetContract', type: 'address' },
@@ -198,11 +216,11 @@ export const PowerLabs: Organization = {
       ),
       conditions: createConditions({
         allowedRole: 5n, // Members propose/vote
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 5n, // Note: low quorum
-        delayExecution: minutesToBlocks(3, chainId),
-        needNotFulfilled: vetoRoleLaw // Link dependency to veto law
+        timelock: minutesToBlocks(3, chainId),
+        needNotFulfilled: vetoRoleMandate // Link dependency to veto mandate
       })
     });
     
@@ -210,157 +228,157 @@ export const PowerLabs: Organization = {
     //////////////////////////////////////////////////////////////////
     //                 CONSTITUTIONAL LAWS                          //
     //////////////////////////////////////////////////////////////////
-    const adoptLawsConfig = encodeAbiParameters(
+    const adoptMandatesConfig = encodeAbiParameters(
       parseAbiParameters('string[] inputParams'),
-      [["address[] laws", "uint256[] roleIds"]]
+      [["address[] mandates", "uint256[] roleIds"]]
     );
 
-    // Adopt Laws flow. 
-    // Propose Law Package - Unchanged (but renumbered)
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Propose Adopting Laws: Members propose adopting new laws",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: adoptLawsConfig,
+    // Adopt Mandates flow. 
+    // Propose Mandate Package - Unchanged (but renumbered)
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Propose Adopting Mandates: Members propose adopting new mandates",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: adoptMandatesConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
     });
-    const proposeAdoptLaw = BigInt(lawCounter);
+    const proposeAdoptMandate = BigInt(mandateCounter);
 
-    // Law 26: Veto Law Package - Unchanged (but renumbered & dependency adjusted)
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Veto Adopting Laws: Funders can veto proposals to adopt new laws",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: adoptLawsConfig,
+    // Veto Mandate Package - Unchanged (but renumbered & dependency adjusted)
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Veto Adopting Mandates: Funders can veto proposals to adopt new mandates",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: adoptMandatesConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 33n,
         quorum: 50n,
-        needFulfilled: proposeAdoptLaw
+        needFulfilled: proposeAdoptMandate
       })
     }); 
-    const vetoAdoptLaw = BigInt(lawCounter);
+    const vetoAdoptMandate = BigInt(mandateCounter);
 
-    // Law 27: Adopt Law Package - Unchanged (but renumbered & dependencies adjusted)
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Adopt Laws: Admin adopts new laws into the organization",
-      targetLaw: getLawAddress("AdoptLaws", deployedLaws), // Ensure this name matches build
+    // Adopt Mandate Package - Unchanged (but renumbered & dependencies adjusted)
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Adopt Mandates: Admin adopts new mandates into the organization",
+      targetMandate: getMandateAddress("AdoptMandates", deployedMandates), // Ensure this name matches build
+      config: "0x" as `0x${string}`,  
+      conditions: createConditions({
+        allowedRole: ADMIN_ROLE,
+        needFulfilled: vetoAdoptMandate, // For testing, we allow direct adoption without veto
+        needNotFulfilled: proposeAdoptMandate // For testing, we allow direct adoption without veto
+      })
+    });
+
+    // Revoke mandates flow. 
+    const revokeMandatesConfig = encodeAbiParameters(
+      parseAbiParameters('string[] inputParams'),
+      [["uint16[] mandateIds"]]
+    );
+
+    // Revoke Mandates flow. 
+    // Propose Revoking Mandates 
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Propose Revoking Mandates: Members propose revoking existing mandates",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: revokeMandatesConfig,
+      conditions: createConditions({
+        allowedRole: 5n, // Members
+        votingPeriod: minutesToBlocks(5, chainId),
+        succeedAt: 51n,
+        quorum: 50n
+      })
+    });
+    const proposeRevokeMandate = BigInt(mandateCounter);
+
+    // Veto Revoking Mandates
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Veto Revoking Mandates: Funders can veto proposals to revoke existing mandates",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: revokeMandatesConfig,
+      conditions: createConditions({
+        allowedRole: 1n, // Funders
+        votingPeriod: minutesToBlocks(5, chainId),
+        succeedAt: 33n,
+        quorum: 50n,
+        needFulfilled: proposeRevokeMandate
+      })
+    }); 
+    const vetoRevokeMandate = BigInt(mandateCounter);
+
+    // Revoke Mandates 
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Revoke Mandates: Admin revokes mandates from the organization",
+      targetMandate: getMandateAddress("RevokeMandates", deployedMandates), // Ensure this name matches build
       config: "0x00" as `0x${string}`,  
       conditions: createConditions({
         allowedRole: ADMIN_ROLE,
-        needFulfilled: vetoAdoptLaw, // For testing, we allow direct adoption without veto
-        needNotFulfilled: proposeAdoptLaw // For testing, we allow direct adoption without veto
+        needFulfilled: vetoRevokeMandate, // For testing, we allow direct revocation without veto
+        needNotFulfilled: proposeRevokeMandate // For testing, we allow direct revocation without veto
       })
     });
 
-    // Revoke laws flow. 
-    const revokeLawsConfig = encodeAbiParameters(
+    // Adopt Children Mandates flow.
+    // Propose Mandate Package - Unchanged (but renumbered)
+    const adoptChildrensMandatesConfig = encodeAbiParameters(
       parseAbiParameters('string[] inputParams'),
-      [["uint16[] lawIds"]]
+      [["address[] mandates", "uint256[] roleIds"]]
     );
 
-    // Revoke Laws flow. 
-    // Law 25: Propose revoking Laws 
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Propose Revoking Laws: Members propose revoking existing laws",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: revokeLawsConfig,
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Propose adopting a Child Mandate: Members propose adopting new mandates for a Powers' child",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: adoptChildrensMandatesConfig,
       conditions: createConditions({
         allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 51n,
         quorum: 50n
       })
     });
-    const proposeRevokeLaw = BigInt(lawCounter);
+    const proposeMandate = BigInt(mandateCounter); 
 
-    // Law 26: Veto Revoking Laws
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Veto Revoking Laws: Funders can veto proposals to revoke existing laws",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: revokeLawsConfig,
+    // Veto Mandate Package - Unchanged (but renumbered & dependency adjusted)
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Veto Adopting A child Mandate: Funders can veto proposals to adopt new mandates for a Powers' child",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: adoptChildrensMandatesConfig,
       conditions: createConditions({
         allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
+        votingPeriod: minutesToBlocks(5, chainId),
         succeedAt: 33n,
         quorum: 50n,
-        needFulfilled: proposeRevokeLaw
+        needFulfilled: proposeMandate
       })
     }); 
-    const vetoRevokeLaw = BigInt(lawCounter);
+    const vetoMandate = BigInt(mandateCounter);
 
-    // Law 27: Revoke Laws 
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Revoke Laws: Admin revokes laws from the organization",
-      targetLaw: getLawAddress("RevokeLaws", deployedLaws), // Ensure this name matches build
-      config: "0x00" as `0x${string}`,  
-      conditions: createConditions({
-        allowedRole: ADMIN_ROLE,
-        needFulfilled: vetoRevokeLaw, // For testing, we allow direct revocation without veto
-        needNotFulfilled: proposeRevokeLaw // For testing, we allow direct revocation without veto
-      })
-    });
-
-    // Adopt Children Laws flow.
-    // Propose Law Package - Unchanged (but renumbered)
-    const adoptChildrensLawsConfig = encodeAbiParameters(
-      parseAbiParameters('string[] inputParams'),
-      [["address[] laws", "uint256[] roleIds"]]
-    );
-
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Propose adopting a Child Law: Members propose adopting new laws for a Powers' child",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: adoptChildrensLawsConfig,
-      conditions: createConditions({
-        allowedRole: 5n, // Members
-        votingPeriod: minutesToBlocks(10, chainId),
-        succeedAt: 51n,
-        quorum: 50n
-      })
-    });
-    const proposeLaw = BigInt(lawCounter); 
-
-    // Veto Law Package - Unchanged (but renumbered & dependency adjusted)
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Veto Adopting A child Law: Funders can veto proposals to adopt new laws for a Powers' child",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: adoptChildrensLawsConfig,
-      conditions: createConditions({
-        allowedRole: 1n, // Funders
-        votingPeriod: minutesToBlocks(10, chainId),
-        succeedAt: 33n,
-        quorum: 50n,
-        needFulfilled: proposeLaw
-      })
-    }); 
-    const vetoLaw = BigInt(lawCounter);
-
-    // Adopt Law Package - Unchanged (but renumbered & dependencies adjusted)
-    lawCounter++;
-    lawInitData.push({
-      nameDescription: "Adopt a Child Law: Admin adopts the new law for a Powers' child",
-      targetLaw: getLawAddress("StatementOfIntent", deployedLaws),
-      config: adoptChildrensLawsConfig,
+    // Adopt Mandate Package - Unchanged (but renumbered & dependencies adjusted)
+    mandateCounter++;
+    mandateInitData.push({
+      nameDescription: "Adopt a Child Mandate: Admin adopts the new mandate for a Powers' child",
+      targetMandate: getMandateAddress("StatementOfIntent", deployedMandates),
+      config: adoptChildrensMandatesConfig,
       conditions: createConditions({
         allowedRole: 0n, // Admin
-        needFulfilled: proposeLaw,
-        needNotFulfilled: vetoLaw
+        needFulfilled: proposeMandate,
+        needNotFulfilled: vetoMandate
       })
     }); 
 
-    return lawInitData;
+    return mandateInitData;
   }
 };

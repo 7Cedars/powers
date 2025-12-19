@@ -8,7 +8,7 @@ import { Powers } from './types'
  * for understanding the Powers protocol.
  */
 export const defaultPowers101: Powers = {
-  contractAddress: '0x4d18b96126fa23a04c1d00b77b370b562edaa450' as `0x${string}`,
+  contractAddress: '0x4479D77f2F5E29813DABb289f26C68b9Ee9E0ff6' as `0x${string}`,
   chainId: 11155420n,
   name: 'Powers 101',
   uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicbh6txnypkoy6ivngl3l2k6m646hruupqspyo7naf2jpiumn2jqe",
@@ -18,8 +18,8 @@ export const defaultPowers101: Powers = {
     description: "A simple DAO with basic governance based on a separation of powers between delegates, an executive council and an admin. It is a good starting point for understanding the Powers protocol.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 
@@ -42,8 +42,8 @@ export const defaultPowerLabs: Powers = {
     description: "Power Labs is the on-chain organization that shepherds the development of the Powers protocol. It uses Safes (and its allowance modules) for asset management.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 
@@ -56,16 +56,16 @@ export const defaultPowerLabs: Powers = {
 export const defaultPowerLabsChild: Powers = {
   contractAddress: '0xc74504061fb47c1a3aec36d0ac4d199d3364a321' as `0x${string}`,
   chainId: 11155111n,
-  name: 'Power Labs - Documentation',
+  name: 'Power Labs Child: Docs',
   uri: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreichqvnlmfgkw2jeqgerae2torhgbcgdomxzqxiymx77yhflpnniii",
   metadatas: {
     icon: '/logo1_notext.png',
     banner: "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiaxdinbxkpv5xa5od5yjho3bshpvzaacuxcnfgi6ie3galmwkggvi",
-    description: "Power Labs Documentation is the on-chain organization that shepherds the development of documentation for the Powers protocol.",
+    description: "Power Labs Child: Docs is the on-chain organization that shepherds the development of documentation for the Powers protocol.",
     attributes: []
   },
-  lawCount: 0n,
-  laws: [],
+  mandateCount: 0n,
+  mandates: [],
   roles: [],
 }
 

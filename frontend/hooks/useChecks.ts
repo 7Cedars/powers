@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { powersAbi } from "../context/abi";
-import { Law, Checks, Status, Powers } from "../context/types"
+import { Mandate, Checks, Status, Powers } from "../context/types"
 import { wagmiConfig } from "@/context/wagmiConfig";
 import { ConnectedWallet } from "@privy-io/react-auth";
 import { readContract } from "wagmi/actions";
@@ -19,14 +19,14 @@ export const useChecks = () => {
   // console.log("useChecks: waypoint 0", {error, status})
 
   const checkAccountAuthorised = useCallback(
-    async (law: Law, powers: Powers, wallets: ConnectedWallet[]) => {
+    async (mandate: Mandate, powers: Powers, wallets: ConnectedWallet[]) => {
         try {
-          // console.log("@checkAccountAuthorised: waypoint 0", {law, powers, wallets})
+          // console.log("@checkAccountAuthorised: waypoint 0", {mandate, powers, wallets})
           const result =  await readContract(wagmiConfig, {
                   abi: powersAbi,
                   address: powers.contractAddress as `0x${string}`,
-                  functionName: 'canCallLaw', 
-                  args: [wallets[0].address, law.index],
+                  functionName: 'canCallMandate', 
+                  args: [wallets[0].address, mandate.index],
                   chainId: parseChainId(chainId)
                 })
           // console.log("@checkAccountAuthorised: waypoint 1", {result})
@@ -39,14 +39,14 @@ export const useChecks = () => {
   }, [])
 
   const getActionState = useCallback(
-    async (law: Law, lawId: bigint, lawCalldata: `0x${string}`, nonce: bigint): Promise<bigint | undefined> => {
-      const actionId = hashAction(lawId, lawCalldata, nonce)
-      // console.log("@getActionState: waypoint 0", {lawId, lawCalldata, nonce, actionId})
+    async (mandate: Mandate, mandateId: bigint, mandateCalldata: `0x${string}`, nonce: bigint): Promise<bigint | undefined> => {
+      const actionId = hashAction(mandateId, mandateCalldata, nonce)
+      // console.log("@getActionState: waypoint 0", {mandateId, mandateCalldata, nonce, actionId})
 
       try {
         const state =  await readContract(wagmiConfig, {
                 abi: powersAbi,
-                address: law.powers as `0x${string}`,
+                address: mandate.powers as `0x${string}`,
                 functionName: 'getActionState', 
                 args: [actionId],
                 chainId: parseChainId(chainId)
@@ -59,38 +59,38 @@ export const useChecks = () => {
       }
   }, [])
 
-  const fetchLatestFulfillment = useCallback(async (law: Law) => {
+  const fetchLatestFulfillment = useCallback(async (mandate: Mandate) => {
     const latestFulfillment = await readContract(wagmiConfig, {
       abi: powersAbi,
-      address: law.powers as `0x${string}`,
+      address: mandate.powers as `0x${string}`,
       functionName: 'getLatestFulfillment',
-      args: [law.index],
+      args: [mandate.index],
       chainId: parseChainId(chainId)
     })
     return latestFulfillment as bigint
   }, [])
 
-  const checkThrottledExecution = useCallback( async (law: Law) => {
-    const latestFulfillment = await fetchLatestFulfillment(law)
+  const checkThrottledExecution = useCallback( async (mandate: Mandate) => {
+    const latestFulfillment = await fetchLatestFulfillment(mandate)
     
     const blockNumber = await getBlockNumber(wagmiConfig, {
       chainId: parseChainId(chainId),
     })
-    // console.log("checkThrottledExecution, waypoint 1", {latestFulfillment, law, blockNumber})
+    // console.log("checkThrottledExecution, waypoint 1", {latestFulfillment, mandate, blockNumber})
 
     if (latestFulfillment && blockNumber) {
-      const result = Number(latestFulfillment) + Number(law.conditions?.throttleExecution) < Number(blockNumber)
+      const result = Number(latestFulfillment) + Number(mandate.conditions?.throttleExecution) < Number(blockNumber)
       return result as boolean
     } else {
       return true
     } 
   }, [])
 
-  const checkDelayedExecution = async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
-    // console.log("CheckDelayedExecution triggered:", {lawId, nonce, calldata, powers})
-    const actionId = hashAction(lawId, calldata, nonce)
+  const checkDelayedExecution = async (mandateId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers) => {
+    // console.log("CheckDelayedExecution triggered:", {mandateId, nonce, calldata, powers})
+    const actionId = hashAction(mandateId, calldata, nonce)
     // console.log("Deadline ActionId:", actionId)
-    const law = powers.laws?.find(law => law.index === lawId)
+    const mandate = powers.mandates?.find(mandate => mandate.index === mandateId)
     try {
       const blockNumber = await getBlockNumber(wagmiConfig, {
         chainId: parseChainId(chainId),
@@ -110,9 +110,9 @@ export const useChecks = () => {
       ]
 
       // console.log("Deadline:", voteEnd, "BlockNumber:", blockNumber)
-      // console.log("Deadline + Delay:", Number(voteEnd) + Number(law?.conditions?.delayExecution), "BlockNumber:", blockNumber)
+      // console.log("Deadline + Delay:", Number(voteEnd) + Number(mandate?.conditions?.timelock), "BlockNumber:", blockNumber)
       if (voteEnd && blockNumber) {
-        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(law?.conditions?.delayExecution) < Number(blockNumber) : false  
+        const result = Number(voteEnd) > 0 ? Number(voteEnd) + Number(mandate?.conditions?.timelock) < Number(blockNumber) : false  
         // console.log("Deadline Result:", result) 
         return result as boolean
       } else {
@@ -127,8 +127,8 @@ export const useChecks = () => {
 
   // note: I did not implement castVoteWithReason -- to much work for now. 
   const checkHasVoted = useCallback( 
-    async (lawId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers, account: `0x${string}`): Promise<boolean> => {
-      const actionId = hashAction(lawId, calldata, nonce)
+    async (mandateId: bigint, nonce: bigint, calldata: `0x${string}`, powers: Powers, account: `0x${string}`): Promise<boolean> => {
+      const actionId = hashAction(mandateId, calldata, nonce)
       // console.log("checkHasVoted triggered")
         // setStatus({status: "pending"})
         try {
@@ -148,36 +148,36 @@ export const useChecks = () => {
   }, [chainId])
 
   const fetchChecks = useCallback( 
-    async (law: Law, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
-      // console.log("fetchChecks triggered, waypoint 0", {law, callData, nonce, wallets, powers, actionLawId, caller})
+    async (mandate: Mandate, callData: `0x${string}`, nonce: bigint, wallets: ConnectedWallet[], powers: Powers) => {
+      // console.log("fetchChecks triggered, waypoint 0", {mandate, callData, nonce, wallets, powers, actionMandateId, caller})
         setError(null)
         setStatus("pending")
 
-        if (wallets[0] && powers?.contractAddress && law.conditions) { 
-          // console.log("fetchChecks triggered, waypoint 1", {law, callData, nonce, wallets, powers, actionLawId, caller})
+        if (wallets[0] && powers?.contractAddress && mandate.conditions) { 
+          // console.log("fetchChecks triggered, waypoint 1", {mandate, callData, nonce, wallets, powers, actionMandateId, caller})
           const checksData = await Promise.all([
-            checkThrottledExecution(law),
-            checkAccountAuthorised(law, powers, wallets),
-            getActionState(law, law.index, callData, nonce),
-            getActionState(law, law.conditions.needFulfilled, callData, nonce),
-            getActionState(law, law.conditions.needNotFulfilled, callData, nonce),
-            checkDelayedExecution(law.index, nonce, callData, powers), 
-            checkHasVoted(law.index, nonce, callData, powers, wallets[0].address as `0x${string}`)
+            checkThrottledExecution(mandate),
+            checkAccountAuthorised(mandate, powers, wallets),
+            getActionState(mandate, mandate.index, callData, nonce),
+            getActionState(mandate, mandate.conditions.needFulfilled, callData, nonce),
+            getActionState(mandate, mandate.conditions.needNotFulfilled, callData, nonce),
+            checkDelayedExecution(mandate.index, nonce, callData, powers), 
+            checkHasVoted(mandate.index, nonce, callData, powers, wallets[0].address as `0x${string}`)
           ])
           const [throttled, authorised, actionState, actionStateNeedFulfilled, actionStateNeedNotFulfilled, delayed, hasVoted] = checksData
 
           const newChecks: Checks =  {
-            delayPassed: law.conditions.delayExecution == 0n ? true : delayed,
-            throttlePassed: law.conditions.throttleExecution == 0n ? true : throttled,
+            delayPassed: mandate.conditions.timelock == 0n ? true : delayed,
+            throttlePassed: mandate.conditions.throttleExecution == 0n ? true : throttled,
             authorised,
-            actionExists: law.conditions.quorum == 0n ? true : actionState != 0n,
-            proposalPassed: law.conditions.quorum == 0n ? true : actionState == 5n || actionState == 6n || actionState == 7n,
+            actionExists: mandate.conditions.quorum == 0n ? true : actionState != 0n,
+            proposalPassed: mandate.conditions.quorum == 0n ? true : actionState == 5n || actionState == 6n || actionState == 7n,
             actionNotFulfilled: actionState != 7n,
-            lawFulfilled: law.conditions.needFulfilled == 0n ? true : actionStateNeedFulfilled == 7n, 
-            lawNotFulfilled: law.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n
+            mandateFulfilled: mandate.conditions.needFulfilled == 0n ? true : actionStateNeedFulfilled == 7n, 
+            mandateNotFulfilled: mandate.conditions.needNotFulfilled == 0n ? true : actionStateNeedNotFulfilled != 7n
           } 
           newChecks.allPassed = Object.values(newChecks).filter(item => item !== undefined).every(item => item === true)
-          newChecks.voteActive = law.conditions.quorum == 0n ? true : actionState == 1n
+          newChecks.voteActive = mandate.conditions.quorum == 0n ? true : actionState == 1n
           newChecks.hasVoted = hasVoted
 
           // console.log("fetchChecks triggered, waypoint 2", {newChecks})

@@ -278,8 +278,8 @@ info:
 
 update-builds:
 	@echo "Updating builds..."
-	for contract in ERC20 Erc20Taxed ERC20Votes Law Ownable Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
-
+	for contract in ERC20 Erc20Taxed SimpleErc20Votes Mandate Nominees Ownable OpenElection Powers TreasuryPoolGovernance TreasuryPools TreasuryPoolTransfer TreasuryRoleWithTransfer TreasurySimple; do cp out/$${contract}.sol/$${contract}.json ../frontend/context/builds/$${contract}.json; done
+	
 ###############################
 # 		Deploy Commands  	  # 
 ###############################
@@ -305,13 +305,17 @@ deploy-allo-anvil:
 initialise-anvil :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ANVIL_ARGS_0) 
 initialise-safe-allowance-anvil :; forge script script/InitialiseSafe.s.sol:InitialiseSafe $(ANVIL_ARGS_0) 
 deploy-mocks-anvil :; forge script script/DeployMocks.s.sol:DeployMocks $(ANVIL_ARGS_0) 
-fund-treasury-anvil :; forge script script/FundTreasury.s.sol:FundTreasury $(ANVIL_ARGS_0) 
+
 
 initialise-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
 initialise-op-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(OPT_SEPOLIA_DEPLOY_ARGS)
 initialise-arb-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(ARB_SEPOLIA_DEPLOY_ARGS)
 # initialise-base-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
 # initialise-zksync-sepolia :; forge script script/InitialisePowers.s.sol:InitialisePowers $(MANTLE_SEPOLIA_DEPLOY_ARGS)
+
+deploy-mocks-sepolia :; forge script script/DeployMocks.s.sol:DeployMocks $(SEPOLIA_DEPLOY_ARGS)
+deploy-mocks-op-sepolia :; forge script script/DeployMocks.s.sol:DeployMocks $(OPT_SEPOLIA_DEPLOY_ARGS)
+deploy-mocks-arb-sepolia :; forge script script/DeployMocks.s.sol:DeployMocks $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 # sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch
 optSepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155420 --compiler-version 0.8.26 --num-of-optimizations 600 --verifier etherscan 0x6f8c6ac58a467836D85548Bf2Fef473D5efcFeA4 src/helpers/TreasuryPools.sol:TreasuryPools --watch
@@ -324,11 +328,15 @@ deploy-safe-allowance-sepolia :; forge script script/InitialiseSafe.s.sol:Initia
 deploy-allowance-module-op-sepolia :; forge script script/DeployAllowanceModule.s.sol:DeployAllowanceModule $(OPT_SEPOLIA_DEPLOY_ARGS) 
 deploy-allowance-module-arb-sepolia :; forge script script/DeployAllowanceModule.s.sol:DeployAllowanceModule $(ARB_SEPOLIA_DEPLOY_ARGS) 
 
-deploy-lawPackages-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(SEPOLIA_DEPLOY_ARGS)
-deploy-lawPackages-op-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(OPT_SEPOLIA_DEPLOY_ARGS)
-deploy-lawPackages-arb-sepolia :; forge script script/DeployLawPackages.s.sol:DeployLawPackages $(ARB_SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-op-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(OPT_SEPOLIA_DEPLOY_ARGS)
+deploy-mandatePackages-arb-sepolia :; forge script script/DeployMandatePackages.s.sol:DeployMandatePackages $(ARB_SEPOLIA_DEPLOY_ARGS)
 
 # Create forked anvil test chain. 
 fork-sepolia-anvil :
 	@echo "Starting Anvil forked from Sepolia..."
-	anvil --fork-url $(SEPOLIA_RPC_URL) --block-time 12
+	anvil --fork-url $(SEPOLIA_RPC_URL) --block-time 12 --chain-id 31337
+
+fork-op-sepolia-anvil :
+	@echo "Starting Anvil forked from Optimism Sepolia..."
+	anvil --fork-url $(OPT_SEPOLIA_RPC_URL) --block-time 1 --chain-id 31337

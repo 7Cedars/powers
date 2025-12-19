@@ -10,7 +10,7 @@ import { Callout } from 'vocs/components'
 
 ### *Vision & Mission*
 
-Powers 102 is a collection of governance paths that demonstrate how to implement governance frameworks from existing DAOs on-chain using the Powers protocol. Unlike Powers 101 which provides a basic organizational structure, Powers 102 showcases specific governance patterns and workflows that are commonly used in production DAOs, implemented as reusable on-chain laws.
+Powers 102 is a collection of governance paths that demonstrate how to implement governance frameworks from existing DAOs on-chain using the Powers protocol. Unlike Powers 101 which provides a basic organizational structure, Powers 102 showcases specific governance patterns and workflows that are commonly used in production DAOs, implemented as reusable on-chain mandates.
 
 The mission is to provide reference implementations that developers can adapt for their own organizations, demonstrating the flexibility and composability of the Powers protocol.
 
@@ -20,7 +20,7 @@ Treasury management in Powers 102 varies depending on which governance flow is b
 
 ## Roles
 
-<div class="table-laws">
+<div class="table-mandates">
 | **Role Id** | **Role name** | **Selection criteria** |
 | :--- | :--- | :--- |
 | 0 | Admin | Admin role assigned at deployment for system management. |
@@ -30,22 +30,22 @@ Treasury management in Powers 102 varies depending on which governance flow is b
 | … | Public | Everyone. |
 </div> 
 
-## On-chain Laws
+## On-chain Mandates
 
-### *Executive Laws (executing actions)*
+### *Executive Mandates (executing actions)*
 
-<div class="table-laws">
+<div class="table-mandates">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Members | **Snapshot & Governor Integration**: Propose action with off-chain signaling via Snapshot, followed by on-chain voting via Governor.sol | SnapshotGovernor.sol | "address[] Targets", "uint256[] Values", "bytes[] Calldatas", "string snapshotId" | Oracle-verified execution of proposed action | Snapshot vote passes, Governor vote passes, oracle verification successful |
 | Members | **Flag Action**: Flag an action or proposal as inappropriate | FlagAction.sol | "bytes32 actionHash", "string reason" | Increments flag counter for action | Caller is member, action exists |
 | Members | **Execute Flagged Consequence**: Take consequence action after threshold of flags | FlagAction.sol | "bytes32 actionHash" | Executes predefined consequence | Flag threshold reached (N flags) |
-| Admin | **Adopt Law Package**: Deploy and configure multiple new laws in a single transaction | AdoptLawPackage.sol | "address[] lawAddresses", "bytes[] configData" | Adopts multiple laws with configuration | Valid law addresses, compatible with existing framework |
+| Admin | **Adopt Mandate Package**: Deploy and configure multiple new mandates in a single transaction | AdoptMandatePackage.sol | "address[] mandateAddresses", "bytes[] configData" | Adopts multiple mandates with configuration | Valid mandate addresses, compatible with existing framework |
 </div> 
 
-### *Electoral Laws (assigning roles)*
+### *Electoral Mandates (assigning roles)*
 
-<div class="table-laws">
+<div class="table-mandates">
 | **Role** | **Name & Description** | **Base contract** | **User Input** | **Executable Output** | **Conditions** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Public | **Nominate for List Election**: Self-nominate for elected role | ListElection.sol | "uint256 roleId", "string statement" | Adds nominee to election list | Election period active, not already nominated |
@@ -58,16 +58,16 @@ Treasury management in Powers 102 varies depending on which governance flow is b
 | Public | **Select by Tax Paid**: Automatic role assignment based on tax contributions | TaxBasedSelection.sol | "uint256 roleId" | Assigns role to caller | Tax threshold reached in current epoch |
 </div> 
 
-### *Constitutional Laws (adopting and revoking laws)*
+### *Constitutional Mandates (adopting and revoking mandates)*
 
-Constitutional changes in Powers 102 are demonstrated through the **Adopt Law Package** mechanism, which allows for:
+Constitutional changes in Powers 102 are demonstrated through the **Adopt Mandate Package** mechanism, which allows for:
 
-- Deployment of multiple related laws in a single governance action
-- Configuration of law parameters during adoption
+- Deployment of multiple related mandates in a single governance action
+- Configuration of mandate parameters during adoption
 - Integration with existing governance frameworks
 - Example implementation that mirrors Powers 101 governance structure
 
-The package adoption law is designed to work with an existing 'AdoptLaws' law in the governance framework, providing a template for how organizations can upgrade their governance capabilities.
+The package adoption mandate is designed to work with an existing 'AdoptMandates' mandate in the governance framework, providing a template for how organizations can upgrade their governance capabilities.
 
 ## Off-chain Operations
 
@@ -119,6 +119,6 @@ List elections may suffer from low voter turnout, resulting in unrepresentative 
 Accounts might artificially inflate tax payments to gain roles without genuine contribution.
 **Mitigation**: Set meaningful thresholds, implement multi-epoch requirements, and combine with reputation systems.
 
-### Law Package Complexity
-Adopting multiple laws simultaneously increases the risk of unforeseen interactions or vulnerabilities.
+### Mandate Package Complexity
+Adopting multiple mandates simultaneously increases the risk of unforeseen interactions or vulnerabilities.
 **Mitigation**: Require thorough testing, implement staged rollouts, and maintain emergency pause mechanisms.

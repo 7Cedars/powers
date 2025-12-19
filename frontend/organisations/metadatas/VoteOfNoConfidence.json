@@ -1,0 +1,23 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeie47slqacwgjoxx6kqexiau2mzusmcefrckz7uvll6pyizjbaubyy",
+  "description": 
+    "Vote of No Confidence is a governance mechanism that allows members to express their lack of confidence in a group of elected representatives. In this example voters can trigger a vote of no-confidence and call for early elections.",
+  "website": "",
+  "codeOfConduct": "", 
+  "disputeResolution": "", 
+  "communicationChannels": {
+      "discord": "https://discordapp.com/users/1006928106487021638",
+      "telegram": "https://t.me/thd83",
+      "x": "https://x.com/7__Cedars",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers/blob/develop/frontend/organisations/GovernedReform.ts",
+      "forum": "",
+      "documentation": ""
+  },
+  "parentContracts": [ ],
+  "childContracts": [ ],
+  "attributes": [ ]
+}

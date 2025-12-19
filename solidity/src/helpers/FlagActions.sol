@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 /// @title FlagActions (standalone)
-/// @notice Helper to flag/unflag actionIds with tracking by roleId, account, and lawId
+/// @notice Helper to flag/unflag actionIds with tracking by roleId, account, and mandateId
 /// @dev Standalone pattern with immutable powers address and onlyPowers modifier
 /// @author 7Cedars
 
@@ -18,7 +18,7 @@ contract FlagActions is Ownable {
     // Additional tracking mappings
     mapping(uint16 roleId => uint256[]) public flaggedActionsByRole;
     mapping(address account => uint256[]) public flaggedActionsByAccount;
-    mapping(uint16 lawId => uint256[]) public flaggedActionsByLaw;
+    mapping(uint16 mandateId => uint256[]) public flaggedActionsByMandate;
 
     // Global list of all flagged actions
     uint256[] public allFlaggedActions;
@@ -27,19 +27,19 @@ contract FlagActions is Ownable {
     struct ActionMetadata {
         uint16 roleId;
         address account;
-        uint16 lawId;
+        uint16 mandateId;
         uint256 allFlaggedIndex; // Index in allFlaggedActions array
         uint256 roleIndex; // Index in flaggedActionsByRole array
         uint256 accountIndex; // Index in flaggedActionsByAccount array
-        uint256 lawIndex; // Index in flaggedActionsByLaw array
+        uint256 mandateIndex; // Index in flaggedActionsByMandate array
         bool exists;
     }
 
     mapping(uint256 actionId => ActionMetadata) public actionMetadata;
 
     // Events
-    event FlagActions__Flagged(uint256 actionId, uint16 roleId, address account, uint16 lawId);
-    event FlagActions__Unflagged(uint256 actionId, uint16 roleId, address account, uint16 lawId);
+    event FlagActions__Flagged(uint256 actionId, uint16 roleId, address account, uint16 mandateId);
+    event FlagActions__Unflagged(uint256 actionId, uint16 roleId, address account, uint16 mandateId);
 
     constructor() Ownable(msg.sender) { }
 
@@ -47,8 +47,8 @@ contract FlagActions is Ownable {
     /// @param actionId The action ID to flag
     /// @param roleId The role ID associated with the action
     /// @param account The account associated with the action
-    /// @param lawId The law ID associated with the action
-    function flag(uint256 actionId, uint16 roleId, address account, uint16 lawId) external onlyOwner {
+    /// @param mandateId The mandate ID associated with the action
+    function flag(uint256 actionId, uint16 roleId, address account, uint16 mandateId) external onlyOwner {
         if (flaggedActions[actionId]) revert("Already true");
         if (IPowers(msg.sender).getActionState(actionId) != PowersTypes.ActionState.Fulfilled) {
             revert("Action not fulfilled");
@@ -60,27 +60,27 @@ contract FlagActions is Ownable {
         uint256 allFlaggedIndex = allFlaggedActions.length;
         uint256 roleIndex = flaggedActionsByRole[roleId].length;
         uint256 accountIndex = flaggedActionsByAccount[account].length;
-        uint256 lawIndex = flaggedActionsByLaw[lawId].length;
+        uint256 mandateIndex = flaggedActionsByMandate[mandateId].length;
 
         // Store metadata with indices for efficient removal
         actionMetadata[actionId] = ActionMetadata({
             roleId: roleId,
             account: account,
-            lawId: lawId,
+            mandateId: mandateId,
             allFlaggedIndex: allFlaggedIndex,
             roleIndex: roleIndex,
             accountIndex: accountIndex,
-            lawIndex: lawIndex,
+            mandateIndex: mandateIndex,
             exists: true
         });
 
         // Add to tracking lists
         flaggedActionsByRole[roleId].push(actionId);
         flaggedActionsByAccount[account].push(actionId);
-        flaggedActionsByLaw[lawId].push(actionId);
+        flaggedActionsByMandate[mandateId].push(actionId);
         allFlaggedActions.push(actionId);
 
-        emit FlagActions__Flagged(actionId, roleId, account, lawId);
+        emit FlagActions__Flagged(actionId, roleId, account, mandateId);
     }
 
     /// @notice Unflags an action id. Reverts if not flagged
@@ -98,7 +98,7 @@ contract FlagActions is Ownable {
         _removeFromArrayByIndex(allFlaggedActions, metadata.allFlaggedIndex);
         _removeFromArrayByIndex(flaggedActionsByRole[metadata.roleId], metadata.roleIndex);
         _removeFromArrayByIndex(flaggedActionsByAccount[metadata.account], metadata.accountIndex);
-        _removeFromArrayByIndex(flaggedActionsByLaw[metadata.lawId], metadata.lawIndex);
+        _removeFromArrayByIndex(flaggedActionsByMandate[metadata.mandateId], metadata.mandateIndex);
 
         // Update indices of elements that were swapped
         _updateIndicesAfterRemoval(metadata);
@@ -106,7 +106,7 @@ contract FlagActions is Ownable {
         // Clear metadata
         delete actionMetadata[actionId];
 
-        emit FlagActions__Unflagged(actionId, metadata.roleId, metadata.account, metadata.lawId);
+        emit FlagActions__Unflagged(actionId, metadata.roleId, metadata.account, metadata.mandateId);
     }
 
     /// @notice Internal function to remove an element from an array by index using swap-and-pop
@@ -160,11 +160,11 @@ contract FlagActions is Ownable {
             }
         }
 
-        // Check law array
-        if (removedMetadata.lawIndex < flaggedActionsByLaw[removedMetadata.lawId].length) {
-            uint256 swappedActionId = flaggedActionsByLaw[removedMetadata.lawId][removedMetadata.lawIndex];
+        // Check mandate array
+        if (removedMetadata.mandateIndex < flaggedActionsByMandate[removedMetadata.mandateId].length) {
+            uint256 swappedActionId = flaggedActionsByMandate[removedMetadata.mandateId][removedMetadata.mandateIndex];
             if (actionMetadata[swappedActionId].exists) {
-                actionMetadata[swappedActionId].lawIndex = removedMetadata.lawIndex;
+                actionMetadata[swappedActionId].mandateIndex = removedMetadata.mandateIndex;
             }
         }
     }
@@ -188,11 +188,11 @@ contract FlagActions is Ownable {
         return flaggedActionsByAccount[account];
     }
 
-    /// @notice Get all flagged actions for a specific law ID
-    /// @param lawId The law ID to query
-    /// @return Array of flagged action IDs for the law
-    function getFlaggedActionsByLaw(uint16 lawId) external view returns (uint256[] memory) {
-        return flaggedActionsByLaw[lawId];
+    /// @notice Get all flagged actions for a specific mandate ID
+    /// @param mandateId The mandate ID to query
+    /// @return Array of flagged action IDs for the mandate
+    function getFlaggedActionsByMandate(uint16 mandateId) external view returns (uint256[] memory) {
+        return flaggedActionsByMandate[mandateId];
     }
 
     /// @notice Get all currently flagged actions
@@ -215,11 +215,11 @@ contract FlagActions is Ownable {
         return flaggedActionsByAccount[account].length;
     }
 
-    /// @notice Get count of flagged actions for a specific law ID
-    /// @param lawId The law ID to query
-    /// @return Count of flagged actions for the law
-    function getFlaggedActionsCountByLaw(uint16 lawId) external view returns (uint256) {
-        return flaggedActionsByLaw[lawId].length;
+    /// @notice Get count of flagged actions for a specific mandate ID
+    /// @param mandateId The mandate ID to query
+    /// @return Count of flagged actions for the mandate
+    function getFlaggedActionsCountByMandate(uint16 mandateId) external view returns (uint256) {
+        return flaggedActionsByMandate[mandateId].length;
     }
 
     /// @notice Get total count of all flagged actions
@@ -256,14 +256,14 @@ contract FlagActions is Ownable {
         return false;
     }
 
-    /// @notice Check if a specific action is flagged for a law
+    /// @notice Check if a specific action is flagged for a mandate
     /// @param actionId The action ID to check
-    /// @param lawId The law ID to check
-    /// @return True if the action is flagged for the law
-    function isActionFlaggedForLaw(uint256 actionId, uint16 lawId) external view returns (bool) {
-        uint256[] memory lawActions = flaggedActionsByLaw[lawId];
-        for (uint256 i = 0; i < lawActions.length; i++) {
-            if (lawActions[i] == actionId) {
+    /// @param mandateId The mandate ID to check
+    /// @return True if the action is flagged for the mandate
+    function isActionFlaggedForMandate(uint256 actionId, uint16 mandateId) external view returns (bool) {
+        uint256[] memory mandateActions = flaggedActionsByMandate[mandateId];
+        for (uint256 i = 0; i < mandateActions.length; i++) {
+            if (mandateActions[i] == actionId) {
                 return true;
             }
         }

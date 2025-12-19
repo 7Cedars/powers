@@ -13,7 +13,7 @@ import { setError } from "@/context/store";
 type InputProps = {
   dataType: DataType;
   varName: string;
-  values: InputType | InputType[] | undefined
+  values: InputType | InputType[]
   onChange: (input: InputType | InputType[]) => void;
   index: number;
 }

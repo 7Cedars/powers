@@ -29,27 +29,27 @@ export default function ProtocolPage() {
 
         // Check if Powers 101 already exists
         const powers101Exists = protocols.some(p => p.name === 'Powers 101')
-        const powerLabsExists = protocols.some(p => p.name === 'Power Labs')
-        const powerLabsChildExists = protocols.some(p => p.name === 'Power Labs - Documentation')
+        // const powerLabsExists = protocols.some(p => p.name === 'Power Labs')
+        // const powerLabsChildExists = protocols.some(p => p.name === 'Child Powers')
         
         if (!powers101Exists) {
           // Add Powers 101 to the list
           protocols.unshift(defaultPowers101) 
         }
-        if (!powerLabsExists) {
-          // Add Power Base to the list
-          protocols.unshift(defaultPowerLabs) 
-          localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ))
-        }
-        if (!powerLabsChildExists) {
-          // Add Power Base to the list
-          protocols.unshift(defaultPowerLabsChild) 
-          localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-          ))
-        }
+        // if (!powerLabsExists) {
+        //   // Add Power Base to the list
+        //   protocols.unshift(defaultPowerLabs) 
+        //   localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
+        //     typeof value === "bigint" ? value.toString() : value,
+        //   ))
+        // }
+        // if (!powerLabsChildExists) {
+        //   // Add Power Base to the list
+        //   protocols.unshift(defaultPowerLabsChild) 
+        //   localStorage.setItem('powersProtocols', JSON.stringify(protocols, (key, value) =>
+        //     typeof value === "bigint" ? value.toString() : value,
+        //   ))
+        // }
         setSavedProtocols(protocols)
       } catch (error) {
         console.error('Error loading saved protocols:', error)
@@ -64,6 +64,10 @@ export default function ProtocolPage() {
     const parsedChainId = Number(chainId)
     const chain = chains.find(chain => chain.id === parsedChainId)
     return chain?.name || 'Unknown Chain'
+  }
+
+  const abbreviateAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
   }
 
   const handleProtocolClick = (protocol: Powers) => {
@@ -129,8 +133,9 @@ export default function ProtocolPage() {
                       </div>
                     )}
 
-                    <div className="relative w-full max-w-fit h-full max-h-fit text-lg p-4" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-                      {chainName}
+                    <div className="relative w-full max-w-fit h-full max-h-fit p-4 pb-0" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+                      <div className="text-lg text-right">{chainName}</div>
+                      <div className="text-sm opacity-80 font-mono text-right">{abbreviateAddress(protocol.contractAddress)}</div>
                     </div>
                     <div className="relative w-full max-w-fit h-full max-h-fit text-3xl p-4" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
                       {protocol.name || 'Unnamed Protocol'}

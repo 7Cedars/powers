@@ -1,0 +1,23 @@
+{
+  "icon": "",
+  "banner": "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafybeiemc72ashmrybw4bwn363yrnjzoi3swdaovdkawwxy23jy2u3yvz4",
+  "description": 
+    "Powers is purely a governance protocol. It can be integrated with any protocol by creating bespoke Mandates. In this example we integrate with the Safe protocol. There is a mandate to create a safeProxy and set it as the treasury of the organisation.",
+  "website": "",
+  "codeOfConduct": "", 
+  "disputeResolution": "", 
+  "communicationChannels": {
+      "discord": "https://discordapp.com/users/1006928106487021638",
+      "telegram": "https://t.me/thd83",
+      "x": "https://x.com/7__Cedars",
+      "paragraph": "",
+      "youtube": "",
+      "facebook": "",
+      "github": "https://github.com/7Cedars/powers/blob/develop/frontend/organisations/ProtocolIntegration.ts",
+      "forum": "",
+      "documentation": ""
+  },
+  "parentContracts": [ ],
+  "childContracts": [ ],
+  "attributes": [ ]
+}

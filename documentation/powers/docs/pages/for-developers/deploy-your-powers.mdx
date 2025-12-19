@@ -14,11 +14,11 @@ This is the core contract for your organisation, initialized with basic metadata
 #### Deploy Dependencies 
 Any dependency smart contracts (like a treasury) are deployed.
 
-#### Configure Laws and Dependencies 
-The initial set of laws for your organisation are configured with the addresses of these dependencies.
+#### Configure Mandates and Dependencies 
+The initial set of mandates for your organisation are configured with the addresses of these dependencies.
 
 #### Constitute the Organisation
-The `constitute` function on your `Powers.sol` contract is called with the law configurations. This function initializes all the laws, officially establishing the governance structure of your organisation.
+The `constitute` function on your `Powers.sol` contract is called with the mandate configurations. This function initializes all the mandates, officially establishing the governance structure of your organisation.
 
 ::::
 
@@ -38,11 +38,11 @@ Each organisation file defines an `Organization` object with several key propert
 -   `fields`: An array defining input fields that will be rendered on the deployment page. This allows for user-configurable parameters, such as a Chainlink Subscription ID in `PowerLabs.ts`.
 -   `dependencies`: An array of other smart contracts that need to be deployed before the organisation can be constituted. For example, `PowerLabs.ts` depends on a `Treasury` contract.
 -   `allowedChains`: An array of chain IDs where the organisation can be deployed.
--   `createLawInitData`: This is the core function. It takes the addresses of the newly deployed `Powers` contract and its dependencies, along with any user input from the `fields`, and returns the structured data needed to call the `constitute` function.
+-   `createMandateInitData`: This is the core function. It takes the addresses of the newly deployed `Powers` contract and its dependencies, along with any user input from the `fields`, and returns the structured data needed to call the `constitute` function.
 
 ### Create your .ts file 
 
-Using the provided examples, you can create your own organisation file by defining its metadata, required fields, dependencies, and the logic for initializing its laws.
+Using the provided examples, you can create your own organisation file by defining its metadata, required fields, dependencies, and the logic for initializing its mandates.
 
 ::::steps
 
@@ -52,16 +52,16 @@ Start by copying an existing organisation file like `Powers101.ts` or `PowerLabs
 #### Define Metadata and Fields
 Update the `metadata` property with your organisation's details. Define any input fields needed for configuration. 
 
-#### Check existing Laws
-The `powered` folder contains json files for chains and the reusable `Law.sol` contracts that are deployed on them. Identify which laws you want to include in your organisation. 
+#### Check existing Mandates
+The `powered` folder contains json files for chains and the reusable `Mandate.sol` contracts that are deployed on them. Identify which mandates you want to include in your organisation. 
 
-The `solidity/src/laws/` folder contains the source code for these laws.
+The `solidity/src/mandates/` folder contains the source code for these mandates.
 
 #### Define Dependencies
 If your organisation requires additional contracts (like a treasury), define them in the `dependencies` array.
 
-#### Create your own custom createLawInitData function
-This function should prepare and return the `LawInitData` array, linking each law contract to its configuration based on the deployed addresses and any user input. 
+#### Create your own custom createMandateInitData function
+This function should prepare and return the `MandateInitData` array, linking each mandate contract to its configuration based on the deployed addresses and any user input. 
 
 #### Add the organisation to the Frontend
 Finally, register your new organisation file in the frontend's organisation list so it appears on the deploy a demo page.
@@ -85,17 +85,17 @@ The script follows the same fundamental logic as the frontend:
 #### Deploy Dependencies
 The script first deploys any necessary mock contracts or dependencies. In `DeployTestOrgs.s.sol`, this is handled by `DeployMocks.s.sol`.
 
-#### Deploy Law Contracts
-It deploys the individual `Law` contracts that will be used by the organisation. This is handled by `InitialisePowers.s.sol`.
+#### Deploy Mandate Contracts
+It deploys the individual `Mandate` contracts that will be used by the organisation. This is handled by `InitialisePowers.s.sol`.
 
 #### Deploy Powers Contract
 A new, unconfigured `Powers.sol` contract is deployed.
 
 #### Prepare Constitution Data
-A helper contract or function (like `TestConstitutions.sol` in the example) is used to generate the `LawInitData` array, linking the law contracts to their configurations.
+A helper contract or function (like `TestConstitutions.sol` in the example) is used to generate the `MandateInitData` array, linking the mandate contracts to their configurations.
 
 #### Constitute the Organisation
-The `constitute` function on the `Powers` contract is called with the prepared `lawInitData`.
+The `constitute` function on the `Powers` contract is called with the prepared `mandateInitData`.
 
 ::::
 

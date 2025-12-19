@@ -13,7 +13,7 @@ import { MetadataLinks } from '@/components/MetadataLinks'
 
 export default function About() {
   const powers = usePowersStore();
-  const [isLawsExpanded, setIsLawsExpanded] = useState(false)
+  const [isMandatesExpanded, setIsMandatesExpanded] = useState(false)
   const router = useRouter()
   const chains = useChains()
   const supportedChain = chains.find(chain => chain.id === Number(powers.chainId))
@@ -43,6 +43,9 @@ export default function About() {
             codeOfConduct={powers?.metadatas?.codeOfConduct}
             disputeResolution={powers?.metadatas?.disputeResolution}
             communicationChannels={powers?.metadatas?.communicationChannels as CommunicationChannels}
+            parentContracts={powers?.metadatas?.parentContracts}
+            childContracts={powers?.metadatas?.childContracts}
+            chainId={powers?.chainId}
           />
           </div>
 
@@ -128,18 +131,18 @@ export default function About() {
               </div>
             </div>
 
-            {/* Laws Section */}
+            {/* Mandates Section */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-md font-medium text-slate-700">
-                  Laws ({powers.laws?.length || 0})
+                  Mandates ({powers.mandates?.length || 0})
                 </h4>
                 <button
-                  onClick={() => setIsLawsExpanded(!isLawsExpanded)}
+                  onClick={() => setIsMandatesExpanded(!isMandatesExpanded)}
                   className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
                 >
-                  {isLawsExpanded ? 'Hide' : 'Show'}
-                  {isLawsExpanded ? (
+                  {isMandatesExpanded ? 'Hide' : 'Show'}
+                  {isMandatesExpanded ? (
                     <ChevronUpIcon className="w-4 h-4" />
                   ) : (
                     <ChevronDownIcon className="w-4 h-4" />
@@ -147,13 +150,13 @@ export default function About() {
                 </button>
               </div>
               
-              {isLawsExpanded && powers.laws && (
+              {isMandatesExpanded && powers.mandates && (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {powers.laws.map((law) => (
-                    <div key={`${law.lawAddress}-${law.index}`} className="border border-slate-200 rounded-md">
+                  {powers.mandates.map((mandate) => (
+                    <div key={`${mandate.mandateAddress}-${mandate.index}`} className="border border-slate-200 rounded-md">
                       <UserItem
                         powers={powers}
-                        law={law}
+                        mandate={mandate}
                         chainId={powers.chainId.toString()}
                         showLowerSection={false}
                       />

@@ -1,0 +1,121 @@
+# RoleByRoles
+
+RoleByRoles is an electoral mandate that assigns or revokes a role based on whether an account holds any of a set of prerequisite roles. It provides a mechanism for composing "grouped" roles and automatic role management based on prerequisite role ownership.
+
+## Overview
+
+This mandate provides a mechanism to:
+- Assign a target role to accounts holding prerequisite roles
+- Revoke the target role when prerequisite roles are lost
+- Compose hierarchical role structures
+- Automatically manage role assignments
+- Track role dependencies
+
+## Configuration
+
+When adopting a RoleByRoles instance, two parameters must be provided:
+
+1. `newRoleId` (uint256): The role ID to assign/revoke based on prerequisites
+2. `roleIdsNeeded` (uint256[]): Array of prerequisite role IDs
+
+## Usage
+
+### Proposing an Action
+
+When calling the mandate, one parameter must be provided:
+
+1. `account` (address): The account to check and potentially assign/revoke the role for
+
+### Execution Flow
+
+1. **Prerequisite Check**
+   - Checks if the account holds any of the prerequisite roles
+   - Verifies current role status for the target role
+   - Determines required action
+
+2. **Role Assignment Logic**
+   - If account has prerequisite roles and doesn't have target role:
+     - Assigns the target role
+   - If account lacks prerequisite roles but has target role:
+     - Revokes the target role
+   - If no change needed:
+     - Returns empty execution data
+
+3. **State Management**
+   - Records role assignment/revocation
+   - Updates role holder lists
+   - Tracks role dependencies
+
+## Technical Specifications
+
+### State Variables
+
+```solidity
+struct Data {
+    uint256 newRoleId;        // Role ID to assign/revoke
+    uint256[] roleIdsNeeded;  // Array of prerequisite role IDs
+}
+
+mapping(bytes32 mandateHash => Data) public data;
+```
+
+### Functions
+
+#### `initializeMandate`
+```solidity
+function initializeMandate(
+    uint16 index,
+    string memory nameDescription,
+    bytes memory inputParams,
+    bytes memory config
+) public override
+```
+- Initializes mandate with configuration parameters
+- Sets up target role and prerequisite roles
+- Configures role dependency structure
+
+#### `handleRequest`
+```solidity
+function handleRequest(
+    address caller,
+    address powers,
+    uint16 mandateId,
+    bytes memory mandateCalldata,
+    uint256 nonce
+) public view virtual override returns (
+    uint256 actionId,
+    address[] memory targets,
+    uint256[] memory values,
+    bytes[] memory calldatas
+)
+```
+- Processes the role management request
+- Checks prerequisite role ownership
+- Prepares role assignment/revocation call
+- Returns execution data
+
+### Error Conditions
+
+1. **Role Assignment Errors**
+   - "Account already has role"
+   - "Account does not have prerequisite roles"
+
+2. **Role Revocation Errors**
+   - "Account does not have role"
+   - "Account still has prerequisite roles"
+
+3. **Validation Errors**
+   - Invalid role ID
+   - Invalid account address
+   - Zero address account
+
+## Current Deployments
+
+| Chain ID  | Chain Name         | Address                                      |
+|-----------|-------------------|----------------------------------------------|
+| 421614    | Arbitrum Sepolia  | 0xa797799EE0C6FA7d9b76eF52e993288a04982267  |
+| 11155420  | Optimism Sepolia  | 0xa797799EE0C6FA7d9b76eF52e993288a04982267  |
+| 11155111  | Ethereum Sepolia  | 0xa797799EE0C6FA7d9b76eF52e993288a04982267  | 
+
+
+

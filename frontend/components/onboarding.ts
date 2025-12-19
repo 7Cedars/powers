@@ -59,11 +59,11 @@ export const onboardingSteps: OnboardingStep[] = [
   },
   {
     title: "Governance Flow",
-    subtitle: "See all your organization's laws and their relationships",
+    subtitle: "See all your organization's mandates and their relationships",
     highlight: {
       target: "[help-nav-item='']"
     },
-    upperText: "The interactive flow chart behind this card shows all your organization's laws and their relationships. Each node represents a law, and the connections show dependencies between them.",
+    upperText: "The interactive flow chart behind this card shows all your organization's mandates and their relationships. Each node represents a mandate, and the connections show dependencies between them.",
     bottomText: "It also shows where a specific action is in a governance path.",
     image: "",
     url: "/"
@@ -80,24 +80,24 @@ export const onboardingSteps: OnboardingStep[] = [
   },
   {
     title: "Actions",
-    subtitle: "Manage a Law's action",
+    subtitle: "Manage a Mandate's action",
     highlight: {
-      target: "[help-nav-item='law-input']"
+      target: "[help-nav-item='mandate-input']"
     },
-    upperText: "When you click on a law, you can see the action that is associated with it. Each law needs a unique nonce and description as input for an action. Any additional input parameters will appear above the nonce field.",
+    upperText: "When you click on a mandate, you can see the action that is associated with it. Each mandate needs a unique nonce and description as input for an action. Any additional input parameters will appear above the nonce field.",
     bottomText: "This (or similar) error messages can show very quickly. Don't be discouraged, just try again.",
     image: "/onboarding/error2.png",
-    url: "/laws/1"
+    url: "/mandates/1"
   },
   {
     title: "Load previous action",
-    subtitle: "See previous actions executed for a law",
+    subtitle: "See previous actions executed for a mandate",
     highlight: {
       target: "[help-nav-item='latest-executions']"
     },
     upperText: "You can click on the date to load this action and see details of its path to execution.",
     image: "",
-    url: "/laws/1"
+    url: "/mandates/1"
   },
   {
     title: "Run Checks",
@@ -107,7 +107,7 @@ export const onboardingSteps: OnboardingStep[] = [
     },
     upperText: "This button will run the checks for the action. It will also show the status of the action in the flow chart behind this card.",
     image: "/onboarding/statusAction.png",
-    url: "/laws/1"
+    url: "/mandates/1"
   },
   {
     title: "Propose or vote",
@@ -117,7 +117,7 @@ export const onboardingSteps: OnboardingStep[] = [
     },
     upperText: "If execution is conditional on a passed vote, a button will appear to either propose or vote on a proposed action.",
     image: "/onboarding/optionalProposalButtons.png",
-    url: "/laws/1"
+    url: "/mandates/1"
   },
   {
     title: "Voting",
@@ -127,7 +127,7 @@ export const onboardingSteps: OnboardingStep[] = [
     },
     upperText: "The view proposal button will take you to the proposal voting page. You will be able to vote on an action and see the status of the vote.",
     image: "/onboarding/voting.png",
-    url: "/laws/1"
+    url: "/mandates/1"
   },
   {
     title: "Execute an action",
@@ -135,9 +135,9 @@ export const onboardingSteps: OnboardingStep[] = [
     highlight: {
       target: "[help-nav-item='execute-action']"
     },
-    upperText: "This button will execute the action. It is only enabled if all law conditions are met. When disabled, the button will give you a reason why the action cannot be executed.",
+    upperText: "This button will execute the action. It is only enabled if all mandate conditions are met. When disabled, the button will give you a reason why the action cannot be executed.",
     image: "",
-    url: "/laws/1"
+    url: "/mandates/1"
   }, 
   {
     title: "Proposals",
