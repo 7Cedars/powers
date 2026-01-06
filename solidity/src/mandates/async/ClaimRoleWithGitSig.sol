@@ -2,6 +2,7 @@
 pragma solidity 0.8.26;
 
 // Base contracts
+import { Powers } from "../../Powers.sol";
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
@@ -41,7 +42,7 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
         string errorMessage;
     }
 
-    // @notice Configuration data for each instance of the mandate
+    // @notice Configurations data for each instance of the mandate
     struct Data {
         string repo;
         string branch;
@@ -186,11 +187,11 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
         mem.args[2] = data_.paths[mem.indexPath];
 
         // Create empty arrays for the execution plan
-        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
+        // if callback takes too much gas, can call fulfill here by creatng empty targets slot. 
+        // (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
 
         // Pack data needed for the _externalCall and fulfillRequest
-        // calldatas = new bytes[](1);
-
+        calldatas = new bytes[](1);
         calldatas[0] = abi.encode(
             mem.roleId,
             caller, // Pass the original caller
@@ -270,9 +271,6 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
 
         bytes32 mandateHash = MandateUtilities.hashMandate(request.powers, request.mandateId);
 
-        sLastResponse = response;
-        sLastError = err;
-
         // if error is returned, set error
         if (err.length > 0) {
             chainlinkErrors[mandateHash][request.caller] = err;
@@ -283,25 +281,22 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
         // 1. Decode the signature (returned as a hex string "0x...")
         bytes memory signatureBytes = MandateUtilities.hexStringToBytes(abi.decode(abi.encode(response), (string)));
 
-        // 2. Recover the signer's address using message Hash (calculated at initialisaiton of mandate)
-        sSigner = request.messageHash.recover(signatureBytes);
-
         // 4. Check if the signer matches the original caller. If so, save roleId to state.
-        if (sSigner == request.caller) {
+        if (request.messageHash.recover(signatureBytes) == request.caller) {
             chainlinkReplies[mandateHash][request.caller] = request.roleId;
         }
 
         // executing this in the callback function fails because it takes too much gas.
         // leaving it here to remember.
-        // (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = MandateUtilities.createEmptyArrays(1);
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = MandateUtilities.createEmptyArrays(1);
 
-        // Powers(request.powers).fulfill(
-        //     request.mandateId,
-        //     request.actionId,
-        //     targets,
-        //     values,
-        //     calldatas
-        // );
+        Powers(request.powers).fulfill(
+            request.mandateId,
+            request.actionId,
+            targets,
+            values,
+            calldatas
+        );
     }
 
     // --- View Functions ---

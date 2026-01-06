@@ -1,4 +1,4 @@
-// // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
@@ -6,34 +6,31 @@ import { console2 } from "forge-std/console2.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // core protocol
-import { Powers } from "../src/Powers.sol";
+import { Powers } from "@src/Powers.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { PowersTypes } from "../src/interfaces/PowersTypes.sol";
-import { HelperConfig } from "./HelperConfig.s.sol";
+import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
+import { Configurations } from "@script/Configurations.s.sol";
 
-import { InitialisePowers } from "./InitialisePowers.s.sol";
-import { MandatePackage } from "../src/packaged-mandates/MandatePackage.sol";
-import { PowerLabsConfig } from "../src/packaged-mandates/PowerLabsConfig.sol";
-import { PowerLabs_Documentation } from "../src/packaged-mandates/PowersLabs_Documentation.sol";
-import { PowerLabs_Frontend } from "../src/packaged-mandates/PowersLabs_Frontend.sol";
-import { PowerLabs_Protocol } from "../src/packaged-mandates/PowersLabs_Protocol.sol";
+import { InitialisePowers } from "@script/InitialisePowers.s.sol";
+import { MandatePackage } from "@src/packaged-mandates/MandatePackage.sol";
+import { PowerLabsConfig } from "@src/packaged-mandates/PowerLabsConfig.sol";
+import { PowerLabs_Documentation } from "@src/packaged-mandates/PowersLabs_Documentation.sol";
+import { PowerLabs_Frontend } from "@src/packaged-mandates/PowersLabs_Frontend.sol";
+import { PowerLabs_Protocol } from "@src/packaged-mandates/PowersLabs_Protocol.sol";
 
 // @dev this script deploys custom mandate packages to the chain.
-contract DeployMandatePackages is Script {
-    address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
+contract DeployMandatePackages is Script { 
     bytes32 salt = bytes32(abi.encodePacked("MandatePackageDeploymentSaltV1"));
     InitialisePowers initialisePowers;
-    HelperConfig helperConfig;
-    HelperConfig.NetworkConfig public config;
-    Powers powers;
-    string[] public mandateNames;
-    address[] public mandateAddresses;
+    Configurations helperConfig;
+    Configurations.NetworkConfig public config;
+    Powers powers; 
 
     // PowerLabsConfig
     function run() external returns (string[] memory packageNames, address[] memory packageAddresses) {
         initialisePowers = new InitialisePowers();
-        (mandateNames, mandateAddresses) = initialisePowers.run();
-        helperConfig = new HelperConfig();
+        initialisePowers.run();
+        helperConfig = new Configurations();
         config = helperConfig.getConfig();
 
         (packageNames, packageAddresses) = deployPackages();
@@ -48,11 +45,11 @@ contract DeployMandatePackages is Script {
 
         // PowerLabsConfig
         address[] memory mandateDependencies = new address[](5);
-        mandateDependencies[0] = findMandateAddress("StatementOfIntent");
-        mandateDependencies[1] = findMandateAddress("SafeExecTransaction");
-        mandateDependencies[2] = findMandateAddress("PresetSingleAction");
-        mandateDependencies[3] = findMandateAddress("SafeAllowanceAction");
-        mandateDependencies[4] = findMandateAddress("RoleByTransaction");
+        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
+        mandateDependencies[1] = initialisePowers.getMandateAddress("SafeExecTransaction");
+        mandateDependencies[2] = initialisePowers.getMandateAddress("PresetSingleAction");
+        mandateDependencies[3] = initialisePowers.getMandateAddress("SafeAllowanceAction");
+        mandateDependencies[4] = initialisePowers.getMandateAddress("RoleByTransaction");
 
         names[0] = "PowerLabs_Config";
         creationCodes[0] = type(PowerLabsConfig).creationCode;
@@ -64,7 +61,7 @@ contract DeployMandatePackages is Script {
 
         // PowerLabs_Documentation // no dependencies for now
         mandateDependencies = new address[](1);
-        mandateDependencies[0] = findMandateAddress("StatementOfIntent");
+        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
         names[1] = "PowerLabs_Documentation";
         creationCodes[1] = type(PowerLabs_Documentation).creationCode;
         constructorArgs[1] = abi.encode(
@@ -112,14 +109,5 @@ contract DeployMandatePackages is Script {
             return deployedAddress;
         }
         return computedAddress;
-    }
-
-    function findMandateAddress(string memory name) internal view returns (address) {
-        for (uint256 i = 0; i < mandateNames.length; i++) {
-            if (Strings.equal(mandateNames[i], name)) {
-                return mandateAddresses[i];
-            }
-        }
-        return address(0);
     }
 }

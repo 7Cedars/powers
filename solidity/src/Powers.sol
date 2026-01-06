@@ -52,7 +52,7 @@ contract Powers is EIP712, IPowers, Context {
 
     uint256 public immutable MAX_CALLDATA_LENGTH;
     uint256 public immutable MAX_RETURN_DATA_LENGTH;
-    uint256 public immutable MAX_EXECUTIONsLENGTH;
+    uint256 public immutable MAX_EXECUTIONS_LENGTH;
 
     // NB! this is a gotcha: mandates start counting a 1, NOT 0!. 0 is used as a default 'false' value.
     uint16 public mandateCounter = 1; // number of mandates that have been initiated throughout the life of the organisation.
@@ -109,7 +109,7 @@ contract Powers is EIP712, IPowers, Context {
         if (maxExecutionsLength_ == 0) revert Powers__InvalidMaxExecutionsLength();
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
         MAX_RETURN_DATA_LENGTH = maxReturnDataLength_;
-        MAX_EXECUTIONsLENGTH = maxExecutionsLength_;
+        MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
 
         _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
 
@@ -195,7 +195,7 @@ contract Powers is EIP712, IPowers, Context {
         if (targets.length != values.length || targets.length != calldatas.length) revert Powers__InvalidCallData();
 
         // check 6: check array length is too long
-        if (targets.length > MAX_EXECUTIONsLENGTH) revert Powers__ExecutionArrayTooLong();
+        if (targets.length > MAX_EXECUTIONS_LENGTH) revert Powers__ExecutionArrayTooLong();
 
         // check 7: for each target, check if calldata does not exceed MAX_CALLDATA_LENGTH + targets have not been blacklisted.
         for (uint256 i = 0; i < targets.length; ++i) {
@@ -209,7 +209,9 @@ contract Powers is EIP712, IPowers, Context {
         // execute targets[], values[], calldatas[] received from mandate.
         for (uint256 i = 0; i < targets.length; ++i) {
             (bool success, bytes memory returndata) = targets[i].call{ value: values[i] }(calldatas[i]);
-            Address.verifyCallResult(success, returndata);
+            if (!success) {
+                revert Powers__MandateFulfillCallFailed();
+            }
             if (returndata.length <= MAX_RETURN_DATA_LENGTH) {
                 _actions[actionId].returnDatas.push(returndata);
             } else {
@@ -217,10 +219,10 @@ contract Powers is EIP712, IPowers, Context {
             }
         }
 
-        // emit event.
-        emit ActionExecuted(mandateId, actionId, targets, values, calldatas);
+        // emit event. -- commented out to save gas, can be re-enabled if needed. 
+        // emit ActionExecuted(mandateId, actionId, targets, values, calldatas);
 
-        // register latestFulfillment at mandate.
+        // register latestFulfillment at mandate. -- is there anyway to do this more efficiently?
         mandates[mandateId].latestFulfillment = uint48(block.number);
     }
 
@@ -271,6 +273,7 @@ contract Powers is EIP712, IPowers, Context {
         if (_actions[actionId].voteStart != 0) revert Powers__UnexpectedActionState();
 
         // register actionId at mandate.
+        // £check: is this necessary?
         mandates[mandateId].actionIds.push(actionId);
 
         // if checks pass: create proposedAction

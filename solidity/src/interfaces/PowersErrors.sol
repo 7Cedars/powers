@@ -74,6 +74,9 @@ interface PowersErrors {
     /// @notice Emitted when an array is too long.
     error Powers__ExecutionArrayTooLong();
 
+    /// @notice Emitted when a mandate fulfill call fails.
+    error Powers__MandateFulfillCallFailed();
+
     /// @notice Emitted when an action does not exist.
     error Powers__ActionNotProposed();
 

@@ -3,8 +3,8 @@ pragma solidity 0.8.26;
 
 import { Script } from "forge-std/Script.sol";
 
-contract HelperConfig is Script {
-    error HelperConfig__UnsupportedChain();
+contract Configurations is Script {
+    error Configurations__UnsupportedChain();
 
     // @dev we only save the contract addresses of tokens, because any other params (name, symbol, etc) can and should be taken from contract itself.
     struct NetworkConfig {
@@ -50,7 +50,7 @@ contract HelperConfig is Script {
         if (networkConfigs[chainId].BLOCKS_PER_HOUR != 0) {
             return networkConfigs[chainId];
         } else {
-            revert HelperConfig__UnsupportedChain();
+            revert Configurations__UnsupportedChain();
         }
     }
 
@@ -151,6 +151,12 @@ contract HelperConfig is Script {
         networkConfig.maxCallDataLength = 10_000;
         networkConfig.maxReturnDataLength = 10_000;
         networkConfig.maxExecutionsLength = 25;
+
+        networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
+        networkConfig.chainlinkFunctionsSubscriptionId = 1;
+        networkConfig.chainlinkFunctionsGasLimit = 300_000;
+        networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
+        networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
         networkConfig.SafeL2Canonical = 0x0000000000000000000000000000000000000000;
         networkConfig.SafeAllowanceModule = 0x0000000000000000000000000000000000000000;

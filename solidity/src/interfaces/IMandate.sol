@@ -14,7 +14,7 @@ interface IMandate is IERC165 {
     //////////////////////////////////////////////////////////////
 
     /// @notice Emitted when a mandate is deployed
-    /// @param configParams Configuration parameters for the mandate
+    /// @param configParams Configurations parameters for the mandate
     event Mandate__Deployed(bytes configParams);
 
     /// @notice Emitted when a mandate is initialized
@@ -33,7 +33,7 @@ interface IMandate is IERC165 {
     /// @param index Index of the mandate
     /// @param nameDescription Name of the mandate
     /// @param inputParams Input parameters for the mandate
-    /// @param config Configuration parameters for the mandate
+    /// @param config Configurations parameters for the mandate
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         external;
 

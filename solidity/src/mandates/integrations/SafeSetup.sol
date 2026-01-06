@@ -15,7 +15,7 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 // import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
 
 contract SafeSetup is Mandate {
-    /// @dev Configuration for this mandate adoption.
+    /// @dev Configurations for this mandate adoption.
     struct ConfigData {
         address safeProxyFactory; // The SafeProxyFactory address to create the SafeProxy.
         address safeL2Singleton; // The SafeL2 singleton address used by the SafeProxy.

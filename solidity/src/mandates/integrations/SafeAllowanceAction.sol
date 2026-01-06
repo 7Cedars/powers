@@ -8,7 +8,7 @@ import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 // import { console2 } from "forge-std/console2.sol"; // only for testing/debugging
 
 contract SafeAllowanceAction is Mandate {
-    /// @dev Configuration for this mandate adoption.
+    /// @dev Configurations for this mandate adoption.
     struct ConfigData {
         bytes4 functionSelector;
         address safeProxy;

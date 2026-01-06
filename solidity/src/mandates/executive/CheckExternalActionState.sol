@@ -7,7 +7,7 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract CheckExternalActionState is Mandate {
-    /// @dev Configuration for this mandate adoption.
+    /// @dev Configurations for this mandate adoption.
     struct ConfigData {
         address parentPowers;
         uint16 mandateId;

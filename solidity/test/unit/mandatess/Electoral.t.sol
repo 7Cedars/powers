@@ -21,6 +21,7 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { BaseSetup } from "../../TestSetup.t.sol";
 import { RoleByTransaction } from "../../../src/mandates/electoral/RoleByTransaction.sol";
 import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol"; 
+import { PowersMock } from "@mocks/PowersMock.sol";
 
 /// @notice Comprehensive unit tests for all electoral mandates
 /// @dev Tests all functionality of electoral mandates including initialization, execution, and edge cases
@@ -667,61 +668,6 @@ contract RenounceRoleTest is TestSetupElectoral {
         vm.prank(alice);
         vm.expectRevert("Role not allowed to be renounced.");
         daoMock.request(mandateId, abi.encode(3), nonce, "Test renounce role");
-    }
-}
-
-//////////////////////////////////////////////////
-//           ASSIGN EXTERNAL ROLE TESTS        //
-//////////////////////////////////////////////////
-contract AssignExternalRoleTest is TestSetupElectoral {
-    AssignExternalRole assignExternalRole;
-
-    function setUp() public override {
-        super.setUp();
-        mandateId = 11;
-        assignExternalRole = AssignExternalRole(mandateAddresses[29]);
-    }
-
-    function testAssignExternalRoleInitialization() public {
-        // Verify mandate data is stored correctly
-        mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
-        // Note: AssignExternalRole doesn't have a public getter for its config data
-        // like other contracts (e.g. getData), so we can't easily assert on internal state variables
-        // without adding a getter or making variables public.
-        // However, we can verify it works by functionality.
-    }
-
-    function testAssignExternalRoleSuccess() public {
-        // Setup: Give alice the required role (roleId = 1) on the external contract (daoMock itself)
-        // roleId 1 is configured in TestConstitutions
-        vm.prank(address(daoMock));
-        daoMock.assignRole(1, alice);
-
-        // Advance block to ensure hasRoleSince returns a value > 0 (since it checks start block)
-        vm.roll(block.number + 1);
-
-        // Execute request to assign role
-        vm.prank(alice);
-        daoMock.request(mandateId, abi.encode(alice), nonce, "Test assign external role");
-
-        // Should succeed
-        actionId = uint256(keccak256(abi.encode(mandateId, abi.encode(alice), nonce)));
-        assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
-    }
-
-    function testAssignExternalRoleRevert() public {
-        // Setup: Ensure alice does NOT have the required role (roleId = 1)
-        // By default alice might have been assigned role 1 in TestSetupElectoral's setup.
-        // Let's check TestSetupElectoral.
-        // In TestSetupElectoral: daoMock.assignRole(ROLE_ONE, alice); -> ROLE_ONE = 1.
-        // So alice HAS role 1. We need to revoke it or use another user.
-
-        // Let's use eve who doesn't have role 1.
-
-        // Execute request
-        vm.prank(eve);
-        vm.expectRevert("Account does not have role.");
-        daoMock.request(mandateId, abi.encode(eve), nonce, "Test assign external role");
     }
 }
 

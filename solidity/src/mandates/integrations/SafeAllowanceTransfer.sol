@@ -20,7 +20,7 @@ interface ISafe {
 }
 
 contract SafeAllowanceTransfer is Mandate {
-    /// @dev Configuration for this mandate adoption.
+    /// @dev Configurations for this mandate adoption.
     struct ConfigData {
         address safeProxy;
         address allowanceModule;

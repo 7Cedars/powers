@@ -224,80 +224,8 @@ contract GovernorExecuteProposalTest is TestSetupExecutive {
 //////////////////////////////////////////////////
 //       TREASURY POOLS GOVERNANCE TESTS        //
 //////////////////////////////////////////////////
-contract TreasuryPoolGovernanceTest is TestSetupExecutive {
-    TreasuryPoolGovernance treasuryPoolGovernance;
-    TreasuryPools treasuryPools;
+contract SafeAllowanceTest is TestSetupExecutive {
+    
 
-    function setUp() public override {
-        super.setUp();
-        treasuryPools = new TreasuryPools();
-        // The TreasuryPoolGovernance mandate is not in the executive constitution, so we deploy it manually
-        treasuryPoolGovernance = new TreasuryPoolGovernance();
-    }
-
-    // function testTreasuryPoolGovernanceAdoptsMandates() public {
-    //     // 1. Adopt a mandate to create a treasury pool
-    //     mandateId = daoMock.mandateCounter();
-    //     bytes memory createPoolConfig = abi.encode(
-    //         address(treasuryPools),
-    //         treasuryPools.createPool.selector,
-    //         new string[](3), // Placeholder for dynamic params
-    //         new uint8[](3)
-    //     );
-    //     PowersTypes.MandateInitData memory createPoolMandateData = PowersTypes.MandateInitData({
-    //         targetMandate: mandateAddresses[5], // BespokeActionAdvanced
-    //         nameDescription: "Create Treasury Pool",
-    //         config: createPoolConfig,
-    //         conditions: PowersTypes.Conditions({
-    //             allowedRole: 0, // Admin only
-    //             quorum: 0,
-    //             succeedAt: 0,
-    //             votingPeriod: 0,
-    //             timelock: 0,
-    //             throttleExecution: 0,
-    //             needFulfilled: 0,
-    //             needNotFulfilled: 0
-    //         })
-    //     });
-    //     vm.prank(address(daoMock));
-    //     daoMock.adoptMandate(createPoolMandateData);
-
-    //     // 2. Execute the mandate to create a pool
-    //     vm.prank(alice);
-    //     bytes memory createPoolCalldata = abi.encode(address(0), 10 ether, 1);
-    //     daoMock.request(mandateId, createPoolCalldata, nonce, "Create a new pool");
-    //     uint256 createPoolActionId = MandateUtilities.hashActionId(mandateId, createPoolCalldata, nonce);
-
-    //     // 3. Adopt the TreasuryPoolGovernance mandate
-    //     uint16 governanceMandateId = daoMock.mandateCounter();
-    //     bytes memory governanceConfig = abi.encode(
-    //         address(treasuryPools),
-    //         mandateAddresses[4], // StatementOfIntent
-    //         mandateAddresses[5]  // BespokeActionAdvanced
-    //     );
-    //     PowersTypes.MandateInitData memory governanceMandateData = PowersTypes.MandateInitData({
-    //         targetMandate: address(treasuryPoolGovernance),
-    //         nameDescription: "Treasury Pools Governance",
-    //         config: governanceConfig,
-    //         conditions: PowersTypes.Conditions({
-    //             allowedRole: 0, // Admin only
-    //             quorum: 0,
-    //             succeedAt: 0,
-    //             votingPeriod: 0,
-    //             timelock: 0,
-    //             throttleExecution: 0,
-    //             needFulfilled: mandateId,
-    //             needNotFulfilled: 0
-    //         })
-    //     });
-    //     vm.prank(address(daoMock));
-    //     daoMock.adoptMandate(governanceMandateData);
-
-    //     // 4. Execute the governance mandate
-    //     vm.prank(alice);
-    //     daoMock.request(governanceMandateId, createPoolCalldata, nonce, "Adopt governance for the new pool");
-
-    //     // Check that the three new mandates have been adopted
-    //     assertEq(daoMock.mandateCounter(), governanceMandateId + 3);
-    // }
 }
+

@@ -17,7 +17,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @dev Condition `needFulfilled` must point to the specific Mandate A instance.
  */
 contract TreasuryPoolGovernance is Mandate {
-    /// @dev Configuration for this mandate adoption mandate. Includes addresses of base mandates to adopt.
+    /// @dev Configurations for this mandate adoption mandate. Includes addresses of base mandates to adopt.
     struct ConfigData {
         address selectedPoolTransfer; // The SelectedPoolTransfer mandate
         address treasuryPools; // The TreasuryPools contract

@@ -12,7 +12,7 @@ import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 
 contract SafeExecTransaction is Mandate {
-    /// @dev Configuration for this mandate adoption.
+    /// @dev Configurations for this mandate adoption.
     struct ConfigData {
         address safe; // The Safe address to execute the transaction on.
     }
