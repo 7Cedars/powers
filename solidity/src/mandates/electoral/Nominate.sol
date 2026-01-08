@@ -24,8 +24,7 @@ contract Nominate is Mandate {
         public
         override
     {
-        address nomineesContract_ = abi.decode(config, (address));
-        nomineesContracts[MandateUtilities.hashMandate(msg.sender, index)] = nomineesContract_;
+        nomineesContracts[MandateUtilities.hashMandate(msg.sender, index)] = abi.decode(config, (address));
 
         inputParams = abi.encode("bool shouldNominate");
         super.initializeMandate(index, nameDescription, inputParams, config);

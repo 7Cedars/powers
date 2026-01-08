@@ -27,10 +27,8 @@ contract GovernorCreateProposal is Mandate {
         public
         override
     {
-        (address governorContract_) = abi.decode(config, (address));
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-
-        governorContracts[mandateHash] = governorContract_;
+        (governorContracts[mandateHash]) = abi.decode(config, (address));
 
         // Set UI-exposed input parameters: targets, values, calldatas, description
         inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description");

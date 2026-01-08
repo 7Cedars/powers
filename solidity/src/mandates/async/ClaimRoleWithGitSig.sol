@@ -122,7 +122,6 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
     {
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
 
-        // Decode all configuration parameters once
         (
             string memory branch,
             string[] memory paths,

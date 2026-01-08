@@ -32,11 +32,10 @@ contract PresetSingleAction is Mandate {
         public
         override
     {
-        (address[] memory targets_, uint256[] memory values_, bytes[] memory calldatas_) =
-            abi.decode(config, (address[], uint256[], bytes[]));
-
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        data[mandateHash] = Data({ targets: targets_, values: values_, calldatas: calldatas_ });
+
+        (data[mandateHash].targets, data[mandateHash].values, data[mandateHash].calldatas) =
+            abi.decode(config, (address[], uint256[], bytes[]));
 
         super.initializeMandate(index, nameDescription, inputParams, config);
     }

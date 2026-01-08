@@ -36,7 +36,7 @@ contract ChecksTest is TestSetupPowers {
         assertEq(actionId, uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce))));
     }
 
-    function testGetConditions() public {
+    function testGetConditions() public view {
         // Test getting conditions for an existing mandate
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 1);
 
@@ -78,7 +78,7 @@ contract ChecksTest is TestSetupPowers {
         Checks.check(5, mandateCalldata, address(daoMock), nonce, latestExecution);
     }
 
-    function testGetConditionsForNonExistentMandate() public {
+    function testGetConditionsForNonExistentMandate() public view {
         // Test getting conditions for a non-existent mandate
         PowersTypes.Conditions memory conditionsResult = Checks.getConditions(address(daoMock), 999);
 

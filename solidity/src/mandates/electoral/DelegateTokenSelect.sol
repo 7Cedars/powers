@@ -41,18 +41,15 @@ contract DelegateTokenSelect is Mandate {
         public
         override
     {
-        (address votesToken_, address nomineesContract_, uint256 roleId_, uint256 maxRoleHolders_) =
-            abi.decode(config, (address, address, uint256, uint256));
-
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+        _data[mandateHash].powersContract = msg.sender;
 
-        _data[mandateHash] = Data({
-            powersContract: msg.sender,
-            votesToken: votesToken_,
-            nomineesContract: nomineesContract_,
-            roleId: roleId_,
-            maxRoleHolders: maxRoleHolders_
-        });
+        (
+            _data[mandateHash].votesToken, 
+            _data[mandateHash].nomineesContract, 
+            _data[mandateHash].roleId, 
+            _data[mandateHash].maxRoleHolders
+        ) = abi.decode(config, (address, address, uint256, uint256));
 
         // No input parameters needed for this mandate
         inputParams = abi.encode();

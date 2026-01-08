@@ -95,4 +95,7 @@ interface PowersEvents {
     /// @param account the address of the account
     /// @param blacklisted the blacklisted status of the account
     event BlacklistSet(address indexed account, bool indexed blacklisted);
+
+    /// @notice Emitted when the constitution is executed.
+    event ConstitutionExecuted();
 }

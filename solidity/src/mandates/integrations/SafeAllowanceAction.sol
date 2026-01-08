@@ -31,12 +31,15 @@ contract SafeAllowanceAction is Mandate {
         public
         override
     {
-        (string[] memory inputParamsArray, bytes4 functionSelector, address allowanceModule, address safeProxy) =
-            abi.decode(config, (string[], bytes4, address, address));
-
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-        mandateConfig[mandateHash_] =
-            ConfigData({ functionSelector: functionSelector, safeProxy: safeProxy, allowanceModule: allowanceModule });
+        string[] memory inputParamsArray;
+
+        (
+            inputParamsArray,
+            mandateConfig[mandateHash_].functionSelector,
+            mandateConfig[mandateHash_].allowanceModule,
+            mandateConfig[mandateHash_].safeProxy
+        ) = abi.decode(config, (string[], bytes4, address, address));
 
         // Overwrite inputParams with the specific structure expected by handleRequest
         inputParams = abi.encode(inputParamsArray);

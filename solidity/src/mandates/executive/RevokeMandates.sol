@@ -36,7 +36,7 @@ contract RevokeMandates is Mandate {
         uint256 nonce
     )
         public
-        view
+        pure
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {

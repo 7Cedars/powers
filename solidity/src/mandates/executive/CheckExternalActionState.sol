@@ -23,11 +23,11 @@ contract CheckExternalActionState is Mandate {
         public
         override
     {
-        (address parentPowers_, uint16 mandateId_, string[] memory inputParams_) =
-            abi.decode(config, (address, uint16, string[])); // validate config
-
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        mandateConfig[mandateHash] = ConfigData({ parentPowers: parentPowers_, mandateId: mandateId_ });
+        string[] memory inputParams_;
+
+        (mandateConfig[mandateHash].parentPowers, mandateConfig[mandateHash].mandateId, inputParams_) =
+            abi.decode(config, (address, uint16, string[])); // validate config
 
         super.initializeMandate(index, nameDescription, abi.encode(inputParams_), config);
     }

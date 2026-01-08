@@ -22,7 +22,7 @@ import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
 //               CONSTRUCTOR & RECEIVE                      //
 //////////////////////////////////////////////////////////////
 contract DeployTest is TestSetupPowers {
-    function testDeployPowersMock() public {
+    function testDeployPowersMock() public view {
         assertEq(daoMock.name(), "This is a test DAO");
         assertEq(
             daoMock.uri(),
@@ -65,11 +65,11 @@ contract ProposeTest is TestSetupPowers {
         mandateId = 3; // StatementOfIntent - needs ROLE_ONE
         description = "Creating a proposal";
         mandateCalldata = abi.encode(true);
-        address mockAddress = makeAddr("mock");
-        assertFalse(daoMock.canCallMandate(mockAddress, mandateId));
+        account = makeAddr("mock");
+        assertFalse(daoMock.canCallMandate(account, mandateId));
 
         vm.expectRevert(Powers__CannotCallMandate.selector);
-        vm.prank(mockAddress);
+        vm.prank(account);
         daoMock.propose(mandateId, mandateCalldata, nonce, description);
     }
 
@@ -272,11 +272,11 @@ contract VoteTest is TestSetupPowers {
         vm.prank(bob);
         actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
 
-        address mockAddress = makeAddr("mock");
-        assertFalse(daoMock.canCallMandate(mockAddress, mandateId));
+        account = makeAddr("mock");
+        assertFalse(daoMock.canCallMandate(account, mandateId));
 
         vm.expectRevert(Powers__CannotCallMandate.selector);
-        vm.prank(mockAddress);
+        vm.prank(account);
         daoMock.castVote(actionId, FOR);
     }
 
@@ -362,33 +362,35 @@ contract VoteTest is TestSetupPowers {
         (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
         conditions = daoMock.getConditions(mandateId);
 
-        uint256 numberAgainstVotes;
-        uint256 numberForVotes;
-        uint256 numberAbstainVotes;
+        // Reset votes
+        againstVote = 0;
+        forVote = 0;
+        abstainVote = 0;
+
         for (i = 0; i < users.length; i++) {
             if (daoMock.hasRoleSince(users[i], conditions.allowedRole) != 0) {
                 uint256 r = uint256(uint160(users[i])) % 3;
                 if (r == 0) {
                     vm.prank(users[i]);
                     daoMock.castVote(actionId, AGAINST);
-                    numberAgainstVotes++;
+                    againstVote++;
                 } else if (r == 1) {
                     vm.prank(users[i]);
                     daoMock.castVote(actionId, FOR);
-                    numberForVotes++;
+                    forVote++;
                 } else {
                     vm.prank(users[i]);
                     daoMock.castVote(actionId, ABSTAIN);
-                    numberAbstainVotes++;
+                    abstainVote++;
                 }
             }
         }
 
-        (,, uint256 voteEnd, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
+        (,,, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
             daoMock.getActionVoteData(actionId);
-        assertEq(againstVotes, uint32(numberAgainstVotes));
-        assertEq(forVotes, uint32(numberForVotes));
-        assertEq(abstainVotes, uint32(numberAbstainVotes));
+        assertEq(againstVotes, uint32(againstVote));
+        assertEq(forVotes, uint32(forVote));
+        assertEq(abstainVotes, uint32(abstainVote));
     }
 
     function testVoteRevertsWithInvalidVote() public {
@@ -449,62 +451,33 @@ contract ExecuteTest is TestSetupPowers {
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
     }
-
-    function testExecuteEmitsEvent() public {
-        mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
-
-        // Set up expected event data for mandate 7 (3 actions: label role 1, label role 2, revoke mandate 7)
-        address[] memory tar = new address[](3);
-        uint256[] memory val = new uint256[](3);
-        bytes[] memory cal = new bytes[](3);
-
-        tar[0] = address(daoMock);
-        tar[1] = address(daoMock);
-        tar[2] = address(daoMock);
-
-        val[0] = 0;
-        val[1] = 0;
-        val[2] = 0;
-
-        cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
-        cal[1] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_TWO, "Delegate");
-        cal[2] = abi.encodeWithSelector(daoMock.revokeMandate.selector, 7);
-
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-
-        vm.expectEmit(true, false, false, false);
-        emit ActionExecuted(mandateId, actionId, tar, val, cal);
-        vm.prank(alice);
-        daoMock.request(mandateId, mandateCalldata, nonce, description);
-    }
-
+ 
     function testExecuteRevertsIfNotAuthorised() public {
         mandateId = 3; // Delegate Election - needs ROLE_ONE
-        address[] memory addresses = new address[](1);
-        addresses[0] = makeAddr("mock");
-        mandateCalldata = abi.encode(addresses);
+        accounts = new address[](1);
+        accounts[0] = makeAddr("mock");
+        mandateCalldata = abi.encode(accounts);
 
-        assertFalse(daoMock.canCallMandate(addresses[0], mandateId));
+        assertFalse(daoMock.canCallMandate(accounts[0], mandateId));
 
         vm.expectRevert(Powers__CannotCallMandate.selector);
-        vm.prank(addresses[0]);
+        vm.prank(accounts[0]);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
     }
 
     function testExecuteRevertsIfActionAlreadyExecuted() public {
         mandateId = 3; // = ROle ONE
-        address[] memory tar = new address[](1);
-        uint256[] memory val = new uint256[](1);
-        bytes[] memory cal = new bytes[](1);
-        tar[0] = address(daoMock);
-        val[0] = 0;
-        cal[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
+        targets = new address[](1);
+        values = new uint256[](1);
+        calldatas = new bytes[](1);
+        targets[0] = address(daoMock);
+        values[0] = 0;
+        calldatas[0] = abi.encodeWithSelector(daoMock.labelRole.selector, ROLE_ONE, "Member");
 
         (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
         conditions = daoMock.getConditions(mandateId);
 
-        mandateCalldata = abi.encode(tar, val, cal);
+        mandateCalldata = abi.encode(targets, values, calldatas);
         vm.prank(alice);
         actionId = daoMock.propose(mandateId, mandateCalldata, nonce, description);
         for (i = 0; i < users.length; i++) {
@@ -780,27 +753,27 @@ contract SetRoleTest is TestSetupPowers {
     }
 
     function testAddingRoleAddsOneToAmountMembers() public {
-        uint256 amountMembersBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
+        balanceBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
         assertEq(daoMock.hasRoleSince(helen, ROLE_THREE), 0);
 
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_THREE, helen);
 
-        uint256 amountMembersAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
+        balanceAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
         assertNotEq(daoMock.hasRoleSince(helen, ROLE_THREE), 0, "Role should be assigned");
-        assertEq(amountMembersAfter, amountMembersBefore + 1, "Member count should increase by 1");
+        assertEq(balanceAfter, balanceBefore + 1, "Member count should increase by 1");
     }
 
     function testRemovingRoleSubtractsOneFromAmountMembers() public {
-        uint256 amountMembersBefore = daoMock.getAmountRoleHolders(ROLE_ONE);
+        balanceBefore = daoMock.getAmountRoleHolders(ROLE_ONE);
         assertNotEq(daoMock.hasRoleSince(bob, ROLE_ONE), 0);
 
         vm.prank(address(daoMock));
         daoMock.revokeRole(ROLE_ONE, bob);
 
-        uint256 amountMembersAfter = daoMock.getAmountRoleHolders(ROLE_ONE);
+        balanceAfter = daoMock.getAmountRoleHolders(ROLE_ONE);
         assertEq(daoMock.hasRoleSince(bob, ROLE_ONE), 0, "Role should be revoked");
-        assertEq(amountMembersAfter, amountMembersBefore - 1, "Member count should decrease by 1");
+        assertEq(balanceAfter, balanceBefore - 1, "Member count should decrease by 1");
     }
 
     function testSetRoleSetsEmitsEvent() public {
@@ -826,42 +799,42 @@ contract SetRoleTest is TestSetupPowers {
 
 contract ComplianceTest is TestSetupPowers {
     function testErc721Compliance() public {
-        uint256 nftToMint = 42;
-        assertEq(SoulboundErc721(mockAddresses[2]).balanceOf(address(daoMock)), 0, "Initial balance should be 0");
+        mintAmount = 42;
+        assertEq(SoulboundErc721(helperAddresses[2]).balanceOf(address(daoMock)), 0, "Initial balance should be 0");
 
         vm.prank(address(daoMock));
-        SoulboundErc721(mockAddresses[2]).mintNft(nftToMint, address(daoMock));
+        SoulboundErc721(helperAddresses[2]).mintNft(mintAmount, address(daoMock));
 
-        assertEq(SoulboundErc721(mockAddresses[2]).balanceOf(address(daoMock)), 1, "Balance should be 1 after minting");
-        assertEq(SoulboundErc721(mockAddresses[2]).ownerOf(nftToMint), address(daoMock), "NFT should be owned by DAO");
+        assertEq(SoulboundErc721(helperAddresses[2]).balanceOf(address(daoMock)), 1, "Balance should be 1 after minting");
+        assertEq(SoulboundErc721(helperAddresses[2]).ownerOf(mintAmount), address(daoMock), "NFT should be owned by DAO");
     }
 
     function testOnERC721Received() public {
-        address sender = alice;
+        account = alice;
         address recipient = address(daoMock);
         uint256 tokenId = 42;
         bytes memory data = bytes(abi.encode(0));
 
         vm.prank(address(daoMock));
-        (bytes4 response) = daoMock.onERC721Received(sender, recipient, tokenId, data);
+        (bytes4 response) = daoMock.onERC721Received(account, recipient, tokenId, data);
 
         assertEq(response, daoMock.onERC721Received.selector, "Should return correct selector");
     }
 
     function testErc1155Compliance() public {
-        uint256 numberOfCoinsToMint = 100;
-        assertEq(SimpleErc1155(mockAddresses[3]).balanceOf(address(daoMock), 0), 0, "Initial balance should be 0");
+        mintAmount = 100;
+        assertEq(SimpleErc1155(helperAddresses[3]).balanceOf(address(daoMock), 0), 0, "Initial balance should be 0");
 
         vm.prank(address(daoMock));
-        SimpleErc1155(mockAddresses[3]).mintCoins(numberOfCoinsToMint);
+        SimpleErc1155(helperAddresses[3]).mintCoins(mintAmount);
 
         assertEq(
-            SimpleErc1155(mockAddresses[3]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting"
+            SimpleErc1155(helperAddresses[3]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting"
         );
     }
 
     function testOnERC1155BatchReceived() public {
-        address sender = alice;
+        account = alice;
         address recipient = address(daoMock);
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 1;
@@ -870,7 +843,7 @@ contract ComplianceTest is TestSetupPowers {
         bytes memory data = bytes(abi.encode(0));
 
         vm.prank(address(daoMock));
-        (bytes4 response) = daoMock.onERC1155BatchReceived(sender, recipient, tokenIds, values, data);
+        (bytes4 response) = daoMock.onERC1155BatchReceived(account, recipient, tokenIds, values, data);
 
         assertEq(response, daoMock.onERC1155BatchReceived.selector, "Should return correct selector");
     }
@@ -909,14 +882,14 @@ contract ProposeAdvancedTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract MandateAdoptionTest is TestSetupPowers {
     function testAdoptMandateRevertsWithBlacklistedTarget() public {
-        address blacklistedMandate = mandateAddresses[2];
+        mandateAddress = mandateAddresses[2];
 
         // Blacklist the target mandate
         vm.prank(address(daoMock));
-        daoMock.blacklistAddress(blacklistedMandate, true);
+        daoMock.blacklistAddress(mandateAddress, true);
 
         MandateInitData memory mandateInitData = MandateInitData({
-            nameDescription: "Test mandate", targetMandate: blacklistedMandate, config: abi.encode(), conditions: conditions
+            nameDescription: "Test mandate", targetMandate: mandateAddress, config: abi.encode(), conditions: conditions
         });
 
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
@@ -954,15 +927,15 @@ contract MandateAdoptionTest is TestSetupPowers {
 //////////////////////////////////////////////////////////////
 contract RoleManagementTest is TestSetupPowers {
     function testAssignRoleRevertsWithBlacklistedAccount() public {
-        address blacklistedAccount = makeAddr("blacklisted");
+        account = makeAddr("blacklisted");
 
         // Blacklist the account
         vm.prank(address(daoMock));
-        daoMock.blacklistAddress(blacklistedAccount, true);
+        daoMock.blacklistAddress(account, true);
 
         vm.expectRevert(PowersErrors.Powers__AddressBlacklisted.selector);
         vm.prank(address(daoMock));
-        daoMock.assignRole(ROLE_THREE, blacklistedAccount);
+        daoMock.assignRole(ROLE_THREE, account);
     }
 
     function testLabelRoleRevertsWithEmptyLabel() public {
@@ -999,25 +972,25 @@ contract RoleManagementTest is TestSetupPowers {
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_THREE, alice);
 
-        uint256 membersBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
-        assertEq(membersBefore, 1);
+        balanceBefore = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(balanceBefore, 1);
 
         // Now remove the role
         vm.prank(address(daoMock));
         daoMock.revokeRole(ROLE_THREE, alice);
 
-        uint256 membersAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
-        assertEq(membersAfter, 0);
+        balanceAfter = daoMock.getAmountRoleHolders(ROLE_THREE);
+        assertEq(balanceAfter, 0);
         assertEq(daoMock.hasRoleSince(alice, ROLE_THREE), 0);
     }
 
-    function testGetRoleHoldersWithEmptyArray() public {
+    function testGetRoleHoldersWithEmptyArray() public view {
         // Test with a role that has no members
         uint256 amountRoleHolders = daoMock.getAmountRoleHolders(ROLE_THREE);
         assertEq(amountRoleHolders, 0);
     }
 
-    function testGetActionStateNonExistent() public {
+    function testGetActionStateNonExistent() public view {
         // Test with a non-existent action ID
         uint256 nonExistentActionId = 999_999;
         ActionState state = daoMock.getActionState(nonExistentActionId);

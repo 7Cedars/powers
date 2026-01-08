@@ -48,10 +48,10 @@ contract SafeAllowanceTransfer is Mandate {
         public
         override
     {
-        (address allowanceModule, address safeProxy) = abi.decode(config, (address, address));
-
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-        mandateConfig[mandateHash_] = ConfigData({ safeProxy: safeProxy, allowanceModule: allowanceModule });
+
+        (mandateConfig[mandateHash_].allowanceModule, mandateConfig[mandateHash_].safeProxy) =
+            abi.decode(config, (address, address));
 
         // Overwrite inputParams with the specific structure expected by handleRequest
         inputParams = abi.encode("address Token", "address PayableTo", "uint256 Amount");

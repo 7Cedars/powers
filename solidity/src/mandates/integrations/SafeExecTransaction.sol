@@ -30,9 +30,11 @@ contract SafeExecTransaction is Mandate {
         public
         override
     {
-        (string[] memory inputParamsRaw, address safe) = abi.decode(config, (string[], address));
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-        mandateConfig[mandateHash_] = ConfigData({ safe: safe });
+        string[] memory inputParamsRaw;
+
+        (inputParamsRaw, mandateConfig[mandateHash_].safe) = abi.decode(config, (string[], address));
+
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsRaw), config);
     }
 

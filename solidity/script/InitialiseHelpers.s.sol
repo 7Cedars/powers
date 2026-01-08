@@ -107,7 +107,7 @@ contract InitialiseHelpers is Script {
     //////////////////////////////////////////////////////////////
     //                   LAW DEPLOYMENT                         //
     //////////////////////////////////////////////////////////////
-    function computeHelperAddress(bytes memory creationCode, string memory name) public returns (address) {
+    function computeHelperAddress(bytes memory creationCode, string memory name) public view returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(name));
         return Create2.computeAddress(salt, keccak256(abi.encodePacked(creationCode)), create2Factory);
     }

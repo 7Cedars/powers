@@ -36,20 +36,19 @@ contract PresetMultipleActions is Mandate {
         public
         override
     {
+        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+
         (
-            string[] memory descriptions_,
-            address[] memory targets_,
-            uint256[] memory values_,
-            bytes[] memory calldatas_
+            data[mandateHash].descriptions,
+            data[mandateHash].targets,
+            data[mandateHash].values,
+            data[mandateHash].calldatas
         ) = abi.decode(config, (string[], address[], uint256[], bytes[]));
 
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        data[mandateHash] = Data({ descriptions: descriptions_, targets: targets_, values: values_, calldatas: calldatas_ });
+        string[] memory parameters = new string[](data[mandateHash].descriptions.length);
 
-        string[] memory parameters = new string[](descriptions_.length);
-
-        for (uint256 i = 0; i < descriptions_.length; i++) {
-            parameters[i] = string.concat("bool ", descriptions_[i]);
+        for (uint256 i = 0; i < data[mandateHash].descriptions.length; i++) {
+            parameters[i] = string.concat("bool ", data[mandateHash].descriptions[i]);
         }
 
         inputParams = abi.encode(parameters);

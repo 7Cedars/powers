@@ -41,23 +41,20 @@ contract OpenElectionStart is Mandate {
         public
         override
     {
-        (address electionContract_, uint256 blockTime_, uint256 voterRoleId_) =
-            abi.decode(config, (address, uint256, uint256));
-
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+
+        (
+            data[mandateHash].electionContract, 
+            data[mandateHash].blockTime, 
+            data[mandateHash].voterRoleId
+        ) = abi.decode(config, (address, uint256, uint256));
         
-        // Deploy OpenElectionVote contract with electionContract and maxVotes as 1
-        bytes memory voteConfig = abi.encode(electionContract_, uint256(1));
+        // Deploy OpenElectionVote contract with electionContract and maxVotes as 1 
         OpenElectionVote voteContract = new OpenElectionVote();
         // Note: The vote contract would need to be initialized separately by Powers
         
-        data[mandateHash] = Data({
-            electionContract: electionContract_, 
-            voteContract: address(voteContract),
-            blockTime: blockTime_,
-            voterRoleId: voterRoleId_,
-            voteContractId: 0 // to be set when election is opened. 
-        });
+        data[mandateHash].voteContract = address(voteContract);
+        data[mandateHash].voteContractId = 0; // to be set when election is opened. 
 
         // No input parameters needed
         inputParams = abi.encode();

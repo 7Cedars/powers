@@ -43,22 +43,22 @@ contract MandateUtilitiesTest is TestSetupMandate {
     function testNftCheckPassesWithValidToken() public {
         // Setup: Mint an NFT to alice
         vm.prank(address(daoMock));
-        SoulboundErc721(mockAddresses[2]).mintNft(1, alice);
+        SoulboundErc721(helperAddresses[2]).mintNft(1, alice);
 
         // Should not revert when alice owns an NFT
-        MandateUtilities.nftCheck(alice, mockAddresses[2]);
+        MandateUtilities.nftCheck(alice, helperAddresses[2]);
     }
 
     function testNftCheckRevertsWithoutToken() public {
         // Should revert when alice doesn't own any NFTs
         vm.expectRevert("Does not own token.");
-        MandateUtilities.nftCheck(alice, mockAddresses[2]);
+        MandateUtilities.nftCheck(alice, helperAddresses[2]);
     }
 
     //////////////////////////////////////////////////////////////
     //                  ROLE CHECKS                              //
     //////////////////////////////////////////////////////////////
-    function testHasRoleCheckPassesWithValidRole() public {
+    function testHasRoleCheckPassesWithValidRole() public view {
         uint32[] memory roles = new uint32[](1);
         roles[0] = uint32(ROLE_ONE);
 
@@ -125,7 +125,7 @@ contract MandateUtilitiesTest is TestSetupMandate {
     //                  ARRAY UTILITIES                         //
     //////////////////////////////////////////////////////////////
 
-    function testArrayifyBoolsEmptyArrayPasses(uint256 numBools) public {
+    function testArrayifyBoolsEmptyArrayPasses(uint256 numBools) public pure {
         numBools = bound(numBools, 0, 1000);
         // Test with zero booleans
         bool[] memory result = MandateUtilities.arrayifyBools(numBools);

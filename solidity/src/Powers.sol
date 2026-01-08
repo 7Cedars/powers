@@ -70,7 +70,7 @@ contract Powers is EIP712, IPowers, Context {
         _;
     }
 
-    function _onlyPowers() internal {
+    function _onlyPowers() internal view {
         if (_msgSender() != address(this)) revert Powers__OnlyPowers();
     }
 
@@ -80,7 +80,7 @@ contract Powers is EIP712, IPowers, Context {
         _;
     }
 
-    function _onlyAdoptedMandate(uint16 mandateId) internal {
+    function _onlyAdoptedMandate(uint16 mandateId) internal view {
         if (mandates[mandateId].active == false) revert Powers__MandateNotActive();
     }
 
@@ -392,12 +392,15 @@ contract Powers is EIP712, IPowers, Context {
                 _adoptMandate(constituentMandates[i]);
             }
         }
+        emit ConstitutionExecuted();
     }
 
     /// @inheritdoc IPowers
     function adoptMandate(MandateInitData memory mandateInitData) external onlyPowers returns (uint256 mandateId) {
         mandateId = _adoptMandate(mandateInitData);
-
+        // emit event.
+        emit MandateAdopted(mandateCounter - 1);
+        
         return mandateId;
     }
 
@@ -435,9 +438,6 @@ contract Powers is EIP712, IPowers, Context {
         mandateCounter++;
 
         Mandate(mandateInitData.targetMandate).initializeMandate(mandateCounter - 1, mandateInitData.nameDescription, "", mandateInitData.config);
-
-        // emit event.
-        emit MandateAdopted(mandateCounter - 1);
 
         return mandateCounter - 1;
     }

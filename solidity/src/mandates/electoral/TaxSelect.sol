@@ -37,7 +37,11 @@ contract TaxSelect is Mandate {
     }
 
     struct Mem {
+        // address erc20Taxed;
+        // uint256 thresholdTaxPaid;
+        // uint256 roleIdToSet;
         bytes32 mandateHash;
+        address account;
         uint48 epochDuration;
         uint48 currentEpoch;
         bool hasRole;
@@ -61,12 +65,17 @@ contract TaxSelect is Mandate {
         public
         override
     {
-        (address erc20Taxed_, uint256 thresholdTaxPaid_, uint256 roleIdToSet_) =
-            abi.decode(config, (address, uint256, uint256));
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        data[mandateHash].erc20Taxed = erc20Taxed_;
-        data[mandateHash].thresholdTaxPaid = thresholdTaxPaid_;
-        data[mandateHash].roleIdToSet = roleIdToSet_;
+
+        (
+            data[mandateHash].erc20Taxed, 
+            data[mandateHash].thresholdTaxPaid, 
+            data[mandateHash].roleIdToSet
+            ) = abi.decode(config, (address, uint256, uint256));
+
+        // data[mandateHash].erc20Taxed = mem.erc20Taxed;
+        // data[mandateHash].thresholdTaxPaid = memthresholdTaxPaid_;
+        // data[mandateHash].roleIdToSet = roleIdToSet_;
 
         inputParams = abi.encode("address Account");
 
@@ -101,7 +110,7 @@ contract TaxSelect is Mandate {
         mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
         // step 0: create actionId & decode the calldata
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-        (address account) = abi.decode(mandateCalldata, (address));
+        (mem.account) = abi.decode(mandateCalldata, (address));
 
         // step 1: retrieve data
         mem.epochDuration = Erc20Taxed(data[mem.mandateHash].erc20Taxed).EPOCH_DURATION();
@@ -112,10 +121,10 @@ contract TaxSelect is Mandate {
         }
 
         // step 2: retrieve data on tax paid and role
-        mem.hasRole = Powers(payable(powers)).hasRoleSince(account, data[mem.mandateHash].roleIdToSet) > 0;
+        mem.hasRole = Powers(payable(powers)).hasRoleSince(mem.account, data[mem.mandateHash].roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
         mem.taxPaid =
-            Erc20Taxed(data[mem.mandateHash].erc20Taxed).getTaxLogs(uint48(block.number) - mem.epochDuration, account);
+            Erc20Taxed(data[mem.mandateHash].erc20Taxed).getTaxLogs(uint48(block.number) - mem.epochDuration, mem.account);
         // console.log("mem.taxPaid", mem.taxPaid);
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
@@ -124,10 +133,10 @@ contract TaxSelect is Mandate {
         // step 3: create arrays
         if (mem.hasRole && mem.taxPaid < data[mem.mandateHash].thresholdTaxPaid) {
             // console.log("revoking role");
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.mandateHash].roleIdToSet, account);
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data[mem.mandateHash].roleIdToSet, mem.account);
         } else if (!mem.hasRole && mem.taxPaid >= data[mem.mandateHash].thresholdTaxPaid) {
             // console.log("assigning role");
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[mem.mandateHash].roleIdToSet, account);
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data[mem.mandateHash].roleIdToSet, mem.account);
         }
 
         // step 4: return data

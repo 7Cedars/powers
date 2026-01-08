@@ -48,15 +48,13 @@ contract NStrikesRevokesRoles is Mandate {
         public
         override
     {
-        MemoryData memory mem;
-        (uint256 roleId_, uint256 numberOfStrikes_, address flagActionsAddress_) =
-            abi.decode(config, (uint256, uint256, address));
-
-        // Save data to state
-        mem.mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        data[mem.mandateHash].roleId = roleId_;
-        data[mem.mandateHash].numberOfStrikes = numberOfStrikes_;
-        data[mem.mandateHash].flagActionsAddress = flagActionsAddress_;
+        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+        
+        (
+            data[mandateHash].roleId,
+            data[mandateHash].numberOfStrikes,
+            data[mandateHash].flagActionsAddress
+        ) = abi.decode(config, (uint256, uint256, address));
 
         // Set input parameters for the revokeRoles function
         inputParams = abi.encode("No input parameters required");

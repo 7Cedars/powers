@@ -38,23 +38,17 @@ contract BespokeActionAdvanced is Mandate {
         public
         override
     {
-        (
-            address targetContract_,
-            bytes4 targetFunction_,
-            bytes[] memory staticParams_,
-            string[] memory dynamicParams_,
-            uint8[] memory indexDynamicParams_
-        ) = abi.decode(config, (address, bytes4, bytes[], string[], uint8[]));
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
 
-        _data[mandateHash] = Data({
-            targetContract: targetContract_,
-            targetFunction: targetFunction_,
-            staticParams: staticParams_,
-            dynamicParams: dynamicParams_,
-            indexDynamicParams: indexDynamicParams_
-        });
-        inputParams = abi.encode(dynamicParams_);
+        (
+            _data[mandateHash].targetContract,
+            _data[mandateHash].targetFunction,
+            _data[mandateHash].staticParams,
+            _data[mandateHash].dynamicParams,
+            _data[mandateHash].indexDynamicParams
+        ) = abi.decode(config, (address, bytes4, bytes[], string[], uint8[]));
+
+        inputParams = abi.encode(_data[mandateHash].dynamicParams);
 
         super.initializeMandate(index, nameDescription, inputParams, config);
     }

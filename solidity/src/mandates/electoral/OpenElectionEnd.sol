@@ -53,17 +53,14 @@ contract OpenElectionEnd is Mandate {
         public
         override
     {
-        (address electionContract_, uint256 roleId_, uint256 maxRoleHolders_) =
-            abi.decode(config, (address, uint256, uint256));
-
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+        _data[mandateHash].powersContract = msg.sender;
 
-        _data[mandateHash] = Data({
-            powersContract: msg.sender,
-            electionContract: electionContract_,
-            roleId: roleId_,
-            maxRoleHolders: maxRoleHolders_
-        });
+        (
+            _data[mandateHash].electionContract, 
+            _data[mandateHash].roleId, 
+            _data[mandateHash].maxRoleHolders
+        ) = abi.decode(config, (address, uint256, uint256));
 
         // No input parameters needed for this mandate
         inputParams = abi.encode();

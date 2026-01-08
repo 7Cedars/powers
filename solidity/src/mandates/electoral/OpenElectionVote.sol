@@ -47,32 +47,27 @@ contract OpenElectionVote is Mandate {
         public
         override
     {
-        MemoryData memory mem;
-        (address openElectionContract, uint256 maxVotes) = abi.decode(config, (address, uint256));
+        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+        (data[mandateHash].openElectionContract, data[mandateHash].maxVotes) = abi.decode(config, (address, uint256));
 
         // Check if election is open - otherwise revert. 
         if (
-                !OpenElection(openElectionContract).isElectionOpen()
+                !OpenElection(data[mandateHash].openElectionContract).isElectionOpen()
             ) {
                 revert("Election is not open.");
         }
 
         // Get nominees from the OpenElection contract
-        mem.nominees = OpenElection(openElectionContract).getNominees();
-
-        // Save data to state
-        mem.mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        data[mem.mandateHash].nominees = mem.nominees;
-        data[mem.mandateHash].openElectionContract = openElectionContract;
-        data[mem.mandateHash].electionId = OpenElection(openElectionContract).currentElectionId();
-        data[mem.mandateHash].maxVotes = maxVotes;
+        address[] memory nominees = OpenElection(data[mandateHash].openElectionContract).getNominees();
+        data[mandateHash].nominees = nominees;
+        data[mandateHash].electionId = OpenElection(data[mandateHash].openElectionContract).currentElectionId();
 
         // Create dynamic inputParams based on nominees
-        mem.nomineeList = new string[](mem.nominees.length);
-        for (uint256 i = 0; i < mem.nominees.length; i++) {
-            mem.nomineeList[i] = string.concat("bool ", Strings.toHexString(mem.nominees[i]));
+        string[] memory nomineeList = new string[](nominees.length);
+        for (uint256 i = 0; i < nominees.length; i++) {
+            nomineeList[i] = string.concat("bool ", Strings.toHexString(nominees[i]));
         }
-        inputParams = abi.encode(mem.nomineeList);
+        inputParams = abi.encode(nomineeList);
 
         super.initializeMandate(index, nameDescription, inputParams, config);
     }

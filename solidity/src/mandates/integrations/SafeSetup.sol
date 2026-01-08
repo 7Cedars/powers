@@ -34,9 +34,11 @@ contract SafeSetup is Mandate {
         public
         override
     {
-        (address safeProxyFactory_, address safeL2Singleton_) = abi.decode(config, (address, address));
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-        mandateConfig[mandateHash_] = ConfigData({ safeProxyFactory: safeProxyFactory_, safeL2Singleton: safeL2Singleton_ });
+
+        (mandateConfig[mandateHash_].safeProxyFactory, mandateConfig[mandateHash_].safeL2Singleton) =
+            abi.decode(config, (address, address));
+
         super.initializeMandate(index, nameDescription, abi.encode(""), config);
     }
 
@@ -58,7 +60,7 @@ contract SafeSetup is Mandate {
         uint256 nonce
     )
         public
-        view
+        pure
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {

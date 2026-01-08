@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 //         step0Chance = bound(step0Chance, 0, 100);
 //         step1Chance = bound(step1Chance, 0, 100);
 //         step2Chance = bound(step2Chance, 0, 100);
-//         uint256 balanceBefore = Erc20Taxed(mockAddresses[1]).balanceOf(address(daoMock));
+//         uint256 balanceBefore = Erc20Taxed(helperAddresses[1]).balanceOf(address(daoMock));
 //         uint256 seed = 9_034_273_427;
 //         uint256 amountToMint = 123 * 10 ** 18;
 //         PowersTypes.ActionState actionState;
@@ -41,7 +41,7 @@ pragma solidity 0.8.26;
 //         targets = new address[](1);
 //         values = new uint256[](1);
 //         calldatas = new bytes[](1);
-//         targets[0] = mockAddresses[1]; // Erc20Taxed mock
+//         targets[0] = helperAddresses[1]; // Erc20Taxed mock
 //         calldatas[0] = abi.encodeWithSelector(Erc20Taxed.mint.selector, amountToMint);
 
 //         console.log("WAYPOINT 2");
@@ -127,10 +127,10 @@ pragma solidity 0.8.26;
 //             console.log("step 4 action: ACTION WILL BE EXECUTED");
 //             vm.expectEmit(true, false, false, false);
 //             emit PowersEvents.ActionRequested(charlotte, mandateId, mandateCalldata, nonce, description);
-//             balanceBefore = Erc20Taxed(mockAddresses[1]).balanceOf(address(daoMock));
+//             balanceBefore = Erc20Taxed(helperAddresses[1]).balanceOf(address(daoMock));
 //             vm.prank(charlotte); // has role 2
 //             daoMock.request(mandateId, mandateCalldata, nonce, description);
-//             uint256 balanceAfter = Erc20Taxed(mockAddresses[1]).balanceOf(address(daoMock));
+//             uint256 balanceAfter = Erc20Taxed(helperAddresses[1]).balanceOf(address(daoMock));
 //             assertEq(balanceBefore + amountToMint, balanceAfter);
 //         } else {
 //             vm.expectRevert();

@@ -24,7 +24,9 @@ contract RoleByTransaction is Mandate {
         address token;
         uint256 amount;
         uint256 newRoleId;
-        address safeProxy;
+        address safeProxy; 
+        address account; 
+        bool success; 
     }
 
     mapping(bytes32 mandateHash => Data data) public data;
@@ -40,30 +42,38 @@ contract RoleByTransaction is Mandate {
         public
         override
     {   
-        Mem memory mem;
-
-        (mem.token, mem.amount, mem.newRoleId, mem.safeProxy) =
-            abi.decode(config, (address, uint256, uint256, address));
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        if (mem.token == address(0)) {
+
+        (
+            data[mandateHash].token, 
+            data[mandateHash].thresholdAmount, 
+            data[mandateHash].newRoleId, 
+            data[mandateHash].safeProxy
+        ) = abi.decode(config, (address, uint256, uint256, address));
+
+        if (data[mandateHash].token == address(0)) {
             revert ("Native token transfers not supported");
         }
-        data[mandateHash] = Data({ token: mem.token, thresholdAmount: mem.amount, newRoleId: mem.newRoleId, safeProxy: mem.safeProxy });
 
         inputParams = abi.encode("uint256 Amount");
 
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller, 
+        address /*powers*/, 
+        uint16 mandateId, 
+        bytes memory mandateCalldata, 
+        uint256 nonce
+        ) 
         public
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+        returns (uint256 actionId, address[] memory /*targets*/, uint256[] memory /*values*/, bytes[] memory calldatas)
     {
-        // step 1: decode the calldata & create hashes
-        (uint256 amount) = abi.decode(mandateCalldata, (uint256));
+        // step 1: decode the calldata & create hashes 
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
 
         calldatas = new bytes[](2);
@@ -78,27 +88,28 @@ contract RoleByTransaction is Mandate {
         uint256[] memory values,
         bytes[] memory calldatas
     ) internal override {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, mandateId);
-        Data memory data_ = data[mandateHash];
-        uint256 amount = abi.decode(calldatas[0], (uint256));
-        address account = abi.decode(calldatas[1], (address));
-        bool success;
+        Data memory data_ = data[MandateUtilities.hashMandate(msg.sender, mandateId)];
+        
+        Mem memory mem;
+        mem.amount = abi.decode(calldatas[0], (uint256));
+        mem.account = abi.decode(calldatas[1], (address));
+        mem.success;
 
-        require(amount >= data_.thresholdAmount, "Amount below threshold");
+        require(mem.amount >= data_.thresholdAmount, "Amount below threshold");
 
         if (data_.token == address(0)) {
-            (success,) = data_.safeProxy.call{ value: amount }("");
+            (mem.success,) = data_.safeProxy.call{ value: mem.amount }("");
         } else {
-            (success,) = data_.token
+            (mem.success,) = data_.token
                 .call(
-                    abi.encodeWithSignature("transferFrom(address,address,uint256)", account, data_.safeProxy, amount)
+                    abi.encodeWithSignature("transferFrom(address,address,uint256)", mem.account, data_.safeProxy, mem.amount)
                 );
         }
-        require(success, "Transaction failed");
+        require(mem.success, "Transaction failed");
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = msg.sender;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, account);
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, mem.account);
 
         // step 2: execute the role assignment if the amount threshold is met
         _replyPowers(mandateId, actionId, targets, values, calldatas);

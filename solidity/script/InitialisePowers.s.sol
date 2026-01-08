@@ -43,9 +43,6 @@ import { ClaimRoleWithGitSig } from "@src/mandates/async/ClaimRoleWithGitSig.sol
 import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.sol";
 
 // Integration Mandates
-import { TreasuryPoolGovernance } from "@src/mandates/integrations/TreasuryPoolGovernance.sol";
-import { TreasuryRoleWithTransfer } from "@src/mandates/integrations/TreasuryRoleWithTransfer.sol";
-import { TreasuryPoolTransfer } from "@src/mandates/integrations/TreasuryPoolTransfer.sol";
 import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
 import { SafeExecTransaction } from "@src/mandates/integrations/SafeExecTransaction.sol";
@@ -186,10 +183,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(TaxSelect).creationCode);
         constructorArgs.push(abi.encode("TaxSelect"));
 
-        names.push("TreasuryRoleWithTransfer");
-        creationCodes.push(type(TreasuryRoleWithTransfer).creationCode);
-        constructorArgs.push(abi.encode("TreasuryRoleWithTransfer"));
-
         names.push("RoleByRoles");
         creationCodes.push(type(RoleByRoles).creationCode);
         constructorArgs.push(abi.encode("RoleByRoles"));
@@ -228,14 +221,6 @@ contract InitialisePowers is Script {
 
         names.push("AssignRoleWithGitSig");
         creationCodes.push(type(AssignRoleWithGitSig).creationCode);
-        constructorArgs.push(abi.encode());
-
-        names.push("TreasuryPoolTransfer");
-        creationCodes.push(type(TreasuryPoolTransfer).creationCode);
-        constructorArgs.push(abi.encode());
-
-        names.push("TreasuryPoolGovernance");
-        creationCodes.push(type(TreasuryPoolGovernance).creationCode);
         constructorArgs.push(abi.encode());
 
         names.push("AssignExternalRole");

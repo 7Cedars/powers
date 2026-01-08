@@ -23,9 +23,8 @@ contract SelfSelect is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        uint256 roleId_ = abi.decode(config, (uint256));
-        roleIds[MandateUtilities.hashMandate(msg.sender, index)] = roleId_;
+    { 
+        roleIds[MandateUtilities.hashMandate(msg.sender, index)] = abi.decode(config, (uint256));
 
         inputParams = abi.encode();
         super.initializeMandate(index, nameDescription, inputParams, config);
@@ -44,8 +43,8 @@ contract SelfSelect is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
 
         if (Powers(payable(powers)).hasRoleSince(caller, roleIds[mandateHash]) != 0) {
             revert("Account already has role.");
