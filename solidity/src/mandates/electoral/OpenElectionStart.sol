@@ -64,13 +64,13 @@ contract OpenElectionStart is Mandate {
 
     /// @notice Handles the request to start an election and adopt the vote mandate
     /// @dev Calls openElection on the OpenElection contract and adopts the OpenElectionVote mandate
-    /// @param caller The address calling the mandate
+    // / @param caller The address calling the mandate
     /// @param powers The Powers contract address
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata The calldata for the mandate (empty for this mandate)
     /// @param nonce Unique nonce to build the action id
     function handleRequest(
-        address caller,
+        address /*caller*/,
         address powers,
         uint16 mandateId,
         bytes memory mandateCalldata,

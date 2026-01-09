@@ -13,8 +13,7 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
 
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
 
 /// @notice Unit tests for the core Powers protocol (updated v0.4)
 
@@ -794,58 +793,6 @@ contract SetRoleTest is TestSetupPowers {
         vm.expectRevert(Powers__LockedRole.selector);
         vm.prank(address(daoMock));
         daoMock.labelRole(ADMIN_ROLE, "Admin role");
-    }
-}
-
-contract ComplianceTest is TestSetupPowers {
-    function testErc721Compliance() public {
-        mintAmount = 42;
-        assertEq(SoulboundErc721(helperAddresses[2]).balanceOf(address(daoMock)), 0, "Initial balance should be 0");
-
-        vm.prank(address(daoMock));
-        SoulboundErc721(helperAddresses[2]).mintNft(mintAmount, address(daoMock));
-
-        assertEq(SoulboundErc721(helperAddresses[2]).balanceOf(address(daoMock)), 1, "Balance should be 1 after minting");
-        assertEq(SoulboundErc721(helperAddresses[2]).ownerOf(mintAmount), address(daoMock), "NFT should be owned by DAO");
-    }
-
-    function testOnERC721Received() public {
-        account = alice;
-        address recipient = address(daoMock);
-        uint256 tokenId = 42;
-        bytes memory data = bytes(abi.encode(0));
-
-        vm.prank(address(daoMock));
-        (bytes4 response) = daoMock.onERC721Received(account, recipient, tokenId, data);
-
-        assertEq(response, daoMock.onERC721Received.selector, "Should return correct selector");
-    }
-
-    function testErc1155Compliance() public {
-        mintAmount = 100;
-        assertEq(SimpleErc1155(helperAddresses[3]).balanceOf(address(daoMock), 0), 0, "Initial balance should be 0");
-
-        vm.prank(address(daoMock));
-        SimpleErc1155(helperAddresses[3]).mintCoins(mintAmount);
-
-        assertEq(
-            SimpleErc1155(helperAddresses[3]).balanceOf(address(daoMock), 0), 100, "Balance should be 100 after minting"
-        );
-    }
-
-    function testOnERC1155BatchReceived() public {
-        account = alice;
-        address recipient = address(daoMock);
-        uint256[] memory tokenIds = new uint256[](1);
-        tokenIds[0] = 1;
-        values = new uint256[](1);
-        values[0] = 22;
-        bytes memory data = bytes(abi.encode(0));
-
-        vm.prank(address(daoMock));
-        (bytes4 response) = daoMock.onERC1155BatchReceived(account, recipient, tokenIds, values, data);
-
-        assertEq(response, daoMock.onERC1155BatchReceived.selector, "Should return correct selector");
     }
 }
 

@@ -4,14 +4,14 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
+import { IPowers } from "../../interfaces/IPowers.sol";
 
 // import { console2 } from "forge-std/console2.sol"; // only for testing/debugging
 
 contract SafeAllowanceAction is Mandate {
     /// @dev Configurations for this mandate adoption.
     struct ConfigData {
-        bytes4 functionSelector;
-        address safeProxy;
+        bytes4 functionSelector; 
         address allowanceModule;
     }
 
@@ -22,7 +22,7 @@ contract SafeAllowanceAction is Mandate {
     constructor() {
         // Expose expected input parameters for UIs.
         bytes memory configParams = abi.encode(
-            "string[] inputParams", "bytes4 functionSelector", "address allowanceModule", "address safeProxy"
+            "string[] inputParams", "bytes4 functionSelector", "address allowanceModule"
         );
         emit Mandate__Deployed(configParams);
     }
@@ -35,11 +35,10 @@ contract SafeAllowanceAction is Mandate {
         string[] memory inputParamsArray;
 
         (
-            inputParamsArray,
+            inputParamsArray, 
             mandateConfig[mandateHash_].functionSelector,
-            mandateConfig[mandateHash_].allowanceModule,
-            mandateConfig[mandateHash_].safeProxy
-        ) = abi.decode(config, (string[], bytes4, address, address));
+            mandateConfig[mandateHash_].allowanceModule 
+        ) = abi.decode(config, (string[], bytes4, address));
 
         // Overwrite inputParams with the specific structure expected by handleRequest
         inputParams = abi.encode(inputParamsArray);
@@ -68,6 +67,10 @@ contract SafeAllowanceAction is Mandate {
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
         bytes32 mandateHash_ = MandateUtilities.hashMandate(powers, mandateId);
         ConfigData memory config = mandateConfig[mandateHash_];
+        address safeProxyAddress = IPowers(powers).getTreasury();
+        if (safeProxyAddress == address(0)) {
+            revert ("SafeAllowanceAction: Treasury not set in Powers");
+        }
 
         // (address delegateAddress) = abi.decode(mandateCalldata, (address));
 
@@ -81,7 +84,7 @@ contract SafeAllowanceAction is Mandate {
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         // NB: We call the execTransaction function in our SafeL2 proxy to make the call to the Allowance Module.
-        targets[0] = config.safeProxy;
+        targets[0] = safeProxyAddress;
         calldatas[0] = abi.encodeWithSelector(
             Safe.execTransaction.selector,
             config.allowanceModule, // The internal transaction's destination: the Allowance Module.

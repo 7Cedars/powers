@@ -65,11 +65,11 @@ contract MandatePackage is Mandate {
 
     /// @notice Generates MandateInitData for a set of new mandates to be adopted.
     /// @param mandateAddresses The addresses of the mandates to be adopted.
-    /// @param powers The address of the Powers contract.
+    // / @param powers The address of the Powers contract.
     /// @return mandateInitData An array of MandateInitData structs for the new mandates.
     /// @dev the function follows the same pattern as TestConstitutions.sol
     /// this function can be overwritten to create different mandate packages.
-    function getNewMandates(address[] memory mandateAddresses, address powers, uint16 mandateCount)
+    function getNewMandates(address[] memory mandateAddresses, address /* powers */, uint16 mandateCount)
         public
         view
         virtual

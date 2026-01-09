@@ -41,6 +41,7 @@ contract OpenElections is Script {
         config = helperConfig.getConfig();
 
         // step 1: deploy Open Elections Powers
+        vm.startBroadcast();
         powers = new Powers(
             "Open Elections", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiaaprfqxtgyxa5v2dnf7edfbc3mxewdh4axf4qtkurpz66jh2f2ve", // uri
@@ -48,6 +49,7 @@ contract OpenElections is Script {
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
         );
+        vm.stopBroadcast();
         console2.log("Powers deployed at:", address(powers));
 
         // step 2: create constitution 
@@ -56,7 +58,9 @@ contract OpenElections is Script {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
+        vm.startBroadcast();
         powers.constitute(constitution);
+        vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
     }
 

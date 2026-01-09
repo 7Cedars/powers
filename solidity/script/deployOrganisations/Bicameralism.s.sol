@@ -7,6 +7,7 @@ import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
 import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -17,7 +18,7 @@ import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
 /// @title Bicameralism Deployment Script
-contract Bicameralism is Script {
+contract Bicameralism is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
@@ -42,6 +43,7 @@ contract Bicameralism is Script {
         config = helperConfig.getConfig();
 
         // step 1: deploy Bicameralism Powers
+        vm.startBroadcast();
         powers = new Powers(
             "Bicameralism", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreidlcgxe2mnwghrk4o5xenybljieurrxhtio6gq5fq5u6lxduyyl6e", // uri
@@ -49,6 +51,7 @@ contract Bicameralism is Script {
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
         );
+        vm.stopBroadcast();
         console2.log("Powers deployed at:", address(powers));
 
         // step 2: create constitution 
@@ -57,7 +60,9 @@ contract Bicameralism is Script {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
+        vm.startBroadcast();
         powers.constitute(constitution);
+        vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
     }
 
@@ -89,7 +94,7 @@ contract Bicameralism is Script {
         inputParams[2] = "calldatas bytes[]";
 
         conditions.allowedRole = 1; // = Delegates
-        conditions.votingPeriod = 300; // = 5 minutes approx (depends on block time, 300 is ~5 mins on 1s chain, 1h on 12s)
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = 5 minutes approx (depends on block time, 300 is ~5 mins on 1s chain, 1h on 12s)
         conditions.succeedAt = 51; // = 51% majority
         conditions.quorum = 33; // = 33% quorum
         constitution.push(PowersTypes.MandateInitData({
@@ -102,7 +107,7 @@ contract Bicameralism is Script {
 
         // Mandate 3: Execute action (OpenAction)
         conditions.allowedRole = 2; // = Funders
-        conditions.votingPeriod = 300;
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR);
         conditions.succeedAt = 51;
         conditions.needFulfilled = 2; // = Mandate 2 (Initiate action)
         conditions.quorum = 33;

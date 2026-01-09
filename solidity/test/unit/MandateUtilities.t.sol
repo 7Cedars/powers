@@ -12,8 +12,7 @@ import { MandateUtilities } from "../../src/libraries/MandateUtilities.sol";
 import { TestSetupMandate } from "../TestSetup.t.sol";
 import { IMandate } from "../../src/interfaces/IMandate.sol";
 import { Mandate } from "../../src/Mandate.sol";
-
-import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
+ 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 contract MandateUtilitiesTest is TestSetupMandate {
@@ -35,24 +34,6 @@ contract MandateUtilitiesTest is TestSetupMandate {
         // Should revert with name longer than 31 characters
         vm.expectRevert("String too long");
         MandateUtilities.checkStringLength("ThisNameIsWaaaaaayTooLongForAMandateName", 1, 31);
-    }
-
-    //////////////////////////////////////////////////////////////
-    //                  NFT CHECKS                               //
-    //////////////////////////////////////////////////////////////
-    function testNftCheckPassesWithValidToken() public {
-        // Setup: Mint an NFT to alice
-        vm.prank(address(daoMock));
-        SoulboundErc721(helperAddresses[2]).mintNft(1, alice);
-
-        // Should not revert when alice owns an NFT
-        MandateUtilities.nftCheck(alice, helperAddresses[2]);
-    }
-
-    function testNftCheckRevertsWithoutToken() public {
-        // Should revert when alice doesn't own any NFTs
-        vm.expectRevert("Does not own token.");
-        MandateUtilities.nftCheck(alice, helperAddresses[2]);
     }
 
     //////////////////////////////////////////////////////////////

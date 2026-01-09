@@ -25,18 +25,6 @@ library MandateUtilities {
         }
     }
 
-    /// @notice Verifies if an address owns any tokens from a specific NFT contract
-    /// @dev Checks the balance of the given address in the specified ERC721 contract
-    /// @param caller Address to check token ownership for
-    /// @param nftCheckAddress Address of the ERC721 contract
-    /// @return hasToken True if the caller owns at least one token
-    function nftCheck(address caller, address nftCheckAddress) external view returns (bool hasToken) {
-        hasToken = ERC721(nftCheckAddress).balanceOf(caller) > 0;
-        if (!hasToken) {
-            revert("Does not own token.");
-        }
-    }
-
     /// @notice Verifies if an address has all specified roles
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for

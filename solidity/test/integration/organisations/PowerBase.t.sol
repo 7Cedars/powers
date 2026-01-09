@@ -28,7 +28,7 @@ pragma solidity 0.8.26;
 //     function testPowerLabs_Deployment() public {
 //         // Just verify setup completed successfully
 //         assertTrue(address(daoMock) != address(0), "Powers contract not deployed");
-//         assertTrue(config.SafeAllowanceModule != address(0), "Allowance module address not set");
+//         assertTrue(config.safeAllowanceModule != address(0), "Allowance module address not set");
 
 //         (mandate1,, active1) = daoMock.getAdoptedMandate(1);
 //         (mandate2,, active2) = daoMock.getAdoptedMandate(2);
@@ -54,11 +54,11 @@ pragma solidity 0.8.26;
 //     //     safeL2Treasury = daoMock.getTreasury();
 
 //     //     vm.prank(alice);
-//     //     daoMock.request(2, abi.encode(safeL2Treasury, config.SafeAllowanceModule), nonce, "Setup Safe");
+//     //     daoMock.request(2, abi.encode(safeL2Treasury, config.safeAllowanceModule), nonce, "Setup Safe");
 
 //     //     assertTrue(daoMock.mandateCounter() > 1, "No new actions recorded");
 //     //     assertTrue(
-//     //         SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.SafeAllowanceModule), "Allowance module not enabled"
+//     //         SafeL2(payable(safeL2Treasury)).isModuleEnabled(config.safeAllowanceModule), "Allowance module not enabled"
 //     //     );
 //     // }
 
@@ -163,11 +163,11 @@ pragma solidity 0.8.26;
 
 //         // Verification
 //         // We need to interact with the AllowanceModule to check if the delegate was added.
-//         // The address of the allowance module is config.SafeAllowanceModule
+//         // The address of the allowance module is config.safeAllowanceModule
 //         // getDelegates = 0xeb37abe0
 //         safeL2Treasury = daoMock.getTreasury();
 //         vm.prank(safeL2Treasury);
-//         (ok, result) = config.SafeAllowanceModule
+//         (ok, result) = config.safeAllowanceModule
 //             .staticcall(abi.encodeWithSignature("getDelegates(address,uint48,uint8)", safeL2Treasury, 0, 10));
 
 //         require(ok, "Static call to getDelegates failed");
@@ -272,7 +272,7 @@ pragma solidity 0.8.26;
 //         daoMock.request(mandateId, proposalCalldata, nonce, "Execute add allowance");
 
 //         // Verification
-//         (ok, result) = config.SafeAllowanceModule
+//         (ok, result) = config.safeAllowanceModule
 //             .staticcall(
 //                 abi.encodeWithSignature("getTokenAllowance(address,address,address)", safeL2Treasury, alice, token)
 //             );

@@ -31,7 +31,9 @@ contract TestConstitutions is Test {
     uint256[] roleIdsNeeded;
     address[] mandatesToAdopt;
     bytes[] mandateInitDatas;
-    PowersTypes.MandateInitData[] orgInitData;
+    PowersTypes.MandateInitData[] constitution;
+    PowersTypes.MandateInitData[] parentConstitution;
+    PowersTypes.MandateInitData[] childConstitution;
 
     string[] mandateNames; 
     address[] mandateAddresses;
@@ -61,8 +63,8 @@ contract TestConstitutions is Test {
     //                 POWERS CONSTITUTION                      //
     //////////////////////////////////////////////////////////////
     /// @notice initiate the powers constitution. Follows the Powers101 governance structure.
-    function powersTestConstitution(address payable daoMock) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
+    function powersTestConstitution(address daoMock) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
         
         // dummy call.
         targets = new address[](1);
@@ -76,7 +78,7 @@ contract TestConstitutions is Test {
 
         // slef select as communtiy member
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Self select as community member: Self select as a community member. Anyone can call this mandate.",
             targetMandate: getMandateAddress("SelfSelect"), // selfSelct
             config: abi.encode(
@@ -88,7 +90,7 @@ contract TestConstitutions is Test {
 
         // self Select as delegate
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Self select as delegate: Self select as a delegate. Only community members can call this mandate.",
             targetMandate: getMandateAddress("SelfSelect"), // selfSelct
             config: abi.encode(
@@ -110,7 +112,7 @@ contract TestConstitutions is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.throttleExecution = 5000;
         conditions.timelock = 250; // = 250 blocks to wait after proposal success before execution
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetMandate: getMandateAddress("StatementOfIntent"), // statementOfIntent
             config: abi.encode(inputParams),
@@ -120,7 +122,7 @@ contract TestConstitutions is Test {
 
         conditions.allowedRole = 0; // = admin.
         conditions.needFulfilled = 3; // = mandate that must be completed before this one.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
             targetMandate: getMandateAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
@@ -131,7 +133,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 2; // = role that can call this mandate.
         conditions.needFulfilled = 3; // = mandate that must be completed before this one.
         conditions.needNotFulfilled = 4; // = mandate that must not be completed before this one.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
             targetMandate: getMandateAddress("OpenAction"), // openAction.
             config: abi.encode(), // empty config.
@@ -154,7 +156,7 @@ contract TestConstitutions is Test {
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetSingleAction
             config: abi.encode(targets, values, calldatas),
@@ -162,14 +164,14 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
     }
 
     //////////////////////////////////////////////////////////////
     //                  LAW CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function mandateTestConstitution( address payable daoMock ) public returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData;
+    function mandateTestConstitution( address daoMock ) public returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution;
 
         // dummy call: mint coins at mock1155 contract.
         targets = new address[](1);
@@ -185,7 +187,7 @@ contract TestConstitutions is Test {
         conditions.votingPeriod = 1200; // = number of blocks
         conditions.allowedRole = 1;
         // initiating mandate.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: Needs Proposal Vote to pass",
             targetMandate: getMandateAddress("StatementOfIntent"), // statementOfIntent
             config: abi.encode(),
@@ -197,7 +199,7 @@ contract TestConstitutions is Test {
         conditions.needFulfilled = 1;
         conditions.allowedRole = 1;
         // initiating mandate.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetSingleActions: Needs Parent Completed to pass",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetAction
             config: abi.encode(targets, values, calldatas),
@@ -209,7 +211,7 @@ contract TestConstitutions is Test {
         conditions.needNotFulfilled = 1;
         conditions.allowedRole = 1;
         // initiating mandate.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetSingleActions: Parent can block a mandate, making it impossible to pass",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetAction
             config: abi.encode(targets, values, calldatas),
@@ -224,7 +226,7 @@ contract TestConstitutions is Test {
         conditions.timelock = 5000;
         conditions.allowedRole = 1;
         // initiating mandate.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetSingleActions: Delay execution of a mandate, by a preset number of blocks",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetAction
             config: abi.encode(targets, values, calldatas),
@@ -236,7 +238,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1;
         conditions.throttleExecution = 5000;
         // initiating mandate.
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetSingleActions: Throttle the number of executions of a mandate.",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetAction
             config: abi.encode(targets, values, calldatas),
@@ -258,7 +260,7 @@ contract TestConstitutions is Test {
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetSingleAction
             config: abi.encode(targets, values, calldatas),
@@ -266,7 +268,7 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,25 +280,25 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                    ASYNC CONSTITUTION                    //
     //////////////////////////////////////////////////////////////
-    function asyncTestConstitution( address payable /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
+    function asyncTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
 
         // todo
         // need to include the get role by git commit.
         // need to use dummy return calls. 
 
-        return orgInitData;
+        return constitution;
     }
 
     ////////////////////////////////////////////////////////////
     //                ELECTORAL CONSTITUTION                  //
     ////////////////////////////////////////////////////////////
-    function electoralTestConstitution( address payable daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
+    function electoralTestConstitution( address daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
 
         // PeerSelect - for peer voting
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PeerSelect: A mandate to select roles by peer votes from nominees.",
             targetMandate: getMandateAddress("PeerSelect"), // PeerSelect (electoral mandate)
             config: abi.encode(
@@ -311,7 +313,7 @@ contract TestConstitutions is Test {
 
         // OpenElectionVote - for voting in open elections
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "OpenElectionVote: A mandate to vote in open elections.",
             targetMandate: getMandateAddress("OpenElectionVote"), // OpenElectionVote (electoral mandate)
             config: abi.encode(getHelperAddress("OpenElection"), 1), // OpenElection contract, max votes per voter
@@ -321,7 +323,7 @@ contract TestConstitutions is Test {
 
         // OpenElectionEnd - for delegate elections
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "OpenElectionEnd: A mandate to run delegate elections and assign roles based on results.",
             targetMandate: getMandateAddress("OpenElectionEnd"), // OpenElectionEnd (electoral mandate)
             config: abi.encode(
@@ -335,7 +337,7 @@ contract TestConstitutions is Test {
 
         // TaxSelect - for tax-based role assignment
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "TaxSelect: A mandate to assign roles based on tax payments.",
             targetMandate: getMandateAddress("TaxSelect"), // TaxSelect (electoral mandate)
             config: abi.encode(
@@ -349,7 +351,7 @@ contract TestConstitutions is Test {
 
         // SelfSelect - for self-assignment
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "SelfSelect: A mandate to self-assign a role.",
             targetMandate: getMandateAddress("SelfSelect"), // SelfSelect (electoral mandate)
             config: abi.encode(4), // roleId to be assigned
@@ -362,7 +364,7 @@ contract TestConstitutions is Test {
         roles[0] = 1;
         roles[1] = 2;
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "RenounceRole: A mandate to renounce specific roles.",
             targetMandate: getMandateAddress("RenounceRole"), // RenounceRole (electoral mandate)
             config: abi.encode(roles), // roles that can be renounced
@@ -371,7 +373,7 @@ contract TestConstitutions is Test {
         delete conditions;
 
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "NStrikesRevokesRoles: A mandate to revoke roles after N strikes.",
             targetMandate: getMandateAddress("NStrikesRevokesRoles"), // NStrikesRevokesRoles (electoral mandate)
             config: abi.encode(
@@ -388,7 +390,7 @@ contract TestConstitutions is Test {
         roleIdsNeeded[0] = 1;
         roleIdsNeeded[1] = 2;
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "RoleByRoles: A mandate to assign roles based on existing role holders.",
             targetMandate: getMandateAddress("RoleByRoles"), // RoleByRoles (electoral mandate)
             config: abi.encode(
@@ -413,7 +415,7 @@ contract TestConstitutions is Test {
 
         // set conditions
         conditions.allowedRole = type(uint256).max; // = public role. .
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
             targetMandate: getMandateAddress("PresetSingleAction"), // presetSingleAction
             config: abi.encode(targets, values, calldatas),
@@ -421,18 +423,18 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
     }
 
     //////////////////////////////////////////////////////////////
     //                  EXECUTIVE CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function executiveTestConstitution( address payable daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
+    function executiveTestConstitution( address daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
 
         // StatementOfIntent - for proposing actions
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: A mandate to propose actions without execution.",
             targetMandate: getMandateAddress("StatementOfIntent"), // StatementOfIntent (multi mandate)
             config: abi.encode(), // empty config
@@ -442,7 +444,7 @@ contract TestConstitutions is Test {
 
         // OpenAction - allows any action to be executed
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "OpenAction: A mandate to execute any action with full power.",
             targetMandate: getMandateAddress("OpenAction"), // OpenAction (multi mandate)
             config: abi.encode(), // empty config
@@ -454,7 +456,7 @@ contract TestConstitutions is Test {
         params = new string[](1);
         params[0] = "uint256 Quantity";
         conditions.allowedRole = 1;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "BespokeActionSimple: A mandate to execute a simple function call.",
             targetMandate: getMandateAddress("BespokeActionSimple"), // BespokeActionSimple (multi mandate)
             config: abi.encode(
@@ -475,7 +477,7 @@ contract TestConstitutions is Test {
         indexDynamicParams[0] = 1; // insert at position 1
 
         conditions.allowedRole = 1;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "BespokeActionAdvanced: A mandate to execute complex function calls with mixed parameters.",
             targetMandate: getMandateAddress("BespokeActionAdvanced"), // BespokeActionAdvanced (multi mandate)
             config: abi.encode(
@@ -502,7 +504,7 @@ contract TestConstitutions is Test {
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Delegate");
 
         conditions.allowedRole = 1;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetSingleAction: A mandate to execute preset actions.",
             targetMandate: getMandateAddress("PresetSingleAction"), // PresetSingleAction (multi mandate)
             config: abi.encode(targets, values, calldatas),
@@ -516,7 +518,7 @@ contract TestConstitutions is Test {
         descriptions[1] = "Assign Delegate Role";
 
         conditions.allowedRole = 1;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "PresetMultipleActions: A mandate to execute multiple preset actions.",
             targetMandate: getMandateAddress("PresetMultipleActions"), // PresetMultipleActions (multi mandate)
             config: abi.encode(descriptions, targets, values, calldatas),
@@ -531,7 +533,7 @@ contract TestConstitutions is Test {
         inputParams[2] = "calldatas bytes[]";
 
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "CheckExternalActionState: Checks if an action is fulfilled on a parent contract.",
             targetMandate: getMandateAddress("CheckExternalActionState"), // CheckExternalActionState
             config: abi.encode(
@@ -569,7 +571,7 @@ contract TestConstitutions is Test {
         });
 
         conditions.allowedRole = type(uint256).max; // public role can adopt mandates
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "AdoptMandates: A mandate to adopt new mandates into the DAO.",
             targetMandate: getMandateAddress("AdoptMandates"), // AdoptMandates (executive mandate)
             config: abi.encode(),
@@ -577,18 +579,274 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
     }
 
     //////////////////////////////////////////////////////////////
-    //                INTEGRATIONS CONSTITUTION                 //
+    //               INTEGRATIONS CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function integrationsTestConstitution( address payable /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
-    
-    // GovernorCreateProposal - for creating governance proposals
+    function integrationsTestConstitution( address daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // todo 
+
+        return constitution;
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    //                                      INTEGRATION TESTS                                          //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Note: test constitutions created per governance flow to be tested.
+    // NB2: leaving async tests out for now. Due to use of oracles, they are better tested directly on actual test nets. 
+
+    //////////////////////////////////////////////////////////////
+    //                          ELECTORAL                       //
+    //////////////////////////////////////////////////////////////
+    // Delegate Token election flow
+    function delegateToken_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // Mandate 1: Nominate for Delegates
+        conditions.allowedRole = 1; // = Voters
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
+            targetMandate: getMandateAddress("Nominate"),
+            config: abi.encode(
+                getHelperAddress("Nominees")
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Mandate 2: Elect Delegates
+        conditions.allowedRole = type(uint256).max; // = Public Role
+        conditions.throttleExecution = 600;
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Elect Delegates: Run the election for delegates. In this demo, the top 3 nominees by token delegation of token VOTES_TOKEN become Delegates.",
+            targetMandate: getMandateAddress("DelegateTokenSelect"),
+            config: abi.encode(
+                getHelperAddress("SimpleErc20Votes"),
+                getHelperAddress("Nominees"),
+                2, // RoleId
+                3 // MaxRoleHolders
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return constitution;
+    }
+
+    // Open Election flow
+    function openElection_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // Mandate 1: Nominate for Delegates
+        conditions.allowedRole = 1; // = Voters
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
+            targetMandate: getMandateAddress("Nominate"),
+            config: abi.encode(
+                getHelperAddress("OpenElection")
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Mandate 2: Start an election
+        conditions.allowedRole = 1; // = Voters
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
+            targetMandate: getMandateAddress("OpenElectionStart"),
+            config: abi.encode(
+                getHelperAddress("OpenElection"),
+                600, // 10 minutes in blocks (approx)
+                1 // Voter role id
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Mandate 3: End and Tally elections
+        conditions.allowedRole = 1; // = Voters
+        conditions.needFulfilled = 2; // = Mandate 2 (Start election)
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
+            targetMandate: getMandateAddress("OpenElectionEnd"),
+            config: abi.encode(
+                getHelperAddress("OpenElection"),
+                2, // RoleId for Delegates
+                5 // Max role holders
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return constitution;
+    }
+
+    // Role By Transaction flow
+    function roleByTransaction_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // RoleByTransaction
+        // conditions.allowedRole = type(uint256).max; // == PUBLIC_ROLE: anyone can call this mandate.
+        // mandateInitData = PowersTypes.MandateInitData({
+        //     nameDescription: "Buy Funder Role: Make a contribution of more than 0.1 ether (written in its smallest denomination) in TAX token (0x93d94e8D5DC29C6610946C3226e5Be4e4FB503Ce) to be granted a funder role.",
+        //     targetMandate: mandateAddresses[4], // RoleByTransaction
+        //     config: abi.encode(
+        //         0x93d94e8D5DC29C6610946C3226e5Be4e4FB503Ce, // token = TAX token
+        //         1 ether / 10, // amount = 0.1 Ether minimum
+        //         1, // newRoleId = Funder role
+        //         mem.safeProxy // safeProxy == treasury
+        //     ),
+        //     conditions: conditions
+        // });
+
+        return constitution;
+    }
+
+    // Assign external role flow (= 2 constitutions, parent & child) 
+    function assignExternalRole_parent_IntegrationTestConstitution( address daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // Mandate: Admin assigns role
+        dynamicParams = new string[](2);
+        dynamicParams[0] = "uint256 roleId";
+        dynamicParams[1] = "address account";
+
+        conditions.allowedRole = 0; // = Admin
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
+            targetMandate: getMandateAddress("BespokeActionSimple"),
+            config: abi.encode(
+                address(daoMock),
+                IPowers.assignRole.selector,
+                dynamicParams
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return constitution;
+    }
+ 
+    function assignExternalRole_child_IntegrationTestConstitution( address /*daoMock*/, address parent ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete childConstitution; // restart childConstitution array.
+
+        conditions.allowedRole = type(uint256).max; // Public
+        childConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Adopt Role 1: Anyone that has role 1 at the parent organization can adopt the same role here.",
+            targetMandate: getMandateAddress("AssignExternalRole"),
+            config: abi.encode(
+                parent,
+                1 // RoleId (Funders) placeholder
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return childConstitution;
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                         EXECUTIVE                        //
+    //////////////////////////////////////////////////////////////
+    // Open Action flow: The most classic governance flows of all. This is the base to test if needFulfilled and needNotFulfilled actually work. 
+    function openAction_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // proposalOnly
+        inputParams = new string[](3);
+        inputParams[0] = "targets address[]";
+        inputParams[1] = "values uint256[]";
+        inputParams[2] = "calldatas bytes[]";
+
+        conditions.allowedRole = 1; // = role that can call this mandate.
+        conditions.quorum = 20; // = 30% quorum needed
+        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        conditions.votingPeriod = 300; // = number of blocks
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "StatementOfIntent: Propose any kind of action.",
+            targetMandate: getMandateAddress("StatementOfIntent"),
+            config: abi.encode(inputParams),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        conditions.allowedRole = 0; // = admin.
+        conditions.needFulfilled = 3; // = mandate that must be completed before this one.
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
+            targetMandate: getMandateAddress("StatementOfIntent"),
+            config: abi.encode(inputParams),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        conditions.allowedRole = 2; // = role that can call this mandate.
+        conditions.votingPeriod = 300; // = number of blocks
+        conditions.succeedAt = 66; // = 51% simple majority needed for executing an action.
+        conditions.quorum = 20; // = 30% quorum needed
+        conditions.needFulfilled = 3; // = mandate that must be completed before this one.
+        conditions.needNotFulfilled = 4; // = mandate that must not be completed before this one.
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
+            targetMandate: getMandateAddress("OpenAction"), // openAction.
+            config: abi.encode(), // empty config.
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return constitution;
+    }
+
+    // Check External Action State flow (= 2 constitutions, parent & child)
+    function checkExternalActionState_Parent_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete parentConstitution; // restart parentConstitution array.
+
+        // Mandate: Adopt a Child Mandate
+        conditions.allowedRole = 0; // Admin
+        parentConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Adopt a Child Mandate: Admin adopts the new mandate for a Powers' child",
+            targetMandate: getMandateAddress("StatementOfIntent"),
+            config: abi.encode(),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        return parentConstitution;
+    }
+
+    function checkExternalActionState_Child_IntegrationTestConstitution( address /*daoMock*/, address parent ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete childConstitution; // restart childConstitution array.
+
+        // Mandate: Adopt a Child Mandate
+        // conditions.allowedRole = 0; // Admin
+        // childConstitution.push(PowersTypes.MandateInitData({
+        //     nameDescription: "Adopt a Child Mandate: Admin adopts the new mandate for a Powers' child",
+        //     targetMandate: getMandateAddress("StatementOfIntent"),
+        //     config: abi.encode(),
+        //     conditions: conditions
+        // }));
+        // delete conditions;
+
+        return childConstitution;
+    }
+
+    //////////////////////////////////////////////////////////////
+    //                       INTEGRATIONS                       //
+    //////////////////////////////////////////////////////////////
+    // Governor protocol flow 
+    function governorProtocol_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
+
+        // GovernorCreateProposal - for creating governance proposals
         conditions.allowedRole = 1; // role 1 can create proposals
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "GovernorCreateProposal: A mandate to create governance proposals on a Governor contract.",
             targetMandate: getMandateAddress("GovernorCreateProposal"), // GovernorCreateProposal (executive mandate)
             config: abi.encode(getHelperAddress("SimpleGovernor")), // SimpleGovernor mock address
@@ -598,7 +856,7 @@ contract TestConstitutions is Test {
 
         // GovernorExecuteProposal - for executing governance proposals
         conditions.allowedRole = 1; // role 1 can execute proposals
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "GovernorExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
             targetMandate: getMandateAddress("GovernorExecuteProposal"), // GovernorExecuteProposal (executive mandate)
             config: abi.encode(getHelperAddress("SimpleGovernor")), // SimpleGovernor mock address
@@ -606,45 +864,50 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
+    }
+
+    // Safe protocol flow 
+    function safeProtocol_Parent_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete parentConstitution; // restart parentConstitution array.
+
+        // SafeSetup
+        conditions.allowedRole = type(uint256).max; // Public
+        parentConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
+            targetMandate: getMandateAddress("SafeSetup"),
+            config: abi.encode(
+                config.safeProxyFactory,
+                config.safeL2Canonical
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+
+
+        return constitution;
+    }
+
+    function safeProtocol_Child_IntegrationTestConstitution( address /*daoMock*/, address parent ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete childConstitution; // restart childConstitution array.
+
+        // todo
+
+        return childConstitution;
     }
 
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    //                                      INTEGRATION TESTS                                          //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////
-    //                          ASYNC                           //
-    //////////////////////////////////////////////////////////////
-    // to do 
+    
 
-
-    //////////////////////////////////////////////////////////////
-    //                          ELECTORAL                       //
-    //////////////////////////////////////////////////////////////
-    // to do 
-
-
-    //////////////////////////////////////////////////////////////
-    //                         EXECUTIVE                        //
-    //////////////////////////////////////////////////////////////
-    // to do 
-
-
-    //////////////////////////////////////////////////////////////
-    //                       INTEGRATIONS                       //
-    //////////////////////////////////////////////////////////////
-    // to do 
 
 
     //////////////////////////////////////////////////////////////
     //                 HELPERS CONSTITUTION                     //
     //////////////////////////////////////////////////////////////
-    function helpersTestConstitution( address payable /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete orgInitData; // restart orgInitData array.
+    function helpersTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array.
 
         // dummy call.
         targets = new address[](1);
@@ -658,7 +921,7 @@ contract TestConstitutions is Test {
 
         // openAction
         conditions.allowedRole = type(uint256).max;
-        orgInitData.push(PowersTypes.MandateInitData({
+        constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Open Action: Execute any action.",
             targetMandate: getMandateAddress("OpenAction"), // openAction
             config: abi.encode(),
@@ -666,7 +929,7 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        return orgInitData;
+        return constitution;
     }
 
     function getMandateAddress(string memory name) internal view returns (address mandateAddress) {
@@ -686,4 +949,5 @@ contract TestConstitutions is Test {
         }
         revert("Helper not found");
     }
+ 
 }

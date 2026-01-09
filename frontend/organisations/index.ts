@@ -1,9 +1,5 @@
 import { Organization } from "./types";
-import { Powers101 } from "./Powers101"; 
-import { PowerLabs } from "./PowerLabs";
-import { PowerLabsChild } from "./PowerLabsChild";
-import { NestedGovernanceChild } from "./NestedGovernanceChild";
-import { NestedGovernanceParent } from "./NestedGovernanceParent";
+import { Powers101 } from "./Powers101";  
 import { OptimisticExecution } from "./OptimisticExecution";
 import { Bicameralism } from "./Bicameralism";
 
@@ -13,11 +9,7 @@ import { Bicameralism } from "./Bicameralism";
  */
 export const organizations: Organization[] = [
   Powers101,
-  OptimisticExecution,
-  NestedGovernanceParent,
-  NestedGovernanceChild,
-  PowerLabs, 
-  PowerLabsChild, 
+  OptimisticExecution,  
   Bicameralism
   // Add more organizations here as they are implemented
 ];

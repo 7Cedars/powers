@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-// // @notice A base contract that executes a bespoke action.
-// // TBI: Basic logic sho
-// //
-// // @author 7Cedars,
+// @notice A base contract that executes a bespoke action.
+// TBI: Basic logic sho
+//
+// @author 7Cedars,
  
 
 // import { Mandate } from "../../Mandate.sol";

@@ -56,7 +56,7 @@ contract DeployMandatePackages is Script {
         constructorArgs[0] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
-            config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
+            config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         // PowerLabs_Documentation // no dependencies for now
@@ -67,7 +67,7 @@ contract DeployMandatePackages is Script {
         constructorArgs[1] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
-            config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
+            config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         // PowerLabs_Frontend
@@ -76,7 +76,7 @@ contract DeployMandatePackages is Script {
         constructorArgs[2] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
-            config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
+            config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         // PowerLabs_Protocol
@@ -85,7 +85,7 @@ contract DeployMandatePackages is Script {
         constructorArgs[3] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
-            config.SafeAllowanceModule // zero address for allowance module, will be set through a reform later.
+            config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
         for (uint256 i = 0; i < names.length; i++) {

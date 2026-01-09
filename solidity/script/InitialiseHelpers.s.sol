@@ -17,17 +17,14 @@ import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-import { SoulboundErc721 } from "@src/helpers/SoulboundErc721.sol";
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
 
 // helper contracts
 import { Donations } from "@src/helpers/Donations.sol";
 import { FlagActions } from "@src/helpers/FlagActions.sol";
 import { Grant } from "@src/helpers/Grant.sol";
 import { OpenElection } from "@src/helpers/OpenElection.sol";
-import { Nominees } from "@src/helpers/Nominees.sol";
-import { TreasurySimple } from "@src/helpers/TreasurySimple.sol";
-import { TreasuryPools } from "@src/helpers/TreasuryPools.sol";
+import { Nominees } from "@src/helpers/Nominees.sol"; 
 
 // @dev this script is used to deploy the Helpers to the chain. 
 contract InitialiseHelpers is Script {
@@ -46,11 +43,6 @@ contract InitialiseHelpers is Script {
         index = names.length;
         names.push("Erc20Taxed");
         creationCodes.push(type(Erc20Taxed).creationCode);
-        addresses.push(deployHelper(creationCodes[index], names[index]));
-
-        index = names.length;
-        names.push("SoulboundErc721");
-        creationCodes.push(type(SoulboundErc721).creationCode);
         addresses.push(deployHelper(creationCodes[index], names[index]));
 
         index = names.length;
@@ -91,16 +83,6 @@ contract InitialiseHelpers is Script {
         index = names.length;
         names.push("Erc20DelegateElection");
         creationCodes.push(abi.encodePacked(type(Erc20DelegateElection).creationCode, abi.encode(addresses[0])));
-        addresses.push(deployHelper(creationCodes[index], names[index]));
-
-        index = names.length;
-        names.push("TreasurySimple");
-        creationCodes.push(type(TreasurySimple).creationCode);
-        addresses.push(deployHelper(creationCodes[index], names[index]));
-
-        index = names.length;
-        names.push("TreasuryPools");
-        creationCodes.push(abi.encodePacked(type(TreasuryPools).creationCode, abi.encode(addresses[0])));
         addresses.push(deployHelper(creationCodes[index], names[index]));
     }
 

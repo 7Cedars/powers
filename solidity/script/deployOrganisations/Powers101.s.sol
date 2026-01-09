@@ -10,19 +10,19 @@ import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Nominees } from "@src/helpers/Nominees.sol";
 
 // powers contracts
 import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
-// mandates 
-import { Nominees } from "@src/helpers/Nominees.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 /// @title Powers101 Deployment Script
-contract Powers101 is Script {
+contract Powers101 is DeploySetup {
     Configurations helperConfig;
-    Configurations.NetworkConfig public config;
+    Configurations.NetworkConfig config;
     PowersTypes.MandateInitData[] constitution;
     InitialisePowers initialisePowers;
     InitialiseHelpers initialiseHelpers;
@@ -32,7 +32,7 @@ contract Powers101 is Script {
     address[] targets;
     uint256[] values;
     bytes[] calldatas;
-    string[] inputParams;
+    string[] dynamicParams;
 
     function run() external {
         // step 0, setup.
@@ -44,6 +44,7 @@ contract Powers101 is Script {
         config = helperConfig.getConfig();
 
         // step 1: deploy Vanilla Powers
+        vm.startBroadcast();
         powers = new Powers(
             "Powers 101", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicbh6txnypkoy6ivngl3l2k6m646hruupqspyo7naf2jpiumn2jqe", // uri
@@ -51,6 +52,7 @@ contract Powers101 is Script {
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
         );
+        vm.stopBroadcast();
         console2.log("Powers deployed at:", address(powers));
 
         // step 2: create constitution 
@@ -59,7 +61,9 @@ contract Powers101 is Script {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
+        vm.startBroadcast();            
         powers.constitute(constitution);
+        vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
     }
 
@@ -95,7 +99,7 @@ contract Powers101 is Script {
         delete conditions;
 
         // proposalOnly
-        inputParams = new string[](3);
+        string[] memory inputParams = new string[](3);
         inputParams[0] = "targets address[]";
         inputParams[1] = "values uint256[]";
         inputParams[2] = "calldatas bytes[]";
@@ -103,7 +107,7 @@ contract Powers101 is Script {
         conditions.allowedRole = 1; // = role that can call this mandate.
         conditions.quorum = 20; // = 30% quorum needed
         conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        conditions.votingPeriod = 1200; // = number of blocks
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
             targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
@@ -123,7 +127,7 @@ contract Powers101 is Script {
         delete conditions;
 
         conditions.allowedRole = 2; // = role that can call this mandate.
-        conditions.votingPeriod = 1200; // = number of blocks
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
         conditions.succeedAt = 66; // = 51% simple majority needed for executing an action.
         conditions.quorum = 20; // = 30% quorum needed
         conditions.needFulfilled = 3; // = mandate that must be completed before this one.
@@ -157,6 +161,8 @@ contract Powers101 is Script {
             conditions: conditions
         }));
         delete conditions;
+
+        return constitution.length;
     }
 }
  

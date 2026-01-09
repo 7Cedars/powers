@@ -9,6 +9,7 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
+import { ModuleManager } from "lib/safe-smart-account/contracts/base/ModuleManager.sol";
 import { SafeProxyFactory } from "lib/safe-smart-account/contracts/proxies/SafeProxyFactory.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
@@ -17,8 +18,9 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract SafeSetup is Mandate {
     /// @dev Configurations for this mandate adoption.
     struct ConfigData {
-        address safeProxyFactory; // The SafeProxyFactory address to create the SafeProxy.
+        address safeProxyFactory; // The safeProxyFactory address to create the SafeProxy.
         address safeL2Singleton; // The SafeL2 singleton address used by the SafeProxy.
+        address allowanceModule; // The allowance module to be enabled on the SafeProxy.
     }
 
     /// @dev Mapping from mandate hash to its configuration.
@@ -26,7 +28,7 @@ contract SafeSetup is Mandate {
 
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
-        bytes memory configParams = abi.encode("address safeProxyFactory", "address safeL2Singleton");
+        bytes memory configParams = abi.encode("address safeProxyFactory", "address safeL2Singleton", "address allowanceModule");
         emit Mandate__Deployed(configParams);
     }
 
@@ -36,8 +38,8 @@ contract SafeSetup is Mandate {
     {
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
 
-        (mandateConfig[mandateHash_].safeProxyFactory, mandateConfig[mandateHash_].safeL2Singleton) =
-            abi.decode(config, (address, address));
+        (mandateConfig[mandateHash_].safeProxyFactory, mandateConfig[mandateHash_].safeL2Singleton, mandateConfig[mandateHash_].allowanceModule) =
+            abi.decode(config, (address, address, address));
 
         super.initializeMandate(index, nameDescription, abi.encode(""), config);
     }
@@ -86,6 +88,11 @@ contract SafeSetup is Mandate {
 
         address[] memory owners = new address[](1);
         owners[0] = powers;
+        bytes memory signature = abi.encodePacked(
+            uint256(uint160(powers)), // r = address of the signer (powers contract)
+            uint256(0), // s = 0
+            uint8(1) // v = 1 This is a type 1 call. See Safe.sol for details.
+        );
 
         address safeProxyAddress = address(
             SafeProxyFactory(config.safeProxyFactory)
@@ -105,14 +112,37 @@ contract SafeSetup is Mandate {
                     1 // = nonce
                 )
         );
+        
+        // step 2: create array for callback to powers
+        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(3);
 
-        // step 2: register the SafeProxy as treasury in Powers ./
-        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(2);
-        targets[0] = msg.sender;
-        calldatas[0] = abi.encodeWithSelector(IPowers.setTreasury.selector, safeProxyAddress);
-        targets[1] = msg.sender;
-        calldatas[1] = abi.encodeWithSelector(IPowers.revokeMandate.selector, mandateId);
+        // call 2a: enable allowance module on the SafeProxy
+        targets[0] = safeProxyAddress; // Safe contract
+        calldatas[0] = abi.encodeWithSelector(
+            Safe.execTransaction.selector,
+            safeProxyAddress, // The internal transaction's destination
+            0, // The internal transaction's value in this mandate is always 0. To transfer Eth use a different mandate.
+            abi.encodeWithSelector( // the call to be executed by the Safe: enabling the module.
+                ModuleManager.enableModule.selector,
+                config.allowanceModule
+            ),
+            0, // operation = Call
+            0, // safeTxGas
+            0, // baseGas
+            0, // gasPrice
+            address(0), // gasToken
+            address(0), // refundReceiver
+            signature // the signature constructed above
+        );
 
-        IPowers(msg.sender).fulfill(mandateId, actionId, targets, values, calldatas);
+        // call 2b: set the SafeProxy as the treasury in Powers
+        targets[1] = powers;
+        calldatas[1] = abi.encodeWithSelector(IPowers.setTreasury.selector, safeProxyAddress);
+        
+        // call 2c: revoke this mandate from Powers
+        targets[2] = powers;
+        calldatas[2] = abi.encodeWithSelector(IPowers.revokeMandate.selector, mandateId);
+
+        IPowers(powers).fulfill(mandateId, actionId, targets, values, calldatas);
     }
 }

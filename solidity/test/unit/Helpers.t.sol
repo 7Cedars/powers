@@ -7,8 +7,7 @@ import { Grant } from "../../src/helpers/Grant.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { OpenElection } from "../../src/helpers/OpenElection.sol";
-import { SoulboundErc721 } from "../../src/helpers/SoulboundErc721.sol";
+import { OpenElection } from "../../src/helpers/OpenElection.sol"; 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "../../src/helpers/Nominees.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
@@ -24,7 +23,7 @@ contract FlagActionsTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        flagActions = FlagActions(helperAddresses[6]);
+        flagActions = FlagActions(initialiseHelpers.getHelperAddress("FlagActions"));
 
         // Mock getActionState to always return Fulfilled
         vm.mockCall(
@@ -385,7 +384,7 @@ contract GrantTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        grant = Grant(helperAddresses[7]);
+        grant = Grant(initialiseHelpers.getHelperAddress("Grant"));
         testToken = makeAddr("testToken");
     }
 
@@ -1041,7 +1040,7 @@ contract OpenElectionTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        openElection = OpenElection(helperAddresses[9]);
+        openElection = OpenElection(initialiseHelpers.getHelperAddress("OpenElection"));
     }
 
     function testConstructor() public view { 
@@ -1131,9 +1130,9 @@ contract OpenElectionTest is TestSetupPowers {
         vm.prank(address(daoMock));
         openElection.nominate(address(daoMock), true);
 
-        nominees = openElection.getNominees();
-        assertEq(nominees.length, 1);
-        assertEq(nominees[0], address(daoMock));
+        nomineesAddresses = openElection.getNominees();
+        assertEq(nomineesAddresses.length, 1);
+        assertEq(nomineesAddresses[0], address(daoMock));
     }
 
     function testOpenElection() public {
@@ -1354,9 +1353,9 @@ contract OpenElectionTest is TestSetupPowers {
         vm.prank(address(daoMock));
         openElection.openElection(100, 1);
 
-        nominees = openElection.getNomineesForElection(1);
-        assertEq(nominees.length, 1);
-        assertEq(nominees[0], address(daoMock));
+        nomineesAddresses = openElection.getNomineesForElection(1);
+        assertEq(nomineesAddresses.length, 1);
+        assertEq(nomineesAddresses[0], address(daoMock));
     }
 
     function testGetVoteCount() public {
@@ -1497,14 +1496,14 @@ contract OpenElectionTest is TestSetupPowers {
         assertEq(openElection.nomineesCount(), 2);
 
         // Check that only alice and charlotte are still nominees
-        nominees = openElection.getNominees();
-        assertEq(nominees.length, 2);
+        nomineesAddresses = openElection.getNominees();
+        assertEq(nomineesAddresses.length, 2);
         // Note: order might vary due to swap-and-pop implementation
         bool aliceFound = false;
         bool charlotteFound = false;
-        for (i = 0; i < nominees.length; i++) {
-            if (nominees[i] == alice) aliceFound = true;
-            if (nominees[i] == charlotte) charlotteFound = true;
+        for (i = 0; i < nomineesAddresses.length; i++) {
+            if (nomineesAddresses[i] == alice) aliceFound = true;
+            if (nomineesAddresses[i] == charlotte) charlotteFound = true;
         }
         assertTrue(aliceFound);
         assertTrue(charlotteFound);
@@ -2005,7 +2004,7 @@ contract SimpleErc20VotesTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        token = SimpleErc20Votes(helperAddresses[0]);
+        token = SimpleErc20Votes(initialiseHelpers.getHelperAddress("SimpleErc20Votes"));
     }
 
     function testConstructor() public view {
@@ -2133,8 +2132,8 @@ contract SimpleGovernorTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        token = SimpleErc20Votes(helperAddresses[0]);
-        governor = SimpleGovernor(payable(helperAddresses[4]));
+        token = SimpleErc20Votes(initialiseHelpers.getHelperAddress("SimpleErc20Votes"));
+        governor = SimpleGovernor(payable(initialiseHelpers.getHelperAddress("SimpleGovernor")));
     }
 
     function testConstructor() public view {
@@ -2285,7 +2284,7 @@ contract Erc20TaxedTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        token = Erc20Taxed(helperAddresses[1]);
+        token = Erc20Taxed(initialiseHelpers.getHelperAddress("Erc20Taxed"));
     }
 
     function testConstructor() public view {
@@ -2509,174 +2508,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         assertEq(totalTaxPaid, expectedTaxPerTransfer * 2);
     }
 }
-
-//////////////////////////////////////////////////////////////
-//               SOULBOUND ERC721 TESTS                    //
-//////////////////////////////////////////////////////////////
-contract SoulboundErc721Test is TestSetupPowers {
-    SoulboundErc721 nft;
-
-    function setUp() public override {
-        super.setUp();
-        nft = SoulboundErc721(helperAddresses[2]);
-    }
-
-    function testConstructor() public view {
-        assertEq(nft.name(), "Soulbound");
-        assertEq(nft.symbol(), "SB");
-        assertEq(nft.owner(), address(daoMock));
-    }
-
-    function testMintNFT() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        assertEq(nft.ownerOf(tokenId), alice);
-        assertEq(nft.balanceOf(alice), 1);
-    }
-
-    function testMintNFTRevertsWhenTokenAlreadyExists() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        vm.expectRevert("Nft already exists");
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, bob);
-    }
-
-    function testMintNFTRevertsWhenNotOwner() public {
-        vm.expectRevert();
-        vm.prank(alice);
-        nft.mintNft(1, alice);
-    }
-
-    function testburnNft() public {
-        uint256 tokenId = 1;
-
-        // First mint the NFT
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        // Then burn it
-        vm.prank(address(daoMock));
-        nft.burnNft(tokenId, alice);
-
-        // Check that the NFT is burned
-        vm.expectRevert();
-        nft.ownerOf(tokenId);
-
-        assertEq(nft.balanceOf(alice), 0);
-    }
-
-    function testburnNftRevertsWithIncorrectAccount() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        vm.expectRevert("Incorrect account token pair");
-        vm.prank(address(daoMock));
-        nft.burnNft(tokenId, bob);
-    }
-
-    function testburnNftRevertsWhenNotOwner() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        vm.expectRevert();
-        vm.prank(alice);
-        nft.burnNft(tokenId, alice);
-    }
-
-    function testTransferReverts() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        // Try to transfer the NFT (should revert)
-        vm.expectRevert("Non transferable");
-        vm.prank(alice);
-        nft.transferFrom(alice, bob, tokenId);
-    }
-
-    function testApprovalReverts() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        // Try to approve the NFT (should revert)
-        vm.expectRevert("Non transferable");
-        vm.prank(alice);
-        nft.approve(bob, tokenId);
-    }
-
-    function testSetApprovalForAllReverts() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        // Try to set approval for all (should revert)
-        vm.expectRevert("Non transferable");
-        vm.prank(alice);
-        nft.setApprovalForAll(bob, true);
-    }
-
-    function testMultipleMints() public {
-        uint256 tokenId1 = 1;
-        uint256 tokenId2 = 2;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId1, alice);
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId2, bob);
-
-        assertEq(nft.ownerOf(tokenId1), alice);
-        assertEq(nft.ownerOf(tokenId2), bob);
-        assertEq(nft.balanceOf(alice), 1);
-        assertEq(nft.balanceOf(bob), 1);
-    }
-
-    function testGetApproved() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        assertEq(nft.getApproved(tokenId), address(0));
-    }
-
-    function testIsApprovedForAll() public view {
-        assertFalse(nft.isApprovedForAll(alice, bob));
-    }
-
-    function testTokenURI() public {
-        uint256 tokenId = 1;
-
-        vm.prank(address(daoMock));
-        nft.mintNft(tokenId, alice);
-
-        // TokenURI should return empty string by default
-        assertEq(nft.tokenURI(tokenId), "");
-    }
-
-    function testSupportsInterface() public view {
-        // Should support ERC721 interface
-        assertTrue(nft.supportsInterface(0x80ac58cd)); // ERC721
-        assertTrue(nft.supportsInterface(0x5b5e139f)); // ERC721Metadata
-        assertTrue(nft.supportsInterface(0x01ffc9a7)); // ERC165
-    }
-}
-
+ 
 //////////////////////////////////////////////////////////////
 //               SIMPLE ERC1155 TESTS                      //
 //////////////////////////////////////////////////////////////
@@ -2686,7 +2518,7 @@ contract SimpleErc1155Test is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        token = SimpleErc1155(helperAddresses[3]);
+        token = SimpleErc1155(initialiseHelpers.getHelperAddress("SimpleErc1155"));
     }
 
     function testMintCoins() public {
@@ -2852,7 +2684,7 @@ contract NomineesTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        nomineesContract = Nominees(helperAddresses[8]);
+        nomineesContract = Nominees(initialiseHelpers.getHelperAddress("Nominees"));
     }
 
     function testConstructor() public view {

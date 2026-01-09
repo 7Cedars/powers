@@ -7,6 +7,7 @@ import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
 import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -17,7 +18,7 @@ import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
 /// @title Token Delegates Deployment Script
-contract TokenDelegates is Script {
+contract TokenDelegates is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
@@ -41,6 +42,7 @@ contract TokenDelegates is Script {
         config = helperConfig.getConfig();
 
         // step 1: deploy Token Delegates Powers
+        vm.startBroadcast();
         powers = new Powers(
             "Token Delegates", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicpqpipzetgtcbqdeehcg33ibipvrb3pnikes6oqixa7ntzaniinm", // uri
@@ -48,6 +50,7 @@ contract TokenDelegates is Script {
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
         );
+        vm.stopBroadcast();
         console2.log("Powers deployed at:", address(powers));
 
         // step 2: create constitution 
@@ -56,7 +59,9 @@ contract TokenDelegates is Script {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
+        vm.startBroadcast();
         powers.constitute(constitution);
+        vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
     }
 
@@ -95,7 +100,7 @@ contract TokenDelegates is Script {
 
         // Mandate 3: Elect Delegates
         conditions.allowedRole = type(uint256).max; // = Public Role
-        conditions.throttleExecution = 600; // = 10 minutes approx
+        conditions.throttleExecution = minutesToBlocks(10, config.BLOCKS_PER_HOUR); // = 10 minutes approx
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Elect Delegates: Run the election for delegates. In this demo, the top 3 nominees by token delegation of token VOTES_TOKEN become Delegates.",
             targetMandate: initialisePowers.getMandateAddress("DelegateTokenSelect"),

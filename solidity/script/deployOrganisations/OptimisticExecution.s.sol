@@ -7,6 +7,7 @@ import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
 import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -17,7 +18,7 @@ import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
 /// @title Optimistic Execution Deployment Script
-contract OptimisticExecution is Script {
+contract OptimisticExecution is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
@@ -42,6 +43,8 @@ contract OptimisticExecution is Script {
         config = helperConfig.getConfig();
 
         // step 1: deploy Optimistic Execution Powers
+
+        vm.startBroadcast();
         powers = new Powers(
             "Optimistic Execution", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibzf5td4orxnfknmrz5giiifw4ltsbzciaam7izm6dok5pkm6aqqa", // uri
@@ -49,6 +52,7 @@ contract OptimisticExecution is Script {
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
         );
+        vm.stopBroadcast();
         console2.log("Powers deployed at:", address(powers));
 
         // step 2: create constitution 
@@ -57,7 +61,9 @@ contract OptimisticExecution is Script {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
+        vm.startBroadcast();
         powers.constitute(constitution);
+        vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
     }
 
@@ -89,7 +95,7 @@ contract OptimisticExecution is Script {
         inputParams[2] = "calldatas bytes[]";
 
         conditions.allowedRole = 1; // = Members
-        conditions.votingPeriod = 300; // = 5 minutes approx
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = 5 minutes approx
         conditions.succeedAt = 66; // = 66% majority (high threshold)
         conditions.quorum = 66; // = 66% quorum (high quorum)
         constitution.push(PowersTypes.MandateInitData({
@@ -102,7 +108,7 @@ contract OptimisticExecution is Script {
 
         // Mandate 3: Execute an action (OpenAction)
         conditions.allowedRole = 2; // = Executives
-        conditions.votingPeriod = 300;
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR);
         conditions.succeedAt = 51;
         conditions.needNotFulfilled = 2; // = Mandate 2 (Veto Actions)
         conditions.quorum = 33;

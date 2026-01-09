@@ -71,7 +71,7 @@ contract RoleByTransaction is Mandate {
         view
         virtual
         override
-        returns (uint256 actionId, address[] memory /*targets*/, uint256[] memory /*values*/, bytes[] memory calldatas)
+        returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // step 1: decode the calldata & create hashes 
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
