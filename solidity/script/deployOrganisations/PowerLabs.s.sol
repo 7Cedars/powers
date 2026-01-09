@@ -6,7 +6,6 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
 import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
@@ -23,7 +22,6 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 /// @title Power Labs Deployment Script
 contract PowerLabs is DeploySetup {
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     Configurations helperConfig;
     Configurations.NetworkConfig public config; 
 
@@ -44,8 +42,6 @@ contract PowerLabs is DeploySetup {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
 

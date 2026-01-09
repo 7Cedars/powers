@@ -6,7 +6,6 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
 import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
@@ -23,7 +22,6 @@ contract OptimisticExecution is DeploySetup {
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     PowersTypes.Conditions conditions;
     Powers powers;
 
@@ -37,8 +35,6 @@ contract OptimisticExecution is DeploySetup {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
 

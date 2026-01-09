@@ -27,8 +27,7 @@ import { OpenElection } from "@src/helpers/OpenElection.sol";
 import { Nominees } from "@src/helpers/Nominees.sol"; 
 
 // @dev this script is used to deploy the Helpers to the chain. 
-contract InitialiseHelpers is Script {
-    address create2Factory = 0x4e59b44847b379578588920cA78FbF26c0B4956C; // is a constant across chains.
+contract InitialiseHelpers is Script { 
     string[] names;
     address[] addresses;
     bytes[] creationCodes; 
@@ -91,7 +90,7 @@ contract InitialiseHelpers is Script {
     //////////////////////////////////////////////////////////////
     function computeHelperAddress(bytes memory creationCode, string memory name) public view returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(name));
-        return Create2.computeAddress(salt, keccak256(abi.encodePacked(creationCode)), create2Factory);
+        return Create2.computeAddress(salt, keccak256(abi.encodePacked(creationCode)), CREATE2_FACTORY);
     }
 
     function deployHelper(bytes memory creationCode, string memory name) public returns (address) {
@@ -100,7 +99,7 @@ contract InitialiseHelpers is Script {
         address computedAddress = Create2.computeAddress(
             salt,
             keccak256(abi.encodePacked(creationCode)),
-            create2Factory // create2 factory address. NEED TO INCLUDE THIS!
+            CREATE2_FACTORY // create2 factory address. NEED TO INCLUDE THIS!
         );
 
         if (computedAddress.code.length == 0) {

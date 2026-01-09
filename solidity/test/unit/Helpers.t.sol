@@ -1036,8 +1036,6 @@ contract GrantTest is TestSetupPowers {
 //               OPEN ELECTION TESTS                       //
 //////////////////////////////////////////////////////////////
 contract OpenElectionTest is TestSetupPowers {
-    OpenElection openElection;
-
     function setUp() public override {
         super.setUp();
         openElection = OpenElection(initialiseHelpers.getHelperAddress("OpenElection"));

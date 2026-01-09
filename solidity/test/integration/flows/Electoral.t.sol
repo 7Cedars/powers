@@ -2,12 +2,12 @@
 pragma solidity 0.8.26;
 
 import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
-import { Powers } from "../../src/Powers.sol";
-import { Mandate } from "../../src/Mandate.sol";
-import { Nominees } from "../../src/helpers/Nominees.sol";
-import { SimpleErc20Votes } from "../mocks/SimpleErc20Votes.sol";
-import { OpenElection } from "../../src/helpers/OpenElection.sol";
-import { TestSetupDelegateTokenFlow, TestSetupOpenElectionFlow, TestSetupAssignExternalRoleParentFlow } from "../TestSetup.t.sol";
+import { Powers } from "@src/Powers.sol";
+import { Mandate } from "@src/Mandate.sol";
+import { Nominees } from "@src/helpers/Nominees.sol";
+import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
+import { OpenElection } from "@src/helpers/OpenElection.sol";
+import { TestSetupDelegateTokenFlow, TestSetupOpenElectionFlow, TestSetupAssignExternalRoleParentFlow } from "../../TestSetup.t.sol";
 
 contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
     Nominees nominees;
@@ -204,7 +204,6 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 }
 
 contract OpenElectionFlow_IntegrationTest is TestSetupOpenElectionFlow {
-    OpenElection openElection;
     uint16 constant MANDATE_NOMINATE = 1;
     uint16 constant MANDATE_START_ELECTION = 2;
     uint16 constant MANDATE_END_ELECTION = 3;

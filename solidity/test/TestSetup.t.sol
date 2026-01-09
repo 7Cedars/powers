@@ -14,13 +14,11 @@ import { Configurations } from "../script/Configurations.s.sol";
 import { TestConstitutions } from "./TestConstitutions.sol";
 import { console2 } from "forge-std/console2.sol";
 
-// external contracts 
+// helpers
 import { Grant } from "../src/helpers/Grant.sol";
 import { OpenElection } from "../src/helpers/OpenElection.sol"; 
 import { FlagActions } from "../src/helpers/FlagActions.sol";
 import { Nominees } from "../src/helpers/Nominees.sol";
-
-// mocks
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 import { PowersMock } from "./mocks/PowersMock.sol";
 import { SimpleErc20Votes } from "./mocks/SimpleErc20Votes.sol";
@@ -29,6 +27,10 @@ import { Erc20Taxed } from "./mocks/Erc20Taxed.sol";
 // deploy scripts
 import { InitialiseHelpers } from "../script/InitialiseHelpers.s.sol";
 import { InitialisePowers } from "../script/InitialisePowers.s.sol";
+
+// organisations 
+import { Powers101 } from "../script/deployOrganisations/Powers101.s.sol";
+import { OpenElections } from "../script/deployOrganisations/OpenElections.s.sol";
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     // protocol and mocks
@@ -48,6 +50,9 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     PowersTypes.Conditions conditions;
     address powersAddress;
     address[] mandates;
+
+    OpenElection openElection;
+
     
 
     // vote options
@@ -523,7 +528,7 @@ abstract contract TestSetupIntegrations is BaseSetup {
 }
 
 /////////////////////////////////////////////////////////////////////
-//                      INTEGRATION TEST SETUPS                    //
+//                INTEGRATION FLOWS TEST SETUPS                    //
 /////////////////////////////////////////////////////////////////////
 /// ELECTORAL FLOWS ///
 abstract contract TestSetupDelegateTokenFlow is BaseSetup {
@@ -700,6 +705,53 @@ abstract contract TestSetupSafeProtocolFlow is BaseSetup {
 
     }
 }
+
+/////////////////////////////////////////////////////////////////////
+//            INTEGRATION ORGANISATION TEST SETUPS                 //
+/////////////////////////////////////////////////////////////////////
+// Powers 101 Setup
+abstract contract TestSetupPowers101 is BaseSetup {
+    function setUpVariables() public override {
+        // Note: this test runs the full initalisation scripts. It takes a while to run. 
+        // But it is needed to be able to test the full deployment flow of an organisation.
+        vm.skip(true); 
+
+        super.setUpVariables();
+
+        Powers101 powers101 = new Powers101();
+        daoMock = PowersMock(payable(address(powers101.run())));
+
+        vm.startPrank(address(daoMock));
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    } 
+}
+
+// Open Elections Setup
+abstract contract TestSetupOpenElections is BaseSetup {
+    function setUpVariables() public override {
+        // Note: this test runs the full initalisation scripts. It takes a while to run. 
+        // But it is needed to be able to test the full deployment flow of an organisation.
+        vm.skip(false); 
+
+        super.setUpVariables();
+
+        OpenElections openElections = new OpenElections();
+        (powers, openElection) = openElections.run();
+        daoMock = PowersMock(payable(address(powers)));
+
+        vm.startPrank(address(daoMock));
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    } 
+}
+
 
 /////////////////////////////////////////////////////////////////////
 //                      HELPER TEST SETUPS                         //

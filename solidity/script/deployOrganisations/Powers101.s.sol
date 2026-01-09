@@ -6,7 +6,7 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -17,7 +17,9 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
-import { DeploySetup } from "./DeploySetup.s.sol";
+// helper contracts
+import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
+import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
 
 /// @title Powers101 Deployment Script
 contract Powers101 is DeploySetup {
@@ -25,26 +27,28 @@ contract Powers101 is DeploySetup {
     Configurations.NetworkConfig config;
     PowersTypes.MandateInitData[] constitution;
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     PowersTypes.Conditions conditions;
     Powers powers;
+    
+    SimpleErc20Votes simpleErc20Votes;
+    Erc20DelegateElection erc20DelegateElection;
 
     address[] targets;
     uint256[] values;
     bytes[] calldatas;
     string[] dynamicParams;
 
-    function run() external {
+    function run() external returns (Powers) {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
 
         // step 1: deploy Vanilla Powers
         vm.startBroadcast();
+        simpleErc20Votes = new SimpleErc20Votes();
+        erc20DelegateElection = new Erc20DelegateElection(address(simpleErc20Votes));
         powers = new Powers(
             "Powers 101", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicbh6txnypkoy6ivngl3l2k6m646hruupqspyo7naf2jpiumn2jqe", // uri
@@ -60,8 +64,9 @@ contract Powers101 is DeploySetup {
         console2.log("Constitution created with length:");
         console2.logUint(constitutionLength);
 
-        // step 3: run constitute. 
-        vm.startBroadcast();            
+        // step 3: transfer ownership and run constitute. 
+        vm.startBroadcast();           
+        erc20DelegateElection.transferOwnership(address(powers));
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
@@ -76,7 +81,7 @@ contract Powers101 is DeploySetup {
             nameDescription: "Nominate Me: Nominate yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
             targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"), 
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("Erc20DelegateElection"),  
+                address(erc20DelegateElection), 
                 Nominees.nominate.selector,
                 dynamicParamsSimple
             ),
@@ -90,7 +95,7 @@ contract Powers101 is DeploySetup {
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
             targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),  
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("Erc20DelegateElection"),  
+                address(erc20DelegateElection),  
                 2, // role to be elected.
                 3 // max number role holders
             ),

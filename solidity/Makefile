@@ -296,7 +296,7 @@ OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --se
 # NOTE: all mandates and helper contracts will be deployed as part of the organisation deployment script. 
 deploy-organisation : 
 	@echo "Deploying organisation..."
-	forge script script/deployOrganisations/PowerLabs.s.sol:PowerLabs $(ANVIL_ARGS)
+	forge script script/deployOrganisations/OpenElections.s.sol:OpenElections $(ANVIL_ARGS)
 
 # Create forked anvil test chain. -- adjust RPC URL as needed (availaible options: SEPOLIA_RPC_URL, OPT_SEPOLIA_RPC_URL, ARB_SEPOLIA_RPC_URL, BASE_SEPOLIA_RPC_URL)
 forked-anvil :

@@ -13,7 +13,6 @@ import { Configurations } from "@script/Configurations.s.sol";
 
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
 import { MandatePackage } from "@src/packaged-mandates/MandatePackage.sol";
-import { PowerLabsConfig } from "@src/packaged-mandates/PowerLabsConfig.sol";
 import { PowerLabs_Documentation } from "@src/packaged-mandates/PowersLabs_Documentation.sol";
 import { PowerLabs_Frontend } from "@src/packaged-mandates/PowersLabs_Frontend.sol";
 import { PowerLabs_Protocol } from "@src/packaged-mandates/PowersLabs_Protocol.sol";
@@ -38,10 +37,10 @@ contract DeployMandatePackages is Script {
 
     /// @notice Deploys all mandate contracts and uses 'serialize' to record their addresses.
     function deployPackages() internal returns (string[] memory names, address[] memory addresses) {
-        names = new string[](4);
-        addresses = new address[](4);
-        bytes[] memory creationCodes = new bytes[](4);
-        bytes[] memory constructorArgs = new bytes[](4);
+        names = new string[](3);
+        addresses = new address[](3);
+        bytes[] memory creationCodes = new bytes[](3);
+        bytes[] memory constructorArgs = new bytes[](3);
 
         // PowerLabsConfig
         address[] memory mandateDependencies = new address[](5);
@@ -51,38 +50,30 @@ contract DeployMandatePackages is Script {
         mandateDependencies[3] = initialisePowers.getMandateAddress("SafeAllowanceAction");
         mandateDependencies[4] = initialisePowers.getMandateAddress("RoleByTransaction");
 
-        names[0] = "PowerLabs_Config";
-        creationCodes[0] = type(PowerLabsConfig).creationCode;
+        // PowerLabs_Documentation // no dependencies for now
+        mandateDependencies = new address[](1);
+        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
+        names[0] = "PowerLabs_Documentation";
+        creationCodes[0] = type(PowerLabs_Documentation).creationCode;
         constructorArgs[0] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
             config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
-        // PowerLabs_Documentation // no dependencies for now
-        mandateDependencies = new address[](1);
-        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
-        names[1] = "PowerLabs_Documentation";
-        creationCodes[1] = type(PowerLabs_Documentation).creationCode;
+        // PowerLabs_Frontend
+        names[1] = "PowerLabs_Frontend";
+        creationCodes[1] = type(PowerLabs_Frontend).creationCode;
         constructorArgs[1] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
             config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
         );
 
-        // PowerLabs_Frontend
-        names[2] = "PowerLabs_Frontend";
-        creationCodes[2] = type(PowerLabs_Frontend).creationCode;
-        constructorArgs[2] = abi.encode(
-            config.BLOCKS_PER_HOUR,
-            mandateDependencies, // empty array for now, will be set through a reform later.
-            config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.
-        );
-
         // PowerLabs_Protocol
-        names[3] = "PowerLabs_Protocol";
-        creationCodes[3] = type(PowerLabs_Protocol).creationCode;
-        constructorArgs[3] = abi.encode(
+        names[2] = "PowerLabs_Protocol";
+        creationCodes[2] = type(PowerLabs_Protocol).creationCode;
+        constructorArgs[2] = abi.encode(
             config.BLOCKS_PER_HOUR,
             mandateDependencies, // empty array for now, will be set through a reform later.
             config.safeAllowanceModule // zero address for allowance module, will be set through a reform later.

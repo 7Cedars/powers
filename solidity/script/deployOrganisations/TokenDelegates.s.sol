@@ -6,7 +6,6 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
 import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
@@ -17,15 +16,20 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
+// helpers 
+import { Nominees } from "@src/helpers/Nominees.sol";
+import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
+
 /// @title Token Delegates Deployment Script
 contract TokenDelegates is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     PowersTypes.Conditions conditions;
     Powers powers;
+    Nominees nominees;
+    SimpleErc20Votes simpleErc20Votes;
 
     address[] targets;
     uint256[] values;
@@ -36,13 +40,13 @@ contract TokenDelegates is DeploySetup {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
 
         // step 1: deploy Token Delegates Powers
         vm.startBroadcast();
+        nominees = new Nominees();
+        simpleErc20Votes = new SimpleErc20Votes();
         powers = new Powers(
             "Token Delegates", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreicpqpipzetgtcbqdeehcg33ibipvrb3pnikes6oqixa7ntzaniinm", // uri
@@ -58,8 +62,9 @@ contract TokenDelegates is DeploySetup {
         console2.log("Constitution created with length:");
         console2.logUint(constitutionLength);
 
-        // step 3: run constitute. 
+        // step 3: transfer ownership and run constitute. 
         vm.startBroadcast();
+        nominees.transferOwnership(address(powers));
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
@@ -92,7 +97,7 @@ contract TokenDelegates is DeploySetup {
             nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
             targetMandate: initialisePowers.getMandateAddress("Nominate"),
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("Nominees")
+                address(nominees)
             ),
             conditions: conditions
         }));
@@ -105,8 +110,8 @@ contract TokenDelegates is DeploySetup {
             nameDescription: "Elect Delegates: Run the election for delegates. In this demo, the top 3 nominees by token delegation of token VOTES_TOKEN become Delegates.",
             targetMandate: initialisePowers.getMandateAddress("DelegateTokenSelect"),
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("SimpleErc20Votes"),
-                initialiseHelpers.getHelperAddress("Nominees"),
+                address(simpleErc20Votes),
+                address(nominees),
                 2, // RoleId
                 3 // MaxRoleHolders
             ),

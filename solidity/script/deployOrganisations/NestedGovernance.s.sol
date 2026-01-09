@@ -6,7 +6,6 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
 import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
@@ -17,13 +16,12 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
-// mocks
+// helpers
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 
 /// @title Nested Governance Deployment Script
 contract NestedGovernance is DeploySetup {
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
 
@@ -32,6 +30,7 @@ contract NestedGovernance is DeploySetup {
     PowersTypes.MandateInitData[] childConstitution;
     Powers powersParent;
     Powers powersChild;
+    SimpleErc20Votes votesToken;
 
     address[] targets;
     uint256[] values;
@@ -43,13 +42,12 @@ contract NestedGovernance is DeploySetup {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
-
+        
         // step 1: deploy Bicameralism Powers
         vm.startBroadcast();
+        votesToken = new SimpleErc20Votes(); // SimpleErc20Votes
         powersParent = new Powers(
             "Nested Governance", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreian4g4wbuollclyml5xyao3hvnbxxduuoyjdiucdmau3t62rj46am", // uri
@@ -235,8 +233,6 @@ contract NestedGovernance is DeploySetup {
         delete conditions;
 
         // Mandate 4: Mint Tokens
-        address votesToken = initialiseHelpers.getHelperAddress("SimpleErc20Votes");
-        
         conditions.allowedRole = 1; // Members
         conditions.needFulfilled = 3; // Check Parent
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // ~5 mins
@@ -246,7 +242,7 @@ contract NestedGovernance is DeploySetup {
             nameDescription: "Mint Tokens: Call the mintVotes function at token.",
             targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
             config: abi.encode(
-                votesToken,
+                address(votesToken),
                 SimpleErc20Votes.mintVotes.selector,
                 inputParams
             ),

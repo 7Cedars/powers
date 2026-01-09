@@ -6,7 +6,7 @@ import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 import { InitialisePowers } from "@script/InitialisePowers.s.sol";
-import { InitialiseHelpers } from "@script/InitialiseHelpers.s.sol";
+import { DeploySetup } from "./DeploySetup.s.sol";
 
 // external protocols 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -16,32 +16,35 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
+// helpers 
+import { OpenElection } from "@src/helpers/OpenElection.sol";
+
 /// @title Open Elections Deployment Script
-contract OpenElections is Script {
+contract OpenElections is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
     InitialisePowers initialisePowers;
-    InitialiseHelpers initialiseHelpers;
     PowersTypes.Conditions conditions;
     Powers powers;
+
+    OpenElection openElection;  
 
     address[] targets;
     uint256[] values;
     bytes[] calldatas;
     string[] dynamicParams;
 
-    function run() external {
+    function run() external returns (Powers, OpenElection) {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
-        initialiseHelpers = new InitialiseHelpers();
-        initialiseHelpers.run();
         helperConfig = new Configurations(); 
         config = helperConfig.getConfig();
-
+        
         // step 1: deploy Open Elections Powers
         vm.startBroadcast();
+        openElection = new OpenElection();
         powers = new Powers(
             "Open Elections", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiaaprfqxtgyxa5v2dnf7edfbc3mxewdh4axf4qtkurpz66jh2f2ve", // uri
@@ -57,11 +60,14 @@ contract OpenElections is Script {
         console2.log("Constitution created with length:");
         console2.logUint(constitutionLength);
 
-        // step 3: run constitute. 
+        // step 3: transfer ownership and run constitute. 
         vm.startBroadcast();
+        openElection.transferOwnership(address(powers)); 
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
+        
+        return (powers, openElection);
     }
 
     function createConstitution() internal returns (uint256 constitutionLength) {
@@ -91,7 +97,7 @@ contract OpenElections is Script {
             nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
             targetMandate: initialisePowers.getMandateAddress("Nominate"),
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("OpenElection")
+                address(openElection)
             ),
             conditions: conditions
         }));
@@ -103,8 +109,8 @@ contract OpenElections is Script {
             nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
             targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("OpenElection"),
-                600, // 10 minutes in blocks (approx)
+                address(openElection),
+                minutesToBlocks(10, config.BLOCKS_PER_HOUR), // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),
             conditions: conditions
@@ -118,7 +124,7 @@ contract OpenElections is Script {
             nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
             targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
             config: abi.encode(
-                initialiseHelpers.getHelperAddress("OpenElection"),
+                address(openElection),
                 2, // RoleId for Delegates
                 5 // Max role holders
             ),
