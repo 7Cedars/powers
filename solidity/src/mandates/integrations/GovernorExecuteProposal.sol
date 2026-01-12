@@ -76,16 +76,10 @@ contract GovernorExecuteProposal is Mandate {
         }
         if (bytes(description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
 
-        // NB, todo: DEBUG
         // Get proposal ID from governor contract
-        // uint256 proposalId = Governor(governorContract).getProposalId(
-        //     proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
-        // );
-
-        uint256 proposalId = 0;
-
-        // Validate proposal exists
-        if (proposalId == 0) revert("GovernorExecuteProposal: Proposal not found");
+        uint256 proposalId = Governor(governorContract).hashProposal(
+            proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
+        );
 
         // Check proposal state
         IGovernor.ProposalState state = Governor(governorContract).state(proposalId);

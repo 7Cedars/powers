@@ -5,31 +5,77 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title AllowedTokens
- * @notice Simple registry of allowed ERC20 tokens managed by the owner
+ * @notice Registry of allowed ERC20 tokens managed by the owner
+ * It works on the basis of an array (not mapping) to facilitate looping through allowed tokens. 
+ * @author 7Cedars
  */
 contract AllowedTokens is Ownable {
-    mapping(address => bool) private _allowedTokens;
+    address[] private _allowedTokens;
+    uint256 private _allowedTokensCount;
+    mapping(address => bool) private _isAllowed;
 
-    event TokenAllowed(address indexed token, bool allowed);
+    event TokenAdded(address indexed token);
+    event TokenRemoved(address indexed token);
 
     constructor(address initialOwner) Ownable(initialOwner) {}
 
     /**
      * @notice Sets the allowed status of a token
      * @param token The address of the token
-     * @param allowed The new status (true for allowed, false for disallowed)
      */
-    function setTokenAllowed(address token, bool allowed) external onlyOwner {
-        _allowedTokens[token] = allowed;
-        emit TokenAllowed(token, allowed);
+    function addToken(address token) external onlyOwner {
+        if (_isAllowed[token]) {
+            revert("Token already allowed");
+        }
+        _allowedTokens.push(token);
+        _isAllowed[token] = true;
+        _allowedTokensCount++;
+
+        emit TokenAdded(token);
+    }
+
+    /**
+     * @notice Removes a token from the allowed list
+     * @param token The address of the token to remove
+     */
+    function removeToken(address token) external onlyOwner {
+        if (!_isAllowed[token]) {
+            revert("Token not allowed");
+        }
+
+        for (uint256 i = 0; i < _allowedTokens.length; i++) {
+            if (_allowedTokens[i] == token) {
+                _allowedTokens[i] = _allowedTokens[_allowedTokens.length - 1];
+                _allowedTokens.pop();
+                emit TokenRemoved(token);
+                _allowedTokensCount--;
+                _isAllowed[token] = false;
+                return;
+            }
+        }
     }
 
     /**
      * @notice Checks if a token is allowed
      * @param token The address of the token to check
-     * @return bool True if the token is allowed
      */
     function isTokenAllowed(address token) external view returns (bool) {
-        return _allowedTokens[token];
+        return _isAllowed[token];
+    }
+
+    /**
+    * @notice Returns the count of allowed tokens
+    * @return uint256 The number of allowed tokens
+    */
+    function getAllowedTokensCount() external view returns (uint256) {
+        return _allowedTokensCount;
+    }
+
+    /**
+     * @notice Returns the count of allowed tokens
+     * @return uint256 The number of allowed tokens
+     */
+    function getAllowedToken(uint256 index) external view returns (address) {
+        return _allowedTokens[index];
     }
 }

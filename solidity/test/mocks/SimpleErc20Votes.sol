@@ -14,7 +14,7 @@ contract SimpleErc20Votes is ERC20Votes {
     constructor() ERC20("Votes", "VTS") EIP712("Votes", "0.2") { }
 
     // a public non-restricted function that allows anyone to mint coins. Only restricted by max allowed coins to mint.
-    function mintVotes(uint256 amount) public {
+    function mint(uint256 amount) public {
         if (amount == 0) {
             revert Erc20Votes__NoZeroAmount();
         }
@@ -22,5 +22,16 @@ contract SimpleErc20Votes is ERC20Votes {
             revert Erc20Votes__AmountExceedsMax(amount, MAX_AMOUNT_VOTES_TO_MINT);
         }
         _mint(msg.sender, amount);
+    }
+
+    // a public non-restricted function that allows anyone to mint coins. Only restricted by max allowed coins to mint.
+    function mintTo(address to, uint256 amount) public {
+        if (amount == 0) {
+            revert Erc20Votes__NoZeroAmount();
+        }
+        if (amount > MAX_AMOUNT_VOTES_TO_MINT) {
+            revert Erc20Votes__AmountExceedsMax(amount, MAX_AMOUNT_VOTES_TO_MINT);
+        }
+        _mint(to, amount);
     }
 }

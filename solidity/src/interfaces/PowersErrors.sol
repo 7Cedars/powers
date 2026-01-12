@@ -17,6 +17,9 @@ interface PowersErrors {
     /// @notice Emitted when a callData is invalid.
     error Powers__InvalidCallData();
 
+    /// @notice Emitted when an invalid address is used.
+    error Powers__InvalidAddress();
+
     /// @notice Emitted when a mandate is not active.
     error Powers__MandateNotActive();
 

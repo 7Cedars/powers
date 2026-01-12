@@ -5,12 +5,12 @@ import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @dev SoulBound1155 is meant as a simple token that logs activity in a soulbound way.
+ * @dev Soulbound1155 is meant as a simple token that logs activity in a soulbound way.
  * it allows the owner of the contract to mint unique tokens that encode the minter address and block number.
  * ints tokens that are soulbound (non-transferable).
  */
-contract SoulBound1155 is ERC1155, Ownable {
-    error SoulBound1155__NoZeroAmount(); 
+contract Soulbound1155 is ERC1155, Ownable {
+    error Soulbound1155__NoZeroAmount(); 
 
     // the dao address receives half of mintable coins.
     constructor()
@@ -32,7 +32,7 @@ contract SoulBound1155 is ERC1155, Ownable {
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override {
         // allow minting and burning
         if (from != address(0) && to != address(0)) {
-            revert("SoulBound1155: Transfers are disabled");    
+            revert("Soulbound1155: Transfers are disabled");    
         }
 
         super._update(from, to, ids, values);

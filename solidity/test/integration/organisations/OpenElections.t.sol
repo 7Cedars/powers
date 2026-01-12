@@ -6,6 +6,8 @@ import { Powers } from "@src/Powers.sol";
 import { OpenElection } from "@src/helpers/OpenElection.sol";
 import { TestSetupOpenElections } from "../../TestSetup.t.sol";
 
+import { OpenElection } from "@src/helpers/OpenElection.sol";
+
 contract OpenElections_IntegrationTest is TestSetupOpenElections {    
     // Mandate IDs from OpenElections.s.sol
     // 1: Initial Setup (Revoked)
@@ -17,7 +19,7 @@ contract OpenElections_IntegrationTest is TestSetupOpenElections {
     uint16 constant MANDATE_NOMINATE = 2;
     uint16 constant MANDATE_START_ELECTION = 3;
     uint16 constant MANDATE_END_ELECTION = 4;
-    
+   
     // Vote mandate is created dynamically. It will be the next mandate ID.
     // Initial setup (1), Nominate (2), Start (3), End (4), Admin (5), Revoke (6).
     // So next mandate is 7.
@@ -25,6 +27,8 @@ contract OpenElections_IntegrationTest is TestSetupOpenElections {
 
     function setUp() public override {
         super.setUp();
+
+        OpenElection openElection = new OpenElection();
         
         // Setup additional voters (Frank, Gary, Helen)
         // Alice and Bob already have Role 1 from TestSetupOpenElections (via TestSetupPowers101 logic or explicit assignment)

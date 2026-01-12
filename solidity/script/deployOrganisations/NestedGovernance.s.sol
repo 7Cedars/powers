@@ -239,11 +239,11 @@ contract NestedGovernance is DeploySetup {
         conditions.succeedAt = 51;
         conditions.quorum = 33;
         childConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Mint Tokens: Call the mintVotes function at token.",
+            nameDescription: "Mint Tokens: Call the mint function at token.",
             targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
             config: abi.encode(
                 address(votesToken),
-                SimpleErc20Votes.mintVotes.selector,
+                SimpleErc20Votes.mint.selector,
                 inputParams
             ),
             conditions: conditions

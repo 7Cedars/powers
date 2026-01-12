@@ -100,21 +100,63 @@ contract Powers is EIP712, IPowers, Context {
         uint256 maxCallDataLength_,
         uint256 maxReturnDataLength_,
         uint256 maxExecutionsLength_
+        // add here the init data for initial mandates?
     ) EIP712(name_, version()) {
         if (bytes(name_).length == 0) revert Powers__InvalidName();
-        name = name_;
-        uri = uri_;
         if (maxCallDataLength_ == 0) revert Powers__InvalidMaxCallDataLength();
         if (maxReturnDataLength_ == 0) revert Powers__InvalidReturnCallDataLength();
         if (maxExecutionsLength_ == 0) revert Powers__InvalidMaxExecutionsLength();
+
+        _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
+        name = name_;
+        uri = uri_;
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
         MAX_RETURN_DATA_LENGTH = maxReturnDataLength_;
         MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
-
-        _setRole(ADMIN_ROLE, _msgSender(), true); // the account that initiates a Powerscontract is set to its admin.
-
+        
         emit Powers__Initialized(address(this), name, uri);
     }
+
+    //////////////////////////////////////////////////////////////
+    //                  CONSTITUTE LOGIC                        //
+    //////////////////////////////////////////////////////////////
+    /// @inheritdoc IPowers
+    function constitute(MandateInitData[] memory constituentMandates) external {
+        _constitute(constituentMandates, _msgSender());
+    }
+
+    /// @inheritdoc IPowers
+    function constitute(MandateInitData[] memory constituentMandates, address newAdmin) external {
+        _constitute(constituentMandates, newAdmin);
+    }
+
+    function _constitute(MandateInitData[] memory constituentMandates, address newAdmin) internal {
+        address currentAdmin = getRoleHolderAtIndex(ADMIN_ROLE, 0); // before constitute is called, there should be only one admin.
+        
+        // check 1: only admin can call this function
+        if (currentAdmin != _msgSender()) revert Powers__NotAdmin();
+
+        // check 2: this function can only be called once.
+        if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
+
+        // if checks pass, set _constituentMandatesExecuted to true...
+        _constituteExecuted = true;
+
+        if (currentAdmin != newAdmin) {
+            _setRole(ADMIN_ROLE, currentAdmin, false);
+            _setRole(ADMIN_ROLE, newAdmin, true);
+        }
+        
+        // ...and set mandates as active.
+        for (uint256 i = 0; i < constituentMandates.length; i++) {
+            // note: ignore empty slots in MandateInitData array.
+            if (constituentMandates[i].targetMandate != address(0)) {
+                _adoptMandate(constituentMandates[i]);
+            }
+        }
+        emit ConstitutionExecuted();
+    }
+
 
     //////////////////////////////////////////////////////////////
     //                  GOVERNANCE LOGIC                        //
@@ -252,7 +294,7 @@ contract Powers is EIP712, IPowers, Context {
         return actionId;
     }
 
-    /// @notice Internal propose mechanism. Can be overridden to add more logic on proposedAction creation.
+    /// @notice Internal propose mechanism.
     ///
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
@@ -374,27 +416,6 @@ contract Powers is EIP712, IPowers, Context {
     //////////////////////////////////////////////////////////////
     //                  ROLE AND LAW ADMIN                      //
     //////////////////////////////////////////////////////////////
-    /// @inheritdoc IPowers
-    function constitute(MandateInitData[] memory constituentMandates) external {
-        // check 1: only admin can call this function
-        if (roles[ADMIN_ROLE].members[_msgSender()] == 0) revert Powers__NotAdmin();
-
-        // check 2: this function can only be called once.
-        if (_constituteExecuted) revert Powers__ConstitutionAlreadyExecuted();
-
-        // if checks pass, set _constituentMandatesExecuted to true...
-        _constituteExecuted = true;
-
-        // ...and set mandates as active.
-        for (uint256 i = 0; i < constituentMandates.length; i++) {
-            // note: ignore empty slots in MandateInitData array.
-            if (constituentMandates[i].targetMandate != address(0)) {
-                _adoptMandate(constituentMandates[i]);
-            }
-        }
-        emit ConstitutionExecuted();
-    }
-
     /// @inheritdoc IPowers
     function adoptMandate(MandateInitData memory mandateInitData) external onlyPowers returns (uint256 mandateId) {
         mandateId = _adoptMandate(mandateInitData);

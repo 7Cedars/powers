@@ -63,8 +63,7 @@ contract TokenDelegates is DeploySetup {
         console2.logUint(constitutionLength);
 
         // step 3: transfer ownership and run constitute. 
-        vm.startBroadcast();
-        nominees.transferOwnership(address(powers));
+        vm.startBroadcast(); 
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");

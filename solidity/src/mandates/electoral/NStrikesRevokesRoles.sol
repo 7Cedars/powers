@@ -34,7 +34,6 @@ contract NStrikesRevokesRoles is Mandate {
         uint256 numberOfStrikes;
         address flagActionsAddress;
     }
-
     mapping(bytes32 mandateHash => Data) public data;
 
     /// @notice Constructor for NStrikesRevokesRoles mandate
@@ -50,6 +49,7 @@ contract NStrikesRevokesRoles is Mandate {
     {
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
         
+        // £todo: this can be removed because config data is saved in Mandate base contract. 
         (
             data[mandateHash].roleId,
             data[mandateHash].numberOfStrikes,

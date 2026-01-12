@@ -406,7 +406,6 @@ contract PowerLabs is DeploySetup {
         }));
         delete conditions;
 
-    /// UNTIL HERE NEW; MEMORY COUNTER FOR MANDATES. ///  
 
 
         // --- Constitutional Laws ---

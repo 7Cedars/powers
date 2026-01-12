@@ -60,9 +60,8 @@ contract OpenElections is DeploySetup {
         console2.log("Constitution created with length:");
         console2.logUint(constitutionLength);
 
-        // step 3: transfer ownership and run constitute. 
-        vm.startBroadcast();
-        openElection.transferOwnership(address(powers)); 
+        // step 3: run constitute. 
+        vm.startBroadcast(); 
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");

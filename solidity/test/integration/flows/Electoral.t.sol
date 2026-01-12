@@ -5,32 +5,31 @@ import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
 import { Powers } from "@src/Powers.sol";
 import { Mandate } from "@src/Mandate.sol";
 import { Nominees } from "@src/helpers/Nominees.sol";
-import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { OpenElection } from "@src/helpers/OpenElection.sol";
 import { TestSetupDelegateTokenFlow, TestSetupOpenElectionFlow, TestSetupAssignExternalRoleParentFlow } from "../../TestSetup.t.sol";
+ 
+import { Nominees } from "@src/helpers/Nominees.sol";
+import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 
 contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
-    Nominees nominees;
-    SimpleErc20Votes votesToken;
     uint16 constant MANDATE_NOMINATE = 1;
     uint16 constant MANDATE_ELECT = 2;
 
     function setUp() public override {
         super.setUp();
-        
+       
         // Identify helpers from the setup
-        nominees = Nominees(findHelperAddress("Nominees"));
-        votesToken = SimpleErc20Votes(findHelperAddress("SimpleErc20Votes"));
-
+        vm.startPrank(address(daoMock));
         // Give Frank Role 1 so he can nominate (as per constitution allowedRole=1 for Nominate)
         // Alice and Bob already have Role 1 from TestSetup
-        vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, frank);
+        vm.stopPrank();
     }
 
     function testDelegateTokenFlow_FullInteraction() public {
         // --- 1. NOMINATION FLOW ---
-        console2.log("--- Step 1: Nomination ---");
+        console2.log("--- Step 1: Nomination ---"); 
+        console2.log("owner of nominees:", nominees.owner());
 
         // Alice nominates
         vm.prank(alice);
@@ -88,23 +87,23 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         // Frank: 90, Bob: 60, Alice: 30
         
         vm.prank(frank);
-        votesToken.mintVotes(90 ether);
+        simpleErc20Votes.mint(90 ether);
         vm.prank(frank);
-        votesToken.delegate(frank); // Delegate to self
+        simpleErc20Votes.delegate(frank); // Delegate to self
 
         vm.prank(bob);
-        votesToken.mintVotes(60 ether);
+        simpleErc20Votes.mint(60 ether);
         vm.prank(bob);
-        votesToken.delegate(bob);
+        simpleErc20Votes.delegate(bob);
 
         vm.prank(alice);
-        votesToken.mintVotes(30 ether);
+        simpleErc20Votes.mint(30 ether);
         vm.prank(alice);
-        votesToken.delegate(alice);
+        simpleErc20Votes.delegate(alice);
 
-        assertEq(votesToken.getVotes(frank), 90 ether, "Frank vote balance wrong");
-        assertEq(votesToken.getVotes(bob), 60 ether, "Bob vote balance wrong");
-        assertEq(votesToken.getVotes(alice), 30 ether, "Alice vote balance wrong");
+        assertEq(simpleErc20Votes.getVotes(frank), 90 ether, "Frank vote balance wrong");
+        assertEq(simpleErc20Votes.getVotes(bob), 60 ether, "Bob vote balance wrong");
+        assertEq(simpleErc20Votes.getVotes(alice), 30 ether, "Alice vote balance wrong");
 
 
         // --- 3. ELECTION FLOW ---
@@ -146,10 +145,10 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         // New weights: Alice (120), Bob (60), Frank (0)
         // Frank is still a nominee, but has 0 votes.
         vm.prank(frank);
-        votesToken.transfer(alice, 90 ether);
+        simpleErc20Votes.transfer(alice, 90 ether);
 
-        assertEq(votesToken.getVotes(alice), 120 ether, "Alice new vote balance wrong");
-        assertEq(votesToken.getVotes(frank), 0, "Frank new vote balance wrong");
+        assertEq(simpleErc20Votes.getVotes(alice), 120 ether, "Alice new vote balance wrong");
+        assertEq(simpleErc20Votes.getVotes(frank), 0, "Frank new vote balance wrong");
 
         // Attempt early execution (should fail due to throttle)
         // Throttle is 600 blocks.
@@ -180,9 +179,9 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         daoMock.request(MANDATE_NOMINATE, abi.encode(true), nonce++, "Gary Nominates");
         
         vm.prank(gary); // Gary mints his own votes
-        votesToken.mintVotes(50 ether);
+        simpleErc20Votes.mint(50 ether);
         vm.prank(gary);
-        votesToken.delegate(gary);
+        simpleErc20Votes.delegate(gary);
 
         // Execute Election
         vm.prank(eve);
@@ -213,7 +212,8 @@ contract OpenElectionFlow_IntegrationTest is TestSetupOpenElectionFlow {
         super.setUp();
 
         // Identify helper
-        openElection = OpenElection(findHelperAddress("OpenElection"));
+        vm.prank(address(daoMock));
+        openElection = new OpenElection();
 
         // Assign Role 1 (Voter) to Frank, Gary, Helen to have more voters
         // Alice and Bob already have Role 1 from TestSetup

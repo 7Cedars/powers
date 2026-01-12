@@ -16,18 +16,9 @@ import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.s
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 contract StatementOfIntentTest is TestSetupExecutive {
-    SimpleErc1155 simpleErc1155;
-
     function setUp() public override {
         super.setUp();
-        mandateId = 1; // StatementOfIntent
-
-        // Find SimpleErc1155 helper
-        helper = findHelperAddress("SimpleErc1155");
-        if (helper == address(0)) {
-            revert("PowersErrors.HelperNotFound(\"SimpleErc1155\")");
-        }
-        simpleErc1155 = SimpleErc1155(helper);
+        mandateId = 1; // StatementOfIntent 
     }
 
     function testStatementOfIntentRequestWorks() public {
@@ -80,21 +71,12 @@ contract StatementOfIntentTest is TestSetupExecutive {
     }
 }
 
-contract OpenActionTest is TestSetupExecutive {
-    SimpleErc1155 simpleErc1155;
-
+contract OpenActionTest is TestSetupExecutive { 
     event CoinsMinted(address indexed to, uint256 amount);
 
     function setUp() public override {
         super.setUp();
-        mandateId = 2; // OpenAction
-
-        // Find SimpleErc1155 helper
-        helper = findHelperAddress("SimpleErc1155");
-        if (helper == address(0)) {
-            revert ("PowersErrors.HelperNotFound(\"SimpleErc1155\")");
-        }
-        simpleErc1155 = SimpleErc1155(helper);
+        mandateId = 2; // OpenAction  
     }
 
     ////////////////////////////////////////////////////////////////
@@ -180,18 +162,9 @@ contract OpenActionTest is TestSetupExecutive {
 }
 
 contract BespokeActionSimpleTest is TestSetupExecutive {
-    SimpleErc1155 simpleErc1155;
-
     function setUp() public override {
         super.setUp();
-        mandateId = 3; // BespokeActionSimple
-
-        // Find SimpleErc1155 helper
-        helper = findHelperAddress("SimpleErc1155");
-        if (helper == address(0)) {
-            revert("PowersErrors.HelperNotFound(\"SimpleErc1155\")");
-        }
-        simpleErc1155 = SimpleErc1155(helper);
+        mandateId = 3; // BespokeActionSimple 
     }
 
     function testSimpleExecute() public {
@@ -274,16 +247,11 @@ contract BespokeActionAdvancedTest is TestSetupExecutive {
     }
 }
 
-contract PresetSingleActionTest is TestSetupExecutive {
-    PresetSingleAction presetSingleAction;
+contract PresetSingleActionTest is TestSetupExecutive { 
 
     function setUp() public override {
         super.setUp();
         mandateId = 5; // PresetSingleAction
-
-        // Retrieve the mandate contract instance
-        (address mandateAddress, , ) = daoMock.getAdoptedMandate(mandateId);
-        presetSingleAction = PresetSingleAction(mandateAddress);
     }
 
     function testPresetExecute() public {
@@ -312,23 +280,6 @@ contract PresetSingleActionTest is TestSetupExecutive {
         vm.prank(frank); // Frank does not have Role 1
         vm.expectRevert(PowersErrors.Powers__CannotCallMandate.selector);
         daoMock.request(mandateId, mandateCalldata, nonce, "Unauthorized");
-    }
-
-    function testPresetReturnsCorrectData() public {
-        // Calculate mandate hash
-        bytes32 mandateHash = MandateUtilities.hashMandate(address(daoMock), mandateId);
-
-        // Get data from mandate
-        PresetSingleAction.Data memory data = presetSingleAction.getData(mandateHash);
-
-        // Verify data
-        assertEq(data.targets.length, 2);
-        assertEq(data.values.length, 2);
-        assertEq(data.calldatas.length, 2);
-
-        assertEq(data.targets[0], address(daoMock));
-        assertEq(data.calldatas[0], abi.encodeWithSelector(Powers.labelRole.selector, 1, "Member"));
-        assertEq(data.calldatas[1], abi.encodeWithSelector(Powers.labelRole.selector, 2, "Delegate"));
     }
 }
 

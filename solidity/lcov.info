@@ -2957,8 +2957,8 @@ end_of_record
 TN:
 SF:test/mocks/SimpleErc20Votes.sol
 DA:17,3397
-FN:17,SimpleErc20Votes.mintVotes
-FNDA:3397,SimpleErc20Votes.mintVotes
+FN:17,SimpleErc20Votes.mint
+FNDA:3397,SimpleErc20Votes.mint
 DA:18,3397
 BRDA:18,0,0,1
 DA:19,1

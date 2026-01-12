@@ -12,7 +12,21 @@ import { PowersTypes } from "./PowersTypes.sol";
 
 interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
-    //                  GOVERNANCE FUNCTIONS                     //
+    //                  CONSTITUTE LOGIC                        //
+    //////////////////////////////////////////////////////////////
+    /// @notice Initializes the DAO by activating its founding mandates
+    /// @dev Can only be called once by an admin account
+    /// @param mandates The list of mandate contracts to activate
+    function constitute(MandateInitData[] calldata mandates) external;
+
+    /// @notice Initializes the DAO by activating its founding mandates and setting a new admin
+    /// @dev Can only be called once by an admin account
+    /// @param mandates The list of mandate contracts to activate
+    /// @param newAdmin The address of the new admin
+    function constitute(MandateInitData[] calldata mandates, address newAdmin) external;
+
+    //////////////////////////////////////////////////////////////
+    //                  GOVERNANCE FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
 
     /// @notice Initiates an action to be executed through a mandate
@@ -76,12 +90,6 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     //////////////////////////////////////////////////////////////
     //                  ROLE AND LAW ADMIN                       //
     //////////////////////////////////////////////////////////////
-
-    /// @notice Initializes the DAO by activating its founding mandates
-    /// @dev Can only be called once by an admin account
-    /// @param mandates The list of mandate contracts to activate
-    function constitute(MandateInitData[] calldata mandates) external;
-
     /// @notice Activates a new mandate in the protocol
     /// @dev Can only be called through the protocol itself
     /// @param mandateInitData The data of the mandate
