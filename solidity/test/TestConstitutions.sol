@@ -7,7 +7,8 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
-
+import { IPowersFactory } from "@src/helpers/PowersFactory.sol";
+import { ISoulbound1155} from "@src/helpers/Soulbound1155.sol";
 
 
 contract TestConstitutions is Test {
@@ -588,10 +589,163 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //               INTEGRATIONS CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function integrationsTestConstitution( address daoMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
-        delete constitution; // restart constitution array.
+    function integrationsTestConstitution( address simpleGovernor, address powersFactory, address soulbound1155 ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array 
 
-        // todo 
+        // Governor Integration // 
+        // GovernorCreateProposal - for creating governance proposals
+        conditions.allowedRole = 1; // role 1 can create proposals
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "GovernorCreateProposal: A mandate to create governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("GovernorCreateProposal"), // GovernorCreateProposal (executive mandate)
+            config: abi.encode(simpleGovernor), // SimpleGovernor mock address
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // GovernorExecuteProposal - for executing governance proposals
+        conditions.allowedRole = 1; // role 1 can execute proposals
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "GovernorExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("GovernorExecuteProposal"), // GovernorExecuteProposal (executive mandate)
+            config: abi.encode(simpleGovernor), // SimpleGovernor mock address
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Safe Allowance Integration //
+        // SafeSetup
+        conditions.allowedRole = type(uint256).max; // Public
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
+            targetMandate: getMandateAddress("SafeSetup"),
+            config: abi.encode(
+                config.safeProxyFactory,
+                config.safeL2Canonical,
+                config.safeAllowanceModule
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+ 
+        // execute action from safe. 
+        inputParams = new string[](3);
+        inputParams[0] = "calldata SafeFunctionTarget";
+        inputParams[1] = "bytes4 SafeFunctionSelector";
+        inputParams[2] = "calldata SafeFunctionCalldata";
+
+        conditions.allowedRole = 1;
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute an action from the Safe treasury.",
+            targetMandate: getMandateAddress("SafeExecTransaction"),
+            config: abi.encode(
+                inputParams,
+                config.safeL2Canonical
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+        // Powers Factory Integration //
+        // create new org 
+        inputParams = new string[](3);
+        inputParams[0] = "string OrgName";
+        inputParams[1] = "string OrgUri";
+        inputParams[2] = "uint256 Allowance";
+
+        uint256 roleIdnewOrg = 9; // roleId for the new organisation.  
+
+        conditions.allowedRole = 1; //
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Create new Powers: call Powers Factory to spawn new powers.",
+            targetMandate: getMandateAddress("BespokeActionSimple"),
+            config: abi.encode(
+                powersFactory,
+                IPowersFactory.createPowers.selector,
+                inputParams
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+ 
+        conditions.allowedRole = 1; //
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
+            targetMandate: getMandateAddress("PowersFactoryAssignRole"),
+            config: abi.encode(
+                6, // mandateId of the createPowers action above.
+                roleIdnewOrg,
+                inputParams // the input params from above are passed to extract the new org address.
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+        // Soulbound1155 integration //
+        // minting mandate // 
+        inputParams = new string[](1);
+        inputParams[0] = "address to";
+        conditions.allowedRole = 1; //
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Mint soulbound token: mint a soulbound ERC1155 token and send it to an address of choice.",
+            targetMandate: getMandateAddress("BespokeActionSimple"),
+            config: abi.encode(
+                soulbound1155,
+                ISoulbound1155.mint.selector,
+                inputParams
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+        // access mandate // 
+        conditions.allowedRole = 1; //
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Soulbound1155 Access: Get roleId through soulbound ERC1155 token.",
+            targetMandate: getMandateAddress("Soulbound1155GatedAccess"),
+            config: abi.encode(
+                soulbound1155,
+                9, // roleId to be assigned upon holding the soulbound token.
+                100, // epoch of blocks within which the tokens must have been held.
+                3 // number of tokens that need to be held.
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+        return constitution;
+    }
+
+    function integrationsTestConstitution2( address daoMock, address allowedTokens ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+        delete constitution; // restart constitution array
+        
+        // Safe Allowance Integration //
+        // Mandate: Execute Allowance Transaction
+        conditions.allowedRole = 0; 
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute Allowance Transaction: Execute a transaction from the Safe Treasury within the allowance set.",
+            targetMandate: getMandateAddress("SafeAllowanceTransfer"),
+            config: abi.encode(
+                config.safeAllowanceModule,
+                IPowers(daoMock).getTreasury() // This is the SafeProxyTreasury! 
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Allowed Tokens Integration //
+        conditions.allowedRole = 0; 
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Transfer allowed tokens from child to parent Powers Organisation.",
+            targetMandate: getMandateAddress("AllowedTokensPresetTransfer"),
+            config: abi.encode(
+                daoMock,
+                allowedTokens  
+            ),
+            conditions: conditions
+        }));
+        delete conditions;    
 
         return constitution;
     }
@@ -606,7 +760,7 @@ contract TestConstitutions is Test {
     // NB2: leaving async tests out for now. Due to use of oracles, they are better tested directly on actual test nets. 
 
     //////////////////////////////////////////////////////////////
-    //                          ELECTORAL                       //
+    //               INTEGRATION TEST: ELECTORAL                //
     //////////////////////////////////////////////////////////////
     // Delegate Token election flow
     function delegateToken_IntegrationTestConstitution( address nominees, address openElection, address simpleErc20Votes ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
@@ -756,7 +910,7 @@ contract TestConstitutions is Test {
     }
 
     //////////////////////////////////////////////////////////////
-    //                         EXECUTIVE                        //
+    //             INTEGRATION TEST: EXECUTIVE                  //
     //////////////////////////////////////////////////////////////
     // Open Action flow: The most classic governance flows of all. This is the base to test if needFulfilled and needNotFulfilled actually work. 
     function openAction_IntegrationTestConstitution() external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
@@ -841,7 +995,7 @@ contract TestConstitutions is Test {
     }
 
     //////////////////////////////////////////////////////////////
-    //                       INTEGRATIONS                       //
+    //               INTEGRATION TEST: INTEGRATIONS              //
     //////////////////////////////////////////////////////////////
     // Governor protocol flow 
     function governorProtocol_IntegrationTestConstitution( address simpleGovernor ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
@@ -891,40 +1045,6 @@ contract TestConstitutions is Test {
         inputParams = new string[](1);
         inputParams[0] = "address NewChildPowers";
 
-        conditions.allowedRole = 0; // = protocol contributors.
-        parentConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Execute and adopt new child Powers as a delegate to the Safe treasury.",
-            targetMandate: getMandateAddress("SafeAllowanceAction"),
-            config: abi.encode(
-                inputParams,
-                bytes4(0xe71bdf41), // == AllowanceModule.addDelegate.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
-                config.safeAllowanceModule
-            ),
-            conditions: conditions // everythign zero == Only admin can call directly
-        }));
-        delete conditions;
-
-        // add allowance to existing delegated child
-        inputParams = new string[](5);
-        inputParams[0] = "address ChildPowers";
-        inputParams[1] = "address Token";
-        inputParams[2] = "uint96 allowanceAmount";
-        inputParams[3] = "uint16 resetTimeMin";
-        inputParams[4] = "uint32 resetBaseMin";
-
-        conditions.allowedRole = 0; // = protocol contributors.
-        parentConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
-            targetMandate: getMandateAddress("SafeAllowanceAction"),
-            config: abi.encode(
-                inputParams,
-                bytes4(0xbeaeb388), // == AllowanceModule.setAllowance.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
-                config.safeAllowanceModule 
-            ),
-            conditions: conditions // everythign zero == Only admin can call directly
-        }));
-        delete conditions;
-
         return parentConstitution;
     }
 
@@ -933,10 +1053,10 @@ contract TestConstitutions is Test {
 
         // Mandate: Execute Allowance Transaction
         conditions.allowedRole = 1; // Assuming RoleId 1 (Funders) as placeholder for formData["RoleId"] 
-        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR);
+        conditions.votingPeriod = 300; 
         conditions.succeedAt = 67;
         conditions.quorum = 50;
-        conditions.timelock = minutesToBlocks(3, config.BLOCKS_PER_HOUR);
+        conditions.timelock = 150; 
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute Allowance Transaction: Execute a transaction from the Safe Treasury within the allowance set.",
             targetMandate: getMandateAddress("SafeAllowanceTransfer"),
@@ -950,13 +1070,7 @@ contract TestConstitutions is Test {
 
         return childConstitution;
     }
-
-    function minutesToBlocks(uint256 minutes_, uint256 blocksPerHour) internal pure returns (uint32) {
-        return uint32((minutes_ * blocksPerHour) / 60);
-    }
-
-
-
+ 
     //////////////////////////////////////////////////////////////
     //                 HELPERS CONSTITUTION                     //
     //////////////////////////////////////////////////////////////

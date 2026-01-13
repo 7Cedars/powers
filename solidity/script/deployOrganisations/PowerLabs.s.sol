@@ -302,24 +302,6 @@ contract PowerLabs is DeploySetup {
         }));
         delete conditions;
 
-        mandateCount++;
-        conditions.allowedRole = 4; // = protocol contributors.
-        conditions.quorum = 20; // = 30% quorum needed
-        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
-        conditions.needFulfilled = mandateCount - 1; // = the proposal mandate.
-        parentConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Execute and adopt new child Powers as a delegate to the Safe treasury.",
-            targetMandate: initialisePowers.getMandateAddress("SafeAllowanceAction"),
-            config: abi.encode(
-                inputParams,
-                bytes4(0xe71bdf41), // == AllowanceModule.addDelegate.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
-                config.safeAllowanceModule
-            ),
-            conditions: conditions // everythign zero == Only admin can call directly
-        }));
-        delete conditions;
-
         //////////////////////////////////////////////////////////////////////////
         //               GOVERNANCE FLOW FOR SETTING ALLOWANCE                  //
         //////////////////////////////////////////////////////////////////////////
@@ -387,25 +369,6 @@ contract PowerLabs is DeploySetup {
             conditions: conditions
         }));
         delete conditions;
-
-        mandateCount++;
-        conditions.allowedRole = 4; // = protocol contributors.
-        conditions.quorum = 20; // = 30% quorum needed
-        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
-        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
-        conditions.needFulfilled = mandateCount - 1; // = the proposal mandate.
-        parentConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
-            targetMandate: initialisePowers.getMandateAddress("SafeAllowanceAction"),
-            config: abi.encode(
-                inputParams,
-                bytes4(0xbeaeb388), // == AllowanceModule.setAllowance.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
-                config.safeAllowanceModule 
-            ),
-            conditions: conditions // everythign zero == Only admin can call directly
-        }));
-        delete conditions;
-
 
 
         // --- Constitutional Laws ---

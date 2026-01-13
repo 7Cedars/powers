@@ -8,21 +8,21 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract PowersFactoryAssignRole is Mandate {
     struct Mem {
         bytes config;
-        uint16 parentMandateId;
+        uint16 factoryMandateId;
         uint256 parentActionId;
-        uint256 roleId;
+        uint256 roleIdNewOrg;
         bytes returnData;
         address decodedAddress;
     }
 
     struct Data {
-        uint16 parentMandateId;
-        uint256 roleId;
+        uint16 factoryMandateId;
+        uint256 roleIdNewOrg;
     }
     mapping(bytes32 mandateHash => Data) public data;
     
     constructor() {
-        bytes memory configParams = abi.encode("uint16 parentMandateId", "uint256 roleId", "string[] inputParams");
+        bytes memory configParams = abi.encode("uint16 factoryMandateId", "uint256 roleIdNewOrg", "string[] inputParams");
         emit Mandate__Deployed(configParams);
     }
 
@@ -55,10 +55,10 @@ contract PowersFactoryAssignRole is Mandate {
         
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.parentMandateId, mem.roleId, ) = abi.decode(mem.config, (uint16, uint256, string));
+        (mem.factoryMandateId, mem.roleIdNewOrg, ) = abi.decode(mem.config, (uint16, uint256, string));
 
         // 2. Compute current actionId
-        mem.parentActionId = MandateUtilities.hashActionId(mem.parentMandateId, mandateCalldata, nonce);
+        mem.parentActionId = MandateUtilities.hashActionId(mem.factoryMandateId, mandateCalldata, nonce);
 
         // 5. Check return value in Powers
         // If the action hasn't been fulfilled or has no return data, this will revert (index out of bounds)
@@ -80,7 +80,7 @@ contract PowersFactoryAssignRole is Mandate {
         targets[0] = powers;
 
         calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, mem.roleId, mem.decodedAddress);
+        calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, mem.roleIdNewOrg, mem.decodedAddress);
 
         return (actionId, targets, values, calldatas);
     }

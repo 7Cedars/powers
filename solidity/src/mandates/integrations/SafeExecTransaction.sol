@@ -10,31 +10,28 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
+import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract SafeExecTransaction is Mandate {
-    /// @dev Configurations for this mandate adoption.
-    struct ConfigData {
-        address safe; // The Safe address to execute the transaction on.
-    }
-
-    /// @dev Mapping from mandate hash to its configuration.
-    mapping(bytes32 => ConfigData) public mandateConfig;
+    struct Mem {
+        bytes data;
+        address to; 
+        bytes configBytes;
+        address safeAddress;
+        bytes powersSignature;
+    } 
 
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
-        bytes memory configParams = abi.encode("string[] inputParams", "address safe");
+        bytes memory configParams = abi.encode("string[] inputParams");
         emit Mandate__Deployed(configParams);
     }
 
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory, bytes memory config)
         public
         override
-    {
-        bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-        string[] memory inputParamsRaw;
-
-        (inputParamsRaw, mandateConfig[mandateHash_].safe) = abi.decode(config, (string[], address));
-
+    { 
+        (string[] memory inputParamsRaw, ) = abi.decode(config, (string[], address));
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsRaw), config);
     }
 
@@ -60,14 +57,18 @@ contract SafeExecTransaction is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
+        Mem memory mem;
+
         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
 
         // Decode the parameters for the transaction that the Safe will execute.
-        (address to,, bytes memory data) = abi.decode(mandateCalldata, (address, uint256, bytes));
+        (mem.to,, mem.data) = abi.decode(mandateCalldata, (address, uint256, bytes));
 
-        bytes32 mandateHash_ = MandateUtilities.hashMandate(powers, mandateId);
-        address safeAddress = mandateConfig[mandateHash_].safe;
-
+        mem.configBytes = mandates[MandateUtilities.hashMandate(powers, mandateId)].config;
+        mem.safeAddress = IPowers(powers).getTreasury();
+        if (mem.safeAddress == address(0)) {
+            revert("No Safe treasury set");
+        }
         // Construct the `v=1` signature.
         // This is not a cryptographic signature but a signal to the Safe contract.
         // It indicates that the `msg.sender` of this transaction (the `powers` contract)
@@ -75,23 +76,23 @@ contract SafeExecTransaction is Mandate {
         // r = address of the signer (powers contract)
         // s = 0
         // v = 1
-        bytes memory powersSignature = abi.encodePacked(uint256(uint160(powers)), uint256(0), uint8(1));
+        mem.powersSignature = abi.encodePacked(uint256(uint160(powers)), uint256(0), uint8(1));
 
         // Create the calldata for the `execTransaction` call that `Powers.fulfill` will execute.
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = safeAddress;
+        targets[0] = mem.safeAddress;
         calldatas[0] = abi.encodeWithSelector(
             Safe.execTransaction.selector,
-            to, // The internal transaction's destination
+            mem.to, // The internal transaction's destination
             0, // The internal transaction's value in this mandate is always 0. To tansfer Eth use a different mandate.
-            data, // The internal transaction's data
+            mem.data, // The internal transaction's data
             Enum.Operation.Call, // The internal transaction's operation type
             0, // safeTxGas
             0, // baseGas
             0, // gasPrice
             address(0), // gasToken
             payable(0), // refundReceiver
-            powersSignature // The `v=1` signature
+            mem.powersSignature // The `v=1` signature
         );
 
         return (actionId, targets, values, calldatas);

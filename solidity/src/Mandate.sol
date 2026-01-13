@@ -34,7 +34,6 @@ abstract contract Mandate is ERC165, IMandate {
         bytes config;
         address powers;
     }
-
     mapping(bytes32 mandateHash => MandateData) public mandates;
 
     //////////////////////////////////////////////////////////////

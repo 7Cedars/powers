@@ -33,6 +33,9 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { AllowedTokens } from "@src/helpers/AllowedTokens.sol";
+import { PowersFactory } from "@src/helpers/PowersFactory.sol";
+import { Soulbound1155 } from "@src/helpers/Soulbound1155.sol";
 
 
 abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
@@ -60,7 +63,13 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     OpenElection openElection;
     Erc20DelegateElection erc20DelegateElection;
     SimpleGovernor simpleGovernor;
- 
+    AllowedTokens allowedTokens;
+    PowersFactory powersFactory;
+    Soulbound1155 soulbound1155;
+
+    uint256 sepoliaFork;
+    uint256 optSepoliaFork;
+    uint256 arbSepoliaFork;
 
     // vote options
     uint8 constant AGAINST = 0;
@@ -189,8 +198,13 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
 
     // Common test variables to reduce stack usage
     // uint256[] milestoneDisbursements;
-    uint256[] milestoneDisbursements1;
+    uint256[] milestoneDisbursements;
     uint256[] milestoneDisbursements2;
+    uint256[] milestoneBlocks;
+    uint256[] milestoneBlocks2;
+    uint256[] milestoneAmounts;
+    uint256[] milestoneAmounts2;
+    address[] tokens;
     address[] targetsIn;
     uint256[] valuesIn;
     bytes[] calldatasIn;
@@ -200,6 +214,8 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     address[] targets2;
     uint256[] values2;
     bytes[] calldatas2;
+    string uri; 
+    string uri2;
     string uriProposal;
     string uriProposal1;
     string uriProposal2;
@@ -328,6 +344,11 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
         nonce = 123;
         MAX_FUZZ_TARGETS = 5;
         MAX_FUZZ_CALLDATA_LENGTH = 2000;
+
+        // forks 
+        sepoliaFork = vm.createFork(vm.envString("SEPOLIA_RPC_URL"));
+        optSepoliaFork = vm.createFork(vm.envString("OPT_SEPOLIA_RPC_URL"));
+        arbSepoliaFork = vm.createFork(vm.envString("ARB_SEPOLIA_RPC_URL"));
 
         // users
         alice = makeAddr("alice");
@@ -516,17 +537,46 @@ abstract contract TestSetupIntegrations is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
+        vm.startPrank(address(daoMock));
+        simpleErc20Votes = new SimpleErc20Votes();
+        simpleGovernor = new SimpleGovernor(address(simpleErc20Votes));
+        allowedTokens = new AllowedTokens();
+        soulbound1155 = new Soulbound1155();
+        powersFactory = new PowersFactory(
+            testConstitutions.powersTestConstitution(address(daoMock)),
+            config.maxCallDataLength,
+            config.maxReturnDataLength,
+            config.maxExecutionsLength
+        );
+        vm.stopPrank();
+
         // initiate multi constitution
-        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.integrationsTestConstitution(address(daoMock));
+        (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.integrationsTestConstitution(
+            address(simpleGovernor), 
+            address(powersFactory), 
+            address(soulbound1155)
+            );
+        (PowersTypes.MandateInitData[] memory mandateInitData2_) = testConstitutions.integrationsTestConstitution2(
+            address(daoMock),
+            address(allowedTokens)
+            );
 
         // constitute daoMock.
         daoMock.constitute(mandateInitData_);
+        daoMockChild1.constitute(mandateInitData2_);
 
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+
+        vm.startPrank(address(daoMockChild1));
+        daoMockChild1.assignRole(ROLE_ONE, alice);
+        daoMockChild1.assignRole(ROLE_ONE, bob);
+        daoMockChild1.assignRole(ROLE_TWO, charlotte);
+        daoMockChild1.assignRole(ROLE_TWO, david);
         vm.stopPrank();
     }
 }
@@ -582,6 +632,9 @@ abstract contract TestSetupOpenElectionFlow is BaseSetup {
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, frank);
+        daoMock.assignRole(ROLE_ONE, gary);
+        daoMock.assignRole(ROLE_ONE, helen);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
         vm.stopPrank();
@@ -778,6 +831,9 @@ abstract contract TestSetupOpenElections is BaseSetup {
         vm.startPrank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, alice);
         daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, frank);
+        daoMock.assignRole(ROLE_ONE, gary);
+        daoMock.assignRole(ROLE_ONE, helen);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
         vm.stopPrank();

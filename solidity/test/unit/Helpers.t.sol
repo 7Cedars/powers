@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import { FlagActions } from "@src/helpers/FlagActions.sol";
 import { Grant } from "@src/helpers/Grant.sol";
 import { TestSetupPowers } from "../TestSetup.t.sol";
+import { PowersMock } from "@mocks/PowersMock.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { OpenElection } from "@src/helpers/OpenElection.sol"; 
@@ -463,10 +464,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 5000);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -493,10 +494,10 @@ contract GrantTest is TestSetupPowers {
     }
 
     function testSubmitProposalRevertsWithInvalidData() public {
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](0);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](0);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         vm.expectRevert("Invalid proposal");
         vm.prank(address(daoMock));
@@ -504,10 +505,10 @@ contract GrantTest is TestSetupPowers {
     }
 
     function testSubmitProposalRevertsWithMismatchedArrays() public {
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](2);
 
         vm.expectRevert("Invalid proposal");
         vm.prank(address(daoMock));
@@ -515,10 +516,10 @@ contract GrantTest is TestSetupPowers {
     }
 
     function testSubmitProposalRevertsWithUnwhitelistedToken() public {
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -537,10 +538,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 5000);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -564,10 +565,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 5000);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -595,10 +596,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -621,10 +622,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -653,10 +654,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -678,10 +679,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -706,10 +707,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(100 ether); // Sufficient budget for approval
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 50 ether; // Within budget at approval time
@@ -739,10 +740,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](1);
-        uint256[] memory milestoneAmounts = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
+        tokens = new address[](1);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneAmounts[0] = 100 ether;
@@ -768,10 +769,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(1000 ether);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -820,10 +821,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateNativeBudget(50 ether); // Less than total proposal amount
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -848,10 +849,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 50); // Less than total proposal amount
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -876,10 +877,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 100);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -905,10 +906,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken, 100);
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](3);
-        uint256[] memory milestoneAmounts = new uint256[](3);
-        address[] memory tokens = new address[](3);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](3);
+        milestoneAmounts = new uint256[](3);
+        tokens = new address[](3);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -941,10 +942,10 @@ contract GrantTest is TestSetupPowers {
         grant.updateTokenBudget(testToken2, 10); // Small budget for token2
         vm.stopPrank();
 
-        string memory uri = "https://example.com/proposal";
-        uint256[] memory milestoneBlocks = new uint256[](2);
-        uint256[] memory milestoneAmounts = new uint256[](2);
-        address[] memory tokens = new address[](2);
+        uri = "https://example.com/proposal";
+        milestoneBlocks = new uint256[](2);
+        milestoneAmounts = new uint256[](2);
+        tokens = new address[](2);
 
         milestoneBlocks[0] = block.number + 100;
         milestoneBlocks[1] = block.number + 200;
@@ -968,17 +969,17 @@ contract GrantTest is TestSetupPowers {
         vm.stopPrank();
 
         // First proposal
-        string memory uri1 = "https://example.com/proposal1";
-        uint256[] memory milestoneBlocks1 = new uint256[](1);
-        uint256[] memory milestoneAmounts1 = new uint256[](1);
+        uri = "https://example.com/proposal1";
+        milestoneBlocks = new uint256[](1);
+        milestoneAmounts = new uint256[](1);
         address[] memory tokens1 = new address[](1);
 
-        milestoneBlocks1[0] = block.number + 100;
-        milestoneAmounts1[0] = 60 ether;
+        milestoneBlocks[0] = block.number + 100;
+        milestoneAmounts[0] = 60 ether;
         tokens1[0] = address(0);
 
         vm.prank(address(daoMock));
-        uint256 proposalId1 = grant.submitProposal(uri1, milestoneBlocks1, milestoneAmounts1, tokens1);
+        uint256 proposalId1 = grant.submitProposal(uri, milestoneBlocks, milestoneAmounts, tokens1);
 
         vm.prank(address(daoMock));
         grant.approveProposal(proposalId1);
@@ -989,9 +990,9 @@ contract GrantTest is TestSetupPowers {
         grant.releaseMilestone(proposalId1, 0);
 
         // Second proposal that would exceed remaining budget
-        string memory uri2 = "https://example.com/proposal2";
-        uint256[] memory milestoneBlocks2 = new uint256[](1);
-        uint256[] memory milestoneAmounts2 = new uint256[](1);
+        uri2 = "https://example.com/proposal2";
+        milestoneBlocks2 = new uint256[](1);
+        milestoneAmounts2 = new uint256[](1);
         address[] memory tokens2 = new address[](1);
 
         milestoneBlocks2[0] = block.number + 200;
@@ -2446,17 +2447,17 @@ contract PowersFactoryTest is TestSetupPowers {
     }
 
     function testDeployPowers() public {
-        string memory name = "Factory DAO";
-        string memory uri = "https://factory.dao";
+        nameDescription = "Factory DAO";
+        uri = "https://factory.dao";
 
-        vm.prank(alice);
-        address deployedAddress = factory.deployPowers(name, uri);
+        vm.prank(address(daoMock));
+        address deployedAddress = factory.createPowers(nameDescription, uri);
 
         assertEq(factory.getLatestDeployment(), deployedAddress);
         assertTrue(deployedAddress != address(0));
         
         Powers deployedPowers = Powers(deployedAddress);
-        assertEq(deployedPowers.name(), name);
+        assertEq(deployedPowers.name(), nameDescription);
         assertEq(deployedPowers.uri(), uri);
         
         // Check immutable variables were passed correctly
@@ -2464,8 +2465,8 @@ contract PowersFactoryTest is TestSetupPowers {
         assertEq(deployedPowers.MAX_RETURN_DATA_LENGTH(), MAX_RETURN_DATA);
         assertEq(deployedPowers.MAX_EXECUTIONS_LENGTH(), MAX_EXECUTIONS);
         
-        // Check Alice is Admin (since she called deployPowers)
-        assertTrue(deployedPowers.hasRoleSince(alice, deployedPowers.ADMIN_ROLE()) > 0);
+        // Check DAO Mock is Admin (since it called deployPowers)
+        assertTrue(deployedPowers.hasRoleSince(address(daoMock), deployedPowers.ADMIN_ROLE()) > 0);
         
         // Check Factory is NOT Admin
         assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
@@ -2482,19 +2483,29 @@ contract PowersFactoryTest is TestSetupPowers {
     }
     
     function testDeployPowersWithDifferentArgs() public {
-        string memory name = "Another DAO";
-        string memory uri = "ipfs://QmHash";
+        nameDescription = "Another DAO";
+        uri = "ipfs://QmHash";
+
+        daoMockChild1 = new PowersMock();
+        (PowersTypes.MandateInitData[] memory mandateInitDataArray) = testConstitutions.powersTestConstitution(address(daoMock));
         
-        vm.prank(bob);
-        address deployedAddress = factory.deployPowers(name, uri);
+        vm.startPrank(address(daoMockChild1));
+        factory = new PowersFactory(
+            mandateInitDataArray,
+            MAX_CALL_DATA,
+            MAX_RETURN_DATA,
+            MAX_EXECUTIONS
+        );
+        address deployedAddress = factory.createPowers(nameDescription, uri);
+        vm.stopPrank();
         
         Powers deployedPowers = Powers(deployedAddress);
-        assertEq(deployedPowers.name(), name);
+        assertEq(deployedPowers.name(), nameDescription);
         
-        // Bob should be admin
-        assertTrue(deployedPowers.hasRoleSince(bob, deployedPowers.ADMIN_ROLE()) > 0);
-        // Alice should NOT be admin (she was admin in previous test, but this is new deployment)
-        assertEq(deployedPowers.hasRoleSince(alice, deployedPowers.ADMIN_ROLE()), 0);
+        // Another Powers should be admin. Not factory or daoMock. 
+        assertTrue(deployedPowers.hasRoleSince(address(daoMockChild1), deployedPowers.ADMIN_ROLE()) > 0);
+        assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
+        assertEq(deployedPowers.hasRoleSince(address(daoMock), deployedPowers.ADMIN_ROLE()), 0);
     }
 }
 
@@ -2815,18 +2826,16 @@ contract MockTargetsMandateTest is TestSetupPowers {
 }
 
 //////////////////////////////////////////////////////////////
-//               ALLOWED TOKENS TESTS                      //
+//               ALLOWED TOKENS TESTS                       //
 //////////////////////////////////////////////////////////////
 contract AllowedTokensTest is TestSetupPowers {
-    AllowedTokens allowedTokens;
-
     event TokenAdded(address indexed token);
     event TokenRemoved(address indexed token);
 
     function setUp() public override {
         super.setUp();
         vm.prank(address(daoMock));
-        allowedTokens = new AllowedTokens(address(daoMock));
+        allowedTokens = new AllowedTokens();
     }
 
     function testConstructor() public view {

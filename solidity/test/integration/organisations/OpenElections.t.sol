@@ -25,21 +25,6 @@ contract OpenElections_IntegrationTest is TestSetupOpenElections {
     // So next mandate is 7.
     uint16 constant VOTE_MANDATE_ID = 7; 
 
-    function setUp() public override {
-        super.setUp();
-
-        OpenElection openElection = new OpenElection();
-        
-        // Setup additional voters (Frank, Gary, Helen)
-        // Alice and Bob already have Role 1 from TestSetupOpenElections (via TestSetupPowers101 logic or explicit assignment)
-        // TestSetupOpenElections assigns ROLE_ONE to Alice and Bob.
-        vm.startPrank(address(daoMock));
-        daoMock.assignRole(ROLE_ONE, frank);
-        daoMock.assignRole(ROLE_ONE, gary);
-        daoMock.assignRole(ROLE_ONE, helen);
-        vm.stopPrank();
-    }
-
     function testOpenElections_FullFlow() public {
         // --- 1. NOMINATION FLOW ---
         console2.log("--- Step 1: Nomination ---");

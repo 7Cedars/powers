@@ -207,23 +207,7 @@ contract OpenElectionFlow_IntegrationTest is TestSetupOpenElectionFlow {
     uint16 constant MANDATE_START_ELECTION = 2;
     uint16 constant MANDATE_END_ELECTION = 3;
     uint16 constant VOTE_MANDATE_ID = 4; // Expected ID for the dynamically deployed vote mandate
-
-    function setUp() public override {
-        super.setUp();
-
-        // Identify helper
-        vm.prank(address(daoMock));
-        openElection = new OpenElection();
-
-        // Assign Role 1 (Voter) to Frank, Gary, Helen to have more voters
-        // Alice and Bob already have Role 1 from TestSetup
-        vm.startPrank(address(daoMock));
-        daoMock.assignRole(ROLE_ONE, frank);
-        daoMock.assignRole(ROLE_ONE, gary);
-        daoMock.assignRole(ROLE_ONE, helen);
-        vm.stopPrank();
-    }
-
+ 
     function testOpenElectionFlow_FullInteraction() public {
         // --- 1. NOMINATION FLOW ---
         console2.log("--- Step 1: Nomination ---");

@@ -17,7 +17,7 @@ contract AllowedTokens is Ownable {
     event TokenAdded(address indexed token);
     event TokenRemoved(address indexed token);
 
-    constructor(address initialOwner) Ownable(initialOwner) {}
+    constructor() Ownable(msg.sender) {}
 
     /**
      * @notice Sets the allowed status of a token

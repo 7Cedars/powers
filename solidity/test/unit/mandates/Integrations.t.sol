@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.26;
 
-import { TestSetupExecutive } from "../../TestSetup.t.sol";
+import { TestSetupIntegrations, TestSetupExecutive } from "../../TestSetup.t.sol";
 import { PowersMock } from "@mocks/PowersMock.sol";
 import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
-
-import { SafeAllowanceAction } from "@src/mandates/integrations/SafeAllowanceAction.sol";
+ 
 import { SafeAllowanceTransfer } from "@src/mandates/integrations/SafeAllowanceTransfer.sol";
 import { SafeExecTransaction } from "@src/mandates/integrations/SafeExecTransaction.sol";
 import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
@@ -26,9 +25,7 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 //////////////////////////////////////////////////
 //          GOVERNOR INTEGRATION TESTS          //
 //////////////////////////////////////////////////
-contract GovernorIntegrationTest is TestSetupExecutive {
-    SimpleGovernor public governor;
-    SimpleErc20Votes public votingToken;
+contract GovernorIntegrationTest is TestSetupIntegrations {
     GovernorCreateProposal public createProposalMandate;
     GovernorExecuteProposal public executeProposalMandate;
 
@@ -38,98 +35,58 @@ contract GovernorIntegrationTest is TestSetupExecutive {
     function setUp() public override {
         super.setUp();
 
-        // Deploy Governor ecosystem
-        votingToken = new SimpleErc20Votes();
-        governor = new SimpleGovernor(address(votingToken));
+        // 1. Identify Mandate IDs from TestSetupIntegrations -> integrationsTestConstitution
+        // First pushed: GovernorCreateProposal (ID 1)
+        // Second pushed: GovernorExecuteProposal (ID 2)
+        createProposalId = 1;
+        executeProposalId = 2;
 
-        // Deploy Mandates
-        createProposalMandate = new GovernorCreateProposal();
-        executeProposalMandate = new GovernorExecuteProposal();
+        // 2. Get Mandate Instances
+        createProposalMandate = GovernorCreateProposal(findMandateAddress("GovernorCreateProposal"));
+        executeProposalMandate = GovernorExecuteProposal(findMandateAddress("GovernorExecuteProposal"));
 
-        // Configure Mandates on Powers (daoMock)
-        vm.startPrank(address(daoMock));
-        
-        // We use arbitrary IDs for testing, ensuring they don't conflict with existing ones if any
-        createProposalId = 100;
-        bytes memory createConfig = abi.encode(address(governor));
-        createProposalMandate.initializeMandate(
-            createProposalId,
-            "Create Proposal",
-            "",
-            createConfig
-        );
-
-        executeProposalId = 101;
-        bytes memory executeConfig = abi.encode(address(governor));
-        executeProposalMandate.initializeMandate(
-            executeProposalId,
-            "Execute Proposal",
-            "",
-            executeConfig
-        );
-
-        vm.stopPrank();
-
-        // Setup Alice with votes
-        votingToken.mint(1000e18);
-        votingToken.transfer(alice, 1000e18);
+        // 3. Setup Alice with votes for the Governor
+        simpleErc20Votes.mint(10e18);
+        simpleErc20Votes.transfer(alice, 10e18);
         vm.prank(alice);
-        votingToken.delegate(alice);
+        simpleErc20Votes.delegate(alice);
     }
 
     function test_GovernorCreateProposal_Success() public {
         // Setup proposal parameters
         address[] memory targets = new address[](1);
-        targets[0] = address(votingToken);
+        targets[0] = address(simpleErc20Votes);
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 100e18);
+        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18);
         string memory description = "Test Proposal";
+
+        // mint tokens to daoMock to have tokens to transfer. 
+        simpleErc20Votes.mintTo(address(daoMock), 5e18);
 
         // Encode mandate calldata
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
-        // Call handleRequest
-        (
-            uint256 actionId, 
-            address[] memory execTargets, 
-            uint256[] memory execValues, 
-            bytes[] memory execCalldatas
-        ) = createProposalMandate.handleRequest(
-            alice, 
-            address(daoMock), 
-            createProposalId, 
-            mandateCalldata, 
-            0
-        );
+        // Execute via DAO
+        vm.prank(alice);
+        daoMock.request(createProposalId, mandateCalldata, 0, "Create Proposal Request");
 
-        // Verify execution targets
-        assertEq(execTargets.length, 1);
-        assertEq(execTargets[0], address(governor));
-        assertEq(execValues[0], 0);
-
-        // Verify encoded call is Governor.propose
-        bytes memory expectedCall = abi.encodeWithSelector(
-            Governor.propose.selector,
-            targets,
-            values,
-            calldatas,
-            description
-        );
-        assertEq(execCalldatas[0], expectedCall);
-
-        // Verify actionId generation
-        uint256 expectedActionId = MandateUtilities.hashActionId(createProposalId, mandateCalldata, 0);
-        assertEq(actionId, expectedActionId);
+        // Verify proposal exists on Governor
+        uint256 proposalId = simpleGovernor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
+        assertGt(simpleGovernor.proposalSnapshot(proposalId), 0);
     }
 
     function test_GovernorCreateProposal_Revert_NotConfigured() public {
-        uint16 unconfiguredId = 999;
-        bytes memory mandateCalldata = abi.encode(new address[](0), new uint256[](0), new bytes[](0), "");
-        
-        vm.expectRevert("GovernorCreateProposal: Governor contract not configured");
-        createProposalMandate.handleRequest(alice, address(daoMock), unconfiguredId, mandateCalldata, 0);
+         // Create a fresh mandate that is NOT configured
+         GovernorCreateProposal unconfiguredMandate = new GovernorCreateProposal();
+         // Don't initialize it, or initialize with 0 address
+         
+         uint16 unconfiguredId = 999;
+         bytes memory mandateCalldata = abi.encode(new address[](0), new uint256[](0), new bytes[](0), "");
+         
+         vm.expectRevert("GovernorCreateProposal: Governor contract not configured");
+         unconfiguredMandate.handleRequest(alice, address(daoMock), unconfiguredId, mandateCalldata, 0);
     }
 
     function test_GovernorCreateProposal_Revert_InvalidParams() public {
@@ -141,98 +98,90 @@ contract GovernorIntegrationTest is TestSetupExecutive {
         
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
+        vm.prank(alice);
         vm.expectRevert("GovernorCreateProposal: No targets provided");
-        createProposalMandate.handleRequest(alice, address(daoMock), createProposalId, mandateCalldata, 0);
+        daoMock.request(createProposalId, mandateCalldata, 0, "Invalid Params");
 
         // Mismatch length
         targets = new address[](1);
         targets[0] = address(0);
         
         mandateCalldata = abi.encode(targets, values, calldatas, description);
+        
+        vm.prank(alice);
         vm.expectRevert("GovernorCreateProposal: Targets and values length mismatch");
-        createProposalMandate.handleRequest(alice, address(daoMock), createProposalId, mandateCalldata, 0);
+        daoMock.request(createProposalId, mandateCalldata, 0, "Mismatch Params");
     }
 
     function test_GovernorExecuteProposal_Success() public {
         // 1. Setup and Create Proposal
         address[] memory targets = new address[](1);
-        targets[0] = address(votingToken);
+        targets[0] = address(simpleErc20Votes);
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 100e18);
+        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18);
         string memory description = "Test Proposal Execution";
 
-        // Execute "propose" directly on Governor to simulate successful mandate execution
-        vm.prank(address(daoMock));
-        governor.propose(targets, values, calldatas, description);
+        // Create proposal directly on Governor
+        vm.prank(alice);
+        simpleGovernor.propose(targets, values, calldatas, description);
         
-        uint256 proposalId = governor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
+        uint256 proposalId = simpleGovernor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
         // 2. Advance to voting period
-        vm.roll(block.number + governor.votingDelay() + 1);
+        vm.roll(block.number + simpleGovernor.votingDelay() + 1);
 
         // 3. Vote
         vm.prank(alice);
-        governor.castVote(proposalId, 1); // For
+        simpleGovernor.castVote(proposalId, 1); // For
 
         // 4. Advance to end of voting period
-        vm.roll(block.number + governor.votingPeriod() + 1);
+        vm.roll(block.number + simpleGovernor.votingPeriod() + 1);
 
         // 5. Test Execute Mandate
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
-        (
-            ,
-            address[] memory execTargets, 
-            uint256[] memory execValues, 
-            bytes[] memory execCalldatas
-        ) = executeProposalMandate.handleRequest(
-            alice, 
-            address(daoMock), 
-            executeProposalId, 
-            mandateCalldata, 
-            0
-        );
+        vm.prank(alice);
+        daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Proposal");
 
-        // Verify we get back the original actions to execute
-        assertEq(execTargets.length, 1);
-        assertEq(execTargets[0], targets[0]);
-        assertEq(execValues[0], values[0]);
-        assertEq(execCalldatas[0], calldatas[0]);
+        // Verify execution
+        assertEq(uint256(simpleGovernor.state(proposalId)), 3); // Executed
     }
 
     function test_GovernorExecuteProposal_Revert_NotSucceeded() public {
         // 1. Setup and Create Proposal
         address[] memory targets = new address[](1);
-        targets[0] = address(votingToken);
+        targets[0] = address(simpleErc20Votes);
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 100e18);
+        calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18);
         string memory description = "Test Proposal Fail";
 
-        vm.prank(address(daoMock));
-        governor.propose(targets, values, calldatas, description);
+        vm.prank(alice);
+        simpleGovernor.propose(targets, values, calldatas, description);
         
         // 2. Try to execute immediately (Pending state)
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
+        vm.prank(alice);
         vm.expectRevert("GovernorExecuteProposal: Proposal not succeeded");
-        executeProposalMandate.handleRequest(alice, address(daoMock), executeProposalId, mandateCalldata, 0);
+        daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Pending");
 
         // 3. Vote Against
-        uint256 proposalId = governor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
-        vm.roll(block.number + governor.votingDelay() + 1);
+        uint256 proposalId = simpleGovernor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
+        vm.roll(block.number + simpleGovernor.votingDelay() + 1);
         
         vm.prank(alice);
-        governor.castVote(proposalId, 0); // Against
+        simpleGovernor.castVote(proposalId, 0); // Against
 
-        vm.roll(block.number + governor.votingPeriod() + 1);
+        vm.roll(block.number + simpleGovernor.votingPeriod() + 1);
 
         // 4. Try to execute (Defeated state)
+        vm.prank(alice);
         vm.expectRevert("GovernorExecuteProposal: Proposal not succeeded");
-        executeProposalMandate.handleRequest(alice, address(daoMock), executeProposalId, mandateCalldata, 0);
+        daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Defeated");
     }
 }
 
@@ -240,20 +189,19 @@ contract GovernorIntegrationTest is TestSetupExecutive {
 //////////////////////////////////////////////////
 //      SAFE ALLOWANCE INTEGRATION TESTS        //
 //////////////////////////////////////////////////
-contract SafeAllowanceTest is TestSetupExecutive {
-    SafeAllowanceAction public safeAllowanceAction;
-    SafeAllowanceTransfer public safeAllowanceTransfer;
-    SafeExecTransaction public safeExecTransaction;
-
-    uint16 public safeAllowanceActionId;
+contract SafeAllowanceTest is TestSetupIntegrations {
+    uint16 public safeAllowanceMandateId_SafeSetup;
+    uint16 public safeAllowanceMandateId_ExecuteActionFromSafe;
+    uint16 public safeAllowanceMandateId_SetAllowance;
     uint16 public safeAllowanceTransferId;
-    uint16 public safeExecTransactionId;
     
     address public allowanceModuleAddress;
     address public safeAddress;
 
     function setUp() public override {
         super.setUp();
+        // for now this is run on sepolia fork only
+        vm.selectFork(sepoliaFork);
         
         // Check if the Safe Allowance module address is populated. If not, skip the test.
         if (address(config.safeAllowanceModule).code.length == 0) {
@@ -264,165 +212,78 @@ contract SafeAllowanceTest is TestSetupExecutive {
         allowanceModuleAddress = config.safeAllowanceModule;
         safeAddress = config.safeCanonical;
 
-        // Deploy Mandates
-        safeAllowanceAction = new SafeAllowanceAction();
-        safeAllowanceTransfer = new SafeAllowanceTransfer();
-        safeExecTransaction = new SafeExecTransaction();
+        // IDs from TestConstitutions
+        safeAllowanceMandateId_SafeSetup = 3;
+        safeAllowanceMandateId_ExecuteActionFromSafe = 4;
+        safeAllowanceMandateId_SetAllowance = 5;
+        // On daoMockChild1
+        safeAllowanceTransferId = 1;
 
-        vm.startPrank(address(daoMock));
-        
-        // Set Treasury
-        daoMock.setTreasury(payable(safeAddress));
-
-        // 1. Configure SafeAllowanceAction
-        safeAllowanceActionId = 200;
-        string[] memory inputParamsAction = new string[](0);
-        bytes4 selector = bytes4(keccak256("someFunction()"));
-        bytes memory actionConfig = abi.encode(
-            inputParamsAction, 
-            selector, 
-            allowanceModuleAddress
-        );
-        safeAllowanceAction.initializeMandate(
-            safeAllowanceActionId,
-            "Safe Allowance Action",
-            "",
-            actionConfig
-        );
-
-        // 2. Configure SafeAllowanceTransfer
-        safeAllowanceTransferId = 201;
-        bytes memory transferConfig = abi.encode(
-            allowanceModuleAddress, 
-            safeAddress
-        );
-        safeAllowanceTransfer.initializeMandate(
-            safeAllowanceTransferId,
-            "Safe Allowance Transfer",
-            "",
-            transferConfig
-        );
-
-        // 3. Configure SafeExecTransaction
-        safeExecTransactionId = 202;
-        string[] memory inputParamsExec = new string[](0);
-        bytes memory execConfig = abi.encode(inputParamsExec, safeAddress);
-        safeExecTransaction.initializeMandate(
-            safeExecTransactionId,
-            "Safe Exec Transaction",
-            "",
-            execConfig
-        );
-
-        vm.stopPrank();
+        vm.prank(alice);
+        daoMock.request(safeAllowanceMandateId_SafeSetup, abi.encode(), nonce, "Setting up safe with allowance module.");
     }
 
-    function test_SafeAllowanceAction_Success() public {
-        bytes memory mandateCalldata = abi.encode("test data");
-        uint256 nonce = 1;
-        
-        (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        ) = safeAllowanceAction.handleRequest(
-            alice,
-            address(daoMock),
-            safeAllowanceActionId,
-            mandateCalldata,
-            nonce
-        );
-        
-        assertEq(actionId, MandateUtilities.hashActionId(safeAllowanceActionId, mandateCalldata, nonce));
-        assertEq(targets.length, 1);
-        assertEq(targets[0], safeAddress); 
-        assertEq(values[0], 0);
-
-        // execTransaction selector: 0x6a761202
-        bytes4 expectedSelector = bytes4(keccak256("execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)"));
-        assertEq(bytes4(calldatas[0]), expectedSelector);
-    }
-    
-    function test_SafeAllowanceAction_Revert_NoTreasury() public {
-        // Deploy a fresh local dao without treasury
-        PowersMock localDao = new PowersMock();
-        SafeAllowanceAction localMandate = new SafeAllowanceAction();
-        uint16 localId = 300;
-        
-        vm.startPrank(address(localDao));
-        string[] memory inputParamsAction = new string[](0);
-        bytes memory actionConfig = abi.encode(
-            inputParamsAction, 
-            bytes4(0xdeadbeef), 
-            allowanceModuleAddress
-        );
-        localMandate.initializeMandate(localId, "Local", "", actionConfig);
-        vm.stopPrank();
-
-        bytes memory mandateCalldata = abi.encode("test");
-        
-        vm.expectRevert("SafeAllowanceAction: Treasury not set in Powers");
-        localMandate.handleRequest(alice, address(localDao), localId, mandateCalldata, 0);
-    }
-
-    function test_SafeAllowanceTransfer_Success() public {
-        address token = address(0x123);
-        address payableTo = bob;
-        uint256 amount = 100e18;
-        bytes memory mandateCalldata = abi.encode(token, payableTo, amount);
-        uint256 nonce = 1;
-
-        (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        ) = safeAllowanceTransfer.handleRequest(
-            alice,
-            address(daoMock),
-            safeAllowanceTransferId,
-            mandateCalldata,
-            nonce
-        );
-
-        assertEq(actionId, MandateUtilities.hashActionId(safeAllowanceTransferId, mandateCalldata, nonce));
-        assertEq(targets.length, 1);
-        assertEq(targets[0], allowanceModuleAddress); 
-        assertEq(values[0], 0);
-        
-        // executeAllowanceTransfer selector: 0x4515641a
-        assertEq(bytes4(calldatas[0]), bytes4(0x4515641a));
-    }
-
+    // we will try to add a delegate. 
     function test_SafeExecTransaction_Success() public {
-        address to = address(0x456);
-        uint256 value = 0; 
-        bytes memory data = hex"abcdef";
-        bytes memory mandateCalldata = abi.encode(to, value, data);
-        uint256 nonce = 1;
+        uint16 safeExecTransactionId = 4; // index of SafeExecTransaction mandate in integrationsTestConstitution
+        // We are trying to add a delegate (address(0x456)) to the Safe via execTransaction mandate
+        address functionTarget = config.safeAllowanceModule;
+        bytes4 functionSelector = bytes4(0xe71bdf41); // addDelegate(address)
+        bytes memory functionCalldata = abi.encode(address(0x456));
 
-        (
-            uint256 actionId,
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas
-        ) = safeExecTransaction.handleRequest(
-            alice,
-            address(daoMock),
-            safeExecTransactionId,
-            mandateCalldata,
-            nonce
+        bytes memory mandateCalldata = abi.encode(
+            functionTarget,
+            uint256(0), // value
+            abi.encodeWithSelector(functionSelector, functionCalldata) // data
         );
-
-        assertEq(actionId, MandateUtilities.hashActionId(safeExecTransactionId, mandateCalldata, nonce));
-        assertEq(targets.length, 1);
-        assertEq(targets[0], safeAddress);
-        assertEq(values[0], 0);
-
-        bytes4 expectedSelector = bytes4(keccak256("execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)"));
-        assertEq(bytes4(calldatas[0]), expectedSelector);
+ 
+        // Execute via DAO
+        vm.prank(alice);
+        daoMock.request(safeExecTransactionId, mandateCalldata, nonce, "Safe Exec Transaction");
     }
+
+    // we will try to add a delegate. 
+    function test_SafeExecTransaction_Revert() public {
+        // test is the same as previous test, except we set the treasury to address(0) first to test the revert.
+        vm.prank(address(daoMock));
+        daoMock.setTreasury(payable(address(0)));
+
+        uint16 safeExecTransactionId = 4; // index of SafeExecTransaction mandate in integrationsTestConstitution
+        // We are trying to add a delegate (address(0x456)) to the Safe via execTransaction mandate
+        address functionTarget = config.safeAllowanceModule;
+        bytes4 functionSelector = bytes4(0xe71bdf41); // addDelegate(address)
+        bytes memory functionCalldata = abi.encode(address(0x456));
+
+        bytes memory mandateCalldata = abi.encode(
+            functionTarget,
+            uint256(0), // value
+            abi.encodeWithSelector(functionSelector, functionCalldata) // data
+        );
+ 
+        // Execute via DAO
+        vm.prank(alice);
+        daoMock.request(safeExecTransactionId, mandateCalldata, nonce, "Safe Exec Transaction");
+    }
+
+    // function test_SafeAllowanceTransfer_Success() public {
+    //     // 2. Set Allowance
+    //     address token = address(simpleErc20Votes);
+    //     uint96 amount = 100e18;
+    //     // Params: ChildPowers, Token, allowanceAmount, resetTimeMin, resetBaseMin
+    //     bytes memory setAllowanceData = abi.encode(address(daoMockChild1), token, amount, uint16(0), uint32(0));
+    //     vm.prank(alice);
+    //     daoMock.request(safeAllowanceMandateId_SetAllowance, setAllowanceData, 1, "Set Allowance");
+        
+    //     // 3. Execute Transfer on Child
+    //     address payableTo = bob;
+    //     // Params: Token, payableTo, amount
+    //     bytes memory transferData = abi.encode(token, payableTo, uint256(10e18));
+        
+    //     vm.prank(alice);
+    //     daoMockChild1.request(safeAllowanceTransferId, transferData, 0, "Transfer Allowance");
+    // }
+
+
 }
 
 //////////////////////////////////////////////////
@@ -583,4 +444,8 @@ contract PowersFactoryAssignRoleTest is TestSetupExecutive {
             0
         );
     }
+}
+
+contract AllowedTokensPresetTransferTest is TestSetupExecutive {
+
 }

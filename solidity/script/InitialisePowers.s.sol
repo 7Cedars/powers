@@ -46,9 +46,11 @@ import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.s
 import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
 import { SafeExecTransaction } from "@src/mandates/integrations/SafeExecTransaction.sol";
-import { SafeAllowanceAction } from "@src/mandates/integrations/SafeAllowanceAction.sol";
 import { SafeSetup } from "@src/mandates/integrations/SafeSetup.sol";
 import { SafeAllowanceTransfer } from "@src/mandates/integrations/SafeAllowanceTransfer.sol";
+import { AllowedTokensPresetTransfer } from "@src/mandates/integrations/AllowedTokensPresetTransfer.sol";
+import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
+import { Soulbound1155GatedAccess } from "@src/mandates/integrations/Soulbound1155GatedAccess.sol";
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -195,10 +197,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(RenounceRole).creationCode);
         constructorArgs.push(abi.encode("RenounceRole"));
 
-        names.push("SafeAllowanceAction");
-        creationCodes.push(type(SafeAllowanceAction).creationCode);
-        constructorArgs.push(abi.encode("SafeAllowanceAction"));
-
         names.push("RoleByTransaction");
         creationCodes.push(type(RoleByTransaction).creationCode);
         constructorArgs.push(abi.encode("RoleByTransaction"));
@@ -246,6 +244,18 @@ contract InitialisePowers is Script {
         names.push("OpenElectionStart");
         creationCodes.push(type(OpenElectionStart).creationCode);
         constructorArgs.push(abi.encode("OpenElectionStart"));
+
+        names.push("AllowedTokensPresetTransfer");
+        creationCodes.push(type(AllowedTokensPresetTransfer).creationCode);
+        constructorArgs.push(abi.encode("AllowedTokensPresetTransfer"));
+
+        names.push("PowersFactoryAssignRole");
+        creationCodes.push(type(PowersFactoryAssignRole).creationCode);
+        constructorArgs.push(abi.encode("PowersFactoryAssignRole"));
+
+        names.push("Soulbound1155GatedAccess");
+        creationCodes.push(type(Soulbound1155GatedAccess).creationCode);
+        constructorArgs.push(abi.encode("Soulbound1155GatedAccess"));
 
         string memory obj2 = "second key"; 
 

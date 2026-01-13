@@ -26,7 +26,7 @@ contract PowerLabs_Documentation is Mandate {
     uint16 public constant NUMBER_OF_CALLS = 7; // total number of calls in handleRequest
     uint48 public immutable BLOCKS_PER_HOUR;
 
-    // in this case mandateAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, SafeAllowanceAction]
+    // in this case mandateAddresses should be [statementOfIntent, SafeExecTransaction, PresetSingleAction, ]
     constructor(uint48 BLOCKS_PER_HOUR_, address[] memory mandateDependencies, address allowanceModuleAddress_) {
         BLOCKS_PER_HOUR = BLOCKS_PER_HOUR_;
         mandateAddresses = mandateDependencies;

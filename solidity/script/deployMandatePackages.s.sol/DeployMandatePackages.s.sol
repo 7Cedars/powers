@@ -47,7 +47,6 @@ contract DeployMandatePackages is Script {
         mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
         mandateDependencies[1] = initialisePowers.getMandateAddress("SafeExecTransaction");
         mandateDependencies[2] = initialisePowers.getMandateAddress("PresetSingleAction");
-        mandateDependencies[3] = initialisePowers.getMandateAddress("SafeAllowanceAction");
         mandateDependencies[4] = initialisePowers.getMandateAddress("RoleByTransaction");
 
         // PowerLabs_Documentation // no dependencies for now

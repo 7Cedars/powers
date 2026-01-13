@@ -7,7 +7,14 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title Powers Factory
 /// @notice Factory contract to deploy specific types of Powers implementations
-contract PowersFactory is PowersTypes, Ownable {
+interface IPowersFactory is PowersTypes {
+    event PowersDeployed(address indexed powersAddress, string name, string uri); 
+
+    function createPowers(string memory name, string memory uri) external returns (address);
+    function getLatestDeployment() external view returns (address);
+}
+
+contract PowersFactory is IPowersFactory, Ownable {
     
     MandateInitData[] public mandateInitData;
     uint256 public immutable maxCallDataLength;
@@ -15,9 +22,7 @@ contract PowersFactory is PowersTypes, Ownable {
     uint256 public immutable maxExecutionsLength;
     
     address public latestDeployment;
-
-    event PowersDeployed(address indexed powersAddress, string name, string uri);
-
+    
     constructor(
         MandateInitData[] memory _mandateInitData,
         uint256 _maxCallDataLength,
@@ -32,7 +37,7 @@ contract PowersFactory is PowersTypes, Ownable {
         maxExecutionsLength = _maxExecutionsLength;
     }
 
-    function deployPowers(string memory name, string memory uri) external onlyOwner returns (address) {
+    function createPowers(string memory name, string memory uri) external onlyOwner returns (address) {
         Powers powers = new Powers(
             name,
             uri,
