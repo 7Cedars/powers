@@ -59,12 +59,12 @@ contract SafeExecTransaction is Mandate {
     {
         Mem memory mem;
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Decode the parameters for the transaction that the Safe will execute.
         (mem.to,, mem.data) = abi.decode(mandateCalldata, (address, uint256, bytes));
 
-        mem.configBytes = mandates[MandateUtilities.hashMandate(powers, mandateId)].config;
+        mem.configBytes = getConfig(powers, mandateId);
         mem.safeAddress = IPowers(powers).getTreasury();
         if (mem.safeAddress == address(0)) {
             revert("No Safe treasury set");

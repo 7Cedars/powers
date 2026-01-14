@@ -117,7 +117,7 @@ contract ProposeTest is TestSetupPowers {
         assertTrue(daoMock.hasRoleSince(bob, ROLE_ONE) != 0, "bob should have role 1");
         assertTrue(daoMock.canCallMandate(bob, mandateId), "bob should be able to call mandate 4");
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         (mandateAddress, mandateHash, active) = daoMock.getAdoptedMandate(mandateId);
         conditions = daoMock.getConditions(mandateId);
@@ -446,7 +446,7 @@ contract ExecuteTest is TestSetupPowers {
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
     }

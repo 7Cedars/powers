@@ -78,8 +78,8 @@ pragma solidity 0.8.26;
 //         (bytes memory userCalldata, address remotePowersAddress, uint16 remoteMandateId, uint64 remoteChainId) =
 //             abi.decode(mandateCalldata, (bytes, address, uint16, uint64));
 
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-//         uint256 remoteActionId = MandateUtilities.hashActionId(remoteMandateId, userCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+//         uint256 remoteActionId = MandateUtilities.computeActionId(remoteMandateId, userCalldata, nonce);
 
 //         if (remoteChainId == block.chainid) {
 //             // Scenario 1: Same chain

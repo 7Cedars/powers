@@ -13,13 +13,6 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract BespokeActionSimple is Mandate {
-    struct Data {
-        address targetContract;
-        bytes4 targetFunction;
-    }
-
-    mapping(bytes32 mandateHash => Data) public data;
-
     /// @notice Constructor of the BespokeActionSimple mandate
     constructor() {
         bytes memory configParams =
@@ -31,15 +24,8 @@ contract BespokeActionSimple is Mandate {
         public
         override
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        string[] memory params_;
-
-        (data[mandateHash].targetContract, data[mandateHash].targetFunction, params_) =
-            abi.decode(config, (address, bytes4, string[]));
-
-        inputParams = abi.encode(params_);
-
-        super.initializeMandate(index, nameDescription, inputParams, config);
+        (, , string[] memory params_) = abi.decode(config, (address, bytes4, string[]));
+        super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
     /// @notice Execute the mandate by calling the configured target function
@@ -58,19 +44,14 @@ contract BespokeActionSimple is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        (address targetContract, bytes4 targetFunction, ) = abi.decode(getConfig(powers, mandateId), (address, bytes4, string[]));    
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Send the calldata to the target function
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = data[mandateHash].targetContract;
-        calldatas[0] = abi.encodePacked(data[mandateHash].targetFunction, mandateCalldata);
+        targets[0] = targetContract;
+        calldatas[0] = abi.encodePacked(targetFunction, mandateCalldata);
 
         return (actionId, targets, values, calldatas);
-    }
-
-    /// @notice Get the stored data for a mandate
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

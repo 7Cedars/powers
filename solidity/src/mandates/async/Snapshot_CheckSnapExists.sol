@@ -124,7 +124,7 @@ pragma solidity 0.8.26;
 //         mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
 //         mem.data = data[mem.mandateHash];
 
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 //         (mem.proposalId, mem.choice, mem.targets, mem.values, mem.calldatas, mem.govDescription) =
 //             abi.decode(mandateCalldata, (string, string, address[], uint256[], bytes[], string));
 

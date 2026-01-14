@@ -12,24 +12,12 @@ import { Powers } from "../../Powers.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract SelfSelect is Mandate {
-    mapping(bytes32 mandateHash => uint256 roleId) public roleIds;
-
     /// @notice Constructor for SelfSelect mandate
     constructor() {
         bytes memory configParams = abi.encode("uint256 RoleId");
         emit Mandate__Deployed(configParams);
     }
-
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
-        roleIds[MandateUtilities.hashMandate(msg.sender, index)] = abi.decode(config, (uint256));
-
-        inputParams = abi.encode();
-        super.initializeMandate(index, nameDescription, inputParams, config);
-    }
-
+ 
     /// @notice Build a call to assign the configured role to the caller if not already held
     /// @param caller The transaction originator (forwarded to assignment)
     /// @param powers The Powers contract address
@@ -43,15 +31,15 @@ contract SelfSelect is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        uint256 roleId = abi.decode(getConfig(powers, mandateId), (uint256));
 
-        if (Powers(payable(powers)).hasRoleSince(caller, roleIds[mandateHash]) != 0) {
+        if (Powers(payable(powers)).hasRoleSince(caller, roleId) != 0) {
             revert("Account already has role.");
         }
 
         targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleIds[mandateHash], caller); // selector = assignRole
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, roleId, caller); // selector = assignRole
 
         return (actionId, targets, values, calldatas);
     }

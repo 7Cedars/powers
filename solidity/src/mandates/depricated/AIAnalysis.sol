@@ -161,7 +161,7 @@ pragma solidity 0.8.26;
 //         if (s_aiCCIPProxy == address(0)) {
 //             revert AiCCIPProxyNotSet();
 //         }
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
 //         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
 

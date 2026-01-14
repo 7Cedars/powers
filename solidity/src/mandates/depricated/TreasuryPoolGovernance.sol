@@ -144,7 +144,7 @@ pragma solidity 0.8.26;
 //         if (conditions.needFulfilled == 0) revert("Fulfilled not set");
 
 //         // Then retrieve the source action data
-//         m.createPoolActionId = MandateUtilities.hashActionId(conditions.needFulfilled, mandateCalldata, nonce);
+//         m.createPoolActionId = MandateUtilities.computeActionId(conditions.needFulfilled, mandateCalldata, nonce);
 //         (m.sourceActionMandateId,,, m.sourceActionFulfilledAt,,,) = IPowers(powers).getActionData(m.createPoolActionId);
 
 //         // Check if action exists, is fulfilled, and came from the correct mandate type
@@ -189,7 +189,7 @@ pragma solidity 0.8.26;
 //         targets[0] = powers;
 //         calldatas[0] = abi.encodeWithSelector(IPowers.adoptMandate.selector, m.mandateInitData);
 
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 //         // Powers.fulfill will execute these calls
 //         return (actionId, targets, values, calldatas);
 //     }

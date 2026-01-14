@@ -49,10 +49,9 @@ contract Soulbound1155GatedAccess is Mandate {
         override
     {
         string[] memory params = new string[](1);
-        params[0] = "uint256[] tokenIds";
-        bytes memory configuredInputParams = abi.encode(params);
+        params[0] = "uint256[] tokenIds"; 
         
-        super.initializeMandate(index, nameDescription, configuredInputParams, config);
+        super.initializeMandate(index, nameDescription, abi.encode(params), config);
     }
 
     function handleRequest(
@@ -68,6 +67,7 @@ contract Soulbound1155GatedAccess is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // 1. Get config
         mem.config = getConfig(powers, mandateId);

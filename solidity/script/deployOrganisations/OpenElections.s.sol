@@ -110,6 +110,7 @@ contract OpenElections is DeploySetup {
             targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
             config: abi.encode(
                 address(openElection),
+                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),

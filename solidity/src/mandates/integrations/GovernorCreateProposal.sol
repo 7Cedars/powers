@@ -14,8 +14,13 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 
 contract GovernorCreateProposal is Mandate {
-    /// @notice Mapping from mandate hash to the governor contract address
-    mapping(bytes32 mandateHash => address governorContract) public governorContracts;
+    struct Mem { 
+        address payable governorContract;
+        address[] proposalTargets;
+        uint256[] proposalValues;
+        bytes[] proposalCalldatas;
+        string description; 
+    }
 
     /// @notice Constructor for GovernorCreateProposal mandate
     constructor() {
@@ -26,13 +31,8 @@ contract GovernorCreateProposal is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        (governorContracts[mandateHash]) = abi.decode(config, (address));
-
-        // Set UI-exposed input parameters: targets, values, calldatas, description
-        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description");
-        super.initializeMandate(index, nameDescription, inputParams, config);
+    { 
+        super.initializeMandate(index, nameDescription, abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"), config);
     }
 
     /// @notice Build a call to the Governor.propose function
@@ -50,36 +50,36 @@ contract GovernorCreateProposal is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        Mem memory mem; 
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Validate that governor contract is configured
-        address payable governorContract = payable(governorContracts[mandateHash]);
-        if (governorContract == address(0)) revert("GovernorCreateProposal: Governor contract not configured");
+        mem.governorContract = payable(abi.decode(getConfig(powers, mandateId), (address)));
+        if (mem.governorContract == address(0)) revert("GovernorCreateProposal: Governor contract not configured");
 
         // Decode proposal parameters
         (
-            address[] memory proposalTargets,
-            uint256[] memory proposalValues,
-            bytes[] memory proposalCalldatas,
-            string memory description
+            mem.proposalTargets,
+            mem.proposalValues,
+            mem.proposalCalldatas,
+            mem.description
         ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
-        if (proposalTargets.length == 0) revert("GovernorCreateProposal: No targets provided");
-        if (proposalTargets.length != proposalValues.length) {
+        if (mem.proposalTargets.length == 0) revert("GovernorCreateProposal: No targets provided");
+        if (mem.proposalTargets.length != mem.proposalValues.length) {
             revert("GovernorCreateProposal: Targets and values length mismatch");
         }
-        if (proposalTargets.length != proposalCalldatas.length) {
+        if (mem.proposalTargets.length != mem.proposalCalldatas.length) {
             revert("GovernorCreateProposal: Targets and calldatas length mismatch");
         }
-        if (bytes(description).length == 0) revert("GovernorCreateProposal: Description cannot be empty");
+        if (bytes(mem.description).length == 0) revert("GovernorCreateProposal: Description cannot be empty");
 
         // Create arrays for the call to propose
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = governorContract;
+        targets[0] = mem.governorContract;
         calldatas[0] = abi.encodeWithSelector(
-            Governor.propose.selector, proposalTargets, proposalValues, proposalCalldatas, description
+            Governor.propose.selector, mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, mem.description
         );
 
         return (actionId, targets, values, calldatas);

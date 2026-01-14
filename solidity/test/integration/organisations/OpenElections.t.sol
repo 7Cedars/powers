@@ -25,7 +25,8 @@ contract OpenElections_IntegrationTest is TestSetupOpenElections {
     // So next mandate is 7.
     uint16 constant VOTE_MANDATE_ID = 7; 
 
-    function testOpenElections_FullFlow() public {
+    function testOpenElections_FullFlow() public { 
+
         // --- 1. NOMINATION FLOW ---
         console2.log("--- Step 1: Nomination ---");
 

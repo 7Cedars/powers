@@ -15,11 +15,9 @@ contract RenounceRole is Mandate {
     struct Mem { 
         uint256 roleId;
         uint256 i; 
-        bool allowed; 
-        bytes32 mandateHash;
+        bool allowed;
+        uint256[] allowedRoleIds;
     }
-
-    mapping(bytes32 mandateHash => uint256[] allowedRoleIds) public allowedRoleIds; // role that can be renounced.
 
     /// @notice Constructor for RenounceRole mandate
     constructor() {
@@ -30,8 +28,7 @@ contract RenounceRole is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    { 
-        allowedRoleIds[MandateUtilities.hashMandate(msg.sender, index)] = abi.decode(config, (uint256[]));
+    {  
         inputParams = abi.encode("uint256 roleId");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -45,8 +42,8 @@ contract RenounceRole is Mandate {
     {
         Mem memory mem;
         // step 1: decode the calldata
-        (mem.roleId) = abi.decode(mandateCalldata, (uint256));
-        mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
+        mem.roleId = abi.decode(mandateCalldata, (uint256));
+        mem.allowedRoleIds = abi.decode(getConfig(powers, mandateId), (uint256[]));
 
         // step 2: check if the account has the role
         if (Powers(payable(powers)).hasRoleSince(caller, mem.roleId) == 0) {
@@ -55,8 +52,8 @@ contract RenounceRole is Mandate {
 
         // step 3: check if the role is allowed to be renounced
         mem.allowed = false;
-        for (mem.i = 0; mem.i < allowedRoleIds[mem.mandateHash].length; mem.i++) {
-            if (mem.roleId == allowedRoleIds[mem.mandateHash][mem.i]) {
+        for (mem.i = 0; mem.i < mem.allowedRoleIds.length; mem.i++) {
+            if (mem.roleId == mem.allowedRoleIds[mem.i]) {
                 mem.allowed = true;
                 break;
             }
@@ -67,7 +64,7 @@ contract RenounceRole is Mandate {
 
         // step 4: create & send return calldata (revoke action)
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, mem.roleId, caller); // selector = revokeRole
 
@@ -75,6 +72,7 @@ contract RenounceRole is Mandate {
     }
 
     function getAllowedRoleIds(bytes32 mandateHash) public view returns (uint256[] memory) {
-        return allowedRoleIds[mandateHash];
+        bytes memory configBytes = mandates[mandateHash].config;
+        return abi.decode(configBytes, (uint256[]));
     }
 }

@@ -14,18 +14,13 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 contract RoleByRoles is Mandate {
-    struct Data {
-        uint256 newRoleId;
-        uint256[] roleIdsNeeded;
-    }
-
     struct Mem {
         address account; 
         bool hasAnyOfNeededRoles; 
         bool alreadyHasNewRole;
+        uint256 newRoleId;
+        uint256[] roleIdsNeeded;
     }
-
-    mapping(bytes32 mandateHash => Data data) public data;
 
     /// @notice Constructor for RoleByRoles mandate
     constructor() {
@@ -37,14 +32,7 @@ contract RoleByRoles is Mandate {
         public
         override
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        (
-            data[mandateHash].newRoleId, 
-            data[mandateHash].roleIdsNeeded
-        ) = abi.decode(config, (uint256, uint256[]));
-
         inputParams = abi.encode("address Account");
-
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -66,18 +54,18 @@ contract RoleByRoles is Mandate {
 
         // step 1: decode the calldata & create hashes
         (mem.account) = abi.decode(mandateCalldata, (address)); 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        (mem.newRoleId, mem.roleIdsNeeded) = abi.decode(getConfig(powers, mandateId), (uint256, uint256[]));
 
         // step 2: check if the account has any of the needed roles, and if it already has the new role
-        Data memory data_ = data[MandateUtilities.hashMandate(powers, mandateId)];
         mem.hasAnyOfNeededRoles = false;
-        for (uint256 i = 0; i < data_.roleIdsNeeded.length; i++) {
-            if (Powers(payable(powers)).hasRoleSince(mem.account, data_.roleIdsNeeded[i]) > 0) {
+        for (uint256 i = 0; i < mem.roleIdsNeeded.length; i++) {
+            if (Powers(payable(powers)).hasRoleSince(mem.account, mem.roleIdsNeeded[i]) > 0) {
                 mem.hasAnyOfNeededRoles = true;
                 break;
             }
         }
-        mem.alreadyHasNewRole = Powers(payable(powers)).hasRoleSince(mem.account, data_.newRoleId) > 0;
+        mem.alreadyHasNewRole = Powers(payable(powers)).hasRoleSince(mem.account, mem.newRoleId) > 0;
 
         // step 3: create empty arrays
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
@@ -85,17 +73,13 @@ contract RoleByRoles is Mandate {
         // step 4: set the targets, values and calldatas according to the outcomes at step 2
         if (mem.hasAnyOfNeededRoles && !mem.alreadyHasNewRole) {
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, mem.account);
+            calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.newRoleId, mem.account);
         }
         if (!mem.hasAnyOfNeededRoles && mem.alreadyHasNewRole) {
             targets[0] = powers;
-            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, data_.newRoleId, mem.account);
+            calldatas[0] = abi.encodeWithSelector(Powers.revokeRole.selector, mem.newRoleId, mem.account);
         }
 
         return (actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

@@ -93,7 +93,7 @@ pragma solidity 0.8.26;
 //         mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
 //         mem.data = data[mem.mandateHash];
 
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
 //         mem.caller = msg.sender;
 //         (mem.receiptId) = abi.decode(mandateCalldata, (uint256));
@@ -128,10 +128,6 @@ pragma solidity 0.8.26;
 //         calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.data.roleIdToSet, caller);
 
 //         return (actionId, targets, values, calldatas);
-//     }
-
-//     function getData(bytes32 mandateHash) public view returns (Data memory) {
-//         return data[mandateHash];
 //     }
 
 //     function getTokenConfig(bytes32 mandateHash, address token) public view returns (TokenConfig memory) {

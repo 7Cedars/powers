@@ -60,7 +60,7 @@ library MandateUtilities {
     /// @param mandateCalldata Encoded function call data
     /// @param nonce The nonce for the action
     /// @return actionId Unique identifier for the action
-    function hashActionId(uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function computeActionId(uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
         public
         pure
         returns (uint256 actionId)

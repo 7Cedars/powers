@@ -20,22 +20,16 @@ interface ISafe {
 }
 
 contract SafeAllowanceTransfer is Mandate {
-    /// @dev Configurations for this mandate adoption.
-    struct ConfigData {
-        address safeProxy;
-        address allowanceModule;
-    }
-
     struct Mem {
         bytes32 mandateHash;
         address token;
         address payableTo;
         uint256 amount;
+        bytes configBytes;
         bytes delegateSignature;
+        address allowanceModule; 
+        address safeProxy;
     }
-
-    /// @dev Mapping mandate hash => configuration.
-    mapping(bytes32 mandateHash => ConfigData data) public mandateConfig;
 
     /// @notice Constructor function
     constructor() {
@@ -47,16 +41,8 @@ contract SafeAllowanceTransfer is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
-
-        (mandateConfig[mandateHash_].allowanceModule, mandateConfig[mandateHash_].safeProxy) =
-            abi.decode(config, (address, address));
-
-        // Overwrite inputParams with the specific structure expected by handleRequest
-        inputParams = abi.encode("address Token", "address PayableTo", "uint256 Amount");
-
-        super.initializeMandate(index, nameDescription, inputParams, config);
+    { 
+        super.initializeMandate(index, nameDescription, abi.encode("address Token", "address PayableTo", "uint256 Amount"), config);
     }
 
     /// @notice Prepares the call to the Allowance Module
@@ -77,12 +63,15 @@ contract SafeAllowanceTransfer is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-        ConfigData memory config = mandateConfig[MandateUtilities.hashMandate(powers, mandateId)];
+        Mem memory mem;
+
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        mem.configBytes = getConfig(powers, mandateId);
+        (mem.allowanceModule, mem.safeProxy) = abi.decode(mem.configBytes, (address, address));
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         // NB: We call the allowance module directly to make the transfer. The allowance module then calls the Safe proxy.
-        targets[0] = config.allowanceModule;
+        targets[0] = mem.allowanceModule;
         calldatas[0] = _createCalldata(powers, mandateId, mandateCalldata);
 
         return (actionId, targets, values, calldatas);
@@ -94,8 +83,9 @@ contract SafeAllowanceTransfer is Mandate {
         returns (bytes memory)
     {
         Mem memory mem;
-        mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        ConfigData memory config = mandateConfig[mem.mandateHash];
+ 
+        mem.configBytes = getConfig(powers, mandateId);
+        (, mem.safeProxy) = abi.decode(mem.configBytes, (address, address));
         (mem.token, mem.payableTo, mem.amount) = abi.decode(mandateCalldata, (address, address, uint256));
 
         // Construct the `v=1` signature.
@@ -106,7 +96,7 @@ contract SafeAllowanceTransfer is Mandate {
 
         return (abi.encodeWithSelector(
                 bytes4(0x4515641a), // executeAllowanceTransfer(address,address,address,uint96,address,uint96,address,bytes),
-                ISafe(config.safeProxy), // The Safe proxy address
+                ISafe(mem.safeProxy), // The Safe proxy address
                 mem.token, // The token to transfer
                 mem.payableTo, // The recipient of the tokens
                 uint96(mem.amount), // The amount to transfer

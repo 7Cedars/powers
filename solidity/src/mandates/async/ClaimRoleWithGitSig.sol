@@ -171,7 +171,7 @@ contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
         Data memory data_ = data[mem.mandateHash];
 
         // Hash the action
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Decode input parameters: roleId and the commitHash
         (mem.roleId, mem.commitHash) = abi.decode(mandateCalldata, (uint256, string));

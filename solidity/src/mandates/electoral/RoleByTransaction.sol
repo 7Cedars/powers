@@ -13,23 +13,15 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 // import "forge-std/Test.sol"; // for testing only. remove before deployment.
 
 contract RoleByTransaction is Mandate {
-    struct Data {
-        uint256 newRoleId;
-        address token;
-        uint256 thresholdAmount;
-        address safeProxy;
-    }
-
     struct Mem {
         address token;
         uint256 amount;
+        uint256 thresholdAmount;
         uint256 newRoleId;
         address safeProxy; 
         address account; 
         bool success; 
-    }
-
-    mapping(bytes32 mandateHash => Data data) public data;
+    } 
 
     /// @notice Constructor for RoleByRoles mandate
     constructor() {
@@ -42,21 +34,10 @@ contract RoleByTransaction is Mandate {
         public
         override
     {   
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-
-        (
-            data[mandateHash].token, 
-            data[mandateHash].thresholdAmount, 
-            data[mandateHash].newRoleId, 
-            data[mandateHash].safeProxy
-        ) = abi.decode(config, (address, uint256, uint256, address));
-
-        if (data[mandateHash].token == address(0)) {
-            revert ("Native token transfers not supported");
-        }
+        (address token, , , ) = abi.decode(config, (address, uint256, uint256, address));
+        if (token == address(0)) { revert ("Native token transfers not supported");}
 
         inputParams = abi.encode("uint256 Amount");
-
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -74,7 +55,7 @@ contract RoleByTransaction is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         // step 1: decode the calldata & create hashes 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         calldatas = new bytes[](2);
         calldatas[0] = mandateCalldata;
@@ -88,34 +69,29 @@ contract RoleByTransaction is Mandate {
         uint256[] memory values,
         bytes[] memory calldatas
     ) internal override {
-        Data memory data_ = data[MandateUtilities.hashMandate(msg.sender, mandateId)];
-        
         Mem memory mem;
+        (mem.token, mem.thresholdAmount, mem.newRoleId, mem.safeProxy) = abi.decode(getConfig(msg.sender, mandateId), (address, uint256, uint256, address));
         mem.amount = abi.decode(calldatas[0], (uint256));
         mem.account = abi.decode(calldatas[1], (address));
         mem.success;
 
-        require(mem.amount >= data_.thresholdAmount, "Amount below threshold");
+        require(mem.amount >= mem.thresholdAmount, "Amount below threshold");
 
-        if (data_.token == address(0)) {
-            (mem.success,) = data_.safeProxy.call{ value: mem.amount }("");
+        if (mem.token == address(0)) {
+            (mem.success,) = mem.safeProxy.call{ value: mem.amount }("");
         } else {
-            (mem.success,) = data_.token
+            (mem.success,) = mem.token
                 .call(
-                    abi.encodeWithSignature("transferFrom(address,address,uint256)", mem.account, data_.safeProxy, mem.amount)
+                    abi.encodeWithSignature("transferFrom(address,address,uint256)", mem.account, mem.safeProxy, mem.amount)
                 );
         }
         require(mem.success, "Transaction failed");
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = msg.sender;
-        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, data_.newRoleId, mem.account);
+        calldatas[0] = abi.encodeWithSelector(Powers.assignRole.selector, mem.newRoleId, mem.account);
 
         // step 2: execute the role assignment if the amount threshold is met
         _replyPowers(mandateId, actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

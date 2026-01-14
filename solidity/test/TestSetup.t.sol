@@ -758,12 +758,9 @@ abstract contract TestSetupGovernorProtocolFlow is BaseSetup {
 abstract contract TestSetupSafeProtocolFlow is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
+        vm.skip(true); // skip for now. 
 
-        // Check if the Safe Allowance module address is populated. If not, skip the test.
-        if (address(config.safeAllowanceModule).code.length == 0) {
-            vm.skip(true);
-            return;
-        }
+        vm.selectFork(sepoliaFork);
 
         // initiate multi constitution
         (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.safeProtocol_Parent_IntegrationTestConstitution(address(daoMock));

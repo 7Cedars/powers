@@ -17,6 +17,7 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract SafeSetup is Mandate {
     struct Mem { 
+        bytes configBytes;
         address safeProxyFactory;
         address safeL2Singleton;
         address allowanceModule;
@@ -52,7 +53,7 @@ contract SafeSetup is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // NB! No transaction is sent to Powers here, so the action remains unfulfilled.
         calldatas = new bytes[](1);
@@ -71,15 +72,14 @@ contract SafeSetup is Mandate {
         Mem memory mem;
 
         // step 1: decoding data
+        mem.powers = abi.decode(calldatas[0], (address));
+        mem.configBytes = getConfig(mem.powers, mandateId);
         (
             mem.safeProxyFactory,
             mem.safeL2Singleton,
             mem.allowanceModule
-        ) = abi.decode(
-            mandates[MandateUtilities.hashMandate(msg.sender, mandateId)].config,
-            (address, address, address)
-        );
-        mem.powers = abi.decode(calldatas[0], (address));
+        ) = abi.decode( mem.configBytes, (address, address, address));
+        
         
         address[] memory owners = new address[](1);
         owners[0] = mem.powers;

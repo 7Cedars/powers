@@ -168,7 +168,7 @@ contract Powers is EIP712, IPowers, Context {
         onlyAdoptedMandate(mandateId)
         returns (uint256 actionId)
     {
-        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
         AdoptedMandate memory mandate = mandates[mandateId];
 
         // check 0 is calldata length is too long
@@ -306,7 +306,7 @@ contract Powers is EIP712, IPowers, Context {
     {
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Mandate(targetMandate).conditions();
         Conditions memory conditions = getConditions(mandateId);
-        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
 
         // check 1: does target mandate need proposedAction vote to pass?
         if (conditions.quorum == 0) revert Powers__NoVoteNeeded();
@@ -349,7 +349,7 @@ contract Powers is EIP712, IPowers, Context {
         onlyAdoptedMandate(mandateId)
         returns (uint256)
     {
-        uint256 actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
 
         // check: is caller the caller of the proposedAction?
         if (_msgSender() != _actions[actionId].caller) revert Powers__NotProposerAction();
@@ -361,7 +361,7 @@ contract Powers is EIP712, IPowers, Context {
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
     function _cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce) internal virtual returns (uint256) {
-        uint256 actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
 
         // check 1: does action exist?
         if (_actions[actionId].proposedAt == 0) revert Powers__ActionNotProposed();

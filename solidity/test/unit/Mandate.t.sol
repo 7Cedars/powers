@@ -163,7 +163,7 @@ contract MandateBasicTest is TestSetupMandate {
         vm.prank(alice);
         daoMock.request(mandateId, abi.encode(targets, values, calldatas), nonce, "Test Mandate");
 
-        actionId = MandateUtilities.hashActionId(mandateId, abi.encode(targets, values, calldatas), nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, abi.encode(targets, values, calldatas), nonce);
 
         // assert: verify execution succeeds
         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
@@ -283,7 +283,7 @@ contract MandateUtilitiesTest is TestSetupMandate {
         nonce = 123;
 
         // act: hash the action ID
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // assert: verify hash is consistent
         assertEq(actionId, uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce))));
@@ -580,7 +580,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         ) = testMandate.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce);
 
         // assert: verify actionId is correct
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, expectedActionId);
     }
 
@@ -649,7 +649,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         assertEq(returnedCalldatas.length, 0);
 
         // assert: verify actionId is still correct
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, expectedActionId);
     }
 
@@ -687,7 +687,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         assertEq(keccak256(returnedCalldatas[0]), keccak256(calldatas[0]));
 
         // assert: verify actionId is correct
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, expectedActionId);
     }
 
@@ -715,7 +715,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         assertEq(actionId1, actionId2);
         assertEq(actionId2, actionId3);
 
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId1, expectedActionId);
     }
 
@@ -743,7 +743,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         assertEq(actionId1, actionId2);
         assertEq(actionId2, actionId3);
 
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId1, expectedActionId);
     }
 
@@ -794,7 +794,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         }
 
         // assert: verify actionId is correct
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, expectedActionId);
     }
 
@@ -842,7 +842,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         assertEq(returnedCalldatas.length, 2);
 
         // assert: verify actionId is still correct
-        uint256 expectedActionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, expectedActionId);
     }
 }

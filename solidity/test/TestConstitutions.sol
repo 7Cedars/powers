@@ -674,7 +674,7 @@ contract TestConstitutions is Test {
             nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
             targetMandate: getMandateAddress("PowersFactoryAssignRole"),
             config: abi.encode(
-                6, // mandateId of the createPowers action above.
+                5, // mandateId of the createPowers action above.
                 roleIdnewOrg,
                 inputParams // the input params from above are passed to extract the new org address.
             ),
@@ -820,6 +820,7 @@ contract TestConstitutions is Test {
             targetMandate: getMandateAddress("OpenElectionStart"),
             config: abi.encode(
                 openElection,
+                getMandateAddress("OpenElectionVote"), // Voting mandate
                 600, // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),

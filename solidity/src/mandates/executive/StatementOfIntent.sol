@@ -49,7 +49,7 @@ contract StatementOfIntent is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         return (actionId, targets, values, calldatas);
     }

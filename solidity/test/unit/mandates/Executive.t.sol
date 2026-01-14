@@ -28,7 +28,7 @@ contract StatementOfIntentTest is TestSetupExecutive {
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         PowersTypes.ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(PowersTypes.ActionState.Fulfilled));
     }
@@ -270,7 +270,7 @@ contract PresetSingleActionTest is TestSetupExecutive {
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "Delegate");
         
         // Check action state
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(uint8(daoMock.getActionState(actionId)), uint8(PowersTypes.ActionState.Fulfilled));
     }
 

@@ -63,7 +63,7 @@ contract PowerLabs_Frontend is Mandate {
     {
         Mem memory mem;
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         mem.mandateCount = Powers(powers).mandateCounter();
         // (mem.safeProxy) = abi.decode(mandateCalldata, (address));
         mem.signature = abi.encodePacked(

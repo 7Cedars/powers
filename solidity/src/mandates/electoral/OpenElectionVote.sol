@@ -18,7 +18,7 @@ import { OpenElection } from "../../helpers/OpenElection.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract OpenElectionVote is Mandate {
-    struct MemoryData {
+    struct Mem {
         address caller;
         bytes32 mandateHash;
         address[] nominees;
@@ -26,16 +26,10 @@ contract OpenElectionVote is Mandate {
         bool[] vote;
         uint256 numVotes;
         uint256 i;
-    }
-
-    struct Data {
-        address[] nominees;
         address openElectionContract;
-        uint256 electionId;
         uint256 maxVotes;
+        uint256 electionId;
     }
-
-    mapping(bytes32 mandateHash => Data) public data;
 
     /// @notice Constructor for OpenElectionVote mandate
     constructor() {
@@ -47,28 +41,26 @@ contract OpenElectionVote is Mandate {
         public
         override
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        (data[mandateHash].openElectionContract, data[mandateHash].maxVotes) = abi.decode(config, (address, uint256));
+        Mem memory mem;
+        (mem.openElectionContract,  ) = abi.decode(config, (address, uint256));
 
         // Check if election is open - otherwise revert. 
         if (
-                !OpenElection(data[mandateHash].openElectionContract).isElectionOpen()
+                !OpenElection(mem.openElectionContract).isElectionOpen()
             ) {
                 revert("Election is not open.");
         }
 
         // Get nominees from the OpenElection contract
-        address[] memory nominees = OpenElection(data[mandateHash].openElectionContract).getNominees();
-        data[mandateHash].nominees = nominees;
-        data[mandateHash].electionId = OpenElection(data[mandateHash].openElectionContract).currentElectionId();
+        mem.nominees = OpenElection(mem.openElectionContract).getNominees();
+        mem.electionId = OpenElection(mem.openElectionContract).currentElectionId();
 
         // Create dynamic inputParams based on nominees
-        string[] memory nomineeList = new string[](nominees.length);
-        for (uint256 i = 0; i < nominees.length; i++) {
-            nomineeList[i] = string.concat("bool ", Strings.toHexString(nominees[i]));
+        mem.nomineeList = new string[](mem.nominees.length);
+        for (uint256 i = 0; i < mem.nominees.length; i++) {
+            mem.nomineeList[i] = string.concat("bool ", Strings.toHexString(mem.nominees[i]));
         }
-        inputParams = abi.encode(nomineeList);
-
+        inputParams = abi.encode(mem.nomineeList);
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -85,20 +77,21 @@ contract OpenElectionVote is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        MemoryData memory mem;
-        mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
+        Mem memory mem; 
 
         // Decode the vote data
         (mem.vote) = abi.decode(mandateCalldata, (bool[]));
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        (mem.openElectionContract, mem.maxVotes) = abi.decode(getConfig(powers, mandateId), (address, uint256));
+        mem.nominees = OpenElection(mem.openElectionContract).getNominees();
+    
         // Check if election is open
-        if (!OpenElection(data[mem.mandateHash].openElectionContract).isElectionOpen()) {
+        if (!OpenElection(mem.openElectionContract).isElectionOpen()) {
             revert("Election is not open.");
         }
 
         // Validate vote length matches nominees length
-        if (mem.vote.length != data[mem.mandateHash].nominees.length) {
+        if (mem.vote.length != mem.nominees.length) {
             revert("Invalid vote length.");
         }
 
@@ -107,7 +100,7 @@ contract OpenElectionVote is Mandate {
         for (mem.i = 0; mem.i < mem.vote.length; mem.i++) {
             if (mem.vote[mem.i]) {
                 mem.numVotes++;
-                if (mem.numVotes > data[mem.mandateHash].maxVotes) {
+                if (mem.numVotes > mem.maxVotes) {
                     revert("Voter tries to vote for more than maxVotes nominees.");
                 }
             }
@@ -115,13 +108,9 @@ contract OpenElectionVote is Mandate {
 
         // create call for
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = data[mem.mandateHash].openElectionContract;
+        targets[0] = mem.openElectionContract;
         calldatas[0] = abi.encodeWithSelector(OpenElection.vote.selector, caller, mem.vote);
 
         return (actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

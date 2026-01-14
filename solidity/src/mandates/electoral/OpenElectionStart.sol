@@ -20,46 +20,21 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { Powers } from "../../Powers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-contract OpenElectionStart is Mandate {
-    struct Data {
-        address electionContract; 
-        address voteContract;
+contract OpenElectionStart is Mandate { 
+    struct Mem { 
+        address electionContract;
         uint256 blockTime;
         uint256 voterRoleId;
+        address voteContractAddress;
         uint16 voteContractId;
     }
 
-    mapping(bytes32 mandateHash => Data) public data;
+    mapping (bytes32 mandateHash => uint16 voteContractId) internal voteContractIds;
 
     /// @notice Constructor for OpenElectionStart mandate
     constructor() {
-        bytes memory configParams = abi.encode("address electionContract", "uint256 blockTime", "uint256 voterRoleId");
+        bytes memory configParams = abi.encode("address electionContract", "address voteContract", "uint256 blockTime", "uint256 voterRoleId");
         emit Mandate__Deployed(configParams);
-    }
-
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-
-        (
-            data[mandateHash].electionContract, 
-            data[mandateHash].blockTime, 
-            data[mandateHash].voterRoleId
-        ) = abi.decode(config, (address, uint256, uint256));
-        
-        // Deploy OpenElectionVote contract with electionContract and maxVotes as 1 
-        OpenElectionVote voteContract = new OpenElectionVote();
-        // Note: The vote contract would need to be initialized separately by Powers
-        
-        data[mandateHash].voteContract = address(voteContract);
-        data[mandateHash].voteContractId = 0; // to be set when election is opened. 
-
-        // No input parameters needed
-        inputParams = abi.encode();
-
-        super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
     /// @notice Handles the request to start an election and adopt the vote mandate
@@ -82,32 +57,32 @@ contract OpenElectionStart is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        Data memory mandateData = data[mandateHash];
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-        uint16 voteContractId = Powers(powers).mandateCounter(); // the ID at which the vote mandate will be adopted
+        Mem memory mem;
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        (mem.electionContract, mem.voteContractAddress, mem.blockTime, mem.voterRoleId) = abi.decode(getConfig(powers, mandateId), (address, address, uint256, uint256)); // validate config
+        mem.voteContractId = Powers(powers).mandateCounter(); // the ID at which the vote mandate will be adopted 
 
         // Create two calls: 1) openElection, 2) adoptMandate
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(2);
 
         // Call 1: Open the election
-        targets[0] = mandateData.electionContract;
+        targets[0] = mem.electionContract;
         // Note that we set the electionId to the voteContractId for tracking. 
-        calldatas[0] = abi.encodeWithSelector(OpenElection.openElection.selector, mandateData.blockTime, voteContractId);
+        calldatas[0] = abi.encodeWithSelector(OpenElection.openElection.selector, mem.blockTime, mem.voteContractId);
 
         // Call 2: Adopt the OpenElectionVote mandate
         targets[1] = powers;
         
         // Prepare config for OpenElectionVote: (address openElectionContract, uint256 maxVotes)
-        bytes memory voteConfig = abi.encode(mandateData.electionContract, uint256(1));
+        bytes memory voteConfig = abi.encode(mem.electionContract, uint256(1));
         
         // Create MandateInitData for the vote contract
         PowersTypes.MandateInitData memory voteInitData = PowersTypes.MandateInitData({
             nameDescription: "Vote in Open Election",
-            targetMandate: mandateData.voteContract,
+            targetMandate: mem.voteContractAddress,
             config: voteConfig,
             conditions: PowersTypes.Conditions({
-                allowedRole: mandateData.voterRoleId, // Voters can vote
+                allowedRole: mem.voterRoleId, // Voters can vote
                 votingPeriod: 0, // No voting period needed for direct execution
                 timelock: 0,
                 throttleExecution: 0,
@@ -121,13 +96,5 @@ contract OpenElectionStart is Mandate {
         calldatas[1] = abi.encodeWithSelector(IPowers.adoptMandate.selector, voteInitData);
 
         return (actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
-    }
-
-    function getVoteContractId(bytes32 mandateHash) public view returns (uint16) {
-        return data[mandateHash].voteContractId;
-    }
+    } 
 }

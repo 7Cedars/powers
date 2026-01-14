@@ -15,8 +15,16 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 
 contract GovernorExecuteProposal is Mandate {
-    /// @notice Mapping from mandate hash to the governor contract address
-    mapping(bytes32 mandateHash => address governorContract) public governorContracts;
+    struct Mem {
+        bytes32 mandateHash;
+        bytes configData;
+        address[] proposalTargets;
+        uint256[] proposalValues;
+        bytes[] proposalCalldatas;
+        string description;
+        address payable governorContract;
+        uint256 proposalId;
+    }
 
     /// @notice Constructor for GovernorExecuteProposal mandate
     constructor() {
@@ -27,13 +35,8 @@ contract GovernorExecuteProposal is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        (governorContracts[mandateHash]) = abi.decode(config, (address));
-
-        // Set UI-exposed input parameters: targets, values, calldatas, description
-        inputParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description");
-        super.initializeMandate(index, nameDescription, inputParams, config);
+    { 
+        super.initializeMandate(index, nameDescription, abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"), config);
     }
 
     /// @notice Build a call to execute a Governor proposal after validation
@@ -51,43 +54,45 @@ contract GovernorExecuteProposal is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        Mem memory mem;
+        mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Validate that governor contract is configured
-        address payable governorContract = payable(governorContracts[mandateHash]);
-        if (governorContract == address(0)) revert("GovernorExecuteProposal: Governor contract not configured");
+        mem.configData = getConfig(powers, mandateId);
+        mem.governorContract = payable(abi.decode(mem.configData, (address)));
+        if (mem.governorContract == address(0)) revert("GovernorExecuteProposal: Governor contract not configured");
 
         // Decode proposal parameters
         (
-            address[] memory proposalTargets,
-            uint256[] memory proposalValues,
-            bytes[] memory proposalCalldatas,
-            string memory description
+            mem.proposalTargets,
+            mem.proposalValues,
+            mem.proposalCalldatas,
+            mem.description
         ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
-        if (proposalTargets.length == 0) revert("GovernorExecuteProposal: No targets provided");
-        if (proposalTargets.length != proposalValues.length) {
+        if (mem.proposalTargets.length == 0) revert("GovernorExecuteProposal: No targets provided");
+        if (mem.proposalTargets.length != mem.proposalValues.length) {
             revert("GovernorExecuteProposal: Targets and values length mismatch");
         }
-        if (proposalTargets.length != proposalCalldatas.length) {
+        if (mem.proposalTargets.length != mem.proposalCalldatas.length) {
             revert("GovernorExecuteProposal: Targets and calldatas length mismatch");
         }
-        if (bytes(description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
+        if (bytes(mem.description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
 
         // Get proposal ID from governor contract
-        uint256 proposalId = Governor(governorContract).hashProposal(
-            proposalTargets, proposalValues, proposalCalldatas, keccak256(bytes(description))
+        mem.proposalId = Governor(mem.governorContract).hashProposal(
+            mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, keccak256(bytes(mem.description))
         );
 
         // Check proposal state
-        IGovernor.ProposalState state = Governor(governorContract).state(proposalId);
+        IGovernor.ProposalState state = Governor(mem.governorContract).state(mem.proposalId);
         if (state != IGovernor.ProposalState.Succeeded) {
             revert("GovernorExecuteProposal: Proposal not succeeded");
         }
 
         // Return the proposal actions for execution
-        return (actionId, proposalTargets, proposalValues, proposalCalldatas);
+        return (actionId, mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas);
     }
 }

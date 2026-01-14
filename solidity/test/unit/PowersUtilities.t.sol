@@ -32,7 +32,7 @@ contract ChecksTest is TestSetupPowers {
         mandateCalldata = abi.encode(true);
         nonce = 123;
 
-        actionId = Checks.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce))));
     }
 

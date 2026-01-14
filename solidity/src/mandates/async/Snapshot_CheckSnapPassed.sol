@@ -107,7 +107,7 @@ pragma solidity 0.8.26;
 //             bytes memory stateChange
 //         )
 //     {
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 //         (string memory proposalId, string memory choice,,,,) =
 //             abi.decode(mandateCalldata, (string, string, address[], uint256[], bytes[], string));
 

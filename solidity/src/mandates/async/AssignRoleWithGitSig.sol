@@ -63,7 +63,7 @@ contract AssignRoleWithGitSig is Mandate {
         (mem.roleId,) = abi.decode(mandateCalldata, (uint256, string));
 
         // Hash the action
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         PowersTypes.Conditions memory conditions = Powers(payable(powers)).getConditions(mandateId);
         if (conditions.needFulfilled == 0) {

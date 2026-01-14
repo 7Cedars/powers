@@ -59,7 +59,7 @@ pragma solidity 0.8.26;
 //         override
 //         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
 //     {
-//         actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+//         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 //         bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
 
 //         uint256 poolId = poolIds[mandateHash];

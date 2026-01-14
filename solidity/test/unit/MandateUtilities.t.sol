@@ -83,7 +83,7 @@ contract MandateUtilitiesTest is TestSetupMandate {
         mandateCalldata = abi.encode(true);
         nonce = 123;
 
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(actionId, uint256(keccak256(abi.encode(mandateId, mandateCalldata, nonce))));
     }
 

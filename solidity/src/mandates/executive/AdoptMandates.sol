@@ -41,7 +41,7 @@ contract AdoptMandates is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         (address[] memory mandates_, uint256[] memory roleIds_) = abi.decode(mandateCalldata, (address[], uint256[]));
 

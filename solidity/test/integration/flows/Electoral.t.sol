@@ -208,7 +208,7 @@ contract OpenElectionFlow_IntegrationTest is TestSetupOpenElectionFlow {
     uint16 constant MANDATE_END_ELECTION = 3;
     uint16 constant VOTE_MANDATE_ID = 4; // Expected ID for the dynamically deployed vote mandate
  
-    function testOpenElectionFlow_FullInteraction() public {
+    function testOpenElectionFlow_FullInteraction() public { 
         // --- 1. NOMINATION FLOW ---
         console2.log("--- Step 1: Nomination ---");
 

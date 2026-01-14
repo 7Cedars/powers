@@ -15,15 +15,17 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract PresetMultipleActions is Mandate {
-    /// @dev Data structure for storing preset action configurations
-    struct Data {
-        string[] descriptions; /// @dev Human-readable descriptions for each action
-        address[] targets; /// @dev Target contract addresses for each action
-        uint256[] values; /// @dev ETH values to send with each action
-        bytes[] calldatas; /// @dev Calldata for each action
+    struct Mem {
+        uint i; 
+        uint j;
+        bytes configBytes;
+        address[] targetsConfig;
+        uint256[] valuesConfig;
+        bytes[] calldatasConfig;
+        uint256 length;
+        bool[] bools;
     }
 
-    mapping(bytes32 mandateHash => Data data) internal data;
 
     /// @notice Constructor of the PresetMultipleActions mandate
     constructor() {
@@ -36,24 +38,14 @@ contract PresetMultipleActions is Mandate {
         public
         override
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
+        (string[] memory descriptions, , , ) = abi.decode(config, (string[], address[], uint256[], bytes[]));
 
-        (
-            data[mandateHash].descriptions,
-            data[mandateHash].targets,
-            data[mandateHash].values,
-            data[mandateHash].calldatas
-        ) = abi.decode(config, (string[], address[], uint256[], bytes[]));
-
-        string[] memory parameters = new string[](data[mandateHash].descriptions.length);
-
-        for (uint256 i = 0; i < data[mandateHash].descriptions.length; i++) {
-            parameters[i] = string.concat("bool ", data[mandateHash].descriptions[i]);
+        string[] memory parameters = new string[](descriptions.length);
+        for (uint256 i = 0; i < parameters.length; i++) {
+            parameters[i] = string.concat("bool ", descriptions[i]);
         }
-
-        inputParams = abi.encode(parameters);
-
-        super.initializeMandate(index, nameDescription, inputParams, config);
+ 
+        super.initializeMandate(index, nameDescription, abi.encode(parameters), config);
     }
 
     /// @notice Execute the mandate by executing selected preset actions
@@ -70,39 +62,36 @@ contract PresetMultipleActions is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        Mem memory mem;
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        mem.configBytes = getConfig(powers, mandateId);
+        ( , mem.targetsConfig, mem.valuesConfig, mem.calldatasConfig) = abi.decode(
+            mem.configBytes, (string[], address[], uint256[], bytes[])
+        );
 
-        bool[] memory bools = abi.decode(mandateCalldata, (bool[]));
-        uint256 length = 0;
-        for (uint256 i = 0; i < bools.length; i++) {
-            if (bools[i]) {
-                length++;
+        mem.bools = abi.decode(mandateCalldata, (bool[]));
+        mem.length = 0;
+        for (mem.i = 0; mem.i < mem.bools.length; mem.i++) {
+            if (mem.bools[mem.i]) {
+                mem.length++;
             }
         }
-        if (length == 0) {
+        if (mem.length == 0) {
             (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
             return (actionId, targets, values, calldatas);
         }
 
-        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(length);
-        uint256 j = 0;
-        for (uint256 i = 0; i < bools.length; i++) {
-            if (bools[i]) {
-                targets[j] = data[mandateHash].targets[i];
-                values[j] = data[mandateHash].values[i];
-                calldatas[j] = data[mandateHash].calldatas[i];
-                j++;
+        (targets, values, calldatas) = MandateUtilities.createEmptyArrays(mem.length);
+        mem.j = 0;
+        for (mem.i = 0; mem.i < mem.bools.length; mem.i++) {
+            if (mem.bools[mem.i]) {
+                targets[mem.j] = mem.targetsConfig[mem.i];
+                values[mem.j] = mem.valuesConfig[mem.i];
+                calldatas[mem.j] = mem.calldatasConfig[mem.i];
+                mem.j++;
             }
         }
 
         return (actionId, targets, values, calldatas);
-    }
-
-    /// @notice Get the stored data for a specific mandate instance
-    /// @param mandateHash The hash identifying the mandate instance
-    /// @return The data structure containing all preset actions
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

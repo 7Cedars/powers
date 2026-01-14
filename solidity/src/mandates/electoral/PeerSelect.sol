@@ -19,7 +19,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract PeerSelect is Mandate {
-    struct MemoryData {
+    struct Mem {
         address caller;
         bytes32 mandateHash;
         address[] nominees;
@@ -34,16 +34,11 @@ contract PeerSelect is Mandate {
         uint256 selectedIndex; 
         uint48 hasRoleSince;
         uint256 currentRoleHolders;
-    }
-
-    struct Data {
         uint256 maxRoleHolders;
         uint256 roleId;
         uint8 maxVotes;
         address nomineesContract;
     }
-
-    mapping(bytes32 mandateHash => Data) public data;
 
     /// @notice Constructor for PeerSelect mandate
     constructor() {
@@ -56,25 +51,19 @@ contract PeerSelect is Mandate {
         public
         override
     { 
-        MemoryData memory mem;
-        mem.mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-        (
-            data[mem.mandateHash].maxRoleHolders, 
-            data[mem.mandateHash].roleId, 
-            data[mem.mandateHash].maxVotes, 
-            data[mem.mandateHash].nomineesContract
-            ) = abi.decode(config, (uint256, uint256, uint8, address));
+        Mem memory mem;
+        ( , , , mem.nomineesContract) = abi.decode(config, (uint256, uint256, uint8, address));
 
         // Get nominees from the Nominees contract
-        mem.nominees = Nominees(data[mem.mandateHash].nomineesContract).getNominees();
+        mem.nominees = Nominees(mem.nomineesContract).getNominees();
 
         // Create dynamic inputParams based on nominees
         mem.nomineeList = new string[](mem.nominees.length);
         for (uint256 i = 0; i < mem.nominees.length; i++) {
             mem.nomineeList[i] = string.concat("bool ", Strings.toHexString(mem.nominees[i]));
         }
+        
         inputParams = abi.encode(mem.nomineeList);
-
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -97,15 +86,16 @@ contract PeerSelect is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        MemoryData memory mem;
-        mem.mandateHash = MandateUtilities.hashMandate(powers, mandateId);
+        Mem memory mem; 
 
         // Decode the selection data
         (mem.selection) = abi.decode(mandateCalldata, (bool[]));
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
-
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
+        (mem.maxRoleHolders, mem.roleId, mem.maxVotes, mem.nomineesContract) = abi.decode(
+            getConfig(powers, mandateId), (uint256, uint256, uint8, address)
+        );
         // Get current nominees from Nominees contract
-        mem.nominees = Nominees(data[mem.mandateHash].nomineesContract).getNominees();
+        mem.nominees = Nominees(mem.nomineesContract).getNominees();
 
         // Validate selection length matches nominees length
         if (mem.selection.length != mem.nominees.length) {
@@ -126,7 +116,7 @@ contract PeerSelect is Mandate {
         if (mem.numSelections == 0) {
             revert("Must select at least one nominee.");
         }
-        if (mem.numSelections > data[mem.mandateHash].maxVotes) {
+        if (mem.numSelections > mem.maxVotes) {
             revert("Too many selections. Exceeds maxVotes limit.");
         }
 
@@ -139,7 +129,7 @@ contract PeerSelect is Mandate {
         for (mem.i = 0; mem.i < mem.numSelections; mem.i++) {
             mem.selectedIndex = mem.selectedIndices[mem.i];
             mem.hasRoleSince =
-                Powers(payable(powers)).hasRoleSince(mem.nominees[mem.selectedIndex], data[mem.mandateHash].roleId);
+                Powers(payable(powers)).hasRoleSince(mem.nominees[mem.selectedIndex], mem.roleId);
             mem.assignFlags[mem.i] = (mem.hasRoleSince == 0);
 
             if (mem.assignFlags[mem.i]) {
@@ -151,8 +141,8 @@ contract PeerSelect is Mandate {
 
         // Validate assignments don't exceed max role holders
         if (mem.assignCount > 0) {
-            mem.currentRoleHolders = Powers(payable(powers)).getAmountRoleHolders(data[mem.mandateHash].roleId);
-            if (mem.currentRoleHolders + mem.assignCount > data[mem.mandateHash].maxRoleHolders) {
+            mem.currentRoleHolders = Powers(payable(powers)).getAmountRoleHolders(mem.roleId);
+            if (mem.currentRoleHolders + mem.assignCount > mem.maxRoleHolders) {
                 revert("Too many assignments. Would exceed max role holders.");
             }
         }
@@ -166,19 +156,15 @@ contract PeerSelect is Mandate {
 
             if (mem.assignFlags[mem.i]) {
                 calldatas[mem.i] = abi.encodeWithSelector(
-                    Powers.assignRole.selector, data[mem.mandateHash].roleId, mem.nominees[mem.selectedIndex]
+                    Powers.assignRole.selector, mem.roleId, mem.nominees[mem.selectedIndex]
                 );
             } else {
                 calldatas[mem.i] = abi.encodeWithSelector(
-                    Powers.revokeRole.selector, data[mem.mandateHash].roleId, mem.nominees[mem.selectedIndex]
+                    Powers.revokeRole.selector, mem.roleId, mem.nominees[mem.selectedIndex]
                 );
             }
         }
 
         return (actionId, targets, values, calldatas);
-    }
-
-    function getData(bytes32 mandateHash) public view returns (Data memory) {
-        return data[mandateHash];
     }
 }

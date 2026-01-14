@@ -40,7 +40,7 @@ contract RevokeMandates is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         (uint16[] memory mandateIds_) = abi.decode(mandateCalldata, (uint16[]));
 

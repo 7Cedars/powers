@@ -11,16 +11,16 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 // import { console } from "forge-std/console.sol"; // only for testing purposes.
 
 contract BespokeActionAdvanced is Mandate {
-    /// @dev Data structure for storing mandate configuration
-    struct Data {
-        address targetContract; /// @dev Target contract address to call
-        bytes4 targetFunction; /// @dev Function selector to call on target contract
-        bytes[] staticParams; /// @dev Pre-encoded parameter fragments that don't change
-        string[] dynamicParams; /// @dev UI hints for dynamic parameters (not used in execution)
-        uint8[] indexDynamicParams; /// @dev Insertion indices for dynamic params relative to static params length
+    struct Mem {
+        address targetContract;
+        bytes4 targetFunction;
+        bytes[] staticParams;
+        string[] dynamicParams;
+        uint8[] indexDynamicParams;
+        bytes[] dynamicParts;
+        uint256 staticLen;
+        bytes packedParams;
     }
-
-    mapping(bytes32 => Data) internal _data;
 
     /// @notice Constructor of the BespokeActionAdvanced mandate
     constructor() {
@@ -37,20 +37,9 @@ contract BespokeActionAdvanced is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
-
-        (
-            _data[mandateHash].targetContract,
-            _data[mandateHash].targetFunction,
-            _data[mandateHash].staticParams,
-            _data[mandateHash].dynamicParams,
-            _data[mandateHash].indexDynamicParams
-        ) = abi.decode(config, (address, bytes4, bytes[], string[], uint8[]));
-
-        inputParams = abi.encode(_data[mandateHash].dynamicParams);
-
-        super.initializeMandate(index, nameDescription, inputParams, config);
+    { 
+        ( , , , string[] memory dynamicParams, ) = abi.decode(config, (address, bytes4, bytes[], string[], uint8[]));
+        super.initializeMandate(index, nameDescription, abi.encode(dynamicParams), config);
     }
 
     /// @notice Execute the mandate by calling the configured target function with mixed static/dynamic parameters
@@ -68,13 +57,20 @@ contract BespokeActionAdvanced is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        Mem memory mem;
+        ( 
+            mem.targetContract,
+            mem.targetFunction,
+            mem.staticParams,
+            mem.dynamicParams,
+            mem.indexDynamicParams
+        ) = abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes[], string[], uint8[]));
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Send the calldata to the target function
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = _data[mandateHash].targetContract;
-        calldatas[0] = _buildCalldata(mandateHash, mandateCalldata);
+        targets[0] = mem.targetContract;
+        calldatas[0] = _buildCalldata(mem.indexDynamicParams, mem.staticParams, mem.targetFunction, mandateCalldata);
 
         return (actionId, targets, values, calldatas);
     }
@@ -82,44 +78,51 @@ contract BespokeActionAdvanced is Mandate {
     /// @dev Builds the calldata for the configured target function by inserting dynamic params
     /// into the preconfigured static params according to insertion indices, then prefixing
     /// the 4-byte function selector
-    /// @param mandateHash The hash identifying the mandate instance
+    /// @param  indexDynamicParams An array indicating at which static param index each dynamic param should be inserted.
+    ///                           Use staticLen as index to insert at the end.
+    /// @param  staticParams An array of static parameters as bytes[]
+    /// @param  targetFunction The 4-byte function selector of the target function
     /// @param mandateCalldata The dynamic parameters encoded as bytes[]
     /// @return The complete calldata ready for execution
-    function _buildCalldata(bytes32 mandateHash, bytes memory mandateCalldata) internal view returns (bytes memory) {
-        Data storage data = _data[mandateHash];
+    function _buildCalldata(
+        uint8[] memory indexDynamicParams, 
+        bytes[] memory staticParams,
+        bytes4 targetFunction,
+        bytes memory mandateCalldata
+        ) internal view returns (bytes memory) {
+            Mem memory mem;
 
-        // mandateCalldata is expected to be abi.encode(bytes[] dynamicParts) where
-        // dynamicParts.length == data.indexDynamicParams.length
-        bytes[] memory dynamicParts = abi.decode(mandateCalldata, (bytes[]));
+            // mandateCalldata is expected to be abi.encode(bytes[] dynamicParts) where
+            // dynamicParts.length == data.indexDynamicParams.length
+            mem.dynamicParts = abi.decode(mandateCalldata, (bytes[]));
 
-        if (dynamicParts.length != data.indexDynamicParams.length) revert("Bad Dynamic Length");
-        uint256 staticLen = data.staticParams.length;
+            if (mem.dynamicParts.length != indexDynamicParams.length) revert("Bad Dynamic Length");
+            mem.staticLen = staticParams.length;
 
-        // Compose parameter bytes in the following order:
-        // for k in [0..staticLen-1]:
-        //   append all dynamicParts[j] where indexDynamicParams[j] == k
-        //   append staticParams[k]
-        // finally append all dynamicParts[j] where indexDynamicParams[j] == staticLen (insert at end)
+            // Compose parameter bytes in the following order:
+            // for k in [0..staticLen-1]:
+            //   append all dynamicParts[j] where indexDynamicParams[j] == k
+            //   append staticParams[k]
+            // finally append all dynamicParts[j] where indexDynamicParams[j] == staticLen (insert at end)
+ 
+            for (uint256 k; k < mem.staticLen; k++) {
+                // Insert dynamics scheduled before static k
+                for (uint256 j; j < mem.dynamicParts.length; j++) {
+                    if (indexDynamicParams[j] == k) {
+                        mem.packedParams = abi.encodePacked(mem.packedParams, mem.dynamicParts[j]);
+                    }
+                }
+                // Append static param k
+                mem.packedParams = abi.encodePacked(mem.packedParams, staticParams[k]);
+            }
 
-        bytes memory packedParams;
-        for (uint256 k; k < staticLen; k++) {
-            // Insert dynamics scheduled before static k
-            for (uint256 j; j < dynamicParts.length; j++) {
-                if (data.indexDynamicParams[j] == k) {
-                    packedParams = abi.encodePacked(packedParams, dynamicParts[j]);
+            // Append dynamics scheduled at the end
+            for (uint256 j; j < mem.dynamicParts.length; j++) {
+                if (indexDynamicParams[j] == mem.staticLen) {
+                    mem.packedParams = abi.encodePacked(mem.packedParams, mem.dynamicParts[j]);
                 }
             }
-            // Append static param k
-            packedParams = abi.encodePacked(packedParams, data.staticParams[k]);
-        }
 
-        // Append dynamics scheduled at the end
-        for (uint256 j; j < dynamicParts.length; j++) {
-            if (data.indexDynamicParams[j] == staticLen) {
-                packedParams = abi.encodePacked(packedParams, dynamicParts[j]);
-            }
-        }
-
-        return abi.encodePacked(data.targetFunction, packedParams);
+            return abi.encodePacked(targetFunction, mem.packedParams);
     }
 }

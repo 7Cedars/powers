@@ -12,8 +12,6 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Nominees } from "../../helpers/Nominees.sol";
 
 contract Nominate is Mandate {
-    mapping(bytes32 mandateHash => address nomineesContract) public nomineesContracts;
-
     /// @notice Constructor for Nominate mandate
     constructor() {
         bytes memory configParams = abi.encode("address NomineesContract");
@@ -23,9 +21,7 @@ contract Nominate is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
         public
         override
-    {
-        nomineesContracts[MandateUtilities.hashMandate(msg.sender, index)] = abi.decode(config, (address));
-
+    { 
         inputParams = abi.encode("bool shouldNominate");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -42,12 +38,11 @@ contract Nominate is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        (bool shouldNominate) = abi.decode(mandateCalldata, (bool));
-        bytes32 mandateHash = MandateUtilities.hashMandate(powers, mandateId);
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        (bool shouldNominate) = abi.decode(mandateCalldata, (bool)); 
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
-        targets[0] = nomineesContracts[mandateHash];
+        targets[0] = abi.decode(getConfig(powers, mandateId), (address)); // Nominees contract address
         calldatas[0] = abi.encodeWithSelector(Nominees.nominate.selector, caller, shouldNominate);
 
         return (actionId, targets, values, calldatas);

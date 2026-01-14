@@ -339,8 +339,8 @@ DA:74,2
 BRDA:74,4,0,1
 DA:75,1
 DA:89,24746
-FN:89,MandateUtilities.hashActionId
-FNDA:24746,MandateUtilities.hashActionId
+FN:89,MandateUtilities.computeActionId
+FNDA:24746,MandateUtilities.computeActionId
 DA:94,24746
 DA:102,36288
 FN:102,MandateUtilities.hashMandate
@@ -849,8 +849,8 @@ DA:109,10
 BRDA:109,9,0,1
 DA:110,1
 DA:124,1
-FN:124,PowersUtilities.hashActionId
-FNDA:1,PowersUtilities.hashActionId
+FN:124,PowersUtilities.computeActionId
+FNDA:1,PowersUtilities.computeActionId
 DA:129,925
 DA:132,2
 FN:132,PowersUtilities.getConditions

@@ -48,7 +48,7 @@ contract OpenAction is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        actionId = MandateUtilities.hashActionId(mandateId, mandateCalldata, nonce);
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         // note: no check on decoded call data. If needed, this can be added.
         (targets, values, calldatas) = abi.decode(mandateCalldata, (address[], uint256[], bytes[]));
         return (actionId, targets, values, calldatas);
