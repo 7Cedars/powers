@@ -2,18 +2,19 @@
 pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
+import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { IERC20 } from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-interface IAllowedTokens {
-    function getAllowedTokensCount() external view returns (uint256);
-    function getAllowedToken(uint256 index) external view returns (address);
+interface IAllowanceModule {
+    function getTokens(address safe, address delegate) external view returns (address[] memory);
 }
 
-contract AllowedTokensPresetTransfer is Mandate {
+contract Safe_RecoverTokens is Mandate {
     struct Mem {
-        address receiver;
-        address allowedTokens;
         bytes config;
+        address safe;
+        address allowanceModule;
+        address allowedTokens;
         uint256 count;
         uint256 positiveBalanceCount; 
         address token;
@@ -22,7 +23,7 @@ contract AllowedTokensPresetTransfer is Mandate {
     }
     
     constructor() {
-        bytes memory configParams = abi.encode("address receiver", "address allowedTokens");
+        bytes memory configParams = abi.encode("address safe", "address allowanceModule");
         emit Mandate__Deployed(configParams);
     }
 
@@ -30,8 +31,8 @@ contract AllowedTokensPresetTransfer is Mandate {
         address, /*caller*/
         address powers,
         uint16 mandateId,
-        bytes memory, /*mandateCalldata*/
-        uint256 /*nonce*/
+        bytes memory mandateCalldata, 
+        uint256 nonce
     )
         public
         view
@@ -39,17 +40,18 @@ contract AllowedTokensPresetTransfer is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
+        actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.receiver, mem.allowedTokens) = abi.decode(mem.config, (address, address));
+        (mem.safe, mem.allowanceModule) = abi.decode(mem.config, (address, address));
 
         // 2. Get allowed tokens count
-        mem.count = IAllowedTokens(mem.allowedTokens).getAllowedTokensCount();
+        mem.allowedTokens = IAllowanceModule(mem.allowanceModule).getTokens(mem.safe, powers);
+        mem.count = mem.allowedTokens.length - 1;
         // 3. Count tokens with positive balance
         mem.positiveBalanceCount = 0;
         for (uint256 i = 0; i < mem.count; i++) {
-            mem.token = IAllowedTokens(mem.allowedTokens).getAllowedToken(i);
-            if (IERC20(mem.token).balanceOf(powers) > 0) {
+            if (IERC20(mem.allowedTokens[i]).balanceOf(powers) > 0) {
                 mem.positiveBalanceCount++;
             }
         }
@@ -61,7 +63,7 @@ contract AllowedTokensPresetTransfer is Mandate {
 
         mem.currentIndex = 0;
         for (uint256 i = 0; i < mem.count; i++) {
-            mem.token = IAllowedTokens(mem.allowedTokens).getAllowedToken(i);
+            mem.token = mem.allowedTokens[i]
             mem.balance = IERC20(mem.token).balanceOf(powers);
             if (mem.balance > 0) {
                 targets[mem.currentIndex] = mem.token;

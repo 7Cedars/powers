@@ -17,8 +17,8 @@ contract Soulbound1155 is ERC1155, ISoulbound1155, Ownable {
     error Soulbound1155__NoZeroAmount(); 
 
     // the dao address receives half of mintable coins.
-    constructor()
-        ERC1155("https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi")
+    constructor(string memory uri_)
+        ERC1155(uri_)
         Ownable(msg.sender)
     { }
 

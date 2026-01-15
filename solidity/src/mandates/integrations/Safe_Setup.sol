@@ -13,9 +13,9 @@ import { ModuleManager } from "lib/safe-smart-account/contracts/base/ModuleManag
 import { SafeProxyFactory } from "lib/safe-smart-account/contracts/proxies/SafeProxyFactory.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-// import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
+import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
 
-contract SafeSetup is Mandate {
+contract Safe_Setup is Mandate {
     struct Mem { 
         bytes configBytes;
         address safeProxyFactory;
@@ -73,12 +73,13 @@ contract SafeSetup is Mandate {
 
         // step 1: decoding data
         mem.powers = abi.decode(calldatas[0], (address));
-        mem.configBytes = getConfig(mem.powers, mandateId);
         (
             mem.safeProxyFactory,
             mem.safeL2Singleton,
             mem.allowanceModule
-        ) = abi.decode( mem.configBytes, (address, address, address));
+        ) = abi.decode(getConfig(mem.powers, mandateId), (address, address, address));
+
+        console2.log("Safe_Setup: deploying SafeProxy via factory:", mem.safeProxyFactory);
         
         
         address[] memory owners = new address[](1);

@@ -7,8 +7,8 @@ import { PowersMock } from "@mocks/PowersMock.sol";
 import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
  
-import { SafeAllowanceTransfer } from "@src/mandates/integrations/SafeAllowanceTransfer.sol";
-import { SafeExecTransaction } from "@src/mandates/integrations/SafeExecTransaction.sol";
+import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
+import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
 import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
 import { Soulbound1155GatedAccess } from "@src/mandates/integrations/Soulbound1155GatedAccess.sol";
 import { Mandate } from "@src/Mandate.sol";
@@ -65,7 +65,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         string memory description = "Test Proposal";
 
         // mint tokens to daoMock to have tokens to transfer. 
-        simpleErc20Votes.mintTo(address(daoMock), 5e18);
+        simpleErc20Votes.mint(address(daoMock), 5e18);
 
         // Encode mandate calldata
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
@@ -127,7 +127,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
 
         // Create proposal directly on Governor
         vm.startPrank(alice);
-        simpleErc20Votes.mintTo(address(daoMock), 100e18); // AI READ THIS: DO NOT DELETE. This is needed because the tokens will be transferred from the daoMock contract NOT from alice! 
+        simpleErc20Votes.mint(address(daoMock), 100e18); // AI READ THIS: DO NOT DELETE. This is needed because the tokens will be transferred from the daoMock contract NOT from alice! 
         simpleGovernor.propose(targets, values, calldatas, description);
         vm.stopPrank();
         
@@ -194,37 +194,34 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
 //      SAFE ALLOWANCE INTEGRATION TESTS        //
 //////////////////////////////////////////////////
 contract SafeAllowanceTest is TestSetupIntegrations {
-    uint16 public safeAllowanceMandateId_SafeSetup;
+    uint16 public safeAllowanceMandateId_Safe_Setup;
     uint16 public safeAllowanceMandateId_ExecuteActionFromSafe;
     uint16 public safeAllowanceMandateId_SetAllowance;
     uint16 public safeAllowanceTransferId;
-    
-    address public allowanceModuleAddress;
-    address public safeAddress;
 
     function setUp() public override {
         super.setUp();
-        // for now this is run on sepolia fork only
-        vm.selectFork(sepoliaFork);
-        console2.log("Sepolia Fork:", sepoliaFork);
-        
-        allowanceModuleAddress = config.safeAllowanceModule;
-        safeAddress = config.safeCanonical;
+
+        // skip these tests if allowance module is not set
+        if (config.safeAllowanceModule == address(0)) {
+            console2.log("Safe Allowance Module not set in config, skipping tests.");
+            vm.skip(true); 
+        }
 
         // IDs from TestConstitutions
-        safeAllowanceMandateId_SafeSetup = 3;
+        safeAllowanceMandateId_Safe_Setup = 3;
         safeAllowanceMandateId_ExecuteActionFromSafe = 4;
         safeAllowanceMandateId_SetAllowance = 5;
         // On daoMockChild1
         safeAllowanceTransferId = 1;
 
         vm.prank(alice);
-        daoMock.request(safeAllowanceMandateId_SafeSetup, abi.encode(), nonce, "Setting up safe with allowance module.");
+        daoMock.request(safeAllowanceMandateId_Safe_Setup, abi.encode(), nonce, "Setting up safe with allowance module.");
     }
 
     // we will try to add a delegate. 
-    function test_SafeExecTransaction_Success() public {
-        uint16 safeExecTransactionId = 4; // index of SafeExecTransaction mandate in integrationsTestConstitution
+    function test_Safe_ExecTransaction_Success() public {
+        uint16 safeExecTransactionId = 4; // index of Safe_ExecTransaction mandate in integrationsTestConstitution
         // We are trying to add a delegate (address(0x456)) to the Safe via execTransaction mandate
         address functionTarget = config.safeAllowanceModule;
         bytes4 functionSelector = bytes4(0xe71bdf41); // addDelegate(address)
@@ -242,12 +239,12 @@ contract SafeAllowanceTest is TestSetupIntegrations {
     }
 
     // we will try to add a delegate. 
-    function test_SafeExecTransaction_Revert() public {
+    function test_Safe_ExecTransaction_Revert() public {
         // test is the same as previous test, except we set the treasury to address(0) first to test the revert.
         vm.prank(address(daoMock));
         daoMock.setTreasury(payable(address(0)));
 
-        uint16 safeExecTransactionId = 4; // index of SafeExecTransaction mandate in integrationsTestConstitution
+        uint16 safeExecTransactionId = 4; // index of Safe_ExecTransaction mandate in integrationsTestConstitution
         // We are trying to add a delegate (address(0x456)) to the Safe via execTransaction mandate
         address functionTarget = config.safeAllowanceModule;
         bytes4 functionSelector = bytes4(0xe71bdf41); // addDelegate(address)
@@ -264,7 +261,7 @@ contract SafeAllowanceTest is TestSetupIntegrations {
         daoMock.request(safeExecTransactionId, mandateCalldata, nonce, "Safe Exec Transaction");
     }
 
-    function test_SafeAllowanceTransfer_Success() public {
+    function test_SafeAllowance_Transfer_Success() public {
         // 2. Set Allowance
         address token = address(simpleErc20Votes);
         uint96 amount = 100e18;
@@ -472,6 +469,101 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
     }
 }
 
-contract AllowedTokensPresetTransferTest is TestSetupIntegrations {
+// contract AllowedTokensPresetTransferTest is TestSetupIntegrations {
+//     uint16 public allowedTokensPresetTransferId;
+//     SimpleErc20Votes public tokenA;
+//     SimpleErc20Votes public tokenB;
 
-}
+//     function setUp() public override {
+//         super.setUp();
+        
+//         allowedTokensPresetTransferId = 2; // Second mandate in integrationsTestConstitution2
+
+//         // Deploy two test tokens
+//         vm.prank(alice);
+//         tokenA = new SimpleErc20Votes();
+//         vm.prank(alice);
+//         tokenB = new SimpleErc20Votes();
+
+//         // Assign ADMIN_ROLE (0) to Alice on daoMockChild1 so she can execute the mandate
+//         vm.prank(address(daoMockChild1));
+//         daoMockChild1.assignRole(0, alice);
+//     }
+
+//     function test_AllowedTokensPresetTransfer_Success() public {
+//         // 1. Add tokens to AllowedTokens registry (owned by daoMock)
+//         vm.startPrank(address(daoMock));
+//         allowedTokens.addToken(address(tokenA));
+//         allowedTokens.addToken(address(tokenB));
+//         vm.stopPrank();
+
+//         // 2. Mint tokens to daoMockChild1 (sender)
+//         tokenA.mint(address(daoMockChild1), 100e18);
+//         tokenB.mint(address(daoMockChild1), 50e18);
+
+//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 100e18);
+//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 50e18);
+//         assertEq(tokenA.balanceOf(address(daoMock)), 0);
+//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
+
+//         // 3. Execute Mandate on daoMockChild1
+//         // handleRequest expects no specific calldata based on contract implementation, 
+//         // but Powers.request requires some calldata. The mandate ignores it.
+//         vm.prank(alice);
+//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Transfer Allowed Tokens");
+
+//         // 4. Verify transfers
+//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 0);
+//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 0);
+//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
+//         assertEq(tokenB.balanceOf(address(daoMock)), 50e18);
+//     }
+
+//     function test_AllowedTokensPresetTransfer_PartialBalance() public {
+//         // Only tokenA has balance
+//         vm.startPrank(address(daoMock));
+//         allowedTokens.addToken(address(tokenA));
+//         allowedTokens.addToken(address(tokenB));
+//         vm.stopPrank();
+
+//         tokenA.mint(address(daoMockChild1), 100e18);
+//         // tokenB balance is 0
+
+//         vm.prank(alice);
+//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Transfer Partial");
+
+//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
+//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
+//     }
+
+//     function test_AllowedTokensPresetTransfer_NoAllowedTokens() public {
+//         // Registry empty
+//         tokenA.mint(address(daoMockChild1), 100e18);
+
+//         vm.prank(alice);
+//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "No Allowed Tokens");
+
+//         // Should not transfer anything
+//         assertEq(tokenA.balanceOf(address(daoMock)), 0);
+//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 100e18);
+//     }
+    
+//     function test_AllowedTokensPresetTransfer_IgnoresUnallowedTokens() public {
+//          // Token A allowed, Token B not allowed
+//         vm.startPrank(address(daoMock));
+//         allowedTokens.addToken(address(tokenA));
+//         vm.stopPrank();
+
+//         tokenA.mint(address(daoMockChild1), 100e18);
+//         tokenB.mint(address(daoMockChild1), 50e18);
+
+//         vm.prank(alice);
+//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Ignore Unallowed");
+
+//         // Token A transferred
+//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
+//         // Token B stays
+//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 50e18);
+//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
+//     }
+// }

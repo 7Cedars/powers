@@ -34,7 +34,7 @@ pragma solidity 0.8.26;
 //         (mandate2,, active2) = daoMock.getAdoptedMandate(2);
 //         assertTrue(active1, "Mandate 1 not active");
 //         assertTrue(active2, "Mandate 2 not active");
-//         assertEq(mandate1, findMandateAddress("SafeSetup"), "Mandate 1 target mismatch");
+//         assertEq(mandate1, findMandateAddress("Safe_Setup"), "Mandate 1 target mismatch");
 //         assertEq(mandate2, findMandateAddress("PowerLabsConfig"), "Mandate 2 target mismatch");
 //     }
 
@@ -91,7 +91,7 @@ pragma solidity 0.8.26;
 //         console2.log("Doc Contributors:", amountDocContribs);
 
 //         // Step 1: Member proposes to add a new delegate.
-//         // Mandate counter starts at 1, SafeSetup is mandate 1, PowerLabsConfig is mandate 2. It adds 9(?) mandates.
+//         // Mandate counter starts at 1, Safe_Setup is mandate 1, PowerLabsConfig is mandate 2. It adds 9(?) mandates.
 //         mandateId = 3; // Mandate adopted by PowerLabsConfig
 //         (address mandateTarget,,) = daoMock.getAdoptedMandate(mandateId);
 //         assertEq(mandateTarget, findMandateAddress("StatementOfIntent"), "Proposal mandate should be StatementOfIntent");

@@ -2053,7 +2053,7 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         assertEq(token.balanceOf(alice, COIN_ID), amount);
     }
@@ -2061,7 +2061,7 @@ contract SimpleErc1155Test is TestSetupPowers {
     function testMintCoinsRevertsWithZeroAmount() public {
         vm.prank(alice);
         vm.expectRevert(SimpleErc1155.SimpleErc1155__NoZeroAmount.selector);
-        token.mintCoins(0);
+        token.mint(0);
     }
 
     function testMintCoinsRevertsWithExcessiveAmount() public {
@@ -2073,14 +2073,14 @@ contract SimpleErc1155Test is TestSetupPowers {
             )
         );
         vm.prank(alice);
-        token.mintCoins(excessiveAmount);
+        token.mint(excessiveAmount);
     }
 
     function testMintCoinsWithMaxAmount() public {
         uint256 maxAmount = 100 * 10 ** 18;
 
         vm.prank(alice);
-        token.mintCoins(maxAmount);
+        token.mint(maxAmount);
 
         assertEq(token.balanceOf(alice, COIN_ID), maxAmount);
     }
@@ -2090,10 +2090,10 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount2 = 2000;
 
         vm.prank(alice);
-        token.mintCoins(amount1);
+        token.mint(amount1);
 
         vm.prank(alice);
-        token.mintCoins(amount2);
+        token.mint(amount2);
 
         assertEq(token.balanceOf(alice, COIN_ID), amount1 + amount2);
     }
@@ -2102,7 +2102,7 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         vm.prank(alice);
         token.safeTransferFrom(alice, bob, COIN_ID, 500, "");
@@ -2115,7 +2115,7 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = COIN_ID;
@@ -2151,7 +2151,7 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         vm.prank(alice);
         token.setApprovalForAll(bob, true);
@@ -2167,7 +2167,7 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         vm.expectRevert();
         vm.prank(bob);
@@ -2190,13 +2190,13 @@ contract SimpleErc1155Test is TestSetupPowers {
         uint256 amount = 1000;
 
         vm.prank(alice);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         vm.prank(bob);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         vm.prank(charlotte);
-        token.mintCoins(amount);
+        token.mint(amount);
 
         assertEq(token.balanceOf(alice, COIN_ID), amount);
         assertEq(token.balanceOf(bob, COIN_ID), amount);
@@ -2519,12 +2519,12 @@ contract Soulbound1155Test is TestSetupPowers {
     function setUp() public override {
         super.setUp();
         vm.prank(address(daoMock));
-        sbToken = new Soulbound1155();
+        sbToken = new Soulbound1155("This is a test uri");
     }
 
     function testConstructor() public view {
         assertEq(sbToken.owner(), address(daoMock));
-        assertEq(sbToken.uri(0), "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreighx6axdemwbjara3xhhfn5yaiktidgljykzx3vsrqtymicxxtgvi");
+        assertEq(sbToken.uri(0), "This is a test uri");
     }
 
     function testMint() public {

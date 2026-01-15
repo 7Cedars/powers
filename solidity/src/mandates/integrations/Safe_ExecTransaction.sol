@@ -12,7 +12,7 @@ import { Safe } from "lib/safe-smart-account/contracts/Safe.sol";
 import { Enum } from "lib/safe-smart-account/contracts/common/Enum.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-contract SafeExecTransaction is Mandate {
+contract Safe_ExecTransaction is Mandate {
     struct Mem {
         bytes data;
         address to; 

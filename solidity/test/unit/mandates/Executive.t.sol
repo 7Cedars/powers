@@ -14,6 +14,7 @@ import { PowersMock } from "@mocks/PowersMock.sol";
 import { OpenAction } from "@src/mandates/executive/OpenAction.sol";
 import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 
 contract StatementOfIntentTest is TestSetupExecutive {
     function setUp() public override {
@@ -35,7 +36,7 @@ contract StatementOfIntentTest is TestSetupExecutive {
 
     function testStatementOfIntentDoesNotExecutePayload() public {
         // Prepare payload that would mint tokens if executed
-        callData = abi.encodeWithSelector(SimpleErc1155.mintCoins.selector, 100);
+        callData = abi.encodeWithSignature("mint(uint256,address)", 100, alice);
 
         targets = new address[](1);
         targets[0] = address(simpleErc1155);
@@ -49,12 +50,12 @@ contract StatementOfIntentTest is TestSetupExecutive {
         mandateCalldata = abi.encode(targets, values, calldatas);
         nonce = 999;
 
-        balanceBefore = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceBefore = simpleErc1155.balanceOf(alice, 0);
 
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, "Try to mint");
 
-        balanceAfter = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceAfter = simpleErc1155.balanceOf(alice, 0);
 
         // Assert balance did NOT change
         assertEq(balanceAfter, balanceBefore, "StatementOfIntent should not execute the payload");
@@ -87,8 +88,9 @@ contract OpenActionTest is TestSetupExecutive {
         // 1. Prepare calldata for external action (Mint coins on SimpleErc1155)
         mintAmount = 100;
         callData = abi.encodeWithSelector(
-            SimpleErc1155.mintCoins.selector,
-            mintAmount
+            bytes4(keccak256("mint(uint256,address)")),
+            mintAmount,
+            alice // mint to alice to see event emitted correctly
         );
 
         // 2. Prepare mandate inputs
@@ -109,13 +111,13 @@ contract OpenActionTest is TestSetupExecutive {
 
         // 3. Execute request (OpenAction allows immediate execution by public)
         // Verify balance before
-        balanceBefore = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceBefore = simpleErc1155.balanceOf(alice, 0);
         
         vm.prank(alice); // Alice can execute as allowedRole is max (public)
         daoMock.request(mandateId, mandateCalldata, nonce, description);
 
         // 4. Verify result
-        balanceAfter = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceAfter = simpleErc1155.balanceOf(alice, 0);
         assertEq(balanceAfter, balanceBefore + mintAmount, "Balance should increase by mint amount");
     }
 
@@ -123,8 +125,9 @@ contract OpenActionTest is TestSetupExecutive {
         // Execute two actions: Mint coins twice
         mintAmount = 50;
         callData = abi.encodeWithSelector(
-            SimpleErc1155.mintCoins.selector,
-            mintAmount
+            bytes4(keccak256("mint(uint256,address)")),
+            mintAmount,
+            alice
         );
 
         targets = new address[](2);
@@ -142,12 +145,12 @@ contract OpenActionTest is TestSetupExecutive {
         mandateCalldata = abi.encode(targets, values, calldatas);
         nonce = 222;
 
-        balanceBefore = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceBefore = simpleErc1155.balanceOf(alice, 0);
 
         vm.prank(bob);
         daoMock.request(mandateId, mandateCalldata, nonce, "Double Mint");
 
-        balanceAfter = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceAfter = simpleErc1155.balanceOf(alice, 0);
         assertEq(balanceAfter, balanceBefore + (mintAmount * 2), "Balance should increase by 2x mint amount");
     }
 
@@ -170,15 +173,15 @@ contract BespokeActionSimpleTest is TestSetupExecutive {
     function testSimpleExecute() public {
         mintAmount = 50;
         // In this mandate, mandateCalldata is appended directly to the selector.
-        // mintCoins takes one uint256 parameter.
-        mandateCalldata = abi.encode(mintAmount);
+        // mint takes one uint256 parameter.
+        mandateCalldata = abi.encode(mintAmount, alice);
 
-        balanceBefore = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceBefore = simpleErc1155.balanceOf(alice, 0);
 
         vm.prank(alice); // Alice has Role 1, which is allowed
         daoMock.request(mandateId, mandateCalldata, nonce, "Mint 50 coins");
 
-        balanceAfter = simpleErc1155.balanceOf(address(daoMock), 0);
+        balanceAfter = simpleErc1155.balanceOf(alice, 0);
         assertEq(balanceAfter, balanceBefore + mintAmount, "Balance should increase by minted amount");
     }
 
@@ -285,4 +288,40 @@ contract PresetSingleActionTest is TestSetupExecutive {
 
 contract PresetMultipleActionsTest is TestSetupExecutive {
     // Placeholder for PresetMultipleActions specific tests
+}
+
+contract BespokeActionOnReturnValueTest is TestSetupExecutive {
+    event Consumed(uint256 value);
+
+    function setUp() public override {
+        super.setUp();
+        mandateId = 10; // BespokeActionOnReturnValue
+    }
+
+    function testExecuteWithReturnValue() public {
+        // 1. Execute Parent Action (BespokeActionReturner - ID 9)
+        uint16 parentMandateId = 9;
+        bytes memory emptyCalldata = "";
+        uint256 testNonce = 12345;
+
+        vm.prank(alice);
+        daoMock.request(parentMandateId, emptyCalldata, testNonce, "Parent Action");
+
+        // Verify parent action fulfilled
+        uint256 parentActionId = MandateUtilities.computeActionId(parentMandateId, emptyCalldata, testNonce);
+        assertEq(uint8(daoMock.getActionState(parentActionId)), uint8(PowersTypes.ActionState.Fulfilled));
+
+        // 2. Execute Child Action (BespokeActionOnReturnValue - ID 10)
+        // Must use SAME calldata and nonce as parent
+        
+        vm.expectEmit(true, true, true, true);
+        emit Consumed(42); // Expect 42 from ReturnDataMock.getValue()
+
+        vm.prank(alice);
+        daoMock.request(mandateId, emptyCalldata, testNonce, "Child Action");
+
+        // Verify child action fulfilled
+        actionId = MandateUtilities.computeActionId(mandateId, emptyCalldata, testNonce);
+        assertEq(uint8(daoMock.getActionState(actionId)), uint8(PowersTypes.ActionState.Fulfilled));
+    }
 }

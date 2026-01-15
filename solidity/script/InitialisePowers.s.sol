@@ -22,6 +22,7 @@ import { BespokeActionSimple } from "@src/mandates/executive/BespokeActionSimple
 import { AdoptMandates } from "@src/mandates/executive/AdoptMandates.sol";
 import { RevokeMandates } from "@src/mandates/executive/RevokeMandates.sol";
 import { CheckExternalActionState } from "@src/mandates/executive/CheckExternalActionState.sol";
+import { BespokeActionOnReturnValue } from "@src/mandates/executive/BespokeActionOnReturnValue.sol";
 
 // Electoral mandates
 import { OpenElectionStart } from "@src/mandates/electoral/OpenElectionStart.sol";
@@ -45,10 +46,11 @@ import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.s
 // Integration Mandates
 import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
 import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
-import { SafeExecTransaction } from "@src/mandates/integrations/SafeExecTransaction.sol";
-import { SafeSetup } from "@src/mandates/integrations/SafeSetup.sol";
-import { SafeAllowanceTransfer } from "@src/mandates/integrations/SafeAllowanceTransfer.sol";
-import { AllowedTokensPresetTransfer } from "@src/mandates/integrations/AllowedTokensPresetTransfer.sol";
+import { Safe_Setup } from "@src/mandates/integrations/Safe_Setup.sol";
+import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
+import { Safe_RecoverTokens } from "@src/mandates/integrations/Safe_RecoverTokens.sol";
+import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
+import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol"; 
 import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
 import { Soulbound1155GatedAccess } from "@src/mandates/integrations/Soulbound1155GatedAccess.sol";
 
@@ -152,10 +154,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(AdoptMandates).creationCode);
         constructorArgs.push(abi.encode("AdoptMandates"));
 
-        names.push("SafeExecTransaction");
-        creationCodes.push(type(SafeExecTransaction).creationCode);
-        constructorArgs.push(abi.encode("SafeExecTransaction"));
-
         names.push("GovernorCreateProposal");
         creationCodes.push(type(GovernorCreateProposal).creationCode);
         constructorArgs.push(abi.encode("GovernorCreateProposal"));
@@ -164,7 +162,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(GovernorExecuteProposal).creationCode);
         constructorArgs.push(abi.encode("GovernorExecuteProposal"));
 
-        // Electoral mandates
         names.push("OpenElectionEnd");
         creationCodes.push(type(OpenElectionEnd).creationCode);
         constructorArgs.push(abi.encode("OpenElectionEnd"));
@@ -201,10 +198,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(RoleByTransaction).creationCode);
         constructorArgs.push(abi.encode("RoleByTransaction"));
 
-        names.push("SafeSetup");
-        creationCodes.push(type(SafeSetup).creationCode);
-        constructorArgs.push(abi.encode("SafeSetup"));
-
         names.push("ClaimRoleWithGitSig");
         creationCodes.push(type(ClaimRoleWithGitSig).creationCode);
         constructorArgs.push(abi.encode(config_.chainlinkFunctionsRouter));
@@ -225,9 +218,25 @@ contract InitialisePowers is Script {
         creationCodes.push(type(AssignExternalRole).creationCode);
         constructorArgs.push(abi.encode("AssignExternalRole"));
 
-        names.push("SafeAllowanceTransfer");
-        creationCodes.push(type(SafeAllowanceTransfer).creationCode);
-        constructorArgs.push(abi.encode("SafeAllowanceTransfer"));
+        names.push("Safe_Setup");
+        creationCodes.push(type(Safe_Setup).creationCode);
+        constructorArgs.push(abi.encode("Safe_Setup"));
+
+        names.push("Safe_ExecTransaction");
+        creationCodes.push(type(Safe_ExecTransaction).creationCode);
+        constructorArgs.push(abi.encode("Safe_ExecTransaction"));
+
+        names.push("Safe_RecoverTokens");
+        creationCodes.push(type(Safe_RecoverTokens).creationCode);
+        constructorArgs.push(abi.encode("Safe_RecoverTokens"));
+
+        names.push("SafeAllowance_Transfer");
+        creationCodes.push(type(SafeAllowance_Transfer).creationCode);
+        constructorArgs.push(abi.encode("SafeAllowance_Transfer"));
+
+        names.push("SafeAllowance_Action");
+        creationCodes.push(type(SafeAllowance_Action).creationCode);
+        constructorArgs.push(abi.encode("SafeAllowance_Action"));
 
         names.push("CheckExternalActionState");
         creationCodes.push(type(CheckExternalActionState).creationCode);
@@ -245,10 +254,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(OpenElectionStart).creationCode);
         constructorArgs.push(abi.encode("OpenElectionStart"));
 
-        names.push("AllowedTokensPresetTransfer");
-        creationCodes.push(type(AllowedTokensPresetTransfer).creationCode);
-        constructorArgs.push(abi.encode("AllowedTokensPresetTransfer"));
-
         names.push("PowersFactoryAssignRole");
         creationCodes.push(type(PowersFactoryAssignRole).creationCode);
         constructorArgs.push(abi.encode("PowersFactoryAssignRole"));
@@ -256,6 +261,10 @@ contract InitialisePowers is Script {
         names.push("Soulbound1155GatedAccess");
         creationCodes.push(type(Soulbound1155GatedAccess).creationCode);
         constructorArgs.push(abi.encode("Soulbound1155GatedAccess"));
+
+        names.push("BespokeActionOnReturnValue");
+        creationCodes.push(type(BespokeActionOnReturnValue).creationCode);
+        constructorArgs.push(abi.encode("BespokeActionOnReturnValue"));
 
         string memory obj2 = "second key"; 
 

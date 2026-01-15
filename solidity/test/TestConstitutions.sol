@@ -7,6 +7,7 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { Configurations } from "@script/Configurations.s.sol";
 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 import { IPowersFactory } from "@src/helpers/PowersFactory.sol";
 import { ISoulbound1155} from "@src/helpers/Soulbound1155.sol";
 
@@ -176,7 +177,7 @@ contract TestConstitutions is Test {
         calldatas = new bytes[](1);
         targets[0] = simpleErc1155;
         values[0] = 0;
-        calldatas[0] = abi.encodeWithSelector(SimpleErc1155.mintCoins.selector, 123);
+        calldatas[0] = abi.encodeWithSignature("mint(uint256)", 123);
 
         // setting up config file
         conditions.quorum = 20; // = 30% quorum needed
@@ -433,7 +434,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //                  EXECUTIVE CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function executiveTestConstitution( address daoMock, address simpleErc1155 ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+    function executiveTestConstitution( address daoMock, address simpleErc1155, address returnDataMock ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
         delete constitution; // restart constitution array.
 
         // StatementOfIntent - for proposing actions
@@ -457,15 +458,16 @@ contract TestConstitutions is Test {
         delete conditions;
 
         // BespokeActionSimple - for simple function calls
-        params = new string[](1);
+        params = new string[](2);
         params[0] = "uint256 Quantity";
+        params[1] = "address To";
         conditions.allowedRole = 1;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "BespokeActionSimple: A mandate to execute a simple function call.",
             targetMandate: getMandateAddress("BespokeActionSimple"), // BespokeActionSimple (multi mandate)
             config: abi.encode(
                 simpleErc1155, // SimpleErc1155 mock
-                SimpleErc1155.mintCoins.selector,
+                bytes4(keccak256("mint(uint256,address)")),
                 params
             ),
             conditions: conditions
@@ -583,6 +585,40 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
+        // BespokeActionReturner (BespokeActionSimple) - returns a value
+        conditions.allowedRole = type(uint256).max;
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "BespokeActionReturner: Returns a value for testing.",
+            targetMandate: getMandateAddress("BespokeActionSimple"),
+            config: abi.encode(
+                returnDataMock,
+                ReturnDataMock.getValue.selector,
+                new string[](0)
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // BespokeActionOnReturnValue - for using return values from previous mandates
+        params = new string[](1);
+        params[0] = "uint256 Value";
+
+        conditions.allowedRole = type(uint256).max; // public role can adopt mandates
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "BespokeActionOnReturnValue: Execute a call using return value of previous mandate call.",
+            targetMandate: getMandateAddress("BespokeActionOnReturnValue"), // BespokeActionOnReturnValue (executive mandate)
+            config: abi.encode(
+                returnDataMock,
+                ReturnDataMock.consume.selector,
+                abi.encode(), // no data after
+                params,
+                9, // mandateId of BespokeActionReturner (the one just added)
+                abi.encode() // no data before
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
         return constitution;
     }
 
@@ -614,11 +650,11 @@ contract TestConstitutions is Test {
         delete conditions;
 
         // Safe Allowance Integration //
-        // SafeSetup
+        // Safe_Setup
         conditions.allowedRole = type(uint256).max; // Public
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
-            targetMandate: getMandateAddress("SafeSetup"),
+            targetMandate: getMandateAddress("Safe_Setup"),
             config: abi.encode(
                 config.safeProxyFactory,
                 config.safeL2Canonical,
@@ -637,7 +673,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute an action from the Safe treasury.",
-            targetMandate: getMandateAddress("SafeExecTransaction"),
+            targetMandate: getMandateAddress("Safe_ExecTransaction"),
             config: abi.encode(
                 inputParams,
                 config.safeL2Canonical
@@ -725,7 +761,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 0; 
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute Allowance Transaction: Execute a transaction from the Safe Treasury within the allowance set.",
-            targetMandate: getMandateAddress("SafeAllowanceTransfer"),
+            targetMandate: getMandateAddress("SafeAllowance_Transfer"),
             config: abi.encode(
                 config.safeAllowanceModule,
                 IPowers(daoMock).getTreasury() // This is the SafeProxyTreasury! 
@@ -901,7 +937,7 @@ contract TestConstitutions is Test {
             targetMandate: getMandateAddress("AssignExternalRole"),
             config: abi.encode(
                 parent,
-                1 // RoleId (Funders) placeholder
+                1 //  
             ),
             conditions: conditions
         }));
@@ -1029,11 +1065,11 @@ contract TestConstitutions is Test {
     function safeProtocol_Parent_IntegrationTestConstitution( address /*daoMock*/ ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
         delete parentConstitution; // restart parentConstitution array.
 
-        // SafeSetup
+        // Safe_Setup
         conditions.allowedRole = type(uint256).max; // Public
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Setup Safe: Create a SafeProxy and register it as treasury.",
-            targetMandate: getMandateAddress("SafeSetup"),
+            targetMandate: getMandateAddress("Safe_Setup"),
             config: abi.encode(
                 config.safeProxyFactory,
                 config.safeL2Canonical
@@ -1060,7 +1096,7 @@ contract TestConstitutions is Test {
         conditions.timelock = 150; 
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute Allowance Transaction: Execute a transaction from the Safe Treasury within the allowance set.",
-            targetMandate: getMandateAddress("SafeAllowanceTransfer"),
+            targetMandate: getMandateAddress("SafeAllowance_Transfer"),
             config: abi.encode(
                 config.safeAllowanceModule,
                 IPowers(parent).getTreasury() // This is the SafeProxyTreasury! 

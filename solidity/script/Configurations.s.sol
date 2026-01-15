@@ -86,7 +86,9 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.safeCanonical = 0x0000000000000000000000000000000000000000;
         networkConfig.safeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.safeProxyFactory = 0x0000000000000000000000000000000000000000;
         networkConfig.safeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
@@ -104,7 +106,9 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.safeCanonical = 0x0000000000000000000000000000000000000000;
         networkConfig.safeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.safeProxyFactory = 0x0000000000000000000000000000000000000000;
         networkConfig.safeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
@@ -121,8 +125,10 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsGasLimit = 300_000;
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
-
+        
+        networkConfig.safeCanonical = 0x0000000000000000000000000000000000000000;
         networkConfig.safeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.safeProxyFactory = 0x0000000000000000000000000000000000000000;
         networkConfig.safeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
@@ -140,7 +146,9 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.safeCanonical = 0x0000000000000000000000000000000000000000;
         networkConfig.safeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.safeProxyFactory = 0x0000000000000000000000000000000000000000;
         networkConfig.safeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;
@@ -158,7 +166,9 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
 
+        networkConfig.safeCanonical = 0x0000000000000000000000000000000000000000;
         networkConfig.safeL2Canonical = 0x0000000000000000000000000000000000000000;
+        networkConfig.safeProxyFactory = 0x0000000000000000000000000000000000000000;
         networkConfig.safeAllowanceModule = 0x0000000000000000000000000000000000000000;
 
         return networkConfig;

@@ -19,7 +19,7 @@ interface ISafe {
         returns (bool success);
 }
 
-contract SafeAllowanceTransfer is Mandate {
+contract SafeAllowance_Transfer is Mandate {
     struct Mem {
         bytes32 mandateHash;
         address token;

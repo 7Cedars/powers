@@ -243,7 +243,7 @@ contract NestedGovernance is DeploySetup {
             targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
             config: abi.encode(
                 address(votesToken),
-                SimpleErc20Votes.mint.selector,
+                bytes4(keccak256("mint(uint256)")), 
                 inputParams
             ),
             conditions: conditions

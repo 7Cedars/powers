@@ -23,7 +23,7 @@ contract SafeProtocolFlowTest is TestSetupSafeProtocolFlow {
         // 1. Setup Safe on Parent (Mandate 1)
         // ---------------------------------------------------------
         // Mandate 1 in SafeProtocol_Parent constitution is "Setup Safe".
-        // It uses SafeSetup mandate which requires no input params in execution as everything is in config.
+        // It uses Safe_Setup mandate which requires no input params in execution as everything is in config.
         nonce = 123;
         console2.log("Executing Safe Setup...");
         daoMock.request(1, "", nonce, "");
@@ -68,7 +68,7 @@ contract SafeProtocolFlowTest is TestSetupSafeProtocolFlow {
         
         // Deploy a token and mint to Safe
         SimpleErc20Votes token = new SimpleErc20Votes();
-        token.mintTo(safeTreasury, 1000 ether);
+        token.mint(safeTreasury, 1000 ether);
         
         uint96 allowanceAmount = 100 ether;
         // Mandate 3: Set Allowance. Input: Child, Token, Amount, ResetTime, ResetBase
@@ -94,7 +94,7 @@ contract SafeProtocolFlowTest is TestSetupSafeProtocolFlow {
         address payableTo = makeAddr("recipient");
         uint256 transferAmount = 10 ether;
         
-        // Input params for SafeAllowanceTransfer: Token, PayableTo, Amount
+        // Input params for SafeAllowance_Transfer: Token, PayableTo, Amount
         bytes memory executionParams = abi.encode(address(token), payableTo, transferAmount);
         
         console2.log("Proposing transaction on Child...");

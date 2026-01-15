@@ -15,7 +15,7 @@ pragma solidity 0.8.26;
 // /// @dev Tests use mandates from multiTestConstitution:
 // ///      mandateId 1: OpenAction
 // ///      mandateId 2: StatementOfIntent
-// ///      mandateId 3: BespokeActionSimple (mintCoins)
+// ///      mandateId 3: BespokeActionSimple (mint)
 // ///      mandateId 4: BespokeActionAdvanced (assignRole)
 // ///      mandateId 5: PresetSingleAction (label roles)
 // ///      mandateId 6: PresetMultipleActions (multiple label actions)

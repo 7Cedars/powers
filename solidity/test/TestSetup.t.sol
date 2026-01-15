@@ -33,6 +33,7 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
+import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 import { AllowedTokens } from "@src/helpers/AllowedTokens.sol";
 import { PowersFactory } from "@src/helpers/PowersFactory.sol";
 import { Soulbound1155 } from "@src/helpers/Soulbound1155.sol";
@@ -59,6 +60,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     SimpleErc20Votes simpleErc20Votes; 
     Erc20Taxed erc20Taxed;
     SimpleErc1155 simpleErc1155;
+    ReturnDataMock returnDataMock;
     Nominees nominees;
     OpenElection openElection;
     Erc20DelegateElection erc20DelegateElection;
@@ -336,6 +338,12 @@ abstract contract TestHelperFunctions is Test, TestVariables {
 abstract contract BaseSetup is TestVariables, TestHelperFunctions {
     function setUp() public virtual {
         vm.roll(block.number + 10);
+        
+        // forks 
+        sepoliaFork = vm.createFork(vm.envString("SEPOLIA_RPC_URL"));
+        optSepoliaFork = vm.createFork(vm.envString("OPT_SEPOLIA_RPC_URL"));
+        arbSepoliaFork = vm.createFork(vm.envString("ARB_SEPOLIA_RPC_URL"));
+
         setUpVariables();
         // run mandates deploy script here.
     }
@@ -344,11 +352,6 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
         nonce = 123;
         MAX_FUZZ_TARGETS = 5;
         MAX_FUZZ_CALLDATA_LENGTH = 2000;
-
-        // forks 
-        sepoliaFork = vm.createFork(vm.envString("SEPOLIA_RPC_URL"));
-        optSepoliaFork = vm.createFork(vm.envString("OPT_SEPOLIA_RPC_URL"));
-        arbSepoliaFork = vm.createFork(vm.envString("ARB_SEPOLIA_RPC_URL"));
 
         // users
         alice = makeAddr("alice");
@@ -512,13 +515,16 @@ abstract contract TestSetupExecutive is BaseSetup {
     function setUpVariables() public override {
         super.setUpVariables();
 
-        vm.prank(address(daoMock));
+        vm.startPrank(address(daoMock));
         simpleErc1155 = new SimpleErc1155();
+        returnDataMock = new ReturnDataMock();
+        vm.stopPrank();
 
         // initiate executive constitution
         (PowersTypes.MandateInitData[] memory mandateInitData_) = testConstitutions.executiveTestConstitution(
             address(daoMock), 
-            address(simpleErc1155)
+            address(simpleErc1155),
+            address(returnDataMock)
             );
 
         // constitute daoMock.
@@ -535,13 +541,16 @@ abstract contract TestSetupExecutive is BaseSetup {
 
 abstract contract TestSetupIntegrations is BaseSetup {
     function setUpVariables() public override {
+        // these tests include interactions with the Safe protocol. To run them, uncomment the fork selection line below. 
+        // vm.selectFork(sepoliaFork);  
+
         super.setUpVariables();
 
         vm.startPrank(address(daoMock));
         simpleErc20Votes = new SimpleErc20Votes();
         simpleGovernor = new SimpleGovernor(address(simpleErc20Votes));
         allowedTokens = new AllowedTokens();
-        soulbound1155 = new Soulbound1155();
+        soulbound1155 = new Soulbound1155("this is a test uri");
         powersFactory = new PowersFactory(
             testConstitutions.powersTestConstitution(address(daoMock)),
             config.maxCallDataLength,

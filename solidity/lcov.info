@@ -2938,8 +2938,8 @@ end_of_record
 TN:
 SF:test/mocks/SimpleErc1155.sol
 DA:25,17
-FN:25,SimpleErc1155.mintCoins
-FNDA:17,SimpleErc1155.mintCoins
+FN:25,SimpleErc1155.mint
+FNDA:17,SimpleErc1155.mint
 DA:26,17
 BRDA:26,0,0,2
 DA:27,2

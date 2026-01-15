@@ -274,22 +274,5 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param account The address to check
     /// @return blacklisted The blacklisted status of the account
     function isBlacklisted(address account) external view returns (bool blacklisted);
-
-    //////////////////////////////////////////////////////////////
-    //                      TOKEN HANDLING                      //
-    //////////////////////////////////////////////////////////////
-
-    /// @notice Handles the receipt of a single ERC721 token
-    /// @dev Implements IERC721Receiver
-    function onERC721Received(address, address, uint256, bytes memory) external returns (bytes4);
-
-    /// @notice Handles the receipt of a single ERC1155 token
-    /// @dev Implements IERC1155Receiver
-    function onERC1155Received(address, address, uint256, uint256, bytes memory) external returns (bytes4);
-
-    /// @notice Handles the receipt of multiple ERC1155 tokens
-    /// @dev Implements IERC1155Receiver
-    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory)
-        external
-        returns (bytes4);
+ 
 }

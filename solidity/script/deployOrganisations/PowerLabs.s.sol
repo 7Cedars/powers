@@ -86,12 +86,12 @@ contract PowerLabs is DeploySetup {
 
     function createParentConstitution() internal returns (uint256 constitutionLength) {
         // Mandate 1: Setup Safe
-        // SafeSetup
+        // Safe_Setup
         mandateCount++;
         conditions.allowedRole = type(uint256).max; // Public
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Setup Safe: Create a SafeProxy, set up allowance module and register it as treasury.",
-            targetMandate: initialisePowers.getMandateAddress("SafeSetup"),
+            targetMandate: initialisePowers.getMandateAddress("Safe_Setup"),
             config: abi.encode(
                 config.safeProxyFactory,
                 config.safeL2Canonical,
@@ -302,6 +302,26 @@ contract PowerLabs is DeploySetup {
         }));
         delete conditions;
 
+        mandateCount++;
+        conditions.allowedRole = 4; // = protocol contributors.
+        conditions.quorum = 20; // = 30% quorum needed
+        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
+        conditions.needFulfilled = mandateCount - 1; // = the proposal mandate.
+        parentConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute and adopt new child Powers as a delegate to the Safe treasury.",
+            targetMandate: initialisePowers.getMandateAddress("SafeAllowance_Action"),
+            config: abi.encode(
+                inputParams,
+                bytes4(0xe71bdf41), // == AllowanceModule.addDelegate.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
+                config.safeAllowanceModule
+            ),
+            conditions: conditions // everythign zero == Only admin can call directly
+        }));
+        delete conditions;
+
+
+
         //////////////////////////////////////////////////////////////////////////
         //               GOVERNANCE FLOW FOR SETTING ALLOWANCE                  //
         //////////////////////////////////////////////////////////////////////////
@@ -367,6 +387,24 @@ contract PowerLabs is DeploySetup {
             targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
+        }));
+        delete conditions;
+
+        mandateCount++;
+        conditions.allowedRole = 4; // = protocol contributors.
+        conditions.quorum = 20; // = 30% quorum needed
+        conditions.succeedAt = 66; // = 51% simple majority needed for assigning and revoking members.
+        conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
+        conditions.needFulfilled = mandateCount - 1; // = the proposal mandate.
+        parentConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
+            targetMandate: initialisePowers.getMandateAddress("SafeAllowance_Action"),
+            config: abi.encode(
+                inputParams,
+                bytes4(0xbeaeb388), // == AllowanceModule.setAllowance.selector (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
+                config.safeAllowanceModule 
+            ),
+            conditions: conditions // everythign zero == Only admin can call directly
         }));
         delete conditions;
 
@@ -539,7 +577,7 @@ contract PowerLabs is DeploySetup {
         delete conditions;
 
         // Mandate: Execute Allowance Transaction
-        // TS uses SafeAllowanceTransfer. config: allowanceModule, safeProxy
+        // TS uses SafeAllowance_Transfer. config: allowanceModule, safeProxy
         // We use config.safeAllowanceModule and address(powersParent) as placeholder for safeProxy
         mandateCount++;
         conditions.allowedRole = 1; // Assuming RoleId 1 (Funders) as placeholder for formData["RoleId"] 
@@ -549,7 +587,7 @@ contract PowerLabs is DeploySetup {
         conditions.timelock = minutesToBlocks(3, config.BLOCKS_PER_HOUR);
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute Allowance Transaction: Execute a transaction from the Safe Treasury within the allowance set.",
-            targetMandate: initialisePowers.getMandateAddress("SafeAllowanceTransfer"),
+            targetMandate: initialisePowers.getMandateAddress("SafeAllowance_Transfer"),
             config: abi.encode(
                 config.safeAllowanceModule,
                 address(parent) // Placeholder for SafeProxyTreasury
