@@ -23,7 +23,7 @@ contract Configurations is Script {
         address safeAllowanceModule;
     }
 
-    uint256 constant LOCAL_CHAIN_ID = 31_337;
+    uint256 constant LOCAL_CHAIN_ID = 31_337; 
     uint256 constant ETH_SEPOLIA_CHAIN_ID = 11_155_111;
     uint256 constant OPT_SEPOLIA_CHAIN_ID = 11_155_420;
     uint256 constant ARB_SEPOLIA_CHAIN_ID = 421_614;
@@ -56,9 +56,9 @@ contract Configurations is Script {
 
     function getEthSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 300; // new block every 12 seconds
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
         networkConfig.chainlinkFunctionsSubscriptionId = 5819;
@@ -76,9 +76,9 @@ contract Configurations is Script {
 
     function getArbSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 14_400; // new block every 0.25 seconds
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;
@@ -96,9 +96,9 @@ contract Configurations is Script {
 
     function getOptSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 1800; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0xC17094E3A1348E5C7544D4fF8A36c28f2C6AAE28;
         networkConfig.chainlinkFunctionsSubscriptionId = 256;
@@ -116,9 +116,9 @@ contract Configurations is Script {
 
     function getBaseSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 1800; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0xf9B8fc078197181C841c296C876945aaa425B278;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;
@@ -136,9 +136,9 @@ contract Configurations is Script {
 
     function getMantleSepoliaConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 360_000; // new block every 2 seconds
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;
@@ -156,9 +156,9 @@ contract Configurations is Script {
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
         networkConfig.BLOCKS_PER_HOUR = 3600; // new block per 1 second
-        networkConfig.maxCallDataLength = 10_000;
-        networkConfig.maxReturnDataLength = 10_000;
-        networkConfig.maxExecutionsLength = 25;
+        networkConfig.maxCallDataLength = 5_000;
+        networkConfig.maxReturnDataLength = 5_000;
+        networkConfig.maxExecutionsLength = 50;
 
         networkConfig.chainlinkFunctionsRouter = 0x0000000000000000000000000000000000000000;
         networkConfig.chainlinkFunctionsSubscriptionId = 1;

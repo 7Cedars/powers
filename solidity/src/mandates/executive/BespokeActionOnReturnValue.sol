@@ -21,7 +21,7 @@ contract BespokeActionOnReturnValue is Mandate {
         public
         override
     {
-        (, , string[] memory params_, ) = abi.decode(config, (address, bytes4, string[], uint16));
+        (, , , string[] memory params_, , ) = abi.decode(config, (address, bytes4, bytes, string[], uint16, bytes));
         super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
@@ -54,3 +54,4 @@ contract BespokeActionOnReturnValue is Mandate {
         return (actionId, targets, values, calldatas);
     }
 }
+ 

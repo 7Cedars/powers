@@ -720,17 +720,11 @@ contract TestConstitutions is Test {
 
         // Soulbound1155 integration //
         // minting mandate // 
-        inputParams = new string[](1);
-        inputParams[0] = "address to";
         conditions.allowedRole = 1; //
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Mint soulbound token: mint a soulbound ERC1155 token and send it to an address of choice.",
-            targetMandate: getMandateAddress("BespokeActionSimple"),
-            config: abi.encode(
-                soulbound1155,
-                ISoulbound1155.mint.selector,
-                inputParams
-            ),
+            targetMandate: getMandateAddress("Soulbound1155_MintEncodedToken"),
+            config: abi.encode(soulbound1155),
             conditions: conditions 
         }));
         delete conditions;
@@ -743,6 +737,7 @@ contract TestConstitutions is Test {
             config: abi.encode(
                 soulbound1155,
                 9, // roleId to be assigned upon holding the soulbound token.
+                42, // roleId to be checked for in encoded address. Alice mints the token and has been given role 42. 
                 100, // epoch of blocks within which the tokens must have been held.
                 3 // number of tokens that need to be held.
             ),
@@ -769,19 +764,6 @@ contract TestConstitutions is Test {
             conditions: conditions
         }));
         delete conditions;
-
-        // Allowed Tokens Integration //
-        conditions.allowedRole = 0; 
-        constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Transfer allowed tokens from child to parent Powers Organisation.",
-            targetMandate: getMandateAddress("AllowedTokensPresetTransfer"),
-            config: abi.encode(
-                daoMock,
-                allowedTokens  
-            ),
-            conditions: conditions
-        }));
-        delete conditions;    
 
         return constitution;
     }

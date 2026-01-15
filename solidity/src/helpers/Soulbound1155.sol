@@ -3,14 +3,13 @@ pragma solidity 0.8.26;
 
 import { ERC1155 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 
 /**
- * @dev Soulbound1155 is meant as a soulbound token that logs activity by organisation (where) and block humber (when).
- * It can be used to gate access along activity of a user in an organisation.
- * The tokenId encodes the minter address (organisation) and block number.
+ * @dev Soulbound1155 is meant as a soulbound ERC 1155 token that has a dynamic token ID, allowing for encoding data into the token ID.
  */
 interface ISoulbound1155 {
-    function mint(address to) external;
+    function mint(address to, uint256 tokenId) external;
 }
 
 contract Soulbound1155 is ERC1155, ISoulbound1155, Ownable {
@@ -23,12 +22,7 @@ contract Soulbound1155 is ERC1155, ISoulbound1155, Ownable {
     { }
 
     // Mint tokenIds that encode the minter address and block number.
-    function mint(address to) public onlyOwner {
-        uint48 blockNumber = uint48(block.number);
-        address sender = msg.sender; 
-
-        uint256 tokenId = (uint256(uint160(sender)) << 48) | uint256(blockNumber);
-
+    function mint(address to, uint256 tokenId) public onlyOwner {
         _mint(to, tokenId, 1, "");
     }
 

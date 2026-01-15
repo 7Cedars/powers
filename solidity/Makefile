@@ -290,6 +290,9 @@ SEPOLIA_DEPLOY_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --account dev_3 --sender ${D
 ARB_SEPOLIA_DEPLOY_ARGS := --rpc-url $(ARB_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 421614 --verify --ffi -vv 
 OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --sender ${DEV2_ADDRESS} --broadcast --etherscan-api-key $(ETHERSCAN_API_KEY) --verifier etherscan --chain 11155420 --verify --ffi -vv
 
+# create forked anvil chain 
+fork-anvil :
+	anvil --fork-url $(SEPOLIA_RPC_URL) --block-time 12  
 
 # Deploy an organisation to a single chain. 
 # Adjust the ANVIL_ARGS, SEPOLIA_DEPLOY_ARGS, OPT_SEPOLIA_DEPLOY_ARGS, ARB_SEPOLIA_DEPLOY_ARGS variables above to change network and deployment settings.
@@ -297,7 +300,11 @@ OPT_SEPOLIA_DEPLOY_ARGS := --rpc-url $(OPT_SEPOLIA_RPC_URL) --account dev_3 --se
 # NOTE: all mandates and helper contracts will be deployed as part of the organisation deployment script. 
 deploy-organisation : 
 	@echo "Deploying organisation..."
-	forge script script/deployOrganisations/OpenElections.s.sol:OpenElections $(ANVIL_ARGS)
+	forge script script/deployOrganisations/CulturalStewardsDAO.s.sol:CulturalStewardsDAO $(SEPOLIA_DEPLOY_ARGS)
+
+initialise-powers :
+	@echo "Initialising Powers contract..."
+	forge script script/InitialisePowers.s.sol:InitialisePowers $(SEPOLIA_DEPLOY_ARGS)
 
 # Verify Contracts
 # sepoliaVerifyContract :; forge verify-contract --etherscan-api-key $(ETHERSCAN_API_KEY) --chain 11155111 --verifier etherscan 0x05c0379565ef0ebb1bD21C0Ab463ca5CE5211D3A src/Powers.sol:Powers --watch

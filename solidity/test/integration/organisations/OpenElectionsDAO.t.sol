@@ -4,12 +4,10 @@ pragma solidity 0.8.26;
 import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
 import { Powers } from "@src/Powers.sol";
 import { OpenElection } from "@src/helpers/OpenElection.sol";
-import { TestSetupOpenElections } from "../../TestSetup.t.sol";
+import { TestSetupOpenElectionsDAO } from "../../TestSetup.t.sol";
 
-import { OpenElection } from "@src/helpers/OpenElection.sol";
-
-contract OpenElections_IntegrationTest is TestSetupOpenElections {    
-    // Mandate IDs from OpenElections.s.sol
+contract OpenElectionsDAO_IntegrationTest is TestSetupOpenElectionsDAO {    
+    // Mandate IDs from OpenElectionsDAO.s.sol
     // 1: Initial Setup (Revoked)
     // 2: Nominate
     // 3: Start Election
@@ -25,7 +23,7 @@ contract OpenElections_IntegrationTest is TestSetupOpenElections {
     // So next mandate is 7.
     uint16 constant VOTE_MANDATE_ID = 7; 
 
-    function testOpenElections_FullFlow() public { 
+    function testOpenElectionsDAO_FullFlow() public { 
 
         // --- 1. NOMINATION FLOW ---
         console2.log("--- Step 1: Nomination ---");

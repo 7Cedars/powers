@@ -2465,8 +2465,8 @@ contract PowersFactoryTest is TestSetupPowers {
         assertEq(deployedPowers.MAX_RETURN_DATA_LENGTH(), MAX_RETURN_DATA);
         assertEq(deployedPowers.MAX_EXECUTIONS_LENGTH(), MAX_EXECUTIONS);
         
-        // Check DAO Mock is Admin (since it called deployPowers)
-        assertTrue(deployedPowers.hasRoleSince(address(daoMock), deployedPowers.ADMIN_ROLE()) > 0);
+        // Check if the create DAO is set as the admin
+        assertTrue(deployedPowers.hasRoleSince(deployedAddress, deployedPowers.ADMIN_ROLE()) > 0);
         
         // Check Factory is NOT Admin
         assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
@@ -2503,7 +2503,7 @@ contract PowersFactoryTest is TestSetupPowers {
         assertEq(deployedPowers.name(), nameDescription);
         
         // Another Powers should be admin. Not factory or daoMock. 
-        assertTrue(deployedPowers.hasRoleSince(address(daoMockChild1), deployedPowers.ADMIN_ROLE()) > 0);
+        assertTrue(deployedPowers.hasRoleSince(deployedAddress, deployedPowers.ADMIN_ROLE()) > 0);
         assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
         assertEq(deployedPowers.hasRoleSince(address(daoMock), deployedPowers.ADMIN_ROLE()), 0);
     }
@@ -2529,10 +2529,10 @@ contract Soulbound1155Test is TestSetupPowers {
 
     function testMint() public {
         vm.prank(address(daoMock));
-        sbToken.mint(alice);
+        sbToken.mint(alice, 123456);
         
         uint48 blockNum = uint48(block.number);
-        uint256 expectedTokenId = (uint256(uint160(address(daoMock))) << 48) | uint256(blockNum);
+        uint256 expectedTokenId = 123456;
         
         assertEq(sbToken.balanceOf(alice, expectedTokenId), 1);
     }
@@ -2540,15 +2540,15 @@ contract Soulbound1155Test is TestSetupPowers {
     function testMintRevertsWhenNotOwner() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         vm.prank(alice);
-        sbToken.mint(alice);
+        sbToken.mint(alice, 123456);
     }
 
     function testTransferReverts() public {
         vm.prank(address(daoMock));
-        sbToken.mint(alice);
+        sbToken.mint(alice, 123456);
         
         uint48 blockNum = uint48(block.number);
-        uint256 tokenId = (uint256(uint160(address(daoMock))) << 48) | uint256(blockNum);
+        uint256 tokenId = 123456;
         
         vm.expectRevert("Soulbound1155: Transfers are disabled");
         vm.prank(alice);

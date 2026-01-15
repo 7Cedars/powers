@@ -21,7 +21,7 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 
 // organisations 
 import { Powers101 } from "../script/deployOrganisations/Powers101.s.sol";
-import { OpenElections } from "../script/deployOrganisations/OpenElections.s.sol";
+import { OpenElectionsDAO } from "../script/deployOrganisations/OpenElectionsDAO.s.sol";
 
 // helpers
 import { Nominees } from "@src/helpers/Nominees.sol";
@@ -46,7 +46,7 @@ abstract contract TestVariables is PowersErrors, PowersTypes, PowersEvents {
     PowersMock daoMock;
     PowersMock daoMockChild1;
     PowersMock daoMockChild2;
-    OpenElections openElections;
+    OpenElectionsDAO openElections;
     InitialisePowers initialisePowers;
     string[] mandateNames;
     address[] mandateAddresses; 
@@ -579,6 +579,7 @@ abstract contract TestSetupIntegrations is BaseSetup {
         daoMock.assignRole(ROLE_ONE, bob);
         daoMock.assignRole(ROLE_TWO, charlotte);
         daoMock.assignRole(ROLE_TWO, david);
+        daoMock.assignRole(42, alice);
         vm.stopPrank();
 
         vm.startPrank(address(daoMockChild1));
@@ -586,6 +587,7 @@ abstract contract TestSetupIntegrations is BaseSetup {
         daoMockChild1.assignRole(ROLE_ONE, bob);
         daoMockChild1.assignRole(ROLE_TWO, charlotte);
         daoMockChild1.assignRole(ROLE_TWO, david);
+        daoMockChild1.assignRole(42, alice);
         vm.stopPrank();
     }
 }
@@ -822,7 +824,7 @@ abstract contract TestSetupPowers101 is BaseSetup {
 }
 
 // Open Elections Setup
-abstract contract TestSetupOpenElections is BaseSetup {
+abstract contract TestSetupOpenElectionsDAO is BaseSetup {
     function setUpVariables() public override {
         // Note: this test runs the full initalisation scripts. It takes a while to run. 
         // But it is needed to be able to test the full deployment flow of an organisation.
@@ -830,7 +832,7 @@ abstract contract TestSetupOpenElections is BaseSetup {
 
         super.setUpVariables();
 
-        OpenElections openElections = new OpenElections();
+        OpenElectionsDAO openElections = new OpenElectionsDAO();
         (powers, openElection) = openElections.run();
         daoMock = PowersMock(payable(address(powers)));
 

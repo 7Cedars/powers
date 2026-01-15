@@ -7,6 +7,8 @@ import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
+// import { console2 } from "forge-std/console2.sol"; // remove before deploying.
+
 /**
  * @title Soulbound1155_GatedAccess
  * @notice Mandate to gate access to a role based on Soulbound1155 tokens.
@@ -32,7 +34,7 @@ contract Soulbound1155_GatedAccess is Mandate {
 
     error Soulbound1155_GatedAccess__InsufficientTokens();
     error Soulbound1155_GatedAccess__NotOwnerOfToken(uint256 tokenId);
-    error Soulbound1155_GatedAccess__TokenFromIncorrectToleId(uint256 tokenId);
+    error Soulbound1155_GatedAccess__TokenFromIncorrectRoleId(uint256 tokenId);
     error Soulbound1155_GatedAccess__TokenExpiredOrInvalid(uint256 tokenId);
 
     constructor() {
@@ -96,8 +98,10 @@ contract Soulbound1155_GatedAccess is Mandate {
             // Check 3: If passes, check if tokens are all from parent Powers org. If not, revert (with tokenId provided)
             // tokenId encodes minter address in high bits
             mem.minter = address(uint160(mem.tokenId >> 48));
+            // console2.log("Minter address from tokenId:", mem.minter);
+            
             if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) == 0) {
-                revert Soulbound1155_GatedAccess__TokenFromIncorrectToleId(mem.tokenId);
+                revert Soulbound1155_GatedAccess__TokenFromIncorrectRoleId(mem.tokenId);
             }
     
 

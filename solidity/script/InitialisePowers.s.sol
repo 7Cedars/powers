@@ -54,6 +54,7 @@ import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance
 import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol"; 
 import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
 import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
+import { Soulbound1155_MintEncodedToken } from "@src/mandates/integrations/Soulbound1155_MintEncodedToken.sol";
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -270,6 +271,10 @@ contract InitialisePowers is Script {
         names.push("BespokeActionOnOwnPowers");
         creationCodes.push(type(BespokeActionOnOwnPowers).creationCode);
         constructorArgs.push(abi.encode("BespokeActionOnOwnPowers"));
+
+        names.push("Soulbound1155_MintEncodedToken");
+        creationCodes.push(type(Soulbound1155_MintEncodedToken).creationCode);  
+        constructorArgs.push(abi.encode("Soulbound1155_MintEncodedToken"));
 
         string memory obj2 = "second key"; 
 

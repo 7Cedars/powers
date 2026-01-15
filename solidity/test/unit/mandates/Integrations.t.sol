@@ -366,7 +366,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
             // Calculate ID that was minted
             // TokenID = (minter << 48) | blockNumber
             // Minter is daoMock (owner of soulbound1155)
-            uint256 tokenId = (uint256(uint160(address(daoMock))) << 48) | uint256(block.number);
+            uint256 tokenId = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             tokenIds[i] = tokenId;
             
             // Advance block to get unique IDs (and test block threshold)
@@ -387,7 +387,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
     }
 
     function test_Soulbound1155_GatedAccess_Revert_InsufficientTokens() public {
-        vm.startPrank(alice);
+        vm.startPrank(alice); // NB: alice mints the tokens. It is her address that is encoded in their Ids! 
         
         // Mint 3 tokens (Threshold is 3, check is <= threshold, so 3 fails)
         uint256[] memory tokenIds = new uint256[](3);
@@ -411,7 +411,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         uint256[] memory tokenIds = new uint256[](4);
         for(uint i=0; i<4; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
-            tokenIds[i] = (uint256(uint160(address(daoMock))) << 48) | uint256(block.number);
+            tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
             nonce++;
         }
@@ -431,7 +431,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         uint256[] memory tokenIds = new uint256[](4);
         for(uint i=0; i<4; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
-            tokenIds[i] = (uint256(uint160(address(daoMock))) << 48) | uint256(block.number);
+            tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
             nonce++;
         }
@@ -449,7 +449,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         uint256[] memory tokenIds = new uint256[](4);
         for(uint i=0; i<4; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
-            tokenIds[i] = (uint256(uint160(address(daoMock))) << 48) | uint256(block.number);
+            tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
             nonce++;
         }

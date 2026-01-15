@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/// @notice A base contract that executes a bespoke action.
-///
-/// Note 1: as of now, it only allows for a single function to be called.
-/// Note 2: as of now, it does not allow sending of ether values to the target function.
-///
+/// @notice A base contract that executes a bespoke action on its own powers contract.
 /// @author 7Cedars,
 
 pragma solidity 0.8.26;
@@ -12,8 +8,8 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
-contract BespokeActionSimple is Mandate {
-    /// @notice Constructor of the BespokeActionSimple mandate
+contract BespokeActionOnOwnPowers is Mandate {
+    /// @notice Constructor of the BespokeActionOnOwnPowers mandate
     constructor() {
         bytes memory configParams =
             abi.encode("bytes4 FunctionSelector", "string[] Params");
@@ -24,7 +20,7 @@ contract BespokeActionSimple is Mandate {
         public
         override
     {
-        (, , string[] memory params_) = abi.decode(config, (bytes4, string[]));
+        (, string[] memory params_) = abi.decode(config, (bytes4, string[]));
         super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
