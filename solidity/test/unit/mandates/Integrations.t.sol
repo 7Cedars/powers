@@ -4,13 +4,13 @@ pragma solidity 0.8.26;
 import { console2 } from "forge-std/console2.sol";
 import { TestSetupIntegrations, TestSetupExecutive } from "../../TestSetup.t.sol";
 import { PowersMock } from "@mocks/PowersMock.sol";
-import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
+import { Governor_CreateProposal } from "@src/mandates/integrations/Governor_CreateProposal.sol";
+import { Governor_ExecuteProposal } from "@src/mandates/integrations/Governor_ExecuteProposal.sol";
  
 import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
 import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
-import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
-import { Soulbound1155GatedAccess } from "@src/mandates/integrations/Soulbound1155GatedAccess.sol";
+import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
+import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
 import { Mandate } from "@src/Mandate.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
@@ -28,8 +28,8 @@ import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 //          GOVERNOR INTEGRATION TESTS          //
 //////////////////////////////////////////////////
 contract GovernorIntegrationTest is TestSetupIntegrations {
-    GovernorCreateProposal public createProposalMandate;
-    GovernorExecuteProposal public executeProposalMandate;
+    Governor_CreateProposal public createProposalMandate;
+    Governor_ExecuteProposal public executeProposalMandate;
 
     uint16 public createProposalId;
     uint16 public executeProposalId;
@@ -38,14 +38,14 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         super.setUp();
 
         // 1. Identify Mandate IDs from TestSetupIntegrations -> integrationsTestConstitution
-        // First pushed: GovernorCreateProposal (ID 1)
-        // Second pushed: GovernorExecuteProposal (ID 2)
+        // First pushed: Governor_CreateProposal (ID 1)
+        // Second pushed: Governor_ExecuteProposal (ID 2)
         createProposalId = 1;
         executeProposalId = 2;
 
         // 2. Get Mandate Instances
-        createProposalMandate = GovernorCreateProposal(findMandateAddress("GovernorCreateProposal"));
-        executeProposalMandate = GovernorExecuteProposal(findMandateAddress("GovernorExecuteProposal"));
+        createProposalMandate = Governor_CreateProposal(findMandateAddress("Governor_CreateProposal"));
+        executeProposalMandate = Governor_ExecuteProposal(findMandateAddress("Governor_ExecuteProposal"));
 
         // 3. Setup Alice with votes for the Governor
         simpleErc20Votes.mint(10e18);
@@ -54,7 +54,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         simpleErc20Votes.delegate(alice);
     }
 
-    function test_GovernorCreateProposal_Success() public {
+    function test_Governor_CreateProposal_Success() public {
         // Setup proposal parameters
         address[] memory targets = new address[](1);
         targets[0] = address(simpleErc20Votes);
@@ -79,9 +79,9 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         assertGt(simpleGovernor.proposalSnapshot(proposalId), 0);
     }
 
-    function test_GovernorCreateProposal_Revert_NotConfigured() public {
+    function test_Governor_CreateProposal_Revert_NotConfigured() public {
          // Create a fresh mandate that is NOT configured
-         GovernorCreateProposal unconfiguredMandate = new GovernorCreateProposal();
+         Governor_CreateProposal unconfiguredMandate = new Governor_CreateProposal();
          // Don't initialize it, or initialize with 0 address
          
          uint16 unconfiguredId = 999;
@@ -91,7 +91,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
          unconfiguredMandate.handleRequest(alice, address(daoMock), unconfiguredId, mandateCalldata, 0);
     }
 
-    function test_GovernorCreateProposal_Revert_InvalidParams() public {
+    function test_Governor_CreateProposal_Revert_InvalidParams() public {
         // Empty targets
         address[] memory targets = new address[](0);
         uint256[] memory values = new uint256[](0);
@@ -101,7 +101,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
         vm.prank(alice);
-        vm.expectRevert("GovernorCreateProposal: No targets provided");
+        vm.expectRevert("Governor_CreateProposal: No targets provided");
         daoMock.request(createProposalId, mandateCalldata, 0, "Invalid Params");
 
         // Mismatch length
@@ -111,11 +111,11 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         mandateCalldata = abi.encode(targets, values, calldatas, description);
         
         vm.prank(alice);
-        vm.expectRevert("GovernorCreateProposal: Targets and values length mismatch");
+        vm.expectRevert("Governor_CreateProposal: Targets and values length mismatch");
         daoMock.request(createProposalId, mandateCalldata, 0, "Mismatch Params");
     }
 
-    function test_GovernorExecuteProposal_Success() public {
+    function test_Governor_ExecuteProposal_Success() public {
         // 1. Setup and Create Proposal
         address[] memory targets = new address[](1);
         targets[0] = address(simpleErc20Votes);
@@ -153,7 +153,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         assertEq(uint256(simpleGovernor.state(proposalId)), 4); // Succeded state
     }
 
-    function test_GovernorExecuteProposal_Revert_NotSucceeded() public {
+    function test_Governor_ExecuteProposal_Revert_NotSucceeded() public {
         // 1. Setup and Create Proposal
         address[] memory targets = new address[](1);
         targets[0] = address(simpleErc20Votes);
@@ -170,7 +170,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
         vm.prank(alice);
-        vm.expectRevert("GovernorExecuteProposal: Proposal not succeeded");
+        vm.expectRevert("Governor_ExecuteProposal: Proposal not succeeded");
         daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Pending");
 
         // 3. Vote Against
@@ -184,7 +184,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
 
         // 4. Try to execute (Defeated state)
         vm.prank(alice);
-        vm.expectRevert("GovernorExecuteProposal: Proposal not succeeded");
+        vm.expectRevert("Governor_ExecuteProposal: Proposal not succeeded");
         daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Defeated");
     }
 }
@@ -285,7 +285,7 @@ contract SafeAllowanceTest is TestSetupIntegrations {
 //////////////////////////////////////////////////
 //      POWERS FACTORY ASSIGN ROLE TESTS        //
 //////////////////////////////////////////////////
-contract PowersFactoryAssignRoleTest is TestSetupIntegrations {
+contract PowersFactory_AssignRoleTest is TestSetupIntegrations {
     uint16 public createPowersId;
     uint16 public assignRoleId;
     uint256 public roleIdToAssign;
@@ -299,7 +299,7 @@ contract PowersFactoryAssignRoleTest is TestSetupIntegrations {
         roleIdToAssign = 9; // Configured in TestConstitutions.sol for ID 6
     }
     
-    function test_PowersFactoryAssignRole_Success() public {
+    function test_PowersFactory_AssignRole_Success() public {
         // 1. Execute "Create Powers"
         string memory orgName = "New Org";
         string memory orgUri = "http://example.com";
@@ -313,7 +313,7 @@ contract PowersFactoryAssignRoleTest is TestSetupIntegrations {
         console2.log("Parent Action ID:", parentActionId);
         
         // 2. Execute "Assign Role"
-        // PowersFactoryAssignRole uses the SAME calldata and nonce as the parent action
+        // PowersFactory_AssignRole uses the SAME calldata and nonce as the parent action
         vm.prank(alice);
         daoMock.request(assignRoleId, createCalldata, nonce, "Assign Role in New Org");
         
@@ -326,7 +326,7 @@ contract PowersFactoryAssignRoleTest is TestSetupIntegrations {
         assertTrue(daoMock.hasRoleSince(newOrg, roleIdToAssign) > 0);
     }
     
-    function test_PowersFactoryAssignRole_Revert_ParentNotFulfilled() public {
+    function test_PowersFactory_AssignRole_Revert_ParentNotFulfilled() public {
         string memory orgName = "New Org";
         string memory orgUri = "http://example.com";
         uint256 allowance = 1000;
@@ -339,7 +339,7 @@ contract PowersFactoryAssignRoleTest is TestSetupIntegrations {
     }
 }
 
-contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
+contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
     uint16 public mintMandateId;
     uint16 public accessMandateId;
     uint256 public targetRoleId;
@@ -352,7 +352,7 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
         targetRoleId = 9;
     }
 
-    function test_Soulbound1155GatedAccess_Success() public {
+    function test_Soulbound1155_GatedAccess_Success() public {
         vm.startPrank(alice);
 
         // 1. Mint 4 tokens (Threshold is 3, need > 3 tokens. i.e. 4)
@@ -386,7 +386,7 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
         assertTrue(daoMock.hasRoleSince(alice, targetRoleId) > 0);
     }
 
-    function test_Soulbound1155GatedAccess_Revert_InsufficientTokens() public {
+    function test_Soulbound1155_GatedAccess_Revert_InsufficientTokens() public {
         vm.startPrank(alice);
         
         // Mint 3 tokens (Threshold is 3, check is <= threshold, so 3 fails)
@@ -398,13 +398,13 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
             nonce++;
         }
 
-        vm.expectRevert(Soulbound1155GatedAccess.Soulbound1155GatedAccess__InsufficientTokens.selector);
+        vm.expectRevert(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__InsufficientTokens.selector);
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
         
         vm.stopPrank();
     }
 
-    function test_Soulbound1155GatedAccess_Revert_NotOwnerOfToken() public {
+    function test_Soulbound1155_GatedAccess_Revert_NotOwnerOfToken() public {
         vm.startPrank(alice);
         
         // Mint 4 tokens
@@ -419,13 +419,13 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
         // Change one token to random ID (alice doesn't own it)
         tokenIds[0] = 123456789;
         
-        vm.expectRevert(abi.encodeWithSelector(Soulbound1155GatedAccess.Soulbound1155GatedAccess__NotOwnerOfToken.selector, tokenIds[0]));
+        vm.expectRevert(abi.encodeWithSelector(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__NotOwnerOfToken.selector, tokenIds[0]));
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
         
         vm.stopPrank();
     }
     
-    function test_Soulbound1155GatedAccess_Revert_TokenNotFromParent() public {
+    function test_Soulbound1155_GatedAccess_Revert_TokenNotFromParent() public {
         // Mint tokens properly first
          vm.startPrank(alice);
         uint256[] memory tokenIds = new uint256[](4);
@@ -443,7 +443,7 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
         vm.stopPrank();
     }
 
-    function test_Soulbound1155GatedAccess_Revert_TokenExpired() public {
+    function test_Soulbound1155_GatedAccess_Revert_TokenExpired() public {
         vm.startPrank(alice);
         
         uint256[] memory tokenIds = new uint256[](4);
@@ -462,7 +462,7 @@ contract Soulbound1155GatedAccessTest is TestSetupIntegrations {
         // Need block.number > T + 100.
         // So + 101 blocks.
         vm.roll(block.number + 101);    
-        vm.expectRevert(abi.encodeWithSelector(Soulbound1155GatedAccess.Soulbound1155GatedAccess__TokenExpiredOrInvalid.selector, tokenIds[0]));
+        vm.expectRevert(abi.encodeWithSelector(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__TokenExpiredOrInvalid.selector, tokenIds[0]));
         daoMock.request(accessMandateId, abi.encode(tokenIds), nonce, "Request Access");
         
         vm.stopPrank();

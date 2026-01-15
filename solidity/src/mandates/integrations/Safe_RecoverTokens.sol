@@ -6,15 +6,15 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { IERC20 } from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 interface IAllowanceModule {
-    function getTokens(address safe, address delegate) external view returns (address[] memory);
+    function getTokens(address safeTreasury, address delegate) external view returns (address[] memory);
 }
 
 contract Safe_RecoverTokens is Mandate {
     struct Mem {
         bytes config;
-        address safe;
+        address safeTreasury;
         address allowanceModule;
-        address allowedTokens;
+        address[] allowedTokens;
         uint256 count;
         uint256 positiveBalanceCount; 
         address token;
@@ -23,7 +23,7 @@ contract Safe_RecoverTokens is Mandate {
     }
     
     constructor() {
-        bytes memory configParams = abi.encode("address safe", "address allowanceModule");
+        bytes memory configParams = abi.encode("address safeTreasury", "address allowanceModule");
         emit Mandate__Deployed(configParams);
     }
 
@@ -43,10 +43,10 @@ contract Safe_RecoverTokens is Mandate {
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.safe, mem.allowanceModule) = abi.decode(mem.config, (address, address));
+        (mem.safeTreasury, mem.allowanceModule) = abi.decode(mem.config, (address, address));
 
         // 2. Get allowed tokens count
-        mem.allowedTokens = IAllowanceModule(mem.allowanceModule).getTokens(mem.safe, powers);
+        mem.allowedTokens = IAllowanceModule(mem.allowanceModule).getTokens(mem.safeTreasury, powers);
         mem.count = mem.allowedTokens.length - 1;
         // 3. Count tokens with positive balance
         mem.positiveBalanceCount = 0;
@@ -63,12 +63,12 @@ contract Safe_RecoverTokens is Mandate {
 
         mem.currentIndex = 0;
         for (uint256 i = 0; i < mem.count; i++) {
-            mem.token = mem.allowedTokens[i]
+            mem.token = mem.allowedTokens[i];
             mem.balance = IERC20(mem.token).balanceOf(powers);
             if (mem.balance > 0) {
                 targets[mem.currentIndex] = mem.token;
                 // values[currentIndex] = 0; // default is 0
-                calldatas[mem.currentIndex] = abi.encodeWithSelector(IERC20.transfer.selector, mem.receiver, mem.balance);
+                calldatas[mem.currentIndex] = abi.encodeWithSelector(IERC20.transfer.selector, mem.safeTreasury, mem.balance);
                 mem.currentIndex++;
             }
         }

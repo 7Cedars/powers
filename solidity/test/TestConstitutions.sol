@@ -629,21 +629,21 @@ contract TestConstitutions is Test {
         delete constitution; // restart constitution array 
 
         // Governor Integration // 
-        // GovernorCreateProposal - for creating governance proposals
+        // Governor_CreateProposal - for creating governance proposals
         conditions.allowedRole = 1; // role 1 can create proposals
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "GovernorCreateProposal: A mandate to create governance proposals on a Governor contract.",
-            targetMandate: getMandateAddress("GovernorCreateProposal"), // GovernorCreateProposal (executive mandate)
+            nameDescription: "Governor_CreateProposal: A mandate to create governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("Governor_CreateProposal"), // Governor_CreateProposal (executive mandate)
             config: abi.encode(simpleGovernor), // SimpleGovernor mock address
             conditions: conditions
         }));
         delete conditions;
 
-        // GovernorExecuteProposal - for executing governance proposals
+        // Governor_ExecuteProposal - for executing governance proposals
         conditions.allowedRole = 1; // role 1 can execute proposals
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "GovernorExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
-            targetMandate: getMandateAddress("GovernorExecuteProposal"), // GovernorExecuteProposal (executive mandate)
+            nameDescription: "Governor_ExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("Governor_ExecuteProposal"), // Governor_ExecuteProposal (executive mandate)
             config: abi.encode(simpleGovernor), // SimpleGovernor mock address
             conditions: conditions
         }));
@@ -708,7 +708,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; //
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute and set allowance for a Powers Child at the Safe Treasury.",
-            targetMandate: getMandateAddress("PowersFactoryAssignRole"),
+            targetMandate: getMandateAddress("PowersFactory_AssignRole"),
             config: abi.encode(
                 5, // mandateId of the createPowers action above.
                 roleIdnewOrg,
@@ -739,7 +739,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; //
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Soulbound1155 Access: Get roleId through soulbound ERC1155 token.",
-            targetMandate: getMandateAddress("Soulbound1155GatedAccess"),
+            targetMandate: getMandateAddress("Soulbound1155_GatedAccess"),
             config: abi.encode(
                 soulbound1155,
                 9, // roleId to be assigned upon holding the soulbound token.
@@ -1038,21 +1038,21 @@ contract TestConstitutions is Test {
     function governorProtocol_IntegrationTestConstitution( address simpleGovernor ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
         delete constitution; // restart constitution array.
 
-        // GovernorCreateProposal - for creating governance proposals
+        // Governor_CreateProposal - for creating governance proposals
         conditions.allowedRole = 1; // role 1 can create proposals
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "GovernorCreateProposal: A mandate to create governance proposals on a Governor contract.",
-            targetMandate: getMandateAddress("GovernorCreateProposal"), // GovernorCreateProposal (executive mandate)
+            nameDescription: "Governor_CreateProposal: A mandate to create governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("Governor_CreateProposal"), // Governor_CreateProposal (executive mandate)
             config: abi.encode(simpleGovernor), // SimpleGovernor mock address
             conditions: conditions
         }));
         delete conditions;
 
-        // GovernorExecuteProposal - for executing governance proposals
+        // Governor_ExecuteProposal - for executing governance proposals
         conditions.allowedRole = 1; // role 1 can execute proposals
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "GovernorExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
-            targetMandate: getMandateAddress("GovernorExecuteProposal"), // GovernorExecuteProposal (executive mandate)
+            nameDescription: "Governor_ExecuteProposal: A mandate to execute governance proposals on a Governor contract.",
+            targetMandate: getMandateAddress("Governor_ExecuteProposal"), // Governor_ExecuteProposal (executive mandate)
             config: abi.encode(simpleGovernor), // SimpleGovernor mock address
             conditions: conditions
         }));

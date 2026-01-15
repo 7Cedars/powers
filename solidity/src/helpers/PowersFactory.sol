@@ -14,13 +14,11 @@ interface IPowersFactory is PowersTypes {
     function getLatestDeployment() external view returns (address);
 }
 
-contract PowersFactory is IPowersFactory, Ownable {
-    
+contract PowersFactory is IPowersFactory, Ownable { 
     MandateInitData[] public mandateInitData;
     uint256 public immutable maxCallDataLength;
     uint256 public immutable maxReturnDataLength;
     uint256 public immutable maxExecutionsLength;
-    
     address public latestDeployment;
     
     constructor(
@@ -46,7 +44,7 @@ contract PowersFactory is IPowersFactory, Ownable {
             maxExecutionsLength
         );
  
-        powers.constitute(mandateInitData, msg.sender); // set deployer (the Powers protocol) as admin
+        powers.constitute(mandateInitData, address(powers)); // set the Powers address as the initial deployer
 
         latestDeployment = address(powers); 
 

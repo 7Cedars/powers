@@ -13,7 +13,7 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 
-contract GovernorCreateProposal is Mandate {
+contract Governor_CreateProposal is Mandate {
     struct Mem { 
         address payable governorContract;
         address[] proposalTargets;
@@ -22,7 +22,7 @@ contract GovernorCreateProposal is Mandate {
         string description; 
     }
 
-    /// @notice Constructor for GovernorCreateProposal mandate
+    /// @notice Constructor for Governor_CreateProposal mandate
     constructor() {
         bytes memory configParams = abi.encode("address GovernorContract");
         emit Mandate__Deployed(configParams);
@@ -55,7 +55,7 @@ contract GovernorCreateProposal is Mandate {
 
         // Validate that governor contract is configured
         mem.governorContract = payable(abi.decode(getConfig(powers, mandateId), (address)));
-        if (mem.governorContract == address(0)) revert("GovernorCreateProposal: Governor contract not configured");
+        if (mem.governorContract == address(0)) revert("Governor_CreateProposal: Governor contract not configured");
 
         // Decode proposal parameters
         (
@@ -66,14 +66,14 @@ contract GovernorCreateProposal is Mandate {
         ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
-        if (mem.proposalTargets.length == 0) revert("GovernorCreateProposal: No targets provided");
+        if (mem.proposalTargets.length == 0) revert("Governor_CreateProposal: No targets provided");
         if (mem.proposalTargets.length != mem.proposalValues.length) {
-            revert("GovernorCreateProposal: Targets and values length mismatch");
+            revert("Governor_CreateProposal: Targets and values length mismatch");
         }
         if (mem.proposalTargets.length != mem.proposalCalldatas.length) {
-            revert("GovernorCreateProposal: Targets and calldatas length mismatch");
+            revert("Governor_CreateProposal: Targets and calldatas length mismatch");
         }
-        if (bytes(mem.description).length == 0) revert("GovernorCreateProposal: Description cannot be empty");
+        if (bytes(mem.description).length == 0) revert("Governor_CreateProposal: Description cannot be empty");
 
         // Create arrays for the call to propose
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);

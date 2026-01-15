@@ -5,8 +5,8 @@ pragma solidity 0.8.26;
 // // import { Console } from "forge-std/console.sol";
 // import { TestSetupExecutive } from "../../TestSetup.t.sol";
 // import { StatementOfIntent } from "../../../src/mandates/executive/StatementOfIntent.sol";
-// import { GovernorCreateProposal } from "../../../src/mandates/integrations/GovernorCreateProposal.sol";
-// import { GovernorExecuteProposal } from "../../../src/mandates/integrations/GovernorExecuteProposal.sol";
+// import { Governor_CreateProposal } from "../../../src/mandates/integrations/Governor_CreateProposal.sol";
+// import { Governor_ExecuteProposal } from "../../../src/mandates/integrations/Governor_ExecuteProposal.sol";
 // import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
 // import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
 // import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
@@ -15,14 +15,14 @@ pragma solidity 0.8.26;
 // /// @notice Comprehensive fuzz testing for all executive mandate implementations using pre-initialized mandates
 // /// @dev Tests use mandates from executiveTestConstitution:
 // ///      mandateId 1: StatementOfIntent
-// ///      mandateId 2: GovernorCreateProposal
-// ///      mandateId 3: GovernorExecuteProposal
+// ///      mandateId 2: Governor_CreateProposal
+// ///      mandateId 3: Governor_ExecuteProposal
 // ///      mandateId 5: PresetSingleAction
 // contract ExecutiveFuzzTest is TestSetupExecutive {
 //     // Mandate instances for testing
 //     StatementOfIntent statementOfIntent;
-//     GovernorCreateProposal governorCreateProposal;
-//     GovernorExecuteProposal governorExecuteProposal;
+//     Governor_CreateProposal governorCreateProposal;
+//     Governor_ExecuteProposal governorExecuteProposal;
 //     PresetSingleAction presetSingleAction;
 //     OpenAction openAction;
 
@@ -42,8 +42,8 @@ pragma solidity 0.8.26;
 //         // Initialize mandate instances from deployed addresses
 //         // Note: mandateId 1 uses StatementOfIntent from multi mandates (mandateAddresses[4])
 //         statementOfIntent = StatementOfIntent(mandateAddresses[4]);
-//         governorCreateProposal = GovernorCreateProposal(mandateAddresses[9]);
-//         governorExecuteProposal = GovernorExecuteProposal(mandateAddresses[10]);
+//         governorCreateProposal = Governor_CreateProposal(mandateAddresses[9]);
+//         governorExecuteProposal = Governor_ExecuteProposal(mandateAddresses[10]);
 //         presetSingleAction = PresetSingleAction(mandateAddresses[1]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //     }
@@ -115,9 +115,9 @@ pragma solidity 0.8.26;
 //     //              GOVERNOR CREATE PROPOSAL FUZZ               //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test GovernorCreateProposal (mandateId 2) with random proposal data
+//     /// @notice Fuzz test Governor_CreateProposal (mandateId 2) with random proposal data
 //     /// @dev mandateId 2 is configured to create proposals on SimpleGovernor mock
-//     function testFuzzGovernorCreateProposalWithRandomData(
+//     function testFuzzGovernor_CreateProposalWithRandomData(
 //         uint256 arrayLength,
 //         address[] memory targetsFuzzed,
 //         uint256[] memory valuesFuzzed,
@@ -162,8 +162,8 @@ pragma solidity 0.8.26;
 //         assertEq(selector, Governor.propose.selector);
 //     }
 
-//     /// @notice Fuzz test GovernorCreateProposal with empty arrays (should revert)
-//     function testFuzzGovernorCreateProposalWithEmptyArrays(string memory descriptionFuzzed, uint256 nonceFuzzed)
+//     /// @notice Fuzz test Governor_CreateProposal with empty arrays (should revert)
+//     function testFuzzGovernor_CreateProposalWithEmptyArrays(string memory descriptionFuzzed, uint256 nonceFuzzed)
 //         public
 //     {
 //         vm.assume(bytes(descriptionFuzzed).length > 0);
@@ -175,12 +175,12 @@ pragma solidity 0.8.26;
 //         mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
 //         // Should revert due to empty targets
-//         vm.expectRevert("GovernorCreateProposal: No targets provided");
+//         vm.expectRevert("Governor_CreateProposal: No targets provided");
 //         governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 //     }
 
-//     /// @notice Fuzz test GovernorCreateProposal with mismatched array lengths (should revert)
-//     function testFuzzGovernorCreateProposalWithMismatchedArrays(
+//     /// @notice Fuzz test Governor_CreateProposal with mismatched array lengths (should revert)
+//     function testFuzzGovernor_CreateProposalWithMismatchedArrays(
 //         uint256 targetsLength,
 //         uint256 valuesLength,
 //         uint256 calldatasLength,
@@ -227,8 +227,8 @@ pragma solidity 0.8.26;
 //         governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 //     }
 
-//     /// @notice Fuzz test GovernorCreateProposal with empty description (should revert)
-//     function testFuzzGovernorCreateProposalWithEmptyDescription(uint256 arrayLength, uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test Governor_CreateProposal with empty description (should revert)
+//     function testFuzzGovernor_CreateProposalWithEmptyDescription(uint256 arrayLength, uint256 nonceFuzzed) public {
 //         arrayLength = bound(arrayLength, 1, MAX_FUZZ_TARGETS);
 
 //         targets = new address[](arrayLength);
@@ -244,7 +244,7 @@ pragma solidity 0.8.26;
 //         mandateCalldata = abi.encode(targets, values, calldatas, "");
 
 //         // Should revert due to empty description
-//         vm.expectRevert("GovernorCreateProposal: Description cannot be empty");
+//         vm.expectRevert("Governor_CreateProposal: Description cannot be empty");
 //         governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 //     }
 
@@ -252,9 +252,9 @@ pragma solidity 0.8.26;
 //     //              GOVERNOR EXECUTE PROPOSAL FUZZ              //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test GovernorExecuteProposal (mandateId 3) with random proposal data
+//     /// @notice Fuzz test Governor_ExecuteProposal (mandateId 3) with random proposal data
 //     /// @dev mandateId 3 is configured to execute proposals on SimpleGovernor mock
-//     function testFuzzGovernorExecuteProposalWithRandomData(
+//     function testFuzzGovernor_ExecuteProposalWithRandomData(
 //         uint256 arrayLength,
 //         address[] memory targetsFuzzed,
 //         uint256[] memory valuesFuzzed,
@@ -289,8 +289,8 @@ pragma solidity 0.8.26;
 //         governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 //     }
 
-//     /// @notice Fuzz test GovernorExecuteProposal with empty arrays (should revert)
-//     function testFuzzGovernorExecuteProposalWithEmptyArrays(string memory descriptionFuzzed, uint256 nonceFuzzed)
+//     /// @notice Fuzz test Governor_ExecuteProposal with empty arrays (should revert)
+//     function testFuzzGovernor_ExecuteProposalWithEmptyArrays(string memory descriptionFuzzed, uint256 nonceFuzzed)
 //         public
 //     {
 //         vm.assume(bytes(descriptionFuzzed).length > 0);
@@ -302,12 +302,12 @@ pragma solidity 0.8.26;
 //         mandateCalldata = abi.encode(targets, values, calldatas, descriptionFuzzed);
 
 //         // Should revert due to empty targets
-//         vm.expectRevert("GovernorExecuteProposal: No targets provided");
+//         vm.expectRevert("Governor_ExecuteProposal: No targets provided");
 //         governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 //     }
 
-//     /// @notice Fuzz test GovernorExecuteProposal with empty description (should revert)
-//     function testFuzzGovernorExecuteProposalWithEmptyDescription(uint256 arrayLength, uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test Governor_ExecuteProposal with empty description (should revert)
+//     function testFuzzGovernor_ExecuteProposalWithEmptyDescription(uint256 arrayLength, uint256 nonceFuzzed) public {
 //         arrayLength = bound(arrayLength, 1, MAX_FUZZ_TARGETS);
 
 //         targets = new address[](arrayLength);
@@ -323,7 +323,7 @@ pragma solidity 0.8.26;
 //         mandateCalldata = abi.encode(targets, values, calldatas, "");
 
 //         // Should revert due to empty description
-//         vm.expectRevert("GovernorExecuteProposal: Description cannot be empty");
+//         vm.expectRevert("Governor_ExecuteProposal: Description cannot be empty");
 //         governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 //     }
 
@@ -441,14 +441,14 @@ pragma solidity 0.8.26;
 //         string memory testDescription = "Test Proposal";
 //         mandateCalldata = abi.encode(targets, values, calldatas, testDescription);
 
-//         // Test GovernorCreateProposal (mandateId 2) - should work with valid governor
+//         // Test Governor_CreateProposal (mandateId 2) - should work with valid governor
 //         (returnedActionId, returnedTargets,,) =
 //             governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 
 //         // Should target the SimpleGovernor mock
 //         assertEq(returnedTargets[0], helperAddresses[4]);
 
-//         // Test GovernorExecuteProposal (mandateId 3) - should revert due to proposal not existing
+//         // Test Governor_ExecuteProposal (mandateId 3) - should revert due to proposal not existing
 //         vm.expectRevert();
 //         governorExecuteProposal.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
 //     }
@@ -485,7 +485,7 @@ pragma solidity 0.8.26;
 //         assertEq(returnedTargets.length, MAX_FUZZ_TARGETS);
 //         assertEq(returnedCalldatas.length, MAX_FUZZ_TARGETS);
 
-//         // Test GovernorCreateProposal with large data
+//         // Test Governor_CreateProposal with large data
 //         (returnedActionId, returnedTargets,, returnedCalldatas) =
 //             governorCreateProposal.handleRequest(alice, address(daoMock), 2, mandateCalldata, nonceFuzzed);
 

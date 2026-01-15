@@ -6,7 +6,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-contract PowersFactoryAssignRole is Mandate {
+contract PowersFactory_AssignRole is Mandate {
     struct Mem {
         bytes config;
         uint16 factoryMandateId;

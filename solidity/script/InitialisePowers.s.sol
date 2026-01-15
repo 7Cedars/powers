@@ -23,6 +23,7 @@ import { AdoptMandates } from "@src/mandates/executive/AdoptMandates.sol";
 import { RevokeMandates } from "@src/mandates/executive/RevokeMandates.sol";
 import { CheckExternalActionState } from "@src/mandates/executive/CheckExternalActionState.sol";
 import { BespokeActionOnReturnValue } from "@src/mandates/executive/BespokeActionOnReturnValue.sol";
+import { BespokeActionOnOwnPowers } from "@src/mandates/executive/BespokeActionOnOwnPowers.sol";
 
 // Electoral mandates
 import { OpenElectionStart } from "@src/mandates/electoral/OpenElectionStart.sol";
@@ -44,15 +45,15 @@ import { ClaimRoleWithGitSig } from "@src/mandates/async/ClaimRoleWithGitSig.sol
 import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.sol";
 
 // Integration Mandates
-import { GovernorCreateProposal } from "@src/mandates/integrations/GovernorCreateProposal.sol";
-import { GovernorExecuteProposal } from "@src/mandates/integrations/GovernorExecuteProposal.sol";
+import { Governor_CreateProposal } from "@src/mandates/integrations/Governor_CreateProposal.sol";
+import { Governor_ExecuteProposal } from "@src/mandates/integrations/Governor_ExecuteProposal.sol";
 import { Safe_Setup } from "@src/mandates/integrations/Safe_Setup.sol";
 import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
 import { Safe_RecoverTokens } from "@src/mandates/integrations/Safe_RecoverTokens.sol";
 import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
 import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol"; 
-import { PowersFactoryAssignRole } from "@src/mandates/integrations/PowersFactoryAssignRole.sol";
-import { Soulbound1155GatedAccess } from "@src/mandates/integrations/Soulbound1155GatedAccess.sol";
+import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
+import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -154,13 +155,13 @@ contract InitialisePowers is Script {
         creationCodes.push(type(AdoptMandates).creationCode);
         constructorArgs.push(abi.encode("AdoptMandates"));
 
-        names.push("GovernorCreateProposal");
-        creationCodes.push(type(GovernorCreateProposal).creationCode);
-        constructorArgs.push(abi.encode("GovernorCreateProposal"));
+        names.push("Governor_CreateProposal");
+        creationCodes.push(type(Governor_CreateProposal).creationCode);
+        constructorArgs.push(abi.encode("Governor_CreateProposal"));
 
-        names.push("GovernorExecuteProposal");
-        creationCodes.push(type(GovernorExecuteProposal).creationCode);
-        constructorArgs.push(abi.encode("GovernorExecuteProposal"));
+        names.push("Governor_ExecuteProposal");
+        creationCodes.push(type(Governor_ExecuteProposal).creationCode);
+        constructorArgs.push(abi.encode("Governor_ExecuteProposal"));
 
         names.push("OpenElectionEnd");
         creationCodes.push(type(OpenElectionEnd).creationCode);
@@ -254,17 +255,21 @@ contract InitialisePowers is Script {
         creationCodes.push(type(OpenElectionStart).creationCode);
         constructorArgs.push(abi.encode("OpenElectionStart"));
 
-        names.push("PowersFactoryAssignRole");
-        creationCodes.push(type(PowersFactoryAssignRole).creationCode);
-        constructorArgs.push(abi.encode("PowersFactoryAssignRole"));
+        names.push("PowersFactory_AssignRole");
+        creationCodes.push(type(PowersFactory_AssignRole).creationCode);
+        constructorArgs.push(abi.encode("PowersFactory_AssignRole"));
 
-        names.push("Soulbound1155GatedAccess");
-        creationCodes.push(type(Soulbound1155GatedAccess).creationCode);
-        constructorArgs.push(abi.encode("Soulbound1155GatedAccess"));
+        names.push("Soulbound1155_GatedAccess");
+        creationCodes.push(type(Soulbound1155_GatedAccess).creationCode);
+        constructorArgs.push(abi.encode("Soulbound1155_GatedAccess"));
 
         names.push("BespokeActionOnReturnValue");
         creationCodes.push(type(BespokeActionOnReturnValue).creationCode);
         constructorArgs.push(abi.encode("BespokeActionOnReturnValue"));
+
+        names.push("BespokeActionOnOwnPowers");
+        creationCodes.push(type(BespokeActionOnOwnPowers).creationCode);
+        constructorArgs.push(abi.encode("BespokeActionOnOwnPowers"));
 
         string memory obj2 = "second key"; 
 

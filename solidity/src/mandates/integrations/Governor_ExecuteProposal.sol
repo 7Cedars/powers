@@ -14,7 +14,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
 
-contract GovernorExecuteProposal is Mandate {
+contract Governor_ExecuteProposal is Mandate {
     struct Mem {
         bytes32 mandateHash;
         bytes configData;
@@ -26,7 +26,7 @@ contract GovernorExecuteProposal is Mandate {
         uint256 proposalId;
     }
 
-    /// @notice Constructor for GovernorExecuteProposal mandate
+    /// @notice Constructor for Governor_ExecuteProposal mandate
     constructor() {
         bytes memory configParams = abi.encode("address GovernorContract");
         emit Mandate__Deployed(configParams);
@@ -61,7 +61,7 @@ contract GovernorExecuteProposal is Mandate {
         // Validate that governor contract is configured
         mem.configData = getConfig(powers, mandateId);
         mem.governorContract = payable(abi.decode(mem.configData, (address)));
-        if (mem.governorContract == address(0)) revert("GovernorExecuteProposal: Governor contract not configured");
+        if (mem.governorContract == address(0)) revert("Governor_ExecuteProposal: Governor contract not configured");
 
         // Decode proposal parameters
         (
@@ -72,14 +72,14 @@ contract GovernorExecuteProposal is Mandate {
         ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
-        if (mem.proposalTargets.length == 0) revert("GovernorExecuteProposal: No targets provided");
+        if (mem.proposalTargets.length == 0) revert("Governor_ExecuteProposal: No targets provided");
         if (mem.proposalTargets.length != mem.proposalValues.length) {
-            revert("GovernorExecuteProposal: Targets and values length mismatch");
+            revert("Governor_ExecuteProposal: Targets and values length mismatch");
         }
         if (mem.proposalTargets.length != mem.proposalCalldatas.length) {
-            revert("GovernorExecuteProposal: Targets and calldatas length mismatch");
+            revert("Governor_ExecuteProposal: Targets and calldatas length mismatch");
         }
-        if (bytes(mem.description).length == 0) revert("GovernorExecuteProposal: Description cannot be empty");
+        if (bytes(mem.description).length == 0) revert("Governor_ExecuteProposal: Description cannot be empty");
 
         // Get proposal ID from governor contract
         mem.proposalId = Governor(mem.governorContract).hashProposal(
@@ -89,7 +89,7 @@ contract GovernorExecuteProposal is Mandate {
         // Check proposal state
         IGovernor.ProposalState state = Governor(mem.governorContract).state(mem.proposalId);
         if (state != IGovernor.ProposalState.Succeeded) {
-            revert("GovernorExecuteProposal: Proposal not succeeded");
+            revert("Governor_ExecuteProposal: Proposal not succeeded");
         }
 
         // Return the proposal actions for execution

@@ -25,7 +25,6 @@ contract SafeAllowance_Transfer is Mandate {
         address token;
         address payableTo;
         uint256 amount;
-        bytes configBytes;
         bytes delegateSignature;
         address allowanceModule; 
         address safeProxy;
@@ -42,7 +41,7 @@ contract SafeAllowance_Transfer is Mandate {
         public
         override
     { 
-        super.initializeMandate(index, nameDescription, abi.encode("address Token", "address PayableTo", "uint256 Amount"), config);
+        super.initializeMandate(index, nameDescription, abi.encode("address Token", "uint256 Amount", "address PayableTo"), config);
     }
 
     /// @notice Prepares the call to the Allowance Module
@@ -66,8 +65,7 @@ contract SafeAllowance_Transfer is Mandate {
         Mem memory mem;
 
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        mem.configBytes = getConfig(powers, mandateId);
-        (mem.allowanceModule, mem.safeProxy) = abi.decode(mem.configBytes, (address, address));
+        (mem.allowanceModule, mem.safeProxy) = abi.decode(getConfig(powers, mandateId), (address, address));
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         // NB: We call the allowance module directly to make the transfer. The allowance module then calls the Safe proxy.
@@ -83,10 +81,8 @@ contract SafeAllowance_Transfer is Mandate {
         returns (bytes memory)
     {
         Mem memory mem;
- 
-        mem.configBytes = getConfig(powers, mandateId);
-        (, mem.safeProxy) = abi.decode(mem.configBytes, (address, address));
-        (mem.token, mem.payableTo, mem.amount) = abi.decode(mandateCalldata, (address, address, uint256));
+        (, mem.safeProxy) = abi.decode(getConfig(powers, mandateId), (address, address));
+        (mem.token, mem.amount, mem.payableTo) = abi.decode(mandateCalldata, (address, uint256, address));
 
         // Construct the `v=1` signature.
         // r = address of the signer (powers contract)
