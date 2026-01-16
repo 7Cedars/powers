@@ -29,7 +29,7 @@ library MandateUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasRoleCheck(address caller, uint32[] memory roles, address powers) external view {
+    function hasRoleCheck(address caller, uint256[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since == 0) {
@@ -42,7 +42,7 @@ library MandateUtilities {
     /// @dev Checks each role against the Powers contract's role system
     /// @param caller Address to check roles for
     /// @param roles Array of role IDs to check
-    function hasNotRoleCheck(address caller, uint32[] memory roles, address powers) external view {
+    function hasNotRoleCheck(address caller, uint256[] memory roles, address powers) external view {
         for (uint32 i = 0; i < roles.length; i++) {
             uint48 since = Powers(payable(powers)).hasRoleSince(caller, roles[i]);
             if (since != 0) {

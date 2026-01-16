@@ -22,6 +22,7 @@ import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 // organisations 
 import { Powers101 } from "../script/deployOrganisations/Powers101.s.sol";
 import { OpenElectionsDAO } from "../script/deployOrganisations/OpenElectionsDAO.s.sol";
+import { CulturalStewardsDAO } from "../script/deployOrganisations/CulturalStewardsDAO.s.sol";
 
 // helpers
 import { Nominees } from "@src/helpers/Nominees.sol";
@@ -848,6 +849,31 @@ abstract contract TestSetupOpenElectionsDAO is BaseSetup {
     } 
 }
 
+// Cultural Stewards DAO Setup
+abstract contract TestSetupCulturalStewardsDAO is BaseSetup {
+    function setUpVariables() public override {
+        // Note: this test runs the full initalisation scripts. It takes a while to run. 
+        // But it is needed to be able to test the full deployment flow of an organisation.
+        vm.skip(false); 
+        vm.selectFork(sepoliaFork);
+
+        super.setUpVariables();
+
+        OpenElectionsDAO openElections = new OpenElectionsDAO();
+        (powers, openElection) = openElections.run();
+        daoMock = PowersMock(payable(address(powers)));
+
+        vm.startPrank(address(daoMock));
+        daoMock.assignRole(ROLE_ONE, alice);
+        daoMock.assignRole(ROLE_ONE, bob);
+        daoMock.assignRole(ROLE_ONE, frank);
+        daoMock.assignRole(ROLE_ONE, gary);
+        daoMock.assignRole(ROLE_ONE, helen);
+        daoMock.assignRole(ROLE_TWO, charlotte);
+        daoMock.assignRole(ROLE_TWO, david);
+        vm.stopPrank();
+    } 
+}
 
 /////////////////////////////////////////////////////////////////////
 //                      HELPER TEST SETUPS                         //

@@ -398,7 +398,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
             nonce++;
         }
 
-        vm.expectRevert(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__InsufficientTokens.selector);
+        vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
         
         vm.stopPrank();
@@ -418,28 +418,11 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         
         // Change one token to random ID (alice doesn't own it)
         tokenIds[0] = 123456789;
+        tokenIds[1] = 123456789;
         
-        vm.expectRevert(abi.encodeWithSelector(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__NotOwnerOfToken.selector, tokenIds[0]));
+        vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
         
-        vm.stopPrank();
-    }
-    
-    function test_Soulbound1155_GatedAccess_Revert_TokenNotFromParent() public {
-        // Mint tokens properly first
-         vm.startPrank(alice);
-        uint256[] memory tokenIds = new uint256[](4);
-        for(uint i=0; i<4; i++) {
-            daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
-            tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
-            vm.roll(block.number + 1);
-            nonce++;
-        }
-        
-        // Change first token to have different minter address in high bits
-        // Keep block number same
-        address fakeMinter = address(0xDEADBEEF);
-        uint256 fakeTokenId = (uint256(uint160(fakeMinter)) << 48) | uint256(uint48(tokenIds[0]));       
         vm.stopPrank();
     }
 
@@ -462,7 +445,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         // Need block.number > T + 100.
         // So + 101 blocks.
         vm.roll(block.number + 101);    
-        vm.expectRevert(abi.encodeWithSelector(Soulbound1155_GatedAccess.Soulbound1155_GatedAccess__TokenExpiredOrInvalid.selector, tokenIds[0]));
+        vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), nonce, "Request Access");
         
         vm.stopPrank();

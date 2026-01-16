@@ -40,16 +40,16 @@ contract MandateUtilitiesTest is TestSetupMandate {
     //                  ROLE CHECKS                              //
     //////////////////////////////////////////////////////////////
     function testHasRoleCheckPassesWithValidRole() public view {
-        uint32[] memory roles = new uint32[](1);
-        roles[0] = uint32(ROLE_ONE);
+        uint256[] memory roles = new uint256[](1);
+        roles[0] = ROLE_ONE;
 
         // Should not revert when alice has ROLE_ONE
         MandateUtilities.hasRoleCheck(alice, roles, address(daoMock));
     }
 
     function testHasRoleCheckRevertsWithoutRole() public {
-        uint32[] memory roles = new uint32[](1);
-        roles[0] = uint32(ROLE_ONE);
+        uint256[] memory roles = new uint256[](1);
+        roles[0] = ROLE_ONE;
         address userWithoutRole = makeAddr("userWithoutRole");
 
         // Should revert when user doesn't have the role
@@ -58,8 +58,8 @@ contract MandateUtilitiesTest is TestSetupMandate {
     }
 
     function testHasNotRoleCheckPassesWithoutRole() public {
-        uint32[] memory roles = new uint32[](1);
-        roles[0] = uint32(ROLE_THREE);
+        uint256[] memory roles = new uint256[](1);
+        roles[0] = uint256(ROLE_THREE);
         address userWithoutRole = makeAddr("userWithoutRole");
 
         // Should not revert when user doesn't have the role
@@ -67,8 +67,8 @@ contract MandateUtilitiesTest is TestSetupMandate {
     }
 
     function testHasNotRoleCheckRevertsWithRole() public {
-        uint32[] memory roles = new uint32[](1);
-        roles[0] = uint32(ROLE_ONE);
+        uint256[] memory roles = new uint256[](1);
+        roles[0] = ROLE_ONE;
 
         // Should revert when alice has the role
         vm.expectRevert("Has role.");

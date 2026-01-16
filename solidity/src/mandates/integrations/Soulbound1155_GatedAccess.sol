@@ -78,44 +78,37 @@ contract Soulbound1155_GatedAccess is Mandate {
 
         // 2. Decode input params
         mem.tokenIds = abi.decode(mandateCalldata, (uint256[]));
-
-        // Check 0: checks if number of tokens is > tokensThreshold
-        if (mem.tokenIds.length <= mem.tokensThreshold) {
-            revert Soulbound1155_GatedAccess__InsufficientTokens();
-        }
-
         IERC1155 sb1155 = IERC1155(mem.soulbound1155Address);
 
+        uint256 validTokenCount = 0;
         for (mem.i = 0; mem.i < mem.tokenIds.length; mem.i++) {
             mem.tokenId = mem.tokenIds[mem.i];
+            mem.mintBlock = uint48(mem.tokenId);
 
             // Check 1: checks if caller balance of tokenIds is > 0
-            // Check 2: if not on one of tokens, reverts (with tokenId provided)
             if (sb1155.balanceOf(caller, mem.tokenId) == 0) {
-                revert Soulbound1155_GatedAccess__NotOwnerOfToken(mem.tokenId);
+                continue;
             }
 
-            // Check 3: If passes, check if tokens are all from parent Powers org. If not, revert (with tokenId provided)
-            // tokenId encodes minter address in high bits
-            mem.minter = address(uint160(mem.tokenId >> 48));
-            // console2.log("Minter address from tokenId:", mem.minter);
-            
-            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) == 0) {
-                revert Soulbound1155_GatedAccess__TokenFromIncorrectRoleId(mem.tokenId);
-            }
-    
-
-            // Check 4: If passes, check if tokens are within block threshold. If not, revert (with tokenId provided)
-            // tokenId encodes block number in lower 48 bits
-            mem.mintBlock = uint48(mem.tokenId);
+            // Check 2: If passes, check if tokens are within block threshold.
             if (mem.mintBlock != 0) { // if threshold is set to zero, skip check
                 // Check for underflow just in case current block is lower than mint block (should not happen in valid chain)
                 // but block.number should be >= mintBlock if it exists.
                 if (block.number < mem.mintBlock || (block.number - mem.mintBlock) > mem.blocksThreshold) {
-                    revert Soulbound1155_GatedAccess__TokenExpiredOrInvalid(mem.tokenId);
+                    continue; 
                 }    
             }
 
+            // 3: check if token is from the correct roleId. 
+            mem.minter = address(uint160(mem.tokenId >> 48));
+            //  checks if number of valid tokens is > tokensThreshold
+            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) != 0) {
+                validTokenCount++;
+            }
+        }
+
+        if (validTokenCount <= mem.tokensThreshold) {
+            revert ("Insuffiicent valid tokens provided");
         }
 
         // Check 5: if everything passes, assign roleId to caller.

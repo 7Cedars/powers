@@ -6,6 +6,11 @@
 ///
 /// @author 7Cedars
 
+// £todo: make this package more generic, allowing for any set of mandates to be adopted in a package.
+// make configParams accept raw mandate Initdatas. That is the easiest way to set it up. 
+// But watch out : the mandateCounter needs to be passed correctly to the getNewMandates function. 
+// maybe the approach below is the only possible one? 
+
 pragma solidity 0.8.26;
 
 import { Mandate } from "../Mandate.sol";

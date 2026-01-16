@@ -70,7 +70,7 @@ contract CulturalStewardsDAO is DeploySetup {
         console2.log("Deploying Vanilla Powers contracts...");
         parentDAO = new Powers(
             "Parent DAO", // name
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreibnvjwah2wdgd3fhak3sedriwt5xemjlacmrabt6mrht7f24m5w3i", // uri
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreihtpfkpjxianudgvf7pdq7toccccrztvckqpkc3vfnai4x7l3zmme", // uri
             config.maxCallDataLength, // max call data length
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
@@ -78,7 +78,7 @@ contract CulturalStewardsDAO is DeploySetup {
 
         digitalDAO = new Powers(
             "Digital DAO", // name
-            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreichqvnlmfgkw2jeqgerae2torhgbcgdomxzqxiymx77yhflpnniii", // uri
+            "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiemrhwiqju7msjxbszlrk73cn5omctzf2xf2jxaenyw7is2r4takm", // uri
             config.maxCallDataLength, // max call data length
             config.maxReturnDataLength, // max return data length
             config.maxExecutionsLength // max executions length
@@ -94,20 +94,48 @@ contract CulturalStewardsDAO is DeploySetup {
         console2.log("Soulbound1155 deployed at:", address(soulbound1155));
         console2.log("Open Election deployed at:", address(openElection));
 
+        // setup Safe treasury. 
+        address[] memory owners = new address[](1);
+        owners[0] = address(parentDAO);
+
+        vm.startBroadcast();
+        console2.log("Setting up Safe treasury for Parent DAO...");
+        treasury = address(
+            SafeProxyFactory(config.safeProxyFactory)
+                .createProxyWithNonce(
+                    config.safeL2Canonical,
+                    abi.encodeWithSelector(
+                        Safe.setup.selector,
+                        owners,
+                        1, // threshold
+                        address(0), // to
+                        "", // data
+                        address(0), // fallbackHandler
+                        address(0), // paymentToken
+                        0, // payment
+                        address(0) // paymentReceiver
+                    ),
+                    1 // = nonce
+                )
+        );
+        vm.stopBroadcast();
+        console2.log("Safe treasury deployed at:", treasury);
 
         // Create constitutions 
         console2.log("Creating constitutions...");
-        constitutionLength = createParentConstitution();
-        console2.log("Parent Constitution, length:", constitutionLength);
+        createParentConstitution();
+        console2.log("Parent Constitution, length:", parentConstitution.length);
+        PowersTypes.MandateInitData[] memory packedParentConstitution = packageInitData(parentConstitution, 10, 1); // package size 10 mandates. startId = 1.
+        console2.log("Parent Packed Constitution, length:", packedParentConstitution.length);
 
-        constitutionLength = createDigitalConstitution();
-        console2.log("Digital Constitution, length:", constitutionLength);
+        createDigitalConstitution();
+        console2.log("Digital Constitution, length:", digitalConstitution.length);
 
-        constitutionLength = createIdeasConstitution();
-        console2.log("Ideas Constitution, length:", constitutionLength);
+        createIdeasConstitution();
+        console2.log("Ideas Constitution, length:", ideasConstitution.length);
 
-        constitutionLength = createPhysicalConstitution();
-        console2.log("Physical Constitution, length:", constitutionLength);
+        createPhysicalConstitution();
+        console2.log("Physical Constitution, length:", physicalConstitution.length);
         
         // dpeloying subDAO factories.
         console2.log("Deploying DAO factories...");
@@ -128,37 +156,11 @@ contract CulturalStewardsDAO is DeploySetup {
         vm.stopBroadcast();
         console2.log("Ideas DAO factory deployed at:", address(ideasDaoFactory));
         console2.log("Physical DAO factory deployed at:", address(physicalDaoFactory));
-        
-        // step 3: setup Safe treasury. 
-        address[] memory owners = new address[](1);
-        owners[0] = address(parentDAO);
-
-        vm.startBroadcast();
-        console2.log("Setting up Safe treasuries for Parent DAO and Digital DAO...");
-        treasury = address(
-            SafeProxyFactory(config.safeProxyFactory)
-                .createProxyWithNonce(
-                    config.safeL2Canonical,
-                    abi.encodeWithSelector(
-                        Safe.setup.selector,
-                        owners,
-                        1, // threshold
-                        address(0), // to
-                        "", // data
-                        address(0), // fallbackHandler
-                        address(0), // paymentToken
-                        0, // payment
-                        address(0) // paymentReceiver
-                    ),
-                    1 // = nonce
-                )
-        );
-        vm.stopBroadcast();
 
         // step 4: run constitute on vanilla DAOs. 
         vm.startBroadcast();
         console2.log("Constituting Parent DAO and Digital DAO...");
-        parentDAO.constitute(parentConstitution, msg.sender); // set msg.sender as admin
+        parentDAO.constitute(packedParentConstitution, msg.sender); // set msg.sender as admin
         digitalDAO.constitute(digitalConstitution, msg.sender); // set msg.sender as admin
         vm.stopBroadcast();
 
@@ -180,8 +182,8 @@ contract CulturalStewardsDAO is DeploySetup {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function createParentConstitution() internal returns (uint256) {
-        mandateCount = 0; // resetting mandate count.
+    function createParentConstitution() internal {
+        mandateCount = 4; // resetting mandate count at 4, because there will be 4 packagedMandate Laws..
         ////////////////////////////////////////////////////////////////////// 
         //                              SETUP                               // 
         //////////////////////////////////////////////////////////////////////
@@ -200,15 +202,15 @@ contract CulturalStewardsDAO is DeploySetup {
         for (uint256 i = 0; i < targets.length; i++) {
             targets[i] = address(parentDAO); 
         }
-        targets[6] = address(treasury); // the Safe treasury address.
-        targets[7] = address(treasury); // the Safe treasury address.
+        targets[6] = treasury; // the Safe treasury address.
+        targets[7] = treasury; // the Safe treasury address.
 
         calldatas[0] = abi.encodeWithSelector(IPowers.labelRole.selector, 1, "Members");
         calldatas[1] = abi.encodeWithSelector(IPowers.labelRole.selector, 2, "Executives");
         calldatas[2] = abi.encodeWithSelector(IPowers.labelRole.selector, 3, "Physical DAOs");
         calldatas[3] = abi.encodeWithSelector(IPowers.labelRole.selector, 4, "Ideas DAOs");
         calldatas[4] = abi.encodeWithSelector(IPowers.labelRole.selector, 5, "Digital DAOs");
-        calldatas[5] = abi.encodeWithSelector(IPowers.setTreasury.selector, payable(treasury));
+        calldatas[5] = abi.encodeWithSelector(IPowers.setTreasury.selector, treasury);
         calldatas[6] = abi.encodeWithSelector( // cal to set allowance module to the Safe treasury.
             Safe.execTransaction.selector,
             treasury, // The internal transaction's destination
@@ -229,8 +231,8 @@ contract CulturalStewardsDAO is DeploySetup {
             Safe.execTransaction.selector,
             config.safeAllowanceModule, // The internal transaction's destination: the Allowance Module.
             0, // The internal transaction's value in this mandate is always 0. To transfer Eth use a different mandate.
-            abi.encodePacked(
-                bytes4(0xe71bdf41), // == AllowanceModule.addDelegate.selector,  (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
+            abi.encodeWithSignature(
+                "addDelegate(address)", // == AllowanceModule.addDelegate.selector,  (because the contracts are compiled with different solidity versions we cannot reference the contract directly here)
                 address(digitalDAO)
                 ),
             0, // operation = Call
@@ -241,7 +243,7 @@ contract CulturalStewardsDAO is DeploySetup {
             address(0), // refundReceiver
             signature // the signature constructed above
         );
-        calldatas[8] = abi.encodeWithSelector(IPowers.revokeMandate.selector, 1); // revoke mandate 1 after use.
+        calldatas[8] = abi.encodeWithSelector(IPowers.revokeMandate.selector, mandateCount + 1); // revoke mandate after use.
 
         mandateCount++;
         conditions.allowedRole = type(uint256).max; // = public.
@@ -294,8 +296,6 @@ contract CulturalStewardsDAO is DeploySetup {
             conditions: conditions
         }));
         delete conditions;
-
-         // FOLLOWING MANDATE HAS BUG 
 
         // Executives: Assign role Id to Ideas DAO // 
         mandateCount++;
@@ -359,7 +359,7 @@ contract CulturalStewardsDAO is DeploySetup {
 
         // Members: Initiate Physical DAO creation
         mandateCount++;
-        conditions.allowedRole = 1; // = Members
+        conditions.allowedRole = 4; // = Ideas DAO
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = 5 minutes / days 
         conditions.succeedAt = 51; // = 51% majority
         conditions.quorum = 5; // = 5% quorum. Note: very low quorum to encourage experimentation.
@@ -410,8 +410,24 @@ contract CulturalStewardsDAO is DeploySetup {
         delete conditions;
 
         // Executives: Assign Allowance to Physical DAO //
-        // TODO: Assign allowance to Physical DAO. 
-
+        mandateCount++;
+        conditions.allowedRole = 2; // = Any executive
+        conditions.needFulfilled = mandateCount - 2; // need the Physical DAO to have been created.
+        parentConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Delegate status for DAO: -- PLACEHOLDER Assign delegate status to the Physical DAO",
+            targetMandate: initialisePowers.getMandateAddress("BespokeActionOnReturnValue"),  
+            config: abi.encode(
+                address(treasury), // target contract
+                IPowers.assignRole.selector, // function selector to call
+                abi.encode(uint16(3)), // params before (role id 4 = Ideas DAOs)
+                inputParams, // dynamic params (the address of the created Ideas DAO)
+                mandateCount - 1, // parent mandate id (the create Ideas DAO mandate)
+                abi.encode() // no params after
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+ 
         // Members: Veto Revoke Physical DAO creation mandate //
         mandateCount++;
         conditions.allowedRole = 1; // = Members
@@ -457,10 +473,10 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = 5 minutes / days 
         conditions.succeedAt = 51; // = 51% majority
         conditions.quorum = 5; // = 5% quorum. Note: very low quorum to encourage experimentation.
-        conditions.needNotFulfilled = mandateCount - 1; // need the previous mandate to be NOT fulfilled (veto).
-        conditions.needFulfilled = mandateCount - 2; // need the assign role to have been fulfilled. 
+        conditions.needNotFulfilled = mandateCount - 2; // need the veto mandate to be NOT fulfilled (veto).
+        conditions.needFulfilled = mandateCount - 3; // need the assign role to have been fulfilled. 
         parentConstitution.push(PowersTypes.MandateInitData({
-            nameDescription: "Revoke Physical DAO: PLACEHOLDER - Revoke delegate status at safe", 
+            nameDescription: "Revoke Physical DAO Allowance: PLACEHOLDER - Revoke delegate status at safe", 
             targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),  
             config: abi.encode(inputParams),
             conditions: conditions 
@@ -634,8 +650,41 @@ contract CulturalStewardsDAO is DeploySetup {
         //                      ELECTORAL MANDATES                          // 
         //////////////////////////////////////////////////////////////////////
 
-        // CLAIM MEMBERSHIP PARENT DAO // 
-        // TODO: Claim membership Parent DAO logic.
+        // CLAIM MEMBERSHIP PARENT DAO // -- on the basis of activity token and POAP ownership.  
+        // Public: Check ownership POAPS. 
+        // insert: all tokens owned.
+        mandateCount++;
+        conditions.allowedRole = type(uint256).max; // = public
+        ideasConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Request Membership Step 1: 2 POAPS from physical DAO and 20 activity tokens from ideas DAOs needed that are not older than 6 months.",
+            targetMandate: initialisePowers.getMandateAddress("Soulbound1155_GatedAccess"),
+            config: abi.encode(
+                address(soulbound1155), // soulbound token contract
+                type(uint256).max - 1, // assigns a nonsense role Id. This mandate is just to check ownership of tokens.
+                3, // checks if token is from address that is a Physical DAO 
+                2, // number of tokens required
+                daysToBlocks(180, config.BLOCKS_PER_HOUR) // look back period in blocks = 30 days. 
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        mandateCount++;
+        conditions.allowedRole = type(uint256).max; // = public
+        conditions.needFulfilled = mandateCount - 1; // need the previous mandate to be fulfilled.
+        ideasConstitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Request Membership Step 2: 2 POAPS from physical DAO and 20 activity tokens from ideas DAOs needed that are not older than 6 months.",
+            targetMandate: initialisePowers.getMandateAddress("Soulbound1155_GatedAccess"),
+            config: abi.encode(
+                address(soulbound1155), // soulbound token contract
+                1, // member role Id
+                4, // checks if token is from address that is an Ideas DAO
+                20, // number of tokens required
+                daysToBlocks(180, config.BLOCKS_PER_HOUR) // look back period in blocks = 30 days. 
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
 
         // ELECT EXECUTIVES // 
         // Members: Nominate for Executive role
@@ -776,9 +825,7 @@ contract CulturalStewardsDAO is DeploySetup {
             config: abi.encode(),
             conditions: conditions
         }));
-        delete conditions;
-
-        return parentConstitution.length;
+        delete conditions; 
     }
 
 
@@ -788,7 +835,7 @@ contract CulturalStewardsDAO is DeploySetup {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function createDigitalConstitution() internal returns (uint256) {
+    function createDigitalConstitution() internal {
         mandateCount = 0; // resetting mandate count.
         ////////////////////////////////////////////////////////////////////// 
         //                              SETUP                               // 
@@ -1080,9 +1127,6 @@ contract CulturalStewardsDAO is DeploySetup {
             conditions: conditions
         }));
         delete conditions;
-
-        return digitalConstitution.length;
-
     }
 
 
@@ -1092,7 +1136,7 @@ contract CulturalStewardsDAO is DeploySetup {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function createIdeasConstitution() internal returns (uint256)   {
+    function createIdeasConstitution() internal    {
         mandateCount = 0; // resetting mandate count.
         ////////////////////////////////////////////////////////////////////// 
         //                              SETUP                               // 
@@ -1293,11 +1337,8 @@ contract CulturalStewardsDAO is DeploySetup {
             config: abi.encode(),
             conditions: conditions
         }));
-        delete conditions;
-
-        return ideasConstitution.length;
+        delete conditions; 
     }
-
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1306,7 +1347,7 @@ contract CulturalStewardsDAO is DeploySetup {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function createPhysicalConstitution() internal returns (uint256) {
+    function createPhysicalConstitution() internal {
         mandateCount = 0; // resetting mandate count.
         ////////////////////////////////////////////////////////////////////// 
         //                              SETUP                               // 
@@ -1519,8 +1560,5 @@ contract CulturalStewardsDAO is DeploySetup {
             conditions: conditions
         }));
         delete conditions;
-        
-        return physicalConstitution.length;
     }
-
 }
