@@ -17,7 +17,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { OpenElection } from "../../helpers/OpenElection.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract OpenElectionVote is Mandate {
+contract OpenElection_Vote is Mandate {
     struct Mem {
         address caller;
         bytes32 mandateHash;
@@ -31,7 +31,7 @@ contract OpenElectionVote is Mandate {
         uint256 electionId;
     }
 
-    /// @notice Constructor for OpenElectionVote mandate
+    /// @notice Constructor for OpenElection_Vote mandate
     constructor() {
         bytes memory configParams = abi.encode("address OpenElectionContract", "uint256 maxVotes");
         emit Mandate__Deployed(configParams);

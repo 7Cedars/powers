@@ -12,7 +12,7 @@ import { PowersErrors } from "@src/interfaces/PowersErrors.sol";
 
 import { PowersMock } from "@mocks/PowersMock.sol";
 import { OpenAction } from "@src/mandates/executive/OpenAction.sol";
-import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
+import { PresetActions_Single } from "@src/mandates/executive/PresetActions_Single.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 
@@ -226,11 +226,11 @@ contract BespokeAction_AdvancedTest is TestSetupExecutive {
     }
 }
 
-contract PresetSingleActionTest is TestSetupExecutive { 
+contract PresetActions_SingleTest is TestSetupExecutive { 
 
     function setUp() public override {
         super.setUp();
-        mandateId = 5; // PresetSingleAction
+        mandateId = 5; // PresetActions_Single
     }
 
     function testPresetExecute() public {
@@ -238,7 +238,7 @@ contract PresetSingleActionTest is TestSetupExecutive {
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "");
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "");
 
-        // PresetSingleAction ignores the content of calldata (except for hashing)
+        // PresetActions_Single ignores the content of calldata (except for hashing)
         mandateCalldata = abi.encode(true); 
 
         vm.prank(alice); // Alice has Role 1
@@ -262,8 +262,8 @@ contract PresetSingleActionTest is TestSetupExecutive {
     }
 }
 
-contract Preset_MultipleActionsTest is TestSetupExecutive {
-    // Placeholder for Preset_MultipleActions specific tests
+contract PresetActions_MultipleTest is TestSetupExecutive {
+    // Placeholder for PresetActions_Multiple specific tests
 }
 
 contract BespokeAction_OnReturnValueTest is TestSetupExecutive {

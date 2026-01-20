@@ -123,7 +123,7 @@ contract PowerLabs is DeploySetup {
         conditions.allowedRole = 0; // Admin
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Assign role labels.",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"),
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -158,7 +158,7 @@ contract PowerLabs is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(3, config.BLOCKS_PER_HOUR);
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Apply for Contributor Role: Anyone can claim contributor roles based on their GitHub contributions to the 7cedars/powers repository",
-            targetMandate: initialisePowers.getMandateAddress("ClaimRoleWithGitSig"),
+            targetMandate: initialisePowers.getMandateAddress("Github_ClaimRoleWithSig"),
             config: abi.encode(
                 "develop", // branch
                 paths,
@@ -178,7 +178,7 @@ contract PowerLabs is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // must have applied for contributor role.
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Claim Contributor Role: Following a successful initial claim, contributors can get contributor role assigned to their account.",
-            targetMandate: initialisePowers.getMandateAddress("AssignRoleWithGitSig"),
+            targetMandate: initialisePowers.getMandateAddress("Github_AssignRoleWithSig"),
             config: abi.encode(), // empty config
             conditions: conditions
         }));
@@ -450,7 +450,7 @@ contract PowerLabs is DeploySetup {
         conditions.needNotFulfilled = mandateCount - 1;  
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt Mandates: Admin adopts new mandates into the organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(), // empty 0x
             conditions: conditions
         }));
@@ -495,11 +495,11 @@ contract PowerLabs is DeploySetup {
         conditions.needNotFulfilled = mandateCount - 2;
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Revoke Mandates: Admin revokes mandates from the organization",
-            targetMandate: initialisePowers.getMandateAddress("RevokeMandates"),
-            config: abi.encode(abi.encode(0x00)), // "0x00" in TS (encoded bytes?) -> actually likely just empty bytes? TS says "0x00" as `0x${string}` which is 1 byte '00'. But RevokeMandates expects... let's check config. Usually RevokeMandates takes no config or specific config. TS says config is "0x00". Let's assume default encoding of "0x00".
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Revoke"),
+            config: abi.encode(abi.encode(0x00)), // "0x00" in TS (encoded bytes?) -> actually likely just empty bytes? TS says "0x00" as `0x${string}` which is 1 byte '00'. But Mandates_Revoke expects... let's check config. Usually Mandates_Revoke takes no config or specific config. TS says config is "0x00". Let's assume default encoding of "0x00".
             // Actually, "0x00" as `0x${string}` in viem is just `0x00`. 
-            // RevokeMandates usually takes nothing or is bespoke.
-            // If I look at AdoptMandates above, TS said `0x`.
+            // Mandates_Revoke usually takes nothing or is bespoke.
+            // If I look at Mandates_Adopt above, TS said `0x`.
             // Here `0x00`.
             // I'll stick to abi.encode("0x00")? No, config is bytes. "0x00" bytes.
             conditions: conditions
@@ -570,7 +570,7 @@ contract PowerLabs is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members, Delegates) and revoke itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"),
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -653,7 +653,7 @@ contract PowerLabs is DeploySetup {
         conditions.needFulfilled = mandateCount - 1;
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt Mandates: Anyone can adopt new mandates ok-ed by the parent organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(
                 parent,
                 adoptChildMandateId,
@@ -672,7 +672,7 @@ contract PowerLabs is DeploySetup {
         conditions.timelock = minutesToBlocks(3, config.BLOCKS_PER_HOUR);
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Revoke Mandates: Admin can revoke mandates from the organization",
-            targetMandate: initialisePowers.getMandateAddress("RevokeMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Revoke"),
             config: abi.encode(abi.encode(0x00)),
             conditions: conditions
         }));

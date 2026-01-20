@@ -101,7 +101,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members), set treasury address and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"),
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -192,7 +192,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members), set treasury address and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"),
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));

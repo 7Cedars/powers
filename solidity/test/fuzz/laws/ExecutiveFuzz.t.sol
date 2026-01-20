@@ -8,7 +8,7 @@ pragma solidity 0.8.26;
 // import { Governor_CreateProposal } from "../../../src/mandates/integrations/Governor_CreateProposal.sol";
 // import { Governor_ExecuteProposal } from "../../../src/mandates/integrations/Governor_ExecuteProposal.sol";
 // import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
-// import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
+// import { PresetActions_Single } from "../../../src/mandates/executive/PresetActions_Single.sol";
 // import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 
 // /// @title Executive Mandate Fuzz Tests
@@ -17,13 +17,13 @@ pragma solidity 0.8.26;
 // ///      mandateId 1: StatementOfIntent
 // ///      mandateId 2: Governor_CreateProposal
 // ///      mandateId 3: Governor_ExecuteProposal
-// ///      mandateId 5: PresetSingleAction
+// ///      mandateId 5: PresetActions_Single
 // contract ExecutiveFuzzTest is TestSetupExecutive {
 //     // Mandate instances for testing
 //     StatementOfIntent statementOfIntent;
 //     Governor_CreateProposal governorCreateProposal;
 //     Governor_ExecuteProposal governorExecuteProposal;
-//     PresetSingleAction presetSingleAction;
+//     PresetActions_Single presetSingleAction;
 //     OpenAction openAction;
 
 //     // State variables to avoid stack too deep errors
@@ -34,7 +34,7 @@ pragma solidity 0.8.26;
 //     bytes[] mandateInitDatas;
 //     address[] mandatesToAdopt;
 //     string[] descriptions;
-//     PresetSingleAction.Data presetDataSingle;
+//     PresetActions_Single.Data presetDataSingle;
 
 //     function setUp() public override {
 //         super.setUp();
@@ -44,7 +44,7 @@ pragma solidity 0.8.26;
 //         statementOfIntent = StatementOfIntent(mandateAddresses[4]);
 //         governorCreateProposal = Governor_CreateProposal(mandateAddresses[9]);
 //         governorExecuteProposal = Governor_ExecuteProposal(mandateAddresses[10]);
-//         presetSingleAction = PresetSingleAction(mandateAddresses[1]);
+//         presetSingleAction = PresetActions_Single(mandateAddresses[1]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //     }
 
@@ -331,9 +331,9 @@ pragma solidity 0.8.26;
 //     //               PRESET SINGLE ACTION FUZZ                  //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test PresetSingleAction (mandateId 5) returns preset data regardless of input
+//     /// @notice Fuzz test PresetActions_Single (mandateId 5) returns preset data regardless of input
 //     /// @dev mandateId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
-//     function testFuzzPresetSingleActionIgnoresInput(bytes memory inputCalldataFuzzed, uint256 nonceFuzzed) public {
+//     function testFuzzPresetActions_SingleIgnoresInput(bytes memory inputCalldataFuzzed, uint256 nonceFuzzed) public {
 //         // Bound inputs
 //         vm.assume(inputCalldataFuzzed.length <= MAX_FUZZ_CALLDATA_LENGTH);
 
@@ -368,8 +368,8 @@ pragma solidity 0.8.26;
 //         }
 //     }
 
-//     /// @notice Fuzz test PresetSingleAction with various nonces
-//     function testFuzzPresetSingleActionWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
+//     /// @notice Fuzz test PresetActions_Single with various nonces
+//     function testFuzzPresetActions_SingleWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
 //         vm.assume(nonce1 != nonce2);
 
 //         mandateCalldata = abi.encode();

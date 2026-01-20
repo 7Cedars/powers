@@ -13,13 +13,13 @@ import { MandateUtilities } from "@src/libraries/MandateUtilities.sol";
 
 // --- Mandate Contract Imports ---
 // async mandates
-import { ClaimRoleWithGitSig } from "@src/mandates/async/ClaimRoleWithGitSig.sol";
-import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.sol";
+import { Github_ClaimRoleWithSig } from "@src/mandates/async/Github_ClaimRoleWithSig.sol";
+import { Github_AssignRoleWithSig } from "@src/mandates/async/Github_AssignRoleWithSig.sol";
 
 // Electoral mandates
-import { OpenElectionStart } from "@src/mandates/electoral/OpenElectionStart.sol";
-import { OpenElectionEnd } from "@src/mandates/electoral/OpenElectionEnd.sol";
-import { OpenElectionVote } from "@src/mandates/electoral/OpenElectionVote.sol";
+import { OpenElection_Start } from "@src/mandates/electoral/OpenElection_Start.sol";
+import { OpenElection_End } from "@src/mandates/electoral/OpenElection_End.sol";
+import { OpenElection_Vote } from "@src/mandates/electoral/OpenElection_Vote.sol";
 import { PeerSelect } from "@src/mandates/electoral/PeerSelect.sol";
 import { NStrikesRevokesRoles } from "@src/mandates/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "@src/mandates/electoral/TaxSelect.sol";
@@ -32,12 +32,12 @@ import { DelegateTokenSelect } from "@src/mandates/electoral/DelegateTokenSelect
 import { Nominate } from "@src/mandates/electoral/Nominate.sol";
 
 // Executive mandates
-import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
-import { Preset_MultipleActions } from "@src/mandates/executive/Preset_MultipleActions.sol";
+import { PresetActions_Single } from "@src/mandates/executive/PresetActions_Single.sol";
+import { PresetActions_Multiple } from "@src/mandates/executive/PresetActions_Multiple.sol";
 import { OpenAction } from "@src/mandates/executive/OpenAction.sol";
 import { StatementOfIntent } from "@src/mandates/executive/StatementOfIntent.sol";
-import { AdoptMandates } from "@src/mandates/executive/AdoptMandates.sol";
-import { RevokeMandates } from "@src/mandates/executive/RevokeMandates.sol";
+import { Mandates_Adopt } from "@src/mandates/executive/Mandates_Adopt.sol";
+import { Mandates_Revoke } from "@src/mandates/executive/Mandates_Revoke.sol";
 import { CheckExternalActionState } from "@src/mandates/executive/CheckExternalActionState.sol";
 import { BespokeAction_OnReturnValue } from "@src/mandates/executive/BespokeAction_OnReturnValue.sol";
 import { BespokeAction_OnOwnPowers } from "@src/mandates/executive/BespokeAction_OnOwnPowers.sol";
@@ -128,34 +128,34 @@ contract InitialisePowers is Script {
         returns (string memory outputJson)
     {
         names.push("DUMMY LAW");
-        creationCodes.push(type(PresetSingleAction).creationCode);
+        creationCodes.push(type(PresetActions_Single).creationCode);
         constructorArgs.push(abi.encode());
 
         //////////////////////////////////////////////////////////////////////////
         //                         Async Mandates                               //
         //////////////////////////////////////////////////////////////////////////
-        names.push("ClaimRoleWithGitSig");
-        creationCodes.push(type(ClaimRoleWithGitSig).creationCode);
+        names.push("Github_ClaimRoleWithSig");
+        creationCodes.push(type(Github_ClaimRoleWithSig).creationCode);
         constructorArgs.push(abi.encode(config_.chainlinkFunctionsRouter));
 
-        names.push("AssignRoleWithGitSig");
-        creationCodes.push(type(AssignRoleWithGitSig).creationCode);
+        names.push("Github_AssignRoleWithSig");
+        creationCodes.push(type(Github_AssignRoleWithSig).creationCode);
         constructorArgs.push(abi.encode());
 
         //////////////////////////////////////////////////////////////////////////
         //                      Electoral Mandates                              //
         //////////////////////////////////////////////////////////////////////////
-        names.push("OpenElectionEnd");
-        creationCodes.push(type(OpenElectionEnd).creationCode);
-        constructorArgs.push(abi.encode("OpenElectionEnd"));
+        names.push("OpenElection_End");
+        creationCodes.push(type(OpenElection_End).creationCode);
+        constructorArgs.push(abi.encode("OpenElection_End"));
 
          names.push("PeerSelect");
         creationCodes.push(type(PeerSelect).creationCode);
         constructorArgs.push(abi.encode("PeerSelect"));
 
-        names.push("OpenElectionVote");
-        creationCodes.push(type(OpenElectionVote).creationCode);
-        constructorArgs.push(abi.encode("OpenElectionVote"));
+        names.push("OpenElection_Vote");
+        creationCodes.push(type(OpenElection_Vote).creationCode);
+        constructorArgs.push(abi.encode("OpenElection_Vote"));
 
         names.push("NStrikesRevokesRoles");
         creationCodes.push(type(NStrikesRevokesRoles).creationCode);
@@ -193,20 +193,20 @@ contract InitialisePowers is Script {
         creationCodes.push(type(Nominate).creationCode);
         constructorArgs.push(abi.encode("Nominate"));
 
-        names.push("OpenElectionStart");
-        creationCodes.push(type(OpenElectionStart).creationCode);
-        constructorArgs.push(abi.encode("OpenElectionStart"));
+        names.push("OpenElection_Start");
+        creationCodes.push(type(OpenElection_Start).creationCode);
+        constructorArgs.push(abi.encode("OpenElection_Start"));
 
         //////////////////////////////////////////////////////////////////////////
         //                       Executive Mandates                             //
         //////////////////////////////////////////////////////////////////////////
-        names.push("PresetSingleAction");
-        creationCodes.push(type(PresetSingleAction).creationCode);
-        constructorArgs.push(abi.encode("PresetSingleAction"));
+        names.push("PresetActions_Single");
+        creationCodes.push(type(PresetActions_Single).creationCode);
+        constructorArgs.push(abi.encode("PresetActions_Single"));
 
-        names.push("Preset_MultipleActions");
-        creationCodes.push(type(Preset_MultipleActions).creationCode);
-        constructorArgs.push(abi.encode("Preset_MultipleActions"));
+        names.push("PresetActions_Multiple");
+        creationCodes.push(type(PresetActions_Multiple).creationCode);
+        constructorArgs.push(abi.encode("PresetActions_Multiple"));
 
         names.push("OpenAction");
         creationCodes.push(type(OpenAction).creationCode);
@@ -228,13 +228,13 @@ contract InitialisePowers is Script {
         creationCodes.push(type(BespokeAction_Simple).creationCode);
         constructorArgs.push(abi.encode("BespokeAction_Simple"));
 
-        names.push("AdoptMandates");
-        creationCodes.push(type(AdoptMandates).creationCode);
-        constructorArgs.push(abi.encode("AdoptMandates"));
+        names.push("Mandates_Adopt");
+        creationCodes.push(type(Mandates_Adopt).creationCode);
+        constructorArgs.push(abi.encode("Mandates_Adopt"));
 
-        names.push("RevokeMandates");
-        creationCodes.push(type(RevokeMandates).creationCode);
-        constructorArgs.push(abi.encode("RevokeMandates"));
+        names.push("Mandates_Revoke");
+        creationCodes.push(type(Mandates_Revoke).creationCode);
+        constructorArgs.push(abi.encode("Mandates_Revoke"));
 
         names.push("CheckExternalActionState");
         creationCodes.push(type(CheckExternalActionState).creationCode);

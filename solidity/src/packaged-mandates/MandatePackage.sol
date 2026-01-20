@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 /// @notice An example implementation of a Mandate Package that adopts multiple mandates into the Powers protocol.
-/// @dev It is meant to be adopted through the AdoptMandates mandate, and then be executed to adopt multiple mandates in a single transaction.
+/// @dev It is meant to be adopted through the Mandates_Adopt mandate, and then be executed to adopt multiple mandates in a single transaction.
 /// @dev The mandate self-destructs after execution.
 ///
 /// @author 7Cedars

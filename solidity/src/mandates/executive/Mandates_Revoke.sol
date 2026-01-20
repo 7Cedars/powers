@@ -11,7 +11,7 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-contract RevokeMandates is Mandate {
+contract Mandates_Revoke is Mandate {
     constructor() {
         bytes memory configParams = abi.encode();
         emit Mandate__Deployed(configParams);

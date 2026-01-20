@@ -85,7 +85,7 @@ contract OpenElectionsDAO is DeploySetup {
         conditions.allowedRole = 0; // = admin.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Delegates, Funders) and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -107,10 +107,10 @@ contract OpenElectionsDAO is DeploySetup {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
+                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),
@@ -123,7 +123,7 @@ contract OpenElectionsDAO is DeploySetup {
         conditions.needFulfilled = 3; // = Mandate 3 (Start election)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Delegates

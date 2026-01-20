@@ -6,7 +6,7 @@
 /// - Checks if the election is closed (reverts if still open)
 /// - Fetches current role holders from Powers
 /// - Retrieves election results from OpenElection contract
-/// - Revokes the OpenElectionVote mandate
+/// - Revokes the OpenElection_Vote mandate
 /// - Revokes roles from all current holders
 /// - Assigns roles to newly elected accounts
 ///
@@ -19,7 +19,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { OpenElection } from "../../helpers/OpenElection.sol";
 
-contract OpenElectionEnd is Mandate {
+contract OpenElection_End is Mandate {
     struct Mem {
         uint16 voteContractId;
         uint256 amountRoleHolders;
@@ -37,7 +37,7 @@ contract OpenElectionEnd is Mandate {
         uint256 maxRoleHolders;
     }
 
-    /// @notice Constructor for OpenElectionEnd mandate
+    /// @notice Constructor for OpenElection_End mandate
     constructor() {
         bytes memory configParams = abi.encode("address electionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
         emit Mandate__Deployed(configParams);
@@ -103,7 +103,7 @@ contract OpenElectionEnd is Mandate {
 
         mem.operationIndex = 0;
 
-        // Step 5: Revoke the OpenElectionVote mandate
+        // Step 5: Revoke the OpenElection_Vote mandate
         targets[mem.operationIndex] = powers;
         calldatas[mem.operationIndex] = abi.encodeWithSelector(Powers.revokeMandate.selector, mem.voteContractId);
         mem.operationIndex++;

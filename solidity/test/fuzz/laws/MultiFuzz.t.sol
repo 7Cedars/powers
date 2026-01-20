@@ -6,8 +6,8 @@ pragma solidity 0.8.26;
 // import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
 // import { StatementOfIntent } from "../../../src/mandates/executive/StatementOfIntent.sol";
 // import { BespokeAction_Simple } from "../../../src/mandates/executive/BespokeAction_Simple.sol";
-// import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
-// import { Preset_MultipleActions } from "../../../src/mandates/executive/Preset_MultipleActions.sol";
+// import { PresetActions_Single } from "../../../src/mandates/executive/PresetActions_Single.sol";
+// import { PresetActions_Multiple } from "../../../src/mandates/executive/PresetActions_Multiple.sol";
 // import { BespokeAction_Advanced } from "../../../src/mandates/executive/BespokeAction_Advanced.sol";
 
 // /// @title Multi Mandate Fuzz Tests
@@ -17,16 +17,16 @@ pragma solidity 0.8.26;
 // ///      mandateId 2: StatementOfIntent
 // ///      mandateId 3: BespokeAction_Simple (mint)
 // ///      mandateId 4: BespokeAction_Advanced (assignRole)
-// ///      mandateId 5: PresetSingleAction (label roles)
-// ///      mandateId 6: Preset_MultipleActions (multiple label actions)
-// ///      mandateId 7: PresetSingleAction (another preset action)
+// ///      mandateId 5: PresetActions_Single (label roles)
+// ///      mandateId 6: PresetActions_Multiple (multiple label actions)
+// ///      mandateId 7: PresetActions_Single (another preset action)
 // contract MultiFuzzTest is TestSetupMulti {
 //     // Mandate instances for testing
 //     OpenAction openAction;
 //     StatementOfIntent statementOfIntent;
 //     BespokeAction_Simple bespokeActionSimple;
-//     PresetSingleAction presetSingleAction;
-//     Preset_MultipleActions presetMultipleActions;
+//     PresetActions_Single presetSingleAction;
+//     PresetActions_Multiple presetMultipleActions;
 //     BespokeAction_Advanced bespokeActionAdvanced;
 
 //     // State variables to avoid stack too deep errors
@@ -39,15 +39,15 @@ pragma solidity 0.8.26;
 //     uint256 expectedCount;
 //     uint256 quantity;
 //     bytes largeCalldata;
-//     PresetSingleAction.Data presetDataSingle;
-//     Preset_MultipleActions.Data presetDataMultiple;
+//     PresetActions_Single.Data presetDataSingle;
+//     PresetActions_Multiple.Data presetDataMultiple;
 
 //     function setUp() public override {
 //         super.setUp();
 
 //         // Initialize mandate instances from deployed addresses
-//         presetSingleAction = PresetSingleAction(mandateAddresses[1]);
-//         presetMultipleActions = Preset_MultipleActions(mandateAddresses[2]);
+//         presetSingleAction = PresetActions_Single(mandateAddresses[1]);
+//         presetMultipleActions = PresetActions_Multiple(mandateAddresses[2]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //         statementOfIntent = StatementOfIntent(mandateAddresses[4]);
 //         bespokeActionAdvanced = BespokeAction_Advanced(mandateAddresses[5]);
@@ -261,9 +261,9 @@ pragma solidity 0.8.26;
 //     //               PRESET SINGLE ACTION FUZZ                  //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test PresetSingleAction (mandateId 5) returns preset data regardless of input
+//     /// @notice Fuzz test PresetActions_Single (mandateId 5) returns preset data regardless of input
 //     /// @dev mandateId 5 is configured to label role 1 as "Member" and role 2 as "Delegate"
-//     // function testFuzzPresetSingleActionIgnoresInput(
+//     // function testFuzzPresetActions_SingleIgnoresInput(
 //     //     bytes memory inputCalldataFuzzed,
 //     //     uint256 nonceFuzzed
 //     // ) public {
@@ -301,8 +301,8 @@ pragma solidity 0.8.26;
 //     //     }
 //     // }
 
-//     /// @notice Fuzz test PresetSingleAction with various nonces
-//     function testFuzzPresetSingleActionWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
+//     /// @notice Fuzz test PresetActions_Single with various nonces
+//     function testFuzzPresetActions_SingleWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
 //         vm.assume(nonce1 != nonce2);
 
 //         mandateCalldata = abi.encode();
@@ -330,9 +330,9 @@ pragma solidity 0.8.26;
 //     //              PRESET MULTIPLE ACTIONS FUZZ                //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test Preset_MultipleActions (mandateId 6) with random selection patterns
+//     /// @notice Fuzz test PresetActions_Multiple (mandateId 6) with random selection patterns
 //     /// @dev mandateId 6 is configured with 2 actions: "Assign Member Role" and "Assign Delegate Role"
-//     function testFuzzPreset_MultipleActionsWithRandomSelections(bool selectFirst, bool selectSecond, uint256 nonceFuzzed)
+//     function testFuzzPresetActions_MultipleWithRandomSelections(bool selectFirst, bool selectSecond, uint256 nonceFuzzed)
 //         public
 //     {
 //         // Get preset data for mandateId 6
@@ -369,8 +369,8 @@ pragma solidity 0.8.26;
 //         }
 //     }
 
-//     /// @notice Fuzz test Preset_MultipleActions with all false selections
-//     function testFuzzPreset_MultipleActionsWithAllFalse(uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test PresetActions_Multiple with all false selections
+//     function testFuzzPresetActions_MultipleWithAllFalse(uint256 nonceFuzzed) public {
 //         // Get preset data for mandateId 6
 //         mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
 //         presetDataMultiple = presetMultipleActions.getData(mandateHash);
@@ -389,8 +389,8 @@ pragma solidity 0.8.26;
 //         assertTrue(returnedTargets.length <= 1);
 //     }
 
-//     /// @notice Fuzz test Preset_MultipleActions with all true selections
-//     function testFuzzPreset_MultipleActionsWithAllTrue(uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test PresetActions_Multiple with all true selections
+//     function testFuzzPresetActions_MultipleWithAllTrue(uint256 nonceFuzzed) public {
 //         // Get preset data for mandateId 6
 //         mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
 //         presetDataMultiple = presetMultipleActions.getData(mandateHash);

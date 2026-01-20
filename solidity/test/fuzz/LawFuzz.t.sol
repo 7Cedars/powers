@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import { TestSetupMandate } from "../TestSetup.t.sol";
 import { IMandate } from "../../src/interfaces/IMandate.sol";
-import { PresetSingleAction } from "../../src/mandates/executive/PresetSingleAction.sol";
+import { PresetActions_Single } from "../../src/mandates/executive/PresetActions_Single.sol";
 import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
 import { StatementOfIntent } from "../../src/mandates/executive/StatementOfIntent.sol";
 import { BespokeAction_Simple } from "../../src/mandates/executive/BespokeAction_Simple.sol";
@@ -15,7 +15,7 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 // /// @dev Tests various edge cases and random inputs for mandate functionality
 // contract MandateFuzzTest is TestSetupMandate {
 //     // Mandate instances for testing
-//     PresetSingleAction presetSingleAction;
+//     PresetActions_Single presetSingleAction;
 //     OpenAction openAction;
 //     StatementOfIntent statementOfIntent;
 //     BespokeAction_Simple bespokeActionSimple;
@@ -29,7 +29,7 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 //         super.setUp();
 
 //         // Initialize mandate instances
-//         presetSingleAction = PresetSingleAction(mandateAddresses[4]);
+//         presetSingleAction = PresetActions_Single(mandateAddresses[4]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //         statementOfIntent = StatementOfIntent(mandateAddresses[6]);
 //         bespokeActionSimple = BespokeAction_Simple(mandateAddresses[7]);

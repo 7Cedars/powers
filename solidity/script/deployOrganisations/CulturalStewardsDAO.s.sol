@@ -258,7 +258,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public.
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assigns role labels, sets up the allowance module, the treasury and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -721,10 +721,10 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(120, config.BLOCKS_PER_HOUR); // = once every 2 hours
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be any voter.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
+                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // duration of election 
                 1 // Role id that can vote = Members
             ),
@@ -738,7 +738,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // = Start election
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Executive role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Executives
@@ -836,7 +836,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.quorum = 80;   
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt new Mandates: Executives can adopt new mandates into the organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(),
             conditions: conditions
         }));
@@ -874,7 +874,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public.
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -1022,7 +1022,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(3, config.BLOCKS_PER_HOUR); // to avoid spamming, the law is throttled. 
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Apply for Member Role: Anyone can claim member roles based on their GitHub contributions to the DAO's repository", // crrently the path is set at Cedars/powers
-            targetMandate: initialisePowers.getMandateAddress("ClaimRoleWithGitSig"), // TODO: needs to be more configurable
+            targetMandate: initialisePowers.getMandateAddress("Github_ClaimRoleWithSig"), // TODO: needs to be more configurable
             config: abi.encode(
                 "develop", // branch
                 paths,
@@ -1042,7 +1042,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // must have applied for member role.
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Claim Member Role: Following a successful initial claim, members can get member role assigned to their account.",
-            targetMandate: initialisePowers.getMandateAddress("AssignRoleWithGitSig"),
+            targetMandate: initialisePowers.getMandateAddress("Github_AssignRoleWithSig"),
             config: abi.encode(), // empty config
             conditions: conditions
         }));
@@ -1068,10 +1068,10 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(120, config.BLOCKS_PER_HOUR); // = once every 2 hours
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start Convener election: an election for the convener role can be initiated be any voter.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
+                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // duration of election 
                 1 // Role id that can vote = Members
             ),
@@ -1085,7 +1085,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // = Start election
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally Convener elections: After a convener election has finished, assign the Convener role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Conveners
@@ -1140,7 +1140,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.quorum = 80;   
         digitalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt new Mandates: Conveners can adopt new mandates into the organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(),
             conditions: conditions
         }));
@@ -1179,7 +1179,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public.
         ideasConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -1305,10 +1305,10 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(120, config.BLOCKS_PER_HOUR); // = once every 2 hours
         ideasConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be any voter.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
+                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // duration of election 
                 1 // Role id that can vote = Members
             ),
@@ -1322,7 +1322,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // = Start election
         ideasConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Convener role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Conveners
@@ -1365,7 +1365,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.quorum = 80;   
         ideasConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt new Mandates: Conveners can adopt new mandates into the organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(),
             conditions: conditions
         }));
@@ -1404,7 +1404,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public.
         physicalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -1508,10 +1508,10 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(120, config.BLOCKS_PER_HOUR); // = once every 2 hours
         physicalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be any voter.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionStart"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElectionVote"), // Vote mandate address
+                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // duration of election 
                 1 // Role id that can vote = Members
             ),
@@ -1525,7 +1525,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.needFulfilled = mandateCount - 1; // = Start election
         physicalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Convener role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Conveners
@@ -1580,7 +1580,7 @@ contract CulturalStewardsDAO is DeploySetup {
         conditions.quorum = 80;   
         physicalConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Adopt new Mandates: Conveners can adopt new mandates into the organization",
-            targetMandate: initialisePowers.getMandateAddress("AdoptMandates"),
+            targetMandate: initialisePowers.getMandateAddress("Mandates_Adopt"),
             config: abi.encode(),
             conditions: conditions
         }));

@@ -16,7 +16,7 @@ import { IPowers } from "@src/interfaces/IPowers.sol";
 
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
-import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
+import { PresetActions_Single } from "@src/mandates/executive/PresetActions_Single.sol";
 import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { MandateUtilities } from "@src/libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";

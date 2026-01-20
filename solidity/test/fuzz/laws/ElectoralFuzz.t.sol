@@ -4,9 +4,9 @@ pragma solidity 0.8.26;
 // import "forge-std/Test.sol";
 // import { MandateUtilities } from "../../../src/libraries/MandateUtilities.sol";
 // import { TestSetupElectoral } from "../../TestSetup.t.sol";
-// import { OpenElectionEnd } from "../../../src/mandates/electoral/OpenElectionEnd.sol";
+// import { OpenElection_End } from "../../../src/mandates/electoral/OpenElection_End.sol";
 // import { PeerSelect } from "../../../src/mandates/electoral/PeerSelect.sol";
-// import { OpenElectionVote } from "../../../src/mandates/electoral/OpenElectionVote.sol";
+// import { OpenElection_Vote } from "../../../src/mandates/electoral/OpenElection_Vote.sol";
 // import { TaxSelect } from "../../../src/mandates/electoral/TaxSelect.sol";
 // import { SelfSelect } from "../../../src/mandates/electoral/SelfSelect.sol";
 // import { RenounceRole } from "../../../src/mandates/electoral/RenounceRole.sol";
@@ -22,20 +22,20 @@ pragma solidity 0.8.26;
 // /// @title Electoral Mandate Fuzz Tests
 // /// @notice Comprehensive fuzz testing for all electoral mandate implementations using pre-initialized mandates
 // /// @dev Tests use mandates from electoralTestConstitution:
-// ///      mandateId 1: OpenElectionEnd (Erc20DelegateElection, roleId=3, maxHolders=3)
+// ///      mandateId 1: OpenElection_End (Erc20DelegateElection, roleId=3, maxHolders=3)
 // ///      mandateId 2: PeerSelect (maxHolders=2, roleId=4, maxVotes=1, Nominees)
-// ///      mandateId 3: OpenElectionVote (OpenElection, maxVotes=1)
+// ///      mandateId 3: OpenElection_Vote (OpenElection, maxVotes=1)
 // ///      mandateId 4: TaxSelect (Erc20Taxed, threshold=1000, roleId=4)
 // ///      mandateId 6: SelfSelect (roleId=4)
 // ///      mandateId 7: RenounceRole (roles=[1,2])
 // ///      mandateId 8: NStrikesRevokesRoles (roleId=3, strikes=2, FlagActions)
 // ///      mandateId 9: RoleByRoles (targetRole=4, neededRoles=[1,2])
-// ///      mandateId 10: PresetSingleAction (label roles)
+// ///      mandateId 10: PresetActions_Single (label roles)
 // contract ElectoralFuzzTest is TestSetupElectoral {
 //     // Mandate instances for testing
-//     OpenElectionEnd openElectionEnd;
+//     OpenElection_End openElectionEnd;
 //     PeerSelect peerSelect;
-//     OpenElectionVote openElectionVote;
+//     OpenElection_Vote openElectionVote;
 //     TaxSelect taxSelect;
 //     SelfSelect selfSelect;
 //     RenounceRole renounceRole;
@@ -65,9 +65,9 @@ pragma solidity 0.8.26;
 //         super.setUp();
 
 //         // Initialize mandate instances from deployed addresses
-//         openElectionEnd = OpenElectionEnd(mandateAddresses[11]);
+//         openElectionEnd = OpenElection_End(mandateAddresses[11]);
 //         peerSelect = PeerSelect(mandateAddresses[12]);
-//         openElectionVote = OpenElectionVote(mandateAddresses[13]);
+//         openElectionVote = OpenElection_Vote(mandateAddresses[13]);
 //         nStrikesRevokesRoles = NStrikesRevokesRoles(mandateAddresses[14]);
 //         taxSelect = TaxSelect(mandateAddresses[15]);
 //         roleByRoles = RoleByRoles(mandateAddresses[17]);
@@ -234,9 +234,9 @@ pragma solidity 0.8.26;
 //     //                  ELECTION SELECT FUZZ                    //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test OpenElectionEnd (mandateId 1) action generation
+//     /// @notice Fuzz test OpenElection_End (mandateId 1) action generation
 //     /// @dev mandateId 1 runs delegate elections for role 3
-//     function testFuzzOpenElectionEndActionGeneration(
+//     function testFuzzOpenElection_EndActionGeneration(
 //         address[] memory nomineesFuzzed,
 //         uint256 numberOfNominees,
 //         address callerFuzzed,
@@ -264,8 +264,8 @@ pragma solidity 0.8.26;
 //         assertEq(returnedTargets[0], address(daoMock));
 //     }
 
-//     /// @notice Fuzz test OpenElectionEnd with various nonces
-//     function testFuzzOpenElectionEndWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
+//     /// @notice Fuzz test OpenElection_End with various nonces
+//     function testFuzzOpenElection_EndWithVariousNonces(uint256 nonce1, uint256 nonce2) public {
 //         vm.assume(nonce1 != nonce2);
 
 //         (returnedActionId,,,) = openElectionEnd.handleRequest(alice, address(daoMock), 1, abi.encode(), nonce1);
@@ -360,9 +360,9 @@ pragma solidity 0.8.26;
 //     //                VOTE IN OPEN ELECTION FUZZ                //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test OpenElectionVote (mandateId 3) with various candidates
-//     /// @dev mandateId 3 allows voting in open elections with max 1 vote == OpenElectionVote.
-//     function testFuzzOpenElectionVoteWithCandidates(
+//     /// @notice Fuzz test OpenElection_Vote (mandateId 3) with various candidates
+//     /// @dev mandateId 3 allows voting in open elections with max 1 vote == OpenElection_Vote.
+//     function testFuzzOpenElection_VoteWithCandidates(
 //         address[] memory candidatesFuzzed,
 //         uint256 quantity,
 //         uint256 nonceFuzzed,
@@ -388,7 +388,7 @@ pragma solidity 0.8.26;
 
 //         vm.roll(block.number + 1);
 
-//         // step 2: initialise a NEW OpenElectionVote mandate
+//         // step 2: initialise a NEW OpenElection_Vote mandate
 //         delete conditions;
 //         conditions.allowedRole = type(uint256).max;
 //         mandateId = daoMock.mandateCounter();
@@ -404,7 +404,7 @@ pragma solidity 0.8.26;
 //                 conditions: conditions
 //             })
 //         );
-//         // step 3: vote for candidates in OpenElectionVote contract
+//         // step 3: vote for candidates in OpenElection_Vote contract
 //         vm.prank(address(daoMock));
 //         (returnedActionId, returnedTargets,, returnedCalldatas) =
 //             openElectionVote.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonceFuzzed);
@@ -415,7 +415,7 @@ pragma solidity 0.8.26;
 //     }
 
 //     /// @notice Fuzz test with multiple votes allowed.
-//     function testFuzzOpenElectionVoteWithMultipleVotes(
+//     function testFuzzOpenElection_VoteWithMultipleVotes(
 //         address[] memory candidatesFuzzed,
 //         uint256 quantity,
 //         uint256 nonceFuzzed,
@@ -453,7 +453,7 @@ pragma solidity 0.8.26;
 
 //         vm.roll(block.number + 1);
 
-//         // step 2: initialise a NEW OpenElectionVote mandate with multiple votes allowed
+//         // step 2: initialise a NEW OpenElection_Vote mandate with multiple votes allowed
 //         delete conditions;
 //         conditions.allowedRole = type(uint256).max;
 //         mandateId = daoMock.mandateCounter();
@@ -470,7 +470,7 @@ pragma solidity 0.8.26;
 //             })
 //         );
 
-//         // step 3: vote for candidates in OpenElectionVote contract
+//         // step 3: vote for candidates in OpenElection_Vote contract
 //         vm.prank(alice);
 //         actionId = daoMock.request(mandateId, mandateCalldata, nonceFuzzed, "");
 
@@ -668,14 +668,14 @@ pragma solidity 0.8.26;
 //     function testFuzzElectoralWithZeroAddresses(uint256 arrayLength, uint256 nonceFuzzed) public {
 //         arrayLength = bound(arrayLength, 1, 10);
 
-//         // For OpenElectionVote, we need a bool array, not address array
+//         // For OpenElection_Vote, we need a bool array, not address array
 //         // Test with all false votes (no selections)
 //         bool[] memory votesArray = new bool[](arrayLength);
 //         // All elements are false by default
 
 //         mandateCalldata = abi.encode(votesArray);
 
-//         // Test OpenElectionVote with no votes selected
+//         // Test OpenElection_Vote with no votes selected
 //         // This should revert as no votes were cast
 //         vm.expectRevert();
 //         openElectionVote.handleRequest(alice, address(daoMock), 3, mandateCalldata, nonceFuzzed);
@@ -703,7 +703,7 @@ pragma solidity 0.8.26;
 
 //         vm.roll(block.number + 1);
 
-//         // Initialize a new OpenElectionVote mandate for this test
+//         // Initialize a new OpenElection_Vote mandate for this test
 //         delete conditions;
 //         conditions.allowedRole = type(uint256).max;
 //         mandateId = daoMock.mandateCounter();

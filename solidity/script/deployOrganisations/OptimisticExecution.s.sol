@@ -78,7 +78,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.allowedRole = 0; // = admin.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members, Executives) and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), 
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));

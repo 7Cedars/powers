@@ -12,8 +12,8 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
-contract PresetSingleAction is Mandate {
-    /// @notice Constructor of the PresetSingleAction mandate
+contract PresetActions_Single is Mandate {
+    /// @notice Constructor of the PresetActions_Single mandate
     constructor() {
         bytes memory configParams = abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas");
         emit Mandate__Deployed(configParams);

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
 /// @notice Starts an election by calling openElection on the OpenElection contract
-/// and deploys an OpenElectionVote contract for voting.
+/// and deploys an OpenElection_Vote contract for voting.
 ///
 /// This mandate:
 /// - Takes electionContract address, roleId, and maxRoleHolders at initialization
-/// - Deploys an OpenElectionVote contract during initialization
+/// - Deploys an OpenElection_Vote contract during initialization
 /// - Calls openElection on the OpenElection contract when executed
 ///
 /// @author 7Cedars
@@ -15,12 +15,12 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { OpenElection } from "../../helpers/OpenElection.sol";
-import { OpenElectionVote } from "./OpenElectionVote.sol";
+import { OpenElection_Vote } from "./OpenElection_Vote.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { Powers } from "../../Powers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-contract OpenElectionStart is Mandate { 
+contract OpenElection_Start is Mandate { 
     struct Mem { 
         address electionContract;
         uint256 blockTime;
@@ -31,14 +31,14 @@ contract OpenElectionStart is Mandate {
 
     mapping (bytes32 mandateHash => uint16 voteContractId) internal voteContractIds;
 
-    /// @notice Constructor for OpenElectionStart mandate
+    /// @notice Constructor for OpenElection_Start mandate
     constructor() {
         bytes memory configParams = abi.encode("address electionContract", "address voteContract", "uint256 blockTime", "uint256 voterRoleId");
         emit Mandate__Deployed(configParams);
     }
 
     /// @notice Handles the request to start an election and adopt the vote mandate
-    /// @dev Calls openElection on the OpenElection contract and adopts the OpenElectionVote mandate
+    /// @dev Calls openElection on the OpenElection contract and adopts the OpenElection_Vote mandate
     // / @param caller The address calling the mandate
     /// @param powers The Powers contract address
     /// @param mandateId The mandate identifier
@@ -70,10 +70,10 @@ contract OpenElectionStart is Mandate {
         // Note that we set the electionId to the voteContractId for tracking. 
         calldatas[0] = abi.encodeWithSelector(OpenElection.openElection.selector, mem.blockTime, mem.voteContractId);
 
-        // Call 2: Adopt the OpenElectionVote mandate
+        // Call 2: Adopt the OpenElection_Vote mandate
         targets[1] = powers;
         
-        // Prepare config for OpenElectionVote: (address openElectionContract, uint256 maxVotes)
+        // Prepare config for OpenElection_Vote: (address openElectionContract, uint256 maxVotes)
         bytes memory voteConfig = abi.encode(mem.electionContract, uint256(1));
         
         // Create MandateInitData for the vote contract

@@ -12,7 +12,7 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-contract AdoptMandates is Mandate {
+contract Mandates_Adopt is Mandate {
     constructor() {
         bytes memory configParams = abi.encode();
         emit Mandate__Deployed(configParams);

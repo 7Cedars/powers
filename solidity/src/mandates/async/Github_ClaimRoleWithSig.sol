@@ -15,7 +15,7 @@ import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/Mes
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
- * @title ClaimRoleWithGitSig
+ * @title Github_ClaimRoleWithSig
  * @notice A mandate that assigns a role to a user if they can prove ownership
  * of a specific GitHub commit via a signed message.
  *
@@ -30,7 +30,7 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  * - It recovers the signer's address from the signature using a pre-defined `signatureString`.
  * - If the recovered address matches the original `caller`, the mandate grants them the role.
  */
-contract ClaimRoleWithGitSig is Mandate, FunctionsClient {
+contract Github_ClaimRoleWithSig is Mandate, FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
     using ECDSA for bytes32;
 

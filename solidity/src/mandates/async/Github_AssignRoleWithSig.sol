@@ -7,15 +7,15 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Powers } from "../../Powers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
-import { ClaimRoleWithGitSig } from "./ClaimRoleWithGitSig.sol";
+import { Github_ClaimRoleWithSig } from "./Github_ClaimRoleWithSig.sol";
 
 /**
- * @title AssignRoleWithGitSig
+ * @title Github_AssignRoleWithSig
  * @notice to do
  *
  */
 
-contract AssignRoleWithGitSig is Mandate {
+contract Github_AssignRoleWithSig is Mandate {
     // --- Mem struct for handleRequest ---
     // (This is just to avoid "stack too deep" errors)
 
@@ -40,7 +40,7 @@ contract AssignRoleWithGitSig is Mandate {
         public
         override
     {
-        // Set input parameters for UI: same as ClaimRoleWithGitSig.
+        // Set input parameters for UI: same as Github_ClaimRoleWithSig.
         inputParams = abi.encode("uint256 roleId", "string commitHash");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -78,7 +78,7 @@ contract AssignRoleWithGitSig is Mandate {
 
         // step 3: retrieve data from chainlink reply - and reset data in the process.
         (mem.errorMessage, mem.roleId) =
-            ClaimRoleWithGitSig(mem.addressClaimRole).getLatestReply(mem.mandateHashClaimRole, caller);
+            Github_ClaimRoleWithSig(mem.addressClaimRole).getLatestReply(mem.mandateHashClaimRole, caller);
         if (mem.errorMessage.length > 0) {
             revert("error in claiming role.");
         }
@@ -87,7 +87,7 @@ contract AssignRoleWithGitSig is Mandate {
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(2);
         targets[0] = mem.addressClaimRole;
         targets[1] = powers;
-        calldatas[0] = abi.encodeWithSelector(ClaimRoleWithGitSig.resetReply.selector, powers, mandateId, caller);
+        calldatas[0] = abi.encodeWithSelector(Github_ClaimRoleWithSig.resetReply.selector, powers, mandateId, caller);
         calldatas[1] = abi.encodeWithSelector(Powers.assignRole.selector, mem.roleId, caller);
 
         return (actionId, targets, values, calldatas);

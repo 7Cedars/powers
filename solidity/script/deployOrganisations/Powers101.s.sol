@@ -92,7 +92,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = role that can call this mandate.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
-            targetMandate: initialisePowers.getMandateAddress("OpenElectionEnd"),  
+            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),  
             config: abi.encode(
                 address(erc20DelegateElection),  
                 2, // role to be elected.
@@ -144,7 +144,7 @@ contract Powers101 is DeploySetup {
         }));
         delete conditions;
 
-        // PresetSingleAction
+        // PresetActions_Single
         // Set config
         targets = new address[](3);
         values = new uint256[](3);
@@ -160,7 +160,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public role. .
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
-            targetMandate: initialisePowers.getMandateAddress("PresetSingleAction"), // presetSingleAction
+            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), // presetSingleAction
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));

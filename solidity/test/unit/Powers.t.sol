@@ -424,7 +424,7 @@ contract VoteTest is TestSetupPowers {
 contract ExecuteTest is TestSetupPowers {
     function testExecuteCanChangeState() public {
         mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateCalldata = abi.encode(true); // PresetActions_Single doesn't use this parameter, but we need to provide something
 
         // Check initial state - role labels should be empty
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "");
@@ -441,7 +441,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteSuccessSetsStateToFulfilled() public {
         mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateCalldata = abi.encode(true); // PresetActions_Single doesn't use this parameter, but we need to provide something
 
         vm.prank(alice);
         daoMock.request(mandateId, mandateCalldata, nonce, description);
@@ -498,7 +498,7 @@ contract ExecuteTest is TestSetupPowers {
 
     function testExecuteRevertsIfMandateNotActive() public {
         mandateId = 6; // A Single Action: to assign labels to roles. It self-destructs after execution.
-        mandateCalldata = abi.encode(true); // PresetSingleAction doesn't use this parameter, but we need to provide something
+        mandateCalldata = abi.encode(true); // PresetActions_Single doesn't use this parameter, but we need to provide something
 
         vm.prank(address(daoMock));
         daoMock.revokeMandate(mandateId);
