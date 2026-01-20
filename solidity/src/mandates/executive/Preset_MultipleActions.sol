@@ -14,7 +14,7 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
-contract PresetMultipleActions is Mandate {
+contract Preset_MultipleActions is Mandate {
     struct Mem {
         uint i; 
         uint j;
@@ -27,7 +27,7 @@ contract PresetMultipleActions is Mandate {
     }
 
 
-    /// @notice Constructor of the PresetMultipleActions mandate
+    /// @notice Constructor of the Preset_MultipleActions mandate
     constructor() {
         bytes memory configParams =
             abi.encode("string[] descriptions", "address[] targets", "uint256[] values", "bytes[] calldatas");

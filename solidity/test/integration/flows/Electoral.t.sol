@@ -436,7 +436,7 @@ contract OpenElectionFlow_IntegrationTest is TestSetupOpenElectionFlow {
 
 contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRoleParentFlow {
     // Mandate IDs
-    // Parent Mandate 1: "Admin can assign any role" (BespokeActionSimple)
+    // Parent Mandate 1: "Admin can assign any role" (BespokeAction_Simple)
     // Child Mandate 1: "Adopt Role 1" (AssignExternalRole)
     uint16 constant PARENT_MANDATE_ASSIGN = 1;
     uint16 constant CHILD_MANDATE_SYNC = 1;
@@ -485,10 +485,10 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
 
         // 1. Assign Role 1 to Frank in Parent via Mandate
         // Parent Mandate takes: "uint256 roleId", "address account"
-        // Note: BespokeActionSimple expects params in abi.encode(params_) where params_ is string[].
-        // Wait, let's check BespokeActionSimple.sol again.
+        // Note: BespokeAction_Simple expects params in abi.encode(params_) where params_ is string[].
+        // Wait, let's check BespokeAction_Simple.sol again.
         
-        // BespokeActionSimple.sol:
+        // BespokeAction_Simple.sol:
         // (data[mandateHash].targetContract, data[mandateHash].targetFunction, params_) = abi.decode(config, (address, bytes4, string[]));
         // inputParams = abi.encode(params_);
         
@@ -497,7 +497,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         
         // mandateCalldata comes from request(..., mandateCalldata, ...).
         // The "params_" in config are just descriptions for UI?
-        // The prompt context for BespokeActionSimple.sol says:
+        // The prompt context for BespokeAction_Simple.sol says:
         // initializeMandate: inputParams = abi.encode(params_);
         
         // When calling request(), we pass the arguments encoded.
@@ -505,7 +505,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         // dynamicParams[0] = "uint256 roleId"; dynamicParams[1] = "address account";
         // config: abi.encode(..., dynamicParams)
         
-        // So BespokeActionSimple decodes "params_" as ["uint256 roleId", "address account"].
+        // So BespokeAction_Simple decodes "params_" as ["uint256 roleId", "address account"].
         // This inputParams is mostly metadata.
         // But handleRequest appends mandateCalldata directly to selector.
         // So we need to encode (uint256, address).

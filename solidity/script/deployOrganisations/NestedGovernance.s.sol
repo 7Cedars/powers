@@ -114,7 +114,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.setUri.selector,
@@ -148,7 +148,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.assignRole.selector,
@@ -163,7 +163,7 @@ contract NestedGovernance is DeploySetup {
         conditions.needFulfilled = 4; // Mandate 4
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.revokeRole.selector,
@@ -205,7 +205,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersChild),
                 IPowers.setUri.selector,
@@ -240,7 +240,7 @@ contract NestedGovernance is DeploySetup {
         conditions.quorum = 33;
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Mint Tokens: Call the mint function at token.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(votesToken),
                 bytes4(keccak256("mint(uint256)")), 

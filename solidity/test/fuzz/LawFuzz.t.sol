@@ -6,8 +6,8 @@ import { IMandate } from "../../src/interfaces/IMandate.sol";
 import { PresetSingleAction } from "../../src/mandates/executive/PresetSingleAction.sol";
 import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
 import { StatementOfIntent } from "../../src/mandates/executive/StatementOfIntent.sol";
-import { BespokeActionSimple } from "../../src/mandates/executive/BespokeActionSimple.sol";
-import { BespokeActionAdvanced } from "../../src/mandates/executive/BespokeActionAdvanced.sol";
+import { BespokeAction_Simple } from "../../src/mandates/executive/BespokeAction_Simple.sol";
+import { BespokeAction_Advanced } from "../../src/mandates/executive/BespokeAction_Advanced.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 // /// @title Mandate Fuzz Tests
@@ -18,8 +18,8 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 //     PresetSingleAction presetSingleAction;
 //     OpenAction openAction;
 //     StatementOfIntent statementOfIntent;
-//     BespokeActionSimple bespokeActionSimple;
-//     BespokeActionAdvanced bespokeActionAdvanced;
+//     BespokeAction_Simple bespokeActionSimple;
+//     BespokeAction_Advanced bespokeActionAdvanced;
 
 //     // Test state tracking
 //     mapping(bytes32 => bool) fuzzMandateHashes;
@@ -32,8 +32,8 @@ import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol
 //         presetSingleAction = PresetSingleAction(mandateAddresses[4]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //         statementOfIntent = StatementOfIntent(mandateAddresses[6]);
-//         bespokeActionSimple = BespokeActionSimple(mandateAddresses[7]);
-//         bespokeActionAdvanced = BespokeActionAdvanced(mandateAddresses[8]);
+//         bespokeActionSimple = BespokeAction_Simple(mandateAddresses[7]);
+//         bespokeActionAdvanced = BespokeAction_Advanced(mandateAddresses[8]);
 //     }
 
 //     //////////////////////////////////////////////////////////////

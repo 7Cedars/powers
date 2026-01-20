@@ -137,7 +137,7 @@ contract PowerLabs is DeploySetup {
         conditions.allowedRole = 0; // Admin
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.setUri.selector,
@@ -216,7 +216,7 @@ contract PowerLabs is DeploySetup {
         }));
         delete conditions;
 
-        // Mandate 8: Revoke Role (BespokeActionSimple)
+        // Mandate 8: Revoke Role (BespokeAction_Simple)
         mandateCount++;
         conditions.allowedRole = 5; // Members
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR);
@@ -226,7 +226,7 @@ contract PowerLabs is DeploySetup {
         conditions.needNotFulfilled = mandateCount - 1; // veto mandate
         parentConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Revoke Role: Members vote to remove a role from an account",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.revokeRole.selector,
@@ -604,7 +604,7 @@ contract PowerLabs is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersChild),
                 IPowers.setUri.selector,

@@ -457,14 +457,14 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // BespokeActionSimple - for simple function calls
+        // BespokeAction_Simple - for simple function calls
         params = new string[](2);
         params[0] = "uint256 Quantity";
         params[1] = "address To";
         conditions.allowedRole = 1;
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "BespokeActionSimple: A mandate to execute a simple function call.",
-            targetMandate: getMandateAddress("BespokeActionSimple"), // BespokeActionSimple (multi mandate)
+            nameDescription: "BespokeAction_Simple: A mandate to execute a simple function call.",
+            targetMandate: getMandateAddress("BespokeAction_Simple"), // BespokeAction_Simple (multi mandate)
             config: abi.encode(
                 simpleErc1155, // SimpleErc1155 mock
                 bytes4(keccak256("mint(uint256,address)")),
@@ -474,24 +474,20 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // BespokeActionAdvanced - for complex function calls with mixed parameters
-        staticParams = new bytes[](1);
-        staticParams[0] = abi.encode(1); // roleId = 1
+        // BespokeAction_Advanced - for complex function calls with mixed parameters
         dynamicParams = new string[](1);
         dynamicParams[0] = "address Account";
-        indexDynamicParams = new uint8[](1);
-        indexDynamicParams[0] = 1; // insert at position 1
 
         conditions.allowedRole = 1;
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "BespokeActionAdvanced: A mandate to execute complex function calls with mixed parameters.",
-            targetMandate: getMandateAddress("BespokeActionAdvanced"), // BespokeActionAdvanced (multi mandate)
+            nameDescription: "BespokeAction_Advanced: A mandate to execute complex function calls with mixed parameters.",
+            targetMandate: getMandateAddress("BespokeAction_Advanced"), // BespokeAction_Advanced (multi mandate)
             config: abi.encode(
                 daoMock, // Powers contract
                 IPowers.assignRole.selector,
-                staticParams,
+                abi.encode(1), // Role Id that will be assigned
                 dynamicParams,
-                indexDynamicParams
+                abi.encode(2212) // static params after -- should be ignored by assign role function. 
             ),
             conditions: conditions
         }));
@@ -518,15 +514,15 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // PresetMultipleActions - for executing multiple preset actions
+        // Preset_MultipleActions - for executing multiple preset actions
         descriptions = new string[](2);
         descriptions[0] = "Assign Member Role";
         descriptions[1] = "Assign Delegate Role";
 
         conditions.allowedRole = 1;
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "PresetMultipleActions: A mandate to execute multiple preset actions.",
-            targetMandate: getMandateAddress("PresetMultipleActions"), // PresetMultipleActions (multi mandate)
+            nameDescription: "Preset_MultipleActions: A mandate to execute multiple preset actions.",
+            targetMandate: getMandateAddress("Preset_MultipleActions"), // Preset_MultipleActions (multi mandate)
             config: abi.encode(descriptions, targets, values, calldatas),
             conditions: conditions
         }));
@@ -585,11 +581,11 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // BespokeActionReturner (BespokeActionSimple) - returns a value
+        // BespokeActionReturner (BespokeAction_Simple) - returns a value
         conditions.allowedRole = type(uint256).max;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "BespokeActionReturner: Returns a value for testing.",
-            targetMandate: getMandateAddress("BespokeActionSimple"),
+            targetMandate: getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 returnDataMock,
                 ReturnDataMock.getValue.selector,
@@ -599,14 +595,14 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // BespokeActionOnReturnValue - for using return values from previous mandates
+        // BespokeAction_OnReturnValue - for using return values from previous mandates
         params = new string[](1);
         params[0] = "uint256 Value";
 
         conditions.allowedRole = type(uint256).max; // public role can adopt mandates
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "BespokeActionOnReturnValue: Execute a call using return value of previous mandate call.",
-            targetMandate: getMandateAddress("BespokeActionOnReturnValue"), // BespokeActionOnReturnValue (executive mandate)
+            nameDescription: "BespokeAction_OnReturnValue: Execute a call using return value of previous mandate call.",
+            targetMandate: getMandateAddress("BespokeAction_OnReturnValue"), // BespokeAction_OnReturnValue (executive mandate)
             config: abi.encode(
                 returnDataMock,
                 ReturnDataMock.consume.selector,
@@ -694,7 +690,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; //
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Create new Powers: call Powers Factory to spawn new powers.",
-            targetMandate: getMandateAddress("BespokeActionSimple"),
+            targetMandate: getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 powersFactory,
                 IPowersFactory.createPowers.selector,
@@ -897,7 +893,7 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: getMandateAddress("BespokeActionSimple"),
+            targetMandate: getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 daoMock,
                 IPowers.assignRole.selector,

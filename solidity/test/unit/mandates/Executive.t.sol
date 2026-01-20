@@ -164,10 +164,10 @@ contract OpenActionTest is TestSetupExecutive {
     }
 }
 
-contract BespokeActionSimpleTest is TestSetupExecutive {
+contract BespokeAction_SimpleTest is TestSetupExecutive {
     function setUp() public override {
         super.setUp();
-        mandateId = 3; // BespokeActionSimple 
+        mandateId = 3; // BespokeAction_Simple 
     }
 
     function testSimpleExecute() public {
@@ -195,11 +195,11 @@ contract BespokeActionSimpleTest is TestSetupExecutive {
     }
 }
 
-contract BespokeActionAdvancedTest is TestSetupExecutive {
+contract BespokeAction_AdvancedTest is TestSetupExecutive {
 
     function setUp() public override {
         super.setUp();
-        mandateId = 4; // BespokeActionAdvanced
+        mandateId = 4; // BespokeAction_Advanced
     }
 
     function testAdvancedExecute() public {
@@ -208,45 +208,21 @@ contract BespokeActionAdvancedTest is TestSetupExecutive {
         // Dynamic param: address account
         
         newMember = makeAddr("newMember");
-        
-        // Prepare dynamic params: [abi.encode(newMember)]
-        calldatas = new bytes[](1);
-        calldatas[0] = abi.encode(newMember);
-        
-        // mandateCalldata must be abi.encode(bytes[] dynamicParts)
-        mandateCalldata = abi.encode(calldatas);
-        
+      
         // Verify initial state
         assertEq(daoMock.hasRoleSince(newMember, ROLE_ONE), 0);
         
         vm.prank(alice); // Alice has Role 1, which is allowed
-        daoMock.request(mandateId, mandateCalldata, nonce, "Assign Role");
+        daoMock.request(mandateId, abi.encode(newMember), nonce, "Assign Role");
         
         // Verify execution result
         assertNotEq(daoMock.hasRoleSince(newMember, ROLE_ONE), 0, "Role should be assigned");
     }
 
-    function testAdvancedRevertsWithBadDynamicLength() public {
-        // The mandate expects 1 dynamic parameter. Providing 2 should fail.
-        calldatas = new bytes[](2);
-        calldatas[0] = abi.encode(address(1));
-        calldatas[1] = abi.encode(address(2));
-        
-        mandateCalldata = abi.encode(calldatas);
-        
-        vm.prank(alice);
-        vm.expectRevert("Bad Dynamic Length");
-        daoMock.request(mandateId, mandateCalldata, nonce, "Bad Length");
-    }
-
     function testAdvancedRevertsUnauthorized() public {
-        calldatas = new bytes[](1);
-        calldatas[0] = abi.encode(alice);
-        mandateCalldata = abi.encode(calldatas);
-
         vm.prank(frank); // Frank does not have Role 1
         vm.expectRevert(PowersErrors.Powers__CannotCallMandate.selector);
-        daoMock.request(mandateId, mandateCalldata, nonce, "Unauthorized request");
+        daoMock.request(mandateId, abi.encode(alice), nonce, "Unauthorized request");
     }
 }
 
@@ -286,16 +262,16 @@ contract PresetSingleActionTest is TestSetupExecutive {
     }
 }
 
-contract PresetMultipleActionsTest is TestSetupExecutive {
-    // Placeholder for PresetMultipleActions specific tests
+contract Preset_MultipleActionsTest is TestSetupExecutive {
+    // Placeholder for Preset_MultipleActions specific tests
 }
 
-contract BespokeActionOnReturnValueTest is TestSetupExecutive {
+contract BespokeAction_OnReturnValueTest is TestSetupExecutive {
     event Consumed(uint256 value);
 
     function setUp() public override {
         super.setUp();
-        mandateId = 10; // BespokeActionOnReturnValue
+        mandateId = 10; // BespokeAction_OnReturnValue
     }
 
     function testExecuteWithReturnValue() public {
@@ -311,7 +287,7 @@ contract BespokeActionOnReturnValueTest is TestSetupExecutive {
         uint256 parentActionId = MandateUtilities.computeActionId(parentMandateId, emptyCalldata, testNonce);
         assertEq(uint8(daoMock.getActionState(parentActionId)), uint8(PowersTypes.ActionState.Fulfilled));
 
-        // 2. Execute Child Action (BespokeActionOnReturnValue - ID 10)
+        // 2. Execute Child Action (BespokeAction_OnReturnValue - ID 10)
         // Must use SAME calldata and nonce as parent
         
         vm.expectEmit(true, true, true, true);

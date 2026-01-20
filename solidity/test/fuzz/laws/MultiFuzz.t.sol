@@ -5,29 +5,29 @@ pragma solidity 0.8.26;
 // import { TestSetupMulti } from "../../TestSetup.t.sol";
 // import { OpenAction } from "../../../src/mandates/executive/OpenAction.sol";
 // import { StatementOfIntent } from "../../../src/mandates/executive/StatementOfIntent.sol";
-// import { BespokeActionSimple } from "../../../src/mandates/executive/BespokeActionSimple.sol";
+// import { BespokeAction_Simple } from "../../../src/mandates/executive/BespokeAction_Simple.sol";
 // import { PresetSingleAction } from "../../../src/mandates/executive/PresetSingleAction.sol";
-// import { PresetMultipleActions } from "../../../src/mandates/executive/PresetMultipleActions.sol";
-// import { BespokeActionAdvanced } from "../../../src/mandates/executive/BespokeActionAdvanced.sol";
+// import { Preset_MultipleActions } from "../../../src/mandates/executive/Preset_MultipleActions.sol";
+// import { BespokeAction_Advanced } from "../../../src/mandates/executive/BespokeAction_Advanced.sol";
 
 // /// @title Multi Mandate Fuzz Tests
 // /// @notice Comprehensive fuzz testing for all multi mandate implementations using pre-initialized mandates
 // /// @dev Tests use mandates from multiTestConstitution:
 // ///      mandateId 1: OpenAction
 // ///      mandateId 2: StatementOfIntent
-// ///      mandateId 3: BespokeActionSimple (mint)
-// ///      mandateId 4: BespokeActionAdvanced (assignRole)
+// ///      mandateId 3: BespokeAction_Simple (mint)
+// ///      mandateId 4: BespokeAction_Advanced (assignRole)
 // ///      mandateId 5: PresetSingleAction (label roles)
-// ///      mandateId 6: PresetMultipleActions (multiple label actions)
+// ///      mandateId 6: Preset_MultipleActions (multiple label actions)
 // ///      mandateId 7: PresetSingleAction (another preset action)
 // contract MultiFuzzTest is TestSetupMulti {
 //     // Mandate instances for testing
 //     OpenAction openAction;
 //     StatementOfIntent statementOfIntent;
-//     BespokeActionSimple bespokeActionSimple;
+//     BespokeAction_Simple bespokeActionSimple;
 //     PresetSingleAction presetSingleAction;
-//     PresetMultipleActions presetMultipleActions;
-//     BespokeActionAdvanced bespokeActionAdvanced;
+//     Preset_MultipleActions presetMultipleActions;
+//     BespokeAction_Advanced bespokeActionAdvanced;
 
 //     // State variables to avoid stack too deep errors
 //     uint256 returnedActionId;
@@ -40,18 +40,18 @@ pragma solidity 0.8.26;
 //     uint256 quantity;
 //     bytes largeCalldata;
 //     PresetSingleAction.Data presetDataSingle;
-//     PresetMultipleActions.Data presetDataMultiple;
+//     Preset_MultipleActions.Data presetDataMultiple;
 
 //     function setUp() public override {
 //         super.setUp();
 
 //         // Initialize mandate instances from deployed addresses
 //         presetSingleAction = PresetSingleAction(mandateAddresses[1]);
-//         presetMultipleActions = PresetMultipleActions(mandateAddresses[2]);
+//         presetMultipleActions = Preset_MultipleActions(mandateAddresses[2]);
 //         openAction = OpenAction(mandateAddresses[3]);
 //         statementOfIntent = StatementOfIntent(mandateAddresses[4]);
-//         bespokeActionAdvanced = BespokeActionAdvanced(mandateAddresses[5]);
-//         bespokeActionSimple = BespokeActionSimple(mandateAddresses[6]);
+//         bespokeActionAdvanced = BespokeAction_Advanced(mandateAddresses[5]);
+//         bespokeActionSimple = BespokeAction_Simple(mandateAddresses[6]);
 //     }
 
 //     //////////////////////////////////////////////////////////////
@@ -220,9 +220,9 @@ pragma solidity 0.8.26;
 //     //               BESPOKE ACTION SIMPLE FUZZ                 //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test BespokeActionSimple (mandateId 3) with various quantities
+//     /// @notice Fuzz test BespokeAction_Simple (mandateId 3) with various quantities
 //     /// @dev mandateId 3 is configured to mint coins on SimpleErc1155 with uint256 Quantity parameter
-//     function testFuzzBespokeActionSimpleWithVariousQuantities(uint256 quantityFuzzed, uint256 nonceFuzzed) public {
+//     function testFuzzBespokeAction_SimpleWithVariousQuantities(uint256 quantityFuzzed, uint256 nonceFuzzed) public {
 //         // Bound quantity to reasonable values
 //         quantityFuzzed = bound(quantityFuzzed, 1, type(uint128).max);
 
@@ -244,8 +244,8 @@ pragma solidity 0.8.26;
 //         assertEq(selector, bespokeActionSimple.targetFunction(mandateHash));
 //     }
 
-//     /// @notice Fuzz test BespokeActionSimple with edge case values
-//     function testFuzzBespokeActionSimpleWithEdgeCases(bool useMax, uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test BespokeAction_Simple with edge case values
+//     function testFuzzBespokeAction_SimpleWithEdgeCases(bool useMax, uint256 nonceFuzzed) public {
 //         quantity = useMax ? type(uint256).max : 1;
 
 //         mandateCalldata = abi.encode(quantity);
@@ -330,9 +330,9 @@ pragma solidity 0.8.26;
 //     //              PRESET MULTIPLE ACTIONS FUZZ                //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test PresetMultipleActions (mandateId 6) with random selection patterns
+//     /// @notice Fuzz test Preset_MultipleActions (mandateId 6) with random selection patterns
 //     /// @dev mandateId 6 is configured with 2 actions: "Assign Member Role" and "Assign Delegate Role"
-//     function testFuzzPresetMultipleActionsWithRandomSelections(bool selectFirst, bool selectSecond, uint256 nonceFuzzed)
+//     function testFuzzPreset_MultipleActionsWithRandomSelections(bool selectFirst, bool selectSecond, uint256 nonceFuzzed)
 //         public
 //     {
 //         // Get preset data for mandateId 6
@@ -369,8 +369,8 @@ pragma solidity 0.8.26;
 //         }
 //     }
 
-//     /// @notice Fuzz test PresetMultipleActions with all false selections
-//     function testFuzzPresetMultipleActionsWithAllFalse(uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test Preset_MultipleActions with all false selections
+//     function testFuzzPreset_MultipleActionsWithAllFalse(uint256 nonceFuzzed) public {
 //         // Get preset data for mandateId 6
 //         mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
 //         presetDataMultiple = presetMultipleActions.getData(mandateHash);
@@ -389,8 +389,8 @@ pragma solidity 0.8.26;
 //         assertTrue(returnedTargets.length <= 1);
 //     }
 
-//     /// @notice Fuzz test PresetMultipleActions with all true selections
-//     function testFuzzPresetMultipleActionsWithAllTrue(uint256 nonceFuzzed) public {
+//     /// @notice Fuzz test Preset_MultipleActions with all true selections
+//     function testFuzzPreset_MultipleActionsWithAllTrue(uint256 nonceFuzzed) public {
 //         // Get preset data for mandateId 6
 //         mandateHash = keccak256(abi.encode(address(daoMock), uint16(6)));
 //         presetDataMultiple = presetMultipleActions.getData(mandateHash);
@@ -414,9 +414,9 @@ pragma solidity 0.8.26;
 //     //              BESPOKE ACTION ADVANCED FUZZ                //
 //     //////////////////////////////////////////////////////////////
 
-//     /// @notice Fuzz test BespokeActionAdvanced (mandateId 4) with varying addresses
+//     /// @notice Fuzz test BespokeAction_Advanced (mandateId 4) with varying addresses
 //     /// @dev mandateId 4 is configured to assign role 1 with a dynamic address parameter
-//     function testFuzzBespokeActionAdvancedWithVariousAddresses(address accountFuzzed, uint256 nonceFuzzed) public {
+//     function testFuzzBespokeAction_AdvancedWithVariousAddresses(address accountFuzzed, uint256 nonceFuzzed) public {
 //         vm.assume(accountFuzzed != address(0));
 
 //         // mandateId 4 expects 1 dynamic part (the account address)
@@ -439,8 +439,8 @@ pragma solidity 0.8.26;
 //         assertEq(selector, expectedSelector);
 //     }
 
-//     /// @notice Fuzz test BespokeActionAdvanced with multiple different accounts
-//     // function testFuzzBespokeActionAdvancedConsistency(
+//     /// @notice Fuzz test BespokeAction_Advanced with multiple different accounts
+//     // function testFuzzBespokeAction_AdvancedConsistency(
 //     //     address account1,
 //     //     address account2,
 //     //     uint256 nonceFuzzed

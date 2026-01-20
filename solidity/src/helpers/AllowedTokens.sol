@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract AllowedTokens is Ownable {
     address[] private _allowedTokens;
+    // NB: Check out @AllowanceModule for an example of how to loop through allowed tokens using a mapping not list.
     uint256 private _allowedTokensCount;
     mapping(address => bool) private _isAllowed;
 

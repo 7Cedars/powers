@@ -78,7 +78,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Nominate Me: Nominate yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"), 
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"), 
             config: abi.encode(
                 address(erc20DelegateElection), 
                 Nominees.nominate.selector,

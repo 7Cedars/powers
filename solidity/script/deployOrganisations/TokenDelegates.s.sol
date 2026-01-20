@@ -126,7 +126,7 @@ contract TokenDelegates is DeploySetup {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.assignRole.selector,
@@ -141,7 +141,7 @@ contract TokenDelegates is DeploySetup {
         conditions.needFulfilled = 4; // = Mandate 4 (Admin assign role)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.revokeRole.selector,

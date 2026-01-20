@@ -305,7 +305,7 @@ contract PowersFactory_AssignRoleTest is TestSetupIntegrations {
         string memory orgUri = "http://example.com";
         uint256 allowance = 1000;
         
-        // BespokeActionSimple expects encoded input params
+        // BespokeAction_Simple expects encoded input params
         bytes memory createCalldata = abi.encode(orgName, orgUri, allowance);
         
         vm.prank(alice);

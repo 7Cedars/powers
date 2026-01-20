@@ -116,7 +116,7 @@ contract OptimisticExecution is DeploySetup {
         }));
         delete conditions;
 
-        // Mandate 4: Admin assign role (BespokeActionSimple)
+        // Mandate 4: Admin assign role (BespokeAction_Simple)
         dynamicParams = new string[](2);
         dynamicParams[0] = "uint256 roleId";
         dynamicParams[1] = "address account";
@@ -124,7 +124,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.assignRole.selector,
@@ -134,12 +134,12 @@ contract OptimisticExecution is DeploySetup {
         }));
         delete conditions;
 
-        // Mandate 5: Delegate revoke role (BespokeActionSimple)
+        // Mandate 5: Delegate revoke role (BespokeAction_Simple)
         conditions.allowedRole = 2; // = Executives
         conditions.needFulfilled = 4; // = Mandate 4 (Admin assign role)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeActionSimple"),
+            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.revokeRole.selector,

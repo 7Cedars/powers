@@ -12,18 +12,9 @@ import { Checks } from "@src/libraries/Checks.sol";
 import { MandateUtilities } from "@src/libraries/MandateUtilities.sol";
 
 // --- Mandate Contract Imports ---
-// Executive mandates
-import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
-import { PresetMultipleActions } from "@src/mandates/executive/PresetMultipleActions.sol";
-import { OpenAction } from "@src/mandates/executive/OpenAction.sol";
-import { StatementOfIntent } from "@src/mandates/executive/StatementOfIntent.sol";
-import { BespokeActionAdvanced } from "@src/mandates/executive/BespokeActionAdvanced.sol";
-import { BespokeActionSimple } from "@src/mandates/executive/BespokeActionSimple.sol";
-import { AdoptMandates } from "@src/mandates/executive/AdoptMandates.sol";
-import { RevokeMandates } from "@src/mandates/executive/RevokeMandates.sol";
-import { CheckExternalActionState } from "@src/mandates/executive/CheckExternalActionState.sol";
-import { BespokeActionOnReturnValue } from "@src/mandates/executive/BespokeActionOnReturnValue.sol";
-import { BespokeActionOnOwnPowers } from "@src/mandates/executive/BespokeActionOnOwnPowers.sol";
+// async mandates
+import { ClaimRoleWithGitSig } from "@src/mandates/async/ClaimRoleWithGitSig.sol";
+import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.sol";
 
 // Electoral mandates
 import { OpenElectionStart } from "@src/mandates/electoral/OpenElectionStart.sol";
@@ -40,9 +31,19 @@ import { RoleByTransaction } from "@src/mandates/electoral/RoleByTransaction.sol
 import { DelegateTokenSelect } from "@src/mandates/electoral/DelegateTokenSelect.sol";
 import { Nominate } from "@src/mandates/electoral/Nominate.sol";
 
-// async mandates
-import { ClaimRoleWithGitSig } from "@src/mandates/async/ClaimRoleWithGitSig.sol";
-import { AssignRoleWithGitSig } from "@src/mandates/async/AssignRoleWithGitSig.sol";
+// Executive mandates
+import { PresetSingleAction } from "@src/mandates/executive/PresetSingleAction.sol";
+import { Preset_MultipleActions } from "@src/mandates/executive/Preset_MultipleActions.sol";
+import { OpenAction } from "@src/mandates/executive/OpenAction.sol";
+import { StatementOfIntent } from "@src/mandates/executive/StatementOfIntent.sol";
+import { AdoptMandates } from "@src/mandates/executive/AdoptMandates.sol";
+import { RevokeMandates } from "@src/mandates/executive/RevokeMandates.sol";
+import { CheckExternalActionState } from "@src/mandates/executive/CheckExternalActionState.sol";
+import { BespokeAction_OnReturnValue } from "@src/mandates/executive/BespokeAction_OnReturnValue.sol";
+import { BespokeAction_OnOwnPowers } from "@src/mandates/executive/BespokeAction_OnOwnPowers.sol";
+import { BespokeAction_Advanced } from "@src/mandates/executive/BespokeAction_Advanced.sol";
+import { BespokeAction_Simple } from "@src/mandates/executive/BespokeAction_Simple.sol";
+import { PowersAction_Simple } from "@src/mandates/executive/PowersAction_Simple.sol";
 
 // Integration Mandates
 import { Governor_CreateProposal } from "@src/mandates/integrations/Governor_CreateProposal.sol";
@@ -53,8 +54,10 @@ import { Safe_RecoverTokens } from "@src/mandates/integrations/Safe_RecoverToken
 import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
 import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol"; 
 import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
+import { PowersFactory_AddSafeDelegate } from "@src/mandates/integrations/PowersFactory_AddSafeDelegate.sol";
 import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
 import { Soulbound1155_MintEncodedToken } from "@src/mandates/integrations/Soulbound1155_MintEncodedToken.sol";
+import { Safe_ExecTransaction_OnReturnValue } from "@src/mandates/integrations/Safe_ExecTransaction_OnReturnValue.sol";
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -128,47 +131,25 @@ contract InitialisePowers is Script {
         creationCodes.push(type(PresetSingleAction).creationCode);
         constructorArgs.push(abi.encode());
 
-        names.push("PresetSingleAction");
-        creationCodes.push(type(PresetSingleAction).creationCode);
-        constructorArgs.push(abi.encode("PresetSingleAction"));
+        //////////////////////////////////////////////////////////////////////////
+        //                         Async Mandates                               //
+        //////////////////////////////////////////////////////////////////////////
+        names.push("ClaimRoleWithGitSig");
+        creationCodes.push(type(ClaimRoleWithGitSig).creationCode);
+        constructorArgs.push(abi.encode(config_.chainlinkFunctionsRouter));
 
-        names.push("PresetMultipleActions");
-        creationCodes.push(type(PresetMultipleActions).creationCode);
-        constructorArgs.push(abi.encode("PresetMultipleActions"));
+        names.push("AssignRoleWithGitSig");
+        creationCodes.push(type(AssignRoleWithGitSig).creationCode);
+        constructorArgs.push(abi.encode());
 
-        names.push("OpenAction");
-        creationCodes.push(type(OpenAction).creationCode);
-        constructorArgs.push(abi.encode("OpenAction"));
-
-        names.push("StatementOfIntent");
-        creationCodes.push(type(StatementOfIntent).creationCode);
-        constructorArgs.push(abi.encode("StatementOfIntent"));
-
-        names.push("BespokeActionAdvanced");
-        creationCodes.push(type(BespokeActionAdvanced).creationCode);
-        constructorArgs.push(abi.encode("BespokeActionAdvanced"));
-
-        names.push("BespokeActionSimple");
-        creationCodes.push(type(BespokeActionSimple).creationCode);
-        constructorArgs.push(abi.encode("BespokeActionSimple"));
-
-        names.push("AdoptMandates");
-        creationCodes.push(type(AdoptMandates).creationCode);
-        constructorArgs.push(abi.encode("AdoptMandates"));
-
-        names.push("Governor_CreateProposal");
-        creationCodes.push(type(Governor_CreateProposal).creationCode);
-        constructorArgs.push(abi.encode("Governor_CreateProposal"));
-
-        names.push("Governor_ExecuteProposal");
-        creationCodes.push(type(Governor_ExecuteProposal).creationCode);
-        constructorArgs.push(abi.encode("Governor_ExecuteProposal"));
-
+        //////////////////////////////////////////////////////////////////////////
+        //                      Electoral Mandates                              //
+        //////////////////////////////////////////////////////////////////////////
         names.push("OpenElectionEnd");
         creationCodes.push(type(OpenElectionEnd).creationCode);
         constructorArgs.push(abi.encode("OpenElectionEnd"));
 
-        names.push("PeerSelect");
+         names.push("PeerSelect");
         creationCodes.push(type(PeerSelect).creationCode);
         constructorArgs.push(abi.encode("PeerSelect"));
 
@@ -200,49 +181,9 @@ contract InitialisePowers is Script {
         creationCodes.push(type(RoleByTransaction).creationCode);
         constructorArgs.push(abi.encode("RoleByTransaction"));
 
-        names.push("ClaimRoleWithGitSig");
-        creationCodes.push(type(ClaimRoleWithGitSig).creationCode);
-        constructorArgs.push(abi.encode(config_.chainlinkFunctionsRouter));
-
-        names.push("Erc20Taxed");
-        creationCodes.push(type(Erc20Taxed).creationCode);
-        constructorArgs.push(abi.encode());
-
-        names.push("RevokeMandates");
-        creationCodes.push(type(RevokeMandates).creationCode);
-        constructorArgs.push(abi.encode("RevokeMandates"));
-
-        names.push("AssignRoleWithGitSig");
-        creationCodes.push(type(AssignRoleWithGitSig).creationCode);
-        constructorArgs.push(abi.encode());
-
         names.push("AssignExternalRole");
         creationCodes.push(type(AssignExternalRole).creationCode);
         constructorArgs.push(abi.encode("AssignExternalRole"));
-
-        names.push("Safe_Setup");
-        creationCodes.push(type(Safe_Setup).creationCode);
-        constructorArgs.push(abi.encode("Safe_Setup"));
-
-        names.push("Safe_ExecTransaction");
-        creationCodes.push(type(Safe_ExecTransaction).creationCode);
-        constructorArgs.push(abi.encode("Safe_ExecTransaction"));
-
-        names.push("Safe_RecoverTokens");
-        creationCodes.push(type(Safe_RecoverTokens).creationCode);
-        constructorArgs.push(abi.encode("Safe_RecoverTokens"));
-
-        names.push("SafeAllowance_Transfer");
-        creationCodes.push(type(SafeAllowance_Transfer).creationCode);
-        constructorArgs.push(abi.encode("SafeAllowance_Transfer"));
-
-        names.push("SafeAllowance_Action");
-        creationCodes.push(type(SafeAllowance_Action).creationCode);
-        constructorArgs.push(abi.encode("SafeAllowance_Action"));
-
-        names.push("CheckExternalActionState");
-        creationCodes.push(type(CheckExternalActionState).creationCode);
-        constructorArgs.push(abi.encode("CheckExternalActionState"));
 
         names.push("DelegateTokenSelect");
         creationCodes.push(type(DelegateTokenSelect).creationCode);
@@ -256,25 +197,118 @@ contract InitialisePowers is Script {
         creationCodes.push(type(OpenElectionStart).creationCode);
         constructorArgs.push(abi.encode("OpenElectionStart"));
 
+        //////////////////////////////////////////////////////////////////////////
+        //                       Executive Mandates                             //
+        //////////////////////////////////////////////////////////////////////////
+        names.push("PresetSingleAction");
+        creationCodes.push(type(PresetSingleAction).creationCode);
+        constructorArgs.push(abi.encode("PresetSingleAction"));
+
+        names.push("Preset_MultipleActions");
+        creationCodes.push(type(Preset_MultipleActions).creationCode);
+        constructorArgs.push(abi.encode("Preset_MultipleActions"));
+
+        names.push("OpenAction");
+        creationCodes.push(type(OpenAction).creationCode);
+        constructorArgs.push(abi.encode("OpenAction"));
+
+        names.push("StatementOfIntent");
+        creationCodes.push(type(StatementOfIntent).creationCode);
+        constructorArgs.push(abi.encode("StatementOfIntent"));
+
+        names.push("BespokeAction_Advanced");
+        creationCodes.push(type(BespokeAction_Advanced).creationCode);
+        constructorArgs.push(abi.encode("BespokeAction_Advanced"));
+
+        names.push("PowersAction_Simple");
+        creationCodes.push(type(PowersAction_Simple).creationCode);
+        constructorArgs.push(abi.encode("PowersAction_Simple"));
+
+        names.push("BespokeAction_Simple");
+        creationCodes.push(type(BespokeAction_Simple).creationCode);
+        constructorArgs.push(abi.encode("BespokeAction_Simple"));
+
+        names.push("AdoptMandates");
+        creationCodes.push(type(AdoptMandates).creationCode);
+        constructorArgs.push(abi.encode("AdoptMandates"));
+
+        names.push("RevokeMandates");
+        creationCodes.push(type(RevokeMandates).creationCode);
+        constructorArgs.push(abi.encode("RevokeMandates"));
+
+        names.push("CheckExternalActionState");
+        creationCodes.push(type(CheckExternalActionState).creationCode);
+        constructorArgs.push(abi.encode("CheckExternalActionState"));
+
+        names.push("BespokeAction_OnReturnValue");
+        creationCodes.push(type(BespokeAction_OnReturnValue).creationCode);
+        constructorArgs.push(abi.encode("BespokeAction_OnReturnValue"));
+
+        names.push("BespokeAction_OnOwnPowers");
+        creationCodes.push(type(BespokeAction_OnOwnPowers).creationCode);
+        constructorArgs.push(abi.encode("BespokeAction_OnOwnPowers"));
+
+
+        //////////////////////////////////////////////////////////////////////////
+        //                      Integrations Mandates                           //
+        //////////////////////////////////////////////////////////////////////////
+        names.push("Governor_CreateProposal");
+        creationCodes.push(type(Governor_CreateProposal).creationCode);
+        constructorArgs.push(abi.encode("Governor_CreateProposal"));
+
+        names.push("Governor_ExecuteProposal");
+        creationCodes.push(type(Governor_ExecuteProposal).creationCode);
+        constructorArgs.push(abi.encode("Governor_ExecuteProposal"));
+
+        names.push("Safe_Setup");
+        creationCodes.push(type(Safe_Setup).creationCode);
+        constructorArgs.push(abi.encode("Safe_Setup"));
+
+        names.push("Safe_ExecTransaction");
+        creationCodes.push(type(Safe_ExecTransaction).creationCode);
+        constructorArgs.push(abi.encode("Safe_ExecTransaction"));
+
+        names.push("Safe_ExecTransaction_OnReturnValue");
+        creationCodes.push(type(Safe_ExecTransaction_OnReturnValue).creationCode);
+        constructorArgs.push(abi.encode("Safe_ExecTransaction_OnReturnValue"));
+
+        names.push("Safe_RecoverTokens");
+        creationCodes.push(type(Safe_RecoverTokens).creationCode);
+        constructorArgs.push(abi.encode("Safe_RecoverTokens"));
+
+        names.push("SafeAllowance_Transfer");
+        creationCodes.push(type(SafeAllowance_Transfer).creationCode);
+        constructorArgs.push(abi.encode("SafeAllowance_Transfer"));
+
+        names.push("SafeAllowance_Action");
+        creationCodes.push(type(SafeAllowance_Action).creationCode);
+        constructorArgs.push(abi.encode("SafeAllowance_Action"));
+
         names.push("PowersFactory_AssignRole");
         creationCodes.push(type(PowersFactory_AssignRole).creationCode);
         constructorArgs.push(abi.encode("PowersFactory_AssignRole"));
+
+        names.push("PowersFactory_AddSafeDelegate");
+        creationCodes.push(type(PowersFactory_AddSafeDelegate).creationCode);
+        constructorArgs.push(abi.encode("PowersFactory_AddSafeDelegate"));
 
         names.push("Soulbound1155_GatedAccess");
         creationCodes.push(type(Soulbound1155_GatedAccess).creationCode);
         constructorArgs.push(abi.encode("Soulbound1155_GatedAccess"));
 
-        names.push("BespokeActionOnReturnValue");
-        creationCodes.push(type(BespokeActionOnReturnValue).creationCode);
-        constructorArgs.push(abi.encode("BespokeActionOnReturnValue"));
-
-        names.push("BespokeActionOnOwnPowers");
-        creationCodes.push(type(BespokeActionOnOwnPowers).creationCode);
-        constructorArgs.push(abi.encode("BespokeActionOnOwnPowers"));
-
         names.push("Soulbound1155_MintEncodedToken");
         creationCodes.push(type(Soulbound1155_MintEncodedToken).creationCode);  
         constructorArgs.push(abi.encode("Soulbound1155_MintEncodedToken"));
+
+
+        //////////////////////////////////////////////////////////////////////////
+        //                   Helper Contracts (remove?)                         //
+        //////////////////////////////////////////////////////////////////////////
+        names.push("Erc20Taxed");
+        creationCodes.push(type(Erc20Taxed).creationCode);
+        constructorArgs.push(abi.encode());
+
+
 
         string memory obj2 = "second key"; 
 
