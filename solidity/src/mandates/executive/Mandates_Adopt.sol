@@ -13,9 +13,8 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract Mandates_Adopt is Mandate {
-    constructor() {
-        bytes memory configParams = abi.encode();
-        emit Mandate__Deployed(configParams);
+    constructor() { 
+        emit Mandate__Deployed("");
     }
 
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)

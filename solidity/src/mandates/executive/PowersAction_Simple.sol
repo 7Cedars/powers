@@ -46,7 +46,8 @@ contract PowersAction_Simple is Mandate {
         // Send the calldata to the target function
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = powersTarget;
-        calldatas[0] = abi.encodePacked(
+        calldatas[0] = abi.encodeWithSelector(
+            IPowers.request.selector,
             mandateIdTarget,
             mandateCalldata,
             nonce,

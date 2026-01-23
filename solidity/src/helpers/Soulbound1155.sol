@@ -10,6 +10,7 @@ import { Context } from "@openzeppelin/contracts/utils/Context.sol";
  */
 interface ISoulbound1155 {
     function mint(address to, uint256 tokenId) external;
+    function mintTokenId(address to, uint256 tokenId) external returns (uint256);
 }
 
 contract Soulbound1155 is ERC1155, ISoulbound1155, Ownable {
@@ -24,6 +25,11 @@ contract Soulbound1155 is ERC1155, ISoulbound1155, Ownable {
     // Mint tokenIds that encode the minter address and block number.
     function mint(address to, uint256 tokenId) public onlyOwner {
         _mint(to, tokenId, 1, "");
+    }
+
+    function mintTokenId(address to, uint256 tokenId) public onlyOwner returns (uint256) {
+        _mint(to, tokenId, 1, "");
+        return tokenId;
     }
 
     // override to prevent transfers.

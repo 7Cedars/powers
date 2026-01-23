@@ -92,7 +92,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = role that can call this mandate.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
-            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),  
+            targetMandate: initialisePowers.getMandateAddress("ElectionList_Tally"),  
             config: abi.encode(
                 address(erc20DelegateElection),  
                 2, // role to be elected.

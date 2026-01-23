@@ -93,7 +93,7 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @notice Activates a new mandate in the protocol
     /// @dev Can only be called through the protocol itself
     /// @param mandateInitData The data of the mandate
-    function adoptMandate(MandateInitData calldata mandateInitData) external returns (uint256 mandateId);
+    function adoptMandate(MandateInitData calldata mandateInitData) external returns (uint16 mandateId);
 
     /// @notice Deactivates an existing mandate
     /// @dev Can only be called through the protocol itself

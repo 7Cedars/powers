@@ -17,10 +17,10 @@ import { Powers } from "@src/Powers.sol";
 import { IPowers } from "@src/interfaces/IPowers.sol";
 
 // helpers 
-import { OpenElection } from "@src/helpers/OpenElection.sol";
+import { ElectionList } from "@src/helpers/ElectionList.sol";
 
 /// @title Open Elections Deployment Script
-contract OpenElectionsDAO is DeploySetup {
+contract ElectionListsDAO is DeploySetup {
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
     PowersTypes.MandateInitData[] constitution;
@@ -28,14 +28,14 @@ contract OpenElectionsDAO is DeploySetup {
     PowersTypes.Conditions conditions;
     Powers powers;
 
-    OpenElection openElection;  
+    ElectionList openElection;  
 
     address[] targets;
     uint256[] values;
     bytes[] calldatas;
     string[] dynamicParams;
 
-    function run() external returns (Powers, OpenElection) {
+    function run() external returns (Powers, ElectionList) {
         // step 0, setup.
         initialisePowers = new InitialisePowers(); 
         initialisePowers.run();
@@ -44,7 +44,7 @@ contract OpenElectionsDAO is DeploySetup {
         
         // step 1: deploy Open Elections Powers
         vm.startBroadcast();
-        openElection = new OpenElection();
+        openElection = new ElectionList();
         powers = new Powers(
             "Open Elections", // name
             "https://aqua-famous-sailfish-288.mypinata.cloud/ipfs/bafkreiaaprfqxtgyxa5v2dnf7edfbc3mxewdh4axf4qtkurpz66jh2f2ve", // uri
@@ -61,8 +61,7 @@ contract OpenElectionsDAO is DeploySetup {
         console2.logUint(constitutionLength);
 
         // step 3: run constitute. 
-        vm.startBroadcast(); 
-        openElection.transferOwnership(address(powers));
+        vm.startBroadcast();  
         powers.constitute(constitution);
         vm.stopBroadcast();
         console2.log("Powers successfully constituted.");
@@ -107,10 +106,10 @@ contract OpenElectionsDAO is DeploySetup {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElection_Start"),
+            targetMandate: initialisePowers.getMandateAddress("ElectionList_Create"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("OpenElection_Vote"), // Vote mandate address
+                initialisePowers.getMandateAddress("ElectionList_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),
@@ -123,7 +122,7 @@ contract OpenElectionsDAO is DeploySetup {
         conditions.needFulfilled = 3; // = Mandate 3 (Start election)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("OpenElection_End"),
+            targetMandate: initialisePowers.getMandateAddress("ElectionList_Tally"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Delegates

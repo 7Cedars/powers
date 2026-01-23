@@ -20,6 +20,7 @@ import { PresetActions_Single } from "@src/mandates/executive/PresetActions_Sing
 import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { MandateUtilities } from "@src/libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
+import { ElectionList } from "@src/helpers/ElectionList.sol";
 
 /// @notice Comprehensive unit tests for all executive mandates
 /// @dev Tests all functionality of executive mandates including initialization, execution, and edge cases
@@ -452,101 +453,107 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
     }
 }
 
-// contract AllowedTokensPresetTransferTest is TestSetupIntegrations {
-//     uint16 public allowedTokensPresetTransferId;
-//     SimpleErc20Votes public tokenA;
-//     SimpleErc20Votes public tokenB;
 
-//     function setUp() public override {
-//         super.setUp();
+//////////////////////////////////////////////////
+//              ELECTIONLIST TESTS              //
+//////////////////////////////////////////////////
+contract ElectionListIntegrationTest is TestSetupIntegrations {
+    uint16 createElectionId = 9;
+    uint16 nominateId = 10;
+    uint16 revokeId = 11;
+    uint16 openVoteId = 12;
+    uint16 tallyId = 13;
+    uint16 cleanupId = 14;
+
+    address electionListAddress;
+    string title = "Test Election";
+    uint48 startBlock;
+    uint48 endBlock;
+    bytes electionParams;
+    uint256 electionId;
+    uint16 voteMandateId;
+    bytes voteParams; 
+    uint256 creationAcionId;
+    bytes returnData;
+    bytes mandateConfig;
+    address[] nomineesList;
+    uint256 openActionId; 
+    bool[] votes;
+
+    function setUp() public override {
+        super.setUp();
         
-//         allowedTokensPresetTransferId = 2; // Second mandate in integrationsTestConstitution2
+        startBlock = uint48(block.number + 10);
+        endBlock = uint48(block.number + 100);
+        electionParams = abi.encode(title, startBlock, endBlock);
 
-//         // Deploy two test tokens
-//         vm.prank(alice);
-//         tokenA = new SimpleErc20Votes();
-//         vm.prank(alice);
-//         tokenB = new SimpleErc20Votes();
+        // Retrieve electionList address from mandate 9 config
+        // Mandate 9 is BespokeAction_Simple.
+        // Its config is (address target, bytes4 selector, string[] params).
+        // target is electionList.
+        mandateConfig = Mandate(findMandateAddress("BespokeAction_Simple")).getConfig(address(daoMock), createElectionId);
+        (electionListAddress, , ) = abi.decode(mandateConfig, (address, bytes4, string[]));
+    }
 
-//         // Assign ADMIN_ROLE (0) to Alice on daoMockChild1 so she can execute the mandate
-//         vm.prank(address(daoMockChild1));
-//         daoMockChild1.assignRole(0, alice);
-//     }
+    function test_ElectionList_FullFlow_Success() public {
+        // 1. Create Election
+        // BespokeAction_Simple params: encoded params for the function
+        console2.log("Creating Election...");
+        vm.prank(alice);
+        creationAcionId = daoMock.request(createElectionId, electionParams, nonce, "Create Election");
+        
+        console2.log("Getting Election ID...");
+        returnData = daoMock.getActionReturnData(creationAcionId, 0);
+        electionId = abi.decode(returnData, (uint256));
+        assertGt(electionId, 0);
 
-//     function test_AllowedTokensPresetTransfer_Success() public {
-//         // 1. Add tokens to AllowedTokens registry (owned by daoMock)
-//         vm.startPrank(address(daoMock));
-//         allowedTokens.addToken(address(tokenA));
-//         allowedTokens.addToken(address(tokenB));
-//         vm.stopPrank();
+        // 2. Nominate
+        // Mandate expects (title, start, end) to compute ID
+        console2.log("Nominating Alice...");
+        vm.prank(alice);
+        daoMock.request(nominateId, electionParams, nonce, "Nominate Alice");
+        
+        // Verify Nomination
+        nomineesList = ElectionList(electionListAddress).getNominees(electionId);
+        assertEq(nomineesList.length, 1);
+        assertEq(nomineesList[0], alice);
+        
+        vm.roll(startBlock + 1); // Advance to start block
 
-//         // 2. Mint tokens to daoMockChild1 (sender)
-//         tokenA.mint(address(daoMockChild1), 100e18);
-//         tokenB.mint(address(daoMockChild1), 50e18);
+        // 3. Open Vote
+        // This deploys a new mandate.
+        console2.log("Creating Vote Mandate...");
+        vm.prank(alice);
+        openActionId = daoMock.request(openVoteId, electionParams, nonce, "Creating Vote Mandate");
+        
+        // Get the new mandate ID (it is returned by adoptMandate which is the action executed)
+        returnData = daoMock.getActionReturnData(openActionId, 0);
+        voteMandateId = abi.decode(returnData, (uint16));
+        assertTrue(voteMandateId > 0);
 
-//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 100e18);
-//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 50e18);
-//         assertEq(tokenA.balanceOf(address(daoMock)), 0);
-//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
+        // 4. Vote
+        console2.log("Voting for Alice..."); 
+        
+        // Nominees: [alice]
+        // Vote for alice: [true]
+        votes = new bool[](1);
+        votes[0] = true; 
 
-//         // 3. Execute Mandate on daoMockChild1
-//         // handleRequest expects no specific calldata based on contract implementation, 
-//         // but Powers.request requires some calldata. The mandate ignores it.
-//         vm.prank(alice);
-//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Transfer Allowed Tokens");
+        vm.prank(alice);
+        daoMock.request(voteMandateId, abi.encode(votes), nonce, "Vote for Alice");
 
-//         // 4. Verify transfers
-//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 0);
-//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 0);
-//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
-//         assertEq(tokenB.balanceOf(address(daoMock)), 50e18);
-//     }
+        assertEq(ElectionList(electionListAddress).getVoteCount(electionId, alice), 1);
 
-//     function test_AllowedTokensPresetTransfer_PartialBalance() public {
-//         // Only tokenA has balance
-//         vm.startPrank(address(daoMock));
-//         allowedTokens.addToken(address(tokenA));
-//         allowedTokens.addToken(address(tokenB));
-//         vm.stopPrank();
+        // 5. Tally
+        vm.roll(endBlock + 1); // Advance to end block
+        console2.log("Tallying Election...");
+        
+        // Setup existing role holders (none for role 2 initially maybe?)
+        // Config says role 2 is Executive.
+        vm.prank(alice);
+        daoMock.request(tallyId, electionParams, nonce, "Tally Election");
 
-//         tokenA.mint(address(daoMockChild1), 100e18);
-//         // tokenB balance is 0
-
-//         vm.prank(alice);
-//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Transfer Partial");
-
-//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
-//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
-//     }
-
-//     function test_AllowedTokensPresetTransfer_NoAllowedTokens() public {
-//         // Registry empty
-//         tokenA.mint(address(daoMockChild1), 100e18);
-
-//         vm.prank(alice);
-//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "No Allowed Tokens");
-
-//         // Should not transfer anything
-//         assertEq(tokenA.balanceOf(address(daoMock)), 0);
-//         assertEq(tokenA.balanceOf(address(daoMockChild1)), 100e18);
-//     }
-    
-//     function test_AllowedTokensPresetTransfer_IgnoresUnallowedTokens() public {
-//          // Token A allowed, Token B not allowed
-//         vm.startPrank(address(daoMock));
-//         allowedTokens.addToken(address(tokenA));
-//         vm.stopPrank();
-
-//         tokenA.mint(address(daoMockChild1), 100e18);
-//         tokenB.mint(address(daoMockChild1), 50e18);
-
-//         vm.prank(alice);
-//         daoMockChild1.request(allowedTokensPresetTransferId, abi.encode(""), nonce, "Ignore Unallowed");
-
-//         // Token A transferred
-//         assertEq(tokenA.balanceOf(address(daoMock)), 100e18);
-//         // Token B stays
-//         assertEq(tokenB.balanceOf(address(daoMockChild1)), 50e18);
-//         assertEq(tokenB.balanceOf(address(daoMock)), 0);
-//     }
-// }
+        // Verify Alice has role 2
+        assertTrue(daoMock.hasRoleSince(alice, 2) > 0);
+    }
+}

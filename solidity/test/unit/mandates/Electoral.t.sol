@@ -2,9 +2,9 @@
 pragma solidity 0.8.26;
 
 // import { TestSetupElectoral } from "../../TestSetup.t.sol";
-// import { OpenElection_End } from "../../../src/mandates/electoral/OpenElection_End.sol";
+// import { ElectionList_Tally } from "../../../src/mandates/integrations/ElectionList_Tally.sol";
 // import { PeerSelect } from "../../../src/mandates/electoral/PeerSelect.sol";
-// import { OpenElection_Vote } from "../../../src/mandates/electoral/OpenElection_Vote.sol";
+// import { ElectionList_Vote } from "../../../src/mandates/integrations/ElectionList_Vote.sol";
 // import { NStrikesRevokesRoles } from "../../../src/mandates/electoral/NStrikesRevokesRoles.sol";
 // import { TaxSelect } from "../../../src/mandates/electoral/TaxSelect.sol";
 // import { RoleByRoles } from "../../../src/mandates/electoral/RoleByRoles.sol";
@@ -12,7 +12,7 @@ pragma solidity 0.8.26;
 // import { RenounceRole } from "../../../src/mandates/electoral/RenounceRole.sol";
 // import { AssignExternalRole } from "../../../src/mandates/electoral/AssignExternalRole.sol";
 // import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-// import { OpenElection } from "../../../src/helpers/OpenElection.sol";
+// import { ElectionList } from "../../../src/helpers/ElectionList.sol";
 // import { TreasurySimple } from "../../../src/helpers/TreasurySimple.sol";
 // import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 // import { Nominees } from "../../../src/helpers/Nominees.sol";
@@ -27,29 +27,29 @@ pragma solidity 0.8.26;
 // /// @dev Tests all functionality of electoral mandates including initialization, execution, and edge cases
 
 // //////////////////////////////////////////////////
-// //              ELECTION SELECT TESTS          //
+// //               ELECTION LIST TESTS           //
 // //////////////////////////////////////////////////
-// contract OpenElection_EndTest is TestSetupElectoral {
-//     OpenElection_End openElectionEnd;
+// contract ElectionList_TallyTest is TestSetupElectoral {
+//     ElectionList_Tally openElectionEnd;
 //     Erc20DelegateElection delegateElection; 
 
 //     function setUp() public override {
 //         super.setUp();
-//         openElectionEnd = OpenElection_End(mandateAddresses[11]);
+//         openElectionEnd = ElectionList_Tally(mandateAddresses[11]);
 //         delegateElection = Erc20DelegateElection(helperAddresses[10]); // Erc20DelegateElection
 //         mandateId = 1;
 //     }
 
-//     function testOpenElection_EndInitialization() public {
+//     function testElectionList_TallyInitialization() public {
 //         // Verify mandate data is stored correctly
 //         mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
-//         OpenElection_End.Data memory dataElection = openElectionEnd.getData(mandateHash);
+//         ElectionList_Tally.Data memory dataElection = openElectionEnd.getData(mandateHash);
 //         assertEq(dataElection.electionContract, address(delegateElection));
 //         assertEq(dataElection.roleId, 3);
 //         assertEq(dataElection.maxRoleHolders, 3);
 //     }
 
-//     function testOpenElection_EndWithNoNominees() public {
+//     function testElectionList_TallyWithNoNominees() public {
 //         // Execute with no nominees
 //         vm.prank(alice);
 //         daoMock.request(mandateId, abi.encode(), nonce, "Test election");
@@ -59,7 +59,7 @@ pragma solidity 0.8.26;
 //         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
 //     }
 
-//     function testOpenElection_EndWithNominees() public {
+//     function testElectionList_TallyWithNominees() public {
 //         // Add nominees to election
 //         vm.prank(address(daoMock));
 //         delegateElection.nominate(alice, true);
@@ -255,23 +255,23 @@ pragma solidity 0.8.26;
 // //////////////////////////////////////////////////
 // //            VOTE IN OPEN ELECTION TESTS      //
 // //////////////////////////////////////////////////
-// contract OpenElection_VoteTest is TestSetupElectoral {
-//     OpenElection_Vote openElectionVote;
-//     OpenElection openElection;
+// contract ElectionList_VoteTest is TestSetupElectoral {
+//     ElectionList_Vote openElectionVote;
+//     ElectionList openElection;
 //     Nominees nomineesContract;
 
 //     function setUp() public override {
 //         super.setUp();
-//         openElectionVote = OpenElection_Vote(mandateAddresses[13]);
-//         // Create a fresh OpenElection instance for each test to avoid state conflicts
-//         openElection = new OpenElection();
+//         openElectionVote = ElectionList_Vote(mandateAddresses[13]);
+//         // Create a fresh ElectionList instance for each test to avoid state conflicts
+//         openElection = new ElectionList();
 //         // Transfer ownership to daoMock (test contract is the initial owner)
 //         openElection.transferOwnership(address(daoMock));
 //         nomineesContract = new Nominees();
 //         mandateId = 3;
 //     }
 
-//     function testOpenElection_VoteWithValidVote() public {
+//     function testElectionList_VoteWithValidVote() public {
 //         // Add nominees to open election (before opening it)
 //         vm.prank(address(daoMock));
 //         openElection.nominate(alice, true);
@@ -283,7 +283,7 @@ pragma solidity 0.8.26;
 //         openElection.openElection(100, 1);
 
 //         // Now adopt the mandate (so it can read from the open election)
-//         configBytes = abi.encode(address(openElection), 1); // OpenElection
+//         configBytes = abi.encode(address(openElection), 1); // ElectionList
 //         conditions.allowedRole = type(uint256).max;
 //         vm.prank(address(daoMock));
 //         daoMock.adoptMandate(
@@ -313,7 +313,7 @@ pragma solidity 0.8.26;
 //         assertTrue(daoMock.getActionState(actionId) == ActionState.Fulfilled);
 //     }
 
-//     function testOpenElection_VoteRevertsWithTooManyVotes() public {
+//     function testElectionList_VoteRevertsWithTooManyVotes() public {
 //         // Add nominees to open election
 //         vm.prank(address(daoMock));
 //         openElection.nominate(alice, true);
@@ -354,7 +354,7 @@ pragma solidity 0.8.26;
 //         daoMock.request(mandateId, abi.encode(vote), nonce, "Test vote");
 //     }
 
-//     function testOpenElection_VoteRevertsWithInvalidVoteLength() public {
+//     function testElectionList_VoteRevertsWithInvalidVoteLength() public {
 //         // Add nominees to open election
 //         vm.prank(address(daoMock));
 //         openElection.nominate(alice, true);
@@ -395,7 +395,7 @@ pragma solidity 0.8.26;
 //         daoMock.request(mandateId, abi.encode(vote), nonce, "Test vote");
 //     }
 
-//     function testOpenElection_VoteGetData() public {
+//     function testElectionList_VoteGetData() public {
 //         // Add nominees to open election
 //         vm.prank(address(daoMock));
 //         openElection.nominate(alice, true);
@@ -425,7 +425,7 @@ pragma solidity 0.8.26;
 
 //         // Test getData function
 //         mandateHash = keccak256(abi.encode(address(daoMock), mandateId));
-//         OpenElection_Vote.Data memory dataElection = openElectionVote.getData(mandateHash);
+//         ElectionList_Vote.Data memory dataElection = openElectionVote.getData(mandateHash);
 //         assertEq(dataElection.openElectionContract, address(openElection));
 //         assertEq(dataElection.maxVotes, 1);
 //         assertEq(dataElection.nominees.length, 2);
@@ -675,9 +675,9 @@ pragma solidity 0.8.26;
 // //              EDGE CASE TESTS                //
 // //////////////////////////////////////////////////
 // contract ElectoralEdgeCaseTest is TestSetupElectoral {
-//     OpenElection_End openElectionEnd;
+//     ElectionList_Tally openElectionEnd;
 //     PeerSelect peerSelect;
-//     OpenElection_Vote openElectionVote;
+//     ElectionList_Vote openElectionVote;
 //     NStrikesRevokesRoles nStrikesRevokesRoles;
 //     TaxSelect taxSelect;
 //     RoleByRoles roleByRoles;
@@ -687,9 +687,9 @@ pragma solidity 0.8.26;
 
 //     function setUp() public override {
 //         super.setUp();
-//         openElectionEnd = new OpenElection_End();
+//         openElectionEnd = new ElectionList_Tally();
 //         peerSelect = new PeerSelect();
-//         openElectionVote = new OpenElection_Vote();
+//         openElectionVote = new ElectionList_Vote();
 //         nStrikesRevokesRoles = new NStrikesRevokesRoles();
 //         taxSelect = new TaxSelect();
 //         roleByRoles = new RoleByRoles();
@@ -703,7 +703,7 @@ pragma solidity 0.8.26;
 //         mandateId = daoMock.mandateCounter();
 //         conditions.allowedRole = type(uint256).max;
 
-//         // OpenElection_End
+//         // ElectionList_Tally
 //         configBytes = abi.encode(helperAddresses[10], 3, 3); // Erc20DelegateElection
 //         vm.prank(address(daoMock));
 //         daoMock.adoptMandate(
@@ -727,8 +727,8 @@ pragma solidity 0.8.26;
 //             })
 //         );
 
-//         // OpenElection_Vote
-//         configBytes = abi.encode(helperAddresses[9], 1); // OpenElection
+//         // ElectionList_Vote
+//         configBytes = abi.encode(helperAddresses[9], 1); // ElectionList
 //         vm.prank(address(daoMock));
 //         daoMock.adoptMandate(
 //             PowersTypes.MandateInitData({

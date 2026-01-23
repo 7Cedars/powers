@@ -13,7 +13,7 @@ import { ModuleManager } from "lib/safe-smart-account/contracts/base/ModuleManag
 import { SafeProxyFactory } from "lib/safe-smart-account/contracts/proxies/SafeProxyFactory.sol";
 import { IPowers } from "../../interfaces/IPowers.sol";
 
-// import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
+import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
 
 contract Safe_Setup is Mandate {
     struct Mem { 
@@ -53,9 +53,11 @@ contract Safe_Setup is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
+        // console2.log("Waypoint 1");
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // NB! No transaction is sent to Powers here, so the action remains unfulfilled.
+        // console2.log("Waypoint 2");
         calldatas = new bytes[](1);
         calldatas[0] = abi.encode(powers);
 
@@ -72,7 +74,9 @@ contract Safe_Setup is Mandate {
         Mem memory mem;
 
         // step 1: decoding data
+        // console2.log("Waypoint 3");
         mem.powers = abi.decode(calldatas[0], (address));
+        // console2.log("Waypoint 4");
         (
             mem.safeProxyFactory,
             mem.safeL2Singleton,

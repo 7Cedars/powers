@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-/// @notice Allows voters to vote on nominees from a standalone OpenElection contract.
+/// @notice Allows voters to vote on nominees from a standalone ElectionList contract.
 ///
 /// The logic:
 /// - The inputParams are dynamic - as many bool options will appear as there are nominees.
 /// - When a voter selects more than one nominee, the mandate will revert.
-/// - When a vote is cast, the mandate calls the vote function in OpenElection contract.
+/// - When a vote is cast, the mandate calls the vote function in ElectionList contract.
 /// - Only one vote per voter is allowed per election.
 ///
 /// @author 7Cedars
@@ -14,10 +14,10 @@ pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
-import { OpenElection } from "../../helpers/OpenElection.sol";
+import { ElectionList } from "../../helpers/ElectionList.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract OpenElection_Vote is Mandate {
+contract ElectionList_Vote is Mandate {
     struct Mem {
         address caller;
         bytes32 mandateHash;
@@ -31,9 +31,9 @@ contract OpenElection_Vote is Mandate {
         uint256 electionId;
     }
 
-    /// @notice Constructor for OpenElection_Vote mandate
+    /// @notice Constructor for ElectionList_Vote mandate
     constructor() {
-        bytes memory configParams = abi.encode("address OpenElectionContract", "uint256 maxVotes");
+        bytes memory configParams = abi.encode("address ElectionListContract", "uint256 maxVotes", "uint256 electionId");
         emit Mandate__Deployed(configParams);
     }
 
@@ -42,18 +42,17 @@ contract OpenElection_Vote is Mandate {
         override
     {
         Mem memory mem;
-        (mem.openElectionContract,  ) = abi.decode(config, (address, uint256));
+        (mem.openElectionContract, mem.maxVotes, mem.electionId) = abi.decode(config, (address, uint256, uint256));
 
         // Check if election is open - otherwise revert. 
         if (
-                !OpenElection(mem.openElectionContract).isElectionOpen()
+                !ElectionList(mem.openElectionContract).isElectionOpen(mem.electionId)
             ) {
                 revert("Election is not open.");
         }
 
-        // Get nominees from the OpenElection contract
-        mem.nominees = OpenElection(mem.openElectionContract).getNominees();
-        mem.electionId = OpenElection(mem.openElectionContract).currentElectionId();
+        // Get nominees from the ElectionList contract
+        mem.nominees = ElectionList(mem.openElectionContract).getNominees(mem.electionId);
 
         // Create dynamic inputParams based on nominees
         mem.nomineeList = new string[](mem.nominees.length);
@@ -64,7 +63,7 @@ contract OpenElection_Vote is Mandate {
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
-    /// @notice Build a call to cast a vote in the OpenElection contract
+    /// @notice Build a call to cast a vote in the ElectionList contract
     /// @param caller The voter address
     /// @param powers The Powers contract address (unused here, forwarded in action context)
     /// @param mandateId The mandate identifier
@@ -82,11 +81,11 @@ contract OpenElection_Vote is Mandate {
         // Decode the vote data
         (mem.vote) = abi.decode(mandateCalldata, (bool[]));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        (mem.openElectionContract, mem.maxVotes) = abi.decode(getConfig(powers, mandateId), (address, uint256));
-        mem.nominees = OpenElection(mem.openElectionContract).getNominees();
+        (mem.openElectionContract, mem.maxVotes, mem.electionId) = abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
+        mem.nominees = ElectionList(mem.openElectionContract).getNominees(mem.electionId);
     
         // Check if election is open
-        if (!OpenElection(mem.openElectionContract).isElectionOpen()) {
+        if (!ElectionList(mem.openElectionContract).isElectionOpen(mem.electionId)) {
             revert("Election is not open.");
         }
 
@@ -109,7 +108,7 @@ contract OpenElection_Vote is Mandate {
         // create call for
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = mem.openElectionContract;
-        calldatas[0] = abi.encodeWithSelector(OpenElection.vote.selector, caller, mem.vote);
+        calldatas[0] = abi.encodeWithSelector(ElectionList.vote.selector, mem.electionId, caller, mem.vote);
 
         return (actionId, targets, values, calldatas);
     }

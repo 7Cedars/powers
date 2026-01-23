@@ -10,6 +10,7 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 import { IPowersFactory } from "@src/helpers/PowersFactory.sol";
 import { ISoulbound1155} from "@src/helpers/Soulbound1155.sol";
+import { ElectionList } from "@src/helpers/ElectionList.sol";
 
 
 contract TestConstitutions is Test {
@@ -316,21 +317,21 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
-        // OpenElection_Vote - for voting in open elections
+        // ElectionList_Vote - for voting in open elections
         conditions.allowedRole = type(uint256).max;
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "OpenElection_Vote: A mandate to vote in open elections.",
-            targetMandate: getMandateAddress("OpenElection_Vote"), // OpenElection_Vote (electoral mandate)
-            config: abi.encode(openElection, 1), // OpenElection contract, max votes per voter
+            nameDescription: "ElectionList_Vote: A mandate to vote in open elections.",
+            targetMandate: getMandateAddress("ElectionList_Vote"), // ElectionList_Vote (electoral mandate)
+            config: abi.encode(openElection, 1), // ElectionList contract, max votes per voter
             conditions: conditions
         }));
         delete conditions;
 
-        // OpenElection_End - for delegate elections
+        // ElectionList_Tally - for delegate elections
         conditions.allowedRole = type(uint256).max;
         constitution.push(PowersTypes.MandateInitData({
-            nameDescription: "OpenElection_End: A mandate to run delegate elections and assign roles based on results.",
-            targetMandate: getMandateAddress("OpenElection_End"), // OpenElection_End (electoral mandate)
+            nameDescription: "ElectionList_Tally: A mandate to run delegate elections and assign roles based on results.",
+            targetMandate: getMandateAddress("ElectionList_Tally"), // ElectionList_Tally (electoral mandate)
             config: abi.encode(
                 erc20DelegateElection, // Erc20DelegateElection contract
                 3, // roleId to be elected
@@ -621,7 +622,7 @@ contract TestConstitutions is Test {
     //////////////////////////////////////////////////////////////
     //               INTEGRATIONS CONSTITUTION                  //
     //////////////////////////////////////////////////////////////
-    function integrationsTestConstitution( address simpleGovernor, address powersFactory, address soulbound1155 ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
+    function integrationsTestConstitution(address daoMock, address simpleGovernor, address powersFactory, address soulbound1155, address electionList ) external returns (PowersTypes.MandateInitData[] memory mandateInitData) {
         delete constitution; // restart constitution array 
 
         // Governor Integration // 
@@ -741,6 +742,112 @@ contract TestConstitutions is Test {
         }));
         delete conditions;
 
+        // ElectionList Integration //
+        // create election mandate //
+        inputParams = new string[](3);
+        inputParams[0] = "string Title";
+        inputParams[1] = "uint48 StartBlock";
+        inputParams[2] = "uint48 EndBlock";
+        
+        uint256 mandateCount = 9;
+
+        // Members: create election (ID 9)
+        conditions.allowedRole = 1; // = Members (should be Executives according to MD, but code says Members)
+        conditions.throttleExecution = 600; // = once every 2 hours approx (120 mins)
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Create an election: an election can be initiated be any member.",
+            targetMandate: getMandateAddress("BespokeAction_Simple"),
+            config: abi.encode(
+                address(electionList), // election list contract
+                ElectionList.createElection.selector, // selector
+                inputParams 
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Members: Nominate for Executive election (ID 10)
+        mandateCount++;
+        conditions.allowedRole = 1; // = Members (should be Executives according to MD, but code says Members) 
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Nominate for election: any member can nominate for an election.",
+            targetMandate: getMandateAddress("ElectionList_Nominate"),
+            config: abi.encode(
+                address(electionList), // election list contract
+                true // nominate as candidate
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Members revoke nomination for Executive election. (ID 11)
+        mandateCount++;
+        conditions.allowedRole = 1; // = Members (should be Executives according to MD, but code says Members) 
+        conditions.needFulfilled = 10; // = Nominate for election
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Revoke nomination for election: any member can revoke their nomination for an election.",
+            targetMandate: getMandateAddress("ElectionList_Nominate"),
+            config: abi.encode(
+                address(electionList), // election list contract
+                false // revoke nomination
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Members: Open Vote for election (ID 12)
+        mandateCount++;
+        conditions.allowedRole = 1; // = Members
+        conditions.needFulfilled = 9; // = Create election
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Open voting for election: Members can open the vote for an election. This will create a dedicated vote mandate.",
+            targetMandate: getMandateAddress("ElectionList_CreateVoteMandate"),
+            config: abi.encode(
+                address(electionList), // election list contract 
+                getMandateAddress("ElectionList_Vote"), // the vote mandate address
+                1, // the max number of votes a voter can cast
+                1 // the role Id allowed to vote (Members)
+            ),
+            conditions: conditions 
+        }));
+        delete conditions;
+
+        // Members: Tally election (ID 13)
+        mandateCount++;
+        conditions.allowedRole = 1; 
+        conditions.needFulfilled = 12; // = Open Vote election
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Tally elections: After an election has finished, assign the Executive role to the winners.",
+            targetMandate: getMandateAddress("ElectionList_Tally"),
+            config: abi.encode(
+                address(electionList),
+                2, // RoleId for Executives
+                5 // Max role holders
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+        // Members: clean up election (ID 14)
+        mandateCount++;
+        conditions.allowedRole = 1; 
+        conditions.needFulfilled = 12; // = Open Vote election
+        constitution.push(PowersTypes.MandateInitData({
+            nameDescription: "Clean up election: After an election has finished, clean up related mandates.",
+            targetMandate: getMandateAddress("BespokeAction_OnReturnValue"),
+            config: abi.encode(
+                address(daoMock), // target contract (parentDAO in original but here it seems we are testing on daoMock)
+                IPowers.revokeMandate.selector, // function selector to call
+                abi.encode(), // params before
+                inputParams, 
+                12, // parent mandate id (the open vote mandate)
+                abi.encode() // no params after
+            ),
+            conditions: conditions
+        }));
+        delete conditions;
+
+
         return constitution;
     }
 
@@ -831,10 +938,10 @@ contract TestConstitutions is Test {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
-            targetMandate: getMandateAddress("OpenElection_Start"),
+            targetMandate: getMandateAddress("ElectionList_Create"),
             config: abi.encode(
                 openElection,
-                getMandateAddress("OpenElection_Vote"), // Voting mandate
+                getMandateAddress("ElectionList_Vote"), // Voting mandate
                 600, // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),
@@ -847,7 +954,7 @@ contract TestConstitutions is Test {
         conditions.needFulfilled = 2; // = Mandate 2 (Start election)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
-            targetMandate: getMandateAddress("OpenElection_End"),
+            targetMandate: getMandateAddress("ElectionList_Tally"),
             config: abi.encode(
                 openElection,
                 2, // RoleId for Delegates
@@ -1050,7 +1157,8 @@ contract TestConstitutions is Test {
             targetMandate: getMandateAddress("Safe_Setup"),
             config: abi.encode(
                 config.safeProxyFactory,
-                config.safeL2Canonical
+                config.safeL2Canonical,
+                config.safeAllowanceModule
             ),
             conditions: conditions
         }));

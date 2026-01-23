@@ -5,8 +5,8 @@
 /// This mandate:
 /// - Checks if the election is closed (reverts if still open)
 /// - Fetches current role holders from Powers
-/// - Retrieves election results from OpenElection contract
-/// - Revokes the OpenElection_Vote mandate
+/// - Retrieves election results from ElectionList contract
+/// - Revokes the ElectionList_Vote mandate
 /// - Revokes roles from all current holders
 /// - Assigns roles to newly elected accounts
 ///
@@ -17,9 +17,9 @@ pragma solidity 0.8.26;
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Powers } from "../../Powers.sol";
-import { OpenElection } from "../../helpers/OpenElection.sol";
+import { ElectionList } from "../../helpers/ElectionList.sol";
 
-contract OpenElection_End is Mandate {
+contract ElectionList_Tally is Mandate {
     struct Mem {
         uint16 voteContractId;
         uint256 amountRoleHolders;
@@ -35,12 +35,21 @@ contract OpenElection_End is Mandate {
         address electionContract;
         uint256 roleId;
         uint256 maxRoleHolders;
+        string title;
+        uint48 startBlock;
+        uint48 endBlock;
+        uint256 electionId;
     }
 
-    /// @notice Constructor for OpenElection_End mandate
+    /// @notice Constructor for ElectionList_Tally mandate
     constructor() {
         bytes memory configParams = abi.encode("address electionContract", "uint256 RoleId", "uint256 MaxRoleHolders");
         emit Mandate__Deployed(configParams);
+    }
+
+    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config) public override {
+        inputParams = abi.encode("string Title", "uint48 StartBlock", "uint48 EndBlock");
+        super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
     /// @notice Execute the mandate by ending the election, revoking the vote mandate, 
@@ -61,18 +70,16 @@ contract OpenElection_End is Mandate {
     {
         Mem memory mem;
         (mem.electionContract, mem.roleId, mem.maxRoleHolders) = abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
-
+        (mem.title, mem.startBlock, mem.endBlock) = abi.decode(mandateCalldata, (string, uint48, uint48));
+        mem.electionId = uint256(keccak256(abi.encodePacked(powers, mem.title, mem.startBlock, mem.endBlock)));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Step 1: Check if election is closed - revert if still open
-        if (OpenElection(mem.electionContract).isElectionOpen()) {
+        if (ElectionList(mem.electionContract).isElectionOpen(mem.electionId)) {
             revert("Election is still open");
         }
 
-        // Step 2: Read the electionId (which is the ID where the vote mandate was deployed)
-        mem.voteContractId = uint16(OpenElection(mem.electionContract).currentElectionId());
-
-        // Step 3: Get amount of current role holders
+        // Step 2: Get amount of current role holders
         mem.amountRoleHolders = Powers(payable(powers)).getAmountRoleHolders(mem.roleId);
 
         // Get current role holders from Powers
@@ -82,7 +89,7 @@ contract OpenElection_End is Mandate {
         }
 
         // Step 4: Get nominee ranking and select top candidates
-        (mem.rankedNominees,) = OpenElection(mem.electionContract).getNomineeRanking();
+        (mem.rankedNominees,) = ElectionList(mem.electionContract).getNomineeRanking(mem.electionId);
         // Select top candidates based on maxRoleHolders
         mem.numNominees = mem.rankedNominees.length;
         mem.maxN = mem.maxRoleHolders;
@@ -93,20 +100,13 @@ contract OpenElection_End is Mandate {
             mem.elected[mem.i] = mem.rankedNominees[mem.i];
         }
 
-        // Calculate total number of operations needed:
-        // - Revoke the vote mandate (1 operation)
+        // Calculate total number of operations needed: 
         // - Revoke all current role holders
         // - Assign role to all newly elected accounts
-        mem.totalOperations = 1 + mem.amountRoleHolders + mem.elected.length;
-
+        // - NB: revoking the vote mandate should be handled through another mandate (not here)
+        mem.totalOperations = mem.amountRoleHolders + mem.elected.length;
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(mem.totalOperations);
-
         mem.operationIndex = 0;
-
-        // Step 5: Revoke the OpenElection_Vote mandate
-        targets[mem.operationIndex] = powers;
-        calldatas[mem.operationIndex] = abi.encodeWithSelector(Powers.revokeMandate.selector, mem.voteContractId);
-        mem.operationIndex++;
 
         // Step 6: Revoke roles from all current holders
         for (mem.i = 0; mem.i < mem.currentRoleHolders.length; mem.i++) {

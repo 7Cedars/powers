@@ -417,7 +417,7 @@ contract Powers is EIP712, IPowers, Context {
     //                  ROLE AND LAW ADMIN                      //
     //////////////////////////////////////////////////////////////
     /// @inheritdoc IPowers
-    function adoptMandate(MandateInitData memory mandateInitData) external onlyPowers returns (uint256 mandateId) {
+    function adoptMandate(MandateInitData memory mandateInitData) external onlyPowers returns (uint16 mandateId) {
         mandateId = _adoptMandate(mandateInitData);
         // emit event.
         emit MandateAdopted(mandateCounter - 1);
@@ -438,7 +438,7 @@ contract Powers is EIP712, IPowers, Context {
     /// @param mandateInitData data of the mandate.
     ///
     /// Emits a {SeperatedPowersEvents::MandateAdopted} event.
-    function _adoptMandate(MandateInitData memory mandateInitData) internal virtual returns (uint256 mandateId) {
+    function _adoptMandate(MandateInitData memory mandateInitData) internal virtual returns (uint16 mandateId) {
         // check if added address is indeed a mandate. Note that this will also revert with address(0).
         if (!ERC165Checker.supportsInterface(mandateInitData.targetMandate, type(IMandate).interfaceId)) {
             revert Powers__IncorrectInterface(mandateInitData.targetMandate);

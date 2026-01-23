@@ -83,35 +83,30 @@ contract Soulbound1155_GatedAccess is Mandate {
         uint256 validTokenCount = 0;
         for (mem.i = 0; mem.i < mem.tokenIds.length; mem.i++) {
             mem.tokenId = mem.tokenIds[mem.i];
-            mem.mintBlock = uint48(mem.tokenId);
 
             // Check 1: checks if caller balance of tokenIds is > 0
-            if (sb1155.balanceOf(caller, mem.tokenId) == 0) {
+            if (sb1155.balanceOf(caller, mem.tokenId) == 0) { 
                 continue;
             }
 
-            // Check 2: If passes, check if tokens are within block threshold.
-            if (mem.mintBlock != 0) { // if threshold is set to zero, skip check
-                // Check for underflow just in case current block is lower than mint block (should not happen in valid chain)
-                // but block.number should be >= mintBlock if it exists.
-                if (block.number < mem.mintBlock || (block.number - mem.mintBlock) > mem.blocksThreshold) {
-                    continue; 
-                }    
+            // Check 2: Check if tokens are within block threshold.
+            mem.mintBlock = uint48(mem.tokenId);
+            if (block.number > mem.mintBlock + mem.blocksThreshold) { 
+                continue; 
             }
 
-            // 3: check if token is from the correct roleId. 
+            // Check 3: check if token is from the correct roleId. 
             mem.minter = address(uint160(mem.tokenId >> 48));
-            //  checks if number of valid tokens is > tokensThreshold
-            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) != 0) {
+            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) != 0) { 
                 validTokenCount++;
-            }
+            } 
+        }  
+
+        if (validTokenCount < mem.tokensThreshold) {
+            revert Soulbound1155_GatedAccess__InsufficientTokens();
         }
 
-        if (validTokenCount <= mem.tokensThreshold) {
-            revert ("Insuffiicent valid tokens provided");
-        }
-
-        // Check 5: if everything passes, assign roleId to caller.
+        // Check 4: if everything passes, assign roleId to caller.
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = powers;
         calldatas[0] = abi.encodeWithSelector(IPowers.assignRole.selector, mem.assignRoleId, caller);

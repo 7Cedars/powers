@@ -23,7 +23,7 @@ import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Donations } from "@src/helpers/Donations.sol";
 import { FlagActions } from "@src/helpers/FlagActions.sol";
 import { Grant } from "@src/helpers/Grant.sol";
-import { OpenElection } from "@src/helpers/OpenElection.sol";
+import { ElectionList } from "@src/helpers/ElectionList.sol";
 import { Nominees } from "@src/helpers/Nominees.sol"; 
 
 // @dev this script is used to deploy the Helpers to the chain. 
@@ -75,8 +75,8 @@ contract InitialiseHelpers is Script {
         addresses.push(deployHelper(creationCodes[index], names[index]));
 
         index = names.length;
-        names.push("OpenElection");
-        creationCodes.push(type(OpenElection).creationCode);    
+        names.push("ElectionList");
+        creationCodes.push(type(ElectionList).creationCode);    
         addresses.push(deployHelper(creationCodes[index], names[index]));
         
         index = names.length;

@@ -17,9 +17,6 @@ import { Github_ClaimRoleWithSig } from "@src/mandates/async/Github_ClaimRoleWit
 import { Github_AssignRoleWithSig } from "@src/mandates/async/Github_AssignRoleWithSig.sol";
 
 // Electoral mandates
-import { OpenElection_Start } from "@src/mandates/electoral/OpenElection_Start.sol";
-import { OpenElection_End } from "@src/mandates/electoral/OpenElection_End.sol";
-import { OpenElection_Vote } from "@src/mandates/electoral/OpenElection_Vote.sol";
 import { PeerSelect } from "@src/mandates/electoral/PeerSelect.sol";
 import { NStrikesRevokesRoles } from "@src/mandates/electoral/NStrikesRevokesRoles.sol";
 import { TaxSelect } from "@src/mandates/electoral/TaxSelect.sol";
@@ -58,6 +55,12 @@ import { PowersFactory_AddSafeDelegate } from "@src/mandates/integrations/Powers
 import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
 import { Soulbound1155_MintEncodedToken } from "@src/mandates/integrations/Soulbound1155_MintEncodedToken.sol";
 import { Safe_ExecTransaction_OnReturnValue } from "@src/mandates/integrations/Safe_ExecTransaction_OnReturnValue.sol";
+import { ElectionList_Nominate } from "@src/mandates/integrations/ElectionList_Nominate.sol";
+import { ElectionList_Tally } from "@src/mandates/integrations/ElectionList_Tally.sol";
+import { ElectionList_Vote } from "@src/mandates/integrations/ElectionList_Vote.sol";
+import { ElectionList_CreateVoteMandate } from "@src/mandates/integrations/ElectionList_CreateVoteMandate.sol";
+import { ElectionList_CleanUpVoteMandate } from "@src/mandates/integrations/ElectionList_CleanUpVoteMandate.sol";
+
 
 // mocks used
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
@@ -145,17 +148,9 @@ contract InitialisePowers is Script {
         //////////////////////////////////////////////////////////////////////////
         //                      Electoral Mandates                              //
         //////////////////////////////////////////////////////////////////////////
-        names.push("OpenElection_End");
-        creationCodes.push(type(OpenElection_End).creationCode);
-        constructorArgs.push(abi.encode("OpenElection_End"));
-
-         names.push("PeerSelect");
+        names.push("PeerSelect");
         creationCodes.push(type(PeerSelect).creationCode);
         constructorArgs.push(abi.encode("PeerSelect"));
-
-        names.push("OpenElection_Vote");
-        creationCodes.push(type(OpenElection_Vote).creationCode);
-        constructorArgs.push(abi.encode("OpenElection_Vote"));
 
         names.push("NStrikesRevokesRoles");
         creationCodes.push(type(NStrikesRevokesRoles).creationCode);
@@ -193,9 +188,7 @@ contract InitialisePowers is Script {
         creationCodes.push(type(Nominate).creationCode);
         constructorArgs.push(abi.encode("Nominate"));
 
-        names.push("OpenElection_Start");
-        creationCodes.push(type(OpenElection_Start).creationCode);
-        constructorArgs.push(abi.encode("OpenElection_Start"));
+
 
         //////////////////////////////////////////////////////////////////////////
         //                       Executive Mandates                             //
@@ -299,6 +292,26 @@ contract InitialisePowers is Script {
         names.push("Soulbound1155_MintEncodedToken");
         creationCodes.push(type(Soulbound1155_MintEncodedToken).creationCode);  
         constructorArgs.push(abi.encode("Soulbound1155_MintEncodedToken"));
+
+        names.push("ElectionList_Vote");
+        creationCodes.push(type(ElectionList_Vote).creationCode);
+        constructorArgs.push(abi.encode("ElectionList_Vote"));
+
+        names.push("ElectionList_Nominate");
+        creationCodes.push(type(ElectionList_Nominate).creationCode);
+        constructorArgs.push(abi.encode("ElectionList_Nominate"));
+
+        names.push("ElectionList_CreateVoteMandate");
+        creationCodes.push(type(ElectionList_CreateVoteMandate).creationCode);
+        constructorArgs.push(abi.encode("ElectionList_CreateVoteMandate"));
+
+        names.push("ElectionList_Tally");
+        creationCodes.push(type(ElectionList_Tally).creationCode);
+        constructorArgs.push(abi.encode("ElectionList_Tally"));
+
+        names.push("ElectionList_CleanUpVoteMandate");
+        creationCodes.push(type(ElectionList_CleanUpVoteMandate).creationCode);
+        constructorArgs.push(abi.encode("ElectionList_CleanUpVoteMandate"));
 
 
         //////////////////////////////////////////////////////////////////////////

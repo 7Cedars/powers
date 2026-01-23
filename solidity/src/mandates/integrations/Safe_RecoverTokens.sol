@@ -47,7 +47,7 @@ contract Safe_RecoverTokens is Mandate {
 
         // 2. Get allowed tokens count
         mem.allowedTokens = IAllowanceModule(mem.allowanceModule).getTokens(mem.safeTreasury, powers);
-        mem.count = mem.allowedTokens.length - 1;
+        mem.count = mem.allowedTokens.length;
         // 3. Count tokens with positive balance
         mem.positiveBalanceCount = 0;
         for (uint256 i = 0; i < mem.count; i++) {

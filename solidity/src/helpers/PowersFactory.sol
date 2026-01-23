@@ -7,6 +7,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title Powers Factory
 /// @notice Factory contract to deploy specific types of Powers implementations
+/// @dev This factory deploys a _static_ list of init data for mandates to be used in each Powers deployment. As such, the deployments are not dynamic.
+/// @author 7Cedars
 interface IPowersFactory is PowersTypes {
     event PowersDeployed(address indexed powersAddress, string name, string uri); 
 

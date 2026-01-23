@@ -8,7 +8,7 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "@mocks/PowersMock.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { OpenElection } from "@src/helpers/OpenElection.sol"; 
+import { ElectionList } from "@src/helpers/ElectionList.sol"; 
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "@src/helpers/Nominees.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
@@ -1043,486 +1043,254 @@ contract GrantTest is TestSetupPowers {
 }
 
 //////////////////////////////////////////////////////////////
-//               OPEN ELECTION TESTS                       //
+//                  ELECTION LIST TESTS                     //
 //////////////////////////////////////////////////////////////
-contract OpenElectionTest is TestSetupPowers {
-    // OpenElection openElection;
+contract ElectionListTest is TestSetupPowers {
+    uint256 electionId;
+    string electionTitle = "Test Election";
+    uint48 startBlock;
+    uint48 endBlock;
+
+    event ElectionCreated(uint256 indexed electionId, string title, uint48 startBlock, uint48 endBlock);
+    event NominationReceived(uint256 indexed electionId, address indexed nominee);
+    event VoteCast(address indexed voter, address indexed nominee, uint256 indexed electionId);
 
     function setUp() public override {
         super.setUp();
         vm.prank(address(daoMock));
-        openElection = new OpenElection();
+        electionList = new ElectionList();
+        
+        startBlock = uint48(block.number + 10);
+        endBlock = uint48(block.number + 100);
     }
 
-    function testConstructor() public view { 
-        assertEq(openElection.owner(), address(daoMock));
-        assertEq(openElection.currentElectionId(), 0);
-        assertEq(openElection.nomineesCount(), 0);
+    function testCreateElection() public {
+        vm.prank(address(daoMock));
+        // We can't easily predict the ID because it depends on hash, so we don't check the first indexed topic
+        vm.expectEmit(false, false, false, true);
+        emit ElectionCreated(0, electionTitle, startBlock, endBlock); 
+        
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        
+        ElectionList.Election memory election = electionList.getElectionInfo(id);
+        assertEq(election.owner, address(daoMock));
+        assertEq(election.title, electionTitle);
+        assertEq(election.startBlock, startBlock);
+        assertEq(election.endBlock, endBlock);
+    }
+
+    function testCreateElectionRevertsWithInvalidBlocks() public {
+        vm.startPrank(address(daoMock));
+        
+        vm.expectRevert("invalid start or end block");
+        electionList.createElection(electionTitle, 0, endBlock);
+
+        vm.expectRevert("invalid start or end block");
+        electionList.createElection(electionTitle, endBlock, startBlock); // end <= start
+        
+        vm.stopPrank();
+    }
+    
+    function testCreateElectionRevertsWithDuplicate() public {
+        vm.startPrank(address(daoMock));
+        electionList.createElection(electionTitle, startBlock, endBlock);
+        
+        vm.expectRevert("election already exists");
+        electionList.createElection(electionTitle, startBlock, endBlock);
+        vm.stopPrank();
     }
 
     function testNominate() public {
         vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
 
-        assertTrue(openElection.nominations(address(daoMock)));
-        assertTrue(openElection.isNominee(address(daoMock)));
-        assertEq(openElection.nomineesCount(), 1);
+        vm.prank(address(daoMock));
+        vm.expectEmit(true, true, false, false);
+        emit NominationReceived(id, alice);
+        electionList.nominate(id, alice);
+
+        address[] memory nominees = electionList.getNominees(id);
+        assertEq(nominees.length, 1);
+        assertEq(nominees[0], alice);
+        assertEq(electionList.getNomineeCount(id), 1);
     }
 
-    function testNominateRevertsWhenAlreadyNominated() public {
+    function testNominateRevertsIfNotOwner() public {
         vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
 
+        vm.prank(alice);
+        vm.expectRevert("Only election owner can call this function");
+        electionList.nominate(id, alice);
+    }
+
+    function testNominateRevertsIfAlreadyNominated() public {
+        vm.startPrank(address(daoMock));
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
+        
         vm.expectRevert("already nominated");
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
+        electionList.nominate(id, alice);
+        vm.stopPrank();
     }
 
     function testRevokeNomination() public {
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), false);
-
-        assertFalse(openElection.nominations(address(daoMock)));
-        assertFalse(openElection.isNominee(address(daoMock)));
-        assertEq(openElection.nomineesCount(), 0);
-    }
-
-    function testRevokeNominationRevertsWhenNotNominated() public {
-        vm.expectRevert("not nominated");
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), false);
-    }
-
-    function testNominateRevertsWhenNotCalledByPowers() public {
-        vm.expectRevert();
-        vm.prank(alice);
-        openElection.nominate(alice, true);
-    }
-
-    function testNominateRevertsWhenElectionOpen() public {
-        // Setup: Open an election
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        // Try to nominate during active election
-        vm.expectRevert("cannot nominate during active election");
-        vm.prank(address(daoMock));
-        openElection.nominate(alice, true);
-    }
-
-    function testVoteMultipleNominees() public {
-        // Setup: Nominate multiple people and open election
         vm.startPrank(address(daoMock));
-        openElection.nominate(alice, true);
-        openElection.nominate(bob, true);
-        openElection.nominate(charlotte, true);
-        openElection.openElection(100, 1);
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
+        electionList.nominate(id, bob);
+        
+        assertEq(electionList.getNomineeCount(id), 2);
+        
+        electionList.revokeNomination(id, alice);
         vm.stopPrank();
 
-        // Vote for multiple nominees in one transaction
-        bool[] memory votes = new bool[](3);
-        votes[0] = true; // Vote for alice
-        votes[1] = true; // Vote for bob
-        votes[2] = false; // Don't vote for charlotte
-
-        vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
-
-        // Check vote counts
-        assertEq(openElection.getVoteCount(alice, 1), 1);
-        assertEq(openElection.getVoteCount(bob, 1), 1);
-        assertEq(openElection.getVoteCount(charlotte, 1), 0);
+        address[] memory nominees = electionList.getNominees(id);
+        assertEq(nominees.length, 1);
+        assertEq(nominees[0], bob); 
     }
 
-    function testGetNominees() public {
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-
-        nomineesAddresses = openElection.getNominees();
-        assertEq(nomineesAddresses.length, 1);
-        assertEq(nomineesAddresses[0], address(daoMock));
-    }
-
-    function testOpenElection() public {
-        uint256 durationBlocks = 100;
-
-        vm.prank(address(daoMock));
-        openElection.openElection(durationBlocks, 1);
-
-        OpenElection.Data memory election = openElection.getElectionInfo();
-        assertTrue(election.isOpen);
-        assertEq(election.startBlock, block.number);
-        assertEq(election.durationBlocks, durationBlocks);
-        assertEq(election.endBlock, block.number + durationBlocks);
-        assertTrue(openElection.isElectionOpen());
-    }
-
-    function testOpenElectionRevertsWhenAlreadyOpen() public {
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        vm.expectRevert("election already open");
-        vm.prank(address(daoMock));
-        openElection.openElection(200, 1);
-    }
-
-    function testOpenElectionRevertsWithZeroDuration() public {
-        vm.expectRevert("duration must be > 0");
-        vm.prank(address(daoMock));
-        openElection.openElection(0, 1);
-    }
-
-    function testOpenElectionRevertsWhenNotCalledByPowers() public {
-        vm.expectRevert();
-        vm.prank(alice);
-        openElection.openElection(100, 1);
+    function testRevokeNominationRevertsIfNotNominated() public {
+        vm.startPrank(address(daoMock));
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        
+        vm.expectRevert("not nominated");
+        electionList.revokeNomination(id, alice);
+        vm.stopPrank();
     }
 
     function testVote() public {
-        // Setup: Nominate and open election
         vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
+        electionList.nominate(id, bob);
+        vm.stopPrank();
+
+        vm.roll(startBlock + 1);
+
+        bool[] memory votes = new bool[](2);
+        votes[0] = true; // Vote for alice
+        votes[1] = false;
+
+        vm.prank(address(daoMock));
+        vm.expectEmit(true, true, true, false);
+        emit VoteCast(charlotte, alice, id);
+        electionList.vote(id, charlotte, votes);
+
+        assertEq(electionList.getVoteCount(id, alice), 1);
+        assertEq(electionList.getVoteCount(id, bob), 0);
+        assertTrue(electionList.hasUserVoted(charlotte, id));
+    }
+
+    function testVoteRevertsIfClosed() public {
+        vm.startPrank(address(daoMock));
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
         vm.stopPrank();
 
         bool[] memory votes = new bool[](1);
-        votes[0] = true; // Vote for the first (and only) nominee
+        votes[0] = true;
 
+        // Before start
+        vm.roll(startBlock - 1);
         vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
-
-        assertTrue(openElection.hasUserVoted(address(daoMock), 1));
-        assertEq(openElection.getVoteCount(address(daoMock), 1), 1);
-    }
-
-    function testVoteRevertsWhenElectionNotOpen() public {
-        bool[] memory votes = new bool[](0);
-        vm.expectRevert("election not open");
-        vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
-    }
-
-    function testVoteRevertsWhenElectionClosed() public {
-        // Setup: Open election and fast forward past end
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        vm.roll(block.number + 101);
-
-        bool[] memory votes = new bool[](0);
         vm.expectRevert("election closed");
+        electionList.vote(id, charlotte, votes);
+
+        // After end
+        vm.roll(endBlock + 1);
         vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
+        vm.expectRevert("election closed");
+        electionList.vote(id, charlotte, votes);
     }
 
-    function testVoteRevertsWhenVotesArrayLengthMismatch() public {
-        // Setup: Nominate someone and open election
+    function testVoteRevertsIfAlreadyVoted() public {
         vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
         vm.stopPrank();
 
-        // Try to vote with wrong array length (should be 1, but using 2)
-        bool[] memory votes = new bool[](2);
-        votes[0] = true;
-        votes[1] = true;
-
-        vm.expectRevert("votes array length mismatch");
-        vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
-    }
-
-    function testVoteRevertsWhenAlreadyVoted() public {
-        // Setup: Nominate and open election
-        vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
+        vm.roll(startBlock + 1);
 
         bool[] memory votes = new bool[](1);
         votes[0] = true;
-        openElection.vote(address(daoMock), votes);
-        vm.stopPrank();
 
+        vm.prank(address(daoMock));
+        electionList.vote(id, charlotte, votes);
+
+        vm.prank(address(daoMock));
         vm.expectRevert("already voted");
+        electionList.vote(id, charlotte, votes);
+    }
+    
+    function testVoteRevertsIfLengthMismatch() public {
+        vm.startPrank(address(daoMock));
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
+        vm.stopPrank();
+
+        vm.roll(startBlock + 1);
+
+        bool[] memory votes = new bool[](2); // Mismatch
+
         vm.prank(address(daoMock));
-        openElection.vote(address(daoMock), votes);
+        vm.expectRevert("votes array length mismatch");
+        electionList.vote(id, charlotte, votes);
     }
 
-    function testVoteRevertsWhenNotCalledByPowers() public {
+    function testRanking() public {
+        vm.startPrank(address(daoMock));
+        uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
+        electionList.nominate(id, alice);
+        electionList.nominate(id, bob);
+        electionList.nominate(id, charlotte);
+        vm.stopPrank();
+
+        vm.roll(startBlock + 1);
+
+        // Vote 1: Alice & Bob
+        bool[] memory votes1 = new bool[](3);
+        votes1[0] = true; 
+        votes1[1] = true;
+        votes1[2] = false;
         vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
+        electionList.vote(id, makeAddr("voter1"), votes1);
 
-        bool[] memory votes = new bool[](0);
-        vm.expectRevert();
-        vm.prank(alice);
-        openElection.vote(alice, votes);
-    }
-
-    function testCloseElection() public {
+        // Vote 2: Alice
+        bool[] memory votes2 = new bool[](3);
+        votes2[0] = true; 
+        votes2[1] = false;
+        votes2[2] = false;
         vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
+        electionList.vote(id, makeAddr("voter2"), votes2);
+        
+        // Scores: Alice 2, Bob 1, Charlotte 0.
 
-        vm.roll(block.number + 101);
-
-        vm.prank(address(daoMock));
-        openElection.closeElection();
-
-        OpenElection.Data memory election = openElection.getElectionInfo();
-        assertFalse(election.isOpen);
-        assertFalse(openElection.isElectionOpen());
-    }
-
-    function testCloseElectionRevertsWhenNotOpen() public {
-        vm.expectRevert("election not open");
-        vm.prank(address(daoMock));
-        openElection.closeElection();
-    }
-
-    function testCloseElectionRevertsWhenStillActive() public {
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
+        // Check ranking while active (should revert via getNomineeRanking but work via getRankingAnyTime)
         vm.expectRevert("election still active");
-        vm.prank(address(daoMock));
-        openElection.closeElection();
-    }
+        electionList.getNomineeRanking(id);
+        
+        (address[] memory rankedNominees, uint256[] memory rankedVotes) = electionList.getRankingAnyTime(id);
+        assertEq(rankedNominees[0], alice);
+        assertEq(rankedVotes[0], 2);
+        assertEq(rankedNominees[1], bob);
+        assertEq(rankedVotes[1], 1);
+        assertEq(rankedNominees[2], charlotte);
+        assertEq(rankedVotes[2], 0);
 
-    function testCloseElectionRevertsWhenNotCalledByPowers() public {
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        vm.expectRevert();
-        vm.prank(alice);
-        openElection.closeElection();
-    }
-
-    function testTallyElection() public {
-        // Setup: Nominate, open election, vote, and close
-        vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
-
-        bool[] memory votes = new bool[](1);
-        votes[0] = true;
-        openElection.vote(address(daoMock), votes);
-        vm.stopPrank();
-
-        vm.roll(block.number + 101);
-
-        (address[] memory nominees2, uint256[] memory votes2) = openElection.getNomineeRanking();
-        assertEq(nominees2.length, 1);
-        assertEq(votes2.length, 1);
-        assertEq(nominees2[0], address(daoMock));
-        assertEq(votes2[0], 1);
-    }
-
-    function testRankingRevertsWhenStillActive() public {
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        vm.expectRevert("election still active");
-        openElection.getNomineeRanking();
-    }
-
-    function testGetNomineeRanking() public {
-        // Setup: Create multiple nominees and votes
-        nominee1 = makeAddr("nominee1");
-        nominee2 = makeAddr("nominee2");
-
-        // We need to simulate the nomination process by directly calling the contract
-        // Since we can't easily create multiple nominees with the current setup,
-        // we'll test the basic functionality
-        vm.startPrank(address(daoMock));
-        openElection.nominate(nominee1, true);
-        openElection.nominate(nominee2, true);
-
-        openElection.openElection(100, 1);
-
-        bool[] memory votes = new bool[](2);
-        votes[0] = true; // Vote for nominee1 (first nominee)
-        votes[1] = false; // Don't vote for nominee2
-        openElection.vote(address(daoMock), votes);
-        vm.stopPrank();
-
-        vm.roll(block.number + 101);
-
-        (address[] memory nominees2, uint256[] memory votes2) = openElection.getNomineeRanking();
-        assertEq(nominees2.length, 2);
-        assertEq(votes2.length, 2);
-        assertEq(nominees2[0], nominee1);
-        assertEq(nominees2[1], nominee2);
-        assertEq(votes2[0], 1);
-    }
-
-    function testGetNomineesForElection() public {
-        vm.prank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        nomineesAddresses = openElection.getNomineesForElection(1);
-        assertEq(nomineesAddresses.length, 1);
-        assertEq(nomineesAddresses[0], address(daoMock));
-    }
-
-    function testGetVoteCount() public {
-        vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
-
-        bool[] memory votes = new bool[](1);
-        votes[0] = true;
-        openElection.vote(address(daoMock), votes);
-        vm.stopPrank();
-
-        assertEq(openElection.getVoteCount(address(daoMock), 1), 1);
-    }
-
-    function testHasUserVoted() public {
-        vm.startPrank(address(daoMock));
-        openElection.nominate(address(daoMock), true);
-        openElection.openElection(100, 1);
-
-        bool[] memory votes = new bool[](1);
-        votes[0] = true;
-        openElection.vote(address(daoMock), votes);
-        vm.stopPrank();
-
-        assertTrue(openElection.hasUserVoted(address(daoMock), 1));
-        assertFalse(openElection.hasUserVoted(alice, 0));
-    }
-
-    function testIsElectionOpen() public {
-        assertFalse(openElection.isElectionOpen());
-
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        assertTrue(openElection.isElectionOpen());
-
-        vm.roll(block.number + 101);
-        assertFalse(openElection.isElectionOpen());
-    }
-
-    function testGetElectionInfo() public {
-        OpenElection.Data memory election = openElection.getElectionInfo();
-        assertFalse(election.isOpen);
-        assertEq(election.startBlock, 0);
-        assertEq(election.durationBlocks, 0);
-        assertEq(election.endBlock, 0);
-
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        election = openElection.getElectionInfo();
-        assertTrue(election.isOpen);
-        assertEq(election.startBlock, block.number);
-        assertEq(election.durationBlocks, 100);
-        assertEq(election.endBlock, block.number + 100);
-    }
-
-    function testNominateAndVoteWithDifferentAddresses() public {
-        // Test nominating different addresses
-        vm.startPrank(address(daoMock));
-        openElection.nominate(alice, true);
-        openElection.nominate(bob, true);
-        openElection.nominate(charlotte, true);
-        vm.stopPrank();
-
-        assertTrue(openElection.isNominee(alice));
-        assertTrue(openElection.isNominee(bob));
-        assertTrue(openElection.isNominee(charlotte));
-        assertEq(openElection.nomineesCount(), 3);
-
-        // Open election
-        vm.prank(address(daoMock));
-        openElection.openElection(100, 1);
-
-        // Test voting with different callers for different nominees
-        bool[] memory aliceVotes = new bool[](3);
-        aliceVotes[0] = true; // alice votes for alice (first nominee)
-        aliceVotes[1] = false; // doesn't vote for bob
-        aliceVotes[2] = false; // doesn't vote for charlotte
-        vm.prank(address(daoMock));
-        openElection.vote(alice, aliceVotes); // alice votes for alice
-
-        bool[] memory bobVotes = new bool[](3);
-        bobVotes[0] = false; // doesn't vote for alice
-        bobVotes[1] = true; // bob votes for bob (second nominee)
-        bobVotes[2] = false; // doesn't vote for charlotte
-        vm.prank(address(daoMock));
-        openElection.vote(bob, bobVotes); // bob votes for bob
-
-        bool[] memory charlotteVotes = new bool[](3);
-        charlotteVotes[0] = true; // charlotte votes for alice (first nominee)
-        charlotteVotes[1] = false; // doesn't vote for bob
-        charlotteVotes[2] = false; // doesn't vote for charlotte
-        vm.prank(address(daoMock));
-        openElection.vote(charlotte, charlotteVotes); // charlotte votes for alice
-
-        // Check vote counts
-        assertEq(openElection.getVoteCount(alice, 1), 2); // alice and charlotte voted for alice
-        assertEq(openElection.getVoteCount(bob, 1), 1); // only bob voted for bob
-        assertEq(openElection.getVoteCount(charlotte, 1), 0); // no one voted for charlotte
-
-        // Check who voted
-        assertTrue(openElection.hasUserVoted(alice, 1));
-        assertTrue(openElection.hasUserVoted(bob, 1));
-        assertTrue(openElection.hasUserVoted(charlotte, 1));
-
-        // Close election and tally
-        vm.roll(block.number + 101);
-        (address[] memory nominees2, uint256[] memory votes) = openElection.getNomineeRanking();
-
-        // Should be ranked by vote count: alice (2), bob (1), charlotte (0)
-        assertEq(nominees2.length, 3);
-        assertEq(votes.length, 3);
-        assertEq(nominees2[0], alice);
-        assertEq(votes[0], 2);
-        assertEq(nominees2[1], bob);
-        assertEq(votes[1], 1);
-        assertEq(nominees2[2], charlotte);
-        assertEq(votes[2], 0);
-    }
-
-    function testNominateAndRevokeDifferentAddresses() public {
-        // Nominate multiple addresses
-        vm.startPrank(address(daoMock));
-        openElection.nominate(alice, true);
-        openElection.nominate(bob, true);
-        openElection.nominate(charlotte, true);
-        vm.stopPrank();
-
-        assertEq(openElection.nomineesCount(), 3);
-
-        // Revoke one nomination
-        vm.prank(address(daoMock));
-        openElection.nominate(bob, false);
-
-        assertFalse(openElection.isNominee(bob));
-        assertEq(openElection.nomineesCount(), 2);
-
-        // Check that only alice and charlotte are still nominees
-        nomineesAddresses = openElection.getNominees();
-        assertEq(nomineesAddresses.length, 2);
-        // Note: order might vary due to swap-and-pop implementation
-        bool aliceFound = false;
-        bool charlotteFound = false;
-        for (i = 0; i < nomineesAddresses.length; i++) {
-            if (nomineesAddresses[i] == alice) aliceFound = true;
-            if (nomineesAddresses[i] == charlotte) charlotteFound = true;
-        }
-        assertTrue(aliceFound);
-        assertTrue(charlotteFound);
+        // End election
+        vm.roll(endBlock + 1);
+        
+        (rankedNominees, rankedVotes) = electionList.getNomineeRanking(id);
+        assertEq(rankedNominees[0], alice);
+        assertEq(rankedNominees[1], bob);
+        assertEq(rankedNominees[2], charlotte);
     }
 }
 
+
 //////////////////////////////////////////////////////////////
-//               SIMPLE ERC20 VOTES TESTS                  //
+//               SIMPLE ERC20 VOTES TESTS                   //
 //////////////////////////////////////////////////////////////
 contract SimpleErc20VotesTest is TestSetupPowers {
     SimpleErc20Votes token;

@@ -64,7 +64,7 @@ contract Soulbound1155_MintEncodedToken is Mandate {
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = mem.soulbound1155;
-        calldatas[0] = abi.encodeWithSelector(ISoulbound1155.mint.selector, mem.to, mem.tokenId);
+        calldatas[0] = abi.encodeWithSelector(ISoulbound1155.mintTokenId.selector, mem.to, mem.tokenId);
 
         return (actionId, targets, values, calldatas);
     }
