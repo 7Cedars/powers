@@ -17,11 +17,13 @@ interface IAllowanceModule {
 
 // Expose internal variables for testing
 contract TestableCulturalStewardsDAO is CulturalStewardsDAO {
-    function getParentDAO() public view returns (Powers) { return parentDAO; }
+    function getPrimeDAO() public view returns (Powers) { return primeDAO; }
     function getDigitalDAO() public view returns (Powers) { return digitalDAO; }
     function getTreasury() public view returns (address) { return treasury; }
-    function getParentConstitutionLength() public view returns (uint256) { return parentConstitution.length; }
+    function getPrimeConstitutionLength() public view returns (uint256) { return primeConstitution.length; }
     function getDigitalConstitutionLength() public view returns (uint256) { return digitalConstitution.length; }
+    function getIdeasConstitutionLength() public view returns (uint256) { return ideasConstitution.length; }
+    function getPhysicalConstitutionLength() public view returns (uint256) { return physicalConstitution.length; }
     function getSafeAllowanceModule() public view returns (address) { return config.safeAllowanceModule; }
     function getConfig() public view returns (Configurations.NetworkConfig memory) { return config; }
 }
@@ -78,7 +80,7 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
     Mem mem;
     
     TestableCulturalStewardsDAO deployScript;
-    Powers parentDAO;
+    Powers primeDAO;
     Powers digitalDAO;
     Configurations.NetworkConfig config;
 
@@ -98,13 +100,13 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         deployScript.run();
 
         // Get the deployed contracts
-        parentDAO = deployScript.getParentDAO();
+        primeDAO = deployScript.getPrimeDAO();
         treasury = deployScript.getTreasury();
         safeAllowanceModule = deployScript.getSafeAllowanceModule();
         config = deployScript.getConfig();
 
         // Unpack mandates - Prime
-        mem.constitutionLength = deployScript.getParentConstitutionLength();
+        mem.constitutionLength = deployScript.getPrimeConstitutionLength();
         mem.packageSize = 10; 
         mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
 
@@ -113,7 +115,7 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         console.log("Executing Initial Setup Mandate ID: %s", mem.initialSetupMandateIdPrime);
         
         // Execute "Initial Setup"
-        parentDAO.request(mem.initialSetupMandateIdPrime, "", 0, "");
+        primeDAO.request(mem.initialSetupMandateIdPrime, "", 0, "");
 
         // Unpack mandates - Digital
         mem.constitutionLength = deployScript.getDigitalConstitutionLength();
@@ -127,7 +129,7 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         digitalDAO = deployScript.getDigitalDAO();
         digitalDAO.request(mem.initialSetupMandateIdDigital, "", 0, "");
 
-        mem.admin = parentDAO.getRoleHolderAtIndex(1, 0);
+        mem.admin = primeDAO.getRoleHolderAtIndex(1, 0);
         console.log("Admin address: %s", mem.admin);
 
         mem.digitalDAOAddr = address(digitalDAO);
@@ -137,21 +139,21 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
 
     function test_InitialSetup() public {
         // 4. Verify Role Labels
-        assertEq(parentDAO.getRoleLabel(1), "Members", "Role 1 should be Members");
-        assertEq(parentDAO.getRoleLabel(2), "Executives", "Role 2 should be Executives");
-        assertEq(parentDAO.getRoleLabel(3), "Physical DAOs", "Role 3 should be Physical DAOs");
-        assertEq(parentDAO.getRoleLabel(4), "Ideas DAOs", "Role 4 should be Ideas DAOs");
-        assertEq(parentDAO.getRoleLabel(5), "Digital DAOs", "Role 5 should be Digital DAOs");
+        assertEq(primeDAO.getRoleLabel(1), "Members", "Role 1 should be Members");
+        assertEq(primeDAO.getRoleLabel(2), "Executives", "Role 2 should be Executives");
+        assertEq(primeDAO.getRoleLabel(3), "Physical DAOs", "Role 3 should be Physical DAOs");
+        assertEq(primeDAO.getRoleLabel(4), "Ideas DAOs", "Role 4 should be Ideas DAOs");
+        assertEq(primeDAO.getRoleLabel(5), "Digital DAOs", "Role 5 should be Digital DAOs");
 
         // 5. Verify Treasury
-        assertEq(parentDAO.getTreasury(), payable(treasury), "Treasury should be set to Safe");
+        assertEq(primeDAO.getTreasury(), payable(treasury), "Treasury should be set to Safe");
 
         // 6. Verify Safe Module
         mem.isEnabled = Safe(payable(treasury)).isModuleEnabled(safeAllowanceModule);
         assertTrue(mem.isEnabled, "Allowance Module should be enabled on Safe");
 
         // 7. Verify Mandate 1 is Revoked
-        (,, mem.isActive) = parentDAO.getAdoptedMandate(1); 
+        (,, mem.isActive) = primeDAO.getAdoptedMandate(1); 
         assertFalse(mem.isActive, "Mandate 1 should be revoked");
 
         // 9. Verify Digital DAO is Delegate
@@ -177,17 +179,17 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
 
         console.log("Initiating Ideas DAO...");
         // Propose
-        mem.actionId = parentDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
         
         // Vote
-        parentDAO.castVote(mem.actionId, 1); // 1 = For
+        primeDAO.castVote(mem.actionId, 1); // 1 = For
         
         // Wait for voting period
-        mem.votingPeriod = parentDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod;
+        mem.votingPeriod = primeDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod;
         vm.roll(block.number + mem.votingPeriod + 1);
 
         // Execute (Request)
-        parentDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- Step 2: Create Ideas DAO (Executives) ---
@@ -195,17 +197,17 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         console.log("Creating Ideas DAO...");
         
         // Propose
-        mem.actionId = parentDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
         
         // Vote
-        parentDAO.castVote(mem.actionId, 1);
+        primeDAO.castVote(mem.actionId, 1);
         
         // Wait
-        mem.votingPeriod = parentDAO.getConditions(mem.createIdeasMandateId).votingPeriod;
+        mem.votingPeriod = primeDAO.getConditions(mem.createIdeasMandateId).votingPeriod;
         vm.roll(block.number + mem.votingPeriod + 1);
         
         // Execute
-        mem.actionId = parentDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- Step 3: Assign Role Id (Executives) ---
@@ -213,15 +215,24 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         console.log("Assigning Role...");
         
         // Execute (No quorum, immediate execution)
-        parentDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
         
         // --- Verify Creation ---
-        mem.returnData = parentDAO.getActionReturnData(mem.actionId, 0);
+        mem.returnData = primeDAO.getActionReturnData(mem.actionId, 0);
         mem.ideasDAOAddress = abi.decode(mem.returnData, (address));
         console.log("Ideas DAO created at: %s", mem.ideasDAOAddress);
         
-        mem.roleSince = parentDAO.hasRoleSince(mem.ideasDAOAddress, 4);
+        // Unpack Ideas DAO
+        mem.constitutionLength = deployScript.getIdeasConstitutionLength();
+        mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
+        Powers ideasDAO = Powers(mem.ideasDAOAddress);
+        console.log("Unpacking Ideas DAO (%s packages)...", mem.numPackages);
+        for (uint256 i = 1; i <= mem.numPackages; i++) {
+             ideasDAO.request(uint16(i), "", 0, "");
+        }
+
+        mem.roleSince = primeDAO.hasRoleSince(mem.ideasDAOAddress, 4);
         assertTrue(mem.roleSince > 0, "Ideas DAO should have Role 4");
 
         // --- Step 4: Revoke Ideas DAO (Executives) ---
@@ -232,22 +243,22 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         mem.nonce++; 
         
         // Propose Revoke
-        mem.actionId = parentDAO.propose(mem.revokeIdeasMandateId, mem.revokeParams, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.revokeIdeasMandateId, mem.revokeParams, mem.nonce, "");
         
         // Vote
-        parentDAO.castVote(mem.actionId, 1);
+        primeDAO.castVote(mem.actionId, 1);
         
         // Wait voting period + timelock
-        mem.votingPeriod = parentDAO.getConditions(mem.revokeIdeasMandateId).votingPeriod;
-        mem.timelock = parentDAO.getConditions(mem.revokeIdeasMandateId).timelock;
+        mem.votingPeriod = primeDAO.getConditions(mem.revokeIdeasMandateId).votingPeriod;
+        mem.timelock = primeDAO.getConditions(mem.revokeIdeasMandateId).timelock;
         vm.roll(block.number + mem.votingPeriod + mem.timelock + 1);
         
         // Execute
-        parentDAO.request(mem.revokeIdeasMandateId, mem.revokeParams, mem.nonce, "");
+        primeDAO.request(mem.revokeIdeasMandateId, mem.revokeParams, mem.nonce, "");
         vm.stopPrank();
         
         // --- Verify Revocation ---
-        mem.roleSince = parentDAO.hasRoleSince(mem.ideasDAOAddress, 4);
+        mem.roleSince = primeDAO.hasRoleSince(mem.ideasDAOAddress, 4);
         assertEq(mem.roleSince, 0, "Ideas DAO should NOT have Role 4 anymore");
     }
 
@@ -269,30 +280,39 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
 
         console.log("Initiating Physical DAO...");
         // Propose
-        parentDAO.request(mem.initiatePhysicalId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.initiatePhysicalId, mem.params, mem.nonce, "");
         
         // --- Step 2: Create Physical DAO ---
         console.log("Creating Physical DAO...");
-        mem.actionId = parentDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
-        mem.actionId = parentDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
+        mem.actionId = primeDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
         
         // Get address
-        bytes memory returnData = parentDAO.getActionReturnData(mem.actionId, 0);
+        bytes memory returnData = primeDAO.getActionReturnData(mem.actionId, 0);
         mem.physicalDAOAddress = abi.decode(returnData, (address));
         console.log("Physical DAO created at: %s", mem.physicalDAOAddress);
 
+        // Unpack Physical DAO
+        mem.constitutionLength = deployScript.getPhysicalConstitutionLength();
+        mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
+        Powers physicalDAO = Powers(mem.physicalDAOAddress);
+        console.log("Unpacking Physical DAO (%s packages)...", mem.numPackages);
+        for (uint256 i = 1; i <= mem.numPackages; i++) {
+             physicalDAO.request(uint16(i), "", 0, "");
+        }
+
         // --- Step 3: Assign Role ---
         console.log("Assigning Role...");
-        parentDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
         
         // Verify Role 3 (Physical DAOs)
-        assertTrue(parentDAO.hasRoleSince(mem.physicalDAOAddress, 3) > 0, "Role 3 missing");
+        assertTrue(primeDAO.hasRoleSince(mem.physicalDAOAddress, 3) > 0, "Role 3 missing");
 
         // --- Step 4: Assign Allowance ---
         console.log("Assigning Allowance...");
-        parentDAO.request(mem.assignAllowanceId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignAllowanceId, mem.params, mem.nonce, "");
         
         // Verify Status (Delegate)  
         mem.delegateIndex = uint48(uint160(address(mem.physicalDAOAddress)));
@@ -306,17 +326,17 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
 
         // Revoke Role
         console.log("Revoking Role...");
-        mem.actionId = parentDAO.propose(mem.revokeRoleId, mem.revokeParams, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.revokeRoleId).votingPeriod + parentDAO.getConditions(mem.revokeRoleId).timelock + 1);
-        parentDAO.request(mem.revokeRoleId, mem.revokeParams, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.revokeRoleId, mem.revokeParams, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.revokeRoleId).votingPeriod + primeDAO.getConditions(mem.revokeRoleId).timelock + 1);
+        primeDAO.request(mem.revokeRoleId, mem.revokeParams, mem.nonce, "");
         
         // Verify Role Revoked
-        assertEq(parentDAO.hasRoleSince(mem.physicalDAOAddress, 3), 0, "Role 3 not revoked");
+        assertEq(primeDAO.hasRoleSince(mem.physicalDAOAddress, 3), 0, "Role 3 not revoked");
 
         // Revoke Allowance
         console.log("Revoking Allowance...");
-        parentDAO.request(mem.revokeAllowanceId, mem.revokeParams, mem.nonce, "");
+        primeDAO.request(mem.revokeAllowanceId, mem.revokeParams, mem.nonce, "");
         
         // Verify Allowance Revoked
         mem.delegateIndex = uint48(uint160(address(mem.physicalDAOAddress)));
@@ -345,23 +365,23 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         mem.nonce = 20;
 
         // Initiate
-        // mem.actionId = parentDAO.propose(mem.initiatePhysicalId, mem.params, mem.nonce, "");
-        // parentDAO.castVote(mem.actionId, 1);
-        // vm.roll(block.number + parentDAO.getConditions(mem.initiatePhysicalId).votingPeriod + 1);
-        parentDAO.request(mem.initiatePhysicalId, mem.params, mem.nonce, "");
+        // mem.actionId = primeDAO.propose(mem.initiatePhysicalId, mem.params, mem.nonce, "");
+        // primeDAO.castVote(mem.actionId, 1);
+        // vm.roll(block.number + primeDAO.getConditions(mem.initiatePhysicalId).votingPeriod + 1);
+        primeDAO.request(mem.initiatePhysicalId, mem.params, mem.nonce, "");
         
         // Create
-        mem.actionId = parentDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
-        mem.actionId = parentDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
-        mem.physicalDAOAddress = abi.decode(parentDAO.getActionReturnData(mem.actionId, 0), (address));
+        mem.actionId = primeDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
+        mem.actionId = primeDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
+        mem.physicalDAOAddress = abi.decode(primeDAO.getActionReturnData(mem.actionId, 0), (address));
         
         // Assign Role
-        parentDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
         
         // Assign Delegate Status (Necessary for Allowance Module)
-        parentDAO.request(mem.assignDelegateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignDelegateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- TEST 1: Physical DAO Allowance Flow ---
@@ -388,22 +408,22 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         
         // Note: StatementOfIntent mandates often don't have voting periods/quorum set in script (defaults to 0),
         // effectively making them executable immediately by the proposer if allowed role matches.
-        parentDAO.request(mem.requestPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.requestPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // 2. Executives grant allowance
         vm.startPrank(mem.admin); // correct role Id? 
         console.log("Executives granting allowance to Physical DAO...");
         
-        mem.actionId = parentDAO.propose(mem.grantPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
+        mem.actionId = primeDAO.propose(mem.grantPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
         
         // Wait voting + timelock
-        mem.votingPeriod = parentDAO.getConditions(mem.grantPhysicalAllowanceId).votingPeriod;
-        mem.timelock = parentDAO.getConditions(mem.grantPhysicalAllowanceId).timelock;
+        mem.votingPeriod = primeDAO.getConditions(mem.grantPhysicalAllowanceId).votingPeriod;
+        mem.timelock = primeDAO.getConditions(mem.grantPhysicalAllowanceId).timelock;
         vm.roll(block.number + mem.votingPeriod + mem.timelock + 1);
         
-        parentDAO.request(mem.grantPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.grantPhysicalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // Verify Allowance
@@ -431,21 +451,21 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         // Role 5 is required. In script, Role 5 is assigned to 'Cedars' address
         vm.startPrank(cedars);
         console.log("Digital DAO (via Cedars) requesting allowance...");
-        parentDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // 2. Executives grant allowance
         vm.startPrank(mem.admin);
         console.log("Executives granting allowance to Digital DAO...");
         
-        mem.actionId = parentDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
+        mem.actionId = primeDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
         
-        mem.votingPeriod = parentDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod;
-        mem.timelock = parentDAO.getConditions(mem.grantDigitalAllowanceId).timelock;
+        mem.votingPeriod = primeDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod;
+        mem.timelock = primeDAO.getConditions(mem.grantDigitalAllowanceId).timelock;
         vm.roll(block.number + mem.votingPeriod + mem.timelock + 1);
         
-        parentDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // Verify Allowance
@@ -477,20 +497,20 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         // 1. Request Allowance (by Cedars - Role 5)
         console2.log("Digital DAO (via Cedars) requesting allowance..."); 
         vm.startPrank(cedars);
-        parentDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // 2. Grant Allowance (by conveners - Role 2)
         console2.log("Executives granting allowance to Digital DAO...");
         vm.startPrank(mem.admin);
-        mem.actionId = parentDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
+        mem.actionId = primeDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
         
-        uint32 votingPeriod = parentDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod;
-        uint32 timelock = parentDAO.getConditions(mem.grantDigitalAllowanceId).timelock;
+        uint32 votingPeriod = primeDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod;
+        uint32 timelock = primeDAO.getConditions(mem.grantDigitalAllowanceId).timelock;
         vm.roll(block.number + votingPeriod + timelock + 1);
         
-        parentDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // Verify Allowance
@@ -579,29 +599,39 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         mem.nonce = 1;
         
         // Initiate
-        mem.actionId = parentDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod + 1);
-        parentDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod + 1);
+        primeDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
         
         // Create
-        mem.actionId = parentDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.createIdeasMandateId).votingPeriod + 1);
-        mem.actionId = parentDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.createIdeasMandateId).votingPeriod + 1);
+        mem.actionId = primeDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
         
         // Get address
-        mem.ideasDAOAddress = abi.decode(parentDAO.getActionReturnData(mem.actionId, 0), (address));
+        mem.ideasDAOAddress = abi.decode(primeDAO.getActionReturnData(mem.actionId, 0), (address));
         console.log("Ideas DAO created at: %s", mem.ideasDAOAddress);
-        
+
+        // Unpack Ideas DAO
+        mem.constitutionLength = deployScript.getIdeasConstitutionLength();
+        mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
+        Powers ideasDAO = Powers(mem.ideasDAOAddress);
+        console.log("Unpacking Ideas DAO (%s packages)...", mem.numPackages);
+        for (uint256 i = 1; i <= mem.numPackages; i++) {
+             ideasDAO.request(uint16(i), "", 0, "");
+        }
+        uint256 ideasNumPackages = mem.numPackages;
+
         // Assign Role
-        parentDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- Step 2: Create Physical DAO (via Ideas DAO) ---
         // Ideas DAO Mandate 3: Request new Physical DAO
         // Needs Convener (Cedars) - Role 2 @Ideas DAO
-        Powers ideasDAO = Powers(mem.ideasDAOAddress);
+        // Powers ideasDAO = Powers(mem.ideasDAOAddress); // Already defined above
         vm.prank(mem.ideasDAOAddress);
         ideasDAO.assignRole(2, cedars); // Assign Role 2 to Cedars at Ideas DAO
         
@@ -611,30 +641,40 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         
         console.log("Ideas DAO requesting Physical DAO creation...");
         // Ideas DAO Mandate 3 calls ParentDAO Mandate 11 (Initiate Physical)
-        ideasDAO.request(3, mem.params, mem.nonce, "");
+        ideasDAO.request(uint16(ideasNumPackages + 3), mem.params, mem.nonce, "");
     
         // --- Step 2: Create Physical DAO ---
         console.log("Creating Physical DAO...");
-        mem.actionId = parentDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
-        mem.actionId = parentDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.createPhysicalId, mem.params, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.createPhysicalId).votingPeriod + 1);
+        mem.actionId = primeDAO.request(mem.createPhysicalId, mem.params, mem.nonce, "");
         
         // Get address
-        bytes memory returnData = parentDAO.getActionReturnData(mem.actionId, 0);
+        bytes memory returnData = primeDAO.getActionReturnData(mem.actionId, 0);
         mem.physicalDAOAddress = abi.decode(returnData, (address));
         console.log("Physical DAO created at: %s", mem.physicalDAOAddress);
 
+        // Unpack Physical DAO
+        mem.constitutionLength = deployScript.getPhysicalConstitutionLength();
+        mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
+        Powers physicalDAO = Powers(mem.physicalDAOAddress);
+        console.log("Unpacking Physical DAO (%s packages)...", mem.numPackages);
+        for (uint256 i = 1; i <= mem.numPackages; i++) {
+             physicalDAO.request(uint16(i), "", 0, "");
+        }
+        uint256 physicalNumPackages = mem.numPackages;
+
         // --- Step 3: Assign Role ---
         console.log("Assigning Role...");
-        parentDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleId, mem.params, mem.nonce, "");
         
         // Verify Role 3 (Physical DAOs)
-        assertTrue(parentDAO.hasRoleSince(mem.physicalDAOAddress, 3) > 0, "Role 3 missing");
+        assertTrue(primeDAO.hasRoleSince(mem.physicalDAOAddress, 3) > 0, "Role 3 missing");
 
         // --- Step 4: Assign Allowance ---
         console.log("Assigning Allowance...");
-        parentDAO.request(mem.assignDelegateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignDelegateId, mem.params, mem.nonce, "");
         vm.stopPrank();
         
         // --- Step 3: Mint 20 Activity Tokens at Ideas DAO ---
@@ -650,12 +690,12 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         for(uint i=0; i<20; i++) {
             mem.nonce++;
             nonces[i] = mem.nonce;
-            ideasDAO.request(2, mem.params, mem.nonce, "");
+            ideasDAO.request(uint16(ideasNumPackages + 2), mem.params, mem.nonce, "");
             vm.roll(block.number + deployScript.minutesToBlocks(6, config.BLOCKS_PER_HOUR)); // Advance 6 minutes between mints
         }
 
         // --- Step 4: Mint 2 POAPs at Physical DAO ---
-        Powers physicalDAO = Powers(mem.physicalDAOAddress);
+        // Powers physicalDAO = Powers(mem.physicalDAOAddress); // Already defined
         vm.prank(address(physicalDAO));
         physicalDAO.assignRole(2, cedars); // Assign Role 2 to Cedars at Ideas DAO
 
@@ -664,10 +704,10 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         mem.params = abi.encode(user);
         
         // Mandate 2: Mint POAP
-        physicalDAO.request(2, mem.params, mem.nonce, "");
+        physicalDAO.request(uint16(physicalNumPackages + 2), mem.params, mem.nonce, "");
         nonces[20] = mem.nonce;
         mem.nonce++;
-        physicalDAO.request(2, mem.params, mem.nonce, "");
+        physicalDAO.request(uint16(physicalNumPackages + 2), mem.params, mem.nonce, "");
         nonces[21] = mem.nonce;
         vm.stopPrank();
 
@@ -675,13 +715,13 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         for (uint256 i = 0; i < actionIds.length; i++) {
             uint16 mandateId;
             if (i < 20) {  
-                mandateId = 25; // Mandate 25: Mint Activity Token @ parentDAO
+                mandateId = 25; // Mandate 25: Mint Activity Token @ primeDAO
             } else {
-                mandateId = 26; // Mandate 26: Mint POAP @ parentDAO
+                mandateId = 26; // Mandate 26: Mint POAP @ primeDAO
             }
             uint256 actionId = uint256(keccak256(abi.encode(mandateId, mem.params, nonces[i])));
             
-            tokenIds[i] = uint256(abi.decode(parentDAO.getActionReturnData(actionId, 0), (uint256)));
+            tokenIds[i] = uint256(abi.decode(primeDAO.getActionReturnData(actionId, 0), (uint256)));
         }
 
         vm.startPrank(user);
@@ -689,14 +729,14 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         
         // Step 1: Check POAPs
         mem.nonce = 2000;
-        parentDAO.request(claimStep1Id, abi.encode(tokenIds), mem.nonce, "");
+        primeDAO.request(claimStep1Id, abi.encode(tokenIds), mem.nonce, "");
         
         // Step 2: Check Activity Tokens
-        parentDAO.request(claimStep2Id, abi.encode(tokenIds), mem.nonce, "");
+        primeDAO.request(claimStep2Id, abi.encode(tokenIds), mem.nonce, "");
         vm.stopPrank();
 
         // Verify Membership
-        assertTrue(parentDAO.hasRoleSince(user, 1) != 0, "User should have Member role (1) in Parent DAO");
+        assertTrue(primeDAO.hasRoleSince(user, 1) != 0, "User should have Member role (1) in Parent DAO");
     }
 
     function test_DigitalDAO_TransferToTreasury() public {
@@ -714,14 +754,14 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         mem.nonce = 100;
         
         vm.startPrank(cedars);
-        parentDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.request(mem.requestDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
         
         vm.startPrank(mem.admin);
-        mem.actionId = parentDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
-        parentDAO.castVote(mem.actionId, 1);
-        vm.roll(block.number + parentDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod + parentDAO.getConditions(mem.grantDigitalAllowanceId).timelock + 1);
-        parentDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
+        primeDAO.castVote(mem.actionId, 1);
+        vm.roll(block.number + primeDAO.getConditions(mem.grantDigitalAllowanceId).votingPeriod + primeDAO.getConditions(mem.grantDigitalAllowanceId).timelock + 1);
+        primeDAO.request(mem.grantDigitalAllowanceId, mem.allowanceParams, mem.nonce, "");
         vm.stopPrank();
 
         // 3. Fund Digital DAO with tokens
@@ -760,17 +800,17 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
 
         console.log("Initiating Ideas DAO...");
         // Propose
-        mem.actionId = parentDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
         
         // Vote
-        parentDAO.castVote(mem.actionId, 1); // 1 = For
+        primeDAO.castVote(mem.actionId, 1); // 1 = For
         
         // Wait for voting period
-        mem.votingPeriod = parentDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod;
+        mem.votingPeriod = primeDAO.getConditions(mem.initiateIdeasMandateId).votingPeriod;
         vm.roll(block.number + mem.votingPeriod + 1);
 
         // Execute (Request)
-        parentDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.initiateIdeasMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- Step 2: Create Ideas DAO (Executives) ---
@@ -778,17 +818,17 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         console.log("Creating Ideas DAO...");
         
         // Propose
-        mem.actionId = parentDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.propose(mem.createIdeasMandateId, mem.params, mem.nonce, "");
         
         // Vote
-        parentDAO.castVote(mem.actionId, 1);
+        primeDAO.castVote(mem.actionId, 1);
         
         // Wait
-        mem.votingPeriod = parentDAO.getConditions(mem.createIdeasMandateId).votingPeriod;
+        mem.votingPeriod = primeDAO.getConditions(mem.createIdeasMandateId).votingPeriod;
         vm.roll(block.number + mem.votingPeriod + 1);
         
         // Execute
-        mem.actionId = parentDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
+        mem.actionId = primeDAO.request(mem.createIdeasMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
 
         // --- Step 3: Assign Role Id (Executives) ---
@@ -796,16 +836,22 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         console.log("Assigning Role...");
         
         // Execute (No quorum, immediate execution)
-        parentDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
+        primeDAO.request(mem.assignRoleMandateId, mem.params, mem.nonce, "");
         vm.stopPrank();
         
         // --- Verify Creation ---
-        mem.returnData = parentDAO.getActionReturnData(mem.actionId, 0);
+        mem.returnData = primeDAO.getActionReturnData(mem.actionId, 0);
         mem.ideasDAOAddress = abi.decode(mem.returnData, (address));
         console.log("Ideas DAO created at: %s", mem.ideasDAOAddress);
 
-        
+        // Unpack Ideas DAO
+        mem.constitutionLength = deployScript.getIdeasConstitutionLength();
+        mem.numPackages = (mem.constitutionLength + mem.packageSize - 1) / mem.packageSize;
         Powers ideasDAO = Powers(mem.ideasDAOAddress);
+        console.log("Unpacking Ideas DAO (%s packages)...", mem.numPackages);
+        for (uint256 i = 1; i <= mem.numPackages; i++) {
+             ideasDAO.request(uint16(i), "", 0, "");
+        }
         address user = address(0x100);
 
         // --- Setup User (Member) ---
@@ -823,16 +869,16 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         uint48 endBlock = uint48(block.number + 100);
         bytes memory electionParams = abi.encode("Convener Election", startBlock, endBlock);
         
-        ideasDAO.request(7, electionParams, mem.nonce, "");
+        ideasDAO.request(uint16(mem.numPackages + 7), electionParams, mem.nonce, "");
 
         // 2. Nominate (Mandate 8)
         console.log("Nominating...");
-        ideasDAO.request(8, electionParams, mem.nonce, "");
+        ideasDAO.request(uint16(mem.numPackages + 8), electionParams, mem.nonce, "");
 
         // 3. Open Vote (Mandate 10)
         console.log("Creating Vote...");
         vm.roll(startBlock + 1); // Advance to start
-        mem.actionId = ideasDAO.request(10, electionParams, mem.nonce, ""); 
+        mem.actionId = ideasDAO.request(uint16(mem.numPackages + 10), electionParams, mem.nonce, ""); 
 
         // Get Vote Mandate ID
         bytes memory returnData = ideasDAO.getActionReturnData(mem.actionId, 0);
@@ -850,7 +896,7 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         // 5. Tally (Mandate 11)
         console.log("Tallying...");
         vm.roll(endBlock + 1); // Advance to end
-        ideasDAO.request(11, electionParams, mem.nonce, "");
+        ideasDAO.request(uint16(mem.numPackages + 11), electionParams, mem.nonce, "");
 
         // 6. Clean Up (Mandate 12)
         console.log("Cleaning Up...");
@@ -859,7 +905,7 @@ contract CulturalStewardsDAO_IntegrationTest is Test {
         assertTrue(mem.isActive, "Vote Mandate should be active before cleanup");
 
         // Clean up needs same calldata and nonce as Open Vote to find the return value
-        ideasDAO.request(12, electionParams, mem.nonce, "");
+        ideasDAO.request(uint16(mem.numPackages + 12), electionParams, mem.nonce, "");
         
         // Verify Vote Mandate Revoked
         (,, mem.isActive) = ideasDAO.getAdoptedMandate(uint16(voteMandateId));

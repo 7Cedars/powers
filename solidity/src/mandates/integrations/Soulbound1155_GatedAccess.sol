@@ -31,12 +31,7 @@ contract Soulbound1155_GatedAccess is Mandate {
         address minter;
         uint48 mintBlock;
     }
-
-    error Soulbound1155_GatedAccess__InsufficientTokens();
-    error Soulbound1155_GatedAccess__NotOwnerOfToken(uint256 tokenId);
-    error Soulbound1155_GatedAccess__TokenFromIncorrectRoleId(uint256 tokenId);
-    error Soulbound1155_GatedAccess__TokenExpiredOrInvalid(uint256 tokenId);
-
+ 
     constructor() {
         bytes memory configParams = abi.encode(
             "address soulbound1155",
@@ -103,7 +98,7 @@ contract Soulbound1155_GatedAccess is Mandate {
         }  
 
         if (validTokenCount < mem.tokensThreshold) {
-            revert Soulbound1155_GatedAccess__InsufficientTokens();
+            revert("Insuffiicent valid tokens provided");
         }
 
         // Check 4: if everything passes, assign roleId to caller.

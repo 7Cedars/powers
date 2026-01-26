@@ -78,7 +78,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.allowedRole = 0; // = admin.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members, Executives) and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -96,7 +96,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.quorum = 66; // = 66% quorum (high quorum)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Veto Actions: Funders can veto actions",
-            targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
+            targetMandate: initialisePowers.getInitialisedAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         }));
@@ -110,7 +110,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.quorum = 33;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute an action: Members propose adopting new mandates",
-            targetMandate: initialisePowers.getMandateAddress("OpenAction"), 
+            targetMandate: initialisePowers.getInitialisedAddress("OpenAction"), 
             config: abi.encode(), // empty config
             conditions: conditions
         }));
@@ -124,7 +124,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.assignRole.selector,
@@ -139,7 +139,7 @@ contract OptimisticExecution is DeploySetup {
         conditions.needFulfilled = 4; // = Mandate 4 (Admin assign role)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.revokeRole.selector,

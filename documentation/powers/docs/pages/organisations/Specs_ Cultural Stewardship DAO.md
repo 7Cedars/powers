@@ -59,13 +59,13 @@ The Ideas-DAO that creates the Physical-DAO will be assigned a role in the creat
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Members | Initiate Physical DAO Creation | StatementOfIntent.sol | "string name, string uri" | none | Vote, low threshold.  |
-| Members | Veto Physical DAO creation  | StatementOfIntent.sol | (same as above) | none | Vote, high threshold & quorum. |
+| Ideas DAO | Initiate Physical DAO Creation | StatementOfIntent.sol | "string name, string uri" | none | Any Ideas DAO can propose.  |
 | Executives | Execute Physical DAO Creation | BespokeActionSimple.sol | (same as above) | Creates Physical DAO | Proposal exists, veto does not exist  |
 | Executives | Assign role Id to Physical DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns role to return value of previous mandate.  | Any executive can execute. Previous action executed.  |
-| Executives | Assign allowance to Physical DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns allowance to return value of previous mandate.  | (Not implemented). |
+| Executives | Assign Delegate status | SafeExecTransactionOnReturnValue.sol | (same as above) | Assigns delegate status at Safe treasury.  | Any executive can execute. Previous action executed.  |
 | Members | Veto revoking Physical DAO | StatementOfIntent.sol | (same as above) | none | Vote, high threshold.   |
 | Executives | Revoke Physical DAO | BespokeActionOnReturnValue.sol | (same as above) | Revokes roleId.  | DAO creation should have executed, members should not have vetoed.  |
+| Executives | Revoke Delegate status | SafeExecTransaction.sol | (same as above) | Revokes delegate status. | Any executive can execute. Previous action executed. |
 
 #### Assign additional allowances to Physical DAO or Digital DAO  
 
@@ -114,17 +114,18 @@ The token Id that is minted, is the uin256 representation of the caller. This me
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Executives | Veto claim | StatementOfIntent.sol | ‘address Account, uint256 roleId’ | None | None \- any executive can veto.  |
-| Public | Parent membership through Sub DAO | BespokeActionSimple.sol | (same as above) | Assign role | The action needs to have been executed in the sub-DAO, any account can try and request.  |
+| Public | Request Membership Step 1 | Soulbound1155_GatedAccess.sol | ‘address Account’ | Checks ownership of 2 POAPS | None. Any public address can request.  |
+| Public | Request Membership Step 2 | Soulbound1155_GatedAccess.sol | ‘address Account’ | Checks ownership of 20 Activity tokens and Assigns Role | Previous step must be executed. Any public address can request.  |
 
 #### Elect Executives
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Member | Nominate | BespokeActionSimple.sol | (bool, nominateMe) | Nomination logged at Nominees.sol helper contract | None, any member can nominate |
-| Executives | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any executive can call the mandate.   |
+| Members | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any executive can call the mandate.   |
 | Member | Vote in Election | OpenElectionVote.sol | (bool\[\]. vote\] | Logs a vote | None, any member can vote. This mandate ONLY appear by calling call election.  |
 | Members | Tally election | OpenElectionEnd.sol | None | Counts vote, revokes and assigns role accordingly | OpenElectionStart needs to have been executed. Any Member can call this.  |
+| Members | Clean up election | BespokeActionOnReturnValue.sol | None | Cleans up election mandates | Tally needs to have been executed. |
 
 ### *Reform Mandates* 
 
@@ -195,17 +196,18 @@ Meant for expenses that will be made in future. Payment before completion.
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Public | Claim member role by git commit | ClaimRoleWithGitSig.sol | Hash, roleId | None | None \- anyone can call. Will not pass if hash does not appear in correct folder for repo.  |
-| Public | Assign member role | AssignRoleWithGitSig.sol | (Same as above) | Assigns role.  | Previous mandate needs to have passed.  |
+| Public | Apply for member role | Github_ClaimRoleWithSig.sol | Branch, paths, roleIds, signature | None | None \- anyone can call.  |
+| Public | Claim Member role | Github_AssignRoleWithSig.sol | None | Assigns role.  | Previous mandate needs to have passed.  |
 
 #### Elect Conveners
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Member | Nominate | BespokeActionSimple.sol | (bool, nominateMe) | Nomination logged at Nominees.sol helper contract | None, any member can nominate |
-| Conveners | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any convener can call the mandate.   |
+| Members | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any member can call the mandate.   |
 | Member | Vote in Election | OpenElectionVote.sol | (bool\[\]. vote\] | Logs a vote | None, any member can vote. This mandate ONLY appear by calling call election.  |
 | Members | Tally election | OpenElectionEnd.sol | None | Counts vote, revokes and assigns role accordingly | OpenElectionStart needs to have been executed. Any Member can call this.  |
+| Members | Clean up election | BespokeActionOnReturnValue.sol | None | Cleans up election mandates | Tally needs to have been executed. |
 
 ### *Reform Mandates*
 
@@ -241,6 +243,12 @@ Note 1: no veto from outside parties. Ideas DAOs can create their own mandates a
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Public | Mint activity NFT | BespokeActionSimple.sol | None | Mints Ideas DAO specific token Id  at Parent DAO, and sends to the caller.  | Throttled. For the rest nothing  |
 
+#### Request new Physical DAO
+
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
+| :---- | :---- | :---- | :---- | :---- | :---- |
+| Conveners | Request new Physical DAO | PowersActionSimple.sol | "string name, string uri" | Requests mandate at Parent DAO | None |
+
 #### Update uri
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
@@ -273,6 +281,7 @@ Note 1: no veto from outside parties. Ideas DAOs can create their own mandates a
 | Members | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any member can call the mandate.   |
 | Member | Vote in Election | OpenElectionVote.sol | (bool\[\]. vote\] | Logs a vote | None, any member can vote. This mandate ONLY appear by calling call election.  |
 | Members | Tally election | OpenElectionEnd.sol | None | Counts vote, revokes and assigns role accordingly | OpenElectionStart needs to have been executed. Any member can call this.  |
+| Members | Clean up election | ElectionList_CleanUpVoteMandate.sol | None | Cleans up election mandates | Tally needs to have been executed. |
 
 ### *Reform mandates*
 
@@ -361,13 +370,7 @@ Note that the URI includes all metadata of the organisation. In this case this w
 | Members | Call election | OpenElectionStart.sol | None  | Creates an election vote list  | Throttled: every N blocks, for the rest none: any member can call the mandate.   |
 | Member | Vote in Election | OpenElectionVote.sol | (bool\[\]. vote\] | Logs a vote | None, any member can vote. This mandate ONLY appear by calling call election.  |
 | Members | Tally election | OpenElectionEnd.sol | None | Counts vote, revokes and assigns role accordingly | OpenElectionStart needs to have been executed. Any member can call this.  |
-
-#### Assign and revoke physical access: what addresses have physical access to space?
-
-| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
-| :---- | :---- | :---- | :---- | :---- | :---- |
-| Convener | Assign hasAccess role | BespokeActionSimple.sol | \`address Account\`  | Calls assign role function | Vote |
-| Convener | Revokes hasAccess role | BespokeActionSimple.sol | (same as above) | Calls revoke role function | Vote |
+| Members | Clean up election | ElectionList_CleanUpVoteMandate.sol | None | Cleans up election mandates | Tally needs to have been executed. |
 
 ### *Reform Mandates*
 
@@ -420,3 +423,4 @@ Because roles can be dynamically assigned by Sub-DAOs, there is a risk of overla
 ### *Dependency Chains*
 
 The "Digital DAO" (\#3) relies on the recognition of Sibling DAOs (\#1 & \#2) to execute payments. If recognition logic fails or desynchronises, operations may stall.
+

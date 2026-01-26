@@ -15,12 +15,7 @@ contract SafeProtocolFlowTest is TestSetupSafeProtocolFlow {
         console2.log("Chain Id: ", block.chainid);
         console2.log("Safe Allowance @", config.safeAllowanceModule);
         console2.log("Safe Allowance code length: ", address(config.safeAllowanceModule).code.length); 
-
-        // if (address(config.safeAllowanceModule).code.length == 0) {
-        //     console2.log("Skipping test: Safe Allowance Module not configured");
-        //     return;
-        // }
-
+ 
         vm.startPrank(alice);
 
         // ---------------------------------------------------------

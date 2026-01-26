@@ -395,7 +395,7 @@ abstract contract BaseSetup is TestVariables, TestHelperFunctions {
 
         // deploy external contracts
         initialisePowers = new InitialisePowers();
-        (mandateNames, mandateAddresses) = initialisePowers.getDeployedMandates();
+        (mandateNames, mandateAddresses) = initialisePowers.getDeployed();
         Configurations helperConfig = new Configurations();
         config = helperConfig.getConfig();
 
@@ -775,7 +775,7 @@ abstract contract TestSetupGovernorProtocolFlow is BaseSetup {
 abstract contract TestSetupSafeProtocolFlow is BaseSetup {
     function setUpVariables() public override {
         vm.skip(false);  
-        vm.selectFork(optSepoliaFork);
+        vm.selectFork(arbSepoliaFork);
         super.setUpVariables();
 
         // initiate multi constitution

@@ -44,14 +44,14 @@ contract DeployMandatePackages is Script {
 
         // PowerLabsConfig
         address[] memory mandateDependencies = new address[](5);
-        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
-        mandateDependencies[1] = initialisePowers.getMandateAddress("Safe_ExecTransaction");
-        mandateDependencies[2] = initialisePowers.getMandateAddress("PresetActions_Single");
-        mandateDependencies[4] = initialisePowers.getMandateAddress("RoleByTransaction");
+        mandateDependencies[0] = initialisePowers.getInitialisedAddress("StatementOfIntent");
+        mandateDependencies[1] = initialisePowers.getInitialisedAddress("Safe_ExecTransaction");
+        mandateDependencies[2] = initialisePowers.getInitialisedAddress("PresetActions_Single");
+        mandateDependencies[4] = initialisePowers.getInitialisedAddress("RoleByTransaction");
 
         // PowerLabs_Documentation // no dependencies for now
         mandateDependencies = new address[](1);
-        mandateDependencies[0] = initialisePowers.getMandateAddress("StatementOfIntent");
+        mandateDependencies[0] = initialisePowers.getInitialisedAddress("StatementOfIntent");
         names[0] = "PowerLabs_Documentation";
         creationCodes[0] = type(PowerLabs_Documentation).creationCode;
         constructorArgs[0] = abi.encode(

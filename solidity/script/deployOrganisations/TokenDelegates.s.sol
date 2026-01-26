@@ -84,7 +84,7 @@ contract TokenDelegates is DeploySetup {
         conditions.allowedRole = 0; // = admin.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Delegates, Funders) and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -94,7 +94,7 @@ contract TokenDelegates is DeploySetup {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
-            targetMandate: initialisePowers.getMandateAddress("Nominate"),
+            targetMandate: initialisePowers.getInitialisedAddress("Nominate"),
             config: abi.encode(
                 address(nominees)
             ),
@@ -107,7 +107,7 @@ contract TokenDelegates is DeploySetup {
         conditions.throttleExecution = minutesToBlocks(10, config.BLOCKS_PER_HOUR); // = 10 minutes approx
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Elect Delegates: Run the election for delegates. In this demo, the top 3 nominees by token delegation of token VOTES_TOKEN become Delegates.",
-            targetMandate: initialisePowers.getMandateAddress("DelegateTokenSelect"),
+            targetMandate: initialisePowers.getInitialisedAddress("DelegateTokenSelect"),
             config: abi.encode(
                 address(simpleErc20Votes),
                 address(nominees),
@@ -126,7 +126,7 @@ contract TokenDelegates is DeploySetup {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.assignRole.selector,
@@ -141,7 +141,7 @@ contract TokenDelegates is DeploySetup {
         conditions.needFulfilled = 4; // = Mandate 4 (Admin assign role)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.revokeRole.selector,

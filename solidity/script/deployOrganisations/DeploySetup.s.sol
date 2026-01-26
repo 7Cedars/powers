@@ -4,6 +4,7 @@ pragma solidity 0.8.26;
 // scripts 
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 // interfaces
 import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
@@ -27,7 +28,7 @@ contract DeploySetup is Script {
 
     // this function takes 
     // as param a long list of MandateInitData, 
-    // deploys the mandates in ReformMandate_Static of packageSize size
+    // deploys the mandates in ReformMandate_Static of packageSize size using create2
     // and returns the mandateInitData for those packages.
     // the packages can then be adopted in Powers but are linked sequentially through needFulfilled conditions.
     function packageInitData(
@@ -60,9 +61,8 @@ contract DeploySetup is Script {
             }
 
             // Deploy ReformMandate_Static with the batch
-            vm.startBroadcast();
-            ReformMandate_Static reformMandate = new ReformMandate_Static(batch);
-            vm.stopBroadcast();
+            bytes memory constructorArgs = abi.encode(batch);
+            address deployedAddress = deploy(type(ReformMandate_Static).creationCode, constructorArgs);
 
             // Create MandateInitData for the package
             // Link sequentially using needFulfilled
@@ -76,10 +76,24 @@ contract DeploySetup is Script {
 
             packages[i] = PowersTypes.MandateInitData({
                 nameDescription: string(abi.encodePacked("Reform Package ", vm.toString(i + 1))),
-                targetMandate: address(reformMandate),
+                targetMandate: deployedAddress,
                 config: "",
                 conditions: conditions
             });
         }
+    }
+
+    function deploy(bytes memory creationCode, bytes memory constructorArg) internal returns (address) {
+        bytes32 salt = bytes32(abi.encodePacked(constructorArg));
+        bytes memory deploymentData = abi.encodePacked(creationCode, constructorArg);
+        address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData));
+
+        if (computedAddress.code.length == 0) {
+            vm.startBroadcast();
+            address deployedAddress = Create2.deploy(0, salt, deploymentData);
+            vm.stopBroadcast();
+            return deployedAddress;
+        }
+        return computedAddress;
     }
 }

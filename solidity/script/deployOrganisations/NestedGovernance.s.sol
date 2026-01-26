@@ -26,7 +26,7 @@ contract NestedGovernance is DeploySetup {
     Configurations.NetworkConfig public config;
 
     PowersTypes.Conditions conditions;
-    PowersTypes.MandateInitData[] parentConstitution;
+    PowersTypes.MandateInitData[] primeConstitution;
     PowersTypes.MandateInitData[] childConstitution;
     Powers powersParent;
     Powers powersChild;
@@ -68,9 +68,9 @@ contract NestedGovernance is DeploySetup {
         console2.log("Powers Child deployed at:", address(powersChild));
 
         // step 2: create constitution 
-        uint256 parentConstitutionLength = createParentConstitution();
+        uint256 primeConstitutionLength = createPrimeConstitution();
         console2.log("Parent Constitution created with length:");
-        console2.logUint(parentConstitutionLength);
+        console2.logUint(primeConstitutionLength);
 
         // Mandate 3 in Parent is "Allow Child to mint vote tokens"
         uint256 childConstitutionLength = createChildConstitution(address(powersParent), 3);
@@ -79,13 +79,13 @@ contract NestedGovernance is DeploySetup {
 
         // step 3: run constitute. 
         vm.startBroadcast();
-        powersParent.constitute(parentConstitution);
+        powersParent.constitute(primeConstitution);
         powersChild.constitute(childConstitution);
         vm.stopBroadcast();
         console2.log("Parent and Child Powers successfully constituted.");
     }
 
-    function createParentConstitution() internal returns (uint256 constitutionLength) {
+    function createPrimeConstitution() internal returns (uint256 constitutionLength) {
         // Mandate 1: Initial Setup
         targets = new address[](3);
         values = new uint256[](3);
@@ -99,9 +99,9 @@ contract NestedGovernance is DeploySetup {
         calldatas[2] = abi.encodeWithSelector(IPowers.revokeMandate.selector, 1);
 
         conditions.allowedRole = 0; // Admin
-        parentConstitution.push(PowersTypes.MandateInitData({
+        primeConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members), set treasury address and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -112,9 +112,9 @@ contract NestedGovernance is DeploySetup {
         dynamicParams[0] = "string Uri";
 
         conditions.allowedRole = 0; // Admin
-        parentConstitution.push(PowersTypes.MandateInitData({
+        primeConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.setUri.selector,
@@ -132,9 +132,9 @@ contract NestedGovernance is DeploySetup {
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // ~5 mins
         conditions.succeedAt = 51;
         conditions.quorum = 33;
-        parentConstitution.push(PowersTypes.MandateInitData({
+        primeConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Allow Child to mint vote tokens: The parent organisation allows the child organisation to mint vote tokens.",
-            targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
+            targetMandate: initialisePowers.getInitialisedAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         }));
@@ -146,9 +146,9 @@ contract NestedGovernance is DeploySetup {
         dynamicParams[1] = "address account";
 
         conditions.allowedRole = 0; // Admin
-        parentConstitution.push(PowersTypes.MandateInitData({
+        primeConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.assignRole.selector,
@@ -161,9 +161,9 @@ contract NestedGovernance is DeploySetup {
         // Mandate 5: A delegate can revoke a role
         conditions.allowedRole = 2; // Role 2 (Delegates presumed)
         conditions.needFulfilled = 4; // Mandate 4
-        parentConstitution.push(PowersTypes.MandateInitData({
+        primeConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersParent),
                 IPowers.revokeRole.selector,
@@ -173,7 +173,7 @@ contract NestedGovernance is DeploySetup {
         }));
         delete conditions;
 
-        return parentConstitution.length;
+        return primeConstitution.length;
     }
 
     function createChildConstitution(address parent, uint16 mintMandateId) internal returns (uint256 constitutionLength) {
@@ -192,7 +192,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Members), set treasury address and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"),
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"),
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -205,7 +205,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = 0; // Admin
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Update URI: The admin can update the organization's URI.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powersChild),
                 IPowers.setUri.selector,
@@ -222,7 +222,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = type(uint256).max; // Public
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Check Parent: Check if parent has passed action to mint tokens.",
-            targetMandate: initialisePowers.getMandateAddress("CheckExternalActionState"),
+            targetMandate: initialisePowers.getInitialisedAddress("CheckExternalActionState"),
             config: abi.encode(
                 parent,
                 mintMandateId,
@@ -240,7 +240,7 @@ contract NestedGovernance is DeploySetup {
         conditions.quorum = 33;
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Mint Tokens: Call the mint function at token.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(votesToken),
                 bytes4(keccak256("mint(uint256)")), 
@@ -254,7 +254,7 @@ contract NestedGovernance is DeploySetup {
         conditions.allowedRole = type(uint256).max; // Public
         childConstitution.push(PowersTypes.MandateInitData({
             nameDescription: "Sync Member status: An account that has role Member at the parent organization can be assigned the same role here - and visa versa.",
-            targetMandate: initialisePowers.getMandateAddress("AssignExternalRole"),
+            targetMandate: initialisePowers.getInitialisedAddress("AssignExternalRole"),
             config: abi.encode(
                 parent,
                 1 // roleId (Members)

@@ -78,7 +78,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max;
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Nominate Me: Nominate yourself for a delegate election. (Set nominateMe to false to revoke nomination)",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"), 
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"), 
             config: abi.encode(
                 address(erc20DelegateElection), 
                 Nominees.nominate.selector,
@@ -92,7 +92,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = role that can call this mandate.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Delegate Nominees: Call a delegate election. This can be done at any time. Nominations are elected on the amount of delegated tokens they have received. For",
-            targetMandate: initialisePowers.getMandateAddress("ElectionList_Tally"),  
+            targetMandate: initialisePowers.getInitialisedAddress("ElectionList_Tally"),  
             config: abi.encode(
                 address(erc20DelegateElection),  
                 2, // role to be elected.
@@ -114,7 +114,7 @@ contract Powers101 is DeploySetup {
         conditions.votingPeriod = minutesToBlocks(5, config.BLOCKS_PER_HOUR); // = number of blocks
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "StatementOfIntent: Propose any kind of action.",
-            targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
+            targetMandate: initialisePowers.getInitialisedAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         }));
@@ -124,7 +124,7 @@ contract Powers101 is DeploySetup {
         conditions.needFulfilled = 3; // = mandate that must be completed before this one.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Veto an action: Veto an action that has been proposed by the community.",
-            targetMandate: initialisePowers.getMandateAddress("StatementOfIntent"),
+            targetMandate: initialisePowers.getInitialisedAddress("StatementOfIntent"),
             config: abi.encode(inputParams),
             conditions: conditions
         }));
@@ -138,7 +138,7 @@ contract Powers101 is DeploySetup {
         conditions.needNotFulfilled = 4; // = mandate that must not be completed before this one.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Execute an action: Execute an action that has been proposed by the community and should not have been vetoed by an admin.",
-            targetMandate: initialisePowers.getMandateAddress("OpenAction"), // openAction.
+            targetMandate: initialisePowers.getInitialisedAddress("OpenAction"), // openAction.
             config: abi.encode(), // empty config.
             conditions: conditions
         }));
@@ -160,7 +160,7 @@ contract Powers101 is DeploySetup {
         conditions.allowedRole = type(uint256).max; // = public role. .
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A Single Action: to assign labels to roles. It self-destructs after execution.",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), // presetSingleAction
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"), // presetSingleAction
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));

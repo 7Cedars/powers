@@ -84,7 +84,7 @@ contract ElectionListsDAO is DeploySetup {
         conditions.allowedRole = 0; // = admin.
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Initial Setup: Assign role labels (Delegates, Funders) and revokes itself after execution",
-            targetMandate: initialisePowers.getMandateAddress("PresetActions_Single"), 
+            targetMandate: initialisePowers.getInitialisedAddress("PresetActions_Single"), 
             config: abi.encode(targets, values, calldatas),
             conditions: conditions
         }));
@@ -94,7 +94,7 @@ contract ElectionListsDAO is DeploySetup {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Nominate for Delegates: Members can nominate themselves for the Token Delegate role.",
-            targetMandate: initialisePowers.getMandateAddress("Nominate"),
+            targetMandate: initialisePowers.getInitialisedAddress("Nominate"),
             config: abi.encode(
                 address(openElection)
             ),
@@ -106,10 +106,10 @@ contract ElectionListsDAO is DeploySetup {
         conditions.allowedRole = 1; // = Voters
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Start an election: an election can be initiated be voters once every 2 hours. The election will last 10 minutes.",
-            targetMandate: initialisePowers.getMandateAddress("ElectionList_Create"),
+            targetMandate: initialisePowers.getInitialisedAddress("ElectionList_Create"),
             config: abi.encode(
                 address(openElection),
-                initialisePowers.getMandateAddress("ElectionList_Vote"), // Vote mandate address
+                initialisePowers.getInitialisedAddress("ElectionList_Vote"), // Vote mandate address
                 minutesToBlocks(10, config.BLOCKS_PER_HOUR), // 10 minutes in blocks (approx)
                 1 // Voter role id
             ),
@@ -122,7 +122,7 @@ contract ElectionListsDAO is DeploySetup {
         conditions.needFulfilled = 3; // = Mandate 3 (Start election)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "End and Tally elections: After an election has finished, assign the Delegate role to the winners.",
-            targetMandate: initialisePowers.getMandateAddress("ElectionList_Tally"),
+            targetMandate: initialisePowers.getInitialisedAddress("ElectionList_Tally"),
             config: abi.encode(
                 address(openElection),
                 2, // RoleId for Delegates
@@ -140,7 +140,7 @@ contract ElectionListsDAO is DeploySetup {
         conditions.allowedRole = 0; // = Admin
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "Admin can assign any role: For this demo, the admin can assign any role to an account.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.assignRole.selector,
@@ -155,7 +155,7 @@ contract ElectionListsDAO is DeploySetup {
         conditions.needFulfilled = 5; // = Mandate 5 (Admin assign role)
         constitution.push(PowersTypes.MandateInitData({
             nameDescription: "A delegate can revoke a role: For this demo, any delegate can revoke previously assigned roles.",
-            targetMandate: initialisePowers.getMandateAddress("BespokeAction_Simple"),
+            targetMandate: initialisePowers.getInitialisedAddress("BespokeAction_Simple"),
             config: abi.encode(
                 address(powers),
                 IPowers.revokeRole.selector,

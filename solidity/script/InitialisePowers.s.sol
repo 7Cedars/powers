@@ -61,9 +61,9 @@ import { ElectionList_Vote } from "@src/mandates/integrations/ElectionList_Vote.
 import { ElectionList_CreateVoteMandate } from "@src/mandates/integrations/ElectionList_CreateVoteMandate.sol";
 import { ElectionList_CleanUpVoteMandate } from "@src/mandates/integrations/ElectionList_CleanUpVoteMandate.sol";
 
-
-// mocks used
-import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
+// singleton Helper contracts
+import { ElectionList } from "@src/helpers/ElectionList.sol";
+import { Erc20Taxed } from "@mocks/Erc20Taxed.sol"; // though technically not a singleton, deployed here for convenience.
 
 /// @title InitialisePowers
 /// @notice Deploys all library and mandate contracts deterministically using CREATE2
@@ -81,24 +81,18 @@ contract InitialisePowers is Script {
         string memory obj1 = "some key";
         string memory outputJson;
 
-        vm.startBroadcast();
-        address checksAddr = deployLibrary(type(Checks).creationCode, "Checks");
+        address checksAddr = deploy(type(Checks).creationCode, abi.encode("Checks"));
         vm.serializeAddress(obj1, "Checks", checksAddr);
 
-        address mandateUtilsAddr = deployLibrary(type(MandateUtilities).creationCode, "MandateUtilities");
+        address mandateUtilsAddr = deploy(type(Checks).creationCode, abi.encode("MandateUtilities"));
         vm.serializeAddress(obj1, "MandateUtilities", mandateUtilsAddr);
-        vm.stopBroadcast();
 
         string memory powersBytecode = generatePowersBytecode(checksAddr);
         vm.serializeString(obj1, "powers", powersBytecode);
 
-        // vm.serializeUint(obj1, "chainId", uint256(block.chainid));
         helperConfig = new Configurations();
         config = helperConfig.getConfig();
-
-        // vm.startBroadcast();
         outputJson = deployAndRecordMandates(config);
-        // vm.stopBroadcast();
 
         string memory finalJson = vm.serializeString(obj1, "mandates", outputJson);
 
@@ -187,8 +181,6 @@ contract InitialisePowers is Script {
         names.push("Nominate");
         creationCodes.push(type(Nominate).creationCode);
         constructorArgs.push(abi.encode("Nominate"));
-
-
 
         //////////////////////////////////////////////////////////////////////////
         //                       Executive Mandates                             //
@@ -315,18 +307,22 @@ contract InitialisePowers is Script {
 
 
         //////////////////////////////////////////////////////////////////////////
-        //                   Helper Contracts (remove?)                         //
+        //                  Singleton Helper Contracts                          //
         //////////////////////////////////////////////////////////////////////////
+        names.push("ElectionList");
+        creationCodes.push(type(ElectionList).creationCode);
+        constructorArgs.push(abi.encode());
+
         names.push("Erc20Taxed");
         creationCodes.push(type(Erc20Taxed).creationCode);
         constructorArgs.push(abi.encode());
 
-
-
+        //////////////////////////////////////////////////////////////////////////
+        //                          DEPLOY SEQUENCE                             //
+        //////////////////////////////////////////////////////////////////////////
         string memory obj2 = "second key"; 
-
         for (uint256 i = 0; i < names.length; i++) {
-            address mandateAddr = deployMandate(creationCodes[i], constructorArgs[i]);
+            address mandateAddr = deploy(creationCodes[i], constructorArgs[i]);
             addresses.push(mandateAddr);
             vm.serializeAddress(obj2, names[i], mandateAddr);
         }
@@ -335,7 +331,7 @@ contract InitialisePowers is Script {
     }
 
     /// @dev Deploys a mandate using CREATE2. Salt is derived from constructor arguments.
-    function deployMandate(bytes memory creationCode, bytes memory constructorArg) internal returns (address) {
+    function deploy(bytes memory creationCode, bytes memory constructorArg) internal returns (address) {
         bytes32 salt = bytes32(abi.encodePacked(constructorArg));
         bytes memory deploymentData = abi.encodePacked(creationCode, constructorArg);
         address computedAddress = Create2.computeAddress(salt, keccak256(deploymentData), CREATE2_FACTORY);
@@ -350,28 +346,15 @@ contract InitialisePowers is Script {
         return computedAddress;
     }
 
-    /// @dev Deploys a library using CREATE2. Salt is derived from the library name.
-    function deployLibrary(bytes memory creationCodeLib, string memory nameLib) internal returns (address) {
-        bytes32 salt = bytes32(abi.encodePacked(nameLib));
-        address computedAddress = Create2.computeAddress(salt, keccak256(creationCodeLib), CREATE2_FACTORY);
-
-        if (computedAddress.code.length == 0) {
-            address deployedAddress = Create2.deploy(0, salt, creationCodeLib);
-            // require(deployedAddress == computedAddress, "Error: Deployed address mismatch.");
-            return deployedAddress;
-        }
-        return computedAddress;
-    }
-
     // @dev wrapper function to expose deployAndRecordMandates externally and only return addresses and names of mandates.
-    function getDeployedMandates() external returns (string[] memory mandateNames, address[] memory mandateAddresses) {
+    function getDeployed() external returns (string[] memory mandateNames, address[] memory mandateAddresses) {
         helperConfig = new Configurations();
         config = helperConfig.getConfig();
         deployAndRecordMandates(config);
         return (names, addresses);
     }
 
-    function getMandateAddress(string memory mandateName) external view returns (address) {
+    function getInitialisedAddress(string memory mandateName) external view returns (address) {
         bytes32 mandateHash = keccak256(abi.encodePacked(mandateName));
         for (uint256 i = 0; i < names.length; i++) {
             bytes32 nameHash = keccak256(abi.encodePacked(names[i]));
