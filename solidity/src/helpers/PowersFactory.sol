@@ -10,26 +10,26 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 /// @dev This factory deploys a _static_ list of init data for mandates to be used in each Powers deployment. As such, the deployments are not dynamic.
 /// @author 7Cedars
 interface IPowersFactory is PowersTypes {
-    event PowersDeployed(address indexed powersAddress, string name, string uri); 
+    event PowersDeployed(address indexed powersAddress, string name, string uri);
 
     function createPowers(string memory name, string memory uri) external returns (address);
     function getLatestDeployment() external view returns (address);
 }
 
-contract PowersFactory is IPowersFactory, Ownable { 
+contract PowersFactory is IPowersFactory, Ownable {
     MandateInitData[] public mandateInitData;
     uint256 public immutable maxCallDataLength;
     uint256 public immutable maxReturnDataLength;
     uint256 public immutable maxExecutionsLength;
     address public latestDeployment;
-    
+
     constructor(
         MandateInitData[] memory _mandateInitData,
         uint256 _maxCallDataLength,
         uint256 _maxReturnDataLength,
         uint256 _maxExecutionsLength
     ) Ownable(msg.sender) {
-        for(uint i = 0; i < _mandateInitData.length; i++) {
+        for (uint256 i = 0; i < _mandateInitData.length; i++) {
             mandateInitData.push(_mandateInitData[i]);
         }
         maxCallDataLength = _maxCallDataLength;
@@ -38,17 +38,11 @@ contract PowersFactory is IPowersFactory, Ownable {
     }
 
     function createPowers(string memory name, string memory uri) external onlyOwner returns (address) {
-        Powers powers = new Powers(
-            name,
-            uri,
-            maxCallDataLength,
-            maxReturnDataLength,
-            maxExecutionsLength
-        );
- 
+        Powers powers = new Powers(name, uri, maxCallDataLength, maxReturnDataLength, maxExecutionsLength);
+
         powers.constitute(mandateInitData, address(powers)); // set the Powers address as the initial deployer
 
-        latestDeployment = address(powers); 
+        latestDeployment = address(powers);
 
         return address(powers);
     }

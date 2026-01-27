@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.26; 
+pragma solidity 0.8.26;
 
 // import { console2 } from "forge-std/console2.sol"; // remove before deploying.
 
@@ -15,7 +15,7 @@ contract ElectionList {
         uint48 endBlock;
         string title;
     }
-    mapping (uint256 electionId => Election) public elections; 
+    mapping(uint256 electionId => Election) public elections;
     mapping(uint256 electionId => address[]) nominees;
     mapping(uint256 electionId => mapping(address nominee => bool)) nominated;
     mapping(uint256 electionId => mapping(address nominee => uint256)) votesCount;
@@ -27,21 +27,21 @@ contract ElectionList {
     event ElectionCreated(uint256 indexed electionId, string title, uint48 startBlock, uint48 endBlock);
     event VoteCast(address indexed voter, address indexed nominee, uint256 indexed electionId);
 
-    // Modifier 
+    // Modifier
     // Note that this modifier doubles as a check that the election exists.
     modifier onlyOwner(uint256 electionId) {
         if (elections[electionId].owner != msg.sender) revert("Only election owner can call this function");
         _;
     }
 
-    // constructor 
-    constructor() {}
+    // constructor
+    constructor() { }
 
-    // Functions 
-    /// Create a new election 
+    // Functions
+    /// Create a new election
     /// @param title Title of the election.
     /// @param startBlock Block number at which the election starts.
-    /// @param endBlock Block number at which the election ends. 
+    /// @param endBlock Block number at which the election ends.
     function createElection(string memory title, uint48 startBlock, uint48 endBlock) external returns (uint256) {
         uint256 electionId = uint256(keccak256(abi.encodePacked(msg.sender, title, startBlock, endBlock)));
 
@@ -49,12 +49,8 @@ contract ElectionList {
         if (startBlock == 0 || endBlock <= startBlock) revert("invalid start or end block");
 
         // initialise election
-        elections[electionId] = Election({
-            owner: msg.sender,
-            startBlock: startBlock,
-            endBlock: endBlock,
-            title: title
-        });
+        elections[electionId] =
+            Election({ owner: msg.sender, startBlock: startBlock, endBlock: endBlock, title: title });
 
         emit ElectionCreated(electionId, title, startBlock, endBlock);
         return electionId;
@@ -68,7 +64,7 @@ contract ElectionList {
 
         if (nominated[electionId][caller]) revert("already nominated");
         if (block.number > currentElection.startBlock) revert("nomination not possible after election start");
-        
+
         nominated[electionId][caller] = true;
         nominees[electionId].push(caller);
 
@@ -104,7 +100,9 @@ contract ElectionList {
     /// @param votes Boolean array indicating which nominees to vote for.
     function vote(uint256 electionId, address caller, bool[] calldata votes) external onlyOwner(electionId) {
         Election storage currentElection = elections[electionId];
-        if (block.number < currentElection.startBlock || block.number > currentElection.endBlock) revert("election closed");
+        if (block.number < currentElection.startBlock || block.number > currentElection.endBlock) {
+            revert("election closed");
+        }
         if (hasVoted[electionId][caller]) revert("already voted");
 
         address[] memory nomineesForElection = nominees[electionId];
@@ -124,7 +122,7 @@ contract ElectionList {
     // --- View helpers ---
     function isElectionOpen(uint256 electionId) external view returns (bool) {
         Election storage currentElection = elections[electionId];
-        return block.number >= currentElection.startBlock && block.number <= currentElection.endBlock; 
+        return block.number >= currentElection.startBlock && block.number <= currentElection.endBlock;
     }
 
     function getElectionInfo(uint256 electionId) external view returns (Election memory) {
@@ -149,7 +147,11 @@ contract ElectionList {
         return hasVoted[electionId][voter];
     }
 
-    function getNomineeRanking(uint256 electionId) public view returns (address[] memory rankedNominees, uint256[] memory votes) {
+    function getNomineeRanking(uint256 electionId)
+        public
+        view
+        returns (address[] memory rankedNominees, uint256[] memory votes)
+    {
         Election storage currentElection = elections[electionId];
         if (block.number >= currentElection.startBlock && block.number <= currentElection.endBlock) {
             revert("election still active");

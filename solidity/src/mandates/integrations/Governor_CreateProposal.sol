@@ -14,12 +14,12 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 
 contract Governor_CreateProposal is Mandate {
-    struct Mem { 
+    struct Mem {
         address payable governorContract;
         address[] proposalTargets;
         uint256[] proposalValues;
         bytes[] proposalCalldatas;
-        string description; 
+        string description;
     }
 
     /// @notice Constructor for Governor_CreateProposal mandate
@@ -28,11 +28,18 @@ contract Governor_CreateProposal is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
-        super.initializeMandate(index, nameDescription, abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"), config);
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        super.initializeMandate(
+            index,
+            nameDescription,
+            abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"),
+            config
+        );
     }
 
     /// @notice Build a call to the Governor.propose function
@@ -50,7 +57,7 @@ contract Governor_CreateProposal is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        Mem memory mem; 
+        Mem memory mem;
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Validate that governor contract is configured
@@ -58,12 +65,8 @@ contract Governor_CreateProposal is Mandate {
         if (mem.governorContract == address(0)) revert("Governor_CreateProposal: Governor contract not configured");
 
         // Decode proposal parameters
-        (
-            mem.proposalTargets,
-            mem.proposalValues,
-            mem.proposalCalldatas,
-            mem.description
-        ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
+        (mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, mem.description) =
+            abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
         if (mem.proposalTargets.length == 0) revert("Governor_CreateProposal: No targets provided");

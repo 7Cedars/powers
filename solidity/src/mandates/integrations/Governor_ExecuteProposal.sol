@@ -32,11 +32,18 @@ contract Governor_ExecuteProposal is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
-        super.initializeMandate(index, nameDescription, abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"), config);
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        super.initializeMandate(
+            index,
+            nameDescription,
+            abi.encode("address[] targets", "uint256[] values", "bytes[] calldatas", "string description"),
+            config
+        );
     }
 
     /// @notice Build a call to execute a Governor proposal after validation
@@ -64,12 +71,8 @@ contract Governor_ExecuteProposal is Mandate {
         if (mem.governorContract == address(0)) revert("Governor_ExecuteProposal: Governor contract not configured");
 
         // Decode proposal parameters
-        (
-            mem.proposalTargets,
-            mem.proposalValues,
-            mem.proposalCalldatas,
-            mem.description
-        ) = abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
+        (mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, mem.description) =
+            abi.decode(mandateCalldata, (address[], uint256[], bytes[], string));
 
         // Validate proposal parameters
         if (mem.proposalTargets.length == 0) revert("Governor_ExecuteProposal: No targets provided");
@@ -82,9 +85,10 @@ contract Governor_ExecuteProposal is Mandate {
         if (bytes(mem.description).length == 0) revert("Governor_ExecuteProposal: Description cannot be empty");
 
         // Get proposal ID from governor contract
-        mem.proposalId = Governor(mem.governorContract).hashProposal(
-            mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, keccak256(bytes(mem.description))
-        );
+        mem.proposalId = Governor(mem.governorContract)
+            .hashProposal(
+                mem.proposalTargets, mem.proposalValues, mem.proposalCalldatas, keccak256(bytes(mem.description))
+            );
 
         // Check proposal state
         IGovernor.ProposalState state = Governor(mem.governorContract).state(mem.proposalId);

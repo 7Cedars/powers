@@ -6,7 +6,7 @@ import { Powers } from "@src/Powers.sol";
 import { ElectionList } from "@src/helpers/ElectionList.sol";
 import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 
-// contract ElectionListsDAO_IntegrationTest is TestSetupElectionListsDAO {    
+// contract ElectionListsDAO_IntegrationTest is TestSetupElectionListsDAO {
 //     // Mandate IDs from ElectionListsDAO.s.sol
 //     // 1: Initial Setup (Revoked)
 //     // 2: Nominate
@@ -17,13 +17,13 @@ import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 //     uint16 constant MANDATE_NOMINATE = 2;
 //     uint16 constant MANDATE_START_ELECTION = 3;
 //     uint16 constant MANDATE_END_ELECTION = 4;
-   
+
 //     // Vote mandate is created dynamically. It will be the next mandate ID.
 //     // Initial setup (1), Nominate (2), Start (3), End (4), Admin (5), Revoke (6).
 //     // So next mandate is 7.
-//     uint16 constant VOTE_MANDATE_ID = 7; 
+//     uint16 constant VOTE_MANDATE_ID = 7;
 
-//     function testElectionListsDAO_FullFlow() public { 
+//     function testElectionListsDAO_FullFlow() public {
 
 //         // --- 1. NOMINATION FLOW ---
 //         console2.log("--- Step 1: Nomination ---");
@@ -85,7 +85,6 @@ import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 //         assertEq(nominees[1], bob, "Second nominee should be Bob");
 //         assertEq(nominees[2], frank, "Third nominee should be Frank");
 
-
 //         // --- 2. START ELECTION FLOW ---
 //         console2.log("--- Step 2: Start Election ---");
 
@@ -102,23 +101,22 @@ import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 //         );
 
 //         assertTrue(openElection.isElectionOpen(), "Election should be open");
-        
+
 //         // Verify Vote Mandate was adopted
 //         (address voteMandateAddr,, bool active) = daoMock.getAdoptedMandate(VOTE_MANDATE_ID);
 //         assertTrue(active, "Vote mandate should be active");
 //         assertTrue(voteMandateAddr != address(0), "Vote mandate address should be set");
-
 
 //         // --- 3. VOTING FLOW ---
 //         console2.log("--- Step 3: Voting ---");
 
 //         // Nominees: [Alice, Bob, Frank]
 //         // Votes are bool[]
-        
+
 //         // Alice votes for Alice
 //         bool[] memory votesForAlice = new bool[](3);
 //         votesForAlice[0] = true; // Alice
-        
+
 //         vm.prank(alice);
 //         daoMock.request(
 //             VOTE_MANDATE_ID,
@@ -169,7 +167,7 @@ import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 //         // Verify intermediate vote counts (Election ID matches VOTE_MANDATE_ID = 7)
 //         uint256 electionId = openElection.currentElectionId();
 //         assertEq(electionId, VOTE_MANDATE_ID, "Election ID should match Vote Mandate ID");
-        
+
 //         assertEq(openElection.getVoteCount(alice, electionId), 3, "Alice should have 3 votes");
 //         assertEq(openElection.getVoteCount(bob, electionId), 2, "Bob should have 2 votes");
 //         assertEq(openElection.getVoteCount(frank, electionId), 0, "Frank should have 0 votes");
@@ -183,7 +181,6 @@ import { TestSetupElectionListsDAO } from "../../TestSetup.t.sol";
 //             nonce++,
 //             "Alice votes again"
 //         );
-
 
 //         // --- 4. END ELECTION FLOW ---
 //         console2.log("--- Step 4: End Election ---");

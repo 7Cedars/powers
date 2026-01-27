@@ -16,12 +16,12 @@ contract Safe_RecoverTokens is Mandate {
         address allowanceModule;
         address[] allowedTokens;
         uint256 count;
-        uint256 positiveBalanceCount; 
+        uint256 positiveBalanceCount;
         address token;
         uint256 balance;
         uint256 currentIndex;
     }
-    
+
     constructor() {
         bytes memory configParams = abi.encode("address safeTreasury", "address allowanceModule");
         emit Mandate__Deployed(configParams);
@@ -31,7 +31,7 @@ contract Safe_RecoverTokens is Mandate {
         address, /*caller*/
         address powers,
         uint16 mandateId,
-        bytes memory mandateCalldata, 
+        bytes memory mandateCalldata,
         uint256 nonce
     )
         public
@@ -68,7 +68,8 @@ contract Safe_RecoverTokens is Mandate {
             if (mem.balance > 0) {
                 targets[mem.currentIndex] = mem.token;
                 // values[currentIndex] = 0; // default is 0
-                calldatas[mem.currentIndex] = abi.encodeWithSelector(IERC20.transfer.selector, mem.safeTreasury, mem.balance);
+                calldatas[mem.currentIndex] =
+                    abi.encodeWithSelector(IERC20.transfer.selector, mem.safeTreasury, mem.balance);
                 mem.currentIndex++;
             }
         }

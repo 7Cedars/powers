@@ -8,7 +8,7 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "@mocks/PowersMock.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
-import { ElectionList } from "@src/helpers/ElectionList.sol"; 
+import { ElectionList } from "@src/helpers/ElectionList.sol";
 import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 import { Nominees } from "@src/helpers/Nominees.sol";
 import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
@@ -32,7 +32,7 @@ contract FlagActionsTest is TestSetupPowers {
         super.setUp();
         vm.prank(address(daoMock));
         flagActions = new FlagActions();
- 
+
         // Mock getActionState to always return Fulfilled
         vm.mockCall(
             address(daoMock), abi.encodeWithSelector(daoMock.getActionState.selector), abi.encode(ActionState.Fulfilled)
@@ -1059,7 +1059,7 @@ contract ElectionListTest is TestSetupPowers {
         super.setUp();
         vm.prank(address(daoMock));
         electionList = new ElectionList();
-        
+
         startBlock = uint48(block.number + 10);
         endBlock = uint48(block.number + 100);
     }
@@ -1068,10 +1068,10 @@ contract ElectionListTest is TestSetupPowers {
         vm.prank(address(daoMock));
         // We can't easily predict the ID because it depends on hash, so we don't check the first indexed topic
         vm.expectEmit(false, false, false, true);
-        emit ElectionCreated(0, electionTitle, startBlock, endBlock); 
-        
+        emit ElectionCreated(0, electionTitle, startBlock, endBlock);
+
         uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
-        
+
         ElectionList.Election memory election = electionList.getElectionInfo(id);
         assertEq(election.owner, address(daoMock));
         assertEq(election.title, electionTitle);
@@ -1081,20 +1081,20 @@ contract ElectionListTest is TestSetupPowers {
 
     function testCreateElectionRevertsWithInvalidBlocks() public {
         vm.startPrank(address(daoMock));
-        
+
         vm.expectRevert("invalid start or end block");
         electionList.createElection(electionTitle, 0, endBlock);
 
         vm.expectRevert("invalid start or end block");
         electionList.createElection(electionTitle, endBlock, startBlock); // end <= start
-        
+
         vm.stopPrank();
     }
-    
+
     function testCreateElectionRevertsWithDuplicate() public {
         vm.startPrank(address(daoMock));
         electionList.createElection(electionTitle, startBlock, endBlock);
-        
+
         vm.expectRevert("election already exists");
         electionList.createElection(electionTitle, startBlock, endBlock);
         vm.stopPrank();
@@ -1128,7 +1128,7 @@ contract ElectionListTest is TestSetupPowers {
         vm.startPrank(address(daoMock));
         uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
         electionList.nominate(id, alice);
-        
+
         vm.expectRevert("already nominated");
         electionList.nominate(id, alice);
         vm.stopPrank();
@@ -1139,21 +1139,21 @@ contract ElectionListTest is TestSetupPowers {
         uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
         electionList.nominate(id, alice);
         electionList.nominate(id, bob);
-        
+
         assertEq(electionList.getNomineeCount(id), 2);
-        
+
         electionList.revokeNomination(id, alice);
         vm.stopPrank();
 
         address[] memory nominees = electionList.getNominees(id);
         assertEq(nominees.length, 1);
-        assertEq(nominees[0], bob); 
+        assertEq(nominees[0], bob);
     }
 
     function testRevokeNominationRevertsIfNotNominated() public {
         vm.startPrank(address(daoMock));
         uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
-        
+
         vm.expectRevert("not nominated");
         electionList.revokeNomination(id, alice);
         vm.stopPrank();
@@ -1222,7 +1222,7 @@ contract ElectionListTest is TestSetupPowers {
         vm.expectRevert("already voted");
         electionList.vote(id, charlotte, votes);
     }
-    
+
     function testVoteRevertsIfLengthMismatch() public {
         vm.startPrank(address(daoMock));
         uint256 id = electionList.createElection(electionTitle, startBlock, endBlock);
@@ -1250,7 +1250,7 @@ contract ElectionListTest is TestSetupPowers {
 
         // Vote 1: Alice & Bob
         bool[] memory votes1 = new bool[](3);
-        votes1[0] = true; 
+        votes1[0] = true;
         votes1[1] = true;
         votes1[2] = false;
         vm.prank(address(daoMock));
@@ -1258,18 +1258,18 @@ contract ElectionListTest is TestSetupPowers {
 
         // Vote 2: Alice
         bool[] memory votes2 = new bool[](3);
-        votes2[0] = true; 
+        votes2[0] = true;
         votes2[1] = false;
         votes2[2] = false;
         vm.prank(address(daoMock));
         electionList.vote(id, makeAddr("voter2"), votes2);
-        
+
         // Scores: Alice 2, Bob 1, Charlotte 0.
 
         // Check ranking while active (should revert via getNomineeRanking but work via getRankingAnyTime)
         vm.expectRevert("election still active");
         electionList.getNomineeRanking(id);
-        
+
         (address[] memory rankedNominees, uint256[] memory rankedVotes) = electionList.getRankingAnyTime(id);
         assertEq(rankedNominees[0], alice);
         assertEq(rankedVotes[0], 2);
@@ -1280,14 +1280,13 @@ contract ElectionListTest is TestSetupPowers {
 
         // End election
         vm.roll(endBlock + 1);
-        
+
         (rankedNominees, rankedVotes) = electionList.getNomineeRanking(id);
         assertEq(rankedNominees[0], alice);
         assertEq(rankedNominees[1], bob);
         assertEq(rankedNominees[2], charlotte);
     }
 }
-
 
 //////////////////////////////////////////////////////////////
 //               SIMPLE ERC20 VOTES TESTS                   //
@@ -1732,7 +1731,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         vm.prank(alice);
         token.faucet();
 
-        uint256 transferAmount = token.balanceOf(alice); 
+        uint256 transferAmount = token.balanceOf(alice);
 
         vm.expectRevert(Erc20Taxed.Erc20Taxed__InsufficientBalanceForTax.selector);
         vm.prank(alice);
@@ -1804,7 +1803,7 @@ contract Erc20TaxedTest is TestSetupPowers {
         assertEq(totalTaxPaid, expectedTaxPerTransfer * 2);
     }
 }
- 
+
 //////////////////////////////////////////////////////////////
 //               SIMPLE ERC1155 TESTS                       //
 //////////////////////////////////////////////////////////////
@@ -2195,16 +2194,12 @@ contract PowersFactoryTest is TestSetupPowers {
 
     function setUp() public override {
         super.setUp();
-        
-        (PowersTypes.MandateInitData[] memory mandateInitDataArray) = testConstitutions.powersTestConstitution(address(daoMock));
-        
+
+        (PowersTypes.MandateInitData[] memory mandateInitDataArray) =
+            testConstitutions.powersTestConstitution(address(daoMock));
+
         vm.prank(address(daoMock));
-        factory = new PowersFactory(
-            mandateInitDataArray,
-            MAX_CALL_DATA,
-            MAX_RETURN_DATA,
-            MAX_EXECUTIONS
-        );
+        factory = new PowersFactory(mandateInitDataArray, MAX_CALL_DATA, MAX_RETURN_DATA, MAX_EXECUTIONS);
     }
 
     function testConstructor() public view {
@@ -2223,60 +2218,55 @@ contract PowersFactoryTest is TestSetupPowers {
 
         assertEq(factory.getLatestDeployment(), deployedAddress);
         assertTrue(deployedAddress != address(0));
-        
+
         Powers deployedPowers = Powers(deployedAddress);
         assertEq(deployedPowers.name(), nameDescription);
         assertEq(deployedPowers.uri(), uri);
-        
+
         // Check immutable variables were passed correctly
         assertEq(deployedPowers.MAX_CALLDATA_LENGTH(), MAX_CALL_DATA);
         assertEq(deployedPowers.MAX_RETURN_DATA_LENGTH(), MAX_RETURN_DATA);
         assertEq(deployedPowers.MAX_EXECUTIONS_LENGTH(), MAX_EXECUTIONS);
-        
+
         // Check if the create DAO is set as the admin
         assertTrue(deployedPowers.hasRoleSince(deployedAddress, deployedPowers.ADMIN_ROLE()) > 0);
-        
+
         // Check Factory is NOT Admin
         assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
-        
+
         // Check Constitution
         // mandateCounter starts at 1. If constituted, it should have incremented.
         // We verify that mandates were actually added
         assertTrue(deployedPowers.mandateCounter() > 1);
-        
+
         // Verify at least one mandate is active (checking mandateId 1)
         (address mandateAddress,, bool active) = deployedPowers.getAdoptedMandate(1);
         assertTrue(active);
         assertTrue(mandateAddress != address(0));
     }
-    
+
     function testDeployPowersWithDifferentArgs() public {
         nameDescription = "Another DAO";
         uri = "ipfs://QmHash";
 
         daoMockChild1 = new PowersMock();
-        (PowersTypes.MandateInitData[] memory mandateInitDataArray) = testConstitutions.powersTestConstitution(address(daoMock));
-        
+        (PowersTypes.MandateInitData[] memory mandateInitDataArray) =
+            testConstitutions.powersTestConstitution(address(daoMock));
+
         vm.startPrank(address(daoMockChild1));
-        factory = new PowersFactory(
-            mandateInitDataArray,
-            MAX_CALL_DATA,
-            MAX_RETURN_DATA,
-            MAX_EXECUTIONS
-        );
+        factory = new PowersFactory(mandateInitDataArray, MAX_CALL_DATA, MAX_RETURN_DATA, MAX_EXECUTIONS);
         address deployedAddress = factory.createPowers(nameDescription, uri);
         vm.stopPrank();
-        
+
         Powers deployedPowers = Powers(deployedAddress);
         assertEq(deployedPowers.name(), nameDescription);
-        
-        // Another Powers should be admin. Not factory or daoMock. 
+
+        // Another Powers should be admin. Not factory or daoMock.
         assertTrue(deployedPowers.hasRoleSince(deployedAddress, deployedPowers.ADMIN_ROLE()) > 0);
         assertEq(deployedPowers.hasRoleSince(address(factory), deployedPowers.ADMIN_ROLE()), 0);
         assertEq(deployedPowers.hasRoleSince(address(daoMock), deployedPowers.ADMIN_ROLE()), 0);
     }
 }
-
 
 //////////////////////////////////////////////////////////////
 //             SOULBOUND ERC1155 TESTS                      //
@@ -2297,33 +2287,32 @@ contract Soulbound1155Test is TestSetupPowers {
 
     function testMint() public {
         vm.prank(address(daoMock));
-        sbToken.mint(alice, 123456);
-        
+        sbToken.mint(alice, 123_456);
+
         uint48 blockNum = uint48(block.number);
-        uint256 expectedTokenId = 123456;
-        
+        uint256 expectedTokenId = 123_456;
+
         assertEq(sbToken.balanceOf(alice, expectedTokenId), 1);
     }
 
     function testMintRevertsWhenNotOwner() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         vm.prank(alice);
-        sbToken.mint(alice, 123456);
+        sbToken.mint(alice, 123_456);
     }
 
     function testTransferReverts() public {
         vm.prank(address(daoMock));
-        sbToken.mint(alice, 123456);
-        
+        sbToken.mint(alice, 123_456);
+
         uint48 blockNum = uint48(block.number);
-        uint256 tokenId = 123456;
-        
+        uint256 tokenId = 123_456;
+
         vm.expectRevert("Soulbound1155: Transfers are disabled");
         vm.prank(alice);
         sbToken.safeTransferFrom(alice, bob, tokenId, 1, "");
     }
 }
-
 
 //////////////////////////////////////////////////////////////
 //               LAW MOCKS TESTS                           //
@@ -2511,7 +2500,8 @@ contract MockTargetsMandateTest is TestSetupPowers {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
-        (actionId, targets, values, calldatas) = mockTargetsMandate.handleRequest(alice, bob, 1, largeData, block.timestamp);
+        (actionId, targets, values, calldatas) =
+            mockTargetsMandate.handleRequest(alice, bob, 1, largeData, block.timestamp);
 
         // Should still return the same mock data
         assertEq(actionId, 1);

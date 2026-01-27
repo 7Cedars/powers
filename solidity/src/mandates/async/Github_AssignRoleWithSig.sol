@@ -36,10 +36,12 @@ contract Github_AssignRoleWithSig is Mandate {
     }
 
     // --- Mandate Initialization ---
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         // Set input parameters for UI: same as Github_ClaimRoleWithSig.
         inputParams = abi.encode("uint256 roleId", "string commitHash");
         super.initializeMandate(index, nameDescription, inputParams, config);

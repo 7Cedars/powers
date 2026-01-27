@@ -15,19 +15,22 @@ contract PowersFactory_AssignRole is Mandate {
         bytes returnData;
         address decodedAddress;
     }
-    
+
     constructor() {
-        bytes memory configParams = abi.encode("uint16 factoryMandateId", "uint256 roleIdNewOrg", "string[] inputParams");
+        bytes memory configParams =
+            abi.encode("uint16 factoryMandateId", "uint256 roleIdNewOrg", "string[] inputParams");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         // Decode the config to get the input params description string
         (,, string[] memory inputParamsDescription) = abi.decode(config, (uint16, uint256, string[]));
-               
+
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsDescription), config);
     }
 
@@ -44,10 +47,10 @@ contract PowersFactory_AssignRole is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
-        
+
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.factoryMandateId, mem.roleIdNewOrg, ) = abi.decode(mem.config, (uint16, uint256, string[]));
+        (mem.factoryMandateId, mem.roleIdNewOrg,) = abi.decode(mem.config, (uint16, uint256, string[]));
 
         // 2. Compute current actionId
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);

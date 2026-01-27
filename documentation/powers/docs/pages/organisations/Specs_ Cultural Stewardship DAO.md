@@ -13,19 +13,19 @@ The Cultural Stewardship DAO is a multi-layered ecosystem designed to foster an 
 
 The organisation operates through a **Parent Organisation** and three distinct types of **Sub-DAOs**:
 
-1. **Parent DAO**: The central governance body holding the Treasury (Safe). It can create new ‘ideational’ DAOs and confirms the creation of ‘physical’ DAOs. It has the power to deactivate both types of sub-DAOs. It also (re)assigns allowances to its ‘digital’ DAO and its ‘physical' DAOs. It does not manage any of the organization’s activities directly.   
-2. **Sub-DAO type \#1 (Digital)**: Manages code repositories, commits, and digital representation of the organisation and its sub-DAOs. From here on referred to as ‘**Digital DAO**’. The parent DAO holds some veto powers over this DAO.  
-3. **Sub-DAO type \#2 (Ideational)**: : Manages concepts, digital interfaces, and its own legislative frameworks. It has the power to initiate the creation of a Physical DAO. This type of sub-DAO is from here on referred to as ‘**Ideas DAO**’. It does not have an allowance at the parent DAO. In return, the Parent DAO holds very little Veto power over these types of Sub-DAOs.   
-4. **Sub-DAO type \#3 (Physical)**: Manages physical manifestations (e.g., access to spaces, rent, legal logs). From here on referred to as ‘**Physical DAO**’. It has an allowance at the parent DAO. 
+1. **Prime DAO**: The central governance body holding the Treasury (Safe). It can create new ‘ideational’ DAOs and confirms the creation of ‘physical’ DAOs. It has the power to deactivate both types of sub-DAOs. It also (re)assigns allowances to its ‘digital’ DAO and its ‘physical' DAOs. It does not manage any of the organization’s activities directly.   
+2. **Sub-DAO type \#1 (Digital)**: Manages code repositories, commits, and digital representation of the organisation and its sub-DAOs. From here on referred to as ‘**Digital sub-DAO**’. The parent DAO holds some veto powers over this DAO.  
+3. **Sub-DAO type \#2 (Ideational)**: : Manages concepts, digital interfaces, and its own legislative frameworks. It has the power to initiate the creation of a Physical sub-DAO. This type of sub-DAO is from here on referred to as ‘**Ideas sub-DAO**’. It does not have an allowance at the parent DAO. In return, the Prime DAO holds very little Veto power over these types of Sub-DAOs.   
+4. **Sub-DAO type \#3 (Physical)**: Manages physical manifestations (e.g., access to spaces, rent, legal logs). From here on referred to as ‘**Physical sub-DAO**’. It has an allowance at the parent DAO. 
 
 ### *Treasury Management*
 
-* **Centralised Treasury**: The Parent DAO’s Safe acts as the central treasury for the whole organisation. Physical DAOs and the Digital DAO are assigned allowances at time of creation that they can spend from the central treasury at the moment of their creation.  
-* **Fund Flow**: Physical DAOs and the Digital DAO can request additional allowances on the parent organisation’s Safe. The Parent Organisation processes these requests through a governance flow involving Executive execution and Member vetoes.
+* **Centralised Treasury**: The Prime DAO’s Safe acts as the central treasury for the whole organisation. Physical sub-DAOs and the Digital sub-DAO are assigned allowances at time of creation that they can spend from the central treasury at the moment of their creation.  
+* **Fund Flow**: Physical sub-DAOs and the Digital sub-DAO can request additional allowances on the parent organisation’s Safe. The Parent Organisation processes these requests through a governance flow involving Executive execution and Member vetoes.
 
-Multiple instances of Ideas DAOs and Physical DAOs can exist at the same time. They can be spawned and closed. In contrast, only a single instance of a Digital DAO can exist at any one time. It cannot be spawned or closed.
+Multiple instances of Ideas sub-DAOs and Physical sub-DAOs can exist at the same time. They can be spawned and closed. In contrast, only a single instance of a Digital sub-DAO can exist at any one time. It cannot be spawned or closed.
 
-## Parent DAO
+## Prime DAO
 
 ### *Roles*
 
@@ -34,48 +34,48 @@ Multiple instances of Ideas DAOs and Physical DAOs can exist at the same time. T
 | 0 | Admin   | Assigned at deployment; (re-)assigns among themselves. |
 | 1 | Members  | Membership in Sub-DAO \#1, \#2, or \#3. (Not activity-based). |
 | 2 | Executives | Elected every N-months from among Members. |
-| 3 | Physical DAO | Assigned at creation of a DAO. Can be removed by ideational DAO \+ executives.  |
-| 4 | Ideas DAO | Assigned at creation of a DAO. Can be removed by executives.  |
-| 5 | Digital DAO | Assigned at creation of a DAO. Only 1 member at all times.  |
+| 3 | Physical sub-DAO | Assigned at creation of a DAO. Can be removed by ideational DAO \+ executives.  |
+| 4 | Ideas sub-DAO | Assigned at creation of a DAO. Can be removed by executives.  |
+| 5 | Digital sub-DAO | Assigned at creation of a DAO. Only 1 member at all times.  |
 | … | Public | Everyone. |
 
 ### *Executive Mandates* 
 
-#### Create and revoke Ideas DAO
+#### Create and revoke Ideas sub-DAO
 
-Member retain the right to initiate new Ideas DAOs, while each idea has to be ok-ed by elected executives. 
+Member retain the right to initiate new Ideas sub-DAOs, while each idea has to be ok-ed by elected executives. 
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Members | Initiate Ideas DAO creation | StatementOfIntent.sol | "string name, string uri" | none | Initiates creation proposal. Vote, normal threshold.  |
-| Executives | Execute Ideas DAO creation | BespokeActionSimple.sol | (same as above) | Creates Ideas DAO | Vote \+ proposal exists (No allowance assigned) |
-| Executives | Assign role Id to Ideas DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns role to return value of previous mandate.  | None. Any executive can execute. |
-| Members | Veto revoking Ideas DAO | StatementOfIntent.sol | (same as above) | none | Vote, high threshold.   |
-| Executives | Revoke Ideas DAO (Role) | BespokeActionOnReturnValue.sol | (same as above) | Revokes roleId from DAO.  | DAO creation should have executed, members should not have vetoed.  |
+| Members | Initiate Ideas sub-DAO creation | StatementOfIntent.sol | "string name, string uri" | none | Initiates creation proposal. Vote, normal threshold.  |
+| Executives | Execute Ideas sub-DAO creation | BespokeActionSimple.sol | (same as above) | Creates Ideas sub-DAO | Vote \+ proposal exists (No allowance assigned) |
+| Executives | Assign role Id to Ideas sub-DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns role to return value of previous mandate.  | None. Any executive can execute. |
+| Members | Veto revoking Ideas sub-DAO | StatementOfIntent.sol | (same as above) | none | Vote, high threshold.   |
+| Executives | Revoke Ideas sub-DAO (Role) | BespokeActionOnReturnValue.sol | (same as above) | Revokes roleId from DAO.  | DAO creation should have executed, members should not have vetoed.  |
 
-#### Create and revoke Physical DAO
+#### Create and revoke Physical sub-DAO
 
 The Ideas-DAO that creates the Physical-DAO will be assigned a role in the created DAO  
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Ideas DAO | Initiate Physical DAO Creation | StatementOfIntent.sol | "string name, string uri" | none | Any Ideas DAO can propose.  |
-| Executives | Execute Physical DAO Creation | BespokeActionSimple.sol | (same as above) | Creates Physical DAO | Proposal exists, veto does not exist  |
-| Executives | Assign role Id to Physical DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns role to return value of previous mandate.  | Any executive can execute. Previous action executed.  |
+| Ideas sub-DAO | Initiate Physical sub-DAO Creation | StatementOfIntent.sol | "string name, string uri" | none | Any Ideas sub-DAO can propose.  |
+| Executives | Execute Physical sub-DAO Creation | BespokeActionSimple.sol | (same as above) | Creates Physical sub-DAO | Proposal exists, veto does not exist  |
+| Executives | Assign role Id to Physical sub-DAO | BespokeActionOnReturnValue.sol | (same as above) | Assigns role to return value of previous mandate.  | Any executive can execute. Previous action executed.  |
 | Executives | Assign Delegate status | SafeExecTransactionOnReturnValue.sol | (same as above) | Assigns delegate status at Safe treasury.  | Any executive can execute. Previous action executed.  |
-| Members | Veto revoking Physical DAO | StatementOfIntent.sol | (same as above) | none | Vote, high threshold.   |
-| Executives | Revoke Physical DAO | BespokeActionOnReturnValue.sol | (same as above) | Revokes roleId.  | DAO creation should have executed, members should not have vetoed.  |
+| Members | Veto revoking Physical sub-DAO | StatementOfIntent.sol | (same as above) | none | Vote, high threshold.   |
+| Executives | Revoke Physical sub-DAO | BespokeActionOnReturnValue.sol | (same as above) | Revokes roleId.  | DAO creation should have executed, members should not have vetoed.  |
 | Executives | Revoke Delegate status | SafeExecTransaction.sol | (same as above) | Revokes delegate status. | Any executive can execute. Previous action executed. |
 
-#### Assign additional allowances to Physical DAO or Digital DAO  
+#### Assign additional allowances to Physical sub-DAO or Digital sub-DAO  
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Physical DAO | Veto additional allowance | StatementOfIntent.sol | "address DigitalDAO, address Token, uint96 allowanceAmount, uint16 resetTimeMin, uint32 resetBaseMin" | none | Vote, high threshold.  |
-| Physical DAO | Request additional allowance | StatementOfIntent.sol | (same as above) | none | Initiates allowance proposal.  Note: NOT a vote: any physical DAO can submit. |
-| Executives | Grant Allowance to Physical DAO | SafeAllowance_Action.sol | (same as above) | Safe.approve(subDao, amount) | Proposal exists, vote, no Physical DAO veto.  |
-| Digital DAO | Request additional allowance | StatementOfIntent.sol | (same as above) | none | Initiates allowance proposal.  |
-| Executives | Grant Allowance to Digital DAO | SafeAllowance_Action.sol | (same as above) | Safe.approve(subDao, amount) | Proposal exists, vote, no Physical DAO veto. |
+| Physical sub-DAO | Veto additional allowance | StatementOfIntent.sol | "address DigitalSubDAO, address Token, uint96 allowanceAmount, uint16 resetTimeMin, uint32 resetBaseMin" | none | Vote, high threshold.  |
+| Physical sub-DAO | Request additional allowance | StatementOfIntent.sol | (same as above) | none | Initiates allowance proposal.  Note: NOT a vote: any physical DAO can submit. |
+| Executives | Grant Allowance to Physical sub-DAO | SafeAllowance_Action.sol | (same as above) | Safe.approve(subDao, amount) | Proposal exists, vote, no Physical sub-DAO veto.  |
+| Digital sub-DAO | Request additional allowance | StatementOfIntent.sol | (same as above) | none | Initiates allowance proposal.  |
+| Executives | Grant Allowance to Digital sub-DAO | SafeAllowance_Action.sol | (same as above) | Safe.approve(subDao, amount) | Proposal exists, vote, no Physical sub-DAO veto. |
 
 #### Update uri
 
@@ -84,23 +84,23 @@ The URI contains all the metadata of the organisation, including designations of
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Veto update URI | StatementOfIntent.sol | "string new URI" | none | Vote.  |
-| Executives | Update URI | BespokeAction.sol | (same as above) | setUri call | Ideas DAOs did not veto, timelock.  |
+| Executives | Update URI | BespokeAction.sol | (same as above) | setUri call | Ideas sub-DAOs did not veto, timelock.  |
 
-#### Mint NFTs Ideas DAO \- ERC 1155 
-
-The token Id that is minted, is the uin256 representation of the caller. This means that every DAO mints a unique token Id. 
-
-| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
-| :---- | :---- | :---- | :---- | :---- | :---- |
-| Ideas DAO | Mint token | BespokeActionSimple.sol | ‘address to’ | Mint function ERC 1155  | None.  |
-
-#### Mint NFTs Physical DAO \- ERC 1155 
+#### Mint NFTs Ideas sub-DAO \- ERC 1155 
 
 The token Id that is minted, is the uin256 representation of the caller. This means that every DAO mints a unique token Id. 
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Physical DAO | Mint token | BespokeActionSimple.sol | ‘address to’ | Mint function ERC 1155  | None.  |
+| Ideas sub-DAO | Mint token | BespokeActionSimple.sol | ‘address to’ | Mint function ERC 1155  | None.  |
+
+#### Mint NFTs Physical sub-DAO \- ERC 1155 
+
+The token Id that is minted, is the uin256 representation of the caller. This means that every DAO mints a unique token Id. 
+
+| Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
+| :---- | :---- | :---- | :---- | :---- | :---- |
+| Physical sub-DAO | Mint token | BespokeActionSimple.sol | ‘address to’ | Mint function ERC 1155  | None.  |
 
 #### Transfer tokens to treasury
 
@@ -110,7 +110,7 @@ The token Id that is minted, is the uin256 representation of the caller. This me
 
 ### *Electoral Mandates* 
 
-#### Claim membership Parent DAO
+#### Claim membership Prime DAO
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
@@ -135,14 +135,14 @@ The token Id that is minted, is the uin256 representation of the caller. This me
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Executives | Initiate mandate adoption | StatementOfIntent.sol | \`address\[\] mandates, uint256\[\] roleids\`  | None | None. Any Executive can initiate call for mandate reform.  |
 | Members | Veto Adoption | StatementOfIntent.sol | (same as above) | None | Vote, high threshold \+ quorum |
-| Physical DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum. Veto should not have passed.  |
-| Ideas DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum.  |
-| Digital DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum.  |
+| Physical sub-DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum. Veto should not have passed.  |
+| Ideas sub-DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum.  |
+| Digital sub-DAO | Ok adoption | StatementOfIntent.sol | (same as above) | None | Vote, low threshold \+ quorum.  |
 | Executives | Execute mandate Adoption | AdoptMandates.sol | (same as above) | mandate is adopted.  | Vote, high threshold \+ quorum.  |
 
 ## 
 
-## Digital DAO 
+## Digital sub-DAO 
 
 ### *Roles*
 
@@ -151,7 +151,7 @@ The token Id that is minted, is the uin256 representation of the caller. This me
 | 0 | Admin   | Revoked at setup |
 | 1 | Members  | Proof of Activity \- role by git commit  |
 | 2 | Conveners | Elected every N-months from among Members. |
-| 3 | Parent DAO | Assigned at creation. Can only be single address.  |
+| 3 | Prime DAO | Assigned at creation. Can only be single address.  |
 | …  | Etc | Additional roles can be created by sub-DAO.  |
 | … | Public | Everyone. |
 
@@ -213,17 +213,17 @@ Meant for expenses that will be made in future. Payment before completion.
 
 #### Adopt mandate
 
-Note 1: no veto from outside parties. Ideas DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling.
+Note 1: no veto from outside parties. Ideas sub-DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling.
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Initiate Adoption | StatementOfIntent.sol | \`address mandateAddress\` | None | Vote, high threshold \+ quorum |
-| Parent DAO | Veto Adoption | StatementOfIntent.sol | (same as above) | None | none |
+| Prime DAO | Veto Adoption | StatementOfIntent.sol | (same as above) | None | none |
 | Executives | Execute mandate Adoption | BespokeActionSimple.sol | (same as above) | mandate is adopted.  | Vote, high threshold  \+ quorum, timelock. No veto |
 
 ## 
 
-## Ideas DAO
+## Ideas sub-DAO
 
 ### *Roles*
 
@@ -241,13 +241,13 @@ Note 1: no veto from outside parties. Ideas DAOs can create their own mandates a
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Public | Mint activity NFT | BespokeActionSimple.sol | None | Mints Ideas DAO specific token Id  at Parent DAO, and sends to the caller.  | Throttled. For the rest nothing  |
+| Public | Mint activity NFT | BespokeActionSimple.sol | None | Mints Ideas sub-DAO specific token Id  at Prime DAO, and sends to the caller.  | Throttled. For the rest nothing  |
 
-#### Request new Physical DAO
+#### Request new Physical sub-DAO
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Conveners | Request new Physical DAO | PowersActionSimple.sol | "string name, string uri" | Requests mandate at Parent DAO | None |
+| Conveners | Request new Physical sub-DAO | PowersActionSimple.sol | "string name, string uri" | Requests mandate at Prime DAO | None |
 
 #### Update uri
 
@@ -287,14 +287,14 @@ Note 1: no veto from outside parties. Ideas DAOs can create their own mandates a
 
 #### Adopt mandate
 
-Note: no veto from outside parties. Ideas DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling. 
+Note: no veto from outside parties. Ideas sub-DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling. 
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Veto Adoption | StatementOfIntent.sol | (same as above) | None | Vote, high threshold \+ quorum |
 | Executives | Execute mandate Adoption | BespokeActionSimple.sol | (same as above) | mandate is adopted.  | Vote, high threshold  \+ quorum, timelock.  |
 
-## Physical DAO
+## Physical sub-DAO
 
 ### *Roles*
 
@@ -304,8 +304,8 @@ Note: no veto from outside parties. Ideas DAOs can create their own mandates and
 | 1 | Members  | Proof of Activity \- POAP  |
 | 2 | Conveners | Elected every N-months from among Members. |
 |  | HasAccess | A role to denote who has access to physical space.  |
-| 3 | Ideas DAO | The Ideas-DAO that spawned the Physical DAO. This can potentially be expanded to include multiple DAOs. |
-| 4 | Parent DAO | Speaks for itself.  |
+| 3 | Ideas sub-DAO | The Ideas-DAO that spawned the Physical sub-DAO. This can potentially be expanded to include multiple DAOs. |
+| 4 | Prime DAO | Speaks for itself.  |
 | …  | Etc | Additional roles can be created by sub-DAO.  |
 | … | Public | Everyone. |
 
@@ -315,7 +315,7 @@ Note: no veto from outside parties. Ideas DAOs can create their own mandates and
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| Convener | Mint POAP | BespokeActionSimple.sol | \`address Account\`  | Mints Ideas DAO specific token Id  at Parent DAO, and sends to the account.  | Any convener can mint POAPS.  |
+| Convener | Mint POAP | BespokeActionSimple.sol | \`address Account\`  | Mints Ideas sub-DAO specific token Id  at Prime DAO, and sends to the account.  | Any convener can mint POAPS.  |
 
 #### Payment of receipts
 
@@ -376,12 +376,12 @@ Note that the URI includes all metadata of the organisation. In this case this w
 
 #### Adopt mandate
 
-Note: no veto from outside parties. Ideas DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling. 
+Note: no veto from outside parties. Ideas sub-DAOs can create their own mandates and roles. Because they do not control any funds, they can be very freewheeling. 
 
 | Role | Name & Description | Base contract | User Input | Executable Output | Conditions |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | Members | Initiate Adoption | StatementOfIntent.sol | \`address mandateAddress\` | None | Vote, high threshold \+ quorum |
-| Parent DAO | Veto Adoption | StatementOfIntent.sol | (same as above) | None | none |
+| Prime DAO | Veto Adoption | StatementOfIntent.sol | (same as above) | None | none |
 | Executives | Execute mandate Adoption | BespokeActionSimple.sol | (same as above) | mandate is adopted.  | Vote, high threshold  \+ quorum, timelock. No veto |
 
 ## 
@@ -411,7 +411,7 @@ The Cultural Stewardship DAO implements a federated governance model.
   * **Checks and Balances**: Most Sub-DAO actions (like mandates or physical access) are executable by local Conveners but subject to Veto by the Parent Executives.  
 * **Executive Paths**:  
   * **Funding**: Sub-DAOs do not hold funds. They act as "cost centres" that request payment execution from the Parent.  
-  * **Legislation**: Sub-DAOs can create their own internal mandates and roles, provided they are not vetoed by the Parent DAO.  
+  * **Legislation**: Sub-DAOs can create their own internal mandates and roles, provided they are not vetoed by the Prime DAO.  
 * **Summary**: This structure allows for a "Physical manifestation DAO" to worry about rent and keys, while a "Digital manifestation DAO" worries about commits and code, all bound by a common economic and constitutional framework.
 
 ## Risk Assessment
@@ -422,5 +422,5 @@ Because roles can be dynamically assigned by Sub-DAOs, there is a risk of overla
 
 ### *Dependency Chains*
 
-The "Digital DAO" (\#3) relies on the recognition of Sibling DAOs (\#1 & \#2) to execute payments. If recognition logic fails or desynchronises, operations may stall.
+The "Digital sub-DAO" (\#3) relies on the recognition of Sibling DAOs (\#1 & \#2) to execute payments. If recognition logic fails or desynchronises, operations may stall.
 

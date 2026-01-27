@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
-import { IPowers } from "../../interfaces/IPowers.sol"; 
+import { IPowers } from "../../interfaces/IPowers.sol";
 import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
@@ -20,23 +20,23 @@ contract Soulbound1155_MintEncodedToken is Mandate {
 
     struct Mem {
         address soulbound1155;
-        address to; 
+        address to;
         uint48 blockNumber;
-        uint256 tokenId; 
+        uint256 tokenId;
     }
 
     constructor() {
-        bytes memory configParams = abi.encode(
-            "address soulbound1155"
-        );
+        bytes memory configParams = abi.encode("address soulbound1155");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        inputParams = abi.encode("address to"); 
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        inputParams = abi.encode("address to");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -58,7 +58,7 @@ contract Soulbound1155_MintEncodedToken is Mandate {
         // 1. Get config
         mem.soulbound1155 = abi.decode(getConfig(powers, mandateId), (address));
         mem.to = abi.decode(mandateCalldata, (address));
-  
+
         mem.blockNumber = uint48(block.number);
         mem.tokenId = (uint256(uint160(caller)) << 48) | uint256(mem.blockNumber);
 

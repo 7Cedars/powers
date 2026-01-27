@@ -6,7 +6,7 @@ import { TestSetupIntegrations, TestSetupExecutive } from "../../TestSetup.t.sol
 import { PowersMock } from "@mocks/PowersMock.sol";
 import { Governor_CreateProposal } from "@src/mandates/integrations/Governor_CreateProposal.sol";
 import { Governor_ExecuteProposal } from "@src/mandates/integrations/Governor_ExecuteProposal.sol";
- 
+
 import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
 import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
 import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
@@ -65,7 +65,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         calldatas[0] = abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18);
         string memory description = "Test Proposal";
 
-        // mint tokens to daoMock to have tokens to transfer. 
+        // mint tokens to daoMock to have tokens to transfer.
         simpleErc20Votes.mint(address(daoMock), 5e18);
 
         // Encode mandate calldata
@@ -81,15 +81,15 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
     }
 
     function test_Governor_CreateProposal_Revert_NotConfigured() public {
-         // Create a fresh mandate that is NOT configured
-         Governor_CreateProposal unconfiguredMandate = new Governor_CreateProposal();
-         // Don't initialize it, or initialize with 0 address
-         
-         uint16 unconfiguredId = 999;
-         bytes memory mandateCalldata = abi.encode(new address[](0), new uint256[](0), new bytes[](0), "");
-         
-         vm.expectRevert();
-         unconfiguredMandate.handleRequest(alice, address(daoMock), unconfiguredId, mandateCalldata, 0);
+        // Create a fresh mandate that is NOT configured
+        Governor_CreateProposal unconfiguredMandate = new Governor_CreateProposal();
+        // Don't initialize it, or initialize with 0 address
+
+        uint16 unconfiguredId = 999;
+        bytes memory mandateCalldata = abi.encode(new address[](0), new uint256[](0), new bytes[](0), "");
+
+        vm.expectRevert();
+        unconfiguredMandate.handleRequest(alice, address(daoMock), unconfiguredId, mandateCalldata, 0);
     }
 
     function test_Governor_CreateProposal_Revert_InvalidParams() public {
@@ -98,7 +98,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         uint256[] memory values = new uint256[](0);
         bytes[] memory calldatas = new bytes[](0);
         string memory description = "Test";
-        
+
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
         vm.prank(alice);
@@ -108,9 +108,9 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         // Mismatch length
         targets = new address[](1);
         targets[0] = address(0);
-        
+
         mandateCalldata = abi.encode(targets, values, calldatas, description);
-        
+
         vm.prank(alice);
         vm.expectRevert("Governor_CreateProposal: Targets and values length mismatch");
         daoMock.request(createProposalId, mandateCalldata, 0, "Mismatch Params");
@@ -128,10 +128,10 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
 
         // Create proposal directly on Governor
         vm.startPrank(alice);
-        simpleErc20Votes.mint(address(daoMock), 100e18); // AI READ THIS: DO NOT DELETE. This is needed because the tokens will be transferred from the daoMock contract NOT from alice! 
+        simpleErc20Votes.mint(address(daoMock), 100e18); // AI READ THIS: DO NOT DELETE. This is needed because the tokens will be transferred from the daoMock contract NOT from alice!
         simpleGovernor.propose(targets, values, calldatas, description);
         vm.stopPrank();
-        
+
         uint256 proposalId = simpleGovernor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
 
         // 2. Advance to voting period
@@ -166,7 +166,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
 
         vm.prank(alice);
         simpleGovernor.propose(targets, values, calldatas, description);
-        
+
         // 2. Try to execute immediately (Pending state)
         bytes memory mandateCalldata = abi.encode(targets, values, calldatas, description);
 
@@ -177,7 +177,7 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         // 3. Vote Against
         uint256 proposalId = simpleGovernor.hashProposal(targets, values, calldatas, keccak256(bytes(description)));
         vm.roll(block.number + simpleGovernor.votingDelay() + 1);
-        
+
         vm.prank(alice);
         simpleGovernor.castVote(proposalId, 0); // Against
 
@@ -189,7 +189,6 @@ contract GovernorIntegrationTest is TestSetupIntegrations {
         daoMock.request(executeProposalId, mandateCalldata, 0, "Execute Defeated");
     }
 }
-
 
 //////////////////////////////////////////////////
 //      SAFE ALLOWANCE INTEGRATION TESTS        //
@@ -206,7 +205,7 @@ contract SafeAllowanceTest is TestSetupIntegrations {
         // skip these tests if allowance module is not set
         if (config.safeAllowanceModule == address(0)) {
             console2.log("Safe Allowance Module not set in config, skipping tests.");
-            vm.skip(true); 
+            vm.skip(true);
         }
 
         // IDs from TestConstitutions
@@ -217,10 +216,12 @@ contract SafeAllowanceTest is TestSetupIntegrations {
         safeAllowanceTransferId = 1;
 
         vm.prank(alice);
-        daoMock.request(safeAllowanceMandateId_Safe_Setup, abi.encode(), nonce, "Setting up safe with allowance module.");
+        daoMock.request(
+            safeAllowanceMandateId_Safe_Setup, abi.encode(), nonce, "Setting up safe with allowance module."
+        );
     }
 
-    // we will try to add a delegate. 
+    // we will try to add a delegate.
     function test_Safe_ExecTransaction_Success() public {
         uint16 safeExecTransactionId = 4; // index of Safe_ExecTransaction mandate in integrationsTestConstitution
         // We are trying to add a delegate (address(0x456)) to the Safe via execTransaction mandate
@@ -233,13 +234,13 @@ contract SafeAllowanceTest is TestSetupIntegrations {
             uint256(0), // value
             abi.encodeWithSelector(functionSelector, functionCalldata) // data
         );
- 
+
         // Execute via DAO
         vm.prank(alice);
         daoMock.request(safeExecTransactionId, mandateCalldata, nonce, "Safe Exec Transaction");
     }
 
-    // we will try to add a delegate. 
+    // we will try to add a delegate.
     function test_Safe_ExecTransaction_Revert() public {
         // test is the same as previous test, except we set the treasury to address(0) first to test the revert.
         vm.prank(address(daoMock));
@@ -256,7 +257,7 @@ contract SafeAllowanceTest is TestSetupIntegrations {
             uint256(0), // value
             abi.encodeWithSelector(functionSelector, functionCalldata) // data
         );
- 
+
         // Execute via DAO
         vm.prank(alice);
         daoMock.request(safeExecTransactionId, mandateCalldata, nonce, "Safe Exec Transaction");
@@ -270,17 +271,15 @@ contract SafeAllowanceTest is TestSetupIntegrations {
         bytes memory setAllowanceData = abi.encode(address(daoMockChild1), token, amount, uint16(0), uint32(0));
         vm.prank(alice);
         daoMock.request(safeAllowanceMandateId_SetAllowance, setAllowanceData, 1, "Set Allowance");
-        
+
         // 3. Execute Transfer on Child
         address payableTo = bob;
         // Params: Token, payableTo, amount
         bytes memory transferData = abi.encode(token, payableTo, uint256(10e18));
-        
+
         vm.prank(alice);
         daoMockChild1.request(safeAllowanceTransferId, transferData, 0, "Transfer Allowance");
     }
-
-
 }
 
 //////////////////////////////////////////////////
@@ -293,46 +292,46 @@ contract PowersFactory_AssignRoleTest is TestSetupIntegrations {
 
     function setUp() public override {
         super.setUp();
-        
+
         // IDs from TestConstitutions
         createPowersId = 5;
         assignRoleId = 6;
         roleIdToAssign = 9; // Configured in TestConstitutions.sol for ID 6
     }
-    
+
     function test_PowersFactory_AssignRole_Success() public {
         // 1. Execute "Create Powers"
         string memory orgName = "New Org";
         string memory orgUri = "http://example.com";
         uint256 allowance = 1000;
-        
+
         // BespokeAction_Simple expects encoded input params
         bytes memory createCalldata = abi.encode(orgName, orgUri, allowance);
-        
+
         vm.prank(alice);
         uint256 parentActionId = daoMock.request(createPowersId, createCalldata, nonce, "Create New Org");
         console2.log("Parent Action ID:", parentActionId);
-        
+
         // 2. Execute "Assign Role"
         // PowersFactory_AssignRole uses the SAME calldata and nonce as the parent action
         vm.prank(alice);
         daoMock.request(assignRoleId, createCalldata, nonce, "Assign Role in New Org");
-        
-        // Verify Role Assigned 
+
+        // Verify Role Assigned
         bytes memory returnData = daoMock.getActionReturnData(parentActionId, 0);
         address newOrg = abi.decode(returnData, (address));
-        
+
         assertTrue(newOrg != address(0));
         // Check role on PARENT DAO (daoMock) assigned to NEW ORG
         assertTrue(daoMock.hasRoleSince(newOrg, roleIdToAssign) > 0);
     }
-    
+
     function test_PowersFactory_AssignRole_Revert_ParentNotFulfilled() public {
         string memory orgName = "New Org";
         string memory orgUri = "http://example.com";
         uint256 allowance = 1000;
         bytes memory createCalldata = abi.encode(orgName, orgUri, allowance);
-        
+
         // Use a nonce (999) that has NOT been used/fulfilled
         vm.prank(alice);
         vm.expectRevert("Invalid parent action state");
@@ -346,7 +345,7 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
     uint256 public targetRoleId;
 
     function setUp() public override {
-        super.setUp(); 
+        super.setUp();
 
         mintMandateId = 7;
         accessMandateId = 8;
@@ -358,24 +357,24 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
 
         // 1. Mint 4 tokens (Threshold is 3, need > 3 tokens. i.e. 4)
         uint256[] memory tokenIds = new uint256[](4);
-        
-        for(uint i=0; i<4; i++) {
+
+        for (uint256 i = 0; i < 4; i++) {
             // Config for mandate 7: params[0] = "address to"
             // So request calldata should be abi.encode(to).
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
-            
+
             // Calculate ID that was minted
             // TokenID = (minter << 48) | blockNumber
             // Minter is daoMock (owner of soulbound1155)
             uint256 tokenId = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             tokenIds[i] = tokenId;
-            
+
             // Advance block to get unique IDs (and test block threshold)
             // Config block threshold is 100.
             vm.roll(block.number + 1);
             nonce++;
         }
-        
+
         // 2. Request Access using the minted tokens
         // Check if we are within block threshold.
         // Current block is X. Token mint blocks are X-4, X-3, X-2, X-1.
@@ -388,11 +387,11 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
     }
 
     function test_Soulbound1155_GatedAccess_Revert_InsufficientTokens() public {
-        vm.startPrank(alice); // NB: alice mints the tokens. It is her address that is encoded in their Ids! 
-        
+        vm.startPrank(alice); // NB: alice mints the tokens. It is her address that is encoded in their Ids!
+
         // Mint 3 tokens (Threshold is 3, check is <= threshold, so 3 fails)
         uint256[] memory tokenIds = new uint256[](3);
-        for(uint i=0; i<3; i++) {
+        for (uint256 i = 0; i < 3; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
             tokenIds[i] = (uint256(uint160(address(daoMock))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
@@ -401,43 +400,43 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
 
         vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
-        
+
         vm.stopPrank();
     }
 
     function test_Soulbound1155_GatedAccess_Revert_NotOwnerOfToken() public {
         vm.startPrank(alice);
-        
+
         // Mint 4 tokens
         uint256[] memory tokenIds = new uint256[](4);
-        for(uint i=0; i<4; i++) {
+        for (uint256 i = 0; i < 4; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
             tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
             nonce++;
         }
-        
+
         // Change one token to random ID (alice doesn't own it)
-        tokenIds[0] = 123456789;
-        tokenIds[1] = 123456789;
-        
+        tokenIds[0] = 123_456_789;
+        tokenIds[1] = 123_456_789;
+
         vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), 0, "Request Access");
-        
+
         vm.stopPrank();
     }
 
     function test_Soulbound1155_GatedAccess_Revert_TokenExpired() public {
         vm.startPrank(alice);
-        
+
         uint256[] memory tokenIds = new uint256[](4);
-        for(uint i=0; i<4; i++) {
+        for (uint256 i = 0; i < 4; i++) {
             daoMock.request(mintMandateId, abi.encode(alice), nonce, "Mint Token");
             tokenIds[i] = (uint256(uint160(address(alice))) << 48) | uint256(block.number);
             vm.roll(block.number + 1);
             nonce++;
         }
-        
+
         // Advance block beyond threshold
         // Threshold is 100.
         // Last token minted at T. Current block is T+1.
@@ -445,14 +444,13 @@ contract Soulbound1155_GatedAccessTest is TestSetupIntegrations {
         // mintBlock = T.
         // Need block.number > T + 100.
         // So + 101 blocks.
-        vm.roll(block.number + 101);    
+        vm.roll(block.number + 101);
         vm.expectRevert("Insuffiicent valid tokens provided");
         daoMock.request(accessMandateId, abi.encode(tokenIds), nonce, "Request Access");
-        
+
         vm.stopPrank();
     }
 }
-
 
 //////////////////////////////////////////////////
 //              ELECTIONLIST TESTS              //
@@ -472,17 +470,17 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
     bytes electionParams;
     uint256 electionId;
     uint16 voteMandateId;
-    bytes voteParams; 
+    bytes voteParams;
     uint256 creationAcionId;
     bytes returnData;
     bytes mandateConfig;
     address[] nomineesList;
-    uint256 openActionId; 
+    uint256 openActionId;
     bool[] votes;
 
     function setUp() public override {
         super.setUp();
-        
+
         startBlock = uint48(block.number + 10);
         endBlock = uint48(block.number + 100);
         electionParams = abi.encode(title, startBlock, endBlock);
@@ -491,8 +489,9 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
         // Mandate 9 is BespokeAction_Simple.
         // Its config is (address target, bytes4 selector, string[] params).
         // target is electionList.
-        mandateConfig = Mandate(findMandateAddress("BespokeAction_Simple")).getConfig(address(daoMock), createElectionId);
-        (electionListAddress, , ) = abi.decode(mandateConfig, (address, bytes4, string[]));
+        mandateConfig =
+            Mandate(findMandateAddress("BespokeAction_Simple")).getConfig(address(daoMock), createElectionId);
+        (electionListAddress,,) = abi.decode(mandateConfig, (address, bytes4, string[]));
     }
 
     function test_ElectionList_FullFlow_Success() public {
@@ -501,7 +500,7 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
         console2.log("Creating Election...");
         vm.prank(alice);
         creationAcionId = daoMock.request(createElectionId, electionParams, nonce, "Create Election");
-        
+
         console2.log("Getting Election ID...");
         returnData = daoMock.getActionReturnData(creationAcionId, 0);
         electionId = abi.decode(returnData, (uint256));
@@ -512,12 +511,12 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
         console2.log("Nominating Alice...");
         vm.prank(alice);
         daoMock.request(nominateId, electionParams, nonce, "Nominate Alice");
-        
+
         // Verify Nomination
         nomineesList = ElectionList(electionListAddress).getNominees(electionId);
         assertEq(nomineesList.length, 1);
         assertEq(nomineesList[0], alice);
-        
+
         vm.roll(startBlock + 1); // Advance to start block
 
         // 3. Open Vote
@@ -525,19 +524,19 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
         console2.log("Creating Vote Mandate...");
         vm.prank(alice);
         openActionId = daoMock.request(openVoteId, electionParams, nonce, "Creating Vote Mandate");
-        
+
         // Get the new mandate ID (it is returned by adoptMandate which is the action executed)
         returnData = daoMock.getActionReturnData(openActionId, 0);
         voteMandateId = abi.decode(returnData, (uint16));
         assertTrue(voteMandateId > 0);
 
         // 4. Vote
-        console2.log("Voting for Alice..."); 
-        
+        console2.log("Voting for Alice...");
+
         // Nominees: [alice]
         // Vote for alice: [true]
         votes = new bool[](1);
-        votes[0] = true; 
+        votes[0] = true;
 
         vm.prank(alice);
         daoMock.request(voteMandateId, abi.encode(votes), nonce, "Vote for Alice");
@@ -547,7 +546,7 @@ contract ElectionListIntegrationTest is TestSetupIntegrations {
         // 5. Tally
         vm.roll(endBlock + 1); // Advance to end block
         console2.log("Tallying Election...");
-        
+
         // Setup existing role holders (none for role 2 initially maybe?)
         // Config says role 2 is Executive.
         vm.prank(alice);

@@ -31,15 +31,18 @@ library Checks {
     /// @param powers The address of the Powers contract
     /// @param nonce The nonce of the mandate
     /// @param latestFulfillment The latest fulfillment of the mandate
-    function check(uint16 mandateId, bytes memory mandateCalldata, address powers, uint256 nonce, uint48 latestFulfillment)
-        external
-        view
-    {
+    function check(
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        address powers,
+        uint256 nonce,
+        uint48 latestFulfillment
+    ) external view {
         PowersTypes.Conditions memory conditions = getConditions(powers, mandateId);
         // Check if parent mandate completion is required
         if (conditions.needFulfilled != 0) {
-            PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(computeActionId(conditions.needFulfilled, mandateCalldata, nonce));
+            PowersTypes.ActionState stateLog = Powers(payable(powers))
+                .getActionState(computeActionId(conditions.needFulfilled, mandateCalldata, nonce));
             if (stateLog != PowersTypes.ActionState.Fulfilled) {
                 revert Checks__ParentMandateNotCompleted();
             }
@@ -47,8 +50,8 @@ library Checks {
 
         // Check if parent mandate must not be completed
         if (conditions.needNotFulfilled != 0) {
-            PowersTypes.ActionState stateLog =
-                Powers(payable(powers)).getActionState(computeActionId(conditions.needNotFulfilled, mandateCalldata, nonce));
+            PowersTypes.ActionState stateLog = Powers(payable(powers))
+                .getActionState(computeActionId(conditions.needNotFulfilled, mandateCalldata, nonce));
             if (stateLog == PowersTypes.ActionState.Fulfilled) {
                 revert Checks__ParentMandateBlocksCompletion();
             }

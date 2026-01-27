@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/// NB! I think I can do this using bespoke action on return value. Try out in a bit! 
-
+/// NB! I think I can do this using bespoke action on return value. Try out in a bit!
 
 /// @notice Starts an election by calling openElection on the ElectionList contract
 /// and deploys an ElectionList_Vote contract for voting.
@@ -21,7 +20,7 @@ import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { ElectionList } from "../../helpers/ElectionList.sol";
 
-contract ElectionList_CreateVoteMandate is Mandate { 
+contract ElectionList_CreateVoteMandate is Mandate {
     struct Mem {
         address electionList;
         address electionListVote;
@@ -35,14 +34,17 @@ contract ElectionList_CreateVoteMandate is Mandate {
 
     /// @notice Constructor for OpenVote mandate
     constructor() {
-        bytes memory configParams = abi.encode("address ElectionList", "address ElectionList_Vote", "uint256 maxVotes", "uint256 voterRoleId");
+        bytes memory configParams =
+            abi.encode("address ElectionList", "address ElectionList_Vote", "uint256 maxVotes", "uint256 voterRoleId");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {   
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("string Title", "uint48 StartBlock", "uint48 EndBlock");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -53,19 +55,26 @@ contract ElectionList_CreateVoteMandate is Mandate {
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata Encoded boolean (true = nominate, false = revoke)
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    { 
+    {
         Mem memory mem;
 
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (mem.title, mem.startBlock, mem.endBlock) = abi.decode(mandateCalldata, (string, uint48, uint48));
         mem.electionId = uint256(keccak256(abi.encodePacked(powers, mem.title, mem.startBlock, mem.endBlock)));
-        (mem.electionList, mem.electionListVote, mem.maxVotes, mem.voterRoleId) = abi.decode(getConfig(powers, mandateId), (address, address, uint256, uint256)); // ElectionList contract address
- 
+        (mem.electionList, mem.electionListVote, mem.maxVotes, mem.voterRoleId) =
+            abi.decode(getConfig(powers, mandateId), (address, address, uint256, uint256)); // ElectionList contract address
+
         PowersTypes.MandateInitData memory initData = PowersTypes.MandateInitData({
             nameDescription: "Vote in election",
             targetMandate: mem.electionListVote,
@@ -84,7 +93,9 @@ contract ElectionList_CreateVoteMandate is Mandate {
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = powers;
-        calldatas[0] = abi.encodeWithSelector(IPowers.adoptMandate.selector, initData, nonce, "Creating vote mandate for election.");
+        calldatas[0] = abi.encodeWithSelector(
+            IPowers.adoptMandate.selector, initData, nonce, "Creating vote mandate for election."
+        );
 
         return (actionId, targets, values, calldatas);
     }

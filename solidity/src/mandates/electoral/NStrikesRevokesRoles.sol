@@ -34,7 +34,8 @@ contract NStrikesRevokesRoles is Mandate {
 
     /// @notice Constructor for NStrikesRevokesRoles mandate
     constructor() {
-        bytes memory configParams = abi.encode("uint256 roleId", "uint256 numberOfStrikes", "address flagActionsAddress");
+        bytes memory configParams =
+            abi.encode("uint256 roleId", "uint256 numberOfStrikes", "address flagActionsAddress");
         emit Mandate__Deployed(configParams);
     }
 
@@ -59,7 +60,8 @@ contract NStrikesRevokesRoles is Mandate {
     {
         Mem memory mem;
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        (mem.roleId, mem.numberOfStrikes, mem.flagActionsAddress) = abi.decode(getConfig(powers, mandateId), (uint256, uint256, address)); // just to silence compiler warning
+        (mem.roleId, mem.numberOfStrikes, mem.flagActionsAddress) =
+            abi.decode(getConfig(powers, mandateId), (uint256, uint256, address)); // just to silence compiler warning
 
         // Get flagged actions for the specific roleId from FlagActions contract
         mem.flaggedActionIds = FlagActions(mem.flagActionsAddress).getFlaggedActionsByRole(uint16(mem.roleId));
@@ -80,8 +82,7 @@ contract NStrikesRevokesRoles is Mandate {
 
         for (mem.i = 0; mem.i < mem.amountRoleHolders; mem.i++) {
             targets[mem.i] = powers;
-            calldatas[mem.i] =
-                abi.encodeWithSelector(Powers.revokeRole.selector, mem.roleId, mem.roleHolders[mem.i]);
+            calldatas[mem.i] = abi.encodeWithSelector(Powers.revokeRole.selector, mem.roleId, mem.roleHolders[mem.i]);
             mem.i++;
         }
         mem.i = 0;
@@ -95,7 +96,8 @@ contract NStrikesRevokesRoles is Mandate {
     /// @return shouldRevoke True if the role should be revoked (enough strikes)
     function shouldRevokeRole(address powers, uint16 mandateId) external view returns (bool shouldRevoke) {
         Mem memory mem;
-        (mem.roleId, mem.numberOfStrikes, mem.flagActionsAddress) = abi.decode(getConfig(powers, mandateId), (uint256, uint256, address)); // just to silence compiler warning
+        (mem.roleId, mem.numberOfStrikes, mem.flagActionsAddress) =
+            abi.decode(getConfig(powers, mandateId), (uint256, uint256, address)); // just to silence compiler warning
 
         uint256 flaggedCount = FlagActions(mem.flagActionsAddress).getFlaggedActionsCountByRole(uint16(mem.roleId));
         return flaggedCount >= mem.numberOfStrikes;

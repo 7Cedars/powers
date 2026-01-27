@@ -15,37 +15,37 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract Safe_ExecTransaction_OnReturnValue is Mandate {
     struct Mem {
         bytes data;
-        address to; 
+        address to;
         address targetContract;
         bytes4 functionSelector;
         bytes bytesBefore;
         uint16 parentMandateId;
-        bytes bytesAfter; 
+        bytes bytesAfter;
         bytes configBytes;
         address safeAddress;
         bytes powersSignature;
-        uint256 parentActionId; 
+        uint256 parentActionId;
         bytes returnData;
-    } 
+    }
 
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
         bytes memory configParams = abi.encode(
-            "address TargetContract", 
-            "bytes4 FunctionSelector", 
-            "bytes paramsBefore", 
-            "string[] Params", 
-            "uint16 parentMandateId", 
+            "address TargetContract",
+            "bytes4 FunctionSelector",
+            "bytes paramsBefore",
+            "string[] Params",
+            "uint16 parentMandateId",
             "bytes paramsAfter"
-            );
+        );
         emit Mandate__Deployed(configParams);
     }
 
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory, bytes memory config)
         public
         override
-    { 
-        (, , , string[] memory inputParamsRaw, , ) = abi.decode(config, (address, bytes4, bytes, string[], uint16, bytes));
+    {
+        (,,, string[] memory inputParamsRaw,,) = abi.decode(config, (address, bytes4, bytes, string[], uint16, bytes));
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsRaw), config);
     }
 
@@ -74,12 +74,8 @@ contract Safe_ExecTransaction_OnReturnValue is Mandate {
         Mem memory mem;
 
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        (
-            mem.targetContract, 
-            mem.functionSelector, 
-            mem.bytesBefore, , 
-            mem.parentMandateId, 
-            mem.bytesAfter) = abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes, string[], uint16, bytes)); 
+        (mem.targetContract, mem.functionSelector, mem.bytesBefore,, mem.parentMandateId, mem.bytesAfter) =
+            abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes, string[], uint16, bytes));
         mem.safeAddress = IPowers(powers).getTreasury();
         if (mem.safeAddress == address(0)) {
             revert("No Safe treasury set");
@@ -103,12 +99,7 @@ contract Safe_ExecTransaction_OnReturnValue is Mandate {
             Safe.execTransaction.selector,
             mem.targetContract, // The internal transaction's destination
             0, // The internal transaction's value in this mandate is always 0. To tansfer Eth use a different mandate.
-            abi.encodePacked(
-                mem.functionSelector,
-                mem.bytesBefore,
-                mem.returnData,
-                mem.bytesAfter
-            ), // The internal transaction's data
+            abi.encodePacked(mem.functionSelector, mem.bytesBefore, mem.returnData, mem.bytesAfter), // The internal transaction's data
             Enum.Operation.Call, // The internal transaction's operation type
             0, // safeTxGas
             0, // baseGas

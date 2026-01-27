@@ -11,9 +11,9 @@ contract AssignExternalRole is Mandate {
         address account;
         address externalPowersAddress;
         uint256 roleId;
-        uint48 hasRoleInChild; 
+        uint48 hasRoleInChild;
         uint48 hasRoleInParent;
-        bool A; 
+        bool A;
         bool B;
     }
 
@@ -42,8 +42,8 @@ contract AssignExternalRole is Mandate {
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    {   
-        Mem memory mem; 
+    {
+        Mem memory mem;
         (mem.account) = abi.decode(mandateCalldata, (address));
         (mem.externalPowersAddress, mem.roleId) = abi.decode(getConfig(powers, mandateId), (address, uint256));
 

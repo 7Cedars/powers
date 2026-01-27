@@ -47,12 +47,17 @@ contract ElectionList_Tally is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config) public override {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("string Title", "uint48 StartBlock", "uint48 EndBlock");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
-    /// @notice Execute the mandate by ending the election, revoking the vote mandate, 
+    /// @notice Execute the mandate by ending the election, revoking the vote mandate,
     /// revoking current role holders, and assigning newly elected accounts
     /// @param mandateCalldata The calldata (empty for this mandate)
     function handleRequest(
@@ -69,7 +74,8 @@ contract ElectionList_Tally is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
-        (mem.electionContract, mem.roleId, mem.maxRoleHolders) = abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
+        (mem.electionContract, mem.roleId, mem.maxRoleHolders) =
+            abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
         (mem.title, mem.startBlock, mem.endBlock) = abi.decode(mandateCalldata, (string, uint48, uint48));
         mem.electionId = uint256(keccak256(abi.encodePacked(powers, mem.title, mem.startBlock, mem.endBlock)));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
@@ -100,7 +106,7 @@ contract ElectionList_Tally is Mandate {
             mem.elected[mem.i] = mem.rankedNominees[mem.i];
         }
 
-        // Calculate total number of operations needed: 
+        // Calculate total number of operations needed:
         // - Revoke all current role holders
         // - Assign role to all newly elected accounts
         // - NB: revoking the vote mandate should be handled through another mandate (not here)
@@ -119,7 +125,8 @@ contract ElectionList_Tally is Mandate {
         // Step 7: Assign roles to newly elected accounts
         for (mem.i = 0; mem.i < mem.elected.length; mem.i++) {
             targets[mem.operationIndex] = powers;
-            calldatas[mem.operationIndex] = abi.encodeWithSelector(Powers.assignRole.selector, mem.roleId, mem.elected[mem.i]);
+            calldatas[mem.operationIndex] =
+                abi.encodeWithSelector(Powers.assignRole.selector, mem.roleId, mem.elected[mem.i]);
             mem.operationIndex++;
         }
 

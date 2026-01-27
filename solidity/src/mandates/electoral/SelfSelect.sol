@@ -17,14 +17,20 @@ contract SelfSelect is Mandate {
         bytes memory configParams = abi.encode("uint256 RoleId");
         emit Mandate__Deployed(configParams);
     }
- 
+
     /// @notice Build a call to assign the configured role to the caller if not already held
     /// @param caller The transaction originator (forwarded to assignment)
     /// @param powers The Powers contract address
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata Not used for this mandate
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         override

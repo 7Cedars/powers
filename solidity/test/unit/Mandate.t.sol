@@ -217,19 +217,19 @@ contract MandateHelperTest is TestSetupMandate {
         delete inputParams; // clean up
     }
 
-    function testGetNameDescriptionRevertsForNonExistentMandate() public  {
+    function testGetNameDescriptionRevertsForNonExistentMandate() public {
         // act & assert: verify getting name for non-existent mandate returns empty string
         retrievedName = testMandate.getNameDescription(address(daoMock), 999);
         assertEq(retrievedName, "");
     }
 
-    function testGetInputParamsRevertsForNonExistentMandate() public  {
+    function testGetInputParamsRevertsForNonExistentMandate() public {
         // act & assert: verify getting params for non-existent mandate returns empty bytes
         retrievedParams = testMandate.getInputParams(address(daoMock), 999);
         assertEq(retrievedParams.length, 0);
     }
 
-    function testGetConfigRevertsForNonExistentMandate() public  {
+    function testGetConfigRevertsForNonExistentMandate() public {
         // act & assert: verify getting config for non-existent mandate returns empty bytes
         retrievedConfig = testMandate.getConfig(address(daoMock), 999);
         assertEq(retrievedConfig.length, 0);
@@ -575,9 +575,7 @@ contract MandateHandleRequestTest is TestSetupMandate {
         mandateCalldata = abi.encode(targets, values, calldatas);
 
         // act: call handleRequest
-        (
-            uint256 actionId, , ,
-        ) = testMandate.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce);
+        (uint256 actionId,,,) = testMandate.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce);
 
         // assert: verify actionId is correct
         uint256 expectedActionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
@@ -709,7 +707,8 @@ contract MandateHandleRequestTest is TestSetupMandate {
         // act: call handleRequest with different callers
         (uint256 actionId1,,,) = testMandate.handleRequest(alice, address(daoMock), mandateId, mandateCalldata, nonce);
         (uint256 actionId2,,,) = testMandate.handleRequest(bob, address(daoMock), mandateId, mandateCalldata, nonce);
-        (uint256 actionId3,,,) = testMandate.handleRequest(charlotte, address(daoMock), mandateId, mandateCalldata, nonce);
+        (uint256 actionId3,,,) =
+            testMandate.handleRequest(charlotte, address(daoMock), mandateId, mandateCalldata, nonce);
 
         // assert: verify actionId is the same regardless of caller (as expected for pure function)
         assertEq(actionId1, actionId2);

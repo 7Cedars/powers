@@ -16,8 +16,8 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract PresetActions_Multiple is Mandate {
     struct Mem {
-        uint i; 
-        uint j;
+        uint256 i;
+        uint256 j;
         bytes configBytes;
         address[] targetsConfig;
         uint256[] valuesConfig;
@@ -26,7 +26,6 @@ contract PresetActions_Multiple is Mandate {
         bool[] bools;
     }
 
-
     /// @notice Constructor of the PresetActions_Multiple mandate
     constructor() {
         bytes memory configParams =
@@ -34,17 +33,19 @@ contract PresetActions_Multiple is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        (string[] memory descriptions, , , ) = abi.decode(config, (string[], address[], uint256[], bytes[]));
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (string[] memory descriptions,,,) = abi.decode(config, (string[], address[], uint256[], bytes[]));
 
         string[] memory parameters = new string[](descriptions.length);
         for (uint256 i = 0; i < parameters.length; i++) {
             parameters[i] = string.concat("bool ", descriptions[i]);
         }
- 
+
         super.initializeMandate(index, nameDescription, abi.encode(parameters), config);
     }
 
@@ -65,9 +66,8 @@ contract PresetActions_Multiple is Mandate {
         Mem memory mem;
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         mem.configBytes = getConfig(powers, mandateId);
-        ( , mem.targetsConfig, mem.valuesConfig, mem.calldatasConfig) = abi.decode(
-            mem.configBytes, (string[], address[], uint256[], bytes[])
-        );
+        (, mem.targetsConfig, mem.valuesConfig, mem.calldatasConfig) =
+            abi.decode(mem.configBytes, (string[], address[], uint256[], bytes[]));
 
         mem.bools = abi.decode(mandateCalldata, (bool[]));
         mem.length = 0;

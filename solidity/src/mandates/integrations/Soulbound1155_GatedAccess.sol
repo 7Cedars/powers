@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
-import { IPowers } from "../../interfaces/IPowers.sol"; 
+import { IPowers } from "../../interfaces/IPowers.sol";
 import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
@@ -24,30 +24,32 @@ contract Soulbound1155_GatedAccess is Mandate {
         uint256 checkRoleId;
         uint48 blocksThreshold;
         uint48 tokensThreshold;
-        uint256 i; 
-        uint256[] tokenIds; 
+        uint256 i;
+        uint256[] tokenIds;
         uint256 tokenId;
         uint256 actionId;
         address minter;
         uint48 mintBlock;
     }
- 
+
     constructor() {
         bytes memory configParams = abi.encode(
             "address soulbound1155",
             "uint256 assignRoleId", // the role Id to assign if checks pass
-            "uint256 checkRoleId", // the role Id the encoded address needs to have to pass check. 
+            "uint256 checkRoleId", // the role Id the encoded address needs to have to pass check.
             "uint48 blocksThreshold",
             "uint48 tokensThreshold"
         );
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        inputParams = abi.encode("uint256[] tokenIds"); 
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        inputParams = abi.encode("uint256[] tokenIds");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
@@ -68,7 +70,7 @@ contract Soulbound1155_GatedAccess is Mandate {
 
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.soulbound1155Address, mem.assignRoleId, mem.checkRoleId, mem.blocksThreshold, mem.tokensThreshold) = 
+        (mem.soulbound1155Address, mem.assignRoleId, mem.checkRoleId, mem.blocksThreshold, mem.tokensThreshold) =
             abi.decode(mem.config, (address, uint256, uint256, uint48, uint48));
 
         // 2. Decode input params
@@ -80,22 +82,22 @@ contract Soulbound1155_GatedAccess is Mandate {
             mem.tokenId = mem.tokenIds[mem.i];
 
             // Check 1: checks if caller balance of tokenIds is > 0
-            if (sb1155.balanceOf(caller, mem.tokenId) == 0) { 
+            if (sb1155.balanceOf(caller, mem.tokenId) == 0) {
                 continue;
             }
 
             // Check 2: Check if tokens are within block threshold.
             mem.mintBlock = uint48(mem.tokenId);
-            if (block.number > mem.mintBlock + mem.blocksThreshold) { 
-                continue; 
+            if (block.number > mem.mintBlock + mem.blocksThreshold) {
+                continue;
             }
 
-            // Check 3: check if token is from the correct roleId. 
+            // Check 3: check if token is from the correct roleId.
             mem.minter = address(uint160(mem.tokenId >> 48));
-            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) != 0) { 
+            if (IPowers(powers).hasRoleSince(mem.minter, mem.checkRoleId) != 0) {
                 validTokenCount++;
-            } 
-        }  
+            }
+        }
 
         if (validTokenCount < mem.tokensThreshold) {
             revert("Insuffiicent valid tokens provided");

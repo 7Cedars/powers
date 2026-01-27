@@ -16,11 +16,11 @@ pragma solidity 0.8.26;
 // import { TreasurySimple } from "../../../src/helpers/TreasurySimple.sol";
 // import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 // import { Nominees } from "../../../src/helpers/Nominees.sol";
-// import { FlagActions } from "../../../src/helpers/FlagActions.sol"; 
+// import { FlagActions } from "../../../src/helpers/FlagActions.sol";
 // import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 // import { BaseSetup } from "../../TestSetup.t.sol";
 // import { RoleByTransaction } from "../../../src/mandates/electoral/RoleByTransaction.sol";
-// import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol"; 
+// import { PowersTypes } from "../../../src/interfaces/PowersTypes.sol";
 // import { PowersMock } from "@mocks/PowersMock.sol";
 
 // /// @notice Comprehensive unit tests for all electoral mandates
@@ -31,7 +31,7 @@ pragma solidity 0.8.26;
 // //////////////////////////////////////////////////
 // contract ElectionList_TallyTest is TestSetupElectoral {
 //     ElectionList_Tally openElectionEnd;
-//     Erc20DelegateElection delegateElection; 
+//     Erc20DelegateElection delegateElection;
 
 //     function setUp() public override {
 //         super.setUp();

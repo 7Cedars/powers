@@ -13,14 +13,16 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { PowersTypes } from "../../interfaces/PowersTypes.sol";
 
 contract Mandates_Adopt is Mandate {
-    constructor() { 
+    constructor() {
         emit Mandate__Deployed("");
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("address[] mandateAddress", "uint256[] roleIds");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -52,7 +54,10 @@ contract Mandates_Adopt is Mandate {
         for (uint256 i; i < length; i++) {
             conditions.allowedRole = roleIds_[i];
             PowersTypes.MandateInitData memory mandateInitData = PowersTypes.MandateInitData({
-                nameDescription: "Reform mandate", targetMandate: mandates_[i], config: abi.encode(), conditions: conditions
+                nameDescription: "Reform mandate",
+                targetMandate: mandates_[i],
+                config: abi.encode(),
+                conditions: conditions
             });
             targets[i] = powers;
             calldatas[i] = abi.encodeWithSelector(IPowers.adoptMandate.selector, mandateInitData);

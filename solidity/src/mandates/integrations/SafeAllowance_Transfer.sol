@@ -26,7 +26,7 @@ contract SafeAllowance_Transfer is Mandate {
         address payableTo;
         uint256 amount;
         bytes delegateSignature;
-        address allowanceModule; 
+        address allowanceModule;
         address safeProxy;
     }
 
@@ -37,11 +37,15 @@ contract SafeAllowance_Transfer is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
-        super.initializeMandate(index, nameDescription, abi.encode("address Token", "uint256 Amount", "address PayableTo"), config);
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        super.initializeMandate(
+            index, nameDescription, abi.encode("address Token", "uint256 Amount", "address PayableTo"), config
+        );
     }
 
     /// @notice Prepares the call to the Allowance Module

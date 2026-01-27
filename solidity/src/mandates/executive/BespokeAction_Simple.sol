@@ -15,16 +15,17 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 contract BespokeAction_Simple is Mandate {
     /// @notice Constructor of the BespokeAction_Simple mandate
     constructor() {
-        bytes memory configParams =
-            abi.encode("address TargetContract", "bytes4 FunctionSelector", "string[] Params");
+        bytes memory configParams = abi.encode("address TargetContract", "bytes4 FunctionSelector", "string[] Params");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        (, , string[] memory params_) = abi.decode(config, (address, bytes4, string[]));
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (,, string[] memory params_) = abi.decode(config, (address, bytes4, string[]));
         super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
@@ -44,7 +45,8 @@ contract BespokeAction_Simple is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        (address targetContract, bytes4 targetFunction, ) = abi.decode(getConfig(powers, mandateId), (address, bytes4, string[]));    
+        (address targetContract, bytes4 targetFunction,) =
+            abi.decode(getConfig(powers, mandateId), (address, bytes4, string[]));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Send the calldata to the target function

@@ -5,7 +5,7 @@ pragma solidity 0.8.26;
 import { Script } from "forge-std/Script.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { console2 } from "forge-std/console2.sol";
-import { Configurations } from "@script/Configurations.s.sol"; 
+import { Configurations } from "@script/Configurations.s.sol";
 
 // --- Library Imports ---
 import { Checks } from "@src/libraries/Checks.sol";
@@ -49,7 +49,7 @@ import { Safe_Setup } from "@src/mandates/integrations/Safe_Setup.sol";
 import { Safe_ExecTransaction } from "@src/mandates/integrations/Safe_ExecTransaction.sol";
 import { Safe_RecoverTokens } from "@src/mandates/integrations/Safe_RecoverTokens.sol";
 import { SafeAllowance_Transfer } from "@src/mandates/integrations/SafeAllowance_Transfer.sol";
-import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol"; 
+import { SafeAllowance_Action } from "@src/mandates/integrations/SafeAllowance_Action.sol";
 import { PowersFactory_AssignRole } from "@src/mandates/integrations/PowersFactory_AssignRole.sol";
 import { PowersFactory_AddSafeDelegate } from "@src/mandates/integrations/PowersFactory_AddSafeDelegate.sol";
 import { Soulbound1155_GatedAccess } from "@src/mandates/integrations/Soulbound1155_GatedAccess.sol";
@@ -233,7 +233,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(BespokeAction_OnOwnPowers).creationCode);
         constructorArgs.push(abi.encode("BespokeAction_OnOwnPowers"));
 
-
         //////////////////////////////////////////////////////////////////////////
         //                      Integrations Mandates                           //
         //////////////////////////////////////////////////////////////////////////
@@ -282,7 +281,7 @@ contract InitialisePowers is Script {
         constructorArgs.push(abi.encode("Soulbound1155_GatedAccess"));
 
         names.push("Soulbound1155_MintEncodedToken");
-        creationCodes.push(type(Soulbound1155_MintEncodedToken).creationCode);  
+        creationCodes.push(type(Soulbound1155_MintEncodedToken).creationCode);
         constructorArgs.push(abi.encode("Soulbound1155_MintEncodedToken"));
 
         names.push("ElectionList_Vote");
@@ -305,7 +304,6 @@ contract InitialisePowers is Script {
         creationCodes.push(type(ElectionList_CleanUpVoteMandate).creationCode);
         constructorArgs.push(abi.encode("ElectionList_CleanUpVoteMandate"));
 
-
         //////////////////////////////////////////////////////////////////////////
         //                  Singleton Helper Contracts                          //
         //////////////////////////////////////////////////////////////////////////
@@ -320,7 +318,7 @@ contract InitialisePowers is Script {
         //////////////////////////////////////////////////////////////////////////
         //                          DEPLOY SEQUENCE                             //
         //////////////////////////////////////////////////////////////////////////
-        string memory obj2 = "second key"; 
+        string memory obj2 = "second key";
         for (uint256 i = 0; i < names.length; i++) {
             address mandateAddr = deploy(creationCodes[i], constructorArgs[i]);
             addresses.push(mandateAddr);

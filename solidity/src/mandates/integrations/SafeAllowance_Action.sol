@@ -11,7 +11,7 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract SafeAllowance_Action is Mandate {
     /// @dev Configurations for this mandate adoption.
     struct ConfigData {
-        bytes4 functionSelector; 
+        bytes4 functionSelector;
         address allowanceModule;
     }
 
@@ -21,23 +21,22 @@ contract SafeAllowance_Action is Mandate {
     /// @notice Constructor function
     constructor() {
         // Expose expected input parameters for UIs.
-        bytes memory configParams = abi.encode(
-            "string[] inputParams", "bytes4 functionSelector", "address allowanceModule"
-        );
+        bytes memory configParams =
+            abi.encode("string[] inputParams", "bytes4 functionSelector", "address allowanceModule");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         bytes32 mandateHash_ = MandateUtilities.hashMandate(msg.sender, index);
         string[] memory inputParamsArray;
 
         (
-            inputParamsArray, 
-            mandateConfig[mandateHash_].functionSelector,
-            mandateConfig[mandateHash_].allowanceModule 
+            inputParamsArray, mandateConfig[mandateHash_].functionSelector, mandateConfig[mandateHash_].allowanceModule
         ) = abi.decode(config, (string[], bytes4, address));
 
         // Overwrite inputParams with the specific structure expected by handleRequest
@@ -69,7 +68,7 @@ contract SafeAllowance_Action is Mandate {
         ConfigData memory config = mandateConfig[mandateHash_];
         address safeProxyAddress = IPowers(powers).getTreasury();
         if (safeProxyAddress == address(0)) {
-            revert ("SafeAllowance_Action: Treasury not set in Powers");
+            revert("SafeAllowance_Action: Treasury not set in Powers");
         }
 
         // (address delegateAddress) = abi.decode(mandateCalldata, (address));

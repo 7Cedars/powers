@@ -13,7 +13,7 @@ import { TestSetupPowers } from "../TestSetup.t.sol";
 import { PowersMock } from "../mocks/PowersMock.sol";
 import { OpenAction } from "../../src/mandates/executive/OpenAction.sol";
 
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 /// @notice Unit tests for the core Powers protocol (updated v0.4)
 
@@ -385,8 +385,7 @@ contract VoteTest is TestSetupPowers {
             }
         }
 
-        (,,, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) =
-            daoMock.getActionVoteData(actionId);
+        (,,, uint32 againstVotes, uint32 forVotes, uint32 abstainVotes) = daoMock.getActionVoteData(actionId);
         assertEq(againstVotes, uint32(againstVote));
         assertEq(forVotes, uint32(forVote));
         assertEq(abstainVotes, uint32(abstainVote));
@@ -450,7 +449,7 @@ contract ExecuteTest is TestSetupPowers {
         ActionState actionState = daoMock.getActionState(actionId);
         assertEq(uint8(actionState), uint8(ActionState.Fulfilled));
     }
- 
+
     function testExecuteRevertsIfNotAuthorised() public {
         mandateId = 3; // Delegate Election - needs ROLE_ONE
         accounts = new address[](1);
@@ -572,7 +571,7 @@ contract ConstituteTest is TestSetupPowers {
 
         mandateInitData[0] = MandateInitData({
             nameDescription: "Test mandate: Test mandate description",
-            targetMandate: mandateAddresses[3], // = openAction
+            targetMandate: initialisePowers.getInitialisedAddress("OpenAction"), // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -592,7 +591,7 @@ contract ConstituteTest is TestSetupPowers {
         MandateInitData[] memory mandateInitData = new MandateInitData[](1);
         mandateInitData[0] = MandateInitData({
             nameDescription: "Test mandate: Test mandate description",
-            targetMandate: mandateAddresses[3], // = openAction
+            targetMandate: initialisePowers.getInitialisedAddress("OpenAction"), // = openAction
             config: abi.encode(),
             conditions: conditions
         });
@@ -612,7 +611,7 @@ contract ConstituteTest is TestSetupPowers {
         MandateInitData[] memory mandateInitData = new MandateInitData[](1);
         mandateInitData[0] = MandateInitData({
             nameDescription: "Test mandate: Test mandate description",
-            targetMandate: mandateAddresses[3],
+            targetMandate: initialisePowers.getInitialisedAddress("OpenAction"), // mandateAddresses[3],
             config: abi.encode(),
             conditions: conditions
         });
@@ -860,7 +859,10 @@ contract MandateAdoptionTest is TestSetupPowers {
         });
 
         MandateInitData memory mandateInitData = MandateInitData({
-            nameDescription: "Test mandate", targetMandate: newMandate, config: abi.encode(), conditions: invalidConditions
+            nameDescription: "Test mandate",
+            targetMandate: newMandate,
+            config: abi.encode(),
+            conditions: invalidConditions
         });
 
         vm.expectRevert(PowersErrors.Powers__VoteWithPublicRoleDisallowed.selector);

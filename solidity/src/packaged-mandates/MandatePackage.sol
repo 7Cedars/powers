@@ -7,9 +7,9 @@
 /// @author 7Cedars
 
 // £todo: make this package more generic, allowing for any set of mandates to be adopted in a package.
-// make configParams accept raw mandate Initdatas. That is the easiest way to set it up. 
-// But watch out : the mandateCounter needs to be passed correctly to the getNewMandates function. 
-// maybe the approach below is the only possible one? 
+// make configParams accept raw mandate Initdatas. That is the easiest way to set it up.
+// But watch out : the mandateCounter needs to be passed correctly to the getNewMandates function.
+// maybe the approach below is the only possible one?
 
 pragma solidity 0.8.26;
 
@@ -28,10 +28,12 @@ contract MandatePackage is Mandate {
         emit Mandate__Deployed(abi.encode());
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode();
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -74,7 +76,12 @@ contract MandatePackage is Mandate {
     /// @return mandateInitData An array of MandateInitData structs for the new mandates.
     /// @dev the function follows the same pattern as TestConstitutions.sol
     /// this function can be overwritten to create different mandate packages.
-    function getNewMandates(address[] memory mandateAddresses, address /* powers */, uint16 mandateCount)
+    function getNewMandates(
+        address[] memory mandateAddresses,
+        address,
+        /* powers */
+        uint16 mandateCount
+    )
         public
         view
         virtual

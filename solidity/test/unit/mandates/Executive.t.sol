@@ -19,7 +19,7 @@ import { ReturnDataMock } from "@mocks/ReturnDataMock.sol";
 contract StatementOfIntentTest is TestSetupExecutive {
     function setUp() public override {
         super.setUp();
-        mandateId = 1; // StatementOfIntent 
+        mandateId = 1; // StatementOfIntent
     }
 
     function testStatementOfIntentRequestWorks() public {
@@ -72,12 +72,12 @@ contract StatementOfIntentTest is TestSetupExecutive {
     }
 }
 
-contract OpenActionTest is TestSetupExecutive { 
+contract OpenActionTest is TestSetupExecutive {
     event CoinsMinted(address indexed to, uint256 amount);
 
     function setUp() public override {
         super.setUp();
-        mandateId = 2; // OpenAction  
+        mandateId = 2; // OpenAction
     }
 
     ////////////////////////////////////////////////////////////////
@@ -106,13 +106,13 @@ contract OpenActionTest is TestSetupExecutive {
         // Encode mandate calldata
         // OpenAction expects: abi.encode(address[] targets, uint256[] values, bytes[] calldatas)
         mandateCalldata = abi.encode(targets, values, calldatas);
-        
+
         description = "Minting coins via OpenAction";
 
         // 3. Execute request (OpenAction allows immediate execution by public)
         // Verify balance before
         balanceBefore = simpleErc1155.balanceOf(alice, 0);
-        
+
         vm.prank(alice); // Alice can execute as allowedRole is max (public)
         daoMock.request(mandateId, mandateCalldata, nonce, description);
 
@@ -124,11 +124,7 @@ contract OpenActionTest is TestSetupExecutive {
     function testOpenActionExecuteMultipleExternalActions() public {
         // Execute two actions: Mint coins twice
         mintAmount = 50;
-        callData = abi.encodeWithSelector(
-            bytes4(keccak256("mint(uint256,address)")),
-            mintAmount,
-            alice
-        );
+        callData = abi.encodeWithSelector(bytes4(keccak256("mint(uint256,address)")), mintAmount, alice);
 
         targets = new address[](2);
         targets[0] = address(simpleErc1155);
@@ -157,7 +153,7 @@ contract OpenActionTest is TestSetupExecutive {
     function testOpenActionRevertsIfCalldataMalformed() public {
         // Send random bytes that cannot be decoded as (address[], uint256[], bytes[])
         mandateCalldata = abi.encode("random string");
-        
+
         vm.prank(alice);
         vm.expectRevert(); // Should revert during decoding in OpenAction.handleRequest
         daoMock.request(mandateId, mandateCalldata, nonce, "Malformed call");
@@ -167,7 +163,7 @@ contract OpenActionTest is TestSetupExecutive {
 contract BespokeAction_SimpleTest is TestSetupExecutive {
     function setUp() public override {
         super.setUp();
-        mandateId = 3; // BespokeAction_Simple 
+        mandateId = 3; // BespokeAction_Simple
     }
 
     function testSimpleExecute() public {
@@ -196,7 +192,6 @@ contract BespokeAction_SimpleTest is TestSetupExecutive {
 }
 
 contract BespokeAction_AdvancedTest is TestSetupExecutive {
-
     function setUp() public override {
         super.setUp();
         mandateId = 4; // BespokeAction_Advanced
@@ -206,15 +201,15 @@ contract BespokeAction_AdvancedTest is TestSetupExecutive {
         // Configured to call assignRole(ROLE_ONE, address account)
         // Static param: ROLE_ONE (1)
         // Dynamic param: address account
-        
+
         newMember = makeAddr("newMember");
-      
+
         // Verify initial state
         assertEq(daoMock.hasRoleSince(newMember, ROLE_ONE), 0);
-        
+
         vm.prank(alice); // Alice has Role 1, which is allowed
         daoMock.request(mandateId, abi.encode(newMember), nonce, "Assign Role");
-        
+
         // Verify execution result
         assertNotEq(daoMock.hasRoleSince(newMember, ROLE_ONE), 0, "Role should be assigned");
     }
@@ -226,8 +221,7 @@ contract BespokeAction_AdvancedTest is TestSetupExecutive {
     }
 }
 
-contract PresetActions_SingleTest is TestSetupExecutive { 
-
+contract PresetActions_SingleTest is TestSetupExecutive {
     function setUp() public override {
         super.setUp();
         mandateId = 5; // PresetActions_Single
@@ -239,7 +233,7 @@ contract PresetActions_SingleTest is TestSetupExecutive {
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "");
 
         // PresetActions_Single ignores the content of calldata (except for hashing)
-        mandateCalldata = abi.encode(true); 
+        mandateCalldata = abi.encode(true);
 
         vm.prank(alice); // Alice has Role 1
         daoMock.request(mandateId, mandateCalldata, nonce, "Execute Preset Action");
@@ -247,7 +241,7 @@ contract PresetActions_SingleTest is TestSetupExecutive {
         // Verify execution
         assertEq(daoMock.getRoleLabel(ROLE_ONE), "Member");
         assertEq(daoMock.getRoleLabel(ROLE_TWO), "Delegate");
-        
+
         // Check action state
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         assertEq(uint8(daoMock.getActionState(actionId)), uint8(PowersTypes.ActionState.Fulfilled));
@@ -264,7 +258,8 @@ contract PresetActions_SingleTest is TestSetupExecutive {
 
 contract PresetActions_MultipleTest is TestSetupExecutive {
     // Placeholder for PresetActions_Multiple specific tests
-}
+
+    }
 
 contract BespokeAction_OnReturnValueTest is TestSetupExecutive {
     event Consumed(uint256 value);
@@ -278,7 +273,7 @@ contract BespokeAction_OnReturnValueTest is TestSetupExecutive {
         // 1. Execute Parent Action (BespokeActionReturner - ID 9)
         uint16 parentMandateId = 9;
         bytes memory emptyCalldata = "";
-        uint256 testNonce = 12345;
+        uint256 testNonce = 12_345;
 
         vm.prank(alice);
         daoMock.request(parentMandateId, emptyCalldata, testNonce, "Parent Action");
@@ -289,7 +284,7 @@ contract BespokeAction_OnReturnValueTest is TestSetupExecutive {
 
         // 2. Execute Child Action (BespokeAction_OnReturnValue - ID 10)
         // Must use SAME calldata and nonce as parent
-        
+
         vm.expectEmit(true, true, true, true);
         emit Consumed(42); // Expect 42 from ReturnDataMock.getValue()
 

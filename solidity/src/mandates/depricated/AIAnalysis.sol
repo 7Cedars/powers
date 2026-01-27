@@ -6,7 +6,6 @@ pragma solidity 0.8.26;
 // /// @author 7Cedars
 
 // // Note: Data validation is hardly present at this stage. It's a PoC..
- 
 
 // import { Mandate } from "../../Mandate.sol";
 // import { IMandate } from "../../interfaces/IMandate.sol";

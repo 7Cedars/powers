@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: MIT
 
-/// @notice A base contract that executes a bespoke call to the powers contract's request function. 
-/// Especially useful if one Powers instance has to call a law at another powers instance. 
+/// @notice A base contract that executes a bespoke call to the powers contract's request function.
+/// Especially useful if one Powers instance has to call a law at another powers instance.
 
 pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
-import { IPowers } from "../../interfaces/IPowers.sol";  
+import { IPowers } from "../../interfaces/IPowers.sol";
 
 contract PowersAction_Simple is Mandate {
     /// @notice Constructor of the BespokeAction_Simple mandate
     constructor() {
-        bytes memory configParams =
-            abi.encode("address PowersTarget", "uint16 MandateIdTarget", "string[] Params");
+        bytes memory configParams = abi.encode("address PowersTarget", "uint16 MandateIdTarget", "string[] Params");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        (, , string[] memory params_) = abi.decode(config, (address, uint16, string[]));
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (,, string[] memory params_) = abi.decode(config, (address, uint16, string[]));
         super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
@@ -40,7 +41,8 @@ contract PowersAction_Simple is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        (address powersTarget, uint16 mandateIdTarget, ) = abi.decode(getConfig(powers, mandateId), (address, uint16, string[]));    
+        (address powersTarget, uint16 mandateIdTarget,) =
+            abi.decode(getConfig(powers, mandateId), (address, uint16, string[]));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Send the calldata to the target function
@@ -51,8 +53,8 @@ contract PowersAction_Simple is Mandate {
             mandateIdTarget,
             mandateCalldata,
             nonce,
-            "" // this can be filled out at a later stage. 
-            );
+            "" // this can be filled out at a later stage.
+        );
 
         return (actionId, targets, values, calldatas);
     }

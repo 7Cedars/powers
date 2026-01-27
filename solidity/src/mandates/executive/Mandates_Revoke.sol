@@ -17,10 +17,12 @@ contract Mandates_Revoke is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("uint16[] mandateIds");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }

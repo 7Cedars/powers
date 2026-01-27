@@ -18,10 +18,10 @@ contract RoleByTransaction is Mandate {
         uint256 amount;
         uint256 thresholdAmount;
         uint256 newRoleId;
-        address safeProxy; 
-        address account; 
-        bool success; 
-    } 
+        address safeProxy;
+        address account;
+        bool success;
+    }
 
     /// @notice Constructor for RoleByRoles mandate
     constructor() {
@@ -30,31 +30,34 @@ contract RoleByTransaction is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {   
-        (address token, , , ) = abi.decode(config, (address, uint256, uint256, address));
-        if (token == address(0)) { revert ("Native token transfers not supported");}
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (address token,,,) = abi.decode(config, (address, uint256, uint256, address));
+        if (token == address(0)) revert("Native token transfers not supported");
 
         inputParams = abi.encode("uint256 Amount");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
     function handleRequest(
-        address caller, 
-        address /*powers*/, 
-        uint16 mandateId, 
-        bytes memory mandateCalldata, 
+        address caller,
+        address,
+        /*powers*/
+        uint16 mandateId,
+        bytes memory mandateCalldata,
         uint256 nonce
-        ) 
+    )
         public
         view
         virtual
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        // step 1: decode the calldata & create hashes 
+        // step 1: decode the calldata & create hashes
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         calldatas = new bytes[](2);
@@ -70,7 +73,8 @@ contract RoleByTransaction is Mandate {
         bytes[] memory calldatas
     ) internal override {
         Mem memory mem;
-        (mem.token, mem.thresholdAmount, mem.newRoleId, mem.safeProxy) = abi.decode(getConfig(msg.sender, mandateId), (address, uint256, uint256, address));
+        (mem.token, mem.thresholdAmount, mem.newRoleId, mem.safeProxy) =
+            abi.decode(getConfig(msg.sender, mandateId), (address, uint256, uint256, address));
         mem.amount = abi.decode(calldatas[0], (uint256));
         mem.account = abi.decode(calldatas[1], (address));
         mem.success;
@@ -82,7 +86,9 @@ contract RoleByTransaction is Mandate {
         } else {
             (mem.success,) = mem.token
                 .call(
-                    abi.encodeWithSignature("transferFrom(address,address,uint256)", mem.account, mem.safeProxy, mem.amount)
+                    abi.encodeWithSignature(
+                        "transferFrom(address,address,uint256)", mem.account, mem.safeProxy, mem.amount
+                    )
                 );
         }
         require(mem.success, "Transaction failed");

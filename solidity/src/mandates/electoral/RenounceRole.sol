@@ -12,9 +12,9 @@ import { Powers } from "../../Powers.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract RenounceRole is Mandate {
-    struct Mem { 
+    struct Mem {
         uint256 roleId;
-        uint256 i; 
+        uint256 i;
         bool allowed;
         uint256[] allowedRoleIds;
     }
@@ -25,15 +25,23 @@ contract RenounceRole is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {  
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("uint256 roleId");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
 
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual

@@ -30,14 +30,14 @@ contract DelegateTokenSelect is Mandate {
         address[] nominees;
         uint256 numNominees;
         address[] rankedNominees;
-        uint256 tempVotes; 
+        uint256 tempVotes;
         address tempNominee;
         uint256[] delegatedVotes;
         address[] elected;
         uint256 totalOperations;
         uint256 operationIndex;
         uint256 i;
-        uint256 j; 
+        uint256 j;
     }
 
     /// @notice Constructor for DelegateTokenSelect mandate
@@ -61,7 +61,7 @@ contract DelegateTokenSelect is Mandate {
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    {   
+    {
         Mem memory mem;
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (mem.votesToken, mem.nomineesContract, mem.roleId, mem.maxRoleHolders) =
@@ -78,7 +78,7 @@ contract DelegateTokenSelect is Mandate {
         // Step 2: Get nominees
         mem.nominees = Nominees(mem.nomineesContract).getNominees();
         mem.numNominees = mem.nominees.length;
-        
+
         // Gas optimization: If all nominees will be elected, skip ranking
         if (mem.numNominees <= mem.maxRoleHolders) {
             // All nominees get elected, no need to rank by delegated tokens
@@ -87,7 +87,7 @@ contract DelegateTokenSelect is Mandate {
             // Need to rank by delegated tokens and select top maxRoleHolders
             mem.rankedNominees = new address[](mem.numNominees);
             mem.delegatedVotes = new uint256[](mem.numNominees);
-        
+
             // Get delegated votes for each nominee
             for (mem.i = 0; mem.i < mem.numNominees; mem.i++) {
                 mem.rankedNominees[mem.i] = mem.nominees[mem.i];
@@ -141,7 +141,8 @@ contract DelegateTokenSelect is Mandate {
         // Step 6: Assign roles to newly elected accounts
         for (mem.i = 0; mem.i < mem.elected.length; mem.i++) {
             targets[mem.operationIndex] = powers;
-            calldatas[mem.operationIndex] = abi.encodeWithSelector(Powers.assignRole.selector, mem.roleId, mem.elected[mem.i]);
+            calldatas[mem.operationIndex] =
+                abi.encodeWithSelector(Powers.assignRole.selector, mem.roleId, mem.elected[mem.i]);
             mem.operationIndex++;
         }
 

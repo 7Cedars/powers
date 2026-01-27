@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @title AllowedTokens
  * @notice Registry of allowed ERC20 tokens managed by the owner
- * It works on the basis of an array (not mapping) to facilitate looping through allowed tokens. 
+ * It works on the basis of an array (not mapping) to facilitate looping through allowed tokens.
  * @author 7Cedars
  */
 contract AllowedTokens is Ownable {
@@ -18,7 +18,7 @@ contract AllowedTokens is Ownable {
     event TokenAdded(address indexed token);
     event TokenRemoved(address indexed token);
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) { }
 
     /**
      * @notice Sets the allowed status of a token
@@ -65,9 +65,9 @@ contract AllowedTokens is Ownable {
     }
 
     /**
-    * @notice Returns the count of allowed tokens
-    * @return uint256 The number of allowed tokens
-    */
+     * @notice Returns the count of allowed tokens
+     * @return uint256 The number of allowed tokens
+     */
     function getAllowedTokensCount() external view returns (uint256) {
         return _allowedTokensCount;
     }

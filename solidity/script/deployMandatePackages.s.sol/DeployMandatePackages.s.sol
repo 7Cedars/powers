@@ -18,12 +18,12 @@ import { PowerLabs_Frontend } from "@src/packaged-mandates/PowersLabs_Frontend.s
 import { PowerLabs_Protocol } from "@src/packaged-mandates/PowersLabs_Protocol.sol";
 
 // @dev this script deploys custom mandate packages to the chain.
-contract DeployMandatePackages is Script { 
+contract DeployMandatePackages is Script {
     bytes32 salt = bytes32(abi.encodePacked("MandatePackageDeploymentSaltV1"));
     InitialisePowers initialisePowers;
     Configurations helperConfig;
     Configurations.NetworkConfig public config;
-    Powers powers; 
+    Powers powers;
 
     // PowerLabsConfig
     function run() external returns (string[] memory packageNames, address[] memory packageAddresses) {

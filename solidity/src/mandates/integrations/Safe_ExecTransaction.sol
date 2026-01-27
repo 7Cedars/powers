@@ -15,13 +15,13 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract Safe_ExecTransaction is Mandate {
     struct Mem {
         bytes data;
-        address to; 
-        address target; 
-        bytes4 functionSelector; 
+        address to;
+        address target;
+        bytes4 functionSelector;
         bytes configBytes;
         address safeAddress;
         bytes powersSignature;
-    } 
+    }
 
     // abi.encode("address TargetContract", "bytes4 FunctionSelector", "bytes paramsBefore", "string[] Params", "uint16 parentMandateId", "bytes paramsAfter");
 
@@ -34,8 +34,8 @@ contract Safe_ExecTransaction is Mandate {
     function initializeMandate(uint16 index, string memory nameDescription, bytes memory, bytes memory config)
         public
         override
-    { 
-        (string[] memory inputParamsRaw, , ) = abi.decode(config, (string[], bytes4, address));
+    {
+        (string[] memory inputParamsRaw,,) = abi.decode(config, (string[], bytes4, address));
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsRaw), config);
     }
 
@@ -64,7 +64,7 @@ contract Safe_ExecTransaction is Mandate {
         Mem memory mem;
 
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        ( , mem.functionSelector, mem.target) = abi.decode(getConfig(powers, mandateId), (string[], bytes4, address)); 
+        (, mem.functionSelector, mem.target) = abi.decode(getConfig(powers, mandateId), (string[], bytes4, address));
         mem.safeAddress = IPowers(powers).getTreasury();
         if (mem.safeAddress == address(0)) {
             revert("No Safe treasury set");

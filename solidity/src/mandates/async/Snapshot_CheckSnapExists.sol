@@ -6,8 +6,6 @@ pragma solidity 0.8.26;
 // //
 // // @author 7Cedars,
 
-
-
 // import { Mandate } from "../../Mandate.sol";
 // import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 // import { Powers } from "../../Powers.sol";

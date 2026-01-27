@@ -116,10 +116,12 @@ contract Github_ClaimRoleWithSig is Mandate, FunctionsClient {
 
     // --- Mandate Initialization ---
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         bytes32 mandateHash = MandateUtilities.hashMandate(msg.sender, index);
 
         (
@@ -186,7 +188,7 @@ contract Github_ClaimRoleWithSig is Mandate, FunctionsClient {
         mem.args[2] = data_.paths[mem.indexPath];
 
         // Create empty arrays for the execution plan
-        // if callback takes too much gas, can call fulfill here by creatng empty targets slot. 
+        // if callback takes too much gas, can call fulfill here by creatng empty targets slot.
         // (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
 
         // Pack data needed for the _externalCall and fulfillRequest
@@ -287,15 +289,10 @@ contract Github_ClaimRoleWithSig is Mandate, FunctionsClient {
 
         // executing this in the callback function fails because it takes too much gas.
         // leaving it here to remember.
-        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) = MandateUtilities.createEmptyArrays(1);
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
+            MandateUtilities.createEmptyArrays(1);
 
-        Powers(request.powers).fulfill(
-            request.mandateId,
-            request.actionId,
-            targets,
-            values,
-            calldatas
-        );
+        Powers(request.powers).fulfill(request.mandateId, request.actionId, targets, values, calldatas);
     }
 
     // --- View Functions ---

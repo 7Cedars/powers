@@ -23,7 +23,7 @@ contract CheckExternalActionState is Mandate {
         public
         override
     {
-        (, , string[] memory inputParams_) = abi.decode(config, (address, uint16, string[])); 
+        (,, string[] memory inputParams_) = abi.decode(config, (address, uint16, string[]));
         super.initializeMandate(index, nameDescription, abi.encode(inputParams_), config);
     }
 
@@ -42,8 +42,8 @@ contract CheckExternalActionState is Mandate {
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         Mem memory mem;
         mem.configBytes = getConfig(powers, mandateId);
-        (mem.parentPowers, mem.configMandateId, ) = abi.decode(mem.configBytes, (address, uint16, string[]));
-   
+        (mem.parentPowers, mem.configMandateId,) = abi.decode(mem.configBytes, (address, uint16, string[]));
+
         mem.remoteActionId = MandateUtilities.computeActionId(mem.configMandateId, mandateCalldata, nonce);
         PowersTypes.ActionState state = IPowers(mem.parentPowers).getActionState(mem.remoteActionId);
         if (state != PowersTypes.ActionState.Fulfilled) {

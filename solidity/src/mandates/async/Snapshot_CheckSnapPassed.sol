@@ -5,7 +5,6 @@ pragma solidity 0.8.26;
 // TBI: Basic logic sho
 //
 // @author 7Cedars,
- 
 
 // import { Mandate } from "../../Mandate.sol";
 // import { MandateUtilities } from "../../libraries/MandateUtilities.sol";

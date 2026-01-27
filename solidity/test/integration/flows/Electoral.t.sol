@@ -6,8 +6,12 @@ import { Powers } from "@src/Powers.sol";
 import { Mandate } from "@src/Mandate.sol";
 import { Nominees } from "@src/helpers/Nominees.sol";
 import { ElectionList } from "@src/helpers/ElectionList.sol";
-import { TestSetupDelegateTokenFlow, TestSetupElectionListFlow, TestSetupAssignExternalRoleParentFlow } from "../../TestSetup.t.sol";
- 
+import {
+    TestSetupDelegateTokenFlow,
+    TestSetupElectionListFlow,
+    TestSetupAssignExternalRoleParentFlow
+} from "../../TestSetup.t.sol";
+
 import { Nominees } from "@src/helpers/Nominees.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 
@@ -17,7 +21,7 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 
     function setUp() public override {
         super.setUp();
-       
+
         // Identify helpers from the setup
         vm.startPrank(address(daoMock));
         // Give Frank Role 1 so he can nominate (as per constitution allowedRole=1 for Nominate)
@@ -28,7 +32,7 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 
     function testDelegateTokenFlow_FullInteraction() public {
         // --- 1. NOMINATION FLOW ---
-        console2.log("--- Step 1: Nomination ---"); 
+        console2.log("--- Step 1: Nomination ---");
         console2.log("owner of nominees:", nominees.owner());
 
         // Alice nominates
@@ -43,22 +47,12 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 
         // Bob nominates
         vm.prank(bob);
-        daoMock.request(
-            MANDATE_NOMINATE,
-            abi.encode(true),
-            nonce++,
-            "Bob Nominates"
-        );
+        daoMock.request(MANDATE_NOMINATE, abi.encode(true), nonce++, "Bob Nominates");
         assertTrue(nominees.isNominee(bob), "Bob should be a nominee");
 
         // Frank nominates
         vm.prank(frank);
-        daoMock.request(
-            MANDATE_NOMINATE,
-            abi.encode(true),
-            nonce++,
-            "Frank Nominates"
-        );
+        daoMock.request(MANDATE_NOMINATE, abi.encode(true), nonce++, "Frank Nominates");
         assertTrue(nominees.isNominee(frank), "Frank should be a nominee");
 
         // Test Revoke Nomination (Alice revokes then renominates)
@@ -72,20 +66,14 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         assertFalse(nominees.isNominee(alice), "Alice should not be a nominee");
 
         vm.prank(alice);
-        daoMock.request(
-            MANDATE_NOMINATE,
-            abi.encode(true),
-            nonce++,
-            "Alice Renominates"
-        );
+        daoMock.request(MANDATE_NOMINATE, abi.encode(true), nonce++, "Alice Renominates");
         assertTrue(nominees.isNominee(alice), "Alice should be a nominee again");
-
 
         // --- 2. VOTE DISTRIBUTION ---
         console2.log("--- Step 2: Vote Distribution ---");
         // Mint votes: Frank > Bob > Alice
         // Frank: 90, Bob: 60, Alice: 30
-        
+
         vm.prank(frank);
         simpleErc20Votes.mint(90 ether);
         vm.prank(frank);
@@ -105,10 +93,9 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         assertEq(simpleErc20Votes.getVotes(bob), 60 ether, "Bob vote balance wrong");
         assertEq(simpleErc20Votes.getVotes(alice), 30 ether, "Alice vote balance wrong");
 
-
         // --- 3. ELECTION FLOW ---
         console2.log("--- Step 3: Election ---");
-        
+
         // Current Role 2 holders (from setup): Charlotte, David
         assertTrue(daoMock.hasRoleSince(charlotte, ROLE_TWO) > 0, "Charlotte should have Role 2");
         assertTrue(daoMock.hasRoleSince(david, ROLE_TWO) > 0, "David should have Role 2");
@@ -127,20 +114,19 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         // Verification
         // Expected: Charlotte/David removed. Frank, Bob, Alice assigned.
         // MaxRoleHolders is 3. We have 3 nominees. All should be elected.
-        
+
         assertFalse(daoMock.hasRoleSince(charlotte, ROLE_TWO) > 0, "Charlotte should have lost Role 2");
         assertFalse(daoMock.hasRoleSince(david, ROLE_TWO) > 0, "David should have lost Role 2");
-        
+
         assertTrue(daoMock.hasRoleSince(frank, ROLE_TWO) > 0, "Frank should have Role 2");
         assertTrue(daoMock.hasRoleSince(bob, ROLE_TWO) > 0, "Bob should have Role 2");
         assertTrue(daoMock.hasRoleSince(alice, ROLE_TWO) > 0, "Alice should have Role 2");
 
         assertEq(daoMock.getAmountRoleHolders(ROLE_TWO), 3, "Should be exactly 3 delegates");
 
-
         // --- 4. RE-ELECTION FLOW ---
         console2.log("--- Step 4: Re-election ---");
-        
+
         // Change votes: Frank transfers 90 to Alice.
         // New weights: Alice (120), Bob (60), Frank (0)
         // Frank is still a nominee, but has 0 votes.
@@ -154,12 +140,7 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         // Throttle is 600 blocks.
         vm.expectRevert(); // Powers__MandateThrottled
         vm.prank(eve);
-        daoMock.request(
-            MANDATE_ELECT,
-            abi.encode(),
-            nonce++,
-            "Run Election Early"
-        );
+        daoMock.request(MANDATE_ELECT, abi.encode(), nonce++, "Run Election Early");
 
         // Advance time
         vm.roll(block.number + 601);
@@ -170,14 +151,14 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
         // Max holders = 3.
         // Expected order: Alice (120), Bob (60), Gary (50), Frank (0).
         // Elected: Alice, Bob, Gary. Frank should be removed.
-        
+
         // Give Gary Role 1 to nominate
         vm.prank(address(daoMock));
         daoMock.assignRole(ROLE_ONE, gary);
-        
+
         vm.prank(gary);
         daoMock.request(MANDATE_NOMINATE, abi.encode(true), nonce++, "Gary Nominates");
-        
+
         vm.prank(gary); // Gary mints his own votes
         simpleErc20Votes.mint(50 ether);
         vm.prank(gary);
@@ -185,12 +166,7 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 
         // Execute Election
         vm.prank(eve);
-        daoMock.request(
-            MANDATE_ELECT,
-            abi.encode(),
-            nonce++,
-            "Run Election Again"
-        );
+        daoMock.request(MANDATE_ELECT, abi.encode(), nonce++, "Run Election Again");
 
         // Verification
         assertTrue(daoMock.hasRoleSince(alice, ROLE_TWO) > 0, "Alice should keep Role 2");
@@ -207,8 +183,8 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //     uint16 constant MANDATE_START_ELECTION = 2;
 //     uint16 constant MANDATE_END_ELECTION = 3;
 //     uint16 constant VOTE_MANDATE_ID = 4; // Expected ID for the dynamically deployed vote mandate
- 
-//     function testElectionListFlow_FullInteraction() public { 
+
+//     function testElectionListFlow_FullInteraction() public {
 //         // --- 1. NOMINATION FLOW ---
 //         console2.log("--- Step 1: Nomination ---");
 
@@ -269,7 +245,6 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //         assertEq(nominees[1], bob, "Second nominee should be Bob");
 //         assertEq(nominees[2], frank, "Third nominee should be Frank");
 
-
 //         // --- 2. START ELECTION FLOW ---
 //         console2.log("--- Step 2: Start Election ---");
 
@@ -286,23 +261,22 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //         );
 
 //         assertTrue(openElection.isElectionOpen(), "Election should be open");
-        
+
 //         // Verify Vote Mandate was adopted
 //         (address voteMandateAddr,, bool active) = daoMock.getAdoptedMandate(VOTE_MANDATE_ID);
 //         assertTrue(active, "Vote mandate should be active");
 //         assertTrue(voteMandateAddr != address(0), "Vote mandate address should be set");
-
 
 //         // --- 3. VOTING FLOW ---
 //         console2.log("--- Step 3: Voting ---");
 
 //         // Nominees: [Alice, Bob, Frank]
 //         // Votes are bool[]
-        
+
 //         // Alice votes for Alice
 //         bool[] memory votesForAlice = new bool[](3);
 //         votesForAlice[0] = true; // Alice
-        
+
 //         vm.prank(alice);
 //         daoMock.request(
 //             VOTE_MANDATE_ID,
@@ -353,7 +327,7 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //         // Verify intermediate vote counts (Election ID matches VOTE_MANDATE_ID = 4)
 //         uint256 electionId = openElection.currentElectionId();
 //         assertEq(electionId, VOTE_MANDATE_ID, "Election ID should match Vote Mandate ID");
-        
+
 //         assertEq(openElection.getVoteCount(alice, electionId), 3, "Alice should have 3 votes");
 //         assertEq(openElection.getVoteCount(bob, electionId), 2, "Bob should have 2 votes");
 //         assertEq(openElection.getVoteCount(frank, electionId), 0, "Frank should have 0 votes");
@@ -372,11 +346,11 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //         bool[] memory multiVote = new bool[](3);
 //         multiVote[0] = true;
 //         multiVote[1] = true;
-        
+
 //         // Need a fresh voter for this test, let's use Ian
 //         vm.prank(address(daoMock));
 //         daoMock.assignRole(ROLE_ONE, ian);
-        
+
 //         vm.expectRevert("Voter tries to vote for more than maxVotes nominees.");
 //         vm.prank(ian);
 //         daoMock.request(
@@ -385,7 +359,6 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //             nonce++,
 //             "Ian votes for multiple"
 //         );
-
 
 //         // --- 4. END ELECTION FLOW ---
 //         console2.log("--- Step 4: End Election ---");
@@ -433,7 +406,6 @@ contract DelegateTokenFlow_IntegrationTest is TestSetupDelegateTokenFlow {
 //     }
 // }
 
-
 contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRoleParentFlow {
     // Mandate IDs
     // Parent Mandate 1: "Admin can assign any role" (BespokeAction_Simple)
@@ -443,7 +415,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
 
     function setUp() public override {
         super.setUp();
-        
+
         // Assign ADMIN_ROLE (0) to Alice in Parent (daoMock) so she can execute the Parent mandate.
         // The Parent mandate "Admin can assign any role" has allowedRole = 0.
         vm.prank(address(daoMock));
@@ -454,7 +426,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         // Verify Parent Roles
         assertTrue(daoMock.hasRoleSince(alice, ROLE_ONE) > 0, "Alice should have Role 1 in Parent");
         assertTrue(daoMock.hasRoleSince(bob, ROLE_ONE) > 0, "Bob should have Role 1 in Parent");
-        
+
         // Verify Frank (random user) does not have Role 1
         assertFalse(daoMock.hasRoleSince(frank, ROLE_ONE) > 0, "Frank should NOT have Role 1 in Parent");
 
@@ -465,10 +437,10 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
 
     function testExternalRole_InheritFlow() public {
         console2.log("--- Inherit Flow (Parent -> Child Sync) ---");
-        
+
         // Alice has Role 1 in Parent (from setup).
         // She executes Child Mandate to sync.
-        
+
         vm.prank(alice);
         daoMockChild1.request(
             CHILD_MANDATE_SYNC,
@@ -487,57 +459,47 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         // Parent Mandate takes: "uint256 roleId", "address account"
         // Note: BespokeAction_Simple expects params in abi.encode(params_) where params_ is string[].
         // Wait, let's check BespokeAction_Simple.sol again.
-        
+
         // BespokeAction_Simple.sol:
         // (data[mandateHash].targetContract, data[mandateHash].targetFunction, params_) = abi.decode(config, (address, bytes4, string[]));
         // inputParams = abi.encode(params_);
-        
+
         // handleRequest:
         // calldatas[0] = abi.encodePacked(data[mandateHash].targetFunction, mandateCalldata);
-        
+
         // mandateCalldata comes from request(..., mandateCalldata, ...).
         // The "params_" in config are just descriptions for UI?
         // The prompt context for BespokeAction_Simple.sol says:
         // initializeMandate: inputParams = abi.encode(params_);
-        
+
         // When calling request(), we pass the arguments encoded.
         // The Parent Mandate config in TestConstitutions:
         // dynamicParams[0] = "uint256 roleId"; dynamicParams[1] = "address account";
         // config: abi.encode(..., dynamicParams)
-        
+
         // So BespokeAction_Simple decodes "params_" as ["uint256 roleId", "address account"].
         // This inputParams is mostly metadata.
         // But handleRequest appends mandateCalldata directly to selector.
         // So we need to encode (uint256, address).
-        
+
         bytes memory params = abi.encode(ROLE_ONE, frank);
 
         vm.prank(alice); // Alice is Admin
-        daoMock.request(
-            PARENT_MANDATE_ASSIGN,
-            params,
-            nonce++,
-            "Assign Frank Role 1"
-        );
+        daoMock.request(PARENT_MANDATE_ASSIGN, params, nonce++, "Assign Frank Role 1");
 
         assertTrue(daoMock.hasRoleSince(frank, ROLE_ONE) > 0, "Frank should have Role 1 in Parent");
         assertFalse(daoMockChild1.hasRoleSince(frank, ROLE_ONE) > 0, "Frank should NOT have Role 1 in Child yet");
 
         // 2. Frank Syncs in Child
         vm.prank(frank);
-        daoMockChild1.request(
-            CHILD_MANDATE_SYNC,
-            abi.encode(frank),
-            nonce++,
-            "Frank Syncs Role"
-        );
+        daoMockChild1.request(CHILD_MANDATE_SYNC, abi.encode(frank), nonce++, "Frank Syncs Role");
 
         assertTrue(daoMockChild1.hasRoleSince(frank, ROLE_ONE) > 0, "Frank should have synced Role 1 in Child");
     }
 
     function testExternalRole_RevocationFlow() public {
         console2.log("--- Revocation Flow (Lose in Parent -> Sync Removal) ---");
-        
+
         // Setup: Bob has Role 1 in Parent. Sync him first.
         vm.prank(bob);
         daoMockChild1.request(CHILD_MANDATE_SYNC, abi.encode(bob), nonce++, "Bob Syncs");
@@ -547,18 +509,13 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         // We use direct revocation here as the Parent Mandate is configured for assignment only.
         vm.prank(address(daoMock));
         daoMock.revokeRole(ROLE_ONE, bob);
-        
+
         assertFalse(daoMock.hasRoleSince(bob, ROLE_ONE) > 0, "Bob lost Role 1 in Parent");
         assertTrue(daoMockChild1.hasRoleSince(bob, ROLE_ONE) > 0, "Bob still has Role 1 in Child");
 
         // 2. Bob Syncs (Removal) in Child
         vm.prank(bob);
-        daoMockChild1.request(
-            CHILD_MANDATE_SYNC,
-            abi.encode(bob),
-            nonce++,
-            "Bob Syncs Removal"
-        );
+        daoMockChild1.request(CHILD_MANDATE_SYNC, abi.encode(bob), nonce++, "Bob Syncs Removal");
 
         assertFalse(daoMockChild1.hasRoleSince(bob, ROLE_ONE) > 0, "Bob should have lost Role 1 in Child");
     }
@@ -568,7 +525,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
 
         // Case A: Sync when not in Parent (Frank)
         assertFalse(daoMock.hasRoleSince(frank, ROLE_ONE) > 0, "Frank has no role");
-        
+
         vm.expectRevert("Account does not have role at parent");
         vm.prank(frank);
         daoMockChild1.request(CHILD_MANDATE_SYNC, abi.encode(frank), nonce++, "Frank try sync");
@@ -577,7 +534,7 @@ contract ExternalRoleParentFlow_IntegrationTest is TestSetupAssignExternalRolePa
         // First sync Alice
         vm.prank(alice);
         daoMockChild1.request(CHILD_MANDATE_SYNC, abi.encode(alice), nonce++, "Alice Syncs");
-        
+
         // Try sync again
         // AssignExternalRole checks: if A (has in child) and B (has in parent) -> Revert "Account already has role at parent"
         vm.expectRevert("Account already has role at parent");

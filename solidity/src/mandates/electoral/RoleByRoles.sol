@@ -15,8 +15,8 @@ import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 
 contract RoleByRoles is Mandate {
     struct Mem {
-        address account; 
-        bool hasAnyOfNeededRoles; 
+        address account;
+        bool hasAnyOfNeededRoles;
         bool alreadyHasNewRole;
         uint256 newRoleId;
         uint256[] roleIdsNeeded;
@@ -28,10 +28,12 @@ contract RoleByRoles is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("address Account");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -53,7 +55,7 @@ contract RoleByRoles is Mandate {
         Mem memory mem;
 
         // step 1: decode the calldata & create hashes
-        (mem.account) = abi.decode(mandateCalldata, (address)); 
+        (mem.account) = abi.decode(mandateCalldata, (address));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (mem.newRoleId, mem.roleIdsNeeded) = abi.decode(getConfig(powers, mandateId), (uint256, uint256[]));
 

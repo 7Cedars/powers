@@ -16,19 +16,22 @@ contract PowersFactory_AddSafeDelegate is Mandate {
         bytes returnData;
         address decodedAddress;
     }
-    
+
     constructor() {
-        bytes memory configParams = abi.encode("uint16 factoryMandateId", "address allowanceModule", "string[] inputParams");
+        bytes memory configParams =
+            abi.encode("uint16 factoryMandateId", "address allowanceModule", "string[] inputParams");
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         // Decode the config to get the input params description string
         (,, string[] memory inputParamsDescription) = abi.decode(config, (uint16, address, string[]));
-               
+
         super.initializeMandate(index, nameDescription, abi.encode(inputParamsDescription), config);
     }
 
@@ -45,10 +48,10 @@ contract PowersFactory_AddSafeDelegate is Mandate {
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
         Mem memory mem;
-        
+
         // 1. Get config
         mem.config = getConfig(powers, mandateId);
-        (mem.factoryMandateId, mem.allowanceModule, ) = abi.decode(mem.config, (uint16, address, string[]));
+        (mem.factoryMandateId, mem.allowanceModule,) = abi.decode(mem.config, (uint16, address, string[]));
 
         // 2. Compute current actionId
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
@@ -85,11 +88,11 @@ contract PowersFactory_AddSafeDelegate is Mandate {
         // 8. Construct Safe Transaction
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = safeProxyAddress;
-        
+
         // We call the execTransaction function in our SafeL2 proxy to make the call to the Allowance Module.
         // The Allowance Module has function addDelegate(address delegate)
         // selector for addDelegate(address) is 0xe71bdf41
-        
+
         calldatas[0] = abi.encodeWithSelector(
             Safe.execTransaction.selector,
             mem.allowanceModule, // The internal transaction's destination: the Allowance Module.

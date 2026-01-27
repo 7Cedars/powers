@@ -18,10 +18,12 @@ contract Nominate is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("bool shouldNominate");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -32,13 +34,19 @@ contract Nominate is Mandate {
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata Encoded boolean (true = nominate, false = revoke)
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        (bool shouldNominate) = abi.decode(mandateCalldata, (bool)); 
+        (bool shouldNominate) = abi.decode(mandateCalldata, (bool));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);

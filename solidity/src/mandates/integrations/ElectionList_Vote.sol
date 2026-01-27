@@ -37,18 +37,18 @@ contract ElectionList_Vote is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         Mem memory mem;
         (mem.openElectionContract, mem.maxVotes, mem.electionId) = abi.decode(config, (address, uint256, uint256));
 
-        // Check if election is open - otherwise revert. 
-        if (
-                !ElectionList(mem.openElectionContract).isElectionOpen(mem.electionId)
-            ) {
-                revert("Election is not open.");
+        // Check if election is open - otherwise revert.
+        if (!ElectionList(mem.openElectionContract).isElectionOpen(mem.electionId)) {
+            revert("Election is not open.");
         }
 
         // Get nominees from the ElectionList contract
@@ -69,21 +69,28 @@ contract ElectionList_Vote is Mandate {
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata Encoded bool[] where each index corresponds to a nominee
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         virtual
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        Mem memory mem; 
+        Mem memory mem;
 
         // Decode the vote data
         (mem.vote) = abi.decode(mandateCalldata, (bool[]));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
-        (mem.openElectionContract, mem.maxVotes, mem.electionId) = abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
+        (mem.openElectionContract, mem.maxVotes, mem.electionId) =
+            abi.decode(getConfig(powers, mandateId), (address, uint256, uint256));
         mem.nominees = ElectionList(mem.openElectionContract).getNominees(mem.electionId);
-    
+
         // Check if election is open
         if (!ElectionList(mem.openElectionContract).isElectionOpen(mem.electionId)) {
             revert("Election is not open.");

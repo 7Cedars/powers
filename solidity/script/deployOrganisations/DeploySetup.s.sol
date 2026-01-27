@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-// scripts 
+// scripts
 import { Script } from "forge-std/Script.sol";
 import { console2 } from "forge-std/console2.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -13,7 +13,6 @@ import { PowersTypes } from "@src/interfaces/PowersTypes.sol";
 import { ReformMandate_Static } from "@src/packaged-mandates/MandatePackage_Static.sol";
 
 contract DeploySetup is Script {
-
     function daysToBlocks(uint256 quantityDays, uint256 blocksPerHour) public pure returns (uint32) {
         return uint32(quantityDays * 24 * blocksPerHour);
     }
@@ -26,18 +25,17 @@ contract DeploySetup is Script {
         return uint32((quantityMinutes * blocksPerHour) / 60);
     }
 
-    // this function takes 
-    // as param a long list of MandateInitData, 
+    // this function takes
+    // as param a long list of MandateInitData,
     // deploys the mandates in ReformMandate_Static of packageSize size using create2
     // and returns the mandateInitData for those packages.
     // the packages can then be adopted in Powers but are linked sequentially through needFulfilled conditions.
-    function packageInitData(
-        PowersTypes.MandateInitData[] memory mandateInitData, 
-        uint256 packageSize,
-        uint16 startId
-    ) public returns (PowersTypes.MandateInitData[] memory packages) {
+    function packageInitData(PowersTypes.MandateInitData[] memory mandateInitData, uint256 packageSize, uint16 startId)
+        public
+        returns (PowersTypes.MandateInitData[] memory packages)
+    {
         require(packageSize > 0, "Package size must be greater than 0");
-        
+
         uint256 totalMandates = mandateInitData.length;
         if (totalMandates == 0) {
             return new PowersTypes.MandateInitData[](0);
@@ -71,7 +69,7 @@ contract DeploySetup is Script {
                 // The previous package (i-1) will be at ID: startId + (i-1)
                 // The current package (i) needs the previous one fulfilled.
                 conditions.allowedRole = type(uint256).max; // public
-                if (i > 0) { conditions.needFulfilled = startId + uint16(i) - 1; } 
+                if (i > 0) conditions.needFulfilled = startId + uint16(i) - 1;
             }
 
             packages[i] = PowersTypes.MandateInitData({

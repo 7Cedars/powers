@@ -38,10 +38,12 @@ contract PowerLabs_Frontend is Mandate {
         emit Mandate__Deployed(abi.encode());
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("address SafeProxy");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }

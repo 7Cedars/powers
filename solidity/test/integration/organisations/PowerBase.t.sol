@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 // import { Test, console, console2 } from "lib/forge-std/src/Test.sol";
 // import { Powers } from "../../../src/Powers.sol";
 // import { Mandate } from "../../../src/Mandate.sol";
-// import { Erc20Taxed } from "@mocks/Erc20Taxed.sol"; 
+// import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 
 // import { SafeL2 } from "lib/safe-smart-account/contracts/SafeL2.sol";
 
@@ -38,7 +38,7 @@ pragma solidity 0.8.26;
 //         assertEq(mandate2, findMandateAddress("PowerLabsConfig"), "Mandate 2 target mismatch");
 //     }
 
-//     // £todo: Needs to migrate to unit/mandates/integrations.t.sol  
+//     // £todo: Needs to migrate to unit/mandates/integrations.t.sol
 //     // function testPowerLabs_InitialiseSafe() public {
 //     //     // Deploy and initialise safe
 //     //     vm.prank(alice);
@@ -48,7 +48,7 @@ pragma solidity 0.8.26;
 //     //     assertTrue(safeL2Treasury != address(0), "Safe proxy not deployed");
 //     // }
 
-//     // £todo: Needs to migrate to unit/mandates/integrations.t.sol  
+//     // £todo: Needs to migrate to unit/mandates/integrations.t.sol
 //     // function testPowerLabs_SetupSafe() public {
 //     //     testPowerLabs_InitialiseSafe();
 //     //     safeL2Treasury = daoMock.getTreasury();
@@ -62,7 +62,7 @@ pragma solidity 0.8.26;
 //     //     );
 //     // }
 
-//     // £todo: Needs to migrate to integration/integrations.t.sol  
+//     // £todo: Needs to migrate to integration/integrations.t.sol
 //     function testPowerLabs_AddDelegate() public {
 //         // Setup: Initialize the safe and call PowerLabsConfig
 //         testPowerLabs_SetupSafe();

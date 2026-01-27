@@ -238,7 +238,10 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @return mandate The address of the mandate
     /// @return mandateHash The hash of the mandate
     /// @return active The active status of the mandate
-    function getAdoptedMandate(uint16 mandateId) external view returns (address mandate, bytes32 mandateHash, bool active);
+    function getAdoptedMandate(uint16 mandateId)
+        external
+        view
+        returns (address mandate, bytes32 mandateHash, bool active);
 
     /// @notice Gets the latest fulfillment of a mandate
     /// @param mandateId The id of the mandate
@@ -274,5 +277,4 @@ interface IPowers is PowersErrors, PowersEvents, PowersTypes {
     /// @param account The address to check
     /// @return blacklisted The blacklisted status of the account
     function isBlacklisted(address account) external view returns (bool blacklisted);
- 
 }

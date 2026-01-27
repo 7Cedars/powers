@@ -3,7 +3,7 @@
 /// @dev This mandate uses the v=1 signature type, where the transaction executor (`msg.sender` to the Safe)
 ///      is an owner, thus providing its own approval by making the call.
 /// @author 7Cedars
-// £todo: this mandate should be split in two: 1 setup safe 2: setup config in powers (using return data from first mandate). This will allow each call to be made directly. 
+// £todo: this mandate should be split in two: 1 setup safe 2: setup config in powers (using return data from first mandate). This will allow each call to be made directly.
 pragma solidity 0.8.26;
 
 import { Mandate } from "../../Mandate.sol";
@@ -16,18 +16,19 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 import { console2 } from "lib/forge-std/src/console2.sol"; // REMOVE AFTER TESTING
 
 contract Safe_Setup is Mandate {
-    struct Mem { 
+    struct Mem {
         bytes configBytes;
         address safeProxyFactory;
         address safeL2Singleton;
         address allowanceModule;
         address powers;
         address safeProxyAddress;
-    } 
- 
+    }
+
     /// @notice Exposes the expected input parameters for UIs during deployment.
     constructor() {
-        bytes memory configParams = abi.encode("address safeProxyFactory", "address safeL2Singleton", "address allowanceModule");
+        bytes memory configParams =
+            abi.encode("address safeProxyFactory", "address safeL2Singleton", "address allowanceModule");
         emit Mandate__Deployed(configParams);
     }
 
@@ -77,15 +78,11 @@ contract Safe_Setup is Mandate {
         // console2.log("Waypoint 3");
         mem.powers = abi.decode(calldatas[0], (address));
         // console2.log("Waypoint 4");
-        (
-            mem.safeProxyFactory,
-            mem.safeL2Singleton,
-            mem.allowanceModule
-        ) = abi.decode(getConfig(mem.powers, mandateId), (address, address, address));
+        (mem.safeProxyFactory, mem.safeL2Singleton, mem.allowanceModule) =
+            abi.decode(getConfig(mem.powers, mandateId), (address, address, address));
 
         // console2.log("Safe_Setup: deploying SafeProxy via factory:", mem.safeProxyFactory);
-        
-        
+
         address[] memory owners = new address[](1);
         owners[0] = mem.powers;
         bytes memory signature = abi.encodePacked(
@@ -112,7 +109,7 @@ contract Safe_Setup is Mandate {
                     1 // = nonce
                 )
         );
-        
+
         // step 2: create array for callback to powers
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(3);
 
@@ -138,7 +135,7 @@ contract Safe_Setup is Mandate {
         // call 2b: set the SafeProxy as the treasury in Powers
         targets[1] = mem.powers;
         calldatas[1] = abi.encodeWithSelector(IPowers.setTreasury.selector, mem.safeProxyAddress);
-        
+
         // call 2c: revoke this mandate from Powers
         targets[2] = mem.powers;
         calldatas[2] = abi.encodeWithSelector(IPowers.revokeMandate.selector, mandateId);

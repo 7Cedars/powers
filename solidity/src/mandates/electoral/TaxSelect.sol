@@ -56,10 +56,12 @@ contract TaxSelect is Mandate {
     /// @param index The index of the mandate in the DAO
     /// @param nameDescription The description of the mandate
     /// @param config The configuration parameters (erc20Taxed, thresholdTaxPaid, roleIdToSet)
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("address Account");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -93,7 +95,8 @@ contract TaxSelect is Mandate {
         // step 0: create actionId & decode the calldata
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (mem.account) = abi.decode(mandateCalldata, (address));
-        (mem.erc20TaxedMock, mem.thresholdTaxPaid, mem.roleIdToSet) = abi.decode(getConfig(powers, mandateId), (address, uint256, uint256)); // silence solc warning
+        (mem.erc20TaxedMock, mem.thresholdTaxPaid, mem.roleIdToSet) =
+            abi.decode(getConfig(powers, mandateId), (address, uint256, uint256)); // silence solc warning
 
         // step 1: retrieve data
         mem.epochDuration = Erc20Taxed(mem.erc20TaxedMock).EPOCH_DURATION();
@@ -106,8 +109,7 @@ contract TaxSelect is Mandate {
         // step 2: retrieve data on tax paid and role
         mem.hasRole = Powers(payable(powers)).hasRoleSince(mem.account, mem.roleIdToSet) > 0;
         // console.log("mem.hasRole", mem.hasRole);
-        mem.taxPaid =
-            Erc20Taxed(mem.erc20TaxedMock).getTaxLogs(uint48(block.number) - mem.epochDuration, mem.account);
+        mem.taxPaid = Erc20Taxed(mem.erc20TaxedMock).getTaxLogs(uint48(block.number) - mem.epochDuration, mem.account);
         // console.log("mem.taxPaid", mem.taxPaid);
 
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);

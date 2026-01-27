@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-/// @notice A mandate that retrieves return data of a previous mandate call, and uses the return value for its own call. 
+/// @notice A mandate that retrieves return data of a previous mandate call, and uses the return value for its own call.
 /// parameters set before and after the return data can be specified.
 /// @author 7Cedars,
 
@@ -12,16 +12,24 @@ import { IPowers } from "../../interfaces/IPowers.sol";
 contract BespokeAction_OnReturnValue is Mandate {
     /// @notice Constructor of the BespokeAction_Simple mandate
     constructor() {
-        bytes memory configParams =
-            abi.encode("address TargetContract", "bytes4 FunctionSelector", "bytes paramsBefore", "string[] Params", "uint16 parentMandateId", "bytes paramsAfter");
+        bytes memory configParams = abi.encode(
+            "address TargetContract",
+            "bytes4 FunctionSelector",
+            "bytes paramsBefore",
+            "string[] Params",
+            "uint16 parentMandateId",
+            "bytes paramsAfter"
+        );
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {
-        (, , , string[] memory params_, , ) = abi.decode(config, (address, bytes4, bytes, string[], uint16, bytes));
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
+        (,,, string[] memory params_,,) = abi.decode(config, (address, bytes4, bytes, string[], uint16, bytes));
         super.initializeMandate(index, nameDescription, abi.encode(params_), config);
     }
 
@@ -41,7 +49,13 @@ contract BespokeAction_OnReturnValue is Mandate {
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
-        (address targetContract,  bytes4 targetFunction, bytes memory paramsBefore, , uint16 parentMandateId, bytes memory paramsAfter) = abi.decode(getConfig(powers, mandateId), (address, bytes4,  bytes, string[], uint16, bytes));    
+        (
+            address targetContract,
+            bytes4 targetFunction,
+            bytes memory paramsBefore,,
+            uint16 parentMandateId,
+            bytes memory paramsAfter
+        ) = abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes, string[], uint16, bytes));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         uint256 parentActionId = MandateUtilities.computeActionId(parentMandateId, mandateCalldata, nonce);
         bytes memory returnData = IPowers(powers).getActionReturnData(parentActionId, 0);
@@ -54,4 +68,3 @@ contract BespokeAction_OnReturnValue is Mandate {
         return (actionId, targets, values, calldatas);
     }
 }
- 

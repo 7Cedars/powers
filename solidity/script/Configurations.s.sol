@@ -23,7 +23,7 @@ contract Configurations is Script {
         address safeAllowanceModule;
     }
 
-    uint256 constant LOCAL_CHAIN_ID = 31_337; 
+    uint256 constant LOCAL_CHAIN_ID = 31_337;
     uint256 constant ETH_SEPOLIA_CHAIN_ID = 11_155_111;
     uint256 constant OPT_SEPOLIA_CHAIN_ID = 11_155_420;
     uint256 constant ARB_SEPOLIA_CHAIN_ID = 421_614;
@@ -125,7 +125,7 @@ contract Configurations is Script {
         networkConfig.chainlinkFunctionsGasLimit = 300_000;
         networkConfig.chainlinkFunctionsDonId = 0x66756e2d6f7074696d69736d2d7365706f6c69612d3100000000000000000000;
         networkConfig.chainlinkFunctionsEncryptedSecretsEndpoint = "https://01.functions-gateway.testnet.chain.link/";
-        
+
         networkConfig.safeCanonical = 0x41675C099F32341bf84BFc5382aF534df5C7461a;
         networkConfig.safeL2Canonical = 0x29fcB43b46531BcA003ddC8FCB67FFE91900C762;
         networkConfig.safeProxyFactory = 0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67;

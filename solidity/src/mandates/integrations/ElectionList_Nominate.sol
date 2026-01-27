@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/// NB! I think I can do this using bespoke action on return value. Try out in a bit! 
-
+/// NB! I think I can do this using bespoke action on return value. Try out in a bit!
 
 /// @notice Starts an election by calling openElection on the ElectionList contract
 /// and deploys an ElectionList_Vote contract for voting.
@@ -19,7 +18,7 @@ import { Mandate } from "../../Mandate.sol";
 import { MandateUtilities } from "../../libraries/MandateUtilities.sol";
 import { ElectionList } from "../../helpers/ElectionList.sol";
 
-contract ElectionList_Nominate is Mandate { 
+contract ElectionList_Nominate is Mandate {
     struct Mem {
         address electionList;
         bool shouldNominate;
@@ -27,7 +26,7 @@ contract ElectionList_Nominate is Mandate {
         uint48 startBlock;
         uint48 endBlock;
         uint256 electionId;
-    } 
+    }
 
     /// @notice Constructor for Nominate mandate
     constructor() {
@@ -35,10 +34,12 @@ contract ElectionList_Nominate is Mandate {
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    {   
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         inputParams = abi.encode("string Title", "uint48 StartBlock", "uint48 EndBlock");
         super.initializeMandate(index, nameDescription, inputParams, config);
     }
@@ -49,12 +50,18 @@ contract ElectionList_Nominate is Mandate {
     /// @param mandateId The mandate identifier
     /// @param mandateCalldata Encoded boolean (true = nominate, false = revoke)
     /// @param nonce Unique nonce to build the action id
-    function handleRequest(address caller, address powers, uint16 mandateId, bytes memory mandateCalldata, uint256 nonce)
+    function handleRequest(
+        address caller,
+        address powers,
+        uint16 mandateId,
+        bytes memory mandateCalldata,
+        uint256 nonce
+    )
         public
         view
         override
         returns (uint256 actionId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
-    { 
+    {
         Mem memory mem;
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
         (mem.electionList, mem.shouldNominate) = abi.decode(getConfig(powers, mandateId), (address, bool)); // ElectionList contract address

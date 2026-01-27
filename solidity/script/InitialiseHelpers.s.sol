@@ -17,20 +17,20 @@ import { SimpleGovernor } from "@mocks/SimpleGovernor.sol";
 import { SimpleErc20Votes } from "@mocks/SimpleErc20Votes.sol";
 import { Erc20Taxed } from "@mocks/Erc20Taxed.sol";
 import { Erc20DelegateElection } from "@mocks/Erc20DelegateElection.sol";
-import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol"; 
+import { SimpleErc1155 } from "@mocks/SimpleErc1155.sol";
 
 // helper contracts
 import { Donations } from "@src/helpers/Donations.sol";
 import { FlagActions } from "@src/helpers/FlagActions.sol";
 import { Grant } from "@src/helpers/Grant.sol";
 import { ElectionList } from "@src/helpers/ElectionList.sol";
-import { Nominees } from "@src/helpers/Nominees.sol"; 
+import { Nominees } from "@src/helpers/Nominees.sol";
 
-// @dev this script is used to deploy the Helpers to the chain. 
-contract InitialiseHelpers is Script { 
+// @dev this script is used to deploy the Helpers to the chain.
+contract InitialiseHelpers is Script {
     string[] names;
     address[] addresses;
-    bytes[] creationCodes; 
+    bytes[] creationCodes;
     uint256 index;
 
     function run() public {
@@ -38,7 +38,7 @@ contract InitialiseHelpers is Script {
         names.push("SimpleErc20Votes");
         creationCodes.push(type(SimpleErc20Votes).creationCode);
         addresses.push(deployHelper(creationCodes[index], names[index]));
-        
+
         index = names.length;
         names.push("Erc20Taxed");
         creationCodes.push(type(Erc20Taxed).creationCode);
@@ -51,9 +51,13 @@ contract InitialiseHelpers is Script {
 
         index = names.length;
         names.push("SimpleGovernor");
-        creationCodes.push(abi.encodePacked(type(SimpleGovernor).creationCode, abi.encode(computeHelperAddress(creationCodes[0], names[0]))));
+        creationCodes.push(
+            abi.encodePacked(
+                type(SimpleGovernor).creationCode, abi.encode(computeHelperAddress(creationCodes[0], names[0]))
+            )
+        );
         addresses.push(deployHelper(creationCodes[index], names[index]));
- 
+
         index = names.length;
         names.push("Donations");
         creationCodes.push(type(Donations).creationCode);
@@ -68,7 +72,7 @@ contract InitialiseHelpers is Script {
         names.push("Grant");
         creationCodes.push(type(Grant).creationCode);
         addresses.push(deployHelper(creationCodes[index], names[index]));
-        
+
         index = names.length;
         names.push("Nominees");
         creationCodes.push(type(Nominees).creationCode);
@@ -76,9 +80,9 @@ contract InitialiseHelpers is Script {
 
         index = names.length;
         names.push("ElectionList");
-        creationCodes.push(type(ElectionList).creationCode);    
+        creationCodes.push(type(ElectionList).creationCode);
         addresses.push(deployHelper(creationCodes[index], names[index]));
-        
+
         index = names.length;
         names.push("Erc20DelegateElection");
         creationCodes.push(abi.encodePacked(type(Erc20DelegateElection).creationCode, abi.encode(addresses[0])));

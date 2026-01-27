@@ -26,19 +26,21 @@ contract BespokeAction_Advanced is Mandate {
         bytes memory configParams = abi.encode(
             "address TargetContract",
             "bytes4 TargetFunction",
-            "bytes staticParamsBefore", 
-            "string[] dynamicParams", 
+            "bytes staticParamsBefore",
+            "string[] dynamicParams",
             "bytes staticParamsAfter"
         );
         emit Mandate__Deployed(configParams);
     }
 
-    function initializeMandate(uint16 index, string memory nameDescription, bytes memory inputParams, bytes memory config)
-        public
-        override
-    { 
+    function initializeMandate(
+        uint16 index,
+        string memory nameDescription,
+        bytes memory inputParams,
+        bytes memory config
+    ) public override {
         Mem memory mem;
-        ( , , , mem.dynamicParams, ) = abi.decode(config, (address, bytes4, bytes, string[], bytes));
+        (,,, mem.dynamicParams,) = abi.decode(config, (address, bytes4, bytes, string[], bytes));
         super.initializeMandate(index, nameDescription, abi.encode(mem.dynamicParams), config);
     }
 
@@ -59,23 +61,15 @@ contract BespokeAction_Advanced is Mandate {
     {
         Mem memory mem;
 
-        ( 
-            mem.targetContract,
-            mem.targetFunction,
-            mem.staticParamsBefore, ,
-            mem.staticParamsAfter
-        ) = abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes, string[], bytes));
+        (mem.targetContract, mem.targetFunction, mem.staticParamsBefore,, mem.staticParamsAfter) =
+            abi.decode(getConfig(powers, mandateId), (address, bytes4, bytes, string[], bytes));
         actionId = MandateUtilities.computeActionId(mandateId, mandateCalldata, nonce);
 
         // Send the calldata to the target function
         (targets, values, calldatas) = MandateUtilities.createEmptyArrays(1);
         targets[0] = mem.targetContract;
-        calldatas[0] = abi.encodePacked( 
-            mem.targetFunction,
-            mem.staticParamsBefore,
-            mandateCalldata,
-            mem.staticParamsAfter
-        );
+        calldatas[0] =
+            abi.encodePacked(mem.targetFunction, mem.staticParamsBefore, mandateCalldata, mem.staticParamsAfter);
 
         return (actionId, targets, values, calldatas);
     }

@@ -113,7 +113,7 @@ contract Powers is EIP712, IPowers, Context {
         MAX_CALLDATA_LENGTH = maxCallDataLength_;
         MAX_RETURN_DATA_LENGTH = maxReturnDataLength_;
         MAX_EXECUTIONS_LENGTH = maxExecutionsLength_;
-        
+
         emit Powers__Initialized(address(this), name, uri);
     }
 
@@ -132,7 +132,7 @@ contract Powers is EIP712, IPowers, Context {
 
     function _constitute(MandateInitData[] memory constituentMandates, address newAdmin) internal {
         address currentAdmin = getRoleHolderAtIndex(ADMIN_ROLE, 0); // before constitute is called, there should be only one admin.
-        
+
         // check 1: only admin can call this function
         if (currentAdmin != _msgSender()) revert Powers__NotAdmin();
 
@@ -146,7 +146,7 @@ contract Powers is EIP712, IPowers, Context {
             _setRole(ADMIN_ROLE, currentAdmin, false);
             _setRole(ADMIN_ROLE, newAdmin, true);
         }
-        
+
         // ...and set mandates as active.
         for (uint256 i = 0; i < constituentMandates.length; i++) {
             // note: ignore empty slots in MandateInitData array.
@@ -156,7 +156,6 @@ contract Powers is EIP712, IPowers, Context {
         }
         emit ConstitutionExecuted();
     }
-
 
     //////////////////////////////////////////////////////////////
     //                  GOVERNANCE LOGIC                        //
@@ -261,7 +260,7 @@ contract Powers is EIP712, IPowers, Context {
             }
         }
 
-        // emit event. -- commented out to save gas, can be re-enabled if needed. 
+        // emit event. -- commented out to save gas, can be re-enabled if needed.
         // emit ActionExecuted(mandateId, actionId, targets, values, calldatas);
 
         // register latestFulfillment at mandate. -- is there anyway to do this more efficiently?
@@ -299,11 +298,13 @@ contract Powers is EIP712, IPowers, Context {
     /// @dev The mechanism checks for the length of targets and calldatas.
     ///
     /// Emits a {SeperatedPowersEvents::proposedActionCreated} event.
-    function _propose(address caller, uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce, string memory uriAction)
-        internal
-        virtual
-        returns (uint256 actionId)
-    {
+    function _propose(
+        address caller,
+        uint16 mandateId,
+        bytes calldata mandateCalldata,
+        uint256 nonce,
+        string memory uriAction
+    ) internal virtual returns (uint256 actionId) {
         // (uint8 quorum,, uint32 votingPeriod,,,,,) = Mandate(targetMandate).conditions();
         Conditions memory conditions = getConditions(mandateId);
         actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
@@ -360,7 +361,11 @@ contract Powers is EIP712, IPowers, Context {
     /// @notice Internal cancel mechanism with minimal restrictions. A proposedAction can be cancelled in any state other than
     /// Cancelled or Executed. Once cancelled a proposedAction cannot be re-submitted.
     /// Emits a {SeperatedPowersEvents::proposedActionCanceled} event.
-    function _cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce) internal virtual returns (uint256) {
+    function _cancel(uint16 mandateId, bytes calldata mandateCalldata, uint256 nonce)
+        internal
+        virtual
+        returns (uint256)
+    {
         uint256 actionId = Checks.computeActionId(mandateId, mandateCalldata, nonce);
 
         // check 1: does action exist?
@@ -421,7 +426,7 @@ contract Powers is EIP712, IPowers, Context {
         mandateId = _adoptMandate(mandateInitData);
         // emit event.
         emit MandateAdopted(mandateCounter - 1);
-        
+
         return mandateId;
     }
 
@@ -458,7 +463,8 @@ contract Powers is EIP712, IPowers, Context {
         mandates[mandateCounter].conditions = mandateInitData.conditions;
         mandateCounter++;
 
-        Mandate(mandateInitData.targetMandate).initializeMandate(mandateCounter - 1, mandateInitData.nameDescription, "", mandateInitData.config);
+        Mandate(mandateInitData.targetMandate)
+            .initializeMandate(mandateCounter - 1, mandateInitData.nameDescription, "", mandateInitData.config);
 
         return mandateCounter - 1;
     }
@@ -761,7 +767,11 @@ contract Powers is EIP712, IPowers, Context {
     }
 
     /// @inheritdoc IPowers
-    function getAdoptedMandate(uint16 mandateId) external view returns (address mandate, bytes32 mandateHash, bool active) {
+    function getAdoptedMandate(uint16 mandateId)
+        external
+        view
+        returns (address mandate, bytes32 mandateHash, bool active)
+    {
         mandate = mandates[mandateId].targetMandate;
         active = mandates[mandateId].active;
         mandateHash = keccak256(abi.encode(address(this), mandateId));
